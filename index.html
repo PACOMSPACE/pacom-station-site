@@ -2260,6 +2260,14 @@ p {
 .btn.primary:disabled:hover {
   background: linear-gradient(#282828, #080808);
 }
+/* 工具栏中不可用但仍可聚焦、带原因提示的按钮（aria-disabled，2026-10-05 核查 S5）：外观与 disabled 相同；忙碌态的 aria-disabled 不在此列。 */
+.ws-tb-actions .btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.ws-tb-actions .btn.primary[aria-disabled="true"]:hover {
+  background: linear-gradient(#282828, #080808);
+}
 .iconbtn {
   border-radius: 8px;
 }
@@ -4583,8 +4591,15 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 /* 删除楼层：已选数与受阻楼层。 */
 #dlg .ws-task-count { margin:8px 0; font-size:14px; line-height:24px; color:var(--text3); }
 #dlg .ws-task-blocked small { color:#b42318; }
+/* 触屏平板（宽于 850px）上，设备页与配置进度页的弹窗同项目页弹窗：输入、选择与按钮点击区 44px（2026-10-05 核查合并细节第 12 条：
+   复制设备、准备现场绑定、部署包、交付与现场安装资料原先为 32px，复制功能区与上传楼层图为 44px；宽度 ≤850px 时各页原本都是 44px）。 */
+@media (pointer: coarse) {
+ :is(#dlg[data-page=devices],#dlg[data-page=deployment]) :is(.input:not(textarea),.ws-select > button,.btn,.iconbtn) { min-height:44px; }
+}
 @media (pointer: coarse), (max-width: 850px) {
  .dialog .df .ws-err-sum { min-height:44px; }
+ /* 折叠说明（如“增补设备的现场绑定”的“规划提醒”）在触屏上点击区 44px（2026-10-05 核查合并细节第 12 条：原先约 21px 高）。 */
+ .ws-details summary { min-height:44px; }
 }
 /* 功能区划分状态等提示中的日期整体不换行。 */
 .ws-nowrap { white-space:nowrap; }
@@ -5625,6 +5640,12 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .ws-space-page > .ws-building-stage > .spatial-building-top > .spatial-drawing-controls { position:relative; }
 .ws-space-page > .ws-building-stage > .spatial-building-top > .ws-building-note { position:static; display:block; margin:12px auto 0; max-width:100%; }
 .ws-space-page > .ws-building-stage > #buildingImage { align-self:center; max-width:100%; }
+/* 标记楼层时工具条与提示占用画布上方独立的一行，楼宇图片排在其下，不再压住图片上方的楼层（2026-10-05 核查 S6：原先压住 RF 等最高几层，在那里画的范围看不见）。
+   仍在楼宇画布内上方居中，不占工具栏或标题行；控件换行时这一行随之加高。 */
+.ws-space-page > .ws-building-stage:has(> .spatial-building-top) { grid-template-rows:auto minmax(0, 1fr); }
+.ws-space-page > .ws-building-stage:has(> .spatial-building-top) > .ws-rail { grid-row:1 / -1; }
+.ws-space-page > .ws-building-stage > .spatial-building-top { position:relative; top:auto; left:auto; right:auto; grid-area:1 / 2; margin:12px 0 8px; }
+.ws-space-page > .ws-building-stage:has(> .spatial-building-top) > #buildingImage { grid-area:2 / 2; }
 @media (max-width:850px) {
  .ws-space-page > :is(.ws-workbench, .ws-building-stage) { --rail-x:8px; --rail-y:8px; --rail-w:52px; --rail-gap:8px; }
  .ws-space-page > .ws-building-stage { padding:0 8px 0 0; }
@@ -6063,6 +6084,8 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 #dlg .sp-rename tr.bad td:last-child { color:#b42318; }
 #dlg .sp-rename td small { display:block; font-size:12px; line-height:16px; }
 /* 绘制吸附（B6）：对齐到相邻范围的顶点（实心）或边（空心）时显示位置；按住 Alt 临时关闭。 */
+/* 调整边界时各边中点的添加顶点位置（核查 Z6）：比顶点手柄小、浅，不接收指针。 */
+.spatial-editor > .spatial-mid { position:absolute; width:7px; height:7px; margin:-3.5px 0 0 -3.5px; border:1.5px solid #00aeef; border-radius:50%; background:#fff; opacity:.85; pointer-events:none; z-index:1; }
 .spatial-editor > .spatial-snap { position:absolute; width:12px; height:12px; margin:-6px 0 0 -6px; border-radius:50%; background:#00aeef; box-shadow:0 0 0 2px #fff, 0 0 0 3px #00aeef66; pointer-events:none; z-index:3; }
 .spatial-editor > .spatial-snap.edge { background:#fff; border:2px solid #00aeef; box-shadow:0 0 0 2px #ffffffb3; }
 
@@ -6759,17 +6782,15 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 #toast { pointer-events:none; }
 body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 /* Project workflow audit: persistent notices, editing states and narrow-screen targets. */
-.ws-notice { display:flex; align-items:flex-start; gap:12px; padding:10px 16px; margin:12px 0; border-radius:8px; background:#e7e7e7; color:#030303; box-shadow:inset 0 0 0 .5px #77777166; font-size:14px; line-height:24px; }
+/* 持续提示在各页相同（GLOBAL03；2026-10-05 核查合并细节第 9 条：原先只有项目页按此写法，设备、配置进度等页的信息提示为 #e7e7e7 底、0.5px 边线、图文间 12px，成功提示为另一种绿色）。 */
+.ws-notice { display:flex; align-items:flex-start; gap:8px; padding:10px 16px; margin:12px 0; border-radius:8px; background:oklch(.5674 .009 106.68 / .16); color:oklch(.1 0 0); box-shadow:inset 0 0 0 1px oklch(.55 .002 107 / .16); font-size:14px; line-height:24px; }
 .ws-notice > .ic { flex:0 0 16px; width:16px; height:16px; margin-top:4px; }
 .ws-notice > span { flex:1; min-width:0; overflow-wrap:anywhere; }
 .ws-notice > span > .btn { margin:8px 0 0; display:flex; width:fit-content; }
-.ws-notice.success { background:#dfead5; color:#347714; box-shadow:none; }
+.ws-notice.success { background:oklch(.5442 .1689 138.23 / .16); color:oklch(.4582 .1382 138.23); box-shadow:none; }
 .ws-notice.warning { background:var(--warnbg); color:var(--warn); box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--warn) 30%,transparent); }
 .ws-notice.error { background:var(--critbg); color:var(--crit); box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--crit) 30%,transparent); }
 .form-error .ws-notice { margin:0; }
-:is(#app[data-page=projects],#dlg[data-page=projects]) .ws-notice { gap:8px; }
-:is(#app[data-page=projects],#dlg[data-page=projects]) .ws-notice.info { background:oklch(.5674 .009 106.68 / .16); color:oklch(.1 0 0); box-shadow:inset 0 0 0 1px oklch(.55 .002 107 / .16); }
-:is(#app[data-page=projects],#dlg[data-page=projects]) .ws-notice.success { background:oklch(.5442 .1689 138.23 / .16); color:oklch(.4582 .1382 138.23); box-shadow:none; }
 
 /* ========== 11. 项目页材质覆盖：字段、分段控件、复选框、对话框标题与提示条（只作用于项目页、项目弹窗与菜单，放在最后以覆盖各组件中的共用写法） ========== */
 /* Project component materials, scoped so reviewed account pages remain unchanged. */
@@ -8337,6 +8358,17 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
   font-size: 13px;
   white-space: nowrap;
   color: var(--text2);
+}
+/* 触屏上“规划检查”胶囊的点击区上下各扩 6px 到 44px，外观不变（2026-10-05 核查 C5：原先只有 32px 高）。 */
+@media (max-width: 850px), (pointer: coarse) {
+  .mk-pill {
+    position: relative;
+  }
+  .mk-pill::before {
+    content: "";
+    position: absolute;
+    inset: -6px 0;
+  }
 }
 .mk-pill.on {
   box-shadow:
@@ -20511,11 +20543,15 @@ const StationFlowModel = ((M) => {
   let sampleMark = null;
   const setSampleMark = (m) => (sampleMark = m || null);
   const roundTo = (v, d = 2) => (v == null ? null : Math.round(v * 10 ** d) / 10 ** d);
-  const FLOOR_KINDS = { above: "地上", below: "地下", roof: "屋面", special: "特殊层", site: "总平面" };
+  // 导出与页面用词一致（2026-10-05 核查 S11）：屋顶层（页面“包含屋顶层 RF”）；坐标按记录的坐标系写明，未记录时按天地图 CGCS2000；
+  // 时区写名称与 IANA 名称，并注明各时间按项目时区显示。机器读取的 JSON 字段不变。
+  const FLOOR_KINDS = { above: "地上", below: "地下", roof: "屋顶层", special: "特殊层", site: "总平面" };
+  const crsName = (c) => (c === "WGS84" ? "WGS 84" : c || "CGCS2000");
+  const zoneNote = (tz, zone) => (tz ? `按项目时区显示 · ${zone(tz)}` : "项目时区未设置，按 UTC 显示");
   const FACADE_NAMES = { north: "北", south: "南", east: "东", west: "西" };
   const locOf = (o) =>
     o?.location && Number.isFinite(o.location.lat) && Number.isFinite(o.location.lng)
-      ? { lat: o.location.lat, lng: o.location.lng, crs: o.location.crs || "WGS84", confirmed: !!o.location.confirmed, confirmedAt: o.location.confirmedAt || null }
+      ? { lat: o.location.lat, lng: o.location.lng, crs: o.location.crs || "CGCS2000", confirmed: !!o.location.confirmed, confirmedAt: o.location.confirmedAt || null }
       : null;
   // 手工登记面积的显示：与导出同一判断，未知（null、空字符串、非数值）不写 0。
   const areaText = (v, empty = "未填写") => {
@@ -20758,9 +20794,9 @@ const StationFlowModel = ((M) => {
         area: "m²",
         length: "m",
         geometry: "图纸坐标：占当前图纸宽 / 高的百分比（0–100），原点在左上角，对应 floors[].plan.version",
-        location: "十进制度（CGCS2000，与 WGS 84 相差在厘米级，未作转换）",
+        location: "十进制度；坐标系见各位置的 crs（CGCS2000 或 WGS84，两者相差在厘米级，未作转换）",
         north: "北向相对图纸上方顺时针角度（°），null 为未设置",
-        level: "层号：地上为正、地下为负；屋面与特殊层的层号只用于排序，楼宇内自上而下的顺序见 order",
+        level: "层号：地上为正、地下为负；屋顶层与特殊层的层号只用于排序，楼宇内自上而下的顺序见 order",
       },
       deployScope: snap.deployScope,
       project: snap.project,
@@ -20772,7 +20808,7 @@ const StationFlowModel = ((M) => {
     });
   }
   // ---------- PDF 空间资料报告：内容块（界面负责排版为 PDF）；未知值以“—”表示，不写 0 ----------
-  function spaceReport(snap, { exportedAt = M.now(), time = (t) => t, withDeploy = false } = {}) {
+  function spaceReport(snap, { exportedAt = M.now(), time = (t) => t, zone = (tz) => tz, withDeploy = false } = {}) {
     const NA = "—",
       val = (x) => (x == null || x === "" ? NA : String(x)),
       num = (x, dg = 1) => (x == null ? NA : Number(x).toLocaleString("zh-CN", { minimumFractionDigits: dg, maximumFractionDigits: dg })),
@@ -20801,6 +20837,7 @@ const StationFlowModel = ((M) => {
           ["导出范围", `${snap.range.label}（${snap.range.kind === "building" ? "单栋楼宇" : "整个项目"}）`],
           ["快照时间", time(snap.takenAt)],
           ["导出时间", time(exportedAt)],
+          ["时间说明", zoneNote(p.timezone, zone)],
           ["生成人", val(snap.by)],
           ["数据来源", snap.source],
           ["存档序号", v.workspaceRevision == null ? NA : "r" + v.workspaceRevision],
@@ -20817,16 +20854,16 @@ const StationFlowModel = ((M) => {
           ["类型", val(p.usage)],
           ["所在地", [p.country, p.province, p.city, p.district].filter(Boolean).join(" ") || NA],
           ["详细地址", val(p.address)],
-          ["地图坐标", p.location ? `${p.location.lat.toFixed(6)}, ${p.location.lng.toFixed(6)}（${p.location.crs}）` : NA],
+          ["地图坐标", p.location ? `${p.location.lat.toFixed(6)}, ${p.location.lng.toFixed(6)}（${crsName(p.location.crs)}）` : NA],
           ["位置核对", p.location?.confirmed ? "已核对" : "位置待核对"],
-          ["时区", val(p.timezone)],
+          ["时区", p.timezone ? zone(p.timezone) : NA],
           ["说明", val(p.description)],
         ],
       },
       { t: "h2", text: "空间结构" },
       {
         t: "table",
-        cols: [["楼宇", 0.14], ["用途", 0.1], ["地上 / 地下 / 屋面", 0.18], ["建筑面积（m²）", 0.16, "r"], ["面积来源", 0.1], ["导出楼层", 0.1, "r"], ["有图纸", 0.1, "r"], ["功能区", 0.12, "r"]],
+        cols: [["楼宇", 0.14], ["用途", 0.1], ["地上 / 地下 / 屋顶层", 0.18], ["建筑面积（m²）", 0.16, "r"], ["面积来源", 0.1], ["导出楼层", 0.1, "r"], ["有图纸", 0.1, "r"], ["功能区", 0.12, "r"]],
         rows: snap.buildings.map((b) => {
           const fs = snap.floors.filter((f) => f.buildingId === b.id);
           return [
@@ -20947,14 +20984,14 @@ const StationFlowModel = ((M) => {
   // ---------- Excel 空间清单：说明、楼宇、楼层、功能区、待补项；未知值留空（不写 0） ----------
   const SHAPE_NAMES = { rectangle: "矩形", ellipse: "圆形", polygon: "多边形", lasso: "套索" };
   const OBJECT_KINDS = { projects: "项目", buildings: "楼宇", floors: "楼层", zones: "功能区" };
-  function spaceSheets(snap, { exportedAt = M.now(), time = (t) => t } = {}) {
+  function spaceSheets(snap, { exportedAt = M.now(), time = (t) => t, zone = (tz) => tz } = {}) {
     const bName = new Map(snap.buildings.map((b) => [b.id, b.name])),
       fById = new Map(snap.floors.map((f) => [f.id, f])),
       p = snap.project,
       d = snap.deployScope,
       c = snap.counts,
       v = snap.versions,
-      loc = (l) => (l ? `${l.lat.toFixed(6)}, ${l.lng.toFixed(6)}（${l.crs}）` : null),
+      loc = (l) => (l ? `${l.lat.toFixed(6)}, ${l.lng.toFixed(6)}（${crsName(l.crs)}）` : null),
       table = (name, defs, list) => ({
         name,
         filter: true,
@@ -20975,6 +21012,7 @@ const StationFlowModel = ((M) => {
         ["导出范围", `${snap.range.label}（${snap.range.kind === "building" ? "单栋楼宇" : "整个项目"}）`],
         ["快照时间", time(snap.takenAt)],
         ["导出时间", time(exportedAt)],
+        ["时间说明", zoneNote(p.timezone, zone)],
         ["生成人", snap.by || null],
         ["数据来源", snap.source],
         ["存档序号", v.workspaceRevision == null ? null : "r" + v.workspaceRevision],
@@ -20996,9 +21034,9 @@ const StationFlowModel = ((M) => {
         ["详细地址", p.address],
         ["地图坐标", loc(p.location)],
         ["位置核对", p.location?.confirmed ? "已核对" : "位置待核对"],
-        ["时区", p.timezone],
+        ["时区", p.timezone ? zone(p.timezone) : null],
         ["项目说明", p.description],
-        ["单位", "面积 m²；长度 m；功能区坐标为占所在楼层图纸宽 / 高的百分比（0–100），原点在左上角，对应该楼层当前图纸版本；地图坐标为十进制度（CGCS2000，与 WGS 84 相差在厘米级，未作转换）"],
+        ["单位", "面积 m²；长度 m；功能区坐标为占所在楼层图纸宽 / 高的百分比（0–100），原点在左上角，对应该楼层当前图纸版本；地图坐标为十进制度，坐标系写在坐标后或“坐标系”列（CGCS2000 与 WGS 84 相差在厘米级，未作转换）"],
         ["未知值", "留空，不表示 0。面积来源：“登记值”为人工填写；“按图面估算”由已校准比例尺与功能区图形计算"],
         ["不含", "配置参数、设备点位与部署包、网络凭据、图片与图纸原件"],
       ],
@@ -21012,13 +21050,14 @@ const StationFlowModel = ((M) => {
         ["用途", 10, "text", (b) => b.usage],
         ["地上层数", 10, "int", (b) => b.above],
         ["地下层数", 10, "int", (b) => b.below],
-        ["屋面层", 8, "text", (b) => (b.roof ? "有" : "无")],
+        ["屋顶层 RF", 10, "text", (b) => (b.roof ? "有" : "无")],
         ["建筑面积（m²）", 14, "area", (b) => b.area.value],
         ["面积来源", 10, "text", (b) => b.area.source],
         ["详细地址", 24, "text", (b) => b.address],
         ["纬度", 12, "coord", (b) => b.location?.lat],
         ["经度", 12, "coord", (b) => b.location?.lng],
-        ["位置核对", 10, "text", (b) => (b.sameAsProject ? "与项目同一位置" : b.location ? (b.location.confirmed ? "已核对" : "位置待核对") : null)],
+        ["坐标系", 10, "text", (b) => (b.location ? crsName(b.location.crs) : null)],
+        ["位置核对", 10, "text", (b) => (b.sameAsProject ? "与项目同一位置" + (!p.location ? "（项目暂未定位）" : p.location.confirmed ? "" : "（项目位置待核对）") : b.location ? (b.location.confirmed ? "已核对" : "位置待核对") : null)],
         ["导出楼层数", 10, "int", (b) => b.floorCount],
         ["说明", 40, "text", (b) => b.description],
       ],
@@ -21933,6 +21972,11 @@ const StationFlowModel = ((M) => {
   }
   // 交付过（有服务回执的交付记录，含交付后增补）的网络不保留常开的部署期代理，现场需要时用限时现场接入（Doc1 7.4）
   const everDelivered = (db, nid) => db.deliveries.some((d) => d.networkId === nid && d.serviceReceiptId);
+  // 跨楼层连通（2026-10-05 核查 N1；部署规范 6.2“楼梯间和竖井附近各一台”）：以楼梯间、电梯厅类型的功能区作为楼层之间通道的位置参考。
+  const PASSAGE_TYPES = ["楼梯间", "电梯厅"];
+  const zoneMid = (z) => ({ floorId: z.floorId, x: z.x + z.w / 2, y: z.y + z.h / 2 });
+  // 中继的最低需要：网关所在楼层参考 gatewayRelays 个，跨楼层网络的其他楼层各 1 个。小网络在这个数以内不按比例提示（比例只作参考，合并结论 N1）。
+  const relayNeed = (n, t, gw, fid) => (gw?.floorId === fid ? t.gatewayRelays : n.floorIds.length > 1 ? 1 : 0);
   function roleChecks(db, n) {
     const t = templates(n),
       ps = meshPoints(db, n.id),
@@ -21941,10 +21985,12 @@ const StationFlowModel = ((M) => {
       delivered = everDelivered(db, n.id),
       rows = [];
     // kind：relay 中继比例、scale 比例尺、proxy 部署期代理、gatewayRelays 网关附近中继、gaps 间距、manual 现场核对
+    const need = n.floorIds.reduce((s, fid) => s + (ps.some((p) => p.floorId === fid) ? relayNeed(n, t, gw, fid) : 0), 0),
+      over = ps.length && (rel.length / ps.length) * 100 > t.relayPercent;
     rows.push({
       kind: "relay",
-      level: ps.length && (rel.length / ps.length) * 100 > t.relayPercent ? "warning" : "info",
-      text: `中继 ${rel.length} / ${ps.length} 个节点${ps.length ? " · " + ((rel.length / ps.length) * 100).toFixed(1) + "%" : ""}；参考上限 ${t.relayPercent}%（稀疏布局 ${t.sparseRelayPercent}%）`,
+      level: over && rel.length > need ? "warning" : "info",
+      text: `中继 ${rel.length} / ${ps.length} 个节点${ps.length ? " · " + ((rel.length / ps.length) * 100).toFixed(1) + "%" : ""}；参考上限 ${t.relayPercent}%（稀疏布局 ${t.sparseRelayPercent}%）${over && rel.length <= need ? `；网关附近与跨楼层所需的 ${need} 个以内不按比例提示` : ""}`,
     });
     for (const fid of n.floorIds) {
       const f = M.floor(db, fid),
@@ -21957,6 +22003,23 @@ const StationFlowModel = ((M) => {
         floorId: fid,
         text: `${M.building(db, f.buildingId).name} ${f.name}：${hasScale ? "比例尺已设置" : "未设比例尺；继续规划，仅暂不检查米制间距"}`,
       });
+      // 跨楼层网络逐层列出中继（2026-10-05 核查 N1：原先只按整网计算）：比例只作参考，明显偏多（超过稀疏布局参考且多于本层所需）才提示；
+      // 没有网关的楼层没有中继时提示跨楼层连通；有比例尺和楼梯间、电梯厅时，检查其附近有没有中继。
+      if (n.floorIds.length > 1) {
+        const fr = here.filter((p) => p.relay),
+          pct = here.length ? (fr.length / here.length) * 100 : 0;
+        rows.push({
+          kind: "floorRelay",
+          level: here.length && pct > t.sparseRelayPercent && fr.length > relayNeed(n, t, gw, fid) ? "warning" : "info",
+          floorId: fid,
+          text: `本层中继 ${fr.length} / ${here.length} 个节点${here.length ? " · " + pct.toFixed(1) + "%" : ""}；比例只作参考，整网比例见上`,
+        });
+        const pass = hasScale ? db.zones.filter((z) => z.floorId === fid && PASSAGE_TYPES.includes(z.spaceType)) : [];
+        if (here.length && !fr.length && gw?.floorId !== fid)
+          rows.push({ kind: "crossFloor", level: "warning", floorId: fid, text: "本层没有网关，也没有中继：本层设备要经中继与网关所在楼层连通；参考在楼梯间、竖井附近各规划一台" });
+        else if (fr.length && pass.length && !pass.some((z) => fr.some((p) => (distance(db, p, zoneMid(z)) ?? Infinity) <= t.relayGap)))
+          rows.push({ kind: "crossFloor", level: "warning", floorId: fid, text: `楼梯间、电梯厅 ${t.relayGap} 米内没有中继：跨楼层连通可能不足；参考在楼梯间、竖井附近各规划一台` });
+      }
       // 部署期代理按阶段提示（2026-10-05 核查 N2）：部署期是现场 App 的临时接入，交付前关闭；交付过的网络不再提示补代理
       rows.push(
         !delivered
@@ -22006,9 +22069,19 @@ const StationFlowModel = ((M) => {
     const suggestions = [],
       t = templates(n),
       gw = gateway(db, n.id);
+    // 2026-10-05 核查 N1：原先按间距一直加中继，没有上限（9 个节点建议 2 台，占 22%）。现在每层建议的中继不超过本层所需
+    // （网关附近 gatewayRelays 个；跨楼层网络的其他楼层 1 个）与本层节点数 relayPercent% 两者中较大的数；仍有超过 relayGap 的间距时
+    // 按稀疏布局放宽到 sparseRelayPercent%；超过比例与仍有间距不足的原因由 roleSuggestionNotes 写明。
+    // 没有网关的楼层优先选靠近楼梯间、电梯厅的 MS20；部署期代理分散到楼层两端（原先取列表前几台，常扎在一端）。
+    const far = (a, b) => distance(db, a, b) ?? Math.hypot(a.x - b.x, a.y - b.y);
     for (const fid of n.floorIds) {
       const ms = M.networkPoints(db, n.id).filter((p) => p.floorId === fid && p.type === "ms");
       if (!ms.length) continue;
+      const nodes = meshPoints(db, n.id).filter((p) => p.floorId === fid).length,
+        need = relayNeed(n, t, gw, fid),
+        // 至少留 proxyMin 台 MS20 给部署期代理
+        caps = [t.relayPercent, t.sparseRelayPercent].map((pc) => Math.min(ms.length - t.proxyMin, Math.max(need, Math.floor((nodes * pc) / 100)))),
+        pass = db.zones.filter((z) => z.floorId === fid && PASSAGE_TYPES.includes(z.spaceType)).map(zoneMid);
       const rel = [];
       if (gw?.floorId === fid) {
         const sorted = [...ms].sort(
@@ -22017,18 +22090,59 @@ const StationFlowModel = ((M) => {
         );
         rel.push(...sorted.slice(0, Math.min(t.gatewayRelays, Math.max(0, ms.length - t.proxyMin))));
       }
-      if (!rel.length && ms.length > t.proxyMin) rel.push(ms[0]);
-      while (rel.length && ms.some((p) => !rel.includes(p) && rel.every((q) => (distance(db, p, q) ?? 0) > t.relayGap))) {
-        const p = ms
-          .filter((p) => !rel.includes(p))
-          .sort((a, b) => Math.min(...rel.map((q) => distance(db, b, q) ?? 0)) - Math.min(...rel.map((q) => distance(db, a, q) ?? 0)))[0];
-        rel.push(p);
-        if (rel.length >= ms.length - t.proxyMin) break;
+      if (!rel.length && caps[0] > 0)
+        rel.push(pass.length ? ms.reduce((a, b) => (Math.min(...pass.map((z) => far(b, z))) < Math.min(...pass.map((z) => far(a, z))) ? b : a)) : ms[0]);
+      const gap = () => ms.some((p) => !rel.includes(p) && rel.every((q) => (distance(db, p, q) ?? 0) > t.relayGap));
+      for (const cap of caps)
+        while (rel.length && rel.length < cap && gap())
+          rel.push(
+            ms
+              .filter((p) => !rel.includes(p))
+              .sort((a, b) => Math.min(...rel.map((q) => distance(db, b, q) ?? 0)) - Math.min(...rel.map((q) => distance(db, a, q) ?? 0)))[0],
+          );
+      const pool = ms.filter((p) => !rel.includes(p)),
+        proxies = [];
+      if (pool.length) {
+        // 先取离本层这些 MS20 中心最远的一台，之后每次取离已选代理最远的一台。
+        const mid = { floorId: fid, x: pool.reduce((s, p) => s + p.x, 0) / pool.length, y: pool.reduce((s, p) => s + p.y, 0) / pool.length },
+          spread = (p) => Math.min(...proxies.map((q) => far(p, q)));
+        proxies.push(pool.reduce((a, b) => (far(b, mid) > far(a, mid) ? b : a)));
+        while (proxies.length < Math.min(t.proxyMin, pool.length)) proxies.push(pool.filter((p) => !proxies.includes(p)).reduce((a, b) => (spread(b) > spread(a) ? b : a)));
       }
-      const proxies = ms.filter((p) => !rel.includes(p)).slice(0, t.proxyMin);
       for (const p of ms) suggestions.push({ id: p.id, relay: rel.includes(p), proxy: proxies.includes(p) });
     }
     return suggestions;
+  }
+  // 自动建议超过本层参考比例、或建议后仍有间距不足时写明原因（2026-10-05 核查 N1；第三次对照结论：自动建议遵守比例，冲突时说明原因）。
+  function roleSuggestionNotes(db, n, suggestions) {
+    const t = templates(n),
+      gw = gateway(db, n.id),
+      relay = new Set(suggestions.filter((x) => x.relay).map((x) => x.id)),
+      out = [];
+    for (const fid of n.floorIds) {
+      const f = M.floor(db, fid),
+        name = f?.name || "本层",
+        here = meshPoints(db, n.id).filter((p) => p.floorId === fid),
+        rel = here.filter((p) => relay.has(p.id));
+      if (!here.length) continue;
+      if ((rel.length / here.length) * 100 > t.relayPercent)
+        out.push(
+          `${name} 建议中继 ${rel.length} / ${here.length} 个节点，超过参考比例 ${t.relayPercent}%：${
+            rel.length > relayNeed(n, t, gw, fid)
+              ? `有节点距最近中继超过 ${t.relayGap} 米，按稀疏布局参考 ${t.sparseRelayPercent}% 补足`
+              : gw?.floorId === fid
+                ? `网关附近参考至少 ${t.gatewayRelays} 个`
+                : "跨楼层网络每层参考至少 1 个，与网关所在楼层连通"
+          }`,
+        );
+      // 有比例尺时才按米距判断（无比例尺不估算真实米距）
+      if (f?.scale && f.scale.planVersion === f.planVersion) {
+        const anchors = [...rel, ...(gw?.floorId === fid ? [gw] : [])],
+          left = here.filter((p) => !relay.has(p.id) && !anchors.some((q) => (distance(db, p, q) ?? Infinity) <= t.relayGap)).length;
+        if (left && anchors.length) out.push(`${name} 仍有 ${left} 个节点距最近网关／中继超过参考 ${t.relayGap} 米：需人工调整或现场核对`);
+      }
+    }
+    return out;
   }
   function latestHealth(db, nid, full = false) {
     return (db.healthRecords || [])
@@ -22871,9 +22985,25 @@ const StationFlowModel = ((M) => {
     // Marking order is free; the gateway is only needed first for field binding.
     const nets = scope.networkId ? [cx.networks.get(scope.networkId)].filter(Boolean) : scope.floorId ? M.networks(db, scope.floorId) : db.networks;
     for (const n of nets) {
-      const np = cx.byNetwork.get(n.id) || [];
-      if (!np.find((p) => p.type === "gw") && np.filter((p) => M.access(p) === "mesh").length)
-        hints.push({ id: "gw-" + n.id, text: `${n.name} 还没有网关点位：可稍后标记，现场绑定需先绑定网关`, ids: [] });
+      const np = cx.byNetwork.get(n.id) || [],
+        gw = np.find((p) => p.type === "gw"),
+        mesh = np.filter((p) => M.access(p) === "mesh"),
+        t = templates(n);
+      if (!gw && mesh.length) hints.push({ id: "gw-" + n.id, text: `${n.name} 还没有网关点位：可稍后标记，现场绑定需先绑定网关`, ids: [] });
+      // 没有中继、没有部署期代理时给出有依据的风险说明（2026-10-05 核查 N1：原先检查面板写 0 提示）。只作提示，不阻止交接；没有比例尺时不估算米距。
+      if (gw && mesh.length && !mesh.some((p) => p.relay)) {
+        const off = [...new Set(mesh.filter((p) => p.floorId !== gw.floorId).map((p) => p.floorId))],
+          near = mesh.filter((p) => p.floorId === gw.floorId).map((p) => distance(db, p, gw)),
+          fname = (fid) => cx.floors.get(fid)?.name || "";
+        if (off.length)
+          hints.push({ id: "nrl-" + n.id, text: `${n.name} 没有中继：${off.map(fname).join("、")} 没有网关，这些楼层的设备要经中继与网关所在的 ${fname(gw.floorId)} 连通`, ids: [] });
+        else if (near.some((d) => d == null))
+          hints.push({ id: "nrl-" + n.id, text: `${n.name} 没有中继：${fname(gw.floorId)} 未设比例尺，无法估算节点到网关的距离；请现场核对网关能否直接覆盖`, ids: [] });
+        else if (near.some((d) => d > t.relayGap))
+          hints.push({ id: "nrl-" + n.id, text: `${n.name} 没有中继：${near.filter((d) => d > t.relayGap).length} 个节点距网关超过参考 ${t.relayGap} 米`, ids: [] });
+      }
+      if (mesh.length && !mesh.some((p) => p.proxy) && !everDelivered(db, n.id))
+        hints.push({ id: "npx-" + n.id, text: `${n.name} 没有部署期代理：现场 App 没有临时接入的节点；参考每层 ${t.proxyMin}–${t.proxyMax} 个，交付前关闭`, ids: [] });
     }
     const floors = [...new Set(ps.map((p) => p.floorId))];
     for (const fid of floors) {
@@ -23305,6 +23435,7 @@ const StationFlowModel = ((M) => {
     everDelivered,
     roleChecks,
     autoRoles,
+    roleSuggestionNotes,
     latestHealth,
     networkState,
     changeSinceDelivery,
@@ -24290,7 +24421,9 @@ function route(page, scope = {}, opts = {}) {
   guard(() => {
     closePop();
     const from = snapshot(),
-      fromLabel = sourceLabel();
+      fromLabel = sourceLabel(),
+      // 来源返回同时恢复原本打开的信息面板（2026-10-05 核查 S12：原先从项目信息进入配置进度，返回后面板没有恢复）。
+      fromInfo = U.page === "projects" && U.spaceInfo ? { ...U.spaceInfo } : null;
     saveLevel();
     if (opts.remember) U.history.push(from);
     U.memory[U.page] = snapshot();
@@ -24346,7 +24479,7 @@ function route(page, scope = {}, opts = {}) {
     // 来源返回：从配置进度、配置参数、设备、总览进入项目空间时记住来源；回到来源、离开项目、换项目或上行到全部项目时清除。
     if ("source" in opts) U.source = opts.source;
     else if (opts.remember && fromLabel && page !== from.page)
-      U.source = { ...from, label: fromLabel };
+      U.source = { ...from, ...(fromInfo ? { spaceInfo: fromInfo } : {}), label: fromLabel };
     const src = U.source;
     if (src && (opts.root || (page === "projects" && !U.p) || (U.p && src.p && U.p !== src.p) || (page === src.page && U.tab === (src.tab || "") && U.b === src.b && U.f === src.f)))
       U.source = null;
@@ -24369,11 +24502,12 @@ function syncRoute(replace = false) {
     history[replace ? "replaceState" : "pushState"](null, "", U.page === "console" && location.hash.startsWith("#console") ? location.hash : "#" + U.page + (bq.size ? "?" + bq : ""));
     return;
   }
+  // 来源返回记在本历史项里（2026-10-05 核查 C1）：浏览器后退、前进回到哪一项，就恢复那一项进入时的来源。
   for (const k of ["p", "b", "f", "tab", "net", "ntab"]) if (U[k] && !(k === "ntab" && U[k] === "summary")) q.set(k, U[k]);
   if (["projects", "devices"].includes(U.page) && U.f && U.zone) q.set("z", U.zone);
   if (U.view !== "cards") q.set("view", U.view);
   if (U.mode !== (["projects", "deployment"].includes(U.page) ? "view" : "mark")) q.set("mode", U.mode);
-  history[replace ? "replaceState" : "pushState"](null, "", "#" + U.page + (q.size ? "?" + q : ""));
+  history[replace ? "replaceState" : "pushState"]({ source: U.source || null }, "", "#" + U.page + (q.size ? "?" + q : ""));
 }
 function readRoute() {
   const [page, query] = location.hash.slice(1).split("?"),
@@ -24800,6 +24934,15 @@ function missingPage() {
   )}</div>`;
 }
 // 室外区域（B7）：只有一张总平面图，进入区域即打开总平面；楼层轨道与选层按钮不显示，上一级为项目。
+// 楼宇没有图片时的空状态（2026-10-05 核查 S5）：划分功能区、标记设备都依赖楼层图，有楼层尚未上传楼层图时先引导“上传楼层图”，
+// 楼宇图片为选填、只用于标记各层位置，作为次级入口；楼层图都已上传时只说明楼宇图片。只读与运营角色不给上传指导。
+function buildingNoImage(b) {
+  if (!canEdit()) return empty("尚未上传楼宇图片", "点击左侧楼层进入平面图。", "");
+  const missing = !isOutdoor(b.id) && sortedFloors(b.id).some((f) => !f.image);
+  return missing
+    ? empty("尚未上传楼宇图片", "先上传楼层图，才能划分功能区、标记设备；楼宇图片为选填，用于标记各层位置。", btn("上传楼层图", "uploadPlan", { f: "" }) + btn("上传楼宇图片", "spaceForm", { kind: "buildings", id: b.id }, "ghost"))
+    : empty("尚未上传楼宇图片", "点击左侧楼层进入平面图；楼宇图片在编辑楼宇中上传。", btn("上传楼宇图片", "spaceForm", { kind: "buildings", id: b.id }));
+}
 // 楼层的读屏名称（轨道与楼宇图片上的楼层标记共用，核查 R27）：“7F”读作“7层”，RF 读作“屋顶层”。
 const floorSpeak = (f) => (f.name === "RF" ? "屋顶层" : f.name.replace(/F$/, "层"));
 const isOutdoor = (bid) => g("buildings", bid)?.kind === "outdoor";
@@ -24851,7 +24994,7 @@ pages.projects = () => {
     // 只读、运营角色不引导无权执行的创建（SPACE01、SPACE02）。
     content = empty(
       canEdit() ? (U.p ? "尚未创建楼宇" : "尚未创建项目") : U.p ? "本项目尚无可访问的楼宇" : "当前没有可访问的项目",
-      canEdit() ? U.p ? "创建楼宇并确定地上、地下层数，楼层会自动生成。" : "填写项目资料并确认地图位置后创建。" : "请联系机构管理员。",
+      canEdit() ? U.p ? "创建楼宇并确定地上、地下层数，楼层会自动生成。" : mapConfigured() ? "填写项目资料并确认地图位置后创建。" : "填写项目资料后创建；地图服务尚未配置时可暂不定位，之后再核对位置。" : "请联系机构管理员。",
       canEdit() ? btn(U.p ? "创建楼宇" : "创建项目", "spaceForm", { kind }) : "",
       "building-2",
     );
@@ -24952,6 +25095,10 @@ const zoneText = (tz) => {
   const off = tzOffset(tz), t = TZ_LIST.find((x) => x[0] === tz);
   return off == null ? tz + "（无效时区）" : `${t ? t[1] : tz}（UTC${off}）`;
 };
+// 导出中的时区：页面上的名称与 IANA 名称（2026-10-05 核查 S11）。
+const zoneLabel = (tz) => { const t = zoneText(tz); return t.startsWith(tz) ? t : `${t} · ${tz}`; };
+// 坐标说明按记录的坐标系（核查 S11：已有项目的坐标记为 WGS 84，页面原先一律写 CGCS2000，与导出不一致）；新落点按 CGCS2000 记录。
+const crsNote = (l) => (l?.crs === "WGS84" ? "按 WGS 84 记录（与天地图的 CGCS2000 相差在厘米级，未作转换）" : "按天地图 CGCS2000 记录（与 WGS 84 相差在厘米级，未作转换）");
 const coordinate = (l) =>
   l && Number.isFinite(+l.lat) && Number.isFinite(+l.lng)
     ? `${Math.abs(l.lat).toFixed(6)}° ${l.lat < 0 ? "S" : "N"}, ${Math.abs(l.lng).toFixed(6)}° ${l.lng < 0 ? "W" : "E"}`
@@ -24959,7 +25106,9 @@ const coordinate = (l) =>
 function buildingPage() {
   const b = currentBuilding();
   // C4（2026-10-03 用户确认）：右上依次为 信息 · 导出 · 上传楼层图（次级）· 标记楼层（黑色主按钮）；只读与运营人员不显示上传与标记。
-  const primary = canEdit() ? btn("上传楼层图", "uploadPlan", { f: "" }, "ws-upload-plan") + btn("标记楼层", "markBuilding", { disabled: !b.image || isMobile() }, "primary") : "";
+  // “标记楼层”不可用时仍可聚焦，悬停或聚焦说明原因（2026-10-05 核查 S5：原先禁用的主按钮不说明为什么不能用）。
+  const markWhy = !b.image ? "先上传楼宇图片，再标记楼层" : isMobile() ? wideHint("标记楼层位置", true) : "";
+  const primary = canEdit() ? btn("上传楼层图", "uploadPlan", { f: "" }, "ws-upload-plan") + btn("标记楼层", "markBuilding", {}, "primary").replace('data-act="markBuilding" ', markWhy ? `data-act="markBuilding" aria-disabled="true" aria-label="标记楼层：${markWhy}" data-tip="${markWhy}" ` : 'data-act="markBuilding" ') : "";
   // D1（2026-10-03 用户确认）：“楼层操作 / 定位楼层”是选择器组里的次级按钮，紧跟楼宇选择器；操作提示放在画布内。
   const floorTools = canEdit() ? menuTrigger(btn("楼层操作", "bTools", {}, "ws-floor-tools")) : btn("定位楼层", "floorLocate", {}, "ws-floor-tools");
   const bar = toolbar(projectActions("buildings", b.id, primary), false, floorTools);
@@ -24970,7 +25119,7 @@ function buildingPage() {
   const markTop = canEdit() && b.image && !isMobile() && U.buildingMark;
   return bar + `<div class="ws-building-stage">${floorRail()}${markTop ? `<div class="spatial-building-top">${spatialControl("标记楼层",true)}${noteHtml}</div>` : noteHtml}${b.image
     ? `<img id="buildingImage" style="transform:scale(${U.buildingZoom})" src="${esc(b.image)}" alt="${esc(b.name)}楼宇图"><div id="buildingCanvas" class="ws-building-canvas ${U.buildingMark ? "marking" : ""} ${split?.ids && !split.sel ? "split-pick" : ""}">${spatialBuildingRegions(b.id)}</div><div class="ws-building-bottom">${floorPick()}<div class="ws-building-zoom ws-zoom">${iconBtn("缩小楼宇图", "minus", "buildingZoom", { delta: "-.2" })}${btn(Math.round(U.buildingZoom * 100) + "%", "buildingFit", {}, "ghost sm")}${iconBtn("放大楼宇图", "plus", "buildingZoom", { delta: ".2" })}</div></div>`
-    : `<div class="ws-building-bottom">${floorPick()}</div>` + empty("尚未上传楼宇图片", canEdit() ? "点击左侧楼层进入平面图；楼宇图片在编辑楼宇中上传。" : "点击左侧楼层进入平面图。", canEdit() ? btn("上传楼宇图片", "spaceForm", { kind: "buildings", id: b.id }) : "")}</div>${railLegend()}`;
+    : `<div class="ws-building-bottom">${floorPick()}</div>` + buildingNoImage(b)}</div>${railLegend()}`;
 }
 // D8（2026-10-03 用户确认）：从楼层返回楼宇时，刚离开的楼层在轨道和楼宇图片上显示浅色底（不是选中态）；
 // 切换楼宇、离开项目或离开“项目”页后消失。U.railFloor 为上一次渲染时的当前楼层。
@@ -25257,11 +25406,16 @@ function imageField(image) {
 // 地图位置字段（2026-10-03 用户确认 C1、C3）：选中检索结果或地图落点即视为核对，不另设“已核对”勾选；
 // 楼宇默认“与项目同一位置”，可改为“单独定位”；项目在底图未加载时可“暂不定位”保存（空间检查记“位置待核对”）。
 function locationField(o, p, isB, same, outdoor = false) {
-  const map = `<div class="ws-form-map" id="formMap"${same ? " hidden" : ""}><div id="formLeaflet"></div><div class="ws-search map-search">${ico("search", "ic16")}<input id="mapSearch" placeholder="搜索地址或地点" aria-label="搜索地图地点"></div><div id="geoResults" class="ws-geo-results" hidden></div><div class="ws-map-controls">${iconBtn("缩小地图", "minus", "geoZoom", { delta: -1 })}${iconBtn("放大地图", "plus", "geoZoom", { delta: 1 })}</div></div>`;
+  const map = `<div class="ws-form-map" id="formMap"${same ? " hidden" : ""}><div id="formLeaflet"></div><div class="ws-search map-search">${ico("search", "ic16")}<input id="mapSearch" placeholder="${mapConfigured() ? "搜索地址或地点" : "地图服务尚未配置，暂不能检索"}" aria-label="搜索地图地点"${mapConfigured() ? "" : " disabled"}></div><div id="geoResults" class="ws-geo-results" hidden></div><div class="ws-map-controls">${iconBtn("缩小地图", "minus", "geoZoom", { delta: -1 })}${iconBtn("放大地图", "plus", "geoZoom", { delta: 1 })}</div></div>`;
   const mode = isB
     ? `<div class="ws-loc-mode" role="radiogroup" aria-label="${outdoor ? "室外区域位置" : "楼宇位置"}"><label class="row small"><input type="radio" name="locMode" value="project" ${same ? "checked" : ""}>与项目同一位置</label><label class="row small"><input type="radio" name="locMode" value="own" ${same ? "" : "checked"}>单独定位</label></div><p class="ws-loc-same" id="locSame"${same ? "" : " hidden"}>${esc(sameLocationText(p))}</p>`
     : "";
   return `<div class="field" id="mapField"><label${isB ? "" : ' for="mapSearch"'}>地图位置</label>${mode}${map}<div class="ws-address-status" id="addressStatus"></div>${!isB ? `<small class="ws-region" id="regionText">${regionLine()}</small><div class="ws-check-field" id="noLocField" hidden><label class="row small"><input type="checkbox" id="noLocation">暂不定位，保存后在空间检查中记为“位置待核对”</label></div>` : ""}</div>`;
+}
+// 楼宇沿用项目位置时写明项目本身的核对状态（2026-10-05 核查 S9：原先只写“与项目同一位置”，项目未定位也看不出）。
+function sameLocationCheck(p) {
+  const l = p?.location;
+  return "与项目同一位置" + (!l ? "（项目暂未定位）" : l.confirmed ? "" : "（项目位置待核对）");
 }
 function sameLocationText(p) {
   const l = p?.location;
@@ -25333,7 +25487,7 @@ function spaceForm(kind, id) {
         : fld("楼层面积（选填）", "spaceArea", input("spaceArea", o.area ?? "", "", "number"), "单位 m²；手工登记的楼层面积，不覆盖功能区图面估算面积。")
       : `${isB ? '<div class="ws-form-row">' : ""}${fld(isB ? "主要用途（选填）" : "项目类型（选填）", "spaceUsage", select("spaceUsage", [["", "暂不设置"], ...usages.map((s) => [s, s])], o.usage || "", isB ? "主要用途" : "项目类型")).replace('<div class="field"', `<div class="field ws-usage-field"${outdoor ? " hidden" : ""}`)}${
           isB ? fld(outdoor ? "占地面积（选填）" : "建筑面积（选填）", "spaceRegion", input("spaceRegion", o.area ?? "", "", "number"), "单位 m²；手工登记值。") + "</div>" : ""
-        }${isB && !outdoor ? `<div class="ws-bstruct"><div class="ws-form-row">${fld("地上层数", "spaceAbove", input("spaceAbove", o.above ?? "", "", "number"))}${fld("地下层数", "spaceBelow", input("spaceBelow", o.below ?? 0, "", "number"))}</div><label class="row small"><input id="spaceRoof" type="checkbox" ${o.roof ? "checked" : ""}>包含屋顶层 RF</label><p class="ws-struct-preview" id="structPreview" aria-live="polite">${esc(structText(structPlan(o.id ? o : null, o.above, o.below ?? 0, o.roof), !o.id))}</p></div>` : ""}${isB && !o.id ? `<div class="ws-bsite" hidden>${fld("总平面名称", "spaceSite", input("spaceSite", "总平面", "总平面"), "室外区域不设层数，只有这一张总平面图；名称之后可在“编辑总平面”中修改。")}</div>` : ""}${fld("详细地址", "spaceAddress", `<div class="ws-addr-row">${input("spaceAddress", o.address || p?.address || "", "输入可识别的详细地址")}${btn("定位已填地址", "geoAddress")}</div>`)}${locationField(o, p, isB, same, outdoor)}${!isB ? tzField(formState.timezone) : ""}${fld((isB ? (outdoor ? "区域" : "楼宇") : "项目") + "图片（选填）", "spaceImage", imageField(o.image))}`) +
+        }${isB && !outdoor ? `<div class="ws-bstruct"><div class="ws-form-row">${fld("地上层数", "spaceAbove", input("spaceAbove", o.above ?? "", "", "number"))}${fld("地下层数", "spaceBelow", input("spaceBelow", o.below ?? 0, "", "number"))}</div><label class="row small"><input id="spaceRoof" type="checkbox" ${o.roof ? "checked" : ""}>包含屋顶层 RF</label><p class="ws-struct-preview" id="structPreview" aria-live="polite">${esc(structText(structPlan(o.id ? o : null, o.above, o.below ?? 0, o.roof), !o.id))}</p></div>` : ""}${isB && !o.id ? `<div class="ws-bsite" hidden>${fld("总平面名称", "spaceSite", input("spaceSite", "总平面", "总平面"), "室外区域不设层数，只有这一张总平面图；名称之后可在“编辑总平面”中修改。")}</div>` : ""}${fld("详细地址", "spaceAddress", `<div class="ws-addr-row">${input("spaceAddress", o.address || p?.address || "", "输入可识别的详细地址")}${btn("定位已填地址", "geoAddress", mapConfigured() ? {} : { disabled: true })}</div>`)}${locationField(o, p, isB, same, outdoor)}${!isB ? tzField(formState.timezone) : ""}${fld((isB ? (outdoor ? "区域" : "楼宇") : "项目") + "图片（选填）", "spaceImage", imageField(o.image))}`) +
     fld(
       (isF ? (isOutdoor(o.buildingId) ? "总平面" : "楼层") : isB ? (outdoor ? "区域" : "楼宇") : "项目") + "说明（选填）",
       "spaceDescription",
@@ -25391,7 +25545,7 @@ function spaceInfo(kind, id) {
             ["时区", zoneText(isB ? g("projects", o.projectId)?.timezone : o.timezone)],
             ["说明", o.description || "未填写"],
           ],
-    )}<details class="ws-details"><summary>修改记录</summary>${recordsTable(data().records.filter((r) => r.objectId === id))}</details>${!isF ? note("坐标以十进制度显示 6 位小数；按天地图 CGCS2000 记录（与 WGS 84 相差在厘米级，未作转换）。显示精度不表示现场测量精度。") : ""}`,
+    )}<details class="ws-details"><summary>修改记录</summary>${recordsTable(data().records.filter((r) => r.objectId === id))}</details>${!isF ? note(`坐标以十进制度显示 6 位小数；${crsNote(o.location)}。显示精度不表示现场测量精度。`) : ""}`,
     btn("关闭", "close") +
       // 设备中的“楼层资料”看不到功能区：不在这里确认划分，改为进入项目该层的逐层核对（2026-10-03，与 B1 一致）。
       (isF && canEdit() && o.image && data().zones.some((z) => z.floorId === id) && F.zoneReviewState(data(), id).state !== "valid"
@@ -26120,9 +26274,10 @@ async function saveSpaceForm() {
       location = pl ? M.copy(pl) : null;
     } else if (loc?.confirmed) location = M.copy(loc);
     else if (later) location = loc ? { ...M.copy(loc), confirmed: false, confirmedAt: null } : null;
+    // 地图服务尚未配置时检索与落点都不可用，提示不再引导检索（2026-10-05 核查 S2）；配置了服务但底图没有加载时照旧可以检索。
     else if (!loc)
-      invalid("mapSearch", s.mapOff ? (isB ? "底图未加载，不能单独定位；请检索地址，或改为“与项目同一位置”" : "底图未加载，请检索地址定位，或勾选“暂不定位”") : "请在地图上选择位置");
-    else invalid("mapSearch", s.verifiedAddress != null && s.verifiedAddress !== value("spaceAddress").trim() ? "详细地址已修改，请重新核对地图位置" : "位置待核对，请检索地址或在地图上重新落点");
+      invalid("mapSearch", !s.mapOff ? "请在地图上选择位置" : !mapConfigured() ? (isB ? "地图服务尚未配置，不能单独定位；请改为“与项目同一位置”" : "地图服务尚未配置，不能定位；请勾选“暂不定位”") : isB ? "底图未加载，不能单独定位；请检索地址，或改为“与项目同一位置”" : "底图未加载，请检索地址定位，或勾选“暂不定位”");
+    else invalid("mapSearch", s.verifiedAddress != null && s.verifiedAddress !== value("spaceAddress").trim() ? "详细地址已修改，请重新核对地图位置" : mapConfigured() ? "位置待核对，请检索地址或在地图上重新落点" : `位置待核对；地图服务尚未配置，请选“位置无需调整”或${isB ? "改为“与项目同一位置”" : "勾选“暂不定位”"}`);
     if (!isB && !value("spaceTimezone")) invalid("spaceTimezone", "请选择项目时区");
     Object.assign(v, {
       address: value("spaceAddress").trim(),
@@ -27000,7 +27155,7 @@ document.addEventListener("input", (e) => {
         geoStatus();
       } else if (s.location.confirmed) {
         s.location = { ...s.location, confirmed: false };
-        geoStatus(`详细地址已修改，请重新核对地图位置：检索地址或在地图上重新落点。${btn("位置无需调整", "geoKeep", {}, "ghost sm")}`);
+        geoStatus(`详细地址已修改，请重新核对地图位置：${geoRecheckHint(s.kind)}${btn("位置无需调整", "geoKeep", {}, "ghost sm")}`);
       }
     }
   }
@@ -27216,8 +27371,10 @@ document.addEventListener("keydown", (e) => {
       e.preventDefault();
     }
   }
-  if (e.target.closest?.(".ws-switcher") && ["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key)) {
-    const items = [$("#switchQuery"), ...document.querySelectorAll("#switchRows .ws-switch-row")],
+  // 项目时区下拉与空间选择器同一规格（2026-10-05 核查 S3：原先时区列表不能用方向键与 Enter 选择）：↑/↓ 在搜索框与各项之间移动，Home、End 到首尾。
+  if (e.target.closest?.(".ws-switcher, .ws-tz-pop") && ["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key)) {
+    const tz = !!e.target.closest(".ws-tz-pop"),
+      items = tz ? [$("#tzQuery"), ...document.querySelectorAll("#tzRows .popitem")] : [$("#switchQuery"), ...document.querySelectorAll("#switchRows .ws-switch-row")],
       i = items.indexOf(document.activeElement);
     const next = items[e.key === "Home" ? 0 : e.key === "End" ? items.length - 1 : Math.max(0, Math.min(items.length - 1, i + (e.key === "ArrowDown" ? 1 : -1)))];
     next?.focus(); next?.scrollIntoView({ block: "nearest" });
@@ -27245,6 +27402,11 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && e.target.id === "switchQuery") {
     e.preventDefault();
     $("#switchRows .ws-switch-row")?.click();
+  }
+  // 时区搜索框中按 Enter 选择第一个结果（与空间选择器相同）；没有结果时不变。
+  if (e.key === "Enter" && e.target.id === "tzQuery" && !e.isComposing) {
+    e.preventDefault();
+    $("#tzRows .popitem")?.click();
   }
   if (e.key === "Enter" && e.target.id === "mapSearch") {
     e.preventDefault();
@@ -27297,7 +27459,7 @@ window.addEventListener("popstate", () => {
   const leaving = !BARE[U.page],
     busy = $("#dlg")?.dataset.busy === "1" || $(".sp-body")?.dataset.busy === "1";
   if (leaving && (busy || wsUnsaved() || (modalDirty && $("#dlg")))) {
-    const target = location.hash;
+    const target = location.hash, targetState = history.state;
     // 先回到原地址：取消时页面与地址保持不变；确认放弃后再前往目标地址。
     syncRoute();
     if (busy) return msg("正在保存，请等待结果后再切换");
@@ -27306,7 +27468,7 @@ window.addEventListener("popstate", () => {
       D = null;
       Object.assign(U, { dirty: false, attrsDirty: false, undo: [], redo: [] });
       modalDirty = false;
-      history.replaceState(null, "", target);
+      history.replaceState(targetState, "", target);
       wsPopGo(leaving);
     }, wsSpaceDirty() && !U.dirty && !U.attrsDirty ? "有尚未保存的功能区修改" : modalDirty && !U.dirty && !U.attrsDirty ? "表单中有尚未保存的修改" : undefined);
   }
@@ -27314,8 +27476,11 @@ window.addEventListener("popstate", () => {
 });
 function wsPopGo(leaving) {
   if (leaving) wsLeaveLayers();
+  // 来源返回跟随所到的历史项（2026-10-05 核查 C1：原先后退后仍显示后来页面的“返回项目”）：用该项进入时记下的来源，在读取地址前恢复，
+  // 读取地址时改写的本项同样记下它；没有记下，或来源中的项目、楼宇、楼层已不存在时不显示。后退到全部项目时同样清除来源返回（规范 2 4）。
+  const s = history.state?.source || null;
+  U.source = s && (!s.p || g("projects", s.p)) && (!s.b || g("buildings", s.b)) && (!s.f || g("floors", s.f)) ? s : null;
   readRoute();
-  // 后退到全部项目时同样清除来源返回（规范 2 4）。
   if (U.page === "projects" && !U.p) U.source = null;
   restoreListState();
   render();
@@ -27344,6 +27509,9 @@ async function readImage(file) {
 // 坐标按 CGCS2000 记录，与 WGS 84 相差在厘米级，不做转换；approval 为需要随底图显示的审图号（取得后填写）。
 const PACOM_MAP = { provider: "tianditu", key: "", approval: "" };
 const mapConfigured = () => !!(PACOM_MAP.provider === "tianditu" && PACOM_MAP.key);
+// 重新核对位置的说明：地图服务尚未配置时检索与落点都不可用，只给可执行的选择（2026-10-05 核查 S2）。
+const geoRecheckHint = (kind) =>
+  mapConfigured() ? "检索地址或在地图上重新落点。" : `地图服务尚未配置，暂不能检索或落点；位置不变时选“位置无需调整”，否则${kind === "projects" ? "勾选“暂不定位”" : "改为“与项目同一位置”"}。`;
 const tdtTiles = (layer) =>
   `https://t{s}.tianditu.gov.cn/${layer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${layer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${encodeURIComponent(PACOM_MAP.key)}`;
 const tdtGeocodeUrl = (q) => `https://api.tianditu.gov.cn/geocoder?ds=${encodeURIComponent(JSON.stringify({ keyWord: q }))}&tk=${encodeURIComponent(PACOM_MAP.key)}`;
@@ -27373,9 +27541,13 @@ function mapBase(el, center, zoom, onOff) {
     n.innerHTML = `<b>底图未加载</b>${why}${
       !form
         ? "位置仍按已保存的坐标标注。"
-        : formState?.kind === "buildings"
-          ? "不能在地图上落点；可检索地址，或改为“与项目同一位置”。"
-          : "不能在地图上落点；可检索地址，或选择“暂不定位”保存。"
+        : reason === "unset"
+          ? formState?.kind === "buildings"
+            ? "不能检索地址，也不能单独定位；可改为“与项目同一位置”。"
+            : "不能检索地址，也不能在地图上落点；可勾选“暂不定位”保存，之后再核对位置。"
+          : formState?.kind === "buildings"
+            ? "不能在地图上落点；可检索地址，或改为“与项目同一位置”。"
+            : "不能在地图上落点；可检索地址，或选择“暂不定位”保存。"
     }`;
     el.parentElement.append(n);
   };
@@ -27462,7 +27634,7 @@ function geoStatus(html) {
     ? ""
     : l.confirmed
       ? `已核对${l.confirmedAt ? " · " + esc(zoneTime(l.confirmedAt, s.kind === "projects" ? s.timezone : g("projects", U.p)?.timezone)) : "（核对时间未记录）"}。修改详细地址后需重新核对。`
-      : `位置待核对：请检索地址或在地图上重新落点。${btn("位置无需调整", "geoKeep", {}, "ghost sm")}`;
+      : `位置待核对：${geoRecheckHint(s.kind)}${btn("位置无需调整", "geoKeep", {}, "ghost sm")}`;
 }
 // 天地图逆地理编码的行政区：国家、省、市（直辖市的市与省相同）。
 const regionOf = (c) => (c?.province ? { country: c.nation || "中国", province: c.province, city: c.city || c.province } : null);
@@ -27470,6 +27642,7 @@ function regionLine() {
   const r = formState?.region;
   if (r) return "所在地：" + regionText(r) + "（按地图位置识别）";
   if (formState?.regionPending) return "所在地：识别中…";
+  if (!mapConfigured()) return "所在地：地图服务尚未配置，暂不能识别";
   return formState?.location ? "所在地：未能识别，可重新选点" : "所在地：在地图上选点后自动识别";
 }
 // 地图落点没有地址：向天地图反查所在的省、市；固定原表单与请求，旧结果不覆盖新的选择。
@@ -28612,7 +28785,7 @@ function spaceInformationBody(o, isBuilding = false) {
   const fs = db.floors.filter(f => bs.some(b => b.id === f.buildingId)), zs = db.zones.filter(z => fs.some(f => f.id === z.floorId));
   const inScope = fs.filter(f => (db.scopes[p.id]?.floorIds || []).includes(f.id));
   const types = [...new Set(zs.map(z => z.spaceType || "未设类型"))].sort().map(t => `${t} ${zs.filter(z => (z.spaceType || "未设类型") === t).length} 个`).join(" · ");
-  return `${o.image ? `<img class="ws-info-image" src="${esc(o.image)}" alt="${esc(o.name)}">` : ""}<h3>基本资料</h3>${infoRows([[isBuilding ? (outdoor ? "区域名称" : "楼宇名称") : "项目名称", o.name], ...(outdoor ? [] : [[isBuilding ? "主要用途" : "类型", o.usage || "未填写"]]), ["全部空间", outdoor ? `${fs[0]?.name || "总平面"} · ${zs.length} 个功能区` : isBuilding ? `${fs.length} 个楼层 · ${zs.length} 个功能区` : spaceScale(bs, zs.length)], outdoor ? ["总平面图", fs[0]?.image ? "已上传" : "未上传"] : ["楼层图", planCountText(bs, fs)], ...(isBuilding ? [outdoor ? ["类型", "室外区域"] : ["楼层结构", `地上 ${o.above ?? 0} 层 · 地下 ${o.below ?? 0} 层${o.roof ? " · 屋顶 RF" : ""}`], [outdoor ? "占地面积" : "建筑面积", F.areaText(o.area)]] : []), ["本次范围", { html: esc(!db.scopes[p.id] ? "未设范围" : isBuilding && !inScope.length ? "不在本次范围" : scopeRowText(inScope, outdoor)) + scopeAdjustLink(p.id, isBuilding ? o.id : null) }], ...(!db.scopes[p.id] || (isBuilding && !inScope.length) ? [] : [["空间检查", { html: spaceCheckLink(p.id, isBuilding ? o.id : null) }]]), ["功能区类型", types || "未划分"]])}<h3>位置与说明</h3>${infoRows([["详细地址", o.address || "未填写"], ["所在地", regionText(p)], ["位置核对", isBuilding && o.sameLocation ? "与项目同一位置" : o.location?.confirmed ? `已核对${o.location.confirmedAt ? " · " + projectTime(o.location.confirmedAt, false, p.id) : " · 核对时间未记录"}` : "位置待核对"], ["时区", zoneText(p.timezone)], ["说明", o.description || "未填写"]])}<details class="ws-details"><summary>地图坐标</summary>${infoRows([["坐标", coordinate(o.location)]])}<p class="note">按天地图 CGCS2000 记录（与 WGS 84 相差在厘米级，未作转换），显示到小数点后 6 位；显示精度不代表现场测量精度。</p></details><div class="sp-actions">${btn("查看配置进度", "dirStatus", { p: p.id })}</div><details class="ws-details"><summary>修改记录</summary>${recordsTable(db.records.filter(r => r.objectId === o.id))}</details>`;
+  return `${o.image ? `<img class="ws-info-image" src="${esc(o.image)}" alt="${esc(o.name)}">` : ""}<h3>基本资料</h3>${infoRows([[isBuilding ? (outdoor ? "区域名称" : "楼宇名称") : "项目名称", o.name], ...(outdoor ? [] : [[isBuilding ? "主要用途" : "类型", o.usage || "未填写"]]), ["全部空间", outdoor ? `${fs[0]?.name || "总平面"} · ${zs.length} 个功能区` : isBuilding ? `${fs.length} 个楼层 · ${zs.length} 个功能区` : spaceScale(bs, zs.length)], outdoor ? ["总平面图", fs[0]?.image ? "已上传" : "未上传"] : ["楼层图", planCountText(bs, fs)], ...(isBuilding ? [outdoor ? ["类型", "室外区域"] : ["楼层结构", `地上 ${o.above ?? 0} 层 · 地下 ${o.below ?? 0} 层${o.roof ? " · 屋顶 RF" : ""}`], [outdoor ? "占地面积" : "建筑面积", F.areaText(o.area)]] : []), ["本次范围", { html: esc(!db.scopes[p.id] ? "未设范围" : isBuilding && !inScope.length ? "不在本次范围" : scopeRowText(inScope, outdoor)) + scopeAdjustLink(p.id, isBuilding ? o.id : null) }], ...(!db.scopes[p.id] || (isBuilding && !inScope.length) ? [] : [["空间检查", { html: spaceCheckLink(p.id, isBuilding ? o.id : null) }]]), ["功能区类型", types || "未划分"]])}<h3>位置与说明</h3>${infoRows([["详细地址", o.address || "未填写"], ["所在地", regionText(p)], ["位置核对", isBuilding && o.sameLocation ? sameLocationCheck(p) : o.location?.confirmed ? `已核对${o.location.confirmedAt ? " · " + projectTime(o.location.confirmedAt, false, p.id) : " · 核对时间未记录"}` : "位置待核对"], ["时区", zoneText(p.timezone)], ["说明", o.description || "未填写"]])}<details class="ws-details"><summary>地图坐标</summary>${infoRows([["坐标", coordinate(o.location)]])}<p class="note">${crsNote(o.location)}，显示到小数点后 6 位；显示精度不代表现场测量精度。</p></details><div class="sp-actions">${btn("查看配置进度", "dirStatus", { p: p.id })}</div><details class="ws-details"><summary>修改记录</summary>${recordsTable(db.records.filter(r => r.objectId === o.id))}</details>`;
 }
 // 部署范围只在配置进度中编辑（2026-10-03 用户确认 C6）：项目里只读显示，附此入口；进入配置进度并打开“本次部署范围”，标题旁有来源返回。
 // “本次范围”行后的“在配置进度中调整”是信息面板中唯一的范围入口，底部不再重复同名按钮（2026-10-03 小修）。
@@ -28709,8 +28882,10 @@ defineActions({
   sourceBack: () => {
     const s = U.source;
     if (!s) return;
-    const { label, ...scope } = s;
-    route(s.page, scope, { source: null });
+    const { label, spaceInfo, ...scope } = s;
+    // 信息面板中的对象已不存在时不再打开，只回到来源页（核查 S12）。
+    const info = spaceInfo && (spaceInfo.kind === "all" || g(spaceInfo.kind, spaceInfo.id)) ? spaceInfo : null;
+    route(s.page, info ? { ...scope, spaceInfo: info } : scope, { source: null });
     // 来源返回后焦点在空间选择器上（项目页；核查 R22）。
     if (U.page === "projects") requestAnimationFrame(() => $("#app .ws-project-picker")?.focus({ preventScroll: true }));
   },
@@ -29068,6 +29243,14 @@ function shapeLabel(z) {
   if (!g) return SHAPE_NAME[z?.shape || "rectangle"] || "矩形";
   return g.shape === "polygon" ? `多边形（${g.vertices.length} 个顶点）` : SHAPE_NAME[g.shape];
 }
+// 调整边界中的形状与顶点数随修改实时更新（2026-10-05 核查 Z6：原先一直写调整前的形状，如加了顶点仍写“矩形”）。
+function zoneShapeNow(z) {
+  const e = U.spatialEdit;
+  if (!z || !e || e.id !== z.id || !e.dirty) return shapeLabel(z);
+  const o = { ...z, ...SpatialGeometry.fromGeo(e.geometry, z.shape) };
+  if (o.shape !== "polygon") delete o.vertices;
+  return shapeLabel(o) + " · 未保存";
+}
 const overlayPanel = () => typeof matchMedia === "function" && matchMedia("(max-width: 1180px)").matches;
 // D2（2026-10-03 用户确认）：可用宽度 ≤1180px（面板覆盖画布）时默认收起，选中功能区或点面板按钮才展开；更宽时并排显示。
 const spPanelOpen = () => (U.spPanel ?? (!overlayPanel() || !!U.zone));
@@ -29376,7 +29559,7 @@ function spZoneBody(f, z) {
         ])
   }${infoRows([
     ["面积", spArea(f, z)],
-    ["形状", shapeLabel(z)],
+    ["形状", { html: `<span id="spZoneShape">${esc(zoneShapeNow(z))}</span>` }],
     ["关联点位", `${ps.length} 个`],
     ["已绑定设备", `${ps.filter(F.boundNow).length} 台${ps.some((p) => M.bound(p) && p.fieldReset) ? ` · 被现场复位 ${ps.filter((p) => M.bound(p) && p.fieldReset).length} 台待补绑` : ""}`],
   ])}<div class="sp-actions">${btn("在图上定位", "spLocateZone", { id: z.id }, "sm")}${btn("在设备中查看", "toDevices", { view: "1" }, "sm")}${edit && !isMobile() ? btn("调整边界", "spReshape", { id: z.id }, "sm") : ""}${edit ? btn("删除", "spZoneDelete", { id: z.id }, "sm danger") : ""}</div><details class="ws-details"><summary>修改记录</summary>${recordsTable(data().records.filter((r) => r.objectId === z.id))}</details>`;
@@ -30857,6 +31040,18 @@ function zcDefaultSource(bid, prefer) {
   return (ss.find((f) => F.floorMeters(f)) || ss[0])?.id || null;
 }
 const zcSameSize = (a, b) => F.samePlanSize(a?.dimensions, b?.dimensions);
+// 目标楼层列表（复制功能区、复制设备）：多数楼层相同的情况写在列表下一句，行内只写例外与目标层已有的内容
+// （2026-10-05 核查 Z2：原先每行重复同一段说明，如“0 个功能区 · 比例尺未校准 · 图纸尺寸与源层相同”）。
+// 图纸尺寸按像素比较；源层没有记录尺寸时不写尺寸，目标层没有记录时写“图纸尺寸未知”。
+const zcSizeKnown = (f) => f?.dimensions?.width > 0 && f?.dimensions?.height > 0;
+function zcRowTraits(src, list, withScale) {
+  const size = (x) => (!zcSizeKnown(src) ? "" : !zcSizeKnown(x) ? "图纸尺寸未知" : zcSameSize(src, x) ? `图纸尺寸与 ${src.name} 相同` : `图纸尺寸与 ${src.name} 不同`),
+    cal = (x) => (!withScale ? "" : F.floorMeters(x) ? "比例尺已校准" : "比例尺未校准"),
+    most = (fn) => { const n = new Map(); for (const x of list) n.set(fn(x), (n.get(fn(x)) || 0) + 1); return [...n].sort((a, b) => b[1] - a[1])[0]?.[0] || ""; },
+    common = [most(size), most(cal)];
+  return { common: common.filter(Boolean), of: (x) => [size(x), cal(x)].filter((t, i) => t && t !== common[i]) };
+}
+const zcRowNote = (parts) => { const t = parts.filter(Boolean).join(" · "); return t ? `<small>${t}</small>` : ""; };
 // 区域轮廓（图纸百分比坐标）：复制确认的源楼层缩略图与逐层核对的源层对照共用。
 function zoneOutlineSvg(zones, cls) {
   return `<svg class="${cls}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">${zones
@@ -30899,8 +31094,9 @@ function zcShow() {
     foot = `<span class="bu-why" id="zcWhy"></span><span class="sp"></span>` + btn("取消", "close") + btn("下一步", "zcNext", {}, "primary");
   } else if (d.step === 2) {
     const fs = sortedFloors(d.bid).filter((x) => x.id !== d.src), ok = fs.filter((x) => x.image), no = fs.filter((x) => !x.image), same = ok.filter((x) => zcSameSize(src, x));
-    const row = (x) => `<label><input type="checkbox" name="zcFloor" value="${x.id}" ${d.targets.includes(x.id) ? "checked" : ""}>${esc(x.name)}<small>${zcZonesOf(x.id).length} 个功能区 · ${F.floorMeters(x) ? "比例尺已校准" : "比例尺未校准"}${zcSameSize(src, x) ? " · 图纸尺寸与源层相同" : ""}</small></label>`;
-    body = `${no.length ? `<div class="zc-upload">${btn("上传楼层图", "zcUpload", {}, "sm")}<small class="muted">没有楼层图的楼层不能作为目标。可一次上传一层或多层，完成后回到这里，已选内容保留。</small></div>` : ""}<fieldset class="ws-checks ws-floor-checks zc-floors"><legend>目标楼层（<span id="zcFloorCount">已选 ${d.targets.length}</span>）</legend>${ok.length > 1 ? `<div class="zc-zone-tools zc-floor-tools">${btn("全选", "zcFloorAll", { on: "1" }, "sm")}${btn("全不选", "zcFloorAll", { on: "" }, "sm")}${same.length && same.length < ok.length ? btn(`选择图纸尺寸相同的楼层（${same.length}）`, "zcFloorAll", { on: "1", same: "1" }, "sm") : ""}</div>` : ""}${ok.map(row).join("") || '<p class="muted small">没有可选的目标楼层：其他楼层都尚未上传楼层图。</p>'}</fieldset>${ok.length ? '<p class="muted small ws-shift-tip">按住 Shift 点选可连续选择。</p>' : ""}${no.length ? `<details class="ws-details zc-unavailable"><summary>未上传楼层图 ${no.length} 个</summary><p class="muted small">${esc(floorNames(no.map((x) => x.name)))}：没有楼层图，功能区无处放置；上传楼层图后可选。</p></details>` : ""}`;
+    const tr = zcRowTraits(src, ok, true),
+      row = (x) => { const n = zcZonesOf(x.id).length; return `<label><input type="checkbox" name="zcFloor" value="${x.id}" ${d.targets.includes(x.id) ? "checked" : ""}>${esc(x.name)}${zcRowNote([n ? `已有 ${n} 个功能区` : "", ...tr.of(x)].map(esc))}</label>`; };
+    body = `${no.length ? `<div class="zc-upload">${btn("上传楼层图", "zcUpload", {}, "sm")}<small class="muted">没有楼层图的楼层不能作为目标。可一次上传一层或多层，完成后回到这里，已选内容保留。</small></div>` : ""}<fieldset class="ws-checks ws-floor-checks zc-floors"><legend>目标楼层（<span id="zcFloorCount">已选 ${d.targets.length}</span>）</legend>${ok.length > 1 ? `<div class="zc-zone-tools zc-floor-tools">${btn("全选", "zcFloorAll", { on: "1" }, "sm")}${btn("全不选", "zcFloorAll", { on: "" }, "sm")}${same.length && same.length < ok.length ? btn(`选择图纸尺寸相同的楼层（${same.length}）`, "zcFloorAll", { on: "1", same: "1" }, "sm") : ""}</div>` : ""}${ok.map(row).join("") || '<p class="muted small">没有可选的目标楼层：其他楼层都尚未上传楼层图。</p>'}</fieldset>${ok.length ? `<p class="muted small zc-row-note">${esc(["没有注明的楼层尚无功能区", ...tr.common].join("，"))}。</p><p class="muted small ws-shift-tip">按住 Shift 点选可连续选择。</p>` : ""}${no.length ? `<details class="ws-details zc-unavailable"><summary>未上传楼层图 ${no.length} 个</summary><p class="muted small">${esc(floorNames(no.map((x) => x.name)))}：没有楼层图，功能区无处放置；上传楼层图后可选。</p></details>` : ""}`;
     foot = `<span class="bu-why" id="zcWhy"></span><span class="sp"></span>` + btn("取消", "close") + btn("上一步", "zcPrev") + btn("下一步", "zcNext", {}, "primary");
   } else if (d.step === 3) {
     const can = zcCalibrated(src) && d.targets.some((id) => zcSameSize(src, g("floors", id)));
@@ -31405,7 +31601,7 @@ defineActions({
       if (U.ex !== ex || !dlg?.isConnected) return;
       if (a.kind === "report") {
         const withDeploy = !!ex.deploy,
-          rep = F.spaceReport(s, { exportedAt: at, time: (t) => exTime(t, true, s.range.projectId), withDeploy });
+          rep = F.spaceReport(s, { exportedAt: at, time: (t) => exTime(t, true, s.range.projectId), zone: zoneLabel, withDeploy });
         const bytes = await buildReportPdf(rep, s);
         if (!F.canExport(U.role, a.kind, U.exportGrants)) throw Error("下载授权已变化，未下载文件");
         if (U.ex !== ex || !dlg?.isConnected) return;
@@ -31415,7 +31611,7 @@ defineActions({
       else if (a.kind === "sheet")
         downloadBlob(
           exFileName(s, "空间清单", "xlsx"),
-          F.xlsxFile(F.spaceSheets(s, { exportedAt: at, time: (t) => exTime(t, true, s.range.projectId) })),
+          F.xlsxFile(F.spaceSheets(s, { exportedAt: at, time: (t) => exTime(t, true, s.range.projectId), zone: zoneLabel })),
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         );
       else throw Error("此导出格式尚未提供");
@@ -32053,8 +32249,8 @@ defineActions({
         if (!F.canExport(U.role, a.kind, U.exportGrants)) throw Error("导出授权已变化，未下载文件");
         if ($("#exAllProgress")) $("#exAllProgress").textContent = `正在生成 ${i + 1}/${ids.length} · ${snap.project.name}`;
         const time = t => exTime(t, true, snap.range.projectId); let bytes;
-        if (a.kind === "report") bytes = await buildReportPdf(F.spaceReport(snap, { exportedAt: at, time }), snap);
-        else if (a.kind === "sheet") bytes = F.xlsxFile(F.spaceSheets(snap, { exportedAt: at, time }));
+        if (a.kind === "report") bytes = await buildReportPdf(F.spaceReport(snap, { exportedAt: at, time, zone: zoneLabel }), snap);
+        else if (a.kind === "sheet") bytes = F.xlsxFile(F.spaceSheets(snap, { exportedAt: at, time, zone: zoneLabel }));
         else bytes = new TextEncoder().encode(JSON.stringify(F.spaceDataJson(snap, at), null, 2));
         files.push({ name: `${i + 1}-${exFileName(snap, "空间资料", F.EXPORT_KINDS[a.kind].ext)}`, data: bytes });
       }
@@ -32558,7 +32754,8 @@ function renderInventory() {
       })(),
       btn("在图上查看", "locatePoint", { id: p.id }, "ghost sm"),
     ]),
-    all.length ? "没有匹配的设备" : "尚未标记设备；从“设备标记”选择楼层开始。",
+    // 只读与运营角色不给无法执行的指导（第14章“只读、运营角色不给创建或上传指导”；第四批遗留）。
+    all.length ? "没有匹配的设备" : canEdit() ? "尚未标记设备；从“设备标记”选择楼层开始。" : "尚未标记设备。",
   )}${devPager(n, pages, ps.length)}${note("需处理优先，其次按楼宇、楼层和编号排列；结果跨多个楼层时按楼层分组，每页 200 台；“需处理”含通信离线的设备。待绑定只统计网关与 Mesh 点位，含被现场复位、需要补绑的设备；第三方系统按接入状态单独记录。")}`;
 }
 function renderNetworkList() {
@@ -32601,7 +32798,7 @@ function renderNetworkList() {
         ],
       };
     }),
-    "尚未规划设备网络；可在标记网关时就地规划。",
+    canEdit() ? "尚未规划设备网络；可在标记网关时就地规划。" : "尚未规划设备网络。",
   )}${note("节点数只计 Mesh 节点（MS20、LC20、FC20、AQ20），不含网关、面板、空调和电表。估算负载与节点阈值来自可调整的参考模板，不代表现场实测结果。")}`;
 }
 function networkHead(n) {
@@ -34345,11 +34542,15 @@ function showRoleSuggestions(id) {
     delivered = everDelivered(db, id),
     suggestions = F.autoRoles(db, n).map((x) => (delivered ? { ...x, proxy: false } : x)),
     role = (x) => (x.relay ? "中继" : x.proxy ? "部署期代理" : "普通节点"),
-    changed = suggestions.filter((x) => role(x) !== role(g("points", x.id)));
+    changed = suggestions.filter((x) => role(x) !== role(g("points", x.id))),
+    t = F.templates(n),
+    // 超过参考比例的楼层写明原因（2026-10-05 核查 N1）
+    why = F.roleSuggestionNotes(db, n, suggestions);
   U.roleSuggestions = { id, suggestions };
   modal(
     "自动规划建议",
     `<p class="flow-lead">${suggestions.length ? `建议调整 ${changed.length} 台，其余 ${suggestions.length - changed.length} 台保持不变。` : ""}${delivered ? "本网络已交付过，不再建议部署期代理；现场需要时用“限时现场接入（30 分钟）”。" : ""}</p>` +
+      (why.length ? `<p class="muted small">${why.map(esc).join("；")}。</p>` : "") +
       table(
         ["点位", "位置", "当前角色", "建议角色"],
         changed.map((x) => {
@@ -34359,7 +34560,7 @@ function showRoleSuggestions(id) {
         suggestions.length ? "当前角色与建议一致，无需调整。" : "当前网络尚无可规划角色的 MS20。",
       ) +
       note(
-        (delivered ? "按距离和覆盖缺口生成中继建议。" : "按距离和覆盖缺口生成建议，尽量保留每层 2 台独立代理。") +
+        `按距离和覆盖缺口生成建议：每层中继不超过本层节点数的 ${t.relayPercent}%，网关附近与跨楼层连通所需的除外${delivered ? "。" : `；每层保留 ${t.proxyMin} 台独立代理，分散在楼层两端。`}` +
           "未设比例尺或节点不足时仍需人工复核；不会据此宣称通信合格。采用后形成新的期望配置版本，需下发并重新体检受影响区域。",
       ),
     btn("取消", "close") + btn("采用建议", "applyRoles", { disabled: !changed.length || !canEdit() }, "primary"),
@@ -37162,16 +37363,18 @@ function dcShow() {
       ok = fs.filter((x) => x.image),
       no = fs.filter((x) => !x.image),
       same = ok.filter((x) => zcSameSize(src, x));
+    // 行内只写目标层已有的设备与设备网络，以及与多数楼层不同的图纸尺寸；多数相同的写在列表下一句（2026-10-05 核查 Z2，与复制功能区相同）。
+    const tr = zcRowTraits(src, ok, false);
     const row = (x) => {
       const n = M.points(data(), x.id).length,
         ns = M.networks(data(), x.id);
-      return `<label><input type="checkbox" name="dcFloor" value="${x.id}" ${d.targets.includes(x.id) ? "checked" : ""}>${esc(x.name)}<small>${n ? `已有 ${n} 台设备` : "尚无设备"} · ${ns.length ? esc(ns.map((m) => m.name).join("、")) : "尚无设备网络"}${zcSameSize(src, x) ? " · 图纸尺寸与源层相同" : ""}</small></label>`;
+      return `<label><input type="checkbox" name="dcFloor" value="${x.id}" ${d.targets.includes(x.id) ? "checked" : ""}>${esc(x.name)}${zcRowNote([n ? `已有 ${n} 台设备` : "", ns.map((m) => m.name).join("、"), ...tr.of(x)].map(esc))}</label>`;
     };
     body = `<fieldset class="ws-checks ws-floor-checks zc-floors"><legend>目标楼层（<span id="dcFloorCount">已选 ${d.targets.length}</span>）</legend>${
       ok.length > 1
         ? `<div class="zc-zone-tools zc-floor-tools">${btn("全选", "dcFloorAll", { on: "1" }, "sm")}${btn("全不选", "dcFloorAll", { on: "" }, "sm")}${same.length && same.length < ok.length ? btn(`选择图纸尺寸相同的楼层（${same.length}）`, "dcFloorAll", { on: "1", same: "1" }, "sm") : ""}</div>`
         : ""
-    }${ok.map(row).join("") || '<p class="muted small">没有可选的目标楼层：其他楼层都尚未上传楼层图。</p>'}</fieldset>${ok.length ? '<p class="muted small ws-shift-tip">按住 Shift 点选可连续选择。</p>' : ""}${
+    }${ok.map(row).join("") || '<p class="muted small">没有可选的目标楼层：其他楼层都尚未上传楼层图。</p>'}</fieldset>${ok.length ? `<p class="muted small zc-row-note">${esc(["没有注明的楼层尚无设备与设备网络", ...tr.common].join("，"))}。</p><p class="muted small ws-shift-tip">按住 Shift 点选可连续选择。</p>` : ""}${
       no.length ? `<details class="ws-details zc-unavailable"><summary>未上传楼层图 ${no.length} 个</summary><p class="muted small">${esc(floorNames(no.map((x) => x.name)))}：没有楼层图，设备无处放置；在项目中上传楼层图后可选。</p></details>` : ""
     }${note("目标楼层已有的设备保持不变，复制的设备接着编号。先在项目楼层图用“复制到其他楼层”复制功能区，设备的服务功能区才能对应过去。")}`;
     foot = `<span class="bu-why" id="dcWhy"></span><span class="sp"></span>` + btn("取消", "close") + btn("上一步", "dcPrev") + btn("下一步", "dcNext", {}, "primary");
@@ -44404,6 +44607,12 @@ function aiReportDraft(r) {
 const AI_EXAMPLES = ["昨天 7 层哪个区域能耗最高？", "为什么实验室 E 没有灯？", "会议室 7-1 空气怎么样？", "现在有哪些设备离线？", "本月用电和碳排放是多少？"];
 const isQuestion = (q) => /[?？]|^(为什么|为何|哪|多少|怎么|怎样|是否|有没有|现在|今天|昨天|本月|这个月|最近|本周)|(吗|呢|多少|几个)$/.test(q.trim());
 function aiPalette(q = "", mode = "search") {
+  // 弹窗中尚未保存的输入先确认放弃再打开（2026-10-05 核查 C2：原先 ⌘K 直接关掉弹窗，修改丢失）：与关闭弹窗同一套判断（表单修改、上传未完成）；
+  // “继续编辑”留在弹窗，“放弃修改”关闭弹窗后打开；正在保存时不关闭；放弃确认已打开时不响应。
+  const dlg = $("#dlg"), upload = !!(dlg && U.bu && !U.bu.done && !U.bu.loading);
+  if ($("#discard")) return;
+  if (dlg?.dataset.busy === "1") return formError("正在处理，请等待结果后再关闭。关闭不会撤回已经发出的写入。");
+  if (dlg && (modalDirty || upload)) return askDiscard(() => { closeModal(true); aiPalette(q, mode); }, modalDirty ? "表单中有尚未保存的修改" : "上传尚未完成");
   if (!$("#ai-pal")) AIP.back = document.activeElement;
   closeModal(true);
   closePop();
@@ -56053,6 +56262,19 @@ function spatialStartAt(p) {
   }).catch(formError);
   return true;
 }
+// 调整边界时在各边中点显示添加顶点的位置（2026-10-05 核查 Z6：原先中间手柄只在指针靠近边时出现，只能碰巧点到）。
+// 只作位置提示、不接收指针：点击仍由绘制引擎按“点击边界的中间手柄添加顶点”处理，手势不变；圆形没有边中点，顶点很多时不显示。
+function spatialShowMids(host,g,tool) {
+  host?.querySelectorAll(':scope > .spatial-mid').forEach(m=>m.remove());
+  const ring=tool!=='ellipse'&&g?.coordinates?.[0];
+  if(!host||!ring||ring.length<4||ring.length-1>40)return;
+  for(let i=0;i<ring.length-1;i++){
+    const [a,b]=[ring[i],ring[i+1]],m=document.createElement('span');
+    m.className='spatial-mid';m.setAttribute('aria-hidden','true');
+    m.style.left=(a[0]+b[0])/2+'%';m.style.top=(a[1]+b[1])/2+'%';
+    host.append(m);
+  }
+}
 // ---------- 绘制吸附（2026-10-03 用户确认 B6） ----------
 // 绘制（多边形、矩形、圆形）和拖动顶点时，指针靠近相邻范围的顶点（优先）或边（8px 内）即对齐到该点；按住 Alt 临时关闭。
 // 绘制引擎没有吸附接口：在指针事件到达引擎之前换成对齐后的坐标再交给引擎（与顶点保护同一做法），引擎本身不改动。
@@ -56244,6 +56466,7 @@ function spatialMount(cv,options) {
       U.spatialCanUndo=can;const b=$('[data-act=spatialUndo]');if(b)b.disabled=!can&&!(options.building?U.buildingUndo?.length&&!U.buildingSplit:U.spUndo?.length);
     },onError:message=>{if(spatialSession?.host===host)spatialSession.failed=true;host.innerHTML=wsNotice(esc(message)+btn('重新加载','spatialRetry',{},'sm'),'error')}});
     if(options.geometry){spatialValidation(cv,options.geometry);spatialGuard(host,options.onVertexClick)}
+    if(options.mids)spatialShowMids(host,options.geometry,options.tool);
     spatialSnap(host,options);
   }).catch(e=>{if(generation===spatialGeneration&&host.isConnected){if(spatialSession?.host===host)spatialSession.failed=true;host.innerHTML=wsNotice(esc(e.message)+btn('重试','spatialRetry',{},'sm'),'error')}});
 }
@@ -56322,8 +56545,9 @@ function spatialInitCanvas(cv,vp) {
   const exclude=U.spatialEdit?.id||null;
   if(spatialKept(cv))return;
   if(spatialSession)spatialDispose();
-  spatialMount(cv,{tool:U.zoneShape||'polygon',geometry,snap:()=>spatialZoneRings(exclude),history:U.spatialEdit?.history||(U.zoneDraft?U.zoneDraftHistory:null),onComplete:complete,onVertexClick:p=>!U.spatialEdit&&U.zoneDraft&&U.drawZone?spatialStartAt(p):false,onChange:(g,type)=>{
-    if(U.spatialEdit){U.spatialEdit.geometry=g;U.spatialEdit.dirty=JSON.stringify(g)!==JSON.stringify(U.spatialEdit.original);const b=$('[data-act=spatialEditSave]');if(b)b.disabled=!U.spatialEdit.dirty}
+  spatialMount(cv,{tool:U.zoneShape||'polygon',geometry,mids:!!U.spatialEdit,snap:()=>spatialZoneRings(exclude),history:U.spatialEdit?.history||(U.zoneDraft?U.zoneDraftHistory:null),onComplete:complete,onVertexClick:p=>!U.spatialEdit&&U.zoneDraft&&U.drawZone?spatialStartAt(p):false,onChange:(g,type)=>{
+    if(U.spatialEdit){U.spatialEdit.geometry=g;U.spatialEdit.dirty=JSON.stringify(g)!==JSON.stringify(U.spatialEdit.original);const b=$('[data-act=spatialEditSave]');if(b)b.disabled=!U.spatialEdit.dirty;
+      const sh=$('#spZoneShape');if(sh)sh.textContent=zoneShapeNow(data().zones.find(z=>z.id===U.spatialEdit.id));spatialShowMids(spatialSession?.host,g,U.zoneShape)}
     else if(U.zoneDraft){Object.assign(U.zoneDraft,SpatialGeometry.fromGeo(g,U.zoneDraft.shape));if(U.zoneDraft.shape!=='polygon')delete U.zoneDraft.vertices;const area=$('.sp-draft .mk-lead');if(area)area.textContent=spArea(currentFloor(),U.zoneDraft);const shape=$('#spDraftShape');if(shape)shape.textContent=shapeLabel(U.zoneDraft)+' · 未保存'}
     spatialValidation(cv,g);
   }});
