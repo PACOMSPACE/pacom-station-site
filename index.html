@@ -3630,6 +3630,12 @@ details[open] > summary::before {
   background: var(--sel);
   box-shadow: none;
 }
+/* 本网络已有网关时“边缘网关”不可选（核查 D15） */
+.ws-palette button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: none;
+}
 .ws-progress {
   display: flex;
   align-items: center;
@@ -6649,6 +6655,8 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 #dlg .zc-zone-tools > .ws-search { flex:1 1 auto; min-width:0; margin:0; }
 #dlg .zc-zones label[hidden] { display:none; }
 #dlg .zc-floors > p { grid-column:1 / -1; margin:0; }
+/* 目标楼层的全选、全不选与“选择图纸尺寸相同的楼层”（核查 Z2）占整行。 */
+#dlg .zc-floors > .zc-floor-tools { grid-column:1 / -1; flex-wrap:wrap; margin:0 0 4px; }
 /* 窄屏（≤540px）目标楼层单列（核查 R17）。 */
 @media (max-width:540px) {
  #dlg .zc-floors { grid-template-columns:minmax(0, 1fr); }
@@ -8641,6 +8649,45 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 .flow-impact + .flow-impact{border-top:1px solid var(--line2);margin-top:20px;padding-top:16px}
 .flow-impact .kv{margin:0 0 12px}
 .flow-impact .flow-name{white-space:nowrap}
+/* 设备台账的筛选摘要与批量修改的勾选条（2026-10-05 核查 D6） */
+.flow-filter-sum{display:flex;align-items:center;flex-wrap:wrap;gap:4px 12px;margin:-8px 0 12px;font-size:13px;line-height:20px;color:var(--text2)}
+.flow-filter-sum p{margin:0;min-width:0;overflow-wrap:anywhere}
+.flow-selbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-height:32px;margin:0 0 12px}
+.flow-selbar > p{margin:0 auto 0 0;font-size:13px;line-height:20px;color:var(--text2)}
+/* 手机：第一行为已选台数与“批量修改…”，选择与清除在第二行 */
+@media (max-width:540px){
+  .flow-selbar{display:grid;grid-template-columns:auto auto 1fr auto;gap:4px}
+  .flow-selbar > p{grid-column:1 / 4;grid-row:1}
+  .flow-selbar > [data-act="batchEdit"]{grid-column:4;grid-row:1}
+  .flow-selbar > .ghost{grid-row:2}
+  .flow-selbar > p + .ghost{margin-left:-12px}
+}
+.flow-table .t :is(th,td):has(> .ws-ck:only-child){width:1%;min-width:0;padding-right:0}
+/* 筛选设备：型号按列排列 */
+#dlg .flow-filter-types{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px 16px}
+#dlg .flow-filter-types legend{float:left;width:100%;grid-column:1/-1}
+/* 分组的计划成员：搜索与筛选在列表上方，筛选只改变显示 */
+#dlg .flow-member-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0}
+#dlg .flow-member-tools > .ws-search{flex:1 1 200px;min-width:0;margin:0}
+#dlg .flow-member-tools > .ws-select{flex:0 1 160px;width:auto;min-width:0}
+#dlg .flow-member-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+#dlg .flow-member-bar > p{margin:0 auto 0 0}
+#dlg .flow-member-list{display:flex;flex-direction:column;gap:8px}
+#dlg .flow-member-list label[hidden]{display:none}
+@media (max-width:540px){#dlg .flow-member-tools > .ws-select{flex:1 1 100%}}
+/* 批量修改设备 */
+#dlg .flow-batch h3{margin:0 0 8px;font-size:14px;line-height:22px}
+#dlg .flow-batch-preview{margin:4px 0 12px}
+#dlg .flow-batch-preview > p{margin:0 0 8px;font-size:13px;line-height:20px}
+#dlg .flow-batch-preview .ws-notice{margin:0 0 8px}
+#dlg .flow-batch-preview .flow-name{white-space:nowrap}
+/* 设备台账按楼层分组与分页（2026-10-06 04 A-3） */
+.flow-table .t tr.flow-group th{padding:8px 12px;background:var(--panel);color:var(--text2);font-size:13px;line-height:20px;font-weight:500;text-align:left;white-space:normal;border-bottom:1px solid var(--line2)}
+.flow-pager{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+.flow-pager.top{margin:0 0 12px}
+.flow-pager > p{margin:0 auto 0 0;font-size:13px;line-height:20px;color:var(--text2)}
+.flow-pager > .ws-select{flex:0 0 auto;width:auto;min-width:140px}
+@media (max-width:540px){.flow-pager > p{flex:1 1 100%}}
 
 }
 @layer base {
@@ -8807,6 +8854,10 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 .v13-sec-head h3{margin:0;font-size: 16px;line-height: 24px;font-weight:500}
 .v13-sec-head .sp{flex:1}
 .v13-sec-head small{font-size:12px}
+/* 组状态旁的“当前 N 台需处理”（04 B-5）：提醒色链接；窄屏可换到第二行，触屏点击区 44px 不改变标题行高 */
+.v13-sec-head:has(.v13-attn){flex-wrap:wrap;row-gap:4px}
+.v13-sec-head .v13-attn{line-height:20px;white-space:nowrap}
+@media (max-width:850px),(pointer:coarse){.v13-sec-head .v13-attn{min-height:44px;margin-block:-10px}}
 .v13-stage-row{display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr) minmax(180px,260px);gap:24px;align-items:center;padding:14px 0;border-top:1px solid var(--line2)}
 .v13-stage-row:first-of-type{border-top:0;padding-top:4px}
 .v13-stage-name{display:flex;flex-direction:column;min-width:0}
@@ -18907,23 +18958,27 @@ const StationModel = (() => {
     record(db, "规划设备网络", n.id, n.name);
     return n;
   }
+  // 自动编号“楼宇-楼层-型号-序号”：序号为本层同型号点位数（含已删除的）加一；一次新建多个时由调用方顺延序号（复制设备，04 B-1）。
+  const pointCount = (db, fid, type) =>
+    db.points.filter((p) => p.floorId === fid && p.type === type).length +
+    db.trash.filter((x) => x.kind === "points" && x.value.floorId === fid && x.value.type === type).length;
+  function pointName(db, fid, type, seq = pointCount(db, fid, type) + 1) {
+    const f = floor(db, fid),
+      t = catalog[type];
+    return `${building(db, f.buildingId).name.replace("栋", "")}-${f.name}-${t.model.split(" / ")[0] || t.name}-${String(seq).padStart(2, "0")}`;
+  }
   function addPoint(db, fid, type, x, y, nid, accessMode, options = {}) {
     const f = floor(db, fid),
-      b = building(db, f?.buildingId),
       t = catalog[type];
     if (!f?.image) throw Error("上传楼层图后才能标记设备");
-    const id = uid("point"),
-      count =
-        db.points.filter((p) => p.floorId === fid && p.type === type).length +
-        db.trash.filter((x) => x.kind === "points" && x.value.floorId === fid && x.value.type === type).length +
-        1;
+    const id = uid("point");
     const p = {
       id,
       floorId: fid,
       type,
       x,
       y,
-      name: `${b.name.replace("栋", "")}-${f.name}-${t.model.split(" / ")[0] || t.name}-${String(count).padStart(2, "0")}`,
+      name: pointName(db, fid, type),
       networkId: ["mesh", "gateway"].includes(t.access) ? nid : null,
       binding: "pending",
       planVersion: f.planVersion || 1,
@@ -19294,6 +19349,8 @@ const StationModel = (() => {
     actorText,
     validate,
     planNetwork,
+    pointCount,
+    pointName,
     addPoint,
     pointIssues,
     nextTask,
@@ -19368,6 +19425,7 @@ const StationFlowModel = ((M) => {
     },
   };
   const clone = M.copy;
+  const LEGACY_APP_NAMES = { 空调: "暖通空调" };
   const prepare = (db) => {
     collections.forEach((k) => {
       db[k] ||= [];
@@ -19382,6 +19440,14 @@ const StationFlowModel = ((M) => {
     // 旧版本写死的操作人“本地配置人员”不是实际成员：载入时改为未记录（null），页面与导出统一显示“未记录”（2026-10-03 A10）。
     db.records.forEach((r) => {
       if (r && r.actor === "本地配置人员") r.actor = null;
+    });
+    // 功能显示名统一（2026-10-06 HONG 确认 04 B-6）：旧版本保存的部署范围启用功能“空调”与暖通空调设置的类别“空调”，
+    // 载入时改为“暖通空调”，范围版本不变。
+    Object.values(db.scopes || {}).forEach((s) => {
+      if (s?.functions?.some((f) => LEGACY_APP_NAMES[f])) s.functions = [...new Set(s.functions.map((f) => LEGACY_APP_NAMES[f] || f))];
+    });
+    (db.configs || []).forEach((c) => {
+      if (c && LEGACY_APP_NAMES[c.kind]) c.kind = LEGACY_APP_NAMES[c.kind];
     });
     return db;
   };
@@ -19539,10 +19605,11 @@ const StationFlowModel = ((M) => {
       ]),
     ];
   }
-  function communication(db, p) {
+  // gw：该设备所在网络的网关。逐网络统计时由调用方传入一次，免得每台设备都遍历全部点位查找网关（04 B-5）。
+  function communication(db, p, gw) {
     if (!isConnected(p)) return "—";
-    const n = M.get(db, "networks", p.networkId),
-      gw = gateway(db, p.networkId);
+    const n = M.get(db, "networks", p.networkId);
+    if (gw === undefined) gw = gateway(db, p.networkId);
     if (p.type !== "gw" && M.access(p) === "mesh" && gw?.telemetry?.upstream !== "online") return "状态未知";
     if (!p.telemetry?.lastSeen) return "状态未知";
     return Date.now() - Date.parse(p.telemetry.lastSeen) > templates(n).offlineMinutes * 60000 ? "离线" : "在线";
@@ -19976,7 +20043,31 @@ const StationFlowModel = ((M) => {
         }
       }
     }
+    pruneDesired(db);
     return db;
+  }
+  // 期望配置历史的保留（2026-10-06 HONG 确认，04 A-4）：每个点位只保留当前版本，以及仍被配置回执、功能验证（点位的已验证版本、
+  // 功能测试回执记下的版本）或交付快照引用的版本；其余旧版本在保存时删除，已删除的点位只保留被引用的版本。版本号照常递增，不重复使用。
+  // 删除时整体替换数组（只追加记录的缓存按数组本身，见上）。返回删除的条数。
+  function pruneDesired(db) {
+    const list = db.desiredConfigs || [],
+      keep = new Map(),
+      ref = (pid, v) => pid && v != null && (keep.get(pid) || keep.set(pid, new Set()).get(pid)).add(v);
+    for (const p of db.points) ref(p.id, desired(db, p.id)?.version);
+    for (const p of db.points) ref(p.id, p.verifiedVersion);
+    for (const r of db.receipts || []) if (r.kind === "configuration") ref(r.pointId, r.configurationVersion);
+    for (const r of db.testReceipts || []) for (const [pid, v] of Object.entries(r.versions || {})) ref(pid, v);
+    for (const d of db.deliveries || []) {
+      for (const x of d.snapshot?.devices || []) {
+        ref(x.id, x.desiredVersion);
+        ref(x.id, x.verifiedVersion);
+        for (const r of x.receipts || []) if (r.kind === "configuration") ref(x.id, r.configurationVersion);
+      }
+      for (const t of d.snapshot?.functionTests || []) for (const [pid, v] of Object.entries(t.versions || {})) ref(pid, v);
+    }
+    const kept = list.filter((c) => keep.get(c.pointId)?.has(c.version));
+    if (kept.length !== list.length) db.desiredConfigs = kept;
+    return list.length - kept.length;
   }
   function capacities(db, cx = indexOf(db)) {
     const groups = cx.groups || allGroups(db, cx),
@@ -20195,12 +20286,13 @@ const StationFlowModel = ((M) => {
     M.record(db, "确认功能区划分", f.id, `${M.building(db, f.buildingId)?.name || ""} ${f.name}`.trim(), before);
     return f.zoneReview;
   }
-  // 应用的稳定编号（2026-10-05 核查 P3）：部署范围“启用功能”、配置参数的应用与运营页签显示名不同，按编号对应。
+  // 应用的稳定编号（2026-10-05 核查 P3）：部署范围“启用功能”与配置参数的应用按编号对应。显示名统一为照明、暖通空调、室内环境、
+  // 能源（2026-10-06 HONG 确认 04 B-6）：部署范围仍分开勾选能耗与碳排放，二者在配置参数与运营页归入能源。
   // 能耗与碳排放共用能源参数；电力 CO₂ 因子（E-14）与折标煤（E-15）只属碳排放。跨应用参数不随启用功能取舍。
   const APPS = [
     { id: "lighting", scope: "照明", params: "照明" },
-    { id: "hvac", scope: "空调", params: "暖通空调" },
-    { id: "iaq", scope: "室内环境", params: "空气质量" },
+    { id: "hvac", scope: "暖通空调", params: "暖通空调" },
+    { id: "iaq", scope: "室内环境", params: "室内环境" },
     { id: "energy", scope: "能耗", params: "能源" },
     { id: "carbon", scope: "碳排放", params: "能源" },
   ];
@@ -20208,7 +20300,7 @@ const StationFlowModel = ((M) => {
   // 本次部署范围启用的应用编号；未设范围返回 null（不按功能取舍）。
   function enabledApps(db, pid) {
     const s = db.scopes?.[pid];
-    return s ? new Set((s.functions || []).map((f) => APPS.find((a) => a.scope === f)?.id).filter(Boolean)) : null;
+    return s ? new Set((s.functions || []).map((f) => APPS.find((a) => a.scope === (LEGACY_APP_NAMES[f] || f))?.id).filter(Boolean)) : null;
   }
   function paramApps(code, app) {
     if (app === "能源") return ["E-14", "E-15"].includes(code) ? ["carbon"] : ["energy", "carbon"];
@@ -22475,6 +22567,158 @@ const StationFlowModel = ((M) => {
       watts = drivers * (+p.fixtureWatts || 0);
     return { driver: d, drivers, watts, inrush: d ? drivers * d.inrush : null };
   }
+  // 照明负载的阻止项（规划检查与批量修改的预览共用，写法相同）：driver 为未填驱动或驱动不在兼容清单，limits 为调光驱动台数、功率与冲击超出上限。
+  function lcLoadBlocks(lc) {
+    const l = lcLoad(lc),
+      L = M.LIMITS;
+    return {
+      driver:
+        !lc.driverModel || !l.drivers
+          ? { id: "drv-" + lc.id, text: `${lc.name} 未填写驱动型号与台数` }
+          : !l.driver
+            ? { id: "cmp-" + lc.id, text: `${lc.name} 的驱动${lc.driverModel === "other" ? "" : " " + lc.driverModel}不在兼容清单，需先完成兼容测试` }
+            : null,
+      limits: [
+        lc.ctrl !== "switch" && l.drivers > L.dimDrivers && { id: "dim-" + lc.id, text: `${lc.name} 调光驱动 ${l.drivers} 台，超过 ${L.dimDrivers} 台` },
+        l.watts > L.loadWatts && { id: "w-" + lc.id, text: `${lc.name} 功率 ${l.watts} W，超过规划值 ${L.loadWatts} W` },
+        l.inrush && l.inrush > L.inrushBudget && { id: "in-" + lc.id, text: `${lc.name} 开灯冲击约 ${l.inrush} A，超过预算 ${L.inrushBudget} A` },
+      ].filter(Boolean),
+    };
+  }
+  // 批量修改（2026-10-05 核查 D6）：按型号列出可以批量修改的项，型号不支持的项不写入；目前为 LC20 的照明负载。
+  // 取值范围与点位面板相同；check 给出修改后的阻止项，与规划检查写法相同。
+  const BATCH_FIELDS = {
+    lc: {
+      label: "照明负载",
+      fields: [
+        { key: "ctrl", label: "控制类型", options: [["dim", "0–10 V 调光"], ["switch", "开关"]] },
+        { key: "driverModel", label: "驱动型号", options: [...M.DRIVERS.map((d) => [d.model, `${d.model} · ${d.watts} W`]), ["other", "其他（待兼容测试）"]] },
+        { key: "drivers", label: "驱动台数", max: 99 },
+        { key: "fixtureWatts", label: "每台灯具功率 W", name: "每台灯具功率", max: 1000, unit: " W" },
+      ],
+      check: (p) => {
+        const b = lcLoadBlocks(p);
+        return [b.driver, ...b.limits].filter(Boolean);
+      },
+    },
+  };
+  const batchField = (key) => Object.values(BATCH_FIELDS).flatMap((t) => t.fields).find((f) => f.key === key);
+  // 修改项的名称：表单标签带单位（与点位面板相同），预览、提示与变更记录写不带单位的名称，单位跟在数值后。
+  const batchName = (f) => f.name || f.label;
+  // 修改项的显示值：没有填写的写“未填”，不写 0；控制类型未设时按 0–10 V 调光（与点位面板相同）。
+  function batchValueText(key, v) {
+    const f = batchField(key);
+    if (key === "ctrl") return v === "switch" ? "开关" : "0–10 V 调光";
+    if (v == null || v === "") return "未填";
+    if (f?.options) return f.options.find(([x]) => x === v)?.[1].replace(/ · .*$/, "") ?? String(v);
+    return `${v}${f?.unit || ""}`;
+  }
+  // 读入批量修改的新值：空值表示保持原值；数值为整数且在点位面板的范围内。
+  function batchChanges(raw = {}) {
+    const out = {};
+    for (const [key, v] of Object.entries(raw)) {
+      if (v == null || v === "") continue;
+      const f = batchField(key);
+      if (!f) throw Error(`不能批量修改“${key}”`);
+      if (f.options) {
+        if (!f.options.some(([x]) => x === v)) throw Error(`${batchName(f)}的取值无效`);
+        out[key] = v;
+      } else {
+        const x = Number(v);
+        if (!Number.isInteger(x) || x < 0 || x > f.max) throw Error(`${batchName(f)}请输入 0–${f.max} 的整数`);
+        out[key] = x;
+      }
+    }
+    return out;
+  }
+  // 批量修改的预览：rows 为会改变的点位（修改项、修改后的阻止项与其中新增的阻止项、是否已绑定），same 为与新值相同的点位，
+  // skipped 为型号没有可批量修改的项、不修改的点位（按型号计数）。点位顺序与 ids 相同。
+  function batchPlan(db, ids, raw) {
+    const changes = batchChanges(raw),
+      keys = Object.keys(changes),
+      rows = [],
+      same = [],
+      skipped = new Map();
+    for (const id of new Set(ids)) {
+      const p = M.get(db, "points", id);
+      if (!p) continue;
+      const spec = BATCH_FIELDS[p.type];
+      if (!spec) {
+        skipped.set(p.type, (skipped.get(p.type) || 0) + 1);
+        continue;
+      }
+      const own = spec.fields.map((f) => f.key),
+        diffs = keys
+          .filter((k) => own.includes(k))
+          .map((k) => ({ key: k, label: batchName(batchField(k)), from: k === "ctrl" ? p.ctrl || "dim" : (p[k] ?? null), to: changes[k] }))
+          .filter((d) => d.from !== d.to);
+      if (!diffs.length) {
+        same.push(p);
+        continue;
+      }
+      const after = { ...p, ...Object.fromEntries(diffs.map((d) => [d.key, d.to])) },
+        before = new Set(spec.check(p).map((b) => b.id)),
+        blocks = spec.check(after);
+      rows.push({ p, diffs, after, load: lcLoad(after), blocks: blocks.map((b) => b.text), added: blocks.filter((b) => !before.has(b.id)).map((b) => b.text), bound: boundNow(p) });
+    }
+    return { changes, rows, same, skipped: [...skipped].map(([type, count]) => ({ type, count })), editable: rows.length + same.length };
+  }
+  // 写入批量修改：只改会改变的点位与项，点位版本加一（与保存楼层规划相同）；返回预览结果。
+  function applyBatch(db, ids, raw) {
+    const plan = batchPlan(db, ids, raw);
+    for (const r of plan.rows) {
+      for (const d of r.diffs) r.p[d.key] = d.to;
+      r.p.version = (r.p.version || 1) + 1;
+    }
+    return plan;
+  }
+  // 设备台账与分组成员的筛选（2026-10-05 核查 D6）：型号、楼层与服务功能区。功能区按名称筛选：
+  // 标准层复制出的同名功能区跨楼层一起选中；NO_ZONE 为未归属功能区。
+  const NO_ZONE = "__none";
+  const deviceTypeLabel = (type) => {
+    const c = M.catalog[type];
+    return c ? (c.model ? `${c.model} ${c.name}` : c.name) : String(type);
+  };
+  function deviceFilterOptions(db, ps) {
+    const cx = indexOf(db),
+      types = new Map(),
+      floors = new Map(),
+      zones = new Map();
+    let unzoned = 0;
+    for (const p of ps) {
+      types.set(p.type, (types.get(p.type) || 0) + 1);
+      floors.set(p.floorId, (floors.get(p.floorId) || 0) + 1);
+      const z = p.zoneId && cx.zones.get(p.zoneId);
+      if (z) zones.set(z.name, (zones.get(z.name) || 0) + 1);
+      else unzoned++;
+    }
+    const order = Object.keys(M.catalog),
+      floorOf = (id) => cx.floors.get(id),
+      buildingOf = (id) => cx.buildings.get(floorOf(id)?.buildingId);
+    return {
+      types: [...types]
+        .sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
+        .map(([type, count]) => ({ type, label: deviceTypeLabel(type), count })),
+      floors: [...floors]
+        .filter(([id]) => floorOf(id))
+        .sort((a, b) => M.byName(buildingOf(a[0]), buildingOf(b[0])) || M.byHeight(floorOf(a[0]), floorOf(b[0])))
+        .map(([id, count]) => ({ id, count })),
+      zones: [...zones].sort((a, b) => a[0].localeCompare(b[0], "zh-CN", { numeric: true })).map(([name, count]) => ({ name, count })),
+      unzoned,
+    };
+  }
+  function deviceMatch(db, p, f = {}, cx = null) {
+    if (f.types?.length && !f.types.includes(p.type)) return false;
+    if (f.floors?.length && !f.floors.includes(p.floorId)) return false;
+    if (f.zone) {
+      const z = (p.zoneId && (cx ? cx.zones.get(p.zoneId) : M.get(db, "zones", p.zoneId))) || null;
+      if (f.zone === NO_ZONE ? !!z : z?.name !== f.zone) return false;
+    }
+    return true;
+  }
+  // 分组的计划成员候选：本项目的点位；网关不作为分组成员（已经是成员的仍列出，便于移除）。
+  const groupCandidates = (db, pid, members = []) =>
+    db.points.filter((p) => M.projectOfFloor(db, p.floorId) === pid && (p.type !== "gw" || members.includes(p.id)));
   // 全机构共用的统计（容量、供电台数、待确认的建议供电、有 MS20 的功能区）：同一索引下逐网络检查时只算一次。
   function planTotals(db, cx) {
     if (cx.plan) return cx.plan;
@@ -22501,23 +22745,12 @@ const StationFlowModel = ((M) => {
       hints = [],
       { capOf, powerCount, suggestedFor, msZones } = planTotals(db, cx);
     for (const lc of ps.filter((p) => p.type === "lc")) {
-      const l = lcLoad(lc);
-      if (!lc.driverModel || !l.drivers) blocks.push({ id: "drv-" + lc.id, text: `${lc.name} 未填写驱动型号与台数`, ids: [lc.id] });
-      else if (!l.driver)
-        blocks.push({
-          id: "cmp-" + lc.id,
-          text: `${lc.name} 的驱动${lc.driverModel === "other" ? "" : " " + lc.driverModel}不在兼容清单，需先完成兼容测试`,
-          ids: [lc.id],
-        });
+      const lb = lcLoadBlocks(lc);
+      if (lb.driver) blocks.push({ ...lb.driver, ids: [lc.id] });
       const own = powerCount.get(lc.id) || 0;
       if (own > L.msPerLc)
         blocks.push({ id: "ms-" + lc.id, text: `${lc.name} 供电 MS20 ${own} 台，超过规划上限 ${L.msPerLc} 台`, ids: [lc.id] });
-      if (lc.ctrl !== "switch" && l.drivers > L.dimDrivers)
-        blocks.push({ id: "dim-" + lc.id, text: `${lc.name} 调光驱动 ${l.drivers} 台，超过 ${L.dimDrivers} 台`, ids: [lc.id] });
-      if (l.watts > L.loadWatts)
-        blocks.push({ id: "w-" + lc.id, text: `${lc.name} 功率 ${l.watts} W，超过规划值 ${L.loadWatts} W`, ids: [lc.id] });
-      if (l.inrush && l.inrush > L.inrushBudget)
-        blocks.push({ id: "in-" + lc.id, text: `${lc.name} 开灯冲击约 ${l.inrush} A，超过预算 ${L.inrushBudget} A`, ids: [lc.id] });
+      for (const b of lb.limits) blocks.push({ ...b, ids: [lc.id] });
       const c = capOf.get(lc.id);
       if (c && Math.max(c.lighting, c.occupancy, c.lux) > c.subscriptionLimit)
         blocks.push({ id: "sub-" + lc.id, text: `${lc.name} 订阅分组超过 ${c.subscriptionLimit} 个`, ids: [lc.id] });
@@ -22605,9 +22838,10 @@ const StationFlowModel = ((M) => {
       if (!t || t.id === srcId) continue;
       if (t.spaceType !== src.spaceType) throw Error(`“${t.name}”不是“${src.spaceType}”，未复制`);
       if (db.points.some((p) => p.zoneId === tid && M.access(p) === "mesh")) throw Error(`“${t.name}”已有设备，未复制`);
-      const nets = M.networks(db, t.floorId),
-        net = nets.find((n) => n.id === srcPoints[0].networkId) || nets[0];
-      if (!net) throw Error(`“${t.name}”所在楼层还没有设备网络`);
+      // 每台沿用来源点位自己的设备网络，不静默改归第一个网络（核查 D15）；目标楼层须在该网络的服务范围内。
+      const lost = srcPoints.map((p) => M.get(db, "networks", p.networkId)).find((n) => !n?.floorIds.includes(t.floorId));
+      if (srcPoints.some((p) => !M.get(db, "networks", p.networkId)?.floorIds.includes(t.floorId)))
+        throw Error(`“${t.name}”所在楼层不在${lost ? `“${lost.name}”` : "来源设备网络"}的服务范围内，未复制`);
       const map = {};
       const place = (p) => ({ x: t.x + ((p.x - src.x) / src.w) * t.w, y: t.y + ((p.y - src.y) / src.h) * t.h });
       for (const p of [...srcPoints].sort((a, b) => (a.type === "lc" ? -1 : 1) - (b.type === "lc" ? -1 : 1))) {
@@ -22618,7 +22852,7 @@ const StationFlowModel = ((M) => {
           p.type,
           +xy.x.toFixed(2),
           +xy.y.toFixed(2),
-          net.id,
+          p.networkId,
           null,
           p.type === "ms" && p.powerId && map[p.powerId] ? { powerId: map[p.powerId], zoneId: tid } : { zoneId: tid },
         );
@@ -22655,6 +22889,236 @@ const StationFlowModel = ((M) => {
     }
     M.validate(db);
     return made;
+  }
+  // 复制到同类房间的内容（2026-10-05 核查 D15）：只复制房间内的 Mesh 设备；网关、非 Mesh 点位与跟随房间外 MS20 的关系不复制，
+  // 供电来自房间外 LC20 的 MS20 复制后为系统建议，跨房间的回路组只复制房间内的 LC20。弹窗逐项列出，不静默丢弃。
+  function copyZoneScope(db, srcId) {
+    const inRoom = db.points.filter((p) => p.zoneId === srcId),
+      mesh = inRoom.filter((p) => M.access(p) === "mesh"),
+      ids = new Set(mesh.map((p) => p.id)),
+      name = (id) => M.get(db, "points", id)?.name || "已删除的点位";
+    return {
+      mesh,
+      others: inRoom.filter((p) => M.access(p) !== "mesh"),
+      followOut: mesh.flatMap((p) => (p.type === "lc" ? (p.followIds || []).filter((id) => !ids.has(id)).map((id) => ({ lc: p.name, ms: name(id) })) : [])),
+      powerOut: mesh.filter((p) => p.type === "ms" && p.powerId && !ids.has(p.powerId)).map((p) => ({ ms: p.name, lc: name(p.powerId) })),
+      groupsOut: (db.circuitGroups || []).filter((g) => g.controllerIds.some((id) => ids.has(id)) && !g.controllerIds.every((id) => ids.has(id))),
+      roles: mesh.filter((p) => p.relay || p.proxy).length,
+      networks: [...new Set(mesh.map((p) => p.networkId))].map((id) => M.get(db, "networks", id)).filter(Boolean),
+    };
+  }
+  // ---------- 复制设备到其他楼层（2026-10-06 HONG 确认 04 B-1，核查 A2、D15）----------
+  // 按相同图纸坐标复制所选范围的点位，到目标楼层重新编号；只复制勾选的内部关系（供电、回路组与照度源、跟随占用），两端都在复制范围内才复制，
+  // 跨复制范围的关系逐条列出、不复制；不复制硬件身份、地址、密钥、绑定与验证回执、交付状态；中继与部署期代理不复制，复制后按新楼层重新评估。
+  const DEVICE_COPY_RELATIONS = { power: true, groups: true, follow: true };
+  // 复制范围：源楼层上服务功能区在 keys 中的点位；"none" 为未归属功能区的点位。
+  function deviceCopyScope(db, srcFid, keys) {
+    const pick = new Set(keys),
+      zs = new Set(db.zones.filter((z) => z.floorId === srcFid).map((z) => z.id));
+    return db.points.filter((p) => p.floorId === srcFid && pick.has(zs.has(p.zoneId) ? p.zoneId : "none"));
+  }
+  // 复制前预览范围内外的关系（不改资料）：跨复制范围的逐条列出；两端都在范围内的按是否勾选计数。
+  function deviceCopyRelations(db, pointIds, relations = DEVICE_COPY_RELATIONS) {
+    const ids = new Set(pointIds),
+      name = (id) => M.get(db, "points", id)?.name || "已删除的点位",
+      cross = [],
+      count = { power: 0, groups: 0, follow: 0 },
+      add = (kind, ok) => ok && (count[kind] += 1);
+    for (const p of db.points) {
+      if (p.type === "ms" && p.powerId && (ids.has(p.id) || ids.has(p.powerId))) {
+        if (ids.has(p.id) && ids.has(p.powerId)) add("power", true);
+        else if (ids.has(p.id)) cross.push({ kind: "power", text: `${p.name} 的供电 ${name(p.powerId)} 不在范围内：复制后未关联供电` });
+        else cross.push({ kind: "power", text: `${name(p.powerId)} 供电的 ${p.name} 不在范围内：不复制这条供电` });
+      }
+      if (p.type === "lc" && ids.has(p.id))
+        for (const id of p.followIds || []) {
+          if (ids.has(id)) add("follow", true);
+          else cross.push({ kind: "follow", text: `${p.name} 跟随的 ${name(id)} 不在范围内：不复制这条跟随占用` });
+        }
+    }
+    for (const g of db.circuitGroups || []) {
+      const inside = g.controllerIds.filter((id) => ids.has(id));
+      if (!inside.length) continue;
+      if (inside.length < g.controllerIds.length)
+        cross.push({ kind: "group", text: `回路组“${g.name}”有 ${g.controllerIds.length - inside.length} 台 LC20 不在范围内：范围内的 LC20 各自成组` });
+      else {
+        add("groups", true);
+        if (g.luxMode === "locked" && g.luxSourceId && !ids.has(g.luxSourceId))
+          cross.push({ kind: "lux", text: `回路组“${g.name}”锁定的照度源 ${name(g.luxSourceId)} 不在范围内：复制后按规则重新初选` });
+      }
+    }
+    return { cross, count, chosen: Object.fromEntries(Object.keys(count).map((k) => [k, relations[k] ? count[k] : 0])) };
+  }
+  // 目标楼层的设备网络（核查 D15：不静默沿用）：只有一个服务该层的网络时用它；没有时新建只服务该层的网络；有多个时须选择。
+  function deviceCopyNetwork(db, fid) {
+    const ns = M.networks(db, fid);
+    return ns.length === 1 ? ns[0].id : ns.length ? "" : "new";
+  }
+  // 新建网络的名称“楼宇 · 楼层”，项目中已有同名时加序号。
+  function floorNetworkName(db, fid) {
+    const f = M.floor(db, fid),
+      b = M.building(db, f.buildingId),
+      base = `${b.name} · ${f.name}`;
+    let name = base;
+    for (let i = 2; db.networks.some((n) => n.projectId === b.projectId && n.name === name); i++) name = `${base}（${i}）`;
+    return name;
+  }
+  // 名称中的源楼层号改为目标楼层号：功能区编号（705 → 805、7-1 → 8-1）与楼层名（7F → 8F）。
+  function floorRename(name, src, t) {
+    const num = (f) => (f.kind === "above" ? Number(f.level) : 0),
+      at = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return renumberZone(name, num(src), num(t)).replace(new RegExp(`(?<![0-9A-Za-z])${at(src.name)}(?![0-9A-Za-z])`, "g"), () => t.name);
+  }
+  // 复制到一个目标楼层。networkId：服务目标楼层的设备网络（所选设备都不需网络时可为空）。
+  // 返回新建点位、跳过的点位（目标网络已有网关）、回路组数与待重选的数量（供电未关联、未对应功能区、系统连接不服务目标楼层）。
+  function copyDevicesToFloor(db, srcFid, pointIds, targetFid, networkId, relations = DEVICE_COPY_RELATIONS) {
+    const src = M.floor(db, srcFid),
+      t = M.floor(db, targetFid);
+    if (!src || !t) throw Error("楼层不存在");
+    if (srcFid === targetFid) throw Error("目标楼层不能是源楼层");
+    if (!t.image) throw Error(`${t.name} 尚未上传楼层图`);
+    ensureCircuitGroups(db);
+    const ids = new Set(pointIds),
+      ps = db.points.filter((p) => p.floorId === srcFid && ids.has(p.id)),
+      n = M.get(db, "networks", networkId),
+      meshy = (p) => ["mesh", "gateway"].includes(M.access(p));
+    if (!ps.length) throw Error("请至少选择一台设备");
+    if (ps.some(meshy) && !n?.floorIds.includes(targetFid)) throw Error(`请为 ${t.name} 选择服务本层的设备网络`);
+    // 一个设备网络只有一个网关：目标网络已有网关时不复制网关，范围内有多台时只复制第一台。
+    let gw = n && db.points.some((p) => p.networkId === n.id && p.type === "gw");
+    const skipped = [],
+      keep = ps.filter((p) => {
+        if (p.type !== "gw") return true;
+        if (gw) {
+          skipped.push({ name: p.name, reason: `${n.name} 已有网关` });
+          return false;
+        }
+        return (gw = true);
+      });
+    // 编号按型号与名称排序顺延；点位按源楼层的标记顺序加入，回路组按“首台标记”初选照度源时与源楼层一致。
+    const order = Object.keys(M.catalog),
+      seq = new Map(),
+      names = new Map(
+        [...keep]
+          .sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type) || M.byName(a, b))
+          .map((p) => {
+            const k = (seq.get(p.type) ?? M.pointCount(db, targetFid, p.type)) + 1;
+            seq.set(p.type, k);
+            return [p.id, M.pointName(db, targetFid, p.type, k)];
+          }),
+      );
+    // 服务功能区对应到目标楼层：同源（复制功能区时记下的来源）的功能区优先，其次为包含源功能区中心的功能区；都没有时未归属。
+    const tz = db.zones.filter((z) => z.floorId === targetFid),
+      origin = (z) => z.copiedFrom || z.id,
+      zoneMap = new Map(),
+      zoneFor = (zid) => {
+        if (!zoneMap.has(zid)) {
+          const z = M.get(db, "zones", zid),
+            c = z && { x: z.x + z.w / 2, y: z.y + z.h / 2 },
+            same = z ? tz.filter((x) => origin(x) === origin(z)) : [];
+          zoneMap.set(zid, z?.floorId === srcFid ? ((same.length > 1 && same.find((x) => inZone(c, x))) || same[0] || tz.find((x) => inZone(c, x)))?.id || null : null);
+        }
+        return zoneMap.get(zid);
+      };
+    const map = new Map(),
+      pending = { power: 0, zone: 0, connection: 0 };
+    for (const p of keep) {
+      const conn = p.connectionId && M.get(db, "connections", p.connectionId),
+        q = {
+          id: M.uid("point"),
+          floorId: targetFid,
+          type: p.type,
+          x: p.x,
+          y: p.y,
+          name: names.get(p.id),
+          networkId: meshy(p) ? n.id : null,
+          binding: "pending",
+          planVersion: t.planVersion || 1,
+          version: 1,
+          zoneId: p.zoneId ? zoneFor(p.zoneId) : null,
+          powerId: null,
+          followIds: [],
+          luxId: null,
+          relay: false,
+          proxy: false,
+        };
+      if (p.access) q.access = p.access;
+      if (p.type === "lc")
+        Object.assign(q, { ctrl: p.ctrl || "dim", driverModel: p.driverModel || "", drivers: p.drivers ?? null, fixtureWatts: p.fixtureWatts ?? null }, p.localSensorPlan ? { localSensorPlan: p.localSensorPlan } : {});
+      if (conn?.floorIds.includes(targetFid)) q.connectionId = conn.id;
+      else if (p.connectionId) pending.connection++;
+      if (p.zoneId && !q.zoneId) pending.zone++;
+      db.points.push(q);
+      map.set(p.id, q);
+    }
+    for (const p of keep) {
+      const q = map.get(p.id);
+      if (p.type === "ms" && p.powerId) {
+        const lc = relations.power && map.get(p.powerId);
+        if (lc) Object.assign(q, { powerId: lc.id, powerSuggested: !!p.powerSuggested });
+        else pending.power++;
+      }
+      if (p.type === "lc" && relations.follow) q.followIds = (p.followIds || []).map((id) => map.get(id)?.id).filter(Boolean);
+    }
+    // 回路组：整组都在范围内的，在目标楼层按同样的组成重建，名称换成目标楼层号；锁定的照度源随之对应。标定与控制方式判定是运行数据，不复制。
+    const srcGroups = relations.groups ? (db.circuitGroups || []).filter((g) => g.controllerIds.every((id) => map.has(id))) : [];
+    ensureCircuitGroups(db);
+    for (const g of srcGroups) {
+      const lcs = g.controllerIds.map((id) => map.get(id).id),
+        home = db.circuitGroups.find((x) => x.controllerIds.includes(lcs[0]));
+      for (const id of lcs.slice(1)) {
+        const own = db.circuitGroups.find((x) => x.controllerIds.includes(id));
+        if (own !== home) own.controllerIds = own.controllerIds.filter((c) => c !== id);
+        home.controllerIds.push(id);
+      }
+      const lcName = g.controllerIds.find((id) => M.get(db, "points", id)?.name === g.name);
+      home.name = lcName ? map.get(lcName).name : floorRename(g.name, src, t);
+      const lux = g.luxMode === "locked" && map.get(g.luxSourceId);
+      if (lux) Object.assign(home, { luxSourceId: lux.id, luxMode: "locked", luxBasis: g.luxBasis || "manual" });
+    }
+    ensureCircuitGroups(db);
+    M.validate(db);
+    const made = [...map.values()];
+    M.record(db, "复制设备", targetFid, `从 ${src.name} 复制 ${made.length} 个点位到 ${t.name}${n ? ` · ${n.name}` : ""}${skipped.length ? `，跳过 ${skipped.length} 个` : ""}`);
+    return { created: made.map((q) => q.id), types: made.map((q) => q.type), skipped, groups: srcGroups.length, pending };
+  }
+  // 撤回复制设备（第三批验收“撤回正确”）：last 为复制保存后记下的 { floors: [{ id, points: [新建点位的副本], network: 新建网络的副本或 null }] }。
+  // 新建的点位与网络复制后都没有改动、也没有被其他资料引用时才能撤回；撤回整批删除，规划回到复制前，不进“已删除”，编号随之空出。
+  function deviceCopyUndoIssues(db, last) {
+    const made = last.floors.flatMap((f) => f.points),
+      ids = new Set(made.map((p) => p.id)),
+      byId = new Map(db.points.map((p) => [p.id, p])),
+      same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null),
+      issues = [];
+    if (made.some((p) => !same(byId.get(p.id), p))) issues.push("复制后已修改或删除了其中的点位");
+    if (db.points.some((p) => !ids.has(p.id) && (ids.has(p.powerId) || ids.has(p.luxId) || [...(p.followIds || []), ...(p.luxShareIds || [])].some((id) => ids.has(id)))))
+      issues.push("其他点位的供电、跟随或照度来源关联了复制的点位");
+    if ((db.circuitGroups || []).some((g) => g.controllerIds.some((id) => ids.has(id)) && !g.controllerIds.every((id) => ids.has(id))))
+      issues.push("复制的 LC20 已与其他回路并组");
+    if (db.groups.some((g) => g.pointIds.some((id) => ids.has(id)))) issues.push("自定义分组引用了复制的点位");
+    if ((db.systemGroups || []).some((g) => g.pointIds.length && g.pointIds.every((id) => ids.has(id)) && db.scenes.some((s) => s.groupId === g.id)))
+      issues.push("场景引用了只含复制点位的自动分组");
+    for (const n of last.floors.map((f) => f.network).filter(Boolean))
+      if (
+        !same(M.get(db, "networks", n.id), n) ||
+        M.networkPoints(db, n.id).some((p) => !ids.has(p.id)) ||
+        [db.deploymentPackages, db.healthRecords, db.deliveries, db.maintenanceTasks].some((list) => (list || []).some((x) => x.networkId === n.id))
+      )
+        issues.push(`设备网络“${n.name}”复制后另有改动`);
+    return issues;
+  }
+  function undoDeviceCopy(db, last) {
+    const issues = deviceCopyUndoIssues(db, last);
+    if (issues.length) throw Error(`不能撤回：${issues.join("；")}`);
+    const ids = new Set(last.floors.flatMap((f) => f.points.map((p) => p.id))),
+      nets = new Set(last.floors.map((f) => f.network?.id).filter(Boolean));
+    db.points = db.points.filter((p) => !ids.has(p.id));
+    db.circuitGroups = (db.circuitGroups || []).filter((g) => !g.controllerIds.some((id) => ids.has(id)));
+    db.networks = db.networks.filter((n) => !nets.has(n.id));
+    ensureCircuitGroups(db);
+    M.validate(db);
+    for (const f of last.floors)
+      M.record(db, "撤回复制设备", f.id, `删除复制到 ${M.floor(db, f.id)?.name || ""} 的 ${f.points.length} 个点位${f.network ? `与设备网络 ${f.network.name}` : ""}`);
   }
   function alarmGroups(db) {
     const active = db.alerts.filter((a) => a.state !== "recovered" && a.kind === "offline"),
@@ -22726,6 +23190,7 @@ const StationFlowModel = ((M) => {
     shareData,
     lightingFor,
     reconcile,
+    pruneDesired,
     capacities,
     validate,
     validateParameters,
@@ -22827,8 +23292,29 @@ const StationFlowModel = ((M) => {
     zoneCrossing,
     needsZone,
     lcLoad,
+    lcLoadBlocks,
+    BATCH_FIELDS,
+    batchName,
+    batchValueText,
+    batchChanges,
+    batchPlan,
+    applyBatch,
+    NO_ZONE,
+    deviceTypeLabel,
+    deviceFilterOptions,
+    deviceMatch,
+    groupCandidates,
     planChecks,
     copyZone,
+    copyZoneScope,
+    DEVICE_COPY_RELATIONS,
+    deviceCopyScope,
+    deviceCopyRelations,
+    deviceCopyNetwork,
+    floorNetworkName,
+    copyDevicesToFloor,
+    deviceCopyUndoIssues,
+    undoDeviceCopy,
     alarmGroups,
     parameterDiffs,
   };
@@ -23221,7 +23707,7 @@ function buildDemoWorkspace(seed) {
   M.record(db, "交付确认", net.id, `E栋 · 7F · v${net.version}`);
   Object.assign(db.records[0], { at: day(19, "16:30"), actor: "王敏 · 机构管理员" });
   // 示例：本次部署范围为 E栋 7F；该层功能区划分已于部署前确认。
-  db.scopes[ids.project] = { floorIds: [ids.floor], functions: ["照明", "空调", "室内环境", "能耗", "碳排放"], version: 1, at: day(12, "09:10") };
+  db.scopes[ids.project] = { floorIds: [ids.floor], functions: ["照明", "暖通空调", "室内环境", "能耗", "碳排放"], version: 1, at: day(12, "09:10") };
   f.zoneReview = { at: day(12, "16:40"), by: "李工 · 配置人员", planVersion: f.planVersion, geometry: F.zoneGeometryKey(db, ids.floor) };
   db.demoVersion = DEMO_VERSION;
   M.validate(db);
@@ -23232,12 +23718,12 @@ function buildDemoWorkspace(seed) {
 (() => {
   const F = StationFlowModel,
     base = F.communication;
-  F.communication = (db, p) => {
+  F.communication = (db, p, gw) => {
     if (p?.telemetry?.demoLive) {
       if (p.telemetry.demoOffline) return "离线";
       return "在线";
     }
-    return base(db, p);
+    return base(db, p, gw);
   };
 })();
 
@@ -23920,38 +24406,65 @@ async function transaction(fn, permission = "configure") {
   await persist(n);
   return result;
 }
+// 工作区按集合（顶层键）序列化，值为 undefined 的键与 JSON.stringify 一样略去。用于判断草稿与已保存内容是否实际不同
+// （改回原值后不再提示未保存、也不写修改记录，2026-10-05 核查 S4 及合并细节第3条），也用于撤销副本按集合共用。
+const wsParts = (db) =>
+  new Map(
+    Object.keys(db).flatMap((k) => {
+      const j = JSON.stringify(db[k]);
+      return j === undefined ? [] : [[k, j]];
+    }),
+  );
+const sameParts = (a, b) => a.size === b.size && [...a].every(([k, j]) => b.get(k) === j);
+const partsObject = (parts) => Object.fromEntries([...parts].map(([k, j]) => [k, JSON.parse(j)]));
 // 已保存工作区的序列化：W 在每次保存与载入时整份替换，按对象缓存，只算一次。
-// 用于判断草稿与已保存内容是否实际不同：改回原值后不再提示未保存、也不写修改记录（2026-10-05 核查 S4 及合并细节第3条）。
-const savedJsonCache = new WeakMap();
-function savedJson() {
-  if (!W) return "";
-  let s = savedJsonCache.get(W);
-  if (s === undefined) savedJsonCache.set(W, (s = JSON.stringify(W)));
+const savedPartsCache = new WeakMap();
+function savedParts() {
+  if (!W) return new Map();
+  let s = savedPartsCache.get(W);
+  if (s === undefined) savedPartsCache.set(W, (s = wsParts(W)));
   return s;
+}
+const draftDirty = (parts = wsParts(D)) => !sameParts(parts, savedParts());
+// 规划草稿的撤销（2026-10-06 HONG 确认，04 A-4）：最多保留最近 30 步，超出时丢弃最早的一步。
+// 每步存修改前的只读副本，按集合共用：与上一步相同的集合（期望配置、系统分组等标记时不变的部分）共用同一份对象，
+// 只复制有变化的集合（标记时通常是点位与回路组）。副本从不修改：撤销时取它的复制件作为草稿；重做栈存原先的草稿本身。
+const UNDO_LIMIT = 30;
+// 上一步的修改前副本、修改后的各集合序列化与有变化的集合：下一步修改前的集合与之逐字相同时直接共用副本中的对象。
+let undoTail = null;
+function undoSnapshot(before) {
+  const t = undoTail,
+    snap = {};
+  for (const [k, j] of before) snap[k] = t && !t.changed.has(k) && t.after.get(k) === j ? t.snap[k] : JSON.parse(j);
+  return snap;
+}
+function pushUndo(snap, before = null, after = null) {
+  U.undo.push(snap);
+  if (U.undo.length > UNDO_LIMIT) U.undo.splice(0, U.undo.length - UNDO_LIMIT);
+  undoTail = after ? { snap, after, changed: new Set([...after.keys()].filter((k) => before.get(k) !== after.get(k))) } : null;
 }
 // quiet: commit a field edit without re-rendering (keeps focus in the planning panel); chrome is refreshed in place.
 function mutate(fn, { quiet = false } = {}) {
   if (!canEdit()) return msg("当前角色不能编辑部署规划");
   if (!D) D = M.copy(W);
-  // 修改前的内容只序列化一次：既用于撤销副本，也用于判断是否有变化（2026-10-06 A1，省去一次整份序列化）。
-  const beforeJson = JSON.stringify(D),
-    before = JSON.parse(beforeJson);
+  // 修改前按集合序列化一次：既用于判断是否有变化，也用于撤销副本（2026-10-06 A1；只复制有变化的集合，04 A-4）。
+  const before = wsParts(D);
   try {
     fn(D);
     F.ensureCircuitGroups(D);
     M.validate(D);
-    const afterJson = JSON.stringify(D);
-    if (afterJson === beforeJson) {
+    const after = wsParts(D);
+    if (sameParts(after, before)) {
       if (!quiet) render();
       return;
     }
-    U.undo.push(before);
+    pushUndo(undoSnapshot(before), before, after);
     U.redo = [];
-    U.dirty = afterJson !== savedJson();
+    U.dirty = draftDirty(after);
     if (quiet) refreshPlanChrome();
     else render();
   } catch (e) {
-    D = before;
+    D = partsObject(before);
     throw e;
   }
 }
@@ -24820,7 +25333,7 @@ function scopeForm(opts = {}) {
   const bs = data().buildings.filter((b) => b.projectId === pid).sort(M.byName), hasOut = bs.some((b) => b.kind === "outdoor");
   modal(
     "本次部署范围",
-    `${pid !== U.p ? `<p class="muted ws-scope-project">项目：${esc(g("projects", pid).name)}</p>` : ""}<div class="ws-search">${ico("search", "ic16")}<input id="scopeQuery" placeholder="${hasOut ? "搜索楼宇、室外区域或楼层" : "搜索楼宇或楼层"}" aria-label="搜索部署范围"></div><p id="scopeCount" class="muted">已选 ${floorCountText(s.floorIds)}</p><fieldset class="ws-checks ws-floor-checks"><legend>${hasOut ? "楼层与总平面" : "楼层"}</legend>${bs.map(b => `<details class="ws-scope-building" data-scope-group="${b.id}" ${b.id === focusB || sortedFloors(b.id).some(f => s.floorIds.includes(f.id)) ? "open" : ""}><summary><input type="checkbox" class="ws-ck" data-scope-building="${b.id}" aria-label="${b.kind === "outdoor" ? `选择${esc(b.name)}总平面` : `选择${esc(b.name)}全部楼层`}">${esc(b.name)}</summary><div>${sortedFloors(b.id).map(f => `<label data-scope-search="${esc((b.name + " " + f.name).toLowerCase())}"><input type="checkbox" id="scopeFloor-${f.id}" name="scopeFloors" data-building="${b.id}" value="${f.id}" ${s.floorIds.includes(f.id) ? "checked" : ""}>${esc(f.name)}</label>`).join("")}</div></details>`).join("") || '<p class="muted small">本项目尚无楼宇。</p>'}</fieldset><fieldset class="ws-checks"><legend>启用功能</legend>${["照明", "空调", "室内环境", "能耗", "碳排放"].map((x) => `<label><input type="checkbox" id="scopeFunction-${x}" name="scopeFunctions" value="${x}" ${s.functions.includes(x) ? "checked" : ""}>${x}</label>`).join("")}</fieldset>${note("系统接入、应用配置按本次启用的功能检查。共享网络的体检和安全操作仍须覆盖整个网络，不能通过缩小交付范围跳过。")}<p id="scopeImpact" class="note" aria-live="polite"></p>`,
+    `${pid !== U.p ? `<p class="muted ws-scope-project">项目：${esc(g("projects", pid).name)}</p>` : ""}<div class="ws-search">${ico("search", "ic16")}<input id="scopeQuery" placeholder="${hasOut ? "搜索楼宇、室外区域或楼层" : "搜索楼宇或楼层"}" aria-label="搜索部署范围"></div><p id="scopeCount" class="muted">已选 ${floorCountText(s.floorIds)}</p><fieldset class="ws-checks ws-floor-checks"><legend>${hasOut ? "楼层与总平面" : "楼层"}</legend>${bs.map(b => `<details class="ws-scope-building" data-scope-group="${b.id}" ${b.id === focusB || sortedFloors(b.id).some(f => s.floorIds.includes(f.id)) ? "open" : ""}><summary><input type="checkbox" class="ws-ck" data-scope-building="${b.id}" aria-label="${b.kind === "outdoor" ? `选择${esc(b.name)}总平面` : `选择${esc(b.name)}全部楼层`}">${esc(b.name)}</summary><div>${sortedFloors(b.id).map(f => `<label data-scope-search="${esc((b.name + " " + f.name).toLowerCase())}"><input type="checkbox" id="scopeFloor-${f.id}" name="scopeFloors" data-building="${b.id}" value="${f.id}" ${s.floorIds.includes(f.id) ? "checked" : ""}>${esc(f.name)}</label>`).join("")}</div></details>`).join("") || '<p class="muted small">本项目尚无楼宇。</p>'}</fieldset><fieldset class="ws-checks"><legend>启用功能</legend>${["照明", "暖通空调", "室内环境", "能耗", "碳排放"].map((x) => `<label><input type="checkbox" id="scopeFunction-${x}" name="scopeFunctions" value="${x}" ${s.functions.includes(x) ? "checked" : ""}>${x}</label>`).join("")}</fieldset>${note("系统接入、应用配置按本次启用的功能检查。共享网络的体检和安全操作仍须覆盖整个网络，不能通过缩小交付范围跳过。")}<p id="scopeImpact" class="note" aria-live="polite"></p>`,
     (saved ? btn("清空本次范围", "clearScope", {}, "ghost") + '<span class="sp"></span>' : "") +
       btn("取消", "close") +
       btn("保存范围", "saveScope", {}, "primary"),
@@ -24950,6 +25463,59 @@ function applicationForm(kind) {
     btn("取消", "close") + btn("保存设置", "saveApplication", {}, "primary"),
   );
 }
+// 计划成员（2026-10-05 核查 D6）：本项目的点位，网关不作为成员（已是成员的仍列出，便于移除）；可按名称搜索，按楼层、型号、功能区筛选，
+// 筛选只改变显示，已勾选的成员保留；“选择显示的点位”“取消选择显示的点位”只作用于当前显示的点位，可按住 Shift 连选。
+function groupMemberField(pid, members) {
+  const db = data(),
+    cx = F.index(db),
+    o0 = F.deviceFilterOptions(db, F.groupCandidates(db, pid, members)),
+    order = new Map(o0.floors.map((f, i) => [f.id, i])),
+    ps = F.groupCandidates(db, pid, members).sort((a, b) => (order.get(a.floorId) ?? 1e9) - (order.get(b.floorId) ?? 1e9) || M.byName(a, b)),
+    fids = o0.floors.map((f) => f.id);
+  if (!ps.length) return `<fieldset class="ws-checks"><legend>计划成员</legend><p class="muted">先在设备标记中添加点位，项目楼层图也可就地操作。</p></fieldset>`;
+  const zones = [["", "全部功能区"], ...(o0.unzoned ? [[F.NO_ZONE, "未归属功能区"]] : []), ...o0.zones.map((z) => [z.name, z.name])],
+    rows = ps
+      .map((p) => {
+        const z = (p.zoneId && cx.zones.get(p.zoneId)) || null;
+        return `<label data-gm-floor="${p.floorId}" data-gm-type="${p.type}" data-gm-zone="${esc(z ? z.name : F.NO_ZONE)}" data-gm-name="${esc(p.name.toLowerCase())}"><input name="groupMembers" type="checkbox" value="${p.id}" ${members.includes(p.id) ? "checked" : ""}>${esc(p.name)}<small>${esc(
+          [M.catalog[p.type]?.model || M.catalog[p.type]?.name, devFloorLabel(p.floorId, fids), z?.name].filter(Boolean).join(" · "),
+        )}</small></label>`;
+      })
+      .join("");
+  return `<fieldset class="ws-checks flow-members"><legend>计划成员（<span id="gmCount">已选 ${ps.filter((p) => members.includes(p.id)).length}</span>）</legend><div class="flow-member-tools"><div class="ws-search">${ico("search", "ic16")}<input id="gmQuery" placeholder="搜索点位名称" aria-label="搜索计划成员"></div>${
+    fids.length > 1 ? select("gmFloor", [["", "全部楼层"], ...fids.map((id) => [id, devFloorLabel(id, fids)])], "", "按楼层筛选") : ""
+  }${select("gmType", [["", "全部型号"], ...o0.types.map((x) => [x.type, x.label])], "", "按型号筛选")}${select("gmZone", zones, "", "按功能区筛选")}</div><div class="flow-member-bar" id="gmBar">${gmBar(ps.length)}</div><div class="flow-member-list">${rows}</div></fieldset><p class="muted small ws-shift-tip">按住 Shift 点选可连续选择。</p>`;
+}
+const gmBar = (shown) =>
+  `<p class="muted small" role="status">显示 ${shown} 个点位</p>${btn(`选择显示的点位（${shown}）`, "gmPick", { on: "1", disabled: !shown }, "ghost sm")}${btn("取消选择显示的点位", "gmPick", { on: "", disabled: !shown }, "ghost sm")}`;
+function gmFilter() {
+  const q = ($("#gmQuery")?.value || "").trim().toLowerCase(),
+    fl = value("gmFloor"),
+    ty = value("gmType"),
+    zo = value("gmZone");
+  let shown = 0;
+  document.querySelectorAll(".flow-members label[data-gm-name]").forEach((x) => {
+    x.hidden = !((!q || x.dataset.gmName.includes(q)) && (!fl || x.dataset.gmFloor === fl) && (!ty || x.dataset.gmType === ty) && (!zo || x.dataset.gmZone === zo));
+    if (!x.hidden) shown++;
+  });
+  if ($("#gmBar")) $("#gmBar").innerHTML = gmBar(shown);
+}
+const gmCount = () => {
+  if ($("#gmCount")) $("#gmCount").textContent = `已选 ${checked("groupMembers").length}`;
+};
+document.addEventListener("input", (e) => {
+  if (["gmQuery", "gmFloor", "gmType", "gmZone"].includes(e.target.id)) gmFilter();
+});
+document.addEventListener("change", (e) => {
+  if (e.target.name === "groupMembers") gmCount();
+});
+defineActions({
+  gmPick: (a) => {
+    document.querySelectorAll(".flow-members label[data-gm-name]:not([hidden]) input[name=groupMembers]").forEach((c) => (c.checked = !!a.on));
+    modalDirty = true;
+    gmCount();
+  },
+});
 function groupForm(id) {
   const o = g("groups", id) || {},
     pid = o.projectId || U.p;
@@ -24975,15 +25541,7 @@ function groupForm(id) {
         o.usage || "照明",
         "分组用途",
       ),
-    )}<fieldset class="ws-checks"><legend>计划成员</legend>${
-      data()
-        .points.filter((p) => M.projectOfFloor(data(), p.floorId) === pid)
-        .map(
-          (p) =>
-            `<label><input name="groupMembers" type="checkbox" value="${p.id}" ${(o.pointIds || []).includes(p.id) ? "checked" : ""}>${esc(p.name)}</label>`,
-        )
-        .join("") || '<p class="muted">先在设备标记中添加点位，项目楼层图也可就地操作。</p>'
-    }</fieldset>${note("实际订阅容量由产品与固件能力服务校验。未取得能力时可以保存规划，但不宣称能够下发。")}`,
+    )}${groupMemberField(pid, o.pointIds || [])}${note("实际订阅容量由产品与固件能力服务校验。未取得能力时可以保存规划，但不宣称能够下发。")}`,
     id
       ? btn("删除分组", "deleteSpace", { kind: "groups", id }, "ghost danger") +
           `<span class="sp"></span>` +
@@ -25290,6 +25848,13 @@ function placePoint(type, xy) {
     U.pendingPlacement = { type, xy };
     return networkForm(U.f);
   }
+  // 一个设备网络只有一个网关（核查 D15）：已有网关时不再放置，结束连续标记并说明。
+  const gw = type === "gw" && data().points.find((p) => p.networkId === n.id && p.type === "gw");
+  if (gw) {
+    U.type = null;
+    render();
+    return msg(`“${n.name}”已有网关 ${gw.name}：一个设备网络只能有一个网关`);
+  }
   const lc = g("points", U.markCircuit),
     powerId = type === "ms" && lc?.floorId === U.f && lc.networkId === n?.id ? lc.id : null,
     limit = M.LIMITS.msPerLc;
@@ -25306,7 +25871,10 @@ function placePoint(type, xy) {
     if (type === "lc" && U.lcDefaults) Object.assign(p, U.lcDefaults);
     U.lastPlaced = p.id;
     U.point = null;
+    // 网关放好一台即结束连续标记（核查 D15）。
+    if (type === "gw") U.type = null;
   });
+  if (type === "gw") msg("已放置网关；一个设备网络只有一个网关，连续标记已结束");
 }
 function applyPoint() {
   const p = g("points", U.point);
@@ -25513,7 +26081,8 @@ async function saveNetworkForm(a) {
     try {
       const n = M.planNetwork(D, a.project, ids, name);
       U.net = n.id;
-      U.undo.push(before);
+      pushUndo(before);
+      U.redo = [];
       U.dirty = true;
       closeModal(true);
       const place = U.pendingPlacement;
@@ -25521,6 +26090,8 @@ async function saveNetworkForm(a) {
       if (place) placePoint(place.type, place.xy);
       else render();
     } catch (e) {
+      // 撤销副本不作草稿使用：失败时连同这一步一起退回
+      if (U.undo.at(-1) === before) U.undo.pop();
       D = before;
       throw e;
     }
@@ -25845,16 +26416,17 @@ defineActions({
   cancelPlan: withPolicy({ guard: true }, () => render()),
   undo: () => {
     if (!U.undo.length) return;
-    U.redo.push(M.copy(D));
-    D = U.undo.pop();
-    U.dirty = JSON.stringify(D) !== savedJson();
+    U.redo.push(D);
+    D = M.copy(U.undo.pop());
+    undoTail = null;
+    U.dirty = draftDirty();
     render();
   },
   redo: () => {
     if (!U.redo.length) return;
-    U.undo.push(M.copy(D));
+    pushUndo(D);
     D = U.redo.pop();
-    U.dirty = JSON.stringify(D) !== savedJson();
+    U.dirty = draftDirty();
     render();
   },
   deletePoint: (a) => {
@@ -26385,11 +26957,11 @@ defineLayer({ name: "discard", level: 80, modal: "dialog", el: () => $("#discard
 defineLayer({ name: "pop", level: 70, open: () => !!$("#pop"), focus: () => $("#pop")?.anchor || null, close: () => closePop({ restoreFocus: true }) });
 // “上传楼层图”中的“查看图纸”：只关闭大图，焦点回到该行的“查看图纸”。
 defineLayer({ name: "buInspect", level: 60, modal: "dialog", el: () => $("#buInspect"), open: () => !!$("#buInspect"), close: () => actions.buInspectClose() });
-// 弹窗（含账户弹窗）：多步确认（清空范围、复制到其他楼层的确认步骤）的 Esc 等同“返回修改”，保留已选内容；处理中仍按关闭处理。
+// 弹窗（含账户弹窗）：多步确认（清空范围、复制到其他楼层与复制设备到其他楼层的确认步骤）的 Esc 等同“返回修改”，保留已选内容；处理中仍按关闭处理。
 // 关闭后焦点回到打开它的控件（closeModal）。
 defineLayer({
   name: "dialog", level: 50, modal: "dialog", el: () => $("#dlg"), open: () => !!$("#dlg"),
-  close: () => { const d = $("#dlg"); d.dataset.backTo === "zc" && d.dataset.busy !== "1" ? actions.zcBack() : d.dataset.backTo ? actions.close() : closeModal(); },
+  close: () => { const d = $("#dlg"); d.dataset.backTo === "zc" && d.dataset.busy !== "1" ? actions.zcBack() : d.dataset.backTo === "dc" && d.dataset.busy !== "1" ? actions.dcBack() : d.dataset.backTo ? actions.close() : closeModal(); },
 });
 // 手机侧栏（≤850px 抽屉）：打开时页面主体不可操作；关闭后焦点回到“打开菜单”。
 defineLayer({ name: "drawer", level: 40, modal: "drawer", el: () => $("#side"), open: () => !!$("#app.navopen"), focus: () => $(".phead > .mobnav"), close: () => actions.mobnav({ close: "1" }) });
@@ -27781,6 +28353,7 @@ function statusLine(kind, o) {
       .join("；");
   return {
     pid,
+    deploy: d,
     short,
     text: "配置进度：" + short,
     heading: "配置进度：" + (groups.length ? "待处理" : short),
@@ -27795,10 +28368,14 @@ function spaceCard(kind, o, mapPopup = false) {
   const meta = [o.address, o.kind === "outdoor" ? "室外区域" : "", o.usage].filter(Boolean).join(" · ");
   return `<article class="pcard"><button class="pc-main" data-act="spaceOpen" data-kind="${kind}" data-id="${o.id}"><div class="im">${o.image ? `<img src="${esc(o.image)}" alt="${esc(o.name)}">` : `<span class="ws-noimage">${ico("building-2")}尚未上传图片</span>`}</div><div class="nm" title="${esc(o.name)}">${esc(o.name)}</div><div class="meta" title="${esc(meta)}">${esc(meta)}</div></button>${menuTrigger(iconBtn(o.name + "更多", "more", "spaceMore", { kind, id: o.id })).replace('class="iconbtn round"', 'class="iconbtn round pc-more"')}<div class="st"><span>${esc(scaleText(kind, o))}</span></div>${sumLines(kind, o, mapPopup)}</article>`;
 }
-function sumLines(kind, o, mapPopup = false) {
-  const t = statusLine(kind, o);
+// attention：项目进度目录的卡片另起一行“需处理 N 台”，进入处理入口（2026-10-06 HONG 确认，04 B-5）；项目与楼宇目录的卡片不变（§16）。
+function sumLines(kind, o, mapPopup = false, attention = false) {
+  const t = statusLine(kind, o),
+    att = attention ? v13Attention(data(), t.deploy.stages) : null;
   const content = mapPopup ? `<span class="pc-status-heading">${esc(t.heading)}</span>${t.pending ? `<span class="pc-status-detail">${esc(t.pending)}</span>` : ""}` : esc(t.text);
-  return `<div class="pc-sum"><button class="pc-line ${t.cls}" data-act="dirStatus" data-p="${t.pid}"${t.anchor ? ' data-anchor="space"' : ""}${t.title ? ` title="${esc(t.title)}"` : ""}>${content}</button></div>`;
+  return `<div class="pc-sum"><button class="pc-line ${t.cls}" data-act="dirStatus" data-p="${t.pid}"${t.anchor ? ' data-anchor="space"' : ""}${t.title ? ` title="${esc(t.title)}"` : ""}>${content}</button>${
+    att?.total ? `<button class="pc-line warn" data-act="netIssues"${v13AttentionArgs(att)}>需处理 ${att.total} 台</button>` : ""
+  }</div>`;
 }
 
 function spaceTodoRows(items) {
@@ -30067,9 +30644,9 @@ function zcShow() {
       .join("")}</fieldset>${note("只复制功能区（名称、类型、采光面、说明与形状），不复制图纸；各楼层图纸需是同一底图对齐的平面，否则位置会偏移。")}`;
     foot = btn("取消", "close") + btn("下一步", "zcNext", {}, "primary");
   } else if (d.step === 2) {
-    const fs = sortedFloors(d.bid).filter((x) => x.id !== d.src), ok = fs.filter((x) => x.image), no = fs.filter((x) => !x.image);
+    const fs = sortedFloors(d.bid).filter((x) => x.id !== d.src), ok = fs.filter((x) => x.image), no = fs.filter((x) => !x.image), same = ok.filter((x) => zcSameSize(src, x));
     const row = (x) => `<label><input type="checkbox" name="zcFloor" value="${x.id}" ${d.targets.includes(x.id) ? "checked" : ""}>${esc(x.name)}<small>${zcZonesOf(x.id).length} 个功能区 · ${F.floorMeters(x) ? "比例尺已校准" : "比例尺未校准"}${zcSameSize(src, x) ? " · 图纸尺寸与源层相同" : ""}</small></label>`;
-    body = `${no.length ? `<div class="zc-upload">${btn("上传楼层图", "zcUpload", {}, "sm")}<small class="muted">没有楼层图的楼层不能作为目标。可一次上传一层或多层，完成后回到这里，已选内容保留。</small></div>` : ""}<fieldset class="ws-checks ws-floor-checks zc-floors"><legend>目标楼层（<span id="zcFloorCount">已选 ${d.targets.length}</span>）</legend>${ok.map(row).join("") || '<p class="muted small">没有可选的目标楼层：其他楼层都尚未上传楼层图。</p>'}</fieldset>${ok.length ? '<p class="muted small ws-shift-tip">按住 Shift 点选可连续选择。</p>' : ""}${no.length ? `<details class="ws-details zc-unavailable"><summary>未上传楼层图 ${no.length} 个</summary><p class="muted small">${esc(floorNames(no.map((x) => x.name)))}：没有楼层图，功能区无处放置；上传楼层图后可选。</p></details>` : ""}`;
+    body = `${no.length ? `<div class="zc-upload">${btn("上传楼层图", "zcUpload", {}, "sm")}<small class="muted">没有楼层图的楼层不能作为目标。可一次上传一层或多层，完成后回到这里，已选内容保留。</small></div>` : ""}<fieldset class="ws-checks ws-floor-checks zc-floors"><legend>目标楼层（<span id="zcFloorCount">已选 ${d.targets.length}</span>）</legend>${ok.length > 1 ? `<div class="zc-zone-tools zc-floor-tools">${btn("全选", "zcFloorAll", { on: "1" }, "sm")}${btn("全不选", "zcFloorAll", { on: "" }, "sm")}${same.length && same.length < ok.length ? btn(`选择图纸尺寸相同的楼层（${same.length}）`, "zcFloorAll", { on: "1", same: "1" }, "sm") : ""}</div>` : ""}${ok.map(row).join("") || '<p class="muted small">没有可选的目标楼层：其他楼层都尚未上传楼层图。</p>'}</fieldset>${ok.length ? '<p class="muted small ws-shift-tip">按住 Shift 点选可连续选择。</p>' : ""}${no.length ? `<details class="ws-details zc-unavailable"><summary>未上传楼层图 ${no.length} 个</summary><p class="muted small">${esc(floorNames(no.map((x) => x.name)))}：没有楼层图，功能区无处放置；上传楼层图后可选。</p></details>` : ""}`;
     foot = btn("取消", "close") + btn("上一步", "zcPrev") + btn("下一步", "zcNext", {}, "primary");
   } else if (d.step === 3) {
     const can = zcCalibrated(src) && d.targets.some((id) => zcSameSize(src, g("floors", id)));
@@ -30202,6 +30779,16 @@ defineActions({
   zcAll: (a) => {
     const on = !!a.on;
     document.querySelectorAll("#zcForm label[data-zc-name]:not([hidden]) input[name=zcZone]").forEach((c) => (c.checked = on));
+    if (U.zcDraft) U.zcDraft.touched = true;
+    modalDirty = true;
+    zcPreview();
+  },
+  // 目标楼层的全选、全不选与“选择图纸尺寸相同的楼层”（2026-10-05 核查 Z2）：只作用于列出的有图纸楼层；后者只加选，不取消其他已选。
+  zcFloorAll: (a) => {
+    const src = g("floors", U.zcDraft?.src);
+    document.querySelectorAll("#zcForm input[name=zcFloor]").forEach((c) => {
+      if (!a.same || zcSameSize(src, g("floors", c.value))) c.checked = !!a.on;
+    });
     if (U.zcDraft) U.zcDraft.touched = true;
     modalDirty = true;
     zcPreview();
@@ -31152,15 +31739,14 @@ defineActions({
 });
 // 楼层多选（2026-10-03 A5）：复制目标、删除楼层、部署范围等楼层勾选列表支持 Shift 连选（按当前显示的顺序，跳过隐藏和不可用的行），
 // 并可“选择全部未上传图纸的楼层”。连选后逐个触发 change，已选数量与半选状态照常更新。
-const WS_RANGE_NAMES = ["floorTask", "zcFloor", "calFloors", "scopeFloors", "networkFloors", "connectionFloors", "spMulti"];
+// 设备台账的勾选、筛选设备的楼层与分组的计划成员同样可以连选（2026-10-05 核查 D6）。
+const WS_RANGE_NAMES = ["floorTask", "zcFloor", "dcFloor", "calFloors", "scopeFloors", "networkFloors", "connectionFloors", "spMulti", "devSel", "filterFloors", "groupMembers"];
 let wsRangeLast = null;
 const wsRangeList = (name) => [...document.querySelectorAll(`input[type=checkbox][name="${name}"]`)].filter((x) => !x.disabled && x.getClientRects().length && !x.closest("[hidden]"));
-document.addEventListener("click", (e) => {
-  const cb = e.target;
-  if (cb?.tagName !== "INPUT" || cb.type !== "checkbox" || !WS_RANGE_NAMES.includes(cb.name)) return;
+function wsRangeApply(cb, shift) {
   const last = wsRangeLast;
   wsRangeLast = cb;
-  if (!e.shiftKey || !last || last === cb || last.name !== cb.name || !last.isConnected) return;
+  if (!shift || !last || last === cb || last.name !== cb.name || !last.isConnected) return;
   const list = wsRangeList(cb.name), i = list.indexOf(last), j = list.indexOf(cb);
   if (i < 0 || j < 0) return;
   for (const x of list.slice(Math.min(i, j), Math.max(i, j) + 1)) {
@@ -31168,6 +31754,28 @@ document.addEventListener("click", (e) => {
     x.checked = cb.checked;
     x.dispatchEvent(new Event("change", { bubbles: true }));
   }
+}
+document.addEventListener("click", (e) => {
+  const cb = e.target;
+  if (cb?.tagName !== "INPUT" || cb.type !== "checkbox" || !WS_RANGE_NAMES.includes(cb.name)) return;
+  wsRangeApply(cb, e.shiftKey);
+}, true);
+// 整行可选（2026-10-05 核查 Z2）：按住 Shift 点在楼层名等文字上，浏览器只扩展文字选择、不勾选；这里按点勾选框处理，并且不选中文字。
+const wsRangeLabel = (el) => {
+  const cb = el?.closest?.("label")?.querySelector("input[type=checkbox]");
+  return cb && WS_RANGE_NAMES.includes(cb.name) && !cb.disabled && el !== cb ? cb : null;
+};
+document.addEventListener("mousedown", (e) => {
+  if (e.shiftKey && wsRangeLabel(e.target)) e.preventDefault();
+}, true);
+document.addEventListener("click", (e) => {
+  const cb = e.shiftKey ? wsRangeLabel(e.target) : null;
+  if (!cb) return;
+  e.preventDefault();
+  cb.checked = !cb.checked;
+  wsRangeApply(cb, true);
+  cb.dispatchEvent(new Event("input", { bubbles: true }));
+  cb.dispatchEvent(new Event("change", { bubbles: true }));
 }, true);
 function wsPickNoPlan(name) {
   let n = 0;
@@ -31249,7 +31857,8 @@ Object.assign(XI, { chevR: '<path d="m9 18 6-6-6-6"/>' });
 /* Table in the lovable settings / usage pattern (LOVABLE_SPEC §6):
    - a header written as "#节点" is a numeric column: right-aligned, tabular figures;
    - an empty last header is the trailing action column (right-aligned, no wrap);
-   - a row given as { cells, act, args } opens its detail: the whole row is the target and ends in a chevron. */
+   - a row given as { cells, act, args } opens its detail: the whole row is the target and ends in a chevron;
+   - a row given as { group } is a group heading spanning the whole row (device ledger by floor, 04 A-3). */
 const table = (headers, rows, message = "暂无记录") => {
   const cols = headers.map((h, i) => {
       const num = typeof h === "string" && h.startsWith("#");
@@ -31263,6 +31872,7 @@ const table = (headers, rows, message = "暂无记录") => {
     cell = (c, i) => `<td${cols[i]?.cls ? ` class="${cols[i].cls}"` : ""}>${c}</td>`,
     row = (r) => {
       if (Array.isArray(r)) return `<tr>${r.map(cell).join("")}${linked && cols.at(-1).cls !== "act" ? "<td></td>" : ""}</tr>`;
+      if (r.group != null) return `<tr class="flow-group"><th colspan="${width}" scope="colgroup">${r.group}</th></tr>`;
       const data = Object.entries(r.args || {})
         .map(([k, v]) => ` data-${k}="${esc(v)}"`)
         .join("");
@@ -31364,16 +31974,18 @@ const countdownTag = (iso) => `<b class="flow-countdown" data-until="${esc(iso)}
 // 已交付网络的“需处理”：离线、被现场复位、配置失败、固件低于目标、已移除待密钥更新
 function netIssues(db, n) {
   const ps = M.networkPoints(db, n.id).filter((p) => M.bound(p) || p.fieldReset),
+    gw = F.gateway(db, n.id),
     c = (f) => ps.filter(f).length;
   return [
-    ["离线", c((p) => F.communication(db, p) === "离线"), "offline"],
+    ["离线", c((p) => F.communication(db, p, gw) === "离线"), "offline"],
     ["被现场复位", c((p) => p.fieldReset), "reset"],
     ["配置失败", c((p) => M.access(p) === "mesh" && F.syncState(db, p) === "同步失败"), "config"],
     ["固件低于目标", c((p) => p.targetFirmware && p.firmwareVersion !== p.targetFirmware), "firmware"],
     ["已移除待密钥更新", db.maintenanceTasks.filter((t) => t.networkId === n.id && t.keyUpdateDue && !t.keyUpdatedAt).length, "keys"],
   ].filter((x) => x[1]);
 }
-const needsAttention = (db, p) => F.issues(db, p).length > 0 || F.communication(db, p) === "离线";
+// gw：逐网络统计时传入该网络的网关（见 F.communication）
+const needsAttention = (db, p, gw) => F.issues(db, p).length > 0 || F.communication(db, p, gw) === "离线";
 const netOptions = () => F.scopedNetworks(data(), U).map((n) => [n.id, n.name]);
 const scopePoints = () => F.scopedPoints(data(), U);
 const scopeFloors = () => F.scopedFloors(data(), U);
@@ -31424,12 +32036,25 @@ function filterLocation(query) {
   });
   $("#locationEmpty").hidden = count > 0;
 }
-function renderInventory() {
-  const all = F.inventory(data(), U),
+// 设备台账的筛选条件（2026-10-05 核查 D6）：型号、楼层、服务功能区（按名称），以及设备网络与网络角色；换位置时清除。
+const devFilter = () => ({ types: U.devTypes || [], floors: U.devFloors || [], zone: U.devZone || "" });
+const devFiltered = () => !!(U.deviceNet || U.deviceRole || U.devTypes?.length || U.devFloors?.length || U.devZone);
+const devTypeShort = (type) => M.catalog[type]?.model || M.catalog[type]?.name || type;
+// 筛选与勾选中的楼层名：范围内只有一栋楼宇时只写楼层名，否则写“楼宇 楼层”。
+function devFloorLabel(id, ids) {
+  const f = g("floors", id),
+    many = new Set(ids.map((x) => g("floors", x)?.buildingId)).size > 1;
+  return f ? (many ? `${g("buildings", f.buildingId)?.name || ""} ${f.name}` : f.name) : "未指定位置";
+}
+function inventoryView() {
+  const db = data(),
+    cx = F.index(db),
+    all = F.inventory(db, U),
     mesh = all.filter((p) => ["mesh", "gateway"].includes(M.access(p))),
     pending = mesh.filter((p) => !M.bound(p)),
     bound = all.filter(F.isConnected),
-    needs = all.filter((p) => needsAttention(data(), p)),
+    needs = all.filter((p) => needsAttention(db, p)),
+    f = devFilter(),
     ps = all.filter(
       (p) =>
         (U.filter === "all" ||
@@ -31443,10 +32068,114 @@ function renderInventory() {
               .includes(U.q.toLowerCase()),
           )) &&
         (!U.deviceNet || p.networkId === U.deviceNet) &&
-        (!U.deviceRole || p[U.deviceRole]),
+        (!U.deviceRole || p[U.deviceRole]) &&
+        F.deviceMatch(db, p, f, cx),
     ),
+    attention = new Set(needs.map((p) => p.id)),
+    floorOf = (p) => cx.floors.get(p.floorId),
+    buildingOf = (p) => cx.buildings.get(floorOf(p)?.buildingId);
+  // §7：需处理（含通信离线）优先，再按楼宇、楼层高度与名称；按楼层分组时同一楼层的需处理设备连在一起（04 A-3）。
+  ps.sort(
+    (a, b) =>
+      attention.has(b.id) - attention.has(a.id) || M.byName(buildingOf(a), buildingOf(b)) || M.byHeight(floorOf(a), floorOf(b)) || M.byName(a, b),
+  );
+  return { db, all, pending, bound, needs, ps };
+}
+// 已应用的筛选写在工具栏下一行，可一次清除。
+function devFilterSummary(all) {
+  const floors = U.devFloors || [],
+    ids = [...new Set(all.map((p) => p.floorId))],
+    parts = [
+      U.devTypes?.length && "型号 " + U.devTypes.map(devTypeShort).join("、"),
+      floors.length && `楼层 ${floors.slice(0, 3).map((id) => devFloorLabel(id, ids)).join("、")}${floors.length > 3 ? ` 等 ${floors.length} 个` : ""}`,
+      U.devZone && "功能区 " + (U.devZone === F.NO_ZONE ? "未归属功能区" : U.devZone),
+      U.deviceNet && "设备网络 " + (g("networks", U.deviceNet)?.name || "已删除的网络"),
+      U.deviceRole && "网络角色 " + (U.deviceRole === "relay" ? "中继" : "部署期代理"),
+    ].filter(Boolean);
+  return parts.length ? `<div class="flow-filter-sum"><p>已筛选：${esc(parts.join(" · "))}</p>${btn("清除筛选", "resetDeviceFilters", {}, "ghost sm")}</div>` : "";
+}
+// 批量修改的勾选（2026-10-05 核查 D6）：勾选在搜索、页签与筛选之间保留，“选择当前结果”加入当前结果的全部设备（含其他页）；
+// 表头勾选框只作用于本页；不在当前位置范围内的勾选随即去掉。只有能编辑部署规划的角色显示勾选。
+function devSelection(all) {
+  const ids = new Set(all.map((p) => p.id));
+  return (U.devSel = (U.devSel || []).filter((id) => ids.has(id)));
+}
+function devSelBar(shown, inView, selected) {
+  const outside = selected - inView;
+  return `<p role="status">${selected ? `已选 ${selected} 台${outside ? `，其中 ${outside} 台不在当前结果中` : ""}` : "勾选设备后可批量修改"}</p>${
+    shown && inView < shown ? btn(`选择当前结果（${shown} 台）`, "devSelShown", {}, "ghost sm") : ""
+  }${selected ? btn("清除选择", "devSelClear", {}, "ghost sm") : ""}${btn("批量修改…", "batchEdit", { disabled: !selected }, "sm")}`;
+}
+function refreshDevSel() {
+  const boxes = [...document.querySelectorAll("input[name=devSel]")],
+    sel = new Set(U.devSel || []),
+    inView = devView.ids.filter((id) => sel.has(id)).length;
+  if ($("#devSelBar")) $("#devSelBar").innerHTML = devSelBar(devView.ids.length, inView, sel.size);
+  if ($("#devSelAll")) $("#devSelAll").checked = !!boxes.length && boxes.every((x) => x.checked);
+}
+// 设备台账按楼层分组并分页（2026-10-06 HONG 确认，04 A-3）：排序不变（§7：需处理优先，再按楼宇、楼层高度与名称）；
+// 每页 200 台，搜索、页签、筛选或位置变化时回到第 1 页，从“在图上查看”返回时页码不变。
+const DEV_PAGE = 200;
+// 上次绘制的台账结果（全部页的设备编号）：勾选条计数与“选择当前结果”用。
+let devView = { ids: [] };
+function devPaging(total) {
+  const key = JSON.stringify([U.p, U.b, U.f, U.q, U.filter, U.deviceNet, U.deviceRole, U.devTypes, U.devFloors, U.devZone]);
+  if (U.devPageKey !== key) {
+    U.devPageKey = key;
+    U.devPage = 0;
+  }
+  const pages = Math.max(1, Math.ceil(total / DEV_PAGE));
+  U.devPage = Math.min(Math.max(0, U.devPage || 0), pages - 1);
+  return { n: U.devPage, pages };
+}
+// 楼层分组：结果跨多个楼层时，每个楼层前一行标题“E栋 7F · 12 台”。需处理的设备排在前面，标题写“需处理 N 台”；
+// 同一楼层其余的设备在后面另起标题“其余 N 台”。台数按全部结果计，一页从楼层中间开始时标题后加“（续）”。
+function devRows(ps, rows, start, attention, cells) {
+  const fids = [...new Set(ps.map((p) => p.floorId))];
+  if (fids.length < 2) return rows.map(cells);
+  const key = (p) => (attention.has(p.id) ? "!" : "") + p.floorId,
+    count = new Map(),
+    issueFloors = new Set();
+  for (const p of ps) {
+    count.set(key(p), (count.get(key(p)) || 0) + 1);
+    if (attention.has(p.id)) issueFloors.add(p.floorId);
+  }
+  const out = [];
+  let last = start > 0 ? key(ps[start - 1]) : null;
+  rows.forEach((p, i) => {
+    const k = key(p);
+    if (k !== last || i === 0)
+      out.push({
+        group: `${esc(devFloorLabel(p.floorId, fids))} · ${attention.has(p.id) ? "需处理 " : issueFloors.has(p.floorId) ? "其余 " : ""}${count.get(k)} 台${i === 0 && k === last ? "（续）" : ""}`,
+      });
+    last = k;
+    out.push(cells(p));
+  });
+  return out;
+}
+// 翻页：表格上下各一条，写本页是第几台到第几台；可上一页、下一页或选页码。
+function devPager(n, pages, total, at = "") {
+  if (pages < 2) return "";
+  const from = n * DEV_PAGE + 1,
+    to = Math.min(total, from + DEV_PAGE - 1);
+  return `<div class="flow-pager${at ? " top" : ""}"><p${at ? ' role="status"' : ""}>第 ${from}–${to} 台，共 ${total} 台</p>${btn("上一页", "devPage", { to: n - 1, disabled: n <= 0 }, "ghost sm")}${select(
+    "devPageSel" + at,
+    Array.from({ length: pages }, (_, i) => [String(i), `第 ${i + 1} / ${pages} 页`]),
+    String(n),
+    "页码",
+  )}${btn("下一页", "devPage", { to: n + 1, disabled: n >= pages - 1 }, "ghost sm")}</div>`;
+}
+const devPageTop = () => requestAnimationFrame(() => $(".ws-inventory-tools")?.scrollIntoView({ block: "start" }));
+function renderInventory() {
+  const { db, all, pending, bound, needs, ps } = inventoryView(),
+    edit = canEdit(),
+    sel = edit ? new Set(devSelection(all)) : new Set(),
+    inView = ps.filter((p) => sel.has(p.id)).length,
+    { n, pages } = devPaging(ps.length),
+    start = n * DEV_PAGE,
+    rows = ps.slice(start, start + DEV_PAGE),
     attention = new Set(needs.map((p) => p.id));
-  ps.sort((a, b) => attention.has(b.id) - attention.has(a.id));
+  devView = { ids: ps.map((p) => p.id) };
   return `<div class="ws-inventory-tools"><div class="ws-search">${ico("search", "ic16")}<input id="deviceQuery" aria-label="搜索设备" placeholder="名称、UUID 或序列号" value="${esc(U.q)}"></div>${tabs(
     [
       ["all", "全部"],
@@ -31456,9 +32185,23 @@ function renderInventory() {
     ],
     U.filter,
     "filter",
-  )}${btn("筛选" + (U.deviceNet || U.deviceRole ? " · 已应用" : ""), "deviceFilters", {}, "ghost")}</div>${table(
-    ["设备 / 点位", "位置", "接入方式", "绑定 / 接入", "通信", "需处理", ""],
-    ps.map((p) => [
+  )}${btn("筛选" + (devFiltered() ? " · 已应用" : ""), "deviceFilters", {}, "ghost")}</div>${devFilterSummary(all)}${
+    edit && all.length ? `<div class="flow-selbar" id="devSelBar">${devSelBar(ps.length, inView, sel.size)}</div>` : ""
+  }${devPager(n, pages, ps.length, "Top")}${table(
+    [
+      ...(edit
+        ? [`<input type="checkbox" class="ws-ck" id="devSelAll" aria-label="${pages > 1 ? "选择本页" : "选择当前结果"}" ${rows.length && rows.every((p) => sel.has(p.id)) ? "checked" : ""}>`]
+        : []),
+      "设备 / 点位",
+      "位置",
+      "接入方式",
+      "绑定 / 接入",
+      "通信",
+      "需处理",
+      "",
+    ],
+    devRows(ps, rows, start, attention, (p) => [
+      ...(edit ? [`<input type="checkbox" class="ws-ck" name="devSel" value="${p.id}" aria-label="选择 ${esc(p.name)}" ${sel.has(p.id) ? "checked" : ""}>`] : []),
       btn(esc(p.name), "deviceInfo", { id: p.id }, "ghost flow-lk") + `<small class="flow-sub">${M.catalog[p.type].model}</small>`,
       esc(where(p.floorId)),
       {
@@ -31468,10 +32211,10 @@ function renderInventory() {
         pending: p.type === "ls" ? "适配节点" : "非 Mesh",
       }[M.access(p)],
       stateBadge(F.bindingLabel(p)),
-      stateBadge(F.communication(data(), p)),
+      stateBadge(F.communication(db, p)),
       (() => {
-        const iss = F.issues(data(), p),
-          off = F.communication(data(), p) === "离线";
+        const iss = F.issues(db, p),
+          off = F.communication(db, p) === "离线";
         return iss.length || off
           ? btn(
               esc([...iss, ...(off && !iss.length ? ["通信离线"] : [])].join("、")),
@@ -31484,7 +32227,7 @@ function renderInventory() {
       btn("在图上查看", "locatePoint", { id: p.id }, "ghost sm"),
     ]),
     all.length ? "没有匹配的设备" : "尚未标记设备；从“设备标记”选择楼层开始。",
-  )}${note("需处理优先，其次按楼宇、楼层和编号排列；“需处理”含通信离线的设备。待绑定只统计网关与 Mesh 点位；第三方系统按接入状态单独记录。")}`;
+  )}${devPager(n, pages, ps.length)}${note("需处理优先，其次按楼宇、楼层和编号排列；结果跨多个楼层时按楼层分组，每页 200 台；“需处理”含通信离线的设备。待绑定只统计网关与 Mesh 点位；第三方系统按接入状态单独记录。")}`;
 }
 function renderNetworkList() {
   const ns = F.scopedNetworks(data(), U);
@@ -32201,7 +32944,7 @@ function showBindingPreparation(nid) {
     }${
       delivered
         ? note(
-            "本网络已交付过，不保留部署期代理。增补设备须：① 标记新点位并保存（形成新的网络版本）；② 授权新的部署包，领取人在 App 中下载；③ 开启限时现场接入（30 分钟）让 App 连入；④ 绑定、核对配置后重新体检并交付。",
+            "本网络已交付过，不保留部署期代理。增补设备须：① 标记新点位并保存（形成新的网络版本）；② 授权新的部署包，领取人在 App 中下载；③ 开启限时现场接入（30 分钟）让 App 连入；④ 在 App 中按回路绑定、核对配置与局部测试，再回到 Station 重新全网体检并交付。",
           )
         : note("设备标记与现场绑定是两个独立动作。可先一次完成全部点位、回路组和跟随占用；下面的先后顺序仅用于现场绑定。")
     }${kv([
@@ -32211,7 +32954,13 @@ function showBindingPreparation(nid) {
       ["待绑定点位", ps.filter((p) => !M.bound(p)).length + " 个"],
       ["部署包", pk.text],
       ["安装资料", installEntry(n.id)],
-    ])}${note("现场绑定、体检和交付在 PACOM 部署 App 中完成。")}<div class="flow-steps"><div><b>1</b><span>App 绑定网关<small>按图上的网关点位安装，为 EG20 配置有线或无线网络，绑定同时完成；云端生成网络密钥，网络由“规划中”变为“已建立”。</small></span></div><div><b>2</b><span>下载部署包，由近及远绑定设备<small>部署包须先在“准备部署包”中授权给领取人，网关绑定后才能下载。App 只能向已绑定网关的网络绑定设备。以回路为单位：绑完一台 LC20 接着绑它供电的 MS20。只认 App 实际绑定回执。</small></span></div><div><b>3</b><span>核对配置与首次上报<small>网关补齐 App 未完成项；绑定、配置、通信状态分别显示。</small></span></div></div>${reminders}${note("部署包含网络密钥，只能授权给对本项目有配置权限的成员；每次下载写入审计。")}${simNote()}`,
+    ])}${note("部署 App 在现场完成设备身份确认、绑定、配置与局部测试，绑定回执、测试记录与现场改动上传到 Station；Station 核对这些记录、做全网体检并交付，由配置进度给出下一步。")}${
+      // App 做现场身份确认、绑定、配置与局部测试，Station 做全网体检、核对记录与交付（2026-10-06 HONG 确认 04 B-2，核查 H6）。
+      // 首次部署列四步；交付过的网络只按上面的增补步骤，不再列网关绑定等首次部署的步骤
+      delivered
+        ? ""
+        : `<div class="flow-steps"><div><b>1</b><span>App 绑定网关<small>按图上的网关点位安装，为 EG20 配置有线或无线网络，绑定同时完成；云端生成网络密钥，网络由“规划中”变为“已建立”。</small></span></div><div><b>2</b><span>下载部署包，由近及远绑定设备<small>部署包须先在“准备部署包”中授权给领取人，网关绑定后才能下载。App 只能向已绑定网关的网络绑定设备。以回路为单位：绑完一台 LC20 接着绑它供电的 MS20。只认 App 实际绑定回执。</small></span></div><div><b>3</b><span>核对配置、首次上报与局部测试<small>网关补齐 App 未完成项；绑定、配置、通信状态分别显示。App 按回路就地测试，测试记录上传后计入“功能验证”。</small></span></div><div><b>4</b><span>在 Station 全网体检与交付<small>在配置进度的“验证与交付”核对功能验证与配置同步；关闭部署期代理后做全网体检，通过后由机构管理员确认交付。</small></span></div></div>`
+    }${reminders}${note("部署包含网络密钥，只能授权给对本项目有配置权限的成员；每次下载写入审计。")}${simNote()}`,
     btn("关闭", "close") +
       // 规划清单含序列号与回执，与网络“更多”菜单同样限于配置人员与机构管理员（2026-10-05 核查 H9）
       btn("导出规划清单", "exportNetwork", { id: n.id, disabled: !canEdit() }, "ghost") +
@@ -32309,42 +33058,47 @@ defineActions({
 // 保存前影响预览（2026-10-05 核查 H5）：保存会形成新的期望配置，且网络交付过、有已下载的部署包或涉及已绑定设备时，逐网络列出受影响的
 // 点位与配置项、需重新下发与重新测试的设备、全网体检、部署包与交付；已绑定设备改名另列，只提示现场标注。确认后才保存，“继续编辑”不保存。
 // then：确认后接着做的事（"prepare" 为准备现场绑定，来自“先保存规划”的“保存并检查”）。
-function showSaveImpact(impact, then = "") {
-  const who = (ps) => [...new Set(ps.map((p) => p.account || "未记录领取人"))].map(esc).join("、"),
-    nets = impact.networks.map((x) => {
-      const added = x.points.filter((p) => p.added).length,
-        copies = x.packages.filter((p) => ["downloaded", "stale"].includes(p.before)),
-        waiting = x.packages.filter((p) => !["downloaded", "stale"].includes(p.before)),
-        rows = [
-          ["期望配置", `${x.points.length} 个点位形成新的期望配置${added ? `，其中新增 ${added} 个点位` : ""}`],
-          x.bound && ["现场设备", `${x.bound} 台已绑定设备需按 v${x.to} 重新下发：保存后为“待同步”，网关下发并收到回执后为“已同步”`],
-          x.retest && ["功能验证", `${x.retest} 台的功能验证不再有效，需用部署 App 重新测试`],
-          x.health && ["全网体检", `v${x.from} 的全网体检不能用于交付，需在 v${x.to} 上重做`],
-          x.packages.length && [
-            "部署包",
-            [
-              copies.length && `${who(copies)}已下载的部署包为“待同步（规划已更新）”，App 联网时按差量同步到 v${x.to}，不需重新下载`,
-              waiting.length && `${who(waiting)}尚未下载的部署包，下载时按当时的网络版本生成`,
-            ]
-              .filter(Boolean)
-              .join("；"),
-          ],
-          x.delivered
-            ? ["交付", `v${x.from} 的交付记录保留，不被覆盖；保存后需核对配置、功能验证与全网体检，再确认交付 v${x.to}`]
-            : x.lastDelivery && ["交付", `上次交付 v${x.lastDelivery.version} 的记录保留；当前变更合并到 v${x.to}，核对配置、功能验证与全网体检后再交付`],
-        ].filter(Boolean),
-        list = table(
-          ["点位", "变化的配置项", "现场设备"],
-          x.points.map((p) => [
-            `<b class="flow-name">${esc(p.name)}</b>`,
-            p.added ? "新增点位" : esc(p.items.join("、") || "—"),
-            p.bound ? (p.verified ? "已绑定 · 重新下发并测试" : "已绑定 · 重新下发") : "未绑定",
-          ]),
-        );
-      return `<section class="flow-impact"><div class="flow-heading"><h3>${esc(x.name)}</h3><p>保存后网络 v${x.from} → v${x.to}</p></div>${kv(rows)}${
-        x.points.length > 5 ? `<details class="ws-details"><summary>逐个点位 · ${x.points.length} 个</summary>${list}</details>` : list
-      }</section>`;
-    }),
+// opts：从“批量修改设备”保存时，按钮为“返回修改”（回到批量修改，保留填写）与“保存修改”（2026-10-05 核查 D6）。
+// 每个受影响的设备网络一节（“确认保存规划”与“确认复制设备”共用）。
+function saveImpactNets(impact) {
+  const who = (ps) => [...new Set(ps.map((p) => p.account || "未记录领取人"))].map(esc).join("、");
+  return impact.networks.map((x) => {
+    const added = x.points.filter((p) => p.added).length,
+      copies = x.packages.filter((p) => ["downloaded", "stale"].includes(p.before)),
+      waiting = x.packages.filter((p) => !["downloaded", "stale"].includes(p.before)),
+      rows = [
+        ["期望配置", `${x.points.length} 个点位形成新的期望配置${added ? `，其中新增 ${added} 个点位` : ""}`],
+        x.bound && ["现场设备", `${x.bound} 台已绑定设备需按 v${x.to} 重新下发：保存后为“待同步”，网关下发并收到回执后为“已同步”`],
+        x.retest && ["功能验证", `${x.retest} 台的功能验证不再有效，需用部署 App 重新测试`],
+        x.health && ["全网体检", `v${x.from} 的全网体检不能用于交付，需在 v${x.to} 上重做`],
+        x.packages.length && [
+          "部署包",
+          [
+            copies.length && `${who(copies)}已下载的部署包为“待同步（规划已更新）”，App 联网时按差量同步到 v${x.to}，不需重新下载`,
+            waiting.length && `${who(waiting)}尚未下载的部署包，下载时按当时的网络版本生成`,
+          ]
+            .filter(Boolean)
+            .join("；"),
+        ],
+        x.delivered
+          ? ["交付", `v${x.from} 的交付记录保留，不被覆盖；保存后需核对配置、功能验证与全网体检，再确认交付 v${x.to}`]
+          : x.lastDelivery && ["交付", `上次交付 v${x.lastDelivery.version} 的记录保留；当前变更合并到 v${x.to}，核对配置、功能验证与全网体检后再交付`],
+      ].filter(Boolean),
+      list = table(
+        ["点位", "变化的配置项", "现场设备"],
+        x.points.map((p) => [
+          `<b class="flow-name">${esc(p.name)}</b>`,
+          p.added ? "新增点位" : esc(p.items.join("、") || "—"),
+          p.bound ? (p.verified ? "已绑定 · 重新下发并测试" : "已绑定 · 重新下发") : "未绑定",
+        ]),
+      );
+    return `<section class="flow-impact"><div class="flow-heading"><h3>${esc(x.name)}</h3><p>保存后网络 v${x.from} → v${x.to}</p></div>${kv(rows)}${
+      x.points.length > 5 ? `<details class="ws-details"><summary>逐个点位 · ${x.points.length} 个</summary>${list}</details>` : list
+    }</section>`;
+  });
+}
+function showSaveImpact(impact, then = "", opts = null) {
+  const nets = saveImpactNets(impact),
     renamed = impact.renamed.length
       ? `<section class="flow-impact"><div class="flow-heading"><h3>已绑定设备改名</h3><p>${impact.renamed.length} 台</p></div>${table(
           ["原名称", "新名称"],
@@ -32356,8 +33110,163 @@ function showSaveImpact(impact, then = "") {
     `<p class="flow-lead">${
       nets.length ? `保存后 ${nets.length} 个设备网络形成新的期望配置版本，现场设备、部署包与交付受影响。` : "本次修改了已绑定设备的名称。"
     }</p>${nets.join("")}${renamed}${nets.length ? note("只列出期望配置变化的点位：改名、移动图上位置不改变期望配置，不形成新的网络版本，也不使交付失效。") : ""}`,
-    btn("继续编辑", "close") + btn(then === "prepare" ? "保存并检查" : "保存规划", "savePlan", { confirmed: "1", then: then || "" }, "primary"),
+    opts
+      ? btn("返回修改", "batchBack") + btn("保存修改", "batchSave", { confirmed: "1" }, "primary")
+      : btn("继续编辑", "close") + btn(then === "prepare" ? "保存并检查" : "保存规划", "savePlan", { confirmed: "1", then: then || "" }, "primary"),
   );
+}
+// ---------- 批量修改设备（2026-10-05 核查 D6）----------
+// 对设备台账中勾选的设备，按型号修改可以批量修改的项（目前为 LC20 的照明负载）；型号不支持的项不写入。
+// 填写时即时预览会改变的设备、修改项与修改后的负载；保存直接成为规划并写入变更记录，与“保存规划”相同：
+// 形成新的期望配置且网络交付过、有已下载的部署包或涉及已绑定设备时，先打开“确认保存规划”（核查 H5）。保存后清除勾选。
+const typeCounts = (ps) =>
+  [...ps.reduce((m, p) => m.set(p.type, (m.get(p.type) || 0) + 1), new Map())]
+    .sort((a, b) => Object.keys(M.catalog).indexOf(a[0]) - Object.keys(M.catalog).indexOf(b[0]))
+    .map(([type, n]) => `${devTypeShort(type)} ${n} 台`)
+    .join(" · ");
+const BATCH_KEEP = "保持原值";
+function batchRead() {
+  return {
+    ctrl: value("batch-ctrl"),
+    driverModel: value("batch-driverModel"),
+    drivers: ($("#batch-drivers")?.value || "").trim(),
+    fixtureWatts: ($("#batch-fixtureWatts")?.value || "").trim(),
+  };
+}
+function showBatchEdit(values = {}) {
+  if (!canEdit()) return msg("当前角色不能编辑部署规划");
+  const ids = (U.devSel || []).filter((id) => g("points", id)),
+    ps = ids.map((id) => g("points", id));
+  if (!ids.length) return msg("请先勾选设备");
+  U.batch = { ids, values };
+  const spec = F.BATCH_FIELDS.lc,
+    lcs = ps.filter((p) => F.BATCH_FIELDS[p.type]),
+    others = ps.filter((p) => !F.BATCH_FIELDS[p.type]),
+    lead = `<p class="flow-lead">已选 ${ids.length} 台设备：${esc(typeCounts(ps))}</p>`;
+  if (!lcs.length)
+    return modal(
+      "批量修改设备",
+      lead + wsNotice("所选设备没有可以批量修改的项。目前可以批量修改 LC20 的照明负载：控制类型、驱动型号、驱动台数、每台灯具功率。"),
+      btn("关闭", "close"),
+    );
+  const f = (key) => spec.fields.find((x) => x.key === key),
+    choice = (key) => fld(f(key).label, "batch-" + key, select("batch-" + key, [["", BATCH_KEEP], ...f(key).options], values[key] || "", f(key).label)),
+    number = (key) =>
+      fld(
+        f(key).label,
+        "batch-" + key,
+        `<input id="batch-${key}" class="input" type="number" min="0" max="${f(key).max}" step="1" inputmode="numeric" placeholder="${BATCH_KEEP}" value="${esc(values[key] ?? "")}">`,
+      );
+  modal(
+    "批量修改设备",
+    lead +
+      `<section class="flow-batch"><h3>${spec.label} · LC20 ${lcs.length} 台</h3><div class="ws-form-row">${choice("ctrl")}${choice("driverModel")}</div><div class="ws-form-row">${number("drivers")}${number("fixtureWatts")}</div></section>` +
+      (others.length ? note(`${esc(typeCounts(others))}没有可以批量修改的项，不修改。`) : "") +
+      `<div class="flow-batch-preview" id="batchPreview" role="status"></div>` +
+      note("“保持原值”或留空的项不修改。保存后直接成为规划并写入变更记录；已绑定的设备需按新的期望配置重新下发并测试。"),
+    btn("取消", "close") + btn("保存修改", "batchSave", {}, "primary"),
+  );
+  batchPreview();
+}
+// 修改后的负载：调光驱动（开关型不限）、功率与冲击，写法与点位面板的计量相同；超出上限的标红。
+function batchLoad(r) {
+  const L = M.LIMITS,
+    l = r.load,
+    sw = r.after.ctrl === "switch",
+    item = (text, over) => (over ? `<span class="crit">${esc(text)}</span>` : esc(text));
+  return [
+    item(`调光驱动 ${sw ? "开关型不限" : `${l.drivers}/${L.dimDrivers}`}`, !sw && l.drivers > L.dimDrivers),
+    item(`功率 ${l.watts}/${L.loadWatts} W`, l.watts > L.loadWatts),
+    item(`冲击 ${l.inrush == null ? (r.after.driverModel ? "待兼容测试" : "未选驱动") : `${l.inrush}/${L.inrushBudget} A`}`, l.inrush != null && l.inrush > L.inrushBudget),
+  ].join(" · ");
+}
+function batchPreview() {
+  const box = $("#batchPreview");
+  if (!box || !U.batch) return;
+  let plan;
+  try {
+    plan = F.batchPlan(data(), U.batch.ids, batchRead());
+  } catch (e) {
+    box.innerHTML = wsNotice(esc(e.message), "warning");
+    return;
+  }
+  if (!Object.keys(plan.changes).length) {
+    box.innerHTML = `<p class="muted">选择要修改的项并填写新值后，这里列出会改变的设备。</p>`;
+    return;
+  }
+  if (!plan.rows.length) {
+    box.innerHTML = wsNotice(`所选的 ${plan.same.length} 台 LC20 都与新值相同，没有需要保存的修改。`);
+    return;
+  }
+  const bound = plan.rows.filter((r) => r.bound).length,
+    added = plan.rows.filter((r) => r.added.length),
+    list = table(
+      ["点位", "修改", "修改后"],
+      plan.rows.map((r) => [
+        `<b class="flow-name">${esc(r.p.name)}</b><small class="flow-sub">${esc(where(r.p.floorId))}${r.bound ? " · 已绑定" : ""}</small>`,
+        r.diffs.map((d) => `${esc(d.label)} ${esc(F.batchValueText(d.key, d.from))} → ${esc(F.batchValueText(d.key, d.to))}`).join("<br>"),
+        batchLoad(r) + (r.added.length ? `<small class="flow-sub crit">新增阻止项 ${r.added.length} 项</small>` : ""),
+      ]),
+    );
+  box.innerHTML =
+    `<p><b>将修改 ${plan.rows.length} 台 LC20</b>${bound ? `，其中 ${bound} 台已绑定` : ""}${plan.same.length ? `；${plan.same.length} 台与新值相同，不变` : ""}。</p>` +
+    (added.length
+      ? wsNotice(
+          `修改后 ${added.length} 台在规划检查中出现新的阻止项：${esc(
+            added
+              .flatMap((r) => r.added)
+              .slice(0, 3)
+              .join("；"),
+          )}${added.flatMap((r) => r.added).length > 3 ? " 等" : ""}。可以保存，准备现场绑定前需处理。`,
+          "warning",
+        )
+      : "") +
+    (plan.rows.length > 8 ? `<details class="ws-details"><summary>逐台列出 · ${plan.rows.length} 台</summary>${list}</details>` : list);
+}
+// 变更记录按项目各写一条：台数与楼层（写楼宇与楼层名），修改项按表单顺序写新值。
+function batchDetail(db, rows, changes) {
+  const floors = [...new Set(rows.map((r) => r.p.floorId))],
+    name = (id) => {
+      const f = M.get(db, "floors", id);
+      return f ? `${M.get(db, "buildings", f.buildingId)?.name || ""} ${f.name}`.trim() : "未指定位置";
+    };
+  return `${F.BATCH_FIELDS.lc.label} · LC20 ${rows.length} 台（${floors.slice(0, 3).map(name).join("、")}${floors.length > 3 ? ` 等 ${floors.length} 个楼层` : ""}） · ${F.BATCH_FIELDS.lc.fields
+    .filter((f) => f.key in changes)
+    .map((f) => `${F.batchName(f)} ${F.batchValueText(f.key, changes[f.key])}`)
+    .join("、")}`;
+}
+async function saveBatch(a = {}) {
+  if (!canEdit()) throw Error("当前角色不能编辑部署规划");
+  const req = U.batch;
+  if (!req) return;
+  if (D || U.dirty) throw Error("有尚未保存的规划修改，请先在设备标记中保存或取消");
+  if (!a.confirmed) req.values = batchRead();
+  const next = M.copy(W),
+    plan = F.applyBatch(next, req.ids, req.values);
+  if (!Object.keys(plan.changes).length) throw Error("请至少选择一项要修改的内容");
+  if (!plan.rows.length) throw Error("所选设备都与新值相同，没有需要保存的修改");
+  const byProject = new Map();
+  for (const r of plan.rows) {
+    const pid = M.projectOfFloor(next, r.p.floorId);
+    byProject.set(pid, [...(byProject.get(pid) || []), r]);
+  }
+  for (const [pid, rows] of byProject) M.record(next, "批量修改设备", pid, batchDetail(next, rows, plan.changes));
+  if (!a.confirmed) {
+    const impact = F.saveImpact(W, next);
+    if (impact.networks.length) return showSaveImpact(impact, "", { batch: true });
+  }
+  const dlg = $("#dlg");
+  if (dlg) wsSetBusy(dlg, true);
+  try {
+    await persist(next);
+  } finally {
+    if (dlg?.isConnected) wsSetBusy(dlg, false);
+  }
+  closeModal(true);
+  U.batch = null;
+  U.devSel = [];
+  render();
+  msg(`已修改 ${plan.rows.length} 台 LC20 的照明负载`);
 }
 function showHealthForm(nid, scope = "all", draftId) {
   const n = g("networks", nid),
@@ -33696,11 +34605,41 @@ defineActions({
         (p.fieldReset ? `<p class="flow-pop-note">也可在现场用 App 绑回原点位</p>` : ""),
     );
   },
-  deviceFilters: () =>
+  // 筛选设备（2026-10-05 核查 D6）：型号、楼层（范围内有多个楼层时，可 Shift 连选）、服务功能区，以及设备网络与网络角色。
+  deviceFilters: () => {
+    const db = data(),
+      all = F.inventory(db, U),
+      o = F.deviceFilterOptions(db, all),
+      ids = o.floors.map((f) => f.id),
+      picked = (U.devFloors || []).filter((id) => ids.includes(id)),
+      types = `<fieldset class="ws-checks flow-filter-types"><legend>型号</legend>${
+        o.types
+          .map(
+            (t) =>
+              `<label><input type="checkbox" class="ws-ck" name="filterType" value="${t.type}" ${(U.devTypes || []).includes(t.type) ? "checked" : ""}>${esc(t.label)}<small>${t.count} 台</small></label>`,
+          )
+          .join("") || '<p class="muted small">当前位置还没有设备。</p>'
+      }</fieldset>`,
+      floors =
+        ids.length > 1
+          ? `<fieldset class="ws-checks ws-floor-checks flow-filter-floors"><legend>楼层（<span id="filterFloorCount">已选 ${picked.length}</span>）</legend>${o.floors
+              .map(
+                (f) =>
+                  `<label><input type="checkbox" class="ws-ck" name="filterFloors" value="${f.id}" ${picked.includes(f.id) ? "checked" : ""}>${esc(devFloorLabel(f.id, ids))}<small>${f.count} 台</small></label>`,
+              )
+              .join("")}</fieldset><p class="muted small ws-shift-tip">不选为全部楼层；按住 Shift 点选可连续选择。</p>`
+          : "",
+      zones = [
+        ["", "全部功能区"],
+        ...(o.unzoned ? [[F.NO_ZONE, `未归属功能区 · ${o.unzoned} 台`]] : []),
+        ...o.zones.map((z) => [z.name, `${z.name} · ${z.count} 台`]),
+      ];
     modal(
       "筛选设备",
-      fld("设备网络", "filterNet", select("filterNet", [["", "全部网络"], ...netOptions()], U.deviceNet || "", "设备网络")) +
-        fld(
+      types +
+        floors +
+        fld("功能区", "filterZone", select("filterZone", zones, zones.some(([v]) => v === U.devZone) ? U.devZone : "", "功能区"), "按服务功能区的名称筛选，不同楼层同名的功能区一起筛选。") +
+        `<div class="ws-form-row">${fld("设备网络", "filterNet", select("filterNet", [["", "全部网络"], ...netOptions()], U.deviceNet || "", "设备网络"))}${fld(
           "网络角色",
           "filterRole",
           select(
@@ -33713,21 +34652,47 @@ defineActions({
             U.deviceRole || "",
             "网络角色",
           ),
-        ),
+        )}</div>`,
       btn("重置", "resetDeviceFilters", {}, "ghost") + btn("应用", "applyDeviceFilters", {}, "primary"),
-      false,
-    ),
+      ids.length > 1,
+    );
+  },
   applyDeviceFilters: () => {
     U.deviceNet = value("filterNet");
     U.deviceRole = value("filterRole");
+    U.devTypes = checked("filterType");
+    U.devFloors = checked("filterFloors");
+    U.devZone = value("filterZone");
     closeModal(true);
     render();
   },
   resetDeviceFilters: () => {
-    U.deviceNet = U.deviceRole = "";
+    U.deviceNet = U.deviceRole = U.devZone = "";
+    U.devTypes = [];
+    U.devFloors = [];
     closeModal(true);
     render();
   },
+  devSelShown: () => {
+    const on = new Set(U.devSel || []);
+    for (const id of devView.ids) on.add(id);
+    document.querySelectorAll("input[name=devSel]").forEach((x) => (x.checked = true));
+    U.devSel = [...on];
+    refreshDevSel();
+  },
+  devPage: (a) => {
+    U.devPage = +a.to || 0;
+    render();
+    devPageTop();
+  },
+  devSelClear: () => {
+    U.devSel = [];
+    document.querySelectorAll("input[name=devSel]").forEach((x) => (x.checked = false));
+    refreshDevSel();
+  },
+  batchEdit: () => showBatchEdit(),
+  batchBack: () => showBatchEdit(U.batch?.values || {}),
+  batchSave: (a) => saveBatch(a),
   networkTab: (a) => {
     U.ntab = a.value;
     syncRoute();
@@ -33754,6 +34719,10 @@ defineActions({
       zoom: 1,
       deviceNet: null,
       deviceRole: null,
+      devTypes: [],
+      devFloors: [],
+      devZone: "",
+      devSel: [],
       tab: U.tab || "",
       view: U.view,
     };
@@ -33805,15 +34774,18 @@ defineActions({
     else if (t.action === "field") actions.fieldChanges(a);
     else if (t.action === "verify") showFunctionChecks(a.id);
   },
-  // 已交付网络的“需处理”、待绑定点位：定位到设备台账并按网络筛选
+  // 已交付网络的“需处理”、待绑定点位：定位到设备台账并按网络筛选；不带网络时（配置进度组状态旁、项目进度目录，
+  // 多个网络有需处理的设备）为该项目全部的“需处理”（04 B-5）
   netIssues: (a) => {
     closeModal(true);
-    const n = g("networks", a.id);
+    const n = a.id ? g("networks", a.id) : null;
     U.q = "";
-    U.deviceRole = "";
-    route("devices", { tab: "inventory", p: n?.projectId || U.p, b: null, f: null, net: null }, { remember: true });
+    U.deviceRole = U.devZone = "";
+    U.devTypes = [];
+    U.devFloors = [];
+    route("devices", { tab: "inventory", p: n?.projectId || a.p || U.p, b: null, f: null, net: null }, { remember: true });
     U.filter = a.filter || "issues";
-    U.deviceNet = a.id;
+    U.deviceNet = a.id || "";
     render();
   },
   networkMore: (a, el) => {
@@ -34585,6 +35557,26 @@ document.addEventListener("input", (e) => {
     showFirmware(0);
     modalDirty = true;
   }
+  if (e.target.id?.startsWith("batch-")) batchPreview();
+  if (e.target.id === "devPageSel" || e.target.id === "devPageSelTop") {
+    U.devPage = +e.target.value || 0;
+    render();
+    devPageTop();
+  }
+});
+// 设备台账的勾选与“筛选设备”的楼层计数（2026-10-05 核查 D6）：只更新勾选条，不重绘整页。
+document.addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.name === "devSel" || t.id === "devSelAll") {
+    const on = new Set(U.devSel || []),
+      boxes = t.id === "devSelAll" ? [...document.querySelectorAll("input[name=devSel]")] : [t];
+    for (const x of boxes) {
+      if (t.id === "devSelAll") x.checked = t.checked;
+      x.checked ? on.add(x.value) : on.delete(x.value);
+    }
+    U.devSel = [...on];
+    refreshDevSel();
+  } else if (t.name === "filterFloors" && $("#filterFloorCount")) $("#filterFloorCount").textContent = `已选 ${checked("filterFloors").length}`;
 });
 // 现场接入倒计时：每秒刷新页面上的剩余时间；到期后重绘，显示“已到期关闭”
 setInterval(() => {
@@ -35001,12 +35993,15 @@ function mkMsEditor(p) {
 }
 
 /* ---------- 标记 mode ---------- */
+// 一个设备网络只有一个网关（核查 D15）：当前网络已有网关时“边缘网关”不可选，写明“本网络已有网关”。
 function markingPalette() {
+  const n = g("networks", U.net) || M.networks(data(), U.f)[0],
+    gw = n && data().points.find((p) => p.networkId === n.id && p.type === "gw");
   return `<div class="ws-palette mark-palette">${Object.entries(M.catalog)
-    .map(
-      ([k, t]) =>
-        `<button draggable="true" data-dragtype="${k}" data-act="type" data-type="${k}" aria-pressed="${U.type === k}" class="${U.type === k ? "on" : ""}">${ico(t.icon)}<span>${t.name}<small>${t.model || "系统接入"}${k === "aq" ? " · Mesh / RS485" : ""}</small></span></button>`,
-    )
+    .map(([k, t]) => {
+      const off = k === "gw" && gw;
+      return `<button draggable="${off ? "false" : "true"}" data-dragtype="${k}" data-act="type" data-type="${k}" aria-pressed="${U.type === k}" class="${U.type === k ? "on" : ""}"${off ? ` disabled title="${esc(`${n.name} 已有网关 ${gw.name}`)}"` : ""}>${ico(t.icon)}<span>${t.name}<small>${off ? "本网络已有网关" : (t.model || "系统接入") + (k === "aq" ? " · Mesh / RS485" : "")}</small></span></button>`;
+    })
     .join("")}</div>`;
 }
 function renderContinuousMarking(n) {
@@ -35027,7 +36022,7 @@ function renderContinuousMarking(n) {
     return `<h3 class="mk-title">设备标记</h3><p class="mk-lead">当前角色只能查看点位与关系；标记和修改由配置人员完成。选择图上的设备查看属性。</p>${rows.length ? infoRows(rows.map(([l, n]) => [l, n + " 台"])) : `<p class="mk-lead">本层尚未标记设备。</p>`}`;
   }
   if (!type)
-    return `<h3 class="mk-title">标记设备</h3>${canEdit() ? btn(ico("plus", "ic16") + "按回路标记", "nextCircuit", {}, "mk-wide") + `<p class="mk-lead">接线明确时推荐：先放 LC20，再连续放它供电的 MS20。</p>` : ""}${markingPalette()}${renderMarkSelection()}${canEdit() ? `<div class="mk-actions mk-batch">${btn("框选 MS20", "selectSensors", {}, "ghost sm")}${btn("关联供电…", "circuitForm", {}, "ghost sm")}</div>` : ""}`;
+    return `<h3 class="mk-title">标记设备</h3>${canEdit() ? btn(ico("plus", "ic16") + "按回路标记", "nextCircuit", {}, "mk-wide") + `<p class="mk-lead">接线明确时推荐：先放 LC20，再连续放它供电的 MS20。</p>` : ""}${markingPalette()}${renderMarkSelection()}${canEdit() ? `<div class="mk-actions mk-batch">${btn("框选 MS20", "selectSensors", {}, "ghost sm")}${btn("关联供电…", "circuitForm", {}, "ghost sm")}${isOutdoor(g("floors", U.f)?.buildingId) ? "" : btn("复制到其他楼层…", "dcForm", {}, "ghost sm")}</div>` : ""}`;
   let session = "";
   if (type === "ms")
     session += `${fld(
@@ -35149,23 +36144,55 @@ function copyTargets(src) {
     .sort(M.byName)
     .map((z) => ({ z, busy: data().points.some((p) => p.zoneId === z.id && M.access(p) === "mesh") }));
 }
+// 复制前逐项列出复制、不复制与复制后待重选的内容（核查 D15）：不静默丢弃网关、非 Mesh 点位和房间外的关系；写明设备网络。
+function copyZoneContent(sc, zoneId) {
+  const names = (list) => esc(list.slice(0, 3).join("、") + (list.length > 3 ? ` 等 ${list.length} 项` : "")),
+    lux = (data().lightingConfigs || []).some((x) => x.scope === "zone" && x.scopeId === zoneId),
+    gws = sc.others.filter((p) => p.type === "gw"),
+    rest = sc.others.filter((p) => p.type !== "gw");
+  return kv([
+    ["复制", `Mesh 设备 ${sc.mesh.length} 台（${esc(typeCounts(sc.mesh))}），位置按房间比例换算；LC20 照明负载；房间内的供电、回路组与跟随占用${lux ? "；功能区灯控参数" : ""}`],
+    [
+      "不复制",
+      [
+        gws.length && `网关 ${names(gws.map((p) => p.name))}：一个设备网络只有一个网关`,
+        rest.length && `非 Mesh 点位 ${rest.length} 台（${names(rest.map((p) => p.name))}）：系统接入与待确认接入的点位在目标房间另行标记`,
+        sc.followOut.length && `跟随房间外 MS20 的关系 ${sc.followOut.length} 条（${names(sc.followOut.map((x) => `${x.lc} → ${x.ms}`))}）`,
+        "设备身份、地址、绑定与回执",
+        sc.roles ? `中继与部署期代理（房间内 ${sc.roles} 台，复制后在“角色”模式重新评估）` : "中继与部署期代理",
+      ]
+        .filter(Boolean)
+        .join("；"),
+    ],
+    [
+      "复制后待重选",
+      [
+        sc.powerOut.length && `供电来自房间外 LC20 的 MS20 ${sc.powerOut.length} 台（${names(sc.powerOut.map((x) => x.ms))}）：复制后为系统建议，需按实际接线确认`,
+        sc.groupsOut.length && `回路组含房间外 LC20 的 ${sc.groupsOut.length} 个（${names(sc.groupsOut.map((x) => x.name))}）：房间内的 LC20 各自成组`,
+      ]
+        .filter(Boolean)
+        .join("；") || "没有",
+    ],
+  ]);
+}
 function showCopyZone(id) {
   const src = g("zones", id);
   if (!src) return;
-  const ps = data().points.filter((p) => p.zoneId === id && M.access(p) === "mesh"),
+  const sc = F.copyZoneScope(data(), id),
+    ps = sc.mesh,
     groups = floorGroups().filter((cg) => cg.controllerIds.some((c) => g("points", c)?.zoneId === id)),
     targets = copyTargets(src);
   formState = { kind: "copyZone", zoneId: id };
   modal(
     "复制到同类房间",
-    `<div class="mk-copy-src">${ico("copy", "ic16")}<span><b>${esc(src.name)}</b><small>${esc(src.spaceType)} · ${ps.length} 个点位 · ${groups.length} 个回路组 · 含驱动、供电、跟随与灯控参数</small></span></div><fieldset class="ws-checks mk-copy-list"><legend>复制到（同为“${esc(src.spaceType)}”）</legend>${
+    `<div class="mk-copy-src">${ico("copy", "ic16")}<span><b>${esc(src.name)}</b><small>${esc(src.spaceType)} · Mesh 设备 ${ps.length} 台 · ${groups.length} 个回路组 · 设备网络 ${esc(sc.networks.map((n) => n.name).join("、") || "—")}</small></span></div><fieldset class="ws-checks mk-copy-list"><legend>复制到（同为“${esc(src.spaceType)}”）</legend>${
       targets
         .map(
           ({ z, busy }) =>
             `<label class="${busy ? "muted" : ""}"><input type="checkbox" name="copyTargets" value="${z.id}" ${busy ? "disabled" : ""}><span>${esc(z.name)}<small>${busy ? "已有设备，不覆盖" : "尚无设备"}</small></span></label>`,
         )
         .join("") || `<p class="muted">本层没有其他“${esc(src.spaceType)}”。先画出房间并选择相同空间类型。</p>`
-    }</fieldset><div class="mk-copy-preview" id="copyPreview" role="status"></div><p class="mk-lead">位置按房间比例换算；新点位按规划另行预留地址。复制后可逐个微调。</p>`,
+    }</fieldset><div class="mk-copy-preview" id="copyPreview" role="status"></div>${copyZoneContent(sc, id)}<p class="mk-lead">新点位按规划另行预留地址，复制后可逐个微调。</p>`,
     btn("取消", "close") + btn("复制", "applyCopyZone", { disabled: true }, "primary"),
     false,
   );
@@ -35684,13 +36711,418 @@ document.addEventListener("keydown", (e) => {
 
 /* “创建功能区”的绘制菜单由 spatialMenu（spatial-drawing-ui.js）提供：192px 面板、四种工具、当前工具打勾（2026-10-03 D2 删除被取代的定义）。 */
 
+// ---------- 复制设备到其他楼层（2026-10-06 HONG 确认 04 B-1，核查 A2、D15）----------
+// 标准层设备规划复制，入口为“标记设备”面板的“复制到其他楼层…”。四步：源楼层与范围 → 目标楼层 → 设备网络与关系 → 确认。
+// 按相同图纸坐标复制规划点位，到目标楼层重新编号；只复制勾选的内部关系，跨复制范围的关系、不复制与复制后待重选的内容在确认前逐项列出。
+// 所选楼层一次保存（任一楼层不能复制时都不保存），不向设备发送命令。草稿在 U.dcDraft。
+const DC_STEPS = ["选择源楼层与范围", "选择目标楼层", "设备网络与关系", "确认"];
+const DC_DIRTY = "有尚未保存的规划修改，请先保存规划或取消修改，再复制到其他楼层";
+const DC_REL = { power: ["供电", "条"], groups: ["回路组", "个"], follow: ["跟随占用", "条"] };
+const dcSources = (bid) => sortedFloors(bid).filter((f) => f.image && data().points.some((p) => p.floorId === f.id));
+const dcMeshy = (p) => ["mesh", "gateway"].includes(M.access(p));
+const dcScope = (d, db = data()) => F.deviceCopyScope(db, d.src, d.keys);
+// 范围按设备服务的功能区分项（只列有设备的功能区），最后一项为“未归属功能区的设备”。
+function dcGroups(fid) {
+  const zs = data().zones.filter((z) => z.floorId === fid).sort(M.byName),
+    ids = new Set(zs.map((z) => z.id)),
+    by = new Map();
+  for (const p of data().points) {
+    const k = p.floorId === fid && (ids.has(p.zoneId) ? p.zoneId : "none");
+    if (k) by.set(k, (by.get(k) || 0) + 1);
+  }
+  return [
+    ...zs.filter((z) => by.get(z.id)).map((z) => ({ key: z.id, name: z.name, sub: `${z.spaceType || "未设类型"} · ${by.get(z.id)} 台` })),
+    ...(by.get("none") ? [{ key: "none", name: "未归属功能区的设备", sub: `${by.get("none")} 台` }] : []),
+  ];
+}
+const dcCountText = (d) => `已选 ${d.keys.length} / ${dcGroups(d.src).length} 项 · ${dcScope(d).length} 台设备`;
+const dcTypesText = (d) => (dcScope(d).length ? "已选设备：" + typeCounts(dcScope(d)) : "尚未选择设备");
+function dcSourceState(db, fid, ids) {
+  return JSON.stringify([M.get(db, "floors", fid)?.planVersion || 1, ids.map((id) => M.get(db, "points", id) || null), (db.circuitGroups || []).filter((x) => x.floorId === fid)]);
+}
+// 在资料副本上逐层试算（与正式复制相同的顺序，同一网络的多个楼层只复制一台网关）；某层不能复制时写明原因，其余楼层照常试算。
+function dcSimulate(d) {
+  let db = M.copy(data());
+  const scope = dcScope(d, db),
+    ids = scope.map((p) => p.id),
+    needs = scope.some(dcMeshy);
+  const rows = d.targets.map((id) => {
+    const trial = M.copy(db),
+      row = { id, name: M.floor(trial, id)?.name || "" };
+    try {
+      let nid = needs ? d.nets[id] : null;
+      if (needs && !nid) throw Error("请选择设备网络");
+      if (nid === "new") {
+        nid = M.planNetwork(trial, M.projectOfFloor(trial, id), [id], F.floorNetworkName(trial, id)).id;
+        row.created = true;
+      }
+      row.res = F.copyDevicesToFloor(trial, d.src, ids, id, nid, d.rel);
+      Object.assign(row, { nid, net: M.get(trial, "networks", nid)?.name || "" });
+      db = trial;
+    } catch (e) {
+      row.error = e.message;
+    }
+    return row;
+  });
+  for (const r of rows)
+    if (r.nid) {
+      const l = F.load(db, M.get(db, "networks", r.nid));
+      r.load = `${l.nodes} 个节点 · ${l.label}${l.nodeHint ? " · " + l.nodeHint : ""}`;
+    }
+  return { db, rows };
+}
+function dcRowHtml(r) {
+  if (r.error) return `<p><b>${esc(r.name)}</b>：<span class="crit">${esc(r.error)}</span></p>`;
+  const x = r.res,
+    pending = [
+      x.pending.power && `MS20 未关联供电 ${x.pending.power} 台`,
+      x.pending.zone && `未归属功能区 ${x.pending.zone} 台`,
+      x.pending.connection && `系统连接未关联 ${x.pending.connection} 台`,
+    ].filter(Boolean);
+  return `<p><b>${esc(r.name)}</b>：${r.net ? `${r.created ? "新建设备网络" : "设备网络"}“${esc(r.net)}” · ` : ""}新建 ${x.created.length} 个点位（${esc(typeCounts(x.types.map((type) => ({ type }))))}）${x.groups ? `、回路组 ${x.groups} 个` : ""}${
+    x.skipped.length ? `；不复制 ${esc(x.skipped.map((s) => `${s.name}（${s.reason}）`).join("、"))}` : ""
+  }${pending.length ? `；复制后待重选：${pending.join("、")}` : ""}${r.load ? `<small class="muted"> · 复制后网络 ${esc(r.load)}</small>` : ""}</p>`;
+}
+// 上次复制的目标楼层（按楼宇的楼层顺序）。
+const dcLastFloors = (last) => floorNames(last.floors.map((f) => g("floors", f.id)?.name || ""));
+// 上次复制仍可撤回（新建的点位与网络复制后都没有改动）时，第 1 步顶部提示并给出入口。
+function dcLastNotice() {
+  const last = U.dcLast;
+  if (!last || F.deviceCopyUndoIssues(data(), last).length) return "";
+  const n = last.floors.reduce((s, f) => s + f.points.length, 0);
+  return wsNotice(`上次从 ${esc(g("floors", last.src)?.name || "")} 复制到 ${esc(dcLastFloors(last))}，共 ${n} 个点位，复制后没有改动，可以撤回。${btn("撤回上次复制…", "dcUndo", {}, "ghost sm")}`);
+}
+function dcShow() {
+  const d = U.dcDraft;
+  if (!d) return;
+  const src = g("floors", d.src);
+  if (!src?.image || src.buildingId !== d.bid) {
+    U.dcDraft = null;
+    return msg("源楼层已不存在或没有图纸，请重新选择");
+  }
+  const groups = dcGroups(d.src);
+  d.keys = d.keys.filter((k) => groups.some((x) => x.key === k));
+  d.targets = d.targets.filter((id) => {
+    const f = g("floors", id);
+    return f?.image && f.id !== d.src && f.buildingId === d.bid;
+  });
+  const head = `<p class="zc-step">第 ${d.step} 步，共 4 步 · ${DC_STEPS[d.step - 1]}</p>`;
+  let title = "复制设备到其他楼层",
+    body = "",
+    foot = "";
+  if (d.step === 1) {
+    const q = (d.q || "").trim().toLowerCase();
+    body = `${dcLastNotice()}${fld("源楼层", "dcSrc", select("dcSrc", dcSources(d.bid).map((f) => [f.id, `${f.name} · ${M.points(data(), f.id).length} 台设备`]), d.src, "源楼层"))}<fieldset class="ws-checks zc-zones"><legend>复制范围（<span id="dcCount">${dcCountText(d)}</span>）</legend><div class="zc-zone-tools"><div class="ws-search">${ico("search", "ic16")}<input id="dcQuery" value="${esc(d.q || "")}" placeholder="搜索功能区" aria-label="搜索要复制的功能区"></div>${btn("全选", "dcAll", { on: "1" }, "sm")}${btn("全不选", "dcAll", { on: "" }, "sm")}</div>${groups
+      .map((x) => `<label data-dc-name="${esc(x.name.toLowerCase())}" ${q && !x.name.toLowerCase().includes(q) ? "hidden" : ""}><input type="checkbox" name="dcZone" value="${x.key}" ${d.keys.includes(x.key) ? "checked" : ""}>${esc(x.name)}<small class="muted">${esc(x.sub)}</small></label>`)
+      .join("")}</fieldset><p class="muted small" id="dcTypes">${esc(dcTypesText(d))}</p>${note("按设备服务的功能区选择范围；按相同图纸坐标复制，到目标楼层重新编号。各楼层图纸需是同一底图对齐的平面，否则位置会偏移。")}`;
+    foot = btn("取消", "close") + btn("下一步", "dcNext", {}, "primary");
+  } else if (d.step === 2) {
+    const fs = sortedFloors(d.bid).filter((x) => x.id !== d.src),
+      ok = fs.filter((x) => x.image),
+      no = fs.filter((x) => !x.image),
+      same = ok.filter((x) => zcSameSize(src, x));
+    const row = (x) => {
+      const n = M.points(data(), x.id).length,
+        ns = M.networks(data(), x.id);
+      return `<label><input type="checkbox" name="dcFloor" value="${x.id}" ${d.targets.includes(x.id) ? "checked" : ""}>${esc(x.name)}<small>${n ? `已有 ${n} 台设备` : "尚无设备"} · ${ns.length ? esc(ns.map((m) => m.name).join("、")) : "尚无设备网络"}${zcSameSize(src, x) ? " · 图纸尺寸与源层相同" : ""}</small></label>`;
+    };
+    body = `<fieldset class="ws-checks ws-floor-checks zc-floors"><legend>目标楼层（<span id="dcFloorCount">已选 ${d.targets.length}</span>）</legend>${
+      ok.length > 1
+        ? `<div class="zc-zone-tools zc-floor-tools">${btn("全选", "dcFloorAll", { on: "1" }, "sm")}${btn("全不选", "dcFloorAll", { on: "" }, "sm")}${same.length && same.length < ok.length ? btn(`选择图纸尺寸相同的楼层（${same.length}）`, "dcFloorAll", { on: "1", same: "1" }, "sm") : ""}</div>`
+        : ""
+    }${ok.map(row).join("") || '<p class="muted small">没有可选的目标楼层：其他楼层都尚未上传楼层图。</p>'}</fieldset>${ok.length ? '<p class="muted small ws-shift-tip">按住 Shift 点选可连续选择。</p>' : ""}${
+      no.length ? `<details class="ws-details zc-unavailable"><summary>未上传楼层图 ${no.length} 个</summary><p class="muted small">${esc(floorNames(no.map((x) => x.name)))}：没有楼层图，设备无处放置；在项目中上传楼层图后可选。</p></details>` : ""
+    }${note("目标楼层已有的设备保持不变，复制的设备接着编号。先在项目楼层图用“复制到其他楼层”复制功能区，设备的服务功能区才能对应过去。")}`;
+    foot = btn("取消", "close") + btn("上一步", "dcPrev") + btn("下一步", "dcNext", {}, "primary");
+  } else if (d.step === 3) {
+    const db = data(),
+      scope = dcScope(d),
+      needs = scope.some(dcMeshy),
+      count = F.deviceCopyRelations(db, scope.map((p) => p.id), d.rel).count;
+    for (const id of d.targets) if (!(id in d.nets)) d.nets[id] = F.deviceCopyNetwork(db, id);
+    const nets = d.targets
+      .map((id) => {
+        const t = g("floors", id);
+        return fld(
+          esc(t.name),
+          "dcNet-" + id,
+          select(
+            "dcNet-" + id,
+            [...(d.nets[id] ? [] : [["", "请选择设备网络"]]), ...M.networks(db, id).map((n) => [n.id, `${n.name} · ${F.networkState(db, n)}`]), ["new", `新建“${F.floorNetworkName(db, id)}”（只服务本层）`]],
+            d.nets[id],
+            `${t.name} 的设备网络`,
+          ),
+        );
+      })
+      .join("");
+    body = `${
+      needs
+        ? `<fieldset class="dc-nets"><legend>目标楼层的设备网络</legend>${nets}<p class="muted small">楼层只由一个设备网络服务时用该网络；尚无网络时新建只服务本层的网络；由多个网络服务时须选择。一个设备网络只有一个网关：所选网络已有网关时不复制网关。</p></fieldset>`
+        : note("所选设备都是系统接入或待确认接入，不需要设备网络。")
+    }<fieldset class="ws-checks dc-rel"><legend>复制的关系（两端都在复制范围内才复制）</legend>${[
+      ["power", "供电（MS20 → LC20）"],
+      ["groups", "回路组与锁定的照度源"],
+      ["follow", "跟随占用"],
+    ]
+      .map(([k, l]) => `<label><input type="checkbox" name="dcRel" value="${k}" ${d.rel[k] ? "checked" : ""}>${l}<small class="muted">范围内 ${count[k]} ${DC_REL[k][1]}</small></label>`)
+      .join("")}</fieldset><div class="zc-preview" id="dcPreview" role="status"></div>`;
+    foot = btn("取消", "close") + btn("上一步", "dcPrev") + btn("核对复制内容", "dcNext", {}, "primary");
+  } else {
+    title = "确认复制设备";
+    const db = data(),
+      scope = dcScope(d),
+      ids = scope.map((p) => p.id),
+      sim = dcSimulate(d),
+      rel = F.deviceCopyRelations(db, ids, d.rel),
+      others = scope.filter((p) => !dcMeshy(p)),
+      sys = others.filter((p) => M.access(p) === "system").length,
+      waiting = others.length - sys,
+      ok = sim.rows.filter((r) => !r.error),
+      sum = (k) => ok.reduce((s, r) => s + r.res.pending[k], 0),
+      relText = (keys) => keys.map((k) => `${DC_REL[k][0]} ${rel.count[k]} ${DC_REL[k][1]}`).join("、"),
+      on = Object.keys(DC_REL).filter((k) => d.rel[k] && rel.count[k]),
+      off = Object.keys(DC_REL).filter((k) => !d.rel[k] && rel.count[k]),
+      cross = rel.cross.map((c) => `<li>${esc(c.text)}</li>`).join(""),
+      pending = [
+        sum("power") && `MS20 未关联供电 ${sum("power")} 台`,
+        sum("zone") && `没有对应功能区的点位 ${sum("zone")} 台：复制后未归属功能区`,
+        sum("connection") && `系统接入设备 ${sum("connection")} 台：系统连接不服务目标楼层，复制后未关联`,
+        waiting && `待确认接入的点位 ${waiting * ok.length} 台：接入方式仍待确认`,
+      ].filter(Boolean),
+      impact = F.saveImpact(W, sim.db),
+      nets = impact.networks.length ? saveImpactNets(impact) : [];
+    d.source = dcSourceState(db, d.src, ids);
+    body = `<p>从 ${esc(src.name)} 复制 ${scope.length} 台设备到 ${esc(floorNames(d.targets.map((id) => g("floors", id).name)))}${d.targets.length > 6 ? "" : `（共 ${d.targets.length} 个楼层）`}。</p><div class="zc-confirm-list">${sim.rows.map(dcRowHtml).join("")}</div>${kv([
+      [
+        "复制",
+        `点位类型与图纸位置（相同坐标）、LC20 照明负载、服务功能区（对应到目标楼层的功能区）${on.length ? `；${relText(on)}（每层）` : "；不复制点位之间的关系"}${
+          others.length ? `；非 Mesh 点位 ${others.length} 台（${[sys && `系统接入 ${sys} 台`, waiting && `待确认接入 ${waiting} 台`].filter(Boolean).join("、")}）只复制位置与类型` : ""
+        }`,
+      ],
+      [
+        "不复制",
+        `设备身份（硬件编号、序列号）、地址与密钥、绑定与验证回执、配置与交付状态；中继与部署期代理（复制后在“角色”模式按新楼层重新评估）；回路组的照度标定与控制方式判定（运行后重新形成）${off.length ? `；未勾选的${relText(off)}` : ""}`,
+      ],
+      ["跨复制范围的关系", rel.cross.length ? (rel.cross.length > 6 ? `<details class="ws-details"><summary>${rel.cross.length} 条，均不复制</summary><ul class="dc-list">${cross}</ul></details>` : `<ul class="dc-list">${cross}</ul>`) : "没有"],
+      ["复制后待重选", pending.length ? `${pending.join("；")}${d.targets.length > 1 ? "（各楼层合计）" : ""}` : "没有"],
+    ])}${nets.length ? `<p class="flow-lead">复制后 ${nets.length} 个设备网络形成新的期望配置版本，现场设备、部署包与交付受影响。</p>${nets.join("")}` : ""}${wsNotice("复制只修改规划，不向设备发送命令；所选楼层一次保存，任一楼层不能复制时都不保存。复制后在各楼层核对位置、供电与服务功能区，并在“角色”模式按新楼层规划中继与部署期代理。", "warning")}`;
+    foot = btn("取消", "close") + btn("返回修改", "dcBack") + btn(`复制到 ${d.targets.length} 个楼层`, "dcGo", { disabled: sim.rows.some((r) => r.error) }, "primary");
+  }
+  modal(title, `<div id="dcForm" data-step="${d.step}">${head}${body}</div>`, foot);
+  // 已进入后续步骤或改过选择时，取消、叉号与 Esc 先确认放弃；确认步骤按 Esc 等同“返回修改”。
+  if (d.step > 1 || d.touched) modalDirty = true;
+  if (d.step === 4 && $("#dlg")) $("#dlg").dataset.backTo = "dc";
+  if (d.step === 3) dcRefresh();
+}
+// 读入当前步骤的选择。
+function dcCollect() {
+  const d = U.dcDraft;
+  if (!d || !$("#dcForm")) return d;
+  const step = Number($("#dcForm").dataset.step);
+  if (step === 1) d.keys = checked("dcZone");
+  if (step === 2) d.targets = checked("dcFloor");
+  if (step === 3) {
+    const rel = checked("dcRel");
+    d.rel = { power: rel.includes("power"), groups: rel.includes("groups"), follow: rel.includes("follow") };
+    for (const id of d.targets) if ($("#dcNet-" + id)) d.nets[id] = value("dcNet-" + id);
+  }
+  return d;
+}
+function dcRefresh() {
+  const d = dcCollect();
+  if (!d) return;
+  if ($("#dcCount")) $("#dcCount").textContent = dcCountText(d);
+  if ($("#dcTypes")) $("#dcTypes").textContent = dcTypesText(d);
+  if ($("#dcFloorCount")) $("#dcFloorCount").textContent = `已选 ${d.targets.length}`;
+  if ($("#dcPreview")) $("#dcPreview").innerHTML = dcSimulate(d).rows.map(dcRowHtml).join("");
+}
+function dcSetSource(fid) {
+  const d = U.dcDraft;
+  if (!d || d.src === fid || !g("floors", fid)) return;
+  Object.assign(d, { src: fid, keys: dcGroups(fid).map((x) => x.key), targets: d.targets.filter((id) => id !== fid), q: "", touched: true });
+  dcShow();
+  $("#dcSrc-control")?.focus();
+}
+defineActions({
+  dcForm: (a = {}) => {
+    closePop();
+    if (!canEdit()) throw Error("当前角色不能编辑部署规划");
+    if (U.dirty || U.attrsDirty) throw Error(DC_DIRTY);
+    const bid = g("floors", a.source)?.buildingId || U.b;
+    if (!bid) return;
+    if (isOutdoor(bid)) throw Error("室外区域只有一张总平面图，不提供复制到其他楼层");
+    const ss = dcSources(bid),
+      src = (ss.find((f) => f.id === (a.source || U.f)) || ss[0])?.id;
+    if (!src) return modal("复制设备到其他楼层", wsNotice("本楼宇还没有标记了设备的楼层。先在一层标记设备，再复制到其他楼层。"), btn("关闭", "close"));
+    U.dcDraft = { step: 1, bid, src, keys: dcGroups(src).map((x) => x.key), targets: [], nets: {}, rel: { ...F.DEVICE_COPY_RELATIONS }, q: "" };
+    dcShow();
+  },
+  dcAll: (a) => {
+    document.querySelectorAll("#dcForm label[data-dc-name]:not([hidden]) input[name=dcZone]").forEach((c) => (c.checked = !!a.on));
+    if (U.dcDraft) U.dcDraft.touched = true;
+    modalDirty = true;
+    dcRefresh();
+  },
+  dcFloorAll: (a) => {
+    const src = g("floors", U.dcDraft?.src);
+    document.querySelectorAll("#dcForm input[name=dcFloor]").forEach((c) => {
+      if (!a.same || zcSameSize(src, g("floors", c.value))) c.checked = !!a.on;
+    });
+    if (U.dcDraft) U.dcDraft.touched = true;
+    modalDirty = true;
+    dcRefresh();
+  },
+  dcNext: () => {
+    const d = dcCollect();
+    if (!d) return;
+    if (d.step === 1 && !dcScope(d).length) throw Error("请至少选择一项复制范围");
+    if (d.step === 2 && !d.targets.length)
+      throw Error(sortedFloors(d.bid).some((x) => x.image && x.id !== d.src) ? "请至少选择一个目标楼层" : "没有可选的目标楼层：请先在项目中上传目标楼层图");
+    if (d.step === 3 && dcScope(d).some(dcMeshy)) {
+      const miss = d.targets.find((id) => !d.nets[id]);
+      if (miss) throw Error(`请为 ${g("floors", miss).name} 选择设备网络`);
+    }
+    d.step = Math.min(4, d.step + 1);
+    dcShow();
+  },
+  dcPrev: () => {
+    const d = dcCollect();
+    if (!d) return;
+    d.step = Math.max(1, d.step - 1);
+    dcShow();
+  },
+  // 返回修改：从确认步骤回到设备网络与关系，保留已选内容。
+  dcBack: () => {
+    const d = U.dcDraft;
+    if (!d) return closeModal(true);
+    d.step = 3;
+    dcShow();
+  },
+  dcGo: async () => {
+    const d = U.dcDraft;
+    if (!d || d.running) return;
+    if (!canEdit()) throw Error("当前角色不能编辑部署规划");
+    if (U.dirty || U.attrsDirty) throw Error(DC_DIRTY);
+    const scope = dcScope(d),
+      ids = scope.map((p) => p.id),
+      needs = scope.some(dcMeshy),
+      dlg = $("#dlg");
+    if (!ids.length || !d.targets.length) throw Error("请重新选择复制范围与目标楼层");
+    let rows = [];
+    d.running = true;
+    wsSetBusy(dlg, true);
+    try {
+      await transaction((db) => {
+        if (dcSourceState(db, d.src, ids) !== d.source) throw Error("源楼层的设备已变化，请返回修改后重新核对");
+        rows = d.targets.map((id) => {
+          let nid = needs ? d.nets[id] : null,
+            created = false;
+          if (needs && !nid) throw Error(`请为 ${M.floor(db, id).name} 选择设备网络`);
+          if (nid === "new") {
+            nid = M.planNetwork(db, M.projectOfFloor(db, id), [id], F.floorNetworkName(db, id)).id;
+            created = true;
+          }
+          return { id, created, nid, net: M.get(db, "networks", nid)?.name || "", res: F.copyDevicesToFloor(db, d.src, ids, id, nid, d.rel) };
+        });
+      });
+    } finally {
+      d.running = false;
+      if (dlg?.isConnected) wsSetBusy(dlg, false);
+    }
+    // 复制已直接保存为规划：没有未保存修改的草稿与撤销记录基于复制前的资料，一并清除，避免之后保存时与新资料冲突。
+    D = null;
+    U.undo = [];
+    U.redo = [];
+    U.dcDraft = null;
+    // 撤回用：记下保存后的新建点位与新建网络，复制后都没有改动时可以整批撤回（第 1 步顶部同样给出入口）。
+    U.dcLast = {
+      src: d.src,
+      floors: rows.map((r) => ({ id: r.id, net: r.net, points: r.res.created.map((id) => M.copy(M.get(W, "points", id))), network: r.created ? M.copy(M.get(W, "networks", r.nid)) : null })),
+    };
+    render();
+    modal(
+      "复制设备结果",
+      `<div class="ws-history">${rows
+        .map(
+          (r) =>
+            `<div class="ws-task-row"><span>${esc(g("floors", r.id)?.name || "")} <small class="muted">· 新建 ${r.res.created.length} 个点位${r.net ? ` · ${esc(r.net)}${r.created ? "（新建）" : ""}` : ""}${r.res.skipped.length ? ` · 不复制 ${r.res.skipped.length} 个` : ""}</small></span><span class="sp"></span><b class="bu-st ok">成功</b>${btn("查看", "goFloor", { id: r.id }, "sm ghost")}</div>`,
+        )
+        .join("")}</div>${note("复制已保存为规划，未向设备发送命令。请逐层核对位置、供电与服务功能区，并在“角色”模式按新楼层规划中继与部署期代理（可用“自动规划建议”）。")}`,
+      btn("撤回本次复制…", "dcUndo", {}, "ghost") + btn("完成", "close", {}, "primary"),
+    );
+  },
+  dcUndo: () => {
+    const last = U.dcLast;
+    if (!last) throw Error("没有可以撤回的复制");
+    if (!canEdit()) throw Error("当前角色不能编辑部署规划");
+    if (U.dirty || U.attrsDirty) throw Error("有尚未保存的规划修改，请先保存规划或取消修改，再撤回复制");
+    const issues = F.deviceCopyUndoIssues(data(), last);
+    if (issues.length) return modal("撤回复制设备", wsNotice(`不能撤回：${esc(issues.join("；"))}。请在各楼层逐个处理。`, "error"), btn("关闭", "close"));
+    const n = last.floors.reduce((s, f) => s + f.points.length, 0);
+    modal(
+      "撤回复制设备",
+      `<p>撤回从 ${esc(g("floors", last.src)?.name || "")} 到 ${esc(dcLastFloors(last))}${last.floors.length > 6 ? "" : " "}的复制，共 ${n} 个点位。</p><div class="zc-confirm-list">${last.floors
+        .map((f) => {
+          const ids = new Set(f.points.map((p) => p.id)),
+            groups = (data().circuitGroups || []).filter((x) => x.controllerIds.length && x.controllerIds.every((id) => ids.has(id))).length;
+          return `<p><b>${esc(g("floors", f.id)?.name || "")}</b>：删除新建的 ${f.points.length} 个点位${groups ? `、回路组 ${groups} 个` : ""}${f.network ? `；删除新建的设备网络“${esc(f.network.name)}”` : f.net ? `；设备网络“${esc(f.net)}”保留` : ""}</p>`;
+        })
+        .join("")}</div>${wsNotice("撤回只删除本次复制新建的点位与设备网络，源楼层与目标楼层原有的设备不变；删除的点位不进入“已删除”，编号随之空出，可以重新复制。撤回只修改规划，不向设备发送命令。", "warning")}`,
+      btn("取消", "close") + btn("撤回复制", "dcUndoGo", {}, "danger"),
+    );
+  },
+  dcUndoGo: async () => {
+    const last = U.dcLast,
+      dlg = $("#dlg");
+    if (!last) return closeModal(true);
+    if (U.dirty || U.attrsDirty) throw Error("有尚未保存的规划修改，请先保存规划或取消修改，再撤回复制");
+    const n = last.floors.reduce((s, f) => s + f.points.length, 0),
+      nets = last.floors.filter((f) => f.network).length;
+    wsSetBusy(dlg, true);
+    try {
+      await transaction((db) => F.undoDeviceCopy(db, last));
+    } finally {
+      if (dlg?.isConnected) wsSetBusy(dlg, false);
+    }
+    D = null;
+    U.undo = [];
+    U.redo = [];
+    U.dcLast = null;
+    U.dcDraft = null;
+    if (U.net && !g("networks", U.net)) U.net = null;
+    if (U.point && !g("points", U.point)) U.point = null;
+    U.selectedSensors = (U.selectedSensors || []).filter((id) => g("points", id));
+    closeModal(true);
+    render();
+    msg(`已撤回复制：删除 ${n} 个点位${nets ? `与 ${nets} 个新建的设备网络` : ""}`);
+  },
+});
+document.addEventListener("input", (e) => {
+  const d = U.dcDraft;
+  if (!d) return;
+  if (e.target.id === "dcSrc") dcSetSource(e.target.value);
+  else if (e.target.id === "dcQuery") {
+    d.q = e.target.value;
+    const q = d.q.trim().toLowerCase();
+    document.querySelectorAll("#dcForm [data-dc-name]").forEach((x) => (x.hidden = !!q && !x.dataset.dcName.includes(q)));
+  } else if (e.target.id?.startsWith("dcNet-") && e.target.closest("#dcForm")) {
+    d.touched = true;
+    dcRefresh();
+  }
+});
+document.addEventListener("change", (e) => {
+  if (!U.dcDraft || !e.target.closest?.("#dcForm") || e.target.type === "hidden") return;
+  U.dcDraft.touched = true;
+  dcRefresh();
+});
+
 /* Operational views retain established categories; all readings and execution are evidence-backed. */
 const overviewTabs = [
   ["general", "概况"],
   ["lighting", "照明"],
   ["hvac", "暖通空调"],
   ["environment", "室内环境"],
-  ["energy", "能源与碳"],
+  ["energy", "能源"],
 ];
 const analysisTabs = [
   ["energy", "能耗"],
@@ -35770,7 +37202,7 @@ function renderOverview() {
         ["照明", "按功能区查看占用、开关与亮度"],
         ["暖通空调", "按功能区查看室温与设定值"],
         ["室内环境", "使用实际传感器数据，不推算人数"],
-        ["能源与碳", "使用验证后的计量来源和版本化因子"],
+        ["能源", "使用验证后的计量来源和版本化因子"],
       ])}${!connected.length ? note("尚无绑定或接入回执。可以继续配置，当前不生成运行指标。") : note("网关离线时其 Mesh 节点显示状态未知，保留最后上报时间。")}</section></div>`
     );
   if (tab === "energy")
@@ -35782,10 +37214,10 @@ function renderOverview() {
         ["本月排放", "—", "等待能源数据与因子"],
         ["数据覆盖", "—", "未收到计量质量回报"],
       ]) +
-      chartPending("能源与碳概况", "本页查看当前情况；趋势、范围和核算口径在数据分析中维护。") +
+      chartPending("能源概况", "本页查看当前情况；趋势、范围和核算口径在数据分析中维护。") +
       btn("进入数据分析", "goAnalysis", { tab: "energy" })
     );
-  const kind = tab === "lighting" ? "照明" : tab === "hvac" ? "空调" : "室内环境",
+  const kind = tab === "lighting" ? "照明" : tab === "hvac" ? "暖通空调" : "室内环境",
     types = tab === "lighting" ? ["lc", "ms"] : tab === "hvac" ? ["fc", "idu", "odu", "vg"] : ["ms", "aq"],
     ps = points.filter((p) => types.includes(p.type)),
     zs = selectedZones();
@@ -36806,7 +38238,7 @@ function headerRight() {
    配置参数表是现场下发的唯一依据：只有“已批准”的行进入下发包。
    ========================================================================== */
 const V13_TEMPLATE = { name: "PACOM 参数模板", version: "V1.3 执行版", date: "2026-09-25" };
-const V13_APPS = ["照明", "暖通空调", "能源", "空气质量", "跨应用"];
+const V13_APPS = ["照明", "暖通空调", "室内环境", "能源", "跨应用"];
 const V13_STATUS = ["目标", "待验证", "已批准", "已验证"];
 const V13_LAYERS = ["设备本地", "网关", "云端", "原厂控制器"];
 const V13_MARKS = { 原: "标准或法规原文", 厂: "厂商出厂默认值", 荐: "指南或厂商推荐值", 转: "原文不可达，只核到权威转述", P: "PACOM 取值" };
@@ -37774,7 +39206,7 @@ const V13_TPL = [
   ],
   [
     "Q-01",
-    "空气质量",
+    "室内环境",
     "§13.1",
     "CO₂ 显示分档",
     "优 < 600 / 良 600–800 / 一般 800–1000 / 差 > 1000 ppm",
@@ -37786,7 +39218,7 @@ const V13_TPL = [
   ],
   [
     "Q-02",
-    "空气质量",
+    "室内环境",
     "§13.1",
     "CO₂ 超参考阈值",
     "1 h 均值 > 1000 ppm 标“超参考阈值”",
@@ -37798,7 +39230,7 @@ const V13_TPL = [
   ],
   [
     "Q-03",
-    "空气质量",
+    "室内环境",
     "§13.1",
     "PM2.5 分档",
     "优 ≤ 15 / 良 ≤ 35 / 一般 ≤ 50 / 差 > 50 μg/m³",
@@ -37808,11 +39240,11 @@ const V13_TPL = [
     "云端",
     {},
   ],
-  ["Q-04", "空气质量", "§13.1", "PM2.5 提前提示", "1 h 均值 > 75 μg/m³", "回落到 ≤ 50 μg/m³ 持续 1 h 解除", "P", "PACOM 取值", "云端", {}],
-  ["Q-05", "空气质量", "§13.1", "VOC 指数", "> 150 提示，> 250 异常", "只显示指数，不换算 mg/m³", "荐", "Sensirion 参考", "云端", {}],
+  ["Q-04", "室内环境", "§13.1", "PM2.5 提前提示", "1 h 均值 > 75 μg/m³", "回落到 ≤ 50 μg/m³ 持续 1 h 解除", "P", "PACOM 取值", "云端", {}],
+  ["Q-05", "室内环境", "§13.1", "VOC 指数", "> 150 提示，> 250 异常", "只显示指数，不换算 mg/m³", "荐", "Sensirion 参考", "云端", {}],
   [
     "Q-06",
-    "空气质量",
+    "室内环境",
     "§13.1",
     "NOx 指数",
     "> 20 持续 30 min 提示",
@@ -37824,7 +39256,7 @@ const V13_TPL = [
   ],
   [
     "Q-07",
-    "空气质量",
+    "室内环境",
     "§13.2",
     "室内空气质量分（IAQS）",
     "Ruuvi IAQS 五档（只含 CO₂ 与 PM2.5）",
@@ -37836,7 +39268,7 @@ const V13_TPL = [
   ],
   [
     "Q-08",
-    "空气质量",
+    "室内环境",
     "§13.3",
     "CO₂ → 新风",
     "5 min 均值 ≥ 800 ppm 加风，1000 最大",
@@ -37848,7 +39280,7 @@ const V13_TPL = [
   ],
   [
     "Q-09",
-    "空气质量",
+    "室内环境",
     "§13.3",
     "PM2.5 → 净化 / 新风",
     "15 min 均值 > 35 μg/m³ 启动",
@@ -37860,7 +39292,7 @@ const V13_TPL = [
   ],
   [
     "Q-10",
-    "空气质量",
+    "室内环境",
     "§13.3",
     "车库 CO → 排风",
     "10 ppm 低速 / 25 ppm 高速 / 8 ppm 停",
@@ -37872,7 +39304,7 @@ const V13_TPL = [
   ],
   [
     "Q-11",
-    "空气质量",
+    "室内环境",
     "§13.3",
     "车库 CO 告警",
     "1 min 均值 ≥ 26 ppm 持续 15 min",
@@ -37884,7 +39316,7 @@ const V13_TPL = [
   ],
   [
     "Q-12",
-    "空气质量",
+    "室内环境",
     "§14",
     "上报周期",
     "每 60 s 上报；CO₂ 变化 ≥ 50 ppm 或 PM2.5 ≥ 5 μg/m³ 快速上报",
@@ -37896,7 +39328,7 @@ const V13_TPL = [
   ],
   [
     "Q-13",
-    "空气质量",
+    "室内环境",
     "§14",
     "CO₂ 自动校准",
     "默认开启；首周数据标“校准中”",
@@ -37908,7 +39340,7 @@ const V13_TPL = [
   ],
   [
     "Q-14",
-    "空气质量",
+    "室内环境",
     "§14",
     "告警进入 / 退出",
     "超限持续 15 min 进入",
@@ -37918,7 +39350,7 @@ const V13_TPL = [
     "云端",
     {},
   ],
-  ["Q-15", "空气质量", "§14", "指示灯夜间", "非工作时段低亮（最低档）", "可设为关", "P", "PACOM 取值", "设备本地", { d: "t", isNew: 1 }],
+  ["Q-15", "室内环境", "§14", "指示灯夜间", "非工作时段低亮（最低档）", "可设为关", "P", "PACOM 取值", "设备本地", { d: "t", isNew: 1 }],
   [
     "X-01",
     "跨应用",
@@ -38526,7 +39958,7 @@ function v13Drawer(s, states, P) {
     sc = v13ScopeLabel(r, db),
     kids = states.filter((o) => o.r.parentId === r.id),
     parent = r.parentId ? states.find((o) => o.r.id === r.parentId) : null;
-  const models = { 照明: ["lc", "ms"], 暖通空调: ["fc"], 能源: ["gw", "meter"], 空气质量: ["aq"], 跨应用: ["gw"] }[t.app] || [];
+  const models = { 照明: ["lc", "ms"], 暖通空调: ["fc"], 室内环境: ["aq"], 能源: ["gw", "meter"], 跨应用: ["gw"] }[t.app] || [];
   const devices =
     t.layer === "云端"
       ? "PACOM Station（云端）"
@@ -38537,7 +39969,7 @@ function v13Drawer(s, states, P) {
           : {
               照明: "LC20-NDALI（RevD）· MS20",
               暖通空调: "FC20",
-              空气质量: "AQ20（候选研究目标；硬件、产品能力及接口尚待新版依据）",
+              室内环境: "AQ20（候选研究目标；硬件、产品能力及接口尚待新版依据）",
               能源: "EG20 + WA20 · 电表",
               跨应用: "MS20 · LC20 · FC20",
             }[t.app];
@@ -38554,8 +39986,8 @@ function v13Drawer(s, states, P) {
   const accept = {
     照明: "走动测试、读回关键项；合同要求时每层抽测照度一点",
     暖通空调: "按 6.1–7.1 逐项计时与动作测试；断网按最后参数运行",
+    室内环境: "与参考仪器并排比对；安装位置与高度记录",
     能源: "表地址、变比与读数核对；断网补传测试",
-    空气质量: "与参考仪器并排比对；安装位置与高度记录",
     跨应用: "联动与断网测试",
   }[t.app];
   const group = (title, rows) =>
@@ -38609,7 +40041,7 @@ function v13Drawer(s, states, P) {
     ],
     ["照度输入", t.app === "照明" ? "每个回路（组）一个照度源，平台按数据自动选定（5.3）" : "—"],
     ["占用来源", t.app === "照明" ? "本回路全部 MS20；跨回路跟随另计" : ["暖通空调", "跨应用"].includes(t.app) ? "按应用登记占用输入与映射，不能直接继承照明回路规则" : "—"],
-    ["联动关系", t.app === "空气质量" && t.sec === "§13.3" ? (s.hold ? e(s.hold) : "网关执行") : t.app === "跨应用" ? "网关执行" : "—"],
+    ["联动关系", t.app === "室内环境" && t.sec === "§13.3" ? (s.hold ? e(s.hold) : "网关执行") : t.app === "跨应用" ? "网关执行" : "—"],
   ])}
   ${group("数值与行为", [
     ["目标值", e(s.value)],
@@ -38889,16 +40321,30 @@ function v13PkgCell(db, n) {
     cls = ["stale", "expired"].includes(s.key) ? "v13-warn" : ["ended", "keys", "changed", "revoked"].includes(s.key) ? "muted" : "";
   return `<span class="${cls}">${V13_PKG_SHORT[s.key]} · ${esc(p.account)}</span>${sub ? `<small class="flow-sub">${sub}</small>` : ""}`;
 }
+// 已交付网络当前“需处理”的台数：按设备去重（同一台设备既离线又被复位只算一台），与设备台账“需处理”一致，
+// 另加已移除待密钥更新的台数。网络行的“查看需处理 N 台”、组状态旁的“当前 N 台需处理”与项目进度目录共用。
+function v13NetAttention(db, n) {
+  const gw = F.gateway(db, n.id),
+    devices = M.networkPoints(db, n.id).filter((p) => (M.bound(p) || p.fieldReset) && needsAttention(db, p, gw)).length;
+  return devices + db.maintenanceTasks.filter((t) => t.networkId === n.id && t.keyUpdateDue && !t.keyUpdatedAt).length;
+}
+// 已交付的设备网络中当前需处理的台数（2026-10-06 HONG 确认，04 B-5）：组状态仍为“未开始／待处理／已具备”，交付记录不改写；
+// 返回有需处理设备的网络与合计，处理入口为设备台账的“需处理”：只有一个网络时按该网络筛选，多个网络时为本项目全部。
+function v13Attention(db, stages) {
+  const nets = stages.filter(([, s]) => s.cur === 4).flatMap(([n]) => {
+    const k = v13NetAttention(db, n);
+    return k ? [[n, k]] : [];
+  });
+  const total = nets.reduce((t, [, k]) => t + k, 0);
+  return { nets, total, args: nets.length === 1 ? { id: nets[0][0].id } : { p: nets[0]?.[0].projectId } };
+}
+const v13AttentionArgs = (a) => Object.entries(a.args).map(([k, v]) => ` data-${k}="${esc(v)}"`).join("");
 // 阶段条与配置进度共用的“下一步”（Doc1 6.6(4)）：同一处逻辑，两处结论一致。who：config / admin / any
 function v13NextStep(db, n) {
   const s = v13NetStage(db, n);
   if (s.cur === 4) {
-    // 按设备去重计数（同一台设备既离线又被复位只算一台），与设备台账“需处理”一致
-    const iss = netIssues(db, n),
-      devices = M.networkPoints(db, n.id).filter((p) => (M.bound(p) || p.fieldReset) && needsAttention(db, p)).length,
-      keys = iss.find((x) => x[2] === "keys")?.[1] || 0,
-      total = devices + keys;
-    return total ? { title: `查看需处理 ${total} 台`, act: "netIssues", args: { id: n.id }, who: "any", issues: iss } : null;
+    const total = v13NetAttention(db, n);
+    return total ? { title: `查看需处理 ${total} 台`, act: "netIssues", args: { id: n.id }, who: "any" } : null;
   }
   const t = F.nextTask(db, n),
     ps = s.ps,
@@ -38938,10 +40384,15 @@ function v13StageBar(cur) {
       `<li class="${i < cur || cur === V13_STAGES.length - 1 ? "done" : i === cur ? "cur" : ""}" ${i === cur ? 'aria-current="step"' : ""}><i>${i < cur || cur === V13_STAGES.length - 1 ? ico("check", "ic16") : i + 1}</i><span>${s}</span></li>`,
   ).join("")}</ol>`;
 }
-function v13Section(title, state, body, action = "") {
+function v13Section(title, state, body, action = "", note = "") {
   const cls = { 已具备: "good", 已完成: "good", 待处理: "warn", 待补: "warn", 待核对: "warn", 未设范围: "warn" }[state.split(" ")[0]] || "";
-  return `<section class="card v13-sec"><div class="v13-sec-head"><h3>${title}</h3>${state ? badge(state, cls) : ""}<span class="sp"></span>${action}</div>${body}</section>`;
+  return `<section class="card v13-sec"><div class="v13-sec-head"><h3>${title}</h3>${state ? badge(state, cls) : ""}${note}<span class="sp"></span>${action}</div>${body}</section>`;
 }
+// “已具备”的组旁写已交付网络当前需处理的台数，点击进入处理入口（2026-10-06 HONG 确认，04 B-5）
+const v13AttentionNote = (state, att) =>
+  state === "已具备" && att.total
+    ? `<button class="v13-link v13-warn v13-attn" data-act="netIssues"${v13AttentionArgs(att)}>当前 ${att.total} 台需处理</button>`
+    : "";
 function v13StatusPage() {
   if (!U.p)
     return (
@@ -38955,7 +40406,8 @@ function v13StatusPage() {
   const allPts = db.points.filter((p) => floorsUsed.some((f) => f.id === p.floorId));
   const meshAll = allPts.filter((p) => ["mesh", "gateway"].includes(M.access(p))),
     sysAll = allPts.filter((p) => M.access(p) === "system");
-  const firstOpen = stages.find(([n]) => v13NextStep(db, n));
+  const firstOpen = stages.find(([n]) => v13NextStep(db, n)),
+    attention = v13Attention(db, stages);
   const allowed = (who) => (who === "admin" ? v13CanApprove() : who === "config" ? canEdit() : true);
   const nextCell = (n, primary) => {
     const x = v13NextStep(db, n);
@@ -39123,6 +40575,8 @@ function v13StatusPage() {
       ? table(["设备网络", "网关", "部署包", "设备绑定", "配置", "体检", "部署期代理", "下一步"], netRows) +
           note("点位用“个”、设备用“台”，不合成百分比。网关未绑定时后续列显示“—”：App 只能向已绑定网关的设备网络绑定设备。")
       : `<p class="v13-empty-line">尚未规划设备网络。不含 Mesh 设备的楼层不出现在这一组。</p>`,
+    "",
+    v13AttentionNote(DS.sec.设备, attention),
   );
   // 3 系统接入
   const conns = DS.conns;
@@ -39255,6 +40709,7 @@ function v13StatusPage() {
     )}`,
     // “交付检查”预选最接近交付、当前版本尚未交付的设备网络；都已交付时选第一个（2026-10-05 核查 P13）
     btn("交付检查", "deliveryCheck", deliveryTarget ? { id: deliveryTarget.id } : {}, "sm"),
+    v13AttentionNote(DS.sec.验证与交付, attention),
   );
   return heading + tiles + scopeLine + stageCard + sec1 + sec2 + sec3 + sec4 + sec5;
 }
@@ -39443,7 +40898,7 @@ function v13ChecksModal(kind) {
 }
 /* ---------- 路由与动作 ---------- */
 pages.deployment = () => {
-  if (!U.p) return toolbar() + `<div class="cards v13-task-projects">${[...data().projects].sort(M.byName).map(p => `<section class="card"><h3><button class="lk" data-act="dirStatus" data-p="${p.id}">${esc(p.name)}</button></h3>${sumLines("projects", p)}${btn("查看配置进度", "dirStatus", { p: p.id })}</section>`).join("") || empty("尚无项目", "请先在项目中创建空间，再设置部署范围。", canEdit() ? btn("创建项目", "spaceForm", { kind: "projects" }) : "")}</div>`;
+  if (!U.p) return toolbar() + `<div class="cards v13-task-projects">${[...data().projects].sort(M.byName).map(p => `<section class="card"><h3><button class="lk" data-act="dirStatus" data-p="${p.id}">${esc(p.name)}</button></h3>${sumLines("projects", p, false, true)}${btn("查看配置进度", "dirStatus", { p: p.id })}</section>`).join("") || empty("尚无项目", "请先在项目中创建空间，再设置部署范围。", canEdit() ? btn("创建项目", "spaceForm", { kind: "projects" }) : "")}</div>`;
   const s = F.spaceSummary(data(), U.p), scope = s.scope;
   const actionsBar = U.tab === "params" ? btn(ico("back", "ic16") + "返回配置进度", "v13Status", { p: U.p }) : btn(scope.scopeSet ? `部署范围 · ${floorCountText(scope.floorIds)}` : "设置部署范围", "scopeEntry");
   return toolbar(`<div class="ws-tb-actions">${actionsBar}</div>`) + (U.tab === "params" ? `<h2 class="v13-subheading">配置参数</h2>${v13ParamsPage()}` : v13StatusPage());
@@ -42762,7 +44217,7 @@ function aiEngine(q) {
     return {
       scope: "E栋 7F · 两块电表",
       html: `<p class="ai-p">今天截至 ${Demo.hm(Demo.NOW)} 用电 <b>${nf(t.kwh)} kWh</b>，${t.vsTypical <= 0 ? "低于" : "高于"}典型${t.weekday} ${nf(Math.abs(t.vsTypical), 1)}%。本月（9/1 起）用电 <b>${nf(m.total)} kWh</b>，按 ${cf.factor} kgCO₂/kWh（${cf.label}）折合 <b>${nf((m.total * cf.factor) / 1000, 2)} tCO₂</b>。</p>${/电费/.test(q) ? `<p class="ai-note">电费未计算：项目尚未配置电价与用户类别。</p>` : ""}`,
-      ev: [aiLink("能源与碳", "opsGo", { page: "overview", tab: "energy" }), aiLink("碳排放口径", "opsGo", { page: "analysis", tab: "carbon" })],
+      ev: [aiLink("能源", "opsGo", { page: "overview", tab: "energy" }), aiLink("碳排放口径", "opsGo", { page: "analysis", tab: "carbon" })],
     };
   }
   // 6 夜间
@@ -48534,7 +49989,7 @@ document.addEventListener('input', e => {
             ],
             "清除前核对",
           )}${note(`${I("appShield")}<span>清除只删除本机的副本：不撤销授权，有效期内仍可重新下载（停止下载由机构管理员在 Station 吊销）；也不使已下载过的密钥作废，安全要求高的项目在交付的“安全处理”中执行密钥更新。</span>`)}${group(
-            [row(I("appTask"), "交付在平台完成", "检查 → 关闭部署期代理 → 可选密钥更新 → 确认存档；交付确认后授权结束，不能再下载")],
+            [row(I("appTask"), "全网体检与交付在平台完成", "平台核对上传的绑定与测试记录、做全网体检；交付为检查 → 关闭部署期代理 → 可选密钥更新 → 确认存档，交付确认后授权结束，不能再下载")],
             "之后",
           )}`,
       foot: cleared ? B("返回维护", "tab", { to: "more" }, "primary") : B("清除本地部署包", "clearPkg", { disabled: left > 0 }, "primary"),
@@ -48997,7 +50452,7 @@ document.addEventListener('input', e => {
           R("部署包授权", "", myAuth() ? "仍有效（本机清除不撤销授权）" : "—"),
         ],
         "配置 → 配置进度 → 交付",
-        "交付四步在平台完成：检查、关闭部署期代理、可选密钥更新、确认存档；交付确认时授权结束。",
+        "全网体检与交付在平台完成；交付四步为检查、关闭部署期代理、可选密钥更新、确认存档，交付确认时授权结束。",
       ],
     };
     const [title, rows, where, n] = m[s] || m.tasks;
@@ -50664,7 +52119,7 @@ const ADM_MARKS = {
   转: "原文不可达，只核到权威转述",
   P: "本文建议（PACOM 取值）",
 };
-const ADM_APPS = { light: "照明", hvac: "暖通空调", energy: "能源", air: "空气质量" };
+const ADM_APPS = { light: "照明", hvac: "暖通空调", air: "室内环境", energy: "能源" };
 const ADM_NAV = [
   ["", [["home", "概览", "home"]]],
   [
@@ -53218,7 +54673,7 @@ function demoMenuHtml() {
     inWs
       ? demoItem("demoRoles", "切换角色", "", {}, `<span class="demo-mi-r">${auRole(U.role).replace("（工程师）", "")}</span>`)
       : demoItem("demoSignIn", "登录并进入工作区", "王敏 · 机构管理员 · 广州国家实验室")
-  }<div class="demo-sep" role="separator"></div>${demoItem("demoCatalog", "页面与状态", `登录、邀请、开通、错误页与空状态，共 ${DEMO_ITEMS.length} 项`)}<div class="demo-sep" role="separator"></div><div class="demo-h">其他产品</div>${demoItem("demoApp", "部署 App", "手机端 · 现场绑定、体检与交付")}${demoItem(
+  }<div class="demo-sep" role="separator"></div>${demoItem("demoCatalog", "页面与状态", `登录、邀请、开通、错误页与空状态，共 ${DEMO_ITEMS.length} 项`)}<div class="demo-sep" role="separator"></div><div class="demo-h">其他产品</div>${demoItem("demoApp", "部署 App", "手机端 · 现场绑定、配置与局部测试")}${demoItem(
     "demoConsole",
     "PACOM 运营后台",
     "PACOM 员工 · 机构审核、开通与配额",
@@ -53651,7 +55106,7 @@ const DEMO_ITEMS = [
   ["空状态", "empty-networks", "尚未规划设备网络", "切换到“本地规划”数据 · 设备网络", () => demoSwitch("plan", "#devices?tab=networks")],
   ["空状态", "empty-trash", "已删除", "机构管理员可恢复 30 天内删除的内容", () => (demoIn(), $("#side") || demoHash("#overview"), actions.trash())],
 
-  ["其他产品", "app", "部署 App", "手机端 · 现场绑定、体检与交付", () => actions.demoApp()],
+  ["其他产品", "app", "部署 App", "手机端 · 现场绑定、配置与局部测试", () => actions.demoApp()],
   ["其他产品", "console", "PACOM 运营后台", "PACOM 员工使用", () => actions.demoConsole()],
 ];
 DEMO_ITEMS.splice(DEMO_ITEMS.findIndex(x => x[1] === "apply-done"), 0,
@@ -53858,7 +55313,7 @@ document.addEventListener("change", (e) => {
 function v13DemoDecorate(db, pid, P, rows) {
   const approver = "王敏 · 机构管理员",
     engineer = "李工 · 配置人员",
-    rec = { 照明: "回路测试记录", 暖通空调: "暖通调试记录", 能源: "表计台账", 空气质量: "安装与比对记录", 跨应用: "联动测试记录" },
+    rec = { 照明: "回路测试记录", 暖通空调: "暖通调试记录", 室内环境: "安装与比对记录", 能源: "表计台账", 跨应用: "联动测试记录" },
     seq = {};
   const created = { at: v13Day(12, "10:20"), by: engineer, action: "按模板生成", note: V13_TEMPLATE.name + " V1.2 定稿" };
   for (const r of rows) {
