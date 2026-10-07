@@ -3489,6 +3489,23 @@ details[open] > summary::before {
   color: #555;
   border-radius: 4px;
 }
+/* 功能区名称只占一行、不越出区域（2026-10-05 核查 S7 与合并细节第 1 条）：data-fit 由页面按实际像素给出，
+   full 全名、short 只写房间编号、clip 省略号截断、none 不显示；选中、悬停（隐藏名称时除外）与草稿显示全名，压在相邻区域上方。 */
+.ws-zone > span, .sp-zone-label { max-width: 100%; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zn-short { display: none; }
+.ws-zone > span[data-fit=short] > .zn-full, .sp-zone-label[data-fit=short] > .zn-full { display: none; }
+.ws-zone > span[data-fit=short] > .zn-short, .sp-zone-label[data-fit=short] > .zn-short { display: inline; }
+.ws-zone > span[data-fit=none], .sp-zone-label[data-fit=none] { visibility: hidden; }
+.ws-zone > span[data-pad*=x], .sp-zone-label[data-pad*=x] { padding-left: 1px; padding-right: 1px; }
+.ws-zone > span[data-pad*=y], .sp-zone-label[data-pad*=y] { padding-top: 0; padding-bottom: 0; }
+.ws-zone.on > span, .ws-zone.draft > span, .ws-plan:not(.hide-names) .ws-zone:hover > span,
+.sp-zone-label.on, .sp-zone-label.draft, .ws-plan:not(.hide-names) .flow-zone-polygon:hover + .sp-zone-label { max-width: none; overflow: visible; visibility: visible; padding: 2px 6px; }
+.ws-zone.on > span > .zn-full, .ws-zone.draft > span > .zn-full, .ws-plan:not(.hide-names) .ws-zone:hover > span > .zn-full,
+.sp-zone-label.on > .zn-full, .sp-zone-label.draft > .zn-full, .ws-plan:not(.hide-names) .flow-zone-polygon:hover + .sp-zone-label > .zn-full { display: inline; }
+.ws-zone.on > span > .zn-short, .ws-zone.draft > span > .zn-short, .ws-plan:not(.hide-names) .ws-zone:hover > span > .zn-short,
+.sp-zone-label.on > .zn-short, .sp-zone-label.draft > .zn-short, .ws-plan:not(.hide-names) .flow-zone-polygon:hover + .sp-zone-label > .zn-short { display: none; }
+.ws-zone.on, .ws-plan:not(.hide-names) .ws-zone:hover { z-index: 3; }
+.sp-zone-label.on, .ws-plan:not(.hide-names) .flow-zone-polygon:hover + .sp-zone-label { z-index: 4; }
 .ws-links {
   position: absolute;
   inset: 0;
@@ -5509,6 +5526,9 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .ws-building-canvas.marking .ws-floor-region span {
   opacity: 1;
 }
+/* 楼层名称放不下时隔层显示（2026-10-05 核查 S7）：被略去的名称在悬停、键盘焦点与刚离开时仍显示。 */
+.ws-floor-region > span[data-fit=none] { visibility: hidden; }
+.ws-floor-region:hover > span[data-fit=none], .ws-floor-region:focus-visible > span[data-fit=none], .ws-floor-region.recent > span[data-fit=none] { visibility: visible; position: relative; z-index: 1; }
 .ws-building-zoom {
   position: absolute;
   bottom: 12px;
@@ -5723,6 +5743,12 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .sp-zform > .btn {
   margin-top: 4px;
 }
+/* 功能区资料的“取消 / 保存修改”（2026-10-05 核查合并细节第 2 条）：有修改时固定在面板（手机为半屏卡片）可见区域底部，下方内容从其下滚过。 */
+.sp-zform-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.sp-zform-actions.dirty { position: sticky; bottom: -16px; z-index: 2; margin: 4px -16px 0; padding: 12px 16px 16px; background: #fff; box-shadow: 0 -1px 0 #ececec; }
+.sp-sheet-body .sp-zform-actions.dirty { bottom: 0; margin: 4px -4px 0; padding: 12px 4px; }
+/* 保存栏固定时，Tab 或点选到的字段滚动到保存栏上方，不被它盖住。 */
+.sp-body:has(.sp-zform-actions.dirty) { scroll-padding-bottom: 88px; }
 .sp-review {
   display: flex;
   align-items: center;
@@ -5995,6 +6021,8 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 @media (max-width:850px), (pointer:coarse) {
  /* 触屏与窄屏：功能区面板（功能区详情、楼层页签）的“修改记录”展开行命中高度 44px（第 14 章 §4）。 */
  .sp-panel .ws-details > summary { min-height:44px; }
+ /* 手机半屏卡片中同样，并占满一行（2026-10-05 核查：半屏卡片原先只有 74×21px）。 */
+ .sp-sheet .ws-details > summary { min-height:44px; display:flex; }
 }
 /* 选中的顶点（2026-10-03 A1）：调整边界时单击顶点后显示，按 Delete 删除。 */
 .spatial-editor > .spatial-vertex-sel { position:absolute; width:16px; height:16px; margin:-8px 0 0 -8px; border:2px solid #00AEEF; border-radius:50%; background:rgba(0,174,239,.18); pointer-events:none; z-index:2; }
@@ -6409,9 +6437,9 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .bu-sum .crit, .bu-note .crit, .zc-preview .crit {
   color: #b42318;
 }
+/* 对应列表随弹窗主体一起滚动，不另设内滚动（第 14 章 §3；2026-10-05 核查 U4：原先列表限高 46vh、在弹窗内另行滚动）；窄屏仍可横向滚动。 */
 .bu-tw {
-  max-height: 46vh;
-  overflow: auto;
+  overflow-x: auto;
 }
 .bu-table td,
 .bu-table th {
@@ -6628,6 +6656,10 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 #dlg .ex-detail .ex-row { grid-template-columns:96px minmax(0, 1fr); }
 /* 复制功能区弹窗：源功能区与目标楼层列表不再各自滚动，只保留弹窗正文一个滚动区（PLAN03）。 */
 #dlg :is(.zc-zones, .zc-floors) { max-height:none; overflow:visible; }
+/* 设备页弹窗中的清单（“关联供电”的 MS20、“跟随占用”的回路、“网络体检”的参与设备、“新建升级任务”的设备网络）同样随弹窗主体滚动，
+   较长时排成多列（每列至少 220px，窄屏单列）（第 14 章 §3；原先各自限高 270–300px、在弹窗内另行滚动）。 */
+#dlg :is(.flow-scroll-list, .mk-follow-list) { height:auto; max-height:none; overflow:visible; }
+#dlg .flow-scroll-list { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:8px 16px; align-content:start; }
 /* 勾选清单中每行的说明小字不小于 12px（核查 R14：浏览器默认 small 为 11.67px）。 */
 #dlg :is(.ws-floor-checks, .zc-zones, .zc-floors, .ws-checks) label small { font-size:12px; line-height:18px; }
 #dlg .bu-trim[hidden] { display:none; }
@@ -6642,7 +6674,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 #dlg .bu-opt { white-space:nowrap; }
 #dlg .bu-opt-in { display:flex; align-items:center; gap:8px; }
 #dlg .bu-table.bu-done :is(.bu-opt-h, .bu-opt) { display:none; }
-#dlg .bu-rowtrim { display:inline-flex; align-items:center; gap:6px; font-size:12px; line-height:20px; color:var(--text2); }
+#dlg .bu-rowtrim { display:inline-flex; flex-wrap:nowrap; align-items:center; gap:6px; font-size:12px; line-height:20px; color:var(--text2); }
 #dlg .bu-inspect > .bu-inspect-bar { justify-content:flex-start; flex-wrap:wrap; margin-top:12px; }
 #dlg .bu-inspect-count { min-width:56px; text-align:center; font-size:13px; line-height:20px; color:var(--text2); }
 #dlg .bu-inspect-floor { margin-left:auto; }
@@ -6701,7 +6733,8 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 }
 
 /* 触屏与 ≤850px 的点击区不小于 44px（核查 R19）：文字链接向上下扩展点击区，不移动可见文字；勾选、按钮与折叠标题撑到 44px。 */
-.bu-ck { display:inline-grid; place-items:center; }
+/* 勾选框在行内垂直居中，勾选前后位置不变（2026-10-05 核查 U4：原先未勾选的比已勾选的高 2px，“裁剪”的勾选框与文字分成两行）。 */
+.bu-ck { display:grid; place-items:center; }
 @media (max-width:850px), (pointer:coarse) {
  .ws-scope-adjust { position:relative; }
  .ws-scope-adjust::after { content:""; position:absolute; left:-4px; right:-4px; top:50%; height:44px; transform:translateY(-50%); }
@@ -7146,11 +7179,6 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
   vector-effect: non-scaling-stroke;
   pointer-events: auto;
   cursor: pointer;
-}
-.flow-zone-polygon text {
-  fill: #555;
-  font-size: 1.4px;
-  pointer-events: none;
 }
 .flow-zone-draft {
   pointer-events: none;
@@ -18491,7 +18519,32 @@ var SpatialGeometry = (() => {
       if(contains(g,p,true)&&contains(a,p,true)&&contains(b,p,true))return true;
     }return false;
   }
-  return {copy,bounds,toGeo,fromGeo,toPixels,fromPixels,circle,error,nearestImageSegment,contains,overlaps};
+  // 套索收尾（2026-10-05 核查 Z1）：徒手圈回起点时，终点常落在起点上、停在起点附近或越过起点，原先越过起点约 20px 就判为“边界不能交叉”。
+  // 距离按屏幕像素（sx、sy 为每个图面单位的像素数）：先去掉与前一点不到 0.5px 的点；尾部越过起点、与开头几段在起点 reach 像素内相交或相接时，
+  // 在交点处闭合，去掉交点之外的首尾；再去掉离起点不到 tol 像素的尾点（与闭合点重复）。其余自交不处理，仍由 error() 拒绝。
+  function closeLasso(g,sx=1,sy=1,tol=8,reach=24) {
+    const ring=g?.coordinates?.[0];
+    if(g?.type!=='Polygon'||!Array.isArray(ring)||ring.length<5)return g;
+    const d=(a,b)=>Math.hypot((a[0]-b[0])*sx,(a[1]-b[1])*sy),dedupe=a=>a.filter((q,i)=>!i||d(q,a[i-1])>=.5);
+    const hit=(a,b,c,e)=>{
+      const r=[b[0]-a[0],b[1]-a[1]],s=[e[0]-c[0],e[1]-c[1]],den=r[0]*s[1]-r[1]*s[0];
+      if(Math.abs(den)<1e-12)return null;
+      const t=((c[0]-a[0])*s[1]-(c[1]-a[1])*s[0])/den,u=((c[0]-a[0])*r[1]-(c[1]-a[1])*r[0])/den;
+      return t>=-1e-9&&t<=1+1e-9&&u>=-1e-9&&u<=1+1e-9?[a[0]+t*r[0],a[1]+t*r[1]]:null;
+    };
+    let p=dedupe((near(ring[0][0],ring.at(-1)[0])&&near(ring[0][1],ring.at(-1)[1])?ring.slice(0,-1):ring).map(q=>[q[0],q[1]]));
+    const n=p.length,span=Math.max(2,Math.floor(n/4));
+    let cut=null;
+    for(let j=n-2;j>=Math.max(2,n-1-span)&&!cut;j--)for(let i=0;i<Math.min(span,j-1)&&!cut;i++){
+      const x=hit(p[i],p[i+1],p[j],p[j+1]);
+      if(x&&d(x,p[0])<=reach)cut={i,j,x};
+    }
+    if(cut)p=dedupe([cut.x,...p.slice(cut.i+1,cut.j+1)]);
+    while(p.length>3&&d(p.at(-1),p[0])<tol)p.pop();
+    if(p.length<3)return g;
+    return {type:'Polygon',coordinates:[[...p,[...p[0]]]]};
+  }
+  return {copy,bounds,toGeo,fromGeo,toPixels,fromPixels,circle,error,closeLasso,nearestImageSegment,contains,overlaps};
 })();
 if(typeof module!=='undefined')module.exports=SpatialGeometry;
 
@@ -18643,7 +18696,8 @@ function closeTopLayer(e) {
 // 用法：morph(容器, html 或节点) 更新容器的子节点；morphTo(元素, html) 连同元素自身的属性一起更新。
 // 匹配规则（同一父节点之下）：
 //   1. 有 id 或 data-key（含隐含的 data-id 键）的元素按键匹配（键相同、标签相同才算同一个）；
-//   2. 其余节点按出现顺序匹配“同类”节点：文本与文本、注释与注释；元素要求标签相同、第一个类名相同（组件身份），输入框还要求 type 相同；
+//   2. 其余节点按出现顺序匹配“同类”节点：文本与文本、注释与注释；元素要求标签相同、第一个类名相同（组件身份；表示选中的 on 是状态，
+//      不算身份，2026-10-05 核查合并细节第 4 条：原先页签切换后选中与未选中的按钮互换节点，焦点跳到另一个页签），输入框还要求 type 相同；
 //   3. 找不到时插入新节点，多余的旧节点删除。
 // 保持与保留：
 //   data-morph-keep="签名"：新旧签名相同时整棵子树跳过（如目录地图，地图由 Leaflet 管理）；签名不同则整棵换新。
@@ -18663,7 +18717,7 @@ const morphKey = (n) => {
   const id = n.getAttribute("data-id");
   return id ? `@${n.getAttribute("data-act") || ""}:${n.getAttribute("data-kind") || ""}:${id}` : null;
 };
-const morphClass0 = (n) => { const c = n.getAttribute("class"); return c ? c.trim().split(/\s+/)[0] : ""; };
+const morphClass0 = (n) => { const c = n.getAttribute("class"); return c ? c.trim().split(/\s+/).find((x) => x !== "on") || "" : ""; };
 function morphParse(content, doc = document) {
   if (typeof content !== "string") return content;
   const t = doc.createElement("template");
@@ -19480,6 +19534,9 @@ const StationFlowModel = ((M) => {
   const isConnected = (p) => (M.access(p) === "system" ? !!(p.hardwareId && p.connectionReceiptId) : M.bound(p));
   // 当前仍在网内的绑定：被现场复位的设备保留历史绑定记录，但已清除入网与配置，不计入当前已绑定（2026-10-05 核查 P6）。
   const boundNow = (p) => M.bound(p) && !p.fieldReset;
+  // 当前已绑定或已接入：设备台账、运行页、功能区面板、分组、体检与固件的计数共用，被现场复位的设备不计入（2026-10-05 核查 P6、D20）；
+  // 它的绑定状态仍是“待绑定”（第14章 §6、§17 只有待绑定与已绑定两种），写明“（被现场复位）”，与部署 App 的“待绑定（已被复位）”一致。
+  const connectedNow = (p) => isConnected(p) && !p.fieldReset;
   const bindingLabel = (p) =>
     M.access(p) === "system"
       ? isConnected(p)
@@ -19489,9 +19546,11 @@ const StationFlowModel = ((M) => {
         ? p.type === "ls"
           ? "暂不支持绑定"
           : "接入待确认"
-        : M.bound(p)
+        : M.bound(p) && !p.fieldReset
           ? "已绑定"
-          : "待绑定";
+          : p.fieldReset
+            ? "待绑定（被现场复位）"
+            : "待绑定";
   // 一次计算内的查找索引（2026-10-05 核查 A1）：保存、检查与分组计算原先每处理一个点位都把全部点位、分组再遍历一遍，
   // 耗时约按点位数的 2–3 次方增长。索引在每次计算开始时按当前数据建立，计算结束即丢弃，不跨保存缓存；
   // 查找结果与逐项遍历一致（编号重复时取第一个，列表保持原顺序）。回路组、分组、期望配置与回执部分用到时才建立。
@@ -20602,7 +20661,7 @@ const StationFlowModel = ((M) => {
     const deploy = {
       floors: fs.map((f) => {
         const ps = db.points.filter((pt) => pt.floorId === f.id);
-        return { floorId: f.id, points: ps.length, bound: ps.filter((pt) => pt.binding === "bound").length };
+        return { floorId: f.id, points: ps.length, bound: ps.filter(boundNow).length };
       }),
     };
     return M.copy({
@@ -20811,7 +20870,7 @@ const StationFlowModel = ((M) => {
             cols: [["楼层", 0.4], ["规划点位", 0.3, "r"], ["已绑定", 0.3, "r"]],
             rows: [...rows.map((x) => [fLabel(x.floorId), int(x.points), int(x.bound)]), ["合计", int(sum("points")), int(sum("bound"))]],
           },
-          { t: "p", muted: true, text: "已绑定指具有实际硬件身份和 App 回执的点位，不代表已下发、已应用、已验证或已交付；设备网络、应用与交付见“配置 › 配置进度”。" },
+          { t: "p", muted: true, text: "已绑定指具有实际硬件身份和 App 回执的点位（被现场复位的设备不计入），不代表已下发、已应用、已验证或已交付；设备网络、应用与交付见“配置 › 配置进度”。" },
         );
     }
     push({ t: "h2", text: "楼层清单" });
@@ -21122,7 +21181,8 @@ const StationFlowModel = ((M) => {
           zone: cx.zones.get(p.zoneId)?.name || null,
           x: roundTo(p.x, 2),
           y: roundTo(p.y, 2),
-          bound: M.bound(p),
+          bound: boundNow(p),
+          ...(M.bound(p) && p.fieldReset ? { reset: true } : {}),
           relay: !!p.relay,
           proxy: !!p.proxy,
           ...(p.type === "lc"
@@ -21213,7 +21273,7 @@ const StationFlowModel = ((M) => {
         byType,
         relays: pts.filter((x) => x.relay).length,
         proxies: pts.filter((x) => x.proxy).length,
-        bound: pts.filter(M.bound).length,
+        bound: pts.filter(boundNow).length,
         groups: new Set(pts.filter((p) => p.type === "lc").map((p) => groupOf(db, p.id, cx)?.id).filter(Boolean)).size,
         blocks: blocks.length,
         hints: hints.length,
@@ -21319,7 +21379,7 @@ const StationFlowModel = ((M) => {
         push({
           t: "table",
           cols: [["编号", 0.06, "r"], ["点位名称", 0.2], ["设备", 0.07], ["功能区", 0.14], ["供电 / 回路", 0.2], ["设置", 0.19], ["说明", 0.14]],
-          rows: f.points.map((p) => [String(p.no), p.name, p.model || p.typeName, p.zone || NA, installSupply(p), p.settings || NA, [p.bound && "已绑定", ...p.notes].filter(Boolean).join("；") || NA]),
+          rows: f.points.map((p) => [String(p.no), p.name, p.model || p.typeName, p.zone || NA, installSupply(p), p.settings || NA, [p.bound && "已绑定", p.reset && "被现场复位", ...p.notes].filter(Boolean).join("；") || NA]),
         });
     }
     push({ t: "pagebreak" }, { t: "h2", text: "回路" });
@@ -21421,7 +21481,7 @@ const StationFlowModel = ((M) => {
         ["每台灯具功率（W）", 14, "int", (p) => p.fixtureWatts],
         ["中继", 6, "text", (p) => yes(p.relay)],
         ["部署期代理", 10, "text", (p) => yes(p.proxy)],
-        ["绑定", 8, "text", (p) => (p.bound ? "已绑定" : "待绑定")],
+        ["绑定", 8, "text", (p) => (p.bound ? "已绑定" : p.reset ? "待绑定（被现场复位）" : "待绑定")],
         ["说明", 30, "text", (p) => p.notes.join("；") || null],
         ["X（%）", 9, "pct", (p) => p.x],
         ["Y（%）", 9, "pct", (p) => p.y],
@@ -22018,7 +22078,8 @@ const StationFlowModel = ((M) => {
     hvac: "空调设定与状态反馈",
   };
   // 测试单位：回路组（其中的 LC20 与已确认供电的 MS20）一起测；不在回路中的 Mesh 设备单独测
-  function testUnits(db, n) {
+  // cx：查找索引，逐网络统计时由调用方传入同一份（5000 个点位时配置进度原先在这里逐台遍历全部点位，约 0.5 秒）。
+  function testUnits(db, n, cx = indexOf(db)) {
     const ps = meshPoints(db, n.id),
       inNet = new Set(ps.map((p) => p.id)),
       used = new Set(),
@@ -22026,7 +22087,7 @@ const StationFlowModel = ((M) => {
     for (const g of db.circuitGroups || []) {
       const lcs = g.controllerIds.filter((id) => inNet.has(id));
       if (!lcs.length) continue;
-      const ids = [...lcs, ...groupSensors(db, g).map((p) => p.id).filter((id) => inNet.has(id))];
+      const ids = [...lcs, ...groupSensors(db, g, cx).map((p) => p.id).filter((id) => inNet.has(id))];
       ids.forEach((id) => used.add(id));
       units.push({ kind: "circuit", id: g.id, name: g.name, pointIds: ids });
     }
@@ -22063,10 +22124,10 @@ const StationFlowModel = ((M) => {
     ].filter(Boolean);
   }
   // 回路按 LC20 计，与部署 App 的“回路验证”相同；回路组内的回路一起测试，组内设备全部有效才算这些回路已验证。
-  function testCoverage(db, n) {
+  function testCoverage(db, n, cx = indexOf(db)) {
     const receipts = (db.testReceipts || []).filter((r) => r.networkId === n.id),
-      rows = testUnits(db, n).map((u) => {
-        const ps = u.pointIds.map((id) => M.get(db, "points", id)).filter(Boolean),
+      rows = testUnits(db, n, cx).map((u) => {
+        const ps = u.pointIds.map((id) => cx.points.get(id)).filter(Boolean),
           verified = ps.filter((p) => verifiedNow(db, p)).length;
         return {
           ...u,
@@ -22481,7 +22542,7 @@ const StationFlowModel = ((M) => {
       gw = gateway(db, n.id),
       h = latestHealth(db, n.id, true);
     return [
-      { label: "本网络网关与设备已绑定", ok: !!gw && M.bound(gw) && ps.length > 0 && ps.every(M.bound), action: "app" },
+      { label: "本网络网关与设备已绑定", ok: !!gw && boundNow(gw) && ps.length > 0 && ps.every(boundNow), action: "app" },
       { label: "当前版本配置全部同步", ok: ps.length > 0 && ps.every((p) => syncState(db, p) === "已同步"), action: "config" },
       {
         label: "功能验证记录有效",
@@ -23166,6 +23227,7 @@ const StationFlowModel = ((M) => {
     gateway,
     isConnected,
     boundNow,
+    connectedNow,
     bindingLabel,
     desired,
     configItems,
@@ -23856,10 +23918,22 @@ const fld = (label, id, control, hint = "") =>
   `<div class="field"><label for="${control.includes('id="v13Number"') ? "v13Number" : control.includes('role="combobox"') ? id + "-control" : id}">${label}</label>${control}${hint ? `<small class="muted" id="${id}-hint">${hint}</small>` : ""}</div>`;
 const select = (id, options, current = "", label = "") =>
   `<div class="ws-select"><input type="hidden" id="${id}" value="${esc(current)}"><button type="button" id="${id}-control" class="input" role="combobox" aria-expanded="false" aria-label="${esc(label || id)}" data-act="select" data-field="${id}" data-options="${safeJson(options)}"><span>${esc(options.find((x) => String(x[0]) === String(current))?.[1] || "请选择")}</span>${ico("chevron", "ic16")}</button></div>`;
-const tabs = (items, active, act = "tab") =>
-  `<div class="seg" role="tablist">${items.map(([id, label]) => `<button role="tab" aria-selected="${id === active}" class="${id === active ? "on" : ""}" data-act="${act}" data-value="${id}">${label}</button>`).join("")}</div>`;
+// 页签（2026-10-05 核查合并细节第 4 条）：增量更新按取值认出每个页签（原先按位置与类名复用节点，切换后焦点跳到另一个页签）；
+// 只有选中的页签（没有选中时第一个）在 Tab 顺序中，其余用 ←/→、Home、End 切换（见键盘处理）；给出 panel（面板的 id）时，
+// 页签的 id 为“动作-取值”，与所控制的面板互相关联（aria-controls / aria-labelledby）。
+const tabs = (items, active, act = "tab", panel = "") => {
+  const cur = items.some(([id]) => id === active) ? active : items[0]?.[0];
+  return `<div class="seg" role="tablist">${items.map(([id, label]) => `<button role="tab" aria-selected="${id === active}" class="${id === active ? "on" : ""}" data-act="${act}" data-value="${id}" data-key="tab:${id}" tabindex="${id === cur ? 0 : -1}"${panel ? ` id="${act}-${id}" aria-controls="${esc(panel)}"` : ""}>${label}</button>`).join("")}</div>`;
+};
+// 不经重新绘制就切换的页签（如图纸方向）切换后按 aria-selected 重排 Tab 顺序。
+const tabRoving = (list) => {
+  const ts = [...(list?.querySelectorAll(":scope > [role=tab][tabindex]") || [])], on = ts.find((b) => b.getAttribute("aria-selected") === "true") || ts[0];
+  ts.forEach((b) => (b.tabIndex = b === on ? 0 : -1));
+};
 const note = (text) => `<p class="note">${text}</p>`;
-const wsNotice = (text, type = "info") => `<div class="ws-notice ${type}" role="${type === "error" ? "alert" : "status"}">${ico(({ success: "check", warning: "alert", error: "circle-x", info: "info" })[type] || "info", "ic16")}<span>${text}</span></div>`;
+// 结果提示：错误朗读为 alert，其余为 status。放进本身就是朗读区域的容器（弹窗与面板的错误区、预览与进度区）时 live=false，
+// 不再另设朗读角色，同一句不读两遍（2026-10-05 核查合并细节第 9 条：原先弹窗错误区与其中的提示都是 alert）。
+const wsNotice = (text, type = "info", live = true) => `<div class="ws-notice ${type}"${live ? ` role="${type === "error" ? "alert" : "status"}"` : ""}>${ico(({ success: "check", warning: "alert", error: "circle-x", info: "info" })[type] || "info", "ic16")}<span>${text}</span></div>`;
 const wsFocusables = (root) => [...root.querySelectorAll('a[href],button,input:not([type=hidden]),select,textarea,summary,[tabindex="0"]')].filter(x => !x.disabled && !x.closest("[hidden]") && x.getClientRects().length);
 function wsRememberFocus(root) {
   const el = document.activeElement;
@@ -24141,7 +24215,8 @@ function modal(title, body, foot = "", wide = true) {
   }
   const remember = () => { const f = wsRememberFocus(el); if (f) el.editFocus = f; };
   el.querySelector(".db").addEventListener("focusin", remember);
-  el.querySelector(".db").addEventListener("input", e => { remember(); if (e.target.id !== "deleteName" && !el.dataset.confirmOnly) modalDirty = true; });
+  // 资料弹窗（项目、楼宇、楼层与总平面）按与打开时的实际差异判断是否未保存：改回原值后关闭不再询问（合并细节第 3 条）；其他弹窗有输入即算修改。
+  el.querySelector(".db").addEventListener("input", e => { remember(); if (e.target.id !== "deleteName" && !el.dataset.confirmOnly) modalDirty = el.formSnap ? el.formSnap() !== el.formSnap0 : true; });
 }
 // 页面中最后获得焦点的表单字段（第 9 步 G5）：放弃确认由弹出菜单（如“创建功能区”的形状菜单）触发时，触发者随菜单关闭而消失，
 // “继续编辑”回到这里；它也不在了则回到面板标题。
@@ -24746,6 +24821,12 @@ function kindGroupLabel(kind, list, label) {
   return !n ? label : n === list.length ? alt : `${label}与${alt}`;
 }
 const outdoorSite = (bid) => (isOutdoor(bid) ? sortedFloors(bid)[0] || null : null);
+// 楼宇与室外区域的数量（2026-10-05 核查 S8）：楼宇按“栋”，室外区域按“个”，同时有时分别写（如“2 栋楼宇、1 个室外区域”）；
+// 原先地图提示把室外区域也算作“个楼宇”。
+const buildingCountText = (list) => {
+  const out = list.filter((o) => o.kind === "outdoor").length, n = list.length - out;
+  return [n || !out ? `${n} 栋楼宇` : "", out ? `${out} 个室外区域` : ""].filter(Boolean).join("、");
+};
 // 楼层计数（第 8 步 F2d）：室外区域的总平面不称“楼层”，另计“N 个总平面”（部署范围弹窗、保存提示、配置进度与检查清单共用）。
 function floorCountText(ids, db = data()) {
   const out = ids.filter((id) => M.building(db, M.floor(db, id)?.buildingId)?.kind === "outdoor").length, n = ids.length - out;
@@ -24812,7 +24893,7 @@ function mapPage(list, kind, total = list.length) {
   const missing = list.filter(o => !located.includes(o));
   // 地图由 Leaflet 管理：内容、数据与角色都未变时增量更新整块保留（不重建地图、不丢失平移与缩放、打开的卡片保持）（D4）。
   const sig = wsHash(JSON.stringify([kind, U.p, U.dirQ, U.role, wsDataRev(), list.map((o) => [o.id, o.name, o.location, o.image, o.address, o.usage])]));
-  return `<div class="ws-geo" data-morph-keep="${sig}"><div id="spaceMap" data-marks="${located.length}"></div><div class="ws-map-controls">${iconBtn("缩小地图", "minus", "mapZoom", { delta: -1 })}${iconBtn("放大地图", "plus", "mapZoom", { delta: 1 })}</div>${missing.length ? `<div class="ws-unlocated" role="status">${ico("info", "ic16")}<span>${missing.length} 个${noun}未设置有效位置，未在地图标注</span>${btn("查看未定位项", "unlocatedSpaces", {}, "sm")}</div>` : ""}${!located.length ? `<div class="ws-map-empty">${empty(list.length ? `尚无已定位的${noun}` : canEdit() ? `尚未创建${noun}` : U.p ? "本项目尚无可访问的楼宇" : "当前没有可访问的项目", list.length ? `未设置位置的${noun}仍保留在卡片和列表中。` : canEdit() ? "创建并确认位置后显示在地图中。" : "请联系机构管理员。", "", "map")}</div>` : ""}</div>`;
+  return `<div class="ws-geo" data-morph-keep="${sig}"><div id="spaceMap" data-marks="${located.length}"></div><div class="ws-map-controls">${iconBtn("缩小地图", "minus", "mapZoom", { delta: -1 })}${iconBtn("放大地图", "plus", "mapZoom", { delta: 1 })}</div>${missing.length ? `<div class="ws-unlocated" role="status">${ico("info", "ic16")}<span>${U.p ? buildingCountText(missing) : `${missing.length} 个项目`}未设置有效位置，未在地图标注</span>${btn("查看未定位项", "unlocatedSpaces", {}, "sm")}</div>` : ""}${!located.length ? `<div class="ws-map-empty">${empty(list.length ? `尚无已定位的${noun}` : canEdit() ? `尚未创建${noun}` : U.p ? "本项目尚无可访问的楼宇" : "当前没有可访问的项目", list.length ? `未设置位置的${noun}仍保留在卡片和列表中。` : canEdit() ? "创建并确认位置后显示在地图中。" : "请联系机构管理员。", "", "map")}</div>` : ""}</div>`;
 }
 // 所在地 comes from the map position (reverse geocoding), never from a hand-picked city list.
 const regionText = (o) => [...new Set([o?.province, o?.city].filter(Boolean))].join(" ") || "未取得";
@@ -24920,12 +25001,13 @@ function floorPage() {
   const out = isOutdoor(f.buildingId);
   const right = btn(out ? "总平面资料" : "楼层资料", "spaceInfo", { kind: "floors", id: f.id });
   const body = toolbar(right) + (U.page === "devices" ? `<div class="ws-device-categories">${deviceTabs()}</div>` : "");
+  // 只读与运营角色不给上传指导（第14章；2026-10-05 核查 D16：原先设备页对他们也写“先保存本层图纸…”），说法同项目楼层图（SPACE04）。
   if (!f.image)
     return (
       body +
       `<div class="ws-workbench no-plan">${floorRail()}${out
-        ? empty(f.name + " 尚未上传总平面图", "先保存总平面图，再划分功能区、标记设备。上传完成后留在本页。", canEdit() ? btn("上传总平面图", "uploadPlan", {}, "primary") : "")
-        : empty(f.name + " 尚未上传楼层图", "先保存本层图纸，再划分功能区、标记设备。上传完成后留在当前楼层。", canEdit() ? btn("上传楼层图", "uploadPlan", {}, "primary") : "")}</div>`
+        ? empty(f.name + " 尚未上传总平面图", canEdit() ? "先保存总平面图，再划分功能区、标记设备。上传完成后留在本页。" : "尚无总平面图，暂不能查看设备标记。", canEdit() ? btn("上传总平面图", "uploadPlan", {}, "primary") : "")
+        : empty(f.name + " 尚未上传楼层图", canEdit() ? "先保存本层图纸，再划分功能区、标记设备。上传完成后留在当前楼层。" : "本层尚无楼层图，暂不能查看设备标记。", canEdit() ? btn("上传楼层图", "uploadPlan", {}, "primary") : "")}</div>`
     );
   const net = M.networks(data(), f.id).find((n) => n.id === U.net) || M.networks(data(), f.id)[0];
   U.net = net?.id || null;
@@ -24951,7 +25033,8 @@ function floorPage() {
   return (
     body +
     `<div class="ws-workbench ${viewing ? "viewing" : "editing"}">${floorRail()}<div class="ws-canvas-col">${canvasTop}${!viewing ? canvasOverlay(checks) : ""}<div class="ws-canvas-viewport" id="canvasViewport"><div class="ws-plan ${U.joinFrom ? "picking" : ""}" id="floorCanvas" style="width:${U.zoom * 100}%" tabindex="0" aria-label="${esc(b.name + " " + f.name)}${planWord(f.buildingId)}${viewing ? "" : "；选择设备类型后点击或拖放"}"><img src="${esc(f.image)}" alt="${esc(b.name + " " + f.name)}楼层图" draggable="false">${renderZones()}${renderGroupHulls()}${renderRelations()}${renderRoleCoverage(net)}${pts.map(renderPoint).join("")}</div></div>${canvasBottom}</div>${viewing ? "" : planningPanel(net)}</div>` +
-    (!viewing && canEdit()
+    // “查看”模式（含从项目“在设备中查看”进入）只查看：没有未保存的修改时不显示保存条与“准备绑定”（2026-10-05 核查合并细节第 8 条）。
+    (!viewing && canEdit() && !(U.mode === "view" && !U.dirty && !U.attrsDirty)
       ? `<div class="ws-savebar">${btn("撤销", "undo", { disabled: !U.undo.length }, "ghost")}${btn("重做", "redo", { disabled: !U.redo.length }, "ghost")}<span role="status" class="mk-save-state">${saveState()}</span><span class="sp"></span>${btn("取消修改", "cancelPlan", { disabled: !U.dirty }, "ghost")}${btn("保存规划", "savePlan", {}, "primary")}${btn("准备绑定" + (checks.blocks.length ? `<b class="mk-count">${checks.blocks.length}</b>` : ""), "prepareApp", {}, checks.blocks.length ? "mk-gated" : "")}</div>`
       : "")
   );
@@ -24984,7 +25067,7 @@ function renderPoint(p) {
       "ws-point",
       ["view", "health"].includes(U.mode) ? "readonly" : "",
       result ? "flow-health-point " + (result.passed ? "pass" : "fail") : "",
-      F.isConnected(p) ? "bound" : "pending",
+      F.connectedNow(p) ? "bound" : "pending",
       U.point === p.id || U.connectFrom === p.id || U.joinFrom === p.id ? "selected" : "",
       (U.selectedSensors || []).includes(p.id) ? "batch-selected" : "",
       (U.checkFocus || []).includes(p.id) ? "mk-focus" : "",
@@ -25001,8 +25084,8 @@ function renderZones() {
     .map((z) => {
       const on = U.zone === z.id && (U.mode === "zones" || U.page === "devices") ? " on" : "";
       return z.shape === "polygon"
-        ? `<svg class="flow-zone-polygon${on}" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="${z.vertices.map((p) => p.x + "," + p.y).join(" ")}" data-act="zone" data-id="${z.id}" role="button" tabindex="0" aria-label="功能区 ${esc(z.name)}"/><text x="${z.x + 1}" y="${z.y + 2.2}">${esc(z.name)}</text></svg>`
-        : `<button class="ws-zone${on}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${z.shape === "ellipse" ? "border-radius:50%;" : ""}" data-act="zone" data-id="${z.id}" aria-label="功能区 ${esc(z.name)}"><span>${esc(z.name)}</span></button>`;
+        ? `<svg class="flow-zone-polygon${on}" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="${z.vertices.map((p) => p.x + "," + p.y).join(" ")}" data-act="zone" data-id="${z.id}" role="button" tabindex="0" aria-label="功能区 ${esc(z.name)}"/></svg><span class="sp-zone-label${on}" ${zoneLabelBox(z)}>${zoneNameHtml(z.name)}</span>`
+        : `<button class="ws-zone${on}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${z.shape === "ellipse" ? "border-radius:50%;" : ""}" data-act="zone" data-id="${z.id}" aria-label="功能区 ${esc(z.name)}"><span>${zoneNameHtml(z.name)}</span></button>`;
     })
     .join("");
   if (U.drawZone && U.zoneShape === "polygon" && U.polygonPoints?.length)
@@ -25092,14 +25175,24 @@ pages.devices = () => {
   if (tab === "networks" && U.net) return networkPage();
   if (tab === "mark") {
     if (U.f) return floorPage();
+    // 还没有项目时不让人“选择楼层”（2026-10-05 核查 D16：原先没有项目也显示“选择楼层”）：编辑者去创建项目，
+    // 只读与运营角色按第14章写“当前没有可访问的项目”，不给创建指导。
+    const none = !data().projects.length;
     return (
       toolbar() +
       `<div class="ws-device-categories">${deviceTabs()}</div>` +
-      empty(
-        "选择楼层，开始标记设备",
-        "设备标记与项目楼层图共用同一份点位和规划；选择后即可操作。",
-        btn("选择楼层", "pickFloor", {}, "primary"),
-      )
+      (none
+        ? empty(
+            canEdit() ? "尚无项目" : "当前没有可访问的项目",
+            canEdit() ? "请先在项目中创建空间并上传楼层图，再标记设备。" : "请联系机构管理员。",
+            canEdit() ? btn("创建项目", "spaceForm", { kind: "projects" }) : "",
+            "building-2",
+          )
+        : empty(
+            "选择楼层，开始标记设备",
+            "设备标记与项目楼层图共用同一份点位和规划；选择后即可操作。",
+            btn("选择楼层", "pickFloor", {}, "primary"),
+          ))
     );
   }
   const head =
@@ -25163,10 +25256,10 @@ function imageField(image) {
 }
 // 地图位置字段（2026-10-03 用户确认 C1、C3）：选中检索结果或地图落点即视为核对，不另设“已核对”勾选；
 // 楼宇默认“与项目同一位置”，可改为“单独定位”；项目在底图未加载时可“暂不定位”保存（空间检查记“位置待核对”）。
-function locationField(o, p, isB, same) {
+function locationField(o, p, isB, same, outdoor = false) {
   const map = `<div class="ws-form-map" id="formMap"${same ? " hidden" : ""}><div id="formLeaflet"></div><div class="ws-search map-search">${ico("search", "ic16")}<input id="mapSearch" placeholder="搜索地址或地点" aria-label="搜索地图地点"></div><div id="geoResults" class="ws-geo-results" hidden></div><div class="ws-map-controls">${iconBtn("缩小地图", "minus", "geoZoom", { delta: -1 })}${iconBtn("放大地图", "plus", "geoZoom", { delta: 1 })}</div></div>`;
   const mode = isB
-    ? `<div class="ws-loc-mode" role="radiogroup" aria-label="楼宇位置"><label class="row small"><input type="radio" name="locMode" value="project" ${same ? "checked" : ""}>与项目同一位置</label><label class="row small"><input type="radio" name="locMode" value="own" ${same ? "" : "checked"}>单独定位</label></div><p class="ws-loc-same" id="locSame"${same ? "" : " hidden"}>${esc(sameLocationText(p))}</p>`
+    ? `<div class="ws-loc-mode" role="radiogroup" aria-label="${outdoor ? "室外区域位置" : "楼宇位置"}"><label class="row small"><input type="radio" name="locMode" value="project" ${same ? "checked" : ""}>与项目同一位置</label><label class="row small"><input type="radio" name="locMode" value="own" ${same ? "" : "checked"}>单独定位</label></div><p class="ws-loc-same" id="locSame"${same ? "" : " hidden"}>${esc(sameLocationText(p))}</p>`
     : "";
   return `<div class="field" id="mapField"><label${isB ? "" : ' for="mapSearch"'}>地图位置</label>${mode}${map}<div class="ws-address-status" id="addressStatus"></div>${!isB ? `<small class="ws-region" id="regionText">${regionLine()}</small><div class="ws-check-field" id="noLocField" hidden><label class="row small"><input type="checkbox" id="noLocation">暂不定位，保存后在空间检查中记为“位置待核对”</label></div>` : ""}</div>`;
 }
@@ -25240,7 +25333,7 @@ function spaceForm(kind, id) {
         : fld("楼层面积（选填）", "spaceArea", input("spaceArea", o.area ?? "", "", "number"), "单位 m²；手工登记的楼层面积，不覆盖功能区图面估算面积。")
       : `${isB ? '<div class="ws-form-row">' : ""}${fld(isB ? "主要用途（选填）" : "项目类型（选填）", "spaceUsage", select("spaceUsage", [["", "暂不设置"], ...usages.map((s) => [s, s])], o.usage || "", isB ? "主要用途" : "项目类型")).replace('<div class="field"', `<div class="field ws-usage-field"${outdoor ? " hidden" : ""}`)}${
           isB ? fld(outdoor ? "占地面积（选填）" : "建筑面积（选填）", "spaceRegion", input("spaceRegion", o.area ?? "", "", "number"), "单位 m²；手工登记值。") + "</div>" : ""
-        }${isB && !outdoor ? `<div class="ws-bstruct"><div class="ws-form-row">${fld("地上层数", "spaceAbove", input("spaceAbove", o.above ?? "", "", "number"))}${fld("地下层数", "spaceBelow", input("spaceBelow", o.below ?? 0, "", "number"))}</div><label class="row small"><input id="spaceRoof" type="checkbox" ${o.roof ? "checked" : ""}>包含屋顶层 RF</label><p class="ws-struct-preview" id="structPreview" aria-live="polite">${esc(structText(structPlan(o.id ? o : null, o.above, o.below ?? 0, o.roof), !o.id))}</p></div>` : ""}${isB && !o.id ? `<div class="ws-bsite" hidden>${fld("总平面名称", "spaceSite", input("spaceSite", "总平面", "总平面"), "室外区域不设层数，只有这一张总平面图；名称之后可在“编辑总平面”中修改。")}</div>` : ""}${fld("详细地址", "spaceAddress", `<div class="ws-addr-row">${input("spaceAddress", o.address || p?.address || "", "输入可识别的详细地址")}${btn("定位已填地址", "geoAddress")}</div>`)}${locationField(o, p, isB, same)}${!isB ? tzField(formState.timezone) : ""}${fld((isB ? (outdoor ? "区域" : "楼宇") : "项目") + "图片（选填）", "spaceImage", imageField(o.image))}`) +
+        }${isB && !outdoor ? `<div class="ws-bstruct"><div class="ws-form-row">${fld("地上层数", "spaceAbove", input("spaceAbove", o.above ?? "", "", "number"))}${fld("地下层数", "spaceBelow", input("spaceBelow", o.below ?? 0, "", "number"))}</div><label class="row small"><input id="spaceRoof" type="checkbox" ${o.roof ? "checked" : ""}>包含屋顶层 RF</label><p class="ws-struct-preview" id="structPreview" aria-live="polite">${esc(structText(structPlan(o.id ? o : null, o.above, o.below ?? 0, o.roof), !o.id))}</p></div>` : ""}${isB && !o.id ? `<div class="ws-bsite" hidden>${fld("总平面名称", "spaceSite", input("spaceSite", "总平面", "总平面"), "室外区域不设层数，只有这一张总平面图；名称之后可在“编辑总平面”中修改。")}</div>` : ""}${fld("详细地址", "spaceAddress", `<div class="ws-addr-row">${input("spaceAddress", o.address || p?.address || "", "输入可识别的详细地址")}${btn("定位已填地址", "geoAddress")}</div>`)}${locationField(o, p, isB, same, outdoor)}${!isB ? tzField(formState.timezone) : ""}${fld((isB ? (outdoor ? "区域" : "楼宇") : "项目") + "图片（选填）", "spaceImage", imageField(o.image))}`) +
     fld(
       (isF ? (isOutdoor(o.buildingId) ? "总平面" : "楼层") : isB ? (outdoor ? "区域" : "楼宇") : "项目") + "说明（选填）",
       "spaceDescription",
@@ -25252,6 +25345,12 @@ function spaceForm(kind, id) {
     `<span class="sp"></span>${btn("取消", "close")}${btn(id ? "保存修改" : "创建" + (isB ? "楼宇" : "项目"), "saveSpace", {}, "primary")}`,
     !isF,
   );
+  // 打开时的字段、图片与地图位置：之后每次输入与之比较，改回原值即不算未保存（图片与位置的改动另行标记，仍会询问）。
+  const dlg = $("#dlg");
+  if (dlg) {
+    dlg.formSnap = () => JSON.stringify([...dlg.querySelectorAll(".db input:not([type=file]), .db select, .db textarea")].map((x) => (x.type === "checkbox" || x.type === "radio" ? x.checked : x.value)).concat([formState?.image || "", JSON.stringify(formState?.location || null)]));
+    dlg.formSnap0 = dlg.formSnap();
+  }
   if (!isF) {
     geoStatus();
     if (!same) requestAnimationFrame(initGeoMap);
@@ -25749,7 +25848,7 @@ function formError(e) {
     if (!el) { el = document.createElement("div"); el.id = "spFormError"; el.className = "form-error"; el.setAttribute("role", "alert"); $(".sp-body").append(el); }
   }
   if (el) {
-    el.innerHTML = wsNotice(esc(e.message || e), "error");
+    el.innerHTML = wsNotice(esc(e.message || e), "error", false);
     el.scrollIntoView({ block: "nearest" });
   } else msg(e.message || e);
 }
@@ -26714,8 +26813,8 @@ defineActions({
   planMore: (a, el) =>
     pop(
       el,
-      btn(ico("image", "ic16") + "更换" + planWord(U.b), "replacePlan", {}, "popitem") +
-        btn(ico("ruler", "ic16") + "设置比例尺", "scale", {}, "popitem") +
+      // 只读、运营角色与“查看”模式只有“楼层资料”（2026-10-05 核查 D17：原先能进入比例尺取点，点完没有反应）。
+      (canEdit() && U.mode !== "view" ? btn(ico("image", "ic16") + "更换" + planWord(U.b), "replacePlan", {}, "popitem") + btn(ico("ruler", "ic16") + "设置比例尺", "scale", {}, "popitem") : "") +
         btn(ico("doc", "ic16") + (isOutdoor(U.b) ? "总平面资料" : "楼层资料"), "spaceInfo", { kind: "floors", id: U.f }, "popitem"),
     ),
   // 更换楼层图：打开同一个“上传楼层图”弹窗并预选本层；已有图纸的楼层保存后仍走换图复核（PLAN01）。
@@ -26863,7 +26962,7 @@ document.addEventListener("input", (e) => {
   }
   if (e.target.id === "locQuery") filterLocation(e.target.value);
   if (e.target.id === "switchQuery") $("#switchRows").innerHTML = switchSearch(e.target.value);
-  if (e.target.closest?.(".sp-zform")) U.spFormDirty = true;
+  if (e.target.closest?.(".sp-zform")) spZoneSync();
   if (e.target.id?.startsWith("buF-") && U.bu) buSetFloor(e.target.id.slice(4), e.target.value);
   // 上传楼层图：单个文件时选择对应楼层；查看图纸中直接选楼层（B3）；复制到其他楼层改选源楼层。
   if (e.target.id === "piFloor") piSetFloor(e.target.value);
@@ -27052,6 +27151,27 @@ document.addEventListener("keydown", (e) => {
     actions.buInspectStep({ dir: e.key === "ArrowLeft" ? "-1" : "1" });
     return;
   }
+  // 共用页签（tabs 生成、带 tabindex，2026-10-05 核查合并细节第 4 条）：←/→ 切到上一个、下一个页签（首尾相接），Home、End 到第一个、最后一个，
+  // 切换即生效，焦点留在新页签上；跳过不可用与不显示的页签。账户页的页签按其已确认的规则，不在此列。
+  const tabEl = e.target.closest?.("[role=tablist] > [role=tab][tabindex]");
+  if (tabEl && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key) && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+    const all = [...tabEl.parentElement.querySelectorAll(":scope > [role=tab]")].filter((b) => !b.disabled && b.getAttribute("aria-disabled") !== "true" && b.getClientRects().length),
+      i = all.indexOf(tabEl),
+      next = e.key === "Home" ? all[0] : e.key === "End" ? all.at(-1) : all[(i + (e.key === "ArrowRight" ? 1 : all.length - 1)) % all.length];
+    e.preventDefault();
+    if (i < 0 || !next || next === tabEl) return;
+    const want = { act: next.dataset.act, value: next.dataset.value };
+    next.focus();
+    next.click();
+    tabRoving(next.parentElement);
+    // 切换引起整页换新（如运营页签改地址）时，焦点回到新页面中的同一页签；已进入弹窗（如放弃修改的确认）时不动。
+    requestAnimationFrame(() => {
+      const a = document.activeElement;
+      if (a && a !== document.body && a.isConnected) return;
+      document.querySelector(`[role=tab][data-act="${CSS.escape(want.act)}"][data-value="${CSS.escape(want.value)}"]`)?.focus();
+    });
+    return;
+  }
   // 机构菜单与项目中的更多菜单、楼层操作菜单（role=menu）：方向键、Home、End 选择，Tab 离开时关闭菜单。
   const orgMenu = $("#pop .au-menu") || $("#pop [role=menu]");
   if (!modal && orgMenu?.contains(e.target)) {
@@ -27116,6 +27236,11 @@ document.addEventListener("keydown", (e) => {
       e.preventDefault();
       return actions.spFinishPolygon();
     }
+  }
+  // 功能区资料的“名称”上按 Enter 即“保存修改”（手机键盘的“完成”同样），不必先收起键盘找按钮（合并细节第 2 条）。
+  if (e.key === "Enter" && e.target.id === "spZName" && !e.isComposing && U.zone) {
+    e.preventDefault();
+    return Promise.resolve(actions.spZoneSave({ id: U.zone })).catch(formError);
   }
   if (e.key === "Enter" && e.target.id === "switchQuery") {
     e.preventDefault();
@@ -27463,7 +27588,7 @@ function initListMap() {
   for (const group of groups.values()) {
     const o = group[0], many = group.length > 1, gid = many ? group.map((x) => x.id).join("|") : "";
     if (many) U.mapGroups[gid] = { kind, ids: group.map((x) => x.id) };
-    const label = many ? `${group.length} ${kind === "buildings" ? "栋楼宇" : "个项目"}` : o.name;
+    const label = many ? (kind === "buildings" ? buildingCountText(group) : `${group.length} 个项目`) : o.name;
     // 地图共用卡片资料和动作；浅横幅、宽松正文、右上细叉号，无遮罩与三角尾巴。
     const marker = blueMarker(o.location.lat, o.location.lng, listMap).bindPopup(many ? mapGroupHtml(gid) : `<div class="ws-map-popup ws-pop-card">${spaceCard(kind, o, true)}</div>`, {
       maxWidth: popupWidth,
@@ -27548,7 +27673,7 @@ function mapGroupHtml(gid) {
   const gp = U.mapGroups?.[gid];
   if (!gp) return "";
   const list = gp.ids.map((id) => g(gp.kind, id)).filter(Boolean);
-  return `<div class="ws-map-popup ws-map-group"><p class="ws-map-group-cap">同一位置 ${list.length} ${gp.kind === "buildings" ? "栋楼宇" : "个项目"}</p>${list.map((o) => `<button class="popitem" data-act="mapGroupPick" data-g="${esc(gid)}" data-id="${o.id}"><span>${esc(o.name)}</span><small>${esc(scaleText(gp.kind, o))}</small></button>`).join("")}</div>`;
+  return `<div class="ws-map-popup ws-map-group"><p class="ws-map-group-cap">同一位置 ${gp.kind === "buildings" ? buildingCountText(list) : `${list.length} 个项目`}</p>${list.map((o) => `<button class="popitem" data-act="mapGroupPick" data-g="${esc(gid)}" data-id="${o.id}"><span>${esc(o.name)}</span><small>${esc(scaleText(gp.kind, o))}</small></button>`).join("")}</div>`;
 }
 defineActions({
   mapGroupPick: (a) => {
@@ -27582,10 +27707,47 @@ function afterRender() {
   wsAfterRender();
   for (const fn of AFTER_RENDER) fn();
 }
+// 名称标签按实际像素选择全名、编号、截断或不显示（见 zoneNameHtml）；缩放、收起面板与窗口变化时画布尺寸改变，随之重新判断。
+let zoneLabelObserver = null, zoneLabelCtx = null;
+function fitZoneLabels() {
+  zoneLabelObserver?.disconnect();
+  zoneLabelObserver = null;
+  const cv = $("#floorCanvas");
+  if (!cv || !cv.querySelector(".zn-full")) return;
+  const run = () => {
+    if (!cv.isConnected) return;
+    const labels = [...cv.querySelectorAll(".ws-zone > span, .sp-zone-label")].filter((s) => s.firstElementChild?.classList.contains("zn-full"));
+    if (!labels.length) return;
+    const cs = getComputedStyle(labels[0]);
+    zoneLabelCtx ||= document.createElement("canvas").getContext("2d");
+    zoneLabelCtx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight), text = parseFloat(cs.lineHeight), line = text + parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom),
+      cw = cv.clientWidth, ch = cv.clientHeight, ell = zoneLabelCtx.measureText("一…").width, width = (t) => zoneLabelCtx.measureText(t).width;
+    // 先读完全部尺寸再统一写入，避免逐个标签重新布局。
+    const sizes = labels.map((s) => (s.classList.contains("sp-zone-label") ? [((parseFloat(s.dataset.w) || 0) * cw) / 100 - 4, ((parseFloat(s.dataset.h) || 0) * ch) / 100 - 2] : [s.parentElement.clientWidth, s.parentElement.clientHeight]));
+    labels.forEach((s, i) => {
+      // 窄或矮的区域先收窄标签内边距（左右 1px、上下 0）再判断，手机上也尽量写出房间编号；留 1px 余量，避免高分屏取整后出现省略号。
+      const [w, h] = sizes[i], short = s.querySelector(".zn-short")?.textContent,
+        fits = (t) => (t + 1 <= w - pad ? "n" : t + 1 <= w - 2 ? "x" : "");
+      let fit = "none", how = "";
+      if (h >= text) {
+        if ((how = fits(width(s.firstElementChild.textContent)))) fit = "full";
+        else if (short && (how = fits(width(short)))) fit = "short";
+        else if ((how = fits(ell))) fit = "clip";
+      }
+      s.dataset.fit = fit;
+      s.dataset.pad = (how === "x" ? "x" : "") + (fit !== "none" && h < line ? "y" : "");
+    });
+  };
+  run();
+  zoneLabelObserver = new ResizeObserver(run);
+  zoneLabelObserver.observe(cv);
+}
 function wsAfterRender() {
   initListMap();
   initInfoMap();
   wsApplyFocusBack();
+  fitZoneLabels();
   if (U.scrollTo) {
     const el = document.getElementById(U.scrollTo);
     U.scrollTo = null;
@@ -27911,6 +28073,24 @@ function bootError(e) {
     `<main class="ws-boot-error" role="alert"><div class="ws-boot-logo">${A.logo}</div><h1>无法加载 PACOM Station</h1><p>浏览器没有允许本站点读取或保存数据，或数据读取失败。请检查浏览器的站点数据设置，然后重新加载。</p><button type="button" class="btn primary" onclick="location.reload()">重新加载</button><small>错误信息：${esc(e?.message || String(e))}</small></main>`;
 }
 boot();
+// 楼宇图上的楼层名称（2026-10-05 核查 S7：60 层的等分标记，各层名称叠成一条）：名称之间不重叠，放不下时隔层显示，
+// 自下而上依次保留与已显示的名称不重叠的楼层；悬停、键盘焦点所在与刚离开的楼层始终显示。
+function fitFloorLabels(el) {
+  const spans = [...el.querySelectorAll(".ws-floor-region > span")];
+  if (!spans.length) return;
+  const boxes = spans
+    .map((s) => {
+      const r = s.parentElement.getBoundingClientRect(), w = s.offsetWidth, h = s.offsetHeight;
+      return { s, l: r.left + r.width / 2 - w / 2, r: r.left + r.width / 2 + w / 2, t: r.top + r.height / 2 - h / 2, b: r.top + r.height / 2 + h / 2 };
+    })
+    .sort((a, b) => b.b - a.b);
+  const kept = [];
+  for (const x of boxes) {
+    const free = !kept.some((k) => x.l < k.r + 2 && k.l < x.r + 2 && x.t < k.b + 2 && k.t < x.b + 2);
+    x.s.dataset.fit = free ? "" : "none";
+    if (free) kept.push(x);
+  }
+}
 function initBuildingMarks() {
   const el = $("#buildingCanvas"),
     img = $("#buildingImage");
@@ -27924,6 +28104,7 @@ function initBuildingMarks() {
       width: r.width + "px",
       height: r.height + "px",
     });
+    fitFloorLabels(el);
   };
   if (img.complete) size();
   else img.addEventListener("load", size, { once: true, signal: renderSignal() });
@@ -28216,7 +28397,8 @@ function sourceBack() {
 function headTitle() {
   return `<h1>${TITLES[U.page] || "PACOM Station"}</h1>`;
 }
-const switchKind = () => (U.page === "deployment" ? "projects" : U.f && U.zone && g("zones", U.zone) ? "zones" : U.f ? "floors" : U.b ? "buildings" : "projects");
+// 室外区域只有一张总平面：选择器在楼宇与室外区域之间切换（2026-10-05 核查 S8：原先展开只有这一张总平面，切不到其他室外区域）。
+const switchKind = () => (U.page === "deployment" ? "projects" : U.f && U.zone && g("zones", U.zone) ? "zones" : U.f && !isOutdoor(U.b) ? "floors" : U.b ? "buildings" : "projects");
 function pathOf(kind, o) {
   if (kind === "buildings") return g("projects", o.projectId)?.name || "";
   if (kind === "floors") return where(o.id).split(" / ").slice(0, 2).join(" / ");
@@ -28244,7 +28426,7 @@ function switchRows(kind) {
         ? db.buildings.filter((b) => b.projectId === U.p).sort(M.byName)
         : sortedFloors(U.b);
   const sub = () => "";
-  const cap = { projects: "项目", buildings: `${g("projects", U.p)?.name || ""} 的楼宇`, floors: `${g("buildings", U.b)?.name || ""} 的${isOutdoor(U.b) ? "总平面" : "楼层"}` }[kind];
+  const cap = { projects: "项目", buildings: `${g("projects", U.p)?.name || ""} 的${kindGroupLabel("buildings", list, "楼宇")}`, floors: `${g("buildings", U.b)?.name || ""} 的${isOutdoor(U.b) ? "总平面" : "楼层"}` }[kind];
   const all = `<button class="popitem ws-switch-row ${!U.p ? "on" : ""}" role="option" aria-selected="${!U.p}" data-act="switchTo" data-kind="root"><span><span class="nm">全部项目</span></span>${!U.p ? ico("check", "ic16") : ""}</button>`;
   return (kind === "projects" ? all : "") + `<div class="popcap">${esc(cap)}</div>` + (list.length ? list.map(o => switchRow(kind, o, sub(o), o.id === cur)).join("") : `<p class="muted ws-pop-empty">${kind === "projects" ? (canEdit() ? "尚未创建项目" : "当前没有可访问的项目") : "当前层级尚无对象"}</p>${canEdit() && kind === "projects" ? btn("创建项目", "spaceForm", { kind: "projects" }, "popitem") : ""}`);
 }
@@ -28314,8 +28496,10 @@ function dirList() {
   return [...(U.p ? data().buildings.filter(b => b.projectId === U.p) : data().projects)].sort(M.byName);
 }
 const dirSearch = () => {
-  const cur = U.page === "deployment" ? g("projects", U.p) : U.zone && U.f ? g("zones", U.zone) : U.f ? currentFloor() : U.b ? currentBuilding() : g("projects", U.p);
-  return `<button class="btn ws-project-picker" data-act="siblings" data-kind="${switchKind()}" aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(cur?.name || "全部项目")}：切换或搜索空间"><span>${esc(cur?.name || "全部项目")}</span>${ico("chevron", "ic16")}</button>`;
+  const cur = U.page === "deployment" ? g("projects", U.p) : U.zone && U.f ? g("zones", U.zone) : U.f ? currentFloor() : U.b ? currentBuilding() : g("projects", U.p),
+    // 总平面写“区域名 · 总平面”，读屏名称相同（S8：原先多个室外区域都只写“总平面”，无法区分）。
+    name = U.page !== "deployment" && cur && U.f && cur.id === U.f && isOutdoor(U.b) ? `${currentBuilding()?.name || ""} · ${cur.name}` : cur?.name || "全部项目";
+  return `<button class="btn ws-project-picker" data-act="siblings" data-kind="${switchKind()}" aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(name)}：切换或搜索空间"><span>${esc(name)}</span>${ico("chevron", "ic16")}</button>`;
 };
 // 规模：项目“N 栋楼宇 · N 个楼层”；楼宇“N 个楼层 · 已上传楼层图 N 层”（完整授权空间，不按部署范围）。
 function scaleText(kind, o) {
@@ -28896,14 +29080,27 @@ function spArea(f, z) {
   const a = F.zoneArea(f, z);
   return a == null ? (F.floorMeters(f) ? "形状无效，面积未知" : "比例尺未校准，面积未知") : `约 ${Math.round(a).toLocaleString("zh-CN")} m²（按图面估算）`;
 }
+// 功能区名称标签（2026-10-05 核查 S7 与合并细节第 1 条：1280×720 下“办公室 701”折成 3 行、越入相邻区域 17.7px）：只占一行，不越出功能区。
+// 放得下写全名；放不下时，名称末尾有房间编号的只写编号（如“701”“7-1”），没有编号的以省略号截断；区域低于一行或一个字也放不下时不显示。
+// 选中、悬停（隐藏名称时除外）与草稿显示全名，可越出区域；读屏名称始终是全名。放不放得下由 fitZoneLabels 按实际像素判断。
+function zoneShortName(name) {
+  const t = String(name || "").trim(), m = t.match(/(?:^|[\s\u3000·_-]|[^\x00-\x7f])([A-Za-z]{0,3}\d[A-Za-z0-9.-]*)$/);
+  return m && m[1].length < t.length ? m[1] : "";
+}
+function zoneNameHtml(name) {
+  const s = zoneShortName(name);
+  return `<span class="zn-full">${esc(name)}</span>${s ? `<span class="zn-short" aria-hidden="true">${esc(s)}</span>` : ""}`;
+}
+// 多边形的名称标签放在外接矩形左上角：宽度不超过外接矩形，判断用的宽高按图纸百分比记下。
+const zoneLabelBox = (z) => `style="left:${z.x}%;top:${z.y}%;max-width:calc(${z.w}% - 4px)" data-w="${z.w}" data-h="${z.h}"`;
 function spZoneShape(z, o = {}) {
   const cls = ["sp-zone", o.on ? "on" : "", !z.spaceType && !o.draft ? "untyped" : "", o.draft ? "draft" : ""].filter(Boolean).join(" "),
     act = o.draft ? "" : ` data-act="spZone" data-id="${z.id}"`;
   if (z.shape === "polygon")
-    return `<svg class="flow-zone-polygon ${cls}" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="${z.vertices.map((p) => p.x + "," + p.y).join(" ")}"${act}${o.draft ? "" : ` role="button" tabindex="0" aria-label="功能区 ${esc(z.name)}"`}/></svg><span class="sp-zone-label ${cls}" style="left:${z.x}%;top:${z.y}%">${esc(z.name || "新功能区")}</span>`;
+    return `<svg class="flow-zone-polygon ${cls}" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="${z.vertices.map((p) => p.x + "," + p.y).join(" ")}"${act}${o.draft ? "" : ` role="button" tabindex="0" aria-label="功能区 ${esc(z.name)}"`}/></svg><span class="sp-zone-label ${cls}" ${zoneLabelBox(z)}>${zoneNameHtml(z.name || "新功能区")}</span>`;
   return o.draft
-    ? `<div class="ws-zone ${cls}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${z.shape === "ellipse" ? "border-radius:50%;" : ""}"><span>${esc(z.name || "新功能区")}</span></div>`
-    : `<button class="ws-zone ${cls}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${z.shape === "ellipse" ? "border-radius:50%;" : ""}"${act} aria-label="功能区 ${esc(z.name)}${z.spaceType ? "" : "，未设类型"}"><span>${esc(z.name)}</span></button>`;
+    ? `<div class="ws-zone ${cls}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${z.shape === "ellipse" ? "border-radius:50%;" : ""}"><span>${zoneNameHtml(z.name || "新功能区")}</span></div>`
+    : `<button class="ws-zone ${cls}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${z.shape === "ellipse" ? "border-radius:50%;" : ""}"${act} aria-label="功能区 ${esc(z.name)}${z.spaceType ? "" : "，未设类型"}"><span>${zoneNameHtml(z.name)}</span></button>`;
 }
 function spZones() {
   let out = data()
@@ -29021,7 +29218,17 @@ function spZoomTo(id, reserve = 0) {
   requestAnimationFrame(go);
 }
 // 半屏卡片打开（半屏）时，画布底部的“当前层 ▾”与缩放移到卡片上沿之上（核查 R18）：按卡片实际高度写 --sp-sheet-h。
+// 手机弹出键盘时可视区域变矮：展开的半屏卡片底边抬到键盘上方，底部的“取消 / 保存修改”仍可见（合并细节第 2 条）。
+function spSheetKeyboard() {
+  const sh = $(".sp-sheet.full"), vv = window.visualViewport;
+  if (!sh || !vv) return;
+  sh.style.bottom = "";
+  const cover = sh.getBoundingClientRect().bottom - (vv.offsetTop + vv.height);
+  if (cover > 1) sh.style.bottom = Math.round(cover) + "px";
+}
+if (typeof window !== "undefined" && window.visualViewport) for (const t of ["resize", "scroll"]) window.visualViewport.addEventListener(t, spSheetKeyboard);
 function spSheetReserve() {
+  spSheetKeyboard();
   const bench = $(".sp-bench"), sh = $(".sp-sheet:not(.full)");
   if (!bench) return;
   if (sh) bench.style.setProperty("--sp-sheet-h", sh.offsetHeight + "px");
@@ -29034,7 +29241,9 @@ function spSheetCover() {
   return Math.max(0, vp.getBoundingClientRect().bottom - sh.getBoundingClientRect().top);
 }
 function spacePanel(f) {
-  const tab = U.spTab || (f.image ? "zones" : "floor");
+  const tab = U.spTab || (f.image ? "zones" : "floor"),
+    // 面板主体的键随所示内容变化，换内容时整块换新（D4）；同一个值也是页签所控制的面板 id（合并细节第 4 条）。
+    body = ["sp", f.id, U.zoneDraft ? "draft" : tab === "floor" ? "floor" : U.zone || (U.zoneMulti ? "multi" : "list")].join("|");
   return `<aside class="sp-panel" aria-label="${isOutdoor(f.buildingId) ? "功能区与总平面" : "功能区与楼层"}">${tabs(
     [
       ["zones", "功能区"],
@@ -29042,7 +29251,8 @@ function spacePanel(f) {
     ],
     tab,
     "spTab",
-  ).replace('class="seg"', 'class="seg sm sp-tabs" aria-label="面板"')}${iconBtn("收起面板", "x", "spPanel")}<div class="sp-body" data-key="${esc(["sp", f.id, U.zoneDraft ? "draft" : tab === "floor" ? "floor" : U.zone || (U.zoneMulti ? "multi" : "list")].join("|"))}">${!U.zoneDraft ? planReviewBanner(f) : ""}${tab === "floor" && !U.zoneDraft ? spFloorBody(f) : !f.image ? `<div class="sp-noplan">${empty("尚未上传" + planWord(f.buildingId), canEdit() ? (isOutdoor(f.buildingId) ? "先上传总平面图，再在图上划分功能区。" : "先上传本层楼层图，再在图上划分功能区。") : isOutdoor(f.buildingId) ? "尚无总平面图，暂不能查看功能区。" : "本层尚无楼层图，暂不能查看功能区。", canEdit() ? btn("上传" + planWord(f.buildingId), "uploadPlan", {}, "sm") : "", "layers")}</div>` : U.zoneDraft ? spDraftBody(f) : U.zone && g("zones", U.zone) ? spZoneBody(f, g("zones", U.zone)) : spZoneList(f)}</div></aside>`;
+    body,
+  ).replace('class="seg"', 'class="seg sm sp-tabs" aria-label="面板"')}${iconBtn("收起面板", "x", "spPanel")}<div class="sp-body" data-key="${esc(body)}" id="${esc(body)}" role="tabpanel" aria-labelledby="spTab-${tab}">${!U.zoneDraft ? planReviewBanner(f) : ""}${tab === "floor" && !U.zoneDraft ? spFloorBody(f) : !f.image ? `<div class="sp-noplan">${empty("尚未上传" + planWord(f.buildingId), canEdit() ? (isOutdoor(f.buildingId) ? "先上传总平面图，再在图上划分功能区。" : "先上传本层楼层图，再在图上划分功能区。") : isOutdoor(f.buildingId) ? "尚无总平面图，暂不能查看功能区。" : "本层尚无楼层图，暂不能查看功能区。", canEdit() ? btn("上传" + planWord(f.buildingId), "uploadPlan", {}, "sm") : "", "layers")}</div>` : U.zoneDraft ? spDraftBody(f) : U.zone && g("zones", U.zone) ? spZoneBody(f, g("zones", U.zone)) : spZoneList(f)}</div></aside>`;
 }
 // 功能区类型筛选（2026-10-03 A9）：本层超过 20 个功能区才显示类型胶囊，否则只用搜索框旁的“类型 ▾”下拉。
 const SP_TYPE_CHIPS = 20;
@@ -29133,13 +29343,32 @@ function spDraftBody(f) {
   const d = U.zoneDraft;
   return `<div class="sp-draft"><div class="mk-row"><h3 class="mk-title">新功能区</h3><span class="mk-sub" id="spDraftShape">${esc(shapeLabel(d))} · 未保存</span></div>${fld("名称", "spDraftName", input("spDraftName", d.name))}${fld("空间类型", "spDraftType", spTypeSelect("spDraftType", d.spaceType), "未设类型的区域保留为待补")}${isOutdoor(f.buildingId) ? "" : fld("采光面（选填）", "spDraftFacade", select("spDraftFacade", FACADES, d.facade || "", "采光面"))}<p class="mk-lead">${esc(spArea(f, d))}</p><div class="sp-actions">${btn("完成并继续", "spDraftSave", { next: "1" }, "primary")}${btn("完成", "spDraftSave")}${btn("放弃", "spDraftDiscard", {}, "ghost")}</div><p class="note">Enter 完成当前区域并继续画下一个；Esc 放弃当前区域，已保存的区域不受影响。</p></div>`;
 }
+// 功能区资料表单与已保存资料的实际差异（2026-10-05 核查合并细节第 3 条）：名称与说明去掉首尾空格后比较，改回原值即不再算未保存；保存用同一份取值。
+const spZoneSaved = (z) => ({ name: z.name, spaceType: z.spaceType || "", facade: z.facade || "", description: z.description || "" });
+const spZoneFormValues = (z) => ({ name: value("spZName").trim(), spaceType: value("spZType"), facade: $("#spZFacade") ? value("spZFacade") : z.facade || "", description: value("spZDesc").trim() });
+// 有修改时“取消 / 保存修改”固定在面板（手机为半屏卡片）可见区域的底部（合并细节第 2 条：原先 1280×720 要向下滚约 91px 才看到“保存修改”）。
+function spZoneSync() {
+  const z = g("zones", U.zone), bar = $(".sp-zform-actions");
+  if (!z || !$("#spZName")) return;
+  const was = U.spFormDirty;
+  U.spFormDirty = JSON.stringify(spZoneFormValues(z)) !== JSON.stringify(spZoneSaved(z));
+  bar?.classList.toggle("dirty", U.spFormDirty);
+  const c = bar?.querySelector("[data-act=spZoneRevert]");
+  if (c) c.disabled = !U.spFormDirty;
+  // 保存栏刚固定到底部时，正在输入的字段若被它盖住，把字段滚到保存栏上方。
+  const a = document.activeElement, sc = a?.closest?.(".sp-body");
+  if (U.spFormDirty && !was && bar && sc && a.closest(".sp-zform")) {
+    const over = a.getBoundingClientRect().bottom - bar.getBoundingClientRect().top + 8;
+    if (over > 0) sc.scrollTop += over;
+  }
+}
 function spZoneBody(f, z) {
   const ps = data().points.filter((p) => p.zoneId === z.id),
     edit = canEdit();
   const fl = g("floors", z.floorId), bl = g("buildings", fl?.buildingId);
   return `<button class="mk-back" data-act="spBack">${ico("back", "ic16")}全部功能区</button><div class="mk-row"><h3 class="mk-title">${esc(z.name)}</h3>${badge(z.spaceType || "未设类型", z.spaceType ? "" : "warn")}${spUndoButton()}</div><p class="sp-zone-where">${esc([bl?.name, fl?.name].filter(Boolean).join(" · "))}</p>${
     edit
-      ? `<div class="sp-zform">${fld("名称", "spZName", input("spZName", z.name))}${fld("空间类型", "spZType", spTypeSelect("spZType", z.spaceType), "决定空间模板与参数适用范围")}${isOutdoor(f.buildingId) ? "" : fld("采光面（选填）", "spZFacade", select("spZFacade", FACADES, z.facade || "", "采光面"), "照度源初选依据之一，需人工核对")}${fld("说明（选填）", "spZDesc", `<textarea class="input" id="spZDesc" rows="2">${esc(z.description || "")}</textarea>`)}${btn("保存修改", "spZoneSave", { id: z.id }, "primary sm")}</div>`
+      ? `<div class="sp-zform">${fld("名称", "spZName", input("spZName", z.name).replace("<input ", '<input enterkeyhint="done" '))}${fld("空间类型", "spZType", spTypeSelect("spZType", z.spaceType), "决定空间模板与参数适用范围")}${isOutdoor(f.buildingId) ? "" : fld("采光面（选填）", "spZFacade", select("spZFacade", FACADES, z.facade || "", "采光面"), "照度源初选依据之一，需人工核对")}${fld("说明（选填）", "spZDesc", `<textarea class="input" id="spZDesc" rows="2">${esc(z.description || "")}</textarea>`)}<div class="sp-zform-actions${U.spFormDirty ? " dirty" : ""}">${btn("取消", "spZoneRevert", { id: z.id, disabled: !U.spFormDirty }, "sm")}${btn("保存修改", "spZoneSave", { id: z.id }, "primary sm")}</div></div>`
       : infoRows([
           ["空间类型", z.spaceType || "未设类型"],
           ...(isOutdoor(f.buildingId) ? [] : [["采光面", FACADES.find((x) => x[0] === (z.facade || ""))?.[1] || "无"]]),
@@ -29149,7 +29378,7 @@ function spZoneBody(f, z) {
     ["面积", spArea(f, z)],
     ["形状", shapeLabel(z)],
     ["关联点位", `${ps.length} 个`],
-    ["已绑定设备", `${ps.filter(M.bound).length} 台`],
+    ["已绑定设备", `${ps.filter(F.boundNow).length} 台${ps.some((p) => M.bound(p) && p.fieldReset) ? ` · 被现场复位 ${ps.filter((p) => M.bound(p) && p.fieldReset).length} 台待补绑` : ""}`],
   ])}<div class="sp-actions">${btn("在图上定位", "spLocateZone", { id: z.id }, "sm")}${btn("在设备中查看", "toDevices", { view: "1" }, "sm")}${edit && !isMobile() ? btn("调整边界", "spReshape", { id: z.id }, "sm") : ""}${edit ? btn("删除", "spZoneDelete", { id: z.id }, "sm danger") : ""}</div><details class="ws-details"><summary>修改记录</summary>${recordsTable(data().records.filter((r) => r.objectId === z.id))}</details>`;
 }
 function spFloorBody(f) {
@@ -29439,8 +29668,8 @@ defineActions({
     if (!z) return;
     const pending = a.confirmed ? U.pendingZone : null;
     if (a.confirmed && (!pending || pending.id !== z.id || JSON.stringify(z) !== pending.before)) throw Error("功能区资料已变化，请重新核对影响；修改未保存");
-    const next = pending?.next || { name: value("spZName").trim(), spaceType: value("spZType"), facade: $("#spZFacade") ? value("spZFacade") : g("zones", a.id)?.facade || "", description: value("spZDesc").trim() },
-      before = { name: z.name, spaceType: z.spaceType || "", facade: z.facade || "", description: z.description || "" };
+    const next = pending?.next || spZoneFormValues(z),
+      before = spZoneSaved(z);
     if (JSON.stringify(next) === JSON.stringify(before)) {
       U.spFormDirty = false;
       return msg("没有修改");
@@ -29489,6 +29718,17 @@ defineActions({
     render();
     msg("功能区已保存");
   }),
+  // 取消：表单恢复为已保存的资料，焦点留在“保存修改”（“取消”随之不可用）。
+  spZoneRevert: (a) => {
+    const z = g("zones", a.id);
+    if (!z || !$("#spZName")) return;
+    const s = spZoneSaved(z);
+    $("#spZName").value = s.name;
+    $("#spZDesc").value = s.description;
+    for (const [id, v] of [["spZType", s.spaceType], ["spZFacade", s.facade]]) if ($("#" + id) && value(id) !== v) actions.selectValue({ field: id, value: v });
+    spZoneSync();
+    $(".sp-zform-actions [data-act=spZoneSave]")?.focus({ preventScroll: true });
+  },
   spZoneSaveGo: withPolicy({ busy: "modal" }, async () => {
     const p = U.pendingZone;
     if (!p) return closeModal(true);
@@ -29956,6 +30196,12 @@ async function openPlanImport(bid, fid, file) {
   piRender();
 }
 // 生成底图：PDF 按长边约 4000 像素渲染（不超过 1600 万像素），图片未旋转、未裁剪时保留原图。
+// 图纸弹窗的状态行：进度与结果为 status 文字；失败时换成一条错误提示（alert），状态行本身不再朗读，同一句不读两遍（合并细节第 9 条）。
+function piInfoSet(el, text, error = false) {
+  if (!el) return;
+  if (error) { el.removeAttribute("role"); el.innerHTML = wsNotice(text, "error"); }
+  else { el.setAttribute("role", "status"); el.textContent = text; }
+}
 async function piRender() {
   const pi = U.pi;
   if (!pi || !pi.page || pi.saving) return;
@@ -29964,7 +30210,7 @@ async function piRender() {
   pi.trim = !!$("#piTrim")?.checked;
   pi.out = null;
   piSaveState(pi);
-  if (info) info.textContent = "正在生成预览…";
+  piInfoSet(info, "正在生成预览…");
   try {
     let canvas;
     if (pi.kind === "pdf") {
@@ -30009,10 +30255,10 @@ async function piRender() {
     if (U.pi !== pi || pi.renderToken !== token) return;
     const box = $("#piPreview");
     if (box) box.innerHTML = `<img src="${pi.out.image}" alt="底图预览">`;
-    if (info) info.textContent = `生成底图 ${pi.out.width} × ${pi.out.height} px${pi.rotation ? ` · 旋转 ${pi.rotation}°` : ""}${pi.trim ? " · 已裁去空白" : ""}`;
+    piInfoSet(info, `生成底图 ${pi.out.width} × ${pi.out.height} px${pi.rotation ? ` · 旋转 ${pi.rotation}°` : ""}${pi.trim ? " · 已裁去空白" : ""}`);
     piSaveState(pi);
   } catch (e) {
-    if (U.pi === pi && pi.renderToken === token && info) info.innerHTML = wsNotice("无法生成底图：" + esc(e.message || e) + "；原图纸未更改", "error");
+    if (U.pi === pi && pi.renderToken === token) piInfoSet(info, "无法生成底图：" + esc(e.message || e) + "；原图纸未更改", true);
   }
 }
 defineActions({
@@ -30025,6 +30271,7 @@ defineActions({
       b.classList.toggle("on", on);
       b.setAttribute("aria-selected", on);
     });
+    tabRoving(document.querySelector("[data-act=piRot]")?.parentElement);
     piRender();
   },
   piCancel: () => closeModal(),
@@ -30041,7 +30288,7 @@ defineActions({
     const out = { ...pi.out }, request = { fid: pi.fid, page: pi.page, pages: pi.pages, rotation: pi.rotation, trim: pi.trim, renderScale: pi.renderScale, version: pi.planVersion };
     pi.saving = true;
     const dlg = $("#dlg"); wsSetBusy(dlg, true);
-    if ($("#piInfo")) $("#piInfo").textContent = "正在保存图纸…请等待结果。";
+    piInfoSet($("#piInfo"), "正在保存图纸…请等待结果。");
     try {
       const sha = await sha256Hex(pi.bytes), source = {
         fileName: pi.file.name, fileType: pi.kind, fileSize: pi.file.size, sha256: sha,
@@ -30070,7 +30317,8 @@ defineActions({
       const pw = planWord(f?.buildingId), hasZones = !!f && data().zones.some((z) => z.floorId === f.id);
       msg(f?.planReview ? `已更换为 v${f.planVersion}，请完成换图复核` : had ? `${pw}已更换为 v${f.planVersion}` : isOutdoor(f?.buildingId) ? `总平面图已保存，请校准比例尺并${hasZones ? "核对" : "划分"}功能区` : `${f?.name || ""} 楼层图已保存，请校准比例尺并${hasZones ? "核对" : "划分"}功能区`);
     } catch (e) {
-      if (U.pi === pi && $("#piInfo")) $("#piInfo").innerHTML = wsNotice(esc(e.message || e) + "；保留本次底图和选项。", "error");
+      // 原因已写在状态行：不再在底部错误区重复一遍（原先两处各写一遍，都朗读为 alert）。
+      if (U.pi === pi && $("#piInfo")) { piInfoSet($("#piInfo"), esc(e.message || e) + "；保留本次底图和选项。", true); throw Object.assign(e instanceof Error ? e : Error(String(e)), { inline: true }); }
       throw e;
     } finally { pi.saving = false; if (dlg?.isConnected) wsSetBusy(dlg, false); }
   },
@@ -30231,15 +30479,21 @@ function buState() {
 }
 const buLabel = (it) => `${it.file.name}${it.page ? " 第 " + it.page + " 页" : ""}`;
 const buFloorOptions = (bid) => [["", "选择楼层 / 跳过"], ...sortedFloors(bid).map((x) => [x.id, x.name + (x.image ? " · 已有图纸" : "")])];
+// 与本行对应同一楼层的其他行，写成“第 2、5 行”（行号按列表顺序，含无法导入的行）。
+const buSameFloorRows = (it) => (it.floorId ? U.bu.items.map((x, i) => (x !== it && !x.error && x.floorId === it.floorId ? i + 1 : 0)).filter(Boolean) : []);
 function buRow(it, st) {
   const f = it.floorId ? g("floors", it.floorId) : null,
     edit = !it.error && !U.bu.done,
+    same = buSameFloorRows(it),
+    // 未勾选的行也写明原因（2026-10-05 核查 U4 与合并细节第 6 条：原先两行识别为同一楼层时都不勾选，说明只写“文件名识别：RF”）。
     note = it.error
       ? `<span class="crit">无法导入：${esc(it.error)}</span>`
       : st.conflicts.has(it.key)
-        ? `<span class="warn">与其他行对应同一楼层 ${esc(f?.name || "")}，只能保留一行</span>`
+        ? `<span class="warn">与第 ${same.join("、")} 行对应同一楼层 ${esc(f?.name || "")}，只能保留一行</span>`
         : it.include && !it.floorId
           ? `<span class="warn">请选择楼层</span>`
+          : !it.include && same.length && !U.bu.done
+            ? `<span class="warn">与第 ${same.join("、")} 行对应同一楼层 ${esc(f?.name || "")}，未默认勾选；同一楼层只能勾选一行</span>`
           : f?.image
             ? `<span class="warn">将更换现有图纸 v${f.planVersion || 1}${data().zones.some((z) => z.floorId === f.id) || data().points.some((p) => p.floorId === f.id) ? "，保存后进入换图复核" : ""}</span>`
             : esc(it.floorId && it.seq ? "按顺序对应，可修改" : it.match?.reason || "");
@@ -30642,12 +30896,12 @@ function zcShow() {
     body = `${fld("源楼层", "zcSrc", select("zcSrc", zcSources(d.bid).map((f) => [f.id, `${f.name} · ${zcZonesOf(f.id).length} 个功能区`]), d.src, "源楼层"))}<fieldset class="ws-checks zc-zones"><legend>复制的功能区（<span id="zcZoneCount">已选 ${d.zones.length} / ${zs.length}</span>）</legend><div class="zc-zone-tools"><div class="ws-search">${ico("search", "ic16")}<input id="zcZoneQuery" value="${esc(d.q || "")}" placeholder="搜索功能区" aria-label="搜索要复制的功能区"></div>${btn("全选", "zcAll", { on: "1" }, "sm")}${btn("全不选", "zcAll", { on: "" }, "sm")}</div>${zs
       .map((z) => `<label data-zc-name="${esc(z.name.toLowerCase())}" ${q && !z.name.toLowerCase().includes(q) ? "hidden" : ""}><input type="checkbox" name="zcZone" value="${z.id}" ${d.zones.includes(z.id) ? "checked" : ""}>${esc(z.name)}<small class="muted">${esc(z.spaceType || "未设类型")}</small></label>`)
       .join("")}</fieldset>${note("只复制功能区（名称、类型、采光面、说明与形状），不复制图纸；各楼层图纸需是同一底图对齐的平面，否则位置会偏移。")}`;
-    foot = btn("取消", "close") + btn("下一步", "zcNext", {}, "primary");
+    foot = `<span class="bu-why" id="zcWhy"></span><span class="sp"></span>` + btn("取消", "close") + btn("下一步", "zcNext", {}, "primary");
   } else if (d.step === 2) {
     const fs = sortedFloors(d.bid).filter((x) => x.id !== d.src), ok = fs.filter((x) => x.image), no = fs.filter((x) => !x.image), same = ok.filter((x) => zcSameSize(src, x));
     const row = (x) => `<label><input type="checkbox" name="zcFloor" value="${x.id}" ${d.targets.includes(x.id) ? "checked" : ""}>${esc(x.name)}<small>${zcZonesOf(x.id).length} 个功能区 · ${F.floorMeters(x) ? "比例尺已校准" : "比例尺未校准"}${zcSameSize(src, x) ? " · 图纸尺寸与源层相同" : ""}</small></label>`;
     body = `${no.length ? `<div class="zc-upload">${btn("上传楼层图", "zcUpload", {}, "sm")}<small class="muted">没有楼层图的楼层不能作为目标。可一次上传一层或多层，完成后回到这里，已选内容保留。</small></div>` : ""}<fieldset class="ws-checks ws-floor-checks zc-floors"><legend>目标楼层（<span id="zcFloorCount">已选 ${d.targets.length}</span>）</legend>${ok.length > 1 ? `<div class="zc-zone-tools zc-floor-tools">${btn("全选", "zcFloorAll", { on: "1" }, "sm")}${btn("全不选", "zcFloorAll", { on: "" }, "sm")}${same.length && same.length < ok.length ? btn(`选择图纸尺寸相同的楼层（${same.length}）`, "zcFloorAll", { on: "1", same: "1" }, "sm") : ""}</div>` : ""}${ok.map(row).join("") || '<p class="muted small">没有可选的目标楼层：其他楼层都尚未上传楼层图。</p>'}</fieldset>${ok.length ? '<p class="muted small ws-shift-tip">按住 Shift 点选可连续选择。</p>' : ""}${no.length ? `<details class="ws-details zc-unavailable"><summary>未上传楼层图 ${no.length} 个</summary><p class="muted small">${esc(floorNames(no.map((x) => x.name)))}：没有楼层图，功能区无处放置；上传楼层图后可选。</p></details>` : ""}`;
-    foot = btn("取消", "close") + btn("上一步", "zcPrev") + btn("下一步", "zcNext", {}, "primary");
+    foot = `<span class="bu-why" id="zcWhy"></span><span class="sp"></span>` + btn("取消", "close") + btn("上一步", "zcPrev") + btn("下一步", "zcNext", {}, "primary");
   } else if (d.step === 3) {
     const can = zcCalibrated(src) && d.targets.some((id) => zcSameSize(src, g("floors", id)));
     if (!can) d.scale = false;
@@ -30673,6 +30927,19 @@ function zcShow() {
   // 确认步骤：Esc 等同“返回修改”，保留已选内容（与清空范围确认一致；处理中仍不能关闭）。
   if (d.step === 4 && $("#dlg")) $("#dlg").dataset.backTo = "zc";
   zcPreview();
+}
+// 没有有效选择时“下一步”不可用，底部写原因（2026-10-05 核查合并细节第 5 条）；第 2 步的“上传楼层图”保留。
+function zcNextReason(d) {
+  if (d.step === 1) return checked("zcZone").length ? "" : "请至少选择一个功能区";
+  if (d.step === 2 && !checked("zcFloor").length) return sortedFloors(d.bid).some((x) => x.image && x.id !== d.src) ? "请至少选择一个目标楼层" : "没有可选的目标楼层：请先上传目标楼层图";
+  return "";
+}
+function zcNextState(d) {
+  const nx = $("#dlg [data-act=zcNext]");
+  if (!nx || !$("#zcForm")) return;
+  const why = zcNextReason(d);
+  nx.disabled = !!why;
+  if ($("#zcWhy")) $("#zcWhy").textContent = why;
 }
 // 读入当前步骤的选择。
 function zcCollect() {
@@ -30704,6 +30971,7 @@ function zcPreview() {
   if (!d || !form) return;
   if ($("#zcZoneCount")) $("#zcZoneCount").textContent = `已选 ${checked("zcZone").length} / ${document.querySelectorAll("input[name=zcZone]").length}`;
   if ($("#zcFloorCount")) $("#zcFloorCount").textContent = `已选 ${checked("zcFloor").length}`;
+  zcNextState(d);
   const box = $("#zcPreview");
   if (!box) return;
   const renumber = !!$("#zcRenumber")?.checked, src = g("floors", d.src), clone = M.copy(data()),
@@ -30733,7 +31001,7 @@ async function zcRun(list) {
   wsSetBusy(dlg, true);
   try { for (const [index, r] of list.entries()) {
     const box = $("#zcProgress");
-    if (box) box.innerHTML = wsNotice(`正在复制 ${index + 1}/${list.length} · ${esc(g("floors", r.id)?.name || "")}`);
+    if (box) box.innerHTML = wsNotice(`正在复制 ${index + 1}/${list.length} · ${esc(g("floors", r.id)?.name || "")}`, "info", false);
     try {
       let res, cal = [];
       await transaction((db) => {
@@ -31257,6 +31525,26 @@ async function reportPlanJpeg(src) {
     return null;
   }
 }
+// PDF 报告换行的最小单位（2026-10-05 核查合并细节第 11 条）：中文逐字；英文、数字与型号（如 PE-N60AA42、E-7F-MS20-03）整体；
+// 左括号、左引号连同其后的字，右括号、右引号与顿号、逗号、句号等连同其前的字，不拆在两行（如“（46）”不拆成“（”与“46）”）。
+const PDF_WRAP_TOKEN = /[（“‘《【「]*(?:[A-Za-z0-9][\w\-.%/:]*|[^])[）”’》】」、，。；：！？]*/gu;
+// PDF 表格列宽（合并细节第 11 条：原先楼层表“部署范围”列只占 11%，“不在本次范围”每行折成两行，第 1 页只放下表头与一行）。
+// need 为各列内容不换行所需的宽度，weights 为各列原比例，total 为版心宽度。都放得下时各列取所需宽度，剩余宽度按比例分配；
+// 放不下时，所需宽度不超过按比例所得的列取所需宽度，其余宽度按比例分给需要换行的列（不窄于原比例）。
+function pdfColumnWidths(need, weights, total) {
+  const sum = (a) => a.reduce((n, x) => n + x, 0),
+    all = sum(need);
+  if (all <= total) return need.map((x, i) => x + ((total - all) * weights[i]) / sum(weights));
+  const fixed = new Set();
+  for (;;) {
+    const rest = weights.map((_, i) => i).filter((i) => !fixed.has(i)),
+      free = total - sum([...fixed].map((i) => need[i])),
+      sw = sum(rest.map((i) => weights[i])),
+      fit = rest.filter((i) => need[i] <= (free * weights[i]) / sw);
+    if (!fit.length || fit.length === rest.length) return weights.map((w, i) => (fixed.has(i) ? need[i] : (free * w) / sw));
+    fit.forEach((i) => fixed.add(i));
+  }
+}
 async function buildReportPdf(rep, snap) {
   const G = await loadPdfGen(),
     { PDFDocument, rgb } = G.PDFLib;
@@ -31323,7 +31611,7 @@ async function buildReportPdf(rep, snap) {
     },
     tw = (s, size) => font.widthOfTextAtSize(s, size),
     text = (s, x, top, size, color = C.text) => s && page.drawText(s, { x, y: PH - top - size * 0.88, size, font, color }),
-    // 换行：中文逐字；英文、数字与型号（如 PE-N60AA42、E-7F-MS20-03）整体换到下一行，比一行还长时才逐字断开
+    // 换行：按 PDF_WRAP_TOKEN 的单位整体换到下一行，比一行还长时才逐字断开
     wrap = (s, size, maxW) => {
       const out = [];
       for (const para of String(s).split("\n")) {
@@ -31339,7 +31627,7 @@ async function buildReportPdf(rep, snap) {
             w += pw;
           }
         };
-        for (const tok of para.match(/[A-Za-z0-9][\w\-.%/:]*|[^]/gu) || []) {
+        for (const tok of para.match(PDF_WRAP_TOKEN) || []) {
           const pw = tw(tok, size);
           if (tok.length > 1 && pw > maxW) for (const ch of tok) put(ch, tw(ch, size));
           else put(tok, pw);
@@ -31355,19 +31643,46 @@ async function buildReportPdf(rep, snap) {
         y += lh;
       }
     };
-  const table = (b) => {
+  // 表格（合并细节第 11 条）。列宽见 pdfColumnWidths。
+  // 分页：不足 5 行的短表整表放在同一页；较长的表开头连同表头至少 3 行放得下才在本页开始，续页至少 2 行，续页重复表头；
+  // 表后紧接的注释（灰色说明段，如部署数量摘要后的“已绑定指…”）与表的最后几行放在同一页。
+  const TB = { size: 9, lh: 13, pad: 5, keep: 3, tail: 2 },
+    tbRowH = (lines) => Math.max(...lines.map((l) => l.length)) * TB.lh + TB.pad * 2 - 4,
+    tbNeed = new Map(),
+    tbWidths = (b) => {
+      if (!tbNeed.has(b))
+        tbNeed.set(
+          b,
+          b.cols.map((c, i) => {
+            let m = 0;
+            for (const s of [c[0], ...b.rows.map((r) => r[i])]) for (const ln of String(s ?? "").split("\n")) m = Math.max(m, tw(ln, TB.size));
+            return m + TB.pad * 2 + 1;
+          }),
+        );
+      return pdfColumnWidths(
+        tbNeed.get(b),
+        b.cols.map((c) => c[1]),
+        CW,
+      );
+    },
+    tbLines = (b, ws, row) => row.map((cell, i) => wrap(cell, TB.size, ws[i] - TB.pad * 2)),
+    // 开始一张表需要的高度：表头连同前 3 行；短表为整表连同表后的注释（after）
+    tbStartH = (b, after = 0) => {
+      const ws = tbWidths(b),
+        short = b.rows.length < TB.keep + TB.tail;
+      return [b.cols.map((c) => c[0]), ...b.rows.slice(0, short ? b.rows.length : TB.keep)].reduce((h, row) => h + tbRowH(tbLines(b, ws, row)), short ? after : 0);
+    };
+  const table = (b, after = 0) => {
     let ws, xs;
-    const size = 9,
-      lh = 13,
-      pad = 5,
+    const { size, lh, pad } = TB,
       // 列宽按当前页的版心计算；续页换了方向时重新计算
       geom = () => {
-        ws = b.cols.map((c) => c[1] * CW);
+        ws = tbWidths(b);
         xs = ws.map((_, i) => ML + ws.slice(0, i).reduce((n, w) => n + w, 0));
       },
-      cellLines = (row) => row.map((cell, i) => wrap(cell, size, ws[i] - pad * 2)),
+      cellLines = (row) => tbLines(b, ws, row),
       drawRow = (lines, fill, color) => {
-        const h = Math.max(...lines.map((l) => l.length)) * lh + pad * 2 - 4;
+        const h = tbRowH(lines);
         if (fill) page.drawRectangle({ x: ML, y: PH - y - h, width: CW, height: h, color: fill });
         lines.forEach((ls, i) =>
           ls.forEach((ln, j) => {
@@ -31381,17 +31696,20 @@ async function buildReportPdf(rep, snap) {
       heading = () => cellLines(b.cols.map((c) => c[0]));
     geom();
     let head = heading();
-    const headH = Math.max(...head.map((l) => l.length)) * lh + pad * 2 - 4;
-    if (y + headH + lh + pad * 2 > PH - MB) {
+    if (y > MT && y + tbStartH(b, after) > PH - MB) {
       newPage();
       geom();
       head = heading();
     }
     drawRow(head, C.head, C.muted);
+    let onPage = 0;
+    const n = b.rows.length;
     b.rows.forEach((row, ri) => {
       let lines = cellLines(row),
-        h = Math.max(...lines.map((l) => l.length)) * lh + pad * 2 - 4;
-      if (y + h > PH - MB) {
+        h = tbRowH(lines);
+      // 最后一行不单独续到下一页：本页已有至少 3 行、最后 2 行（连同表后的注释）放不下时，这 2 行一起换页
+      const brk = y + h > PH - MB || (n >= TB.keep + TB.tail && n - ri === TB.tail && onPage >= TB.keep && y + h + tbRowH(cellLines(b.rows[ri + 1])) + after > PH - MB);
+      if (brk) {
         const was = CW;
         newPage();
         if (CW !== was) {
@@ -31400,8 +31718,10 @@ async function buildReportPdf(rep, snap) {
           lines = cellLines(row);
         }
         drawRow(head, C.head, C.muted);
+        onPage = 0;
       }
       drawRow(lines, b.total && ri === b.rows.length - 1 ? C.head : null, C.text);
+      onPage++;
     });
     y += 10;
   };
@@ -31486,12 +31806,18 @@ async function buildReportPdf(rep, snap) {
     y = top + h + 12;
   };
   newPage();
-  // 标题不单独留在页尾：连同其后的一段说明与下一块的开头（表头与第一行、下级标题或首行）一起放不下时换页
+  const LIST_KEEP = 240,
+    listH = (b) => b.items.reduce((h, it) => h + wrap(it, 10, CW - 12).length * 16, 0) + 6,
+    // 第 k 块为表后的注释（灰色说明段）时它的高度
+    noteH = (k) => (R.blocks[k - 1]?.t === "table" && R.blocks[k]?.t === "p" && R.blocks[k].muted ? wrap(R.blocks[k].text, 10, CW).length * 16 + 6 : 0);
+  // 标题不单独留在页尾：连同其后的一段说明与下一块的开头（表格按开始一张表需要的高度、下级标题连同它的下一块、
+  // 较短的列表整个列表）一起放不下时换页
   const keep = (i) => {
     let h = 0;
-    for (const n of R.blocks.slice(i + 1, i + 3)) {
-      if (n.t === "p") h += 22;
-      else return h + (n.t === "table" ? 52 : n.t === "h3" ? 60 : n.t === "kv" || n.t === "list" ? 34 : 0);
+    for (const [j, n] of R.blocks.slice(i + 1, i + 3).entries()) {
+      if (n.t === "p") h += wrap(n.text, 10, CW).length * 16 + 6;
+      else if (n.t === "h3") return h + Math.max(60, 24 + keep(i + 1 + j));
+      else return h + (n.t === "table" ? tbStartH(n, noteH(i + 2 + j)) : n.t === "list" ? (listH(n) <= LIST_KEEP ? listH(n) : 34) : n.t === "kv" ? 34 : 0);
     }
     return h;
   };
@@ -31527,8 +31853,11 @@ async function buildReportPdf(rep, snap) {
       para(b.text, 10, b.muted ? C.muted : C.text);
       y += 6;
     } else if (b.t === "list") {
+      // 较短的列表（如报告末尾的“说明”）不拆开，放不下时整个换页；较长的列表逐条换页，一条不拆在两页
+      if (listH(b) <= LIST_KEEP) ensure(listH(b));
       for (const it of b.items) {
         const ls = wrap(it, 10, CW - 12);
+        if (ls.length * 16 <= LIST_KEEP) ensure(ls.length * 16);
         ls.forEach((ln, i) => {
           ensure(16);
           if (!i) text("·", ML + 2, y + 3, 10, C.muted);
@@ -31576,7 +31905,7 @@ async function buildReportPdf(rep, snap) {
         x += tw(it.text, size) + 14;
       }
       y += lh + 8;
-    } else if (b.t === "table") table(b);
+    } else if (b.t === "table") table(b, noteH(i + 1));
     else if (b.t === "pagebreak") {
       // portrait：只在当前为横向页时换页；fit：按该楼层图的宽高决定新页的方向
       if (b.portrait) {
@@ -31846,6 +32175,8 @@ document.addEventListener("change", (e) => {
   if (go) go.textContent = outdoor ? "创建室外区域" : "创建楼宇";
   // 弹窗的读屏名称随标题改写（第 8 步 F2g）；编辑时标题由 modal() 按对象类型给出，aria-label 与之相同。
   dlg?.querySelector(".dialog")?.setAttribute("aria-label", outdoor ? "创建室外区域" : "创建楼宇");
+  // 地图位置的读屏名称同样随类型改写（2026-10-05 核查 S8：原先室外区域仍读“楼宇位置”）。
+  dlg?.querySelector(".ws-loc-mode")?.setAttribute("aria-label", outdoor ? "室外区域位置" : "楼宇位置");
 });
 
 /* Shared, scope-aware deployment interactions. Execution remains gated on real services. */
@@ -31914,6 +32245,7 @@ const STATE_TONE = {
     "待同步（规划已更新）",
     "待确认",
     "现场改动待确认",
+    "待绑定（被现场复位）",
   ],
   crit: ["同步失败", "失败", "离线", "未通过", "不达标", "无应答"],
 };
@@ -32051,8 +32383,8 @@ function inventoryView() {
     cx = F.index(db),
     all = F.inventory(db, U),
     mesh = all.filter((p) => ["mesh", "gateway"].includes(M.access(p))),
-    pending = mesh.filter((p) => !M.bound(p)),
-    bound = all.filter(F.isConnected),
+    pending = mesh.filter((p) => !F.boundNow(p)),
+    bound = all.filter(F.connectedNow),
     needs = all.filter((p) => needsAttention(db, p)),
     f = devFilter(),
     ps = all.filter(
@@ -32227,7 +32559,7 @@ function renderInventory() {
       btn("在图上查看", "locatePoint", { id: p.id }, "ghost sm"),
     ]),
     all.length ? "没有匹配的设备" : "尚未标记设备；从“设备标记”选择楼层开始。",
-  )}${devPager(n, pages, ps.length)}${note("需处理优先，其次按楼宇、楼层和编号排列；结果跨多个楼层时按楼层分组，每页 200 台；“需处理”含通信离线的设备。待绑定只统计网关与 Mesh 点位；第三方系统按接入状态单独记录。")}`;
+  )}${devPager(n, pages, ps.length)}${note("需处理优先，其次按楼宇、楼层和编号排列；结果跨多个楼层时按楼层分组，每页 200 台；“需处理”含通信离线的设备。待绑定只统计网关与 Mesh 点位，含被现场复位、需要补绑的设备；第三方系统按接入状态单独记录。")}`;
 }
 function renderNetworkList() {
   const ns = F.scopedNetworks(data(), U);
@@ -32424,14 +32756,15 @@ function networkHealth(n) {
     records = db.healthRecords.filter((h) => h.networkId === n.id).sort((a, b) => String(b.at).localeCompare(String(a.at))),
     last = F.latestHealth(db, n.id),
     full = F.latestHealth(db, n.id, true),
-    bound = F.meshPoints(db, n.id).filter(M.bound),
+    bound = F.meshPoints(db, n.id).filter(F.boundNow),
+    reset = F.meshPoints(db, n.id).filter((p) => M.bound(p) && p.fieldReset).length,
     block = healthBlock(db, n);
   return `<div class="ws-section-toolbar"><p class="muted">先调试网关附近的设备，再做全网体检。${block ? " " + esc(block) + "。" : ""}</p><div class="row">${
     canEdit()
       ? btn("小范围体检", "healthForm", { id: n.id, scope: "near" }) + btn("全网体检", "healthForm", { id: n.id, scope: "all" })
       : ""
   }</div></div>${stats([
-    ["已绑定节点", bound.length],
+    ["已绑定节点", bound.length, reset ? `被现场复位 ${reset} 台不参与` : ""],
     [
       "最近全网结果",
       full ? (full.passed ? "通过" : "未通过") : "未体检",
@@ -32608,7 +32941,7 @@ function renderGroups() {
     rows = (gs) =>
       gs.map((group) => {
         const ps = group.pointIds.map((id) => g("points", id)).filter(Boolean),
-          bound = ps.filter(M.bound),
+          bound = ps.filter(F.boundNow),
           applied = bound.filter((p) => F.syncState(data(), p) === "已同步");
         return [
           btn(esc(group.name), "groupDetail", { id: group.id }, "ghost flow-lk"),
@@ -32804,7 +33137,7 @@ function renderPlanningPanel(n) {
   } else if (U.mode === "zones" || (U.page === "devices" && U.zone && g("zones", U.zone) && ["mark", "view"].includes(U.mode) && !U.type)) body = renderZonePanel();
   else if (U.mode === "relations") body = renderCircuitTools();
   else if (U.mode === "roles")
-    body = `<h3 class="mk-title">网络角色</h3>${(n ? F.roleChecks(data(), n).filter((x) => !x.floorId || x.floorId === U.f) : []).map((r) => `<p class="flow-check ${r.level}">${ico(r.level === "warning" ? "alert" : "eye", "ic16")}<span>${r.text}</span></p>`).join("")}<div class="mk-actions">${n ? btn("自动规划建议", "suggestRoles", { id: n.id }, "sm") : ""}${btn("设置比例尺", "scale", {}, "ghost sm")}</div>`;
+    body = `<h3 class="mk-title">网络角色</h3>${(n ? F.roleChecks(data(), n).filter((x) => !x.floorId || x.floorId === U.f) : []).map((r) => `<p class="flow-check ${r.level}">${ico(r.level === "warning" ? "alert" : "eye", "ic16")}<span>${r.text}</span></p>`).join("")}<div class="mk-actions">${n && canEdit() ? btn("自动规划建议", "suggestRoles", { id: n.id }, "sm") : ""}${canEdit() ? btn("设置比例尺", "scale", {}, "ghost sm") : ""}</div>`;
   else if (U.mode === "health")
     body = `<h3 class="mk-title">体检结果</h3><div class="flow-legend"><span><i></i>达标</span><span><i class="warn"></i>需处理</span><span><i class="unknown"></i>未检测</span></div><p class="mk-lead">只显示当前网络版本的实际测试结果；未检测不算通过。</p><div class="mk-actions">${n ? btn("测试范围与记录", "healthInfo", { id: n.id }, "sm") : ""}</div>`;
   else if (U.mode === "view")
@@ -32817,7 +33150,7 @@ function networkContext(n, f) {
   return `<div class="ws-network-context mk-net">${
     n
       ? `<button class="ws-network-name" data-act="chooseNetwork" aria-label="切换设备网络"><span><small>设备网络</small><b>${esc(n.name)}</b></span>${ico("chevron", "ic16")}</button><span class="mk-net-state">${F.networkState(data(), n)}${F.changeSinceDelivery?.(data(), n) ? ` · v${F.changeSinceDelivery(data(), n).deliveredVersion} 已交付，有待交付变更` : ""}</span>`
-      : `<span><small>设备网络</small><b class="muted">尚未规划</b></span>${btn(isOutdoor(f.buildingId) ? "规划设备网络" : "规划本层网络", "networkForm", { floor: f.id }, "sm")}`
+      : `<span><small>设备网络</small><b class="muted">尚未规划</b></span>${canEdit() && U.mode !== "view" ? btn(isOutdoor(f.buildingId) ? "规划设备网络" : "规划本层网络", "networkForm", { floor: f.id }, "sm") : ""}`
   }</div>`;
 }
 function pointProperties(p, n) {
@@ -32951,7 +33284,12 @@ function showBindingPreparation(nid) {
       ["范围", esc(n.floorIds.map(where).join("；"))],
       ["网络版本", "v" + n.version],
       ["网关", gw ? `${esc(gw.name)} · ${M.bound(gw) ? "已绑定" : "待绑定"}` : "未标记"],
-      ["待绑定点位", ps.filter((p) => !M.bound(p)).length + " 个"],
+      [
+        "待绑定点位",
+        ps.filter((p) => !F.boundNow(p)).length +
+          " 个" +
+          (ps.some((p) => M.bound(p) && p.fieldReset) ? `（含被现场复位 ${ps.filter((p) => M.bound(p) && p.fieldReset).length} 台）` : ""),
+      ],
       ["部署包", pk.text],
       ["安装资料", installEntry(n.id)],
     ])}${note("部署 App 在现场完成设备身份确认、绑定、配置与局部测试，绑定回执、测试记录与现场改动上传到 Station；Station 核对这些记录、做全网体检并交付，由配置进度给出下一步。")}${
@@ -33187,7 +33525,7 @@ function batchPreview() {
   try {
     plan = F.batchPlan(data(), U.batch.ids, batchRead());
   } catch (e) {
-    box.innerHTML = wsNotice(esc(e.message), "warning");
+    box.innerHTML = wsNotice(esc(e.message), "warning", false);
     return;
   }
   if (!Object.keys(plan.changes).length) {
@@ -33195,7 +33533,7 @@ function batchPreview() {
     return;
   }
   if (!plan.rows.length) {
-    box.innerHTML = wsNotice(`所选的 ${plan.same.length} 台 LC20 都与新值相同，没有需要保存的修改。`);
+    box.innerHTML = wsNotice(`所选的 ${plan.same.length} 台 LC20 都与新值相同，没有需要保存的修改。`, "info", false);
     return;
   }
   const bound = plan.rows.filter((r) => r.bound).length,
@@ -33279,7 +33617,7 @@ function showHealthForm(nid, scope = "all", draftId) {
     near = new Set(
       gw
         ? ps
-            .filter((p) => M.bound(p) && p.floorId === gw.floorId)
+            .filter((p) => F.boundNow(p) && p.floorId === gw.floorId)
             .sort((a, b) => Math.hypot(a.x - gw.x, a.y - gw.y) - Math.hypot(b.x - gw.x, b.y - gw.y))
             .slice(0, 6)
             .map((p) => p.id)
@@ -33293,7 +33631,7 @@ function showHealthForm(nid, scope = "all", draftId) {
     `${infoRows([
       ["设备网络", n.name],
       ["网络版本", "v" + n.version],
-      ["可检测节点", ps.filter(M.bound).length + " 台已绑定（待绑定点位不参与）"],
+      ["可检测节点", ps.filter(F.boundNow).length + ` 台已绑定（待绑定点位${ps.some((p) => M.bound(p) && p.fieldReset) ? "与被现场复位的设备" : ""}不参与）`],
     ])}${fld(
       "检测范围",
       "healthScope",
@@ -33307,7 +33645,7 @@ function showHealthForm(nid, scope = "all", draftId) {
         old?.scope || scope,
         "检测范围",
       ),
-    )}<fieldset class="ws-checks flow-scroll-list"><legend>参与设备（局部检测时选择；已预选网关附近 ${near.size} 台）</legend>${ps.map((p) => `<label><input name="healthPoints" type="checkbox" value="${p.id}" ${pre.includes(p.id) ? "checked" : ""} ${M.bound(p) ? "" : "disabled"}>${esc(p.name)} · ${M.bound(p) ? "已绑定" : "待绑定"}</label>`).join("") || '<p class="muted">尚无设备点位，可先标记设备。</p>'}</fieldset>${block ? `<div class="mk-gate">${ico("alert", "ic16")}<span><b>现在不能开始检测：</b>${esc(block)}。可以先保存检测范围。</span></div>` : ""}${
+    )}<fieldset class="ws-checks flow-scroll-list"><legend>参与设备（局部检测时选择；已预选网关附近 ${near.size} 台）</legend>${ps.map((p) => `<label><input name="healthPoints" type="checkbox" value="${p.id}" ${pre.includes(p.id) ? "checked" : ""} ${F.boundNow(p) ? "" : "disabled"}>${esc(p.name)} · ${F.bindingLabel(p)}</label>`).join("") || '<p class="muted">尚无设备点位，可先标记设备。</p>'}</fieldset>${block ? `<div class="mk-gate">${ico("alert", "ic16")}<span><b>现在不能开始检测：</b>${esc(block)}。可以先保存检测范围。</span></div>` : ""}${
       // 用最终交付配置做全网体检（2026-10-05 核查 P13）：代理未关时提示，不阻止调试用的体检
       proxies ? wsNotice(`还有 ${proxies} 台部署期代理开启。交付前须关闭，关闭会形成新的网络版本；用于交付的全网体检请在关闭之后进行。`, "warning") : ""
     }${note("全网范围自动覆盖全部已绑定节点。预计时长按节点数估算（150 台约 8–10 分钟）；检测期间占用部分空口，与固件升级、批量配置互斥；离开页面不中断。通过标准来自参数模板：每个节点都应答，到达率不低于 99%。")}${simNote()}`,
@@ -33682,7 +34020,7 @@ function renderFirmware() {
   return `<div class="ws-section-toolbar"><p class="muted">按型号与硬件版本筛选；一次一个型号，无人时段执行。</p>${canEdit() ? btn("新建升级任务", "firmwareGuide") : ""}</div>${table(
     ["型号", "#已绑定设备", "实际版本分布", "可用目标版本", "#低于最新发布"],
     types.map((type) => {
-      const ps = scopePoints().filter((p) => p.type === type && M.access(p) === "mesh" && M.bound(p)),
+      const ps = scopePoints().filter((p) => p.type === type && M.access(p) === "mesh" && F.boundNow(p)),
         dist = {},
         releases = fwReleases(type),
         latest = releases.map((r) => r.version).sort((a, b) => b.localeCompare(a, "en", { numeric: true }))[0];
@@ -33737,7 +34075,7 @@ function showFirmware(step = 0, id) {
     ns = F.scopedNetworks(db, U);
   const targets = (nid) =>
     F.meshPoints(db, nid).filter(
-      (p) => p.type === d.type && M.bound(p) && (!rel || (p.firmwareVersion || "").localeCompare(rel.version, "en", { numeric: true }) < 0),
+      (p) => p.type === d.type && F.boundNow(p) && (!rel || (p.firmwareVersion || "").localeCompare(rel.version, "en", { numeric: true }) < 0),
     );
   let body = tabs(
     [
@@ -34057,7 +34395,7 @@ function showConfigurationList(id) {
         })),
     )}${note("App 与网关按同一份期望配置执行。旧版本回执保留在记录中，不会覆盖当前版本结果。失败项显示原因；重新下发仍须等待新回执。")}${simNote()}`,
     btn("关闭", "close") +
-      (canEdit() && F.meshPoints(data(), id).some((p) => M.bound(p) && F.syncState(data(), p) !== "已同步")
+      (canEdit() && F.meshPoints(data(), id).some((p) => F.boundNow(p) && F.syncState(data(), p) !== "已同步")
         ? execBtn("补齐待同步配置", "syncConfig", { id })
         : ""),
   );
@@ -34168,8 +34506,8 @@ function showGroupDetail(id) {
       ["管理方式", group.automatic ? "随功能区、回路或空间自动维护；不直接修改成员" : "自定义成员"],
     ])}${stats([
       ["计划", ps.length],
-      ["已绑定", ps.filter(M.bound).length],
-      ["已应用", ps.filter((p) => M.bound(p) && F.syncState(data(), p) === "已同步").length],
+      ["已绑定", ps.filter(F.boundNow).length],
+      ["已应用", ps.filter((p) => F.boundNow(p) && F.syncState(data(), p) === "已同步").length],
     ])}${table(
       ["设备网络", "计划", "已应用", "同步"],
       ns.map((id) => {
@@ -34763,7 +35101,7 @@ defineActions({
       t = F.nextTask(data(), n);
     if (t.action === "mark") actions.markNetwork(a);
     else if (t.action === "app") {
-      const pending = F.meshPoints(data(), n.id).filter((p) => !M.bound(p)),
+      const pending = F.meshPoints(data(), n.id).filter((p) => !F.boundNow(p)),
         reset = pending.filter((p) => p.fieldReset);
       if (!M.bound(F.gateway(data(), n.id))) showBindingPreparation(a.id);
       else if (reset.length === pending.length && reset.length) showMaintenance("remote", reset[0].id, n.id);
@@ -35254,7 +35592,7 @@ defineActions({
       db0 = data(),
       n = g("networks", s.networkId),
       scope = value("healthScope"),
-      ids = (scope === "all" ? F.meshPoints(db0, n.id).map((p) => p.id) : checked("healthPoints")).filter((id) => M.bound(g("points", id)));
+      ids = (scope === "all" ? F.meshPoints(db0, n.id).map((p) => p.id) : checked("healthPoints")).filter((id) => F.boundNow(g("points", id)));
     const block = healthBlock(db0, n);
     if (block) throw Error(block);
     if (!ids.length) throw Error("请选择已绑定的检测设备");
@@ -35296,7 +35634,7 @@ defineActions({
       off = 0,
       held = 0;
     await transaction((db) => {
-      for (const p of F.meshPoints(db, a.id).filter((p) => M.bound(p) && (!a.point || p.id === a.point))) {
+      for (const p of F.meshPoints(db, a.id).filter((p) => F.boundNow(p) && (!a.point || p.id === a.point))) {
         const d = F.desired(db, p.id);
         if (!d || F.syncState(db, p) === "已同步") continue;
         // 有待确认的现场改动：确认以哪方为准之前不按规划下发（2026-10-05 核查 H4）
@@ -35462,7 +35800,7 @@ defineActions({
           (p) =>
             d.networkIds.includes(p.networkId) &&
             p.type === d.type &&
-            M.bound(p) &&
+            F.boundNow(p) &&
             M.access(p) === "mesh" &&
             (p.firmwareVersion || "").localeCompare(rel.version, "en", { numeric: true }) < 0,
         )
@@ -35528,7 +35866,7 @@ defineActions({
         ...d,
         targetVersion: release?.version || "",
         pointIds: db.points
-          .filter((p) => d.networkIds.includes(p.networkId) && p.type === d.type && M.bound(p) && M.access(p) === "mesh")
+          .filter((p) => d.networkIds.includes(p.networkId) && p.type === d.type && F.boundNow(p) && M.access(p) === "mesh")
           .map((p) => p.id),
         results: [],
       }),
@@ -36132,7 +36470,10 @@ function renderZonePanel() {
       ["回路组", groups.length ? groups.map((x) => x.name).join("、") : "—"],
     ],
   )}${
-    canEdit()
+    // “查看”模式只查看：不显示“复制到…”，只留回到项目同层的入口（2026-10-05 核查合并细节第 8 条）。
+    canEdit() && U.mode === "view" && U.page === "devices"
+      ? `<div class="mk-actions">${btn("编辑功能区", "toSpace", {}, "ghost sm")}</div>`
+      : canEdit()
       ? `<div class="mk-actions">${btn(ico("copy", "ic16") + "复制到…", "copyZoneForm", { id: z.id, disabled: !mesh || !z.spaceType }, "sm")}${U.page === "devices" ? btn("编辑功能区", "toSpace", {}, "ghost sm") : btn("编辑", "editZone", { id: z.id }, "ghost sm")}</div>${!mesh ? `<p class="mk-lead">标记设备并配好回路后，可一键复制到同类房间。</p>` : !z.spaceType ? `<p class="mk-lead">先设置空间类型，才能复制到同类房间。</p>` : ""}`
       : U.page === "devices" ? `<div class="mk-actions">${btn("在项目中查看", "toSpace", {}, "ghost sm")}</div>` : ""
   }`;
@@ -36815,7 +37156,7 @@ function dcShow() {
     body = `${dcLastNotice()}${fld("源楼层", "dcSrc", select("dcSrc", dcSources(d.bid).map((f) => [f.id, `${f.name} · ${M.points(data(), f.id).length} 台设备`]), d.src, "源楼层"))}<fieldset class="ws-checks zc-zones"><legend>复制范围（<span id="dcCount">${dcCountText(d)}</span>）</legend><div class="zc-zone-tools"><div class="ws-search">${ico("search", "ic16")}<input id="dcQuery" value="${esc(d.q || "")}" placeholder="搜索功能区" aria-label="搜索要复制的功能区"></div>${btn("全选", "dcAll", { on: "1" }, "sm")}${btn("全不选", "dcAll", { on: "" }, "sm")}</div>${groups
       .map((x) => `<label data-dc-name="${esc(x.name.toLowerCase())}" ${q && !x.name.toLowerCase().includes(q) ? "hidden" : ""}><input type="checkbox" name="dcZone" value="${x.key}" ${d.keys.includes(x.key) ? "checked" : ""}>${esc(x.name)}<small class="muted">${esc(x.sub)}</small></label>`)
       .join("")}</fieldset><p class="muted small" id="dcTypes">${esc(dcTypesText(d))}</p>${note("按设备服务的功能区选择范围；按相同图纸坐标复制，到目标楼层重新编号。各楼层图纸需是同一底图对齐的平面，否则位置会偏移。")}`;
-    foot = btn("取消", "close") + btn("下一步", "dcNext", {}, "primary");
+    foot = `<span class="bu-why" id="dcWhy"></span><span class="sp"></span>` + btn("取消", "close") + btn("下一步", "dcNext", {}, "primary");
   } else if (d.step === 2) {
     const fs = sortedFloors(d.bid).filter((x) => x.id !== d.src),
       ok = fs.filter((x) => x.image),
@@ -36833,7 +37174,7 @@ function dcShow() {
     }${ok.map(row).join("") || '<p class="muted small">没有可选的目标楼层：其他楼层都尚未上传楼层图。</p>'}</fieldset>${ok.length ? '<p class="muted small ws-shift-tip">按住 Shift 点选可连续选择。</p>' : ""}${
       no.length ? `<details class="ws-details zc-unavailable"><summary>未上传楼层图 ${no.length} 个</summary><p class="muted small">${esc(floorNames(no.map((x) => x.name)))}：没有楼层图，设备无处放置；在项目中上传楼层图后可选。</p></details>` : ""
     }${note("目标楼层已有的设备保持不变，复制的设备接着编号。先在项目楼层图用“复制到其他楼层”复制功能区，设备的服务功能区才能对应过去。")}`;
-    foot = btn("取消", "close") + btn("上一步", "dcPrev") + btn("下一步", "dcNext", {}, "primary");
+    foot = `<span class="bu-why" id="dcWhy"></span><span class="sp"></span>` + btn("取消", "close") + btn("上一步", "dcPrev") + btn("下一步", "dcNext", {}, "primary");
   } else if (d.step === 3) {
     const db = data(),
       scope = dcScope(d),
@@ -36866,7 +37207,7 @@ function dcShow() {
     ]
       .map(([k, l]) => `<label><input type="checkbox" name="dcRel" value="${k}" ${d.rel[k] ? "checked" : ""}>${l}<small class="muted">范围内 ${count[k]} ${DC_REL[k][1]}</small></label>`)
       .join("")}</fieldset><div class="zc-preview" id="dcPreview" role="status"></div>`;
-    foot = btn("取消", "close") + btn("上一步", "dcPrev") + btn("核对复制内容", "dcNext", {}, "primary");
+    foot = `<span class="bu-why" id="dcWhy"></span><span class="sp"></span>` + btn("取消", "close") + btn("上一步", "dcPrev") + btn("核对复制内容", "dcNext", {}, "primary");
   } else {
     title = "确认复制设备";
     const db = data(),
@@ -36913,6 +37254,24 @@ function dcShow() {
   if (d.step > 1 || d.touched) modalDirty = true;
   if (d.step === 4 && $("#dlg")) $("#dlg").dataset.backTo = "dc";
   if (d.step === 3) dcRefresh();
+  else dcNextState(d);
+}
+// 没有有效选择时“下一步”（第 3 步为“核对复制内容”）不可用，底部写原因（与“复制到其他楼层”一致，2026-10-05 核查合并细节第 5、12 条）。
+function dcNextReason(d) {
+  if (d.step === 1) return dcScope(d).length ? "" : "请至少选择一项复制范围";
+  if (d.step === 2 && !d.targets.length) return sortedFloors(d.bid).some((x) => x.image && x.id !== d.src) ? "请至少选择一个目标楼层" : "没有可选的目标楼层：请先在项目中上传目标楼层图";
+  if (d.step === 3 && dcScope(d).some(dcMeshy)) {
+    const miss = d.targets.find((id) => !d.nets[id]);
+    if (miss) return `请为 ${g("floors", miss).name} 选择设备网络`;
+  }
+  return "";
+}
+function dcNextState(d) {
+  const nx = $("#dlg [data-act=dcNext]");
+  if (!nx || !$("#dcForm")) return;
+  const why = dcNextReason(d);
+  nx.disabled = !!why;
+  if ($("#dcWhy")) $("#dcWhy").textContent = why;
 }
 // 读入当前步骤的选择。
 function dcCollect() {
@@ -36935,6 +37294,7 @@ function dcRefresh() {
   if ($("#dcTypes")) $("#dcTypes").textContent = dcTypesText(d);
   if ($("#dcFloorCount")) $("#dcFloorCount").textContent = `已选 ${d.targets.length}`;
   if ($("#dcPreview")) $("#dcPreview").innerHTML = dcSimulate(d).rows.map(dcRowHtml).join("");
+  dcNextState(d);
 }
 function dcSetSource(fid) {
   const d = U.dcDraft;
@@ -37173,7 +37533,8 @@ document.addEventListener("input", (e) => {
 function renderOverview() {
   const tab = U.tab || "general",
     points = scopePoints(),
-    connected = points.filter(F.isConnected),
+    connected = points.filter(F.connectedNow),
+    reset = points.filter((p) => F.isConnected(p) && p.fieldReset).length,
     online = connected.filter((p) => F.communication(data(), p) === "在线"),
     unknown = connected.filter((p) => F.communication(data(), p) === "状态未知"),
     head =
@@ -37184,7 +37545,11 @@ function renderOverview() {
       head +
       stats([
         ["设备 / 点位", points.length, "当前所选位置"],
-        ["已绑定 / 已接入", connected.length, points.length - connected.length + " 个尚未绑定 / 接入"],
+        [
+          "已绑定 / 已接入",
+          connected.length,
+          [points.length - connected.length - reset + " 个尚未绑定 / 接入", reset ? `被现场复位 ${reset} 台待补绑` : ""].filter(Boolean).join(" · "),
+        ],
         ["在线设备", connected.length ? online.length : "—", unknown.length ? unknown.length + " 个状态未知" : "以实际心跳为准"],
         [
           "待处理告警",
@@ -37581,7 +37946,7 @@ function renderAnalysis() {
           return [
             esc(where(f.id)),
             ps.length,
-            ps.filter(F.isConnected).length,
+            ps.filter(F.connectedNow).length,
             ps.some((p) => p.telemetry?.lastSeen) ? "有上报，待时序质量核验" : "尚无数据",
           ];
         }),
@@ -37592,9 +37957,9 @@ function renderAnalysis() {
       head +
       filter +
       stats([
-        ["已绑定 / 已接入", scopePoints().filter(F.isConnected).length],
-        ["状态未知", scopePoints().filter((p) => F.isConnected(p) && F.communication(data(), p) === "状态未知").length],
-        ["待配置同步", scopePoints().filter((p) => M.bound(p) && F.syncState(data(), p) !== "已同步").length],
+        ["已绑定 / 已接入", scopePoints().filter(F.connectedNow).length],
+        ["状态未知", scopePoints().filter((p) => F.connectedNow(p) && F.communication(data(), p) === "状态未知").length],
+        ["待配置同步", scopePoints().filter((p) => F.boundNow(p) && F.syncState(data(), p) !== "已同步").length],
         [
           "网络体检",
           F.scopedNetworks(data(), U).filter((n) => F.latestHealth(data(), n.id, true)).length + " / " + F.scopedNetworks(data(), U).length,
@@ -40665,7 +41030,8 @@ function v13StatusPage() {
   const meshPts = nets.flatMap((n) => F.meshPoints(db, n.id)),
     resetPts = meshPts.filter((p) => p.fieldReset).length,
     verified = meshPts.filter((p) => F.verifiedNow(db, p)).length,
-    tests = nets.map((n) => F.testCoverage(db, n)),
+    cx = F.index(db),
+    tests = nets.map((n) => F.testCoverage(db, n, cx)),
     sum = (k) => tests.reduce((s, t) => s + t[k], 0);
   const deliveries = db.deliveries
       .filter((d) => d.projectId === pid || g("networks", d.networkId)?.projectId === pid)
@@ -40898,7 +41264,8 @@ function v13ChecksModal(kind) {
 }
 /* ---------- 路由与动作 ---------- */
 pages.deployment = () => {
-  if (!U.p) return toolbar() + `<div class="cards v13-task-projects">${[...data().projects].sort(M.byName).map(p => `<section class="card"><h3><button class="lk" data-act="dirStatus" data-p="${p.id}">${esc(p.name)}</button></h3>${sumLines("projects", p, false, true)}${btn("查看配置进度", "dirStatus", { p: p.id })}</section>`).join("") || empty("尚无项目", "请先在项目中创建空间，再设置部署范围。", canEdit() ? btn("创建项目", "spaceForm", { kind: "projects" }) : "")}</div>`;
+  // 没有项目时只读与运营角色按第14章写“当前没有可访问的项目”“请联系机构管理员。”，不给创建指导（2026-10-05 核查 D16）。
+  if (!U.p) return toolbar() + `<div class="cards v13-task-projects">${[...data().projects].sort(M.byName).map(p => `<section class="card"><h3><button class="lk" data-act="dirStatus" data-p="${p.id}">${esc(p.name)}</button></h3>${sumLines("projects", p, false, true)}${btn("查看配置进度", "dirStatus", { p: p.id })}</section>`).join("") || (canEdit() ? empty("尚无项目", "请先在项目中创建空间，再设置部署范围。", btn("创建项目", "spaceForm", { kind: "projects" })) : empty("当前没有可访问的项目", "请联系机构管理员。", "", "building-2"))}</div>`;
   const s = F.spaceSummary(data(), U.p), scope = s.scope;
   const actionsBar = U.tab === "params" ? btn(ico("back", "ic16") + "返回配置进度", "v13Status", { p: U.p }) : btn(scope.scopeSet ? `部署范围 · ${floorCountText(scope.floorIds)}` : "设置部署范围", "scopeEntry");
   return toolbar(`<div class="ws-tb-actions">${actionsBar}</div>`) + (U.tab === "params" ? `<h2 class="v13-subheading">配置参数</h2>${v13ParamsPage()}` : v13StatusPage());
@@ -55869,7 +56236,8 @@ function spatialMount(cv,options) {
   spatialEnsureEngine().then(engine=>{
     if(generation!==spatialGeneration||!host.isConnected)return;
     host.replaceChildren();
-    spatialEditor=engine.mount(host,{...options,onComplete:options.onComplete&&(g=>{options.onComplete(spatialSnapClean(g,host));spatialSessionSync(host)}),onChange:(g,type)=>{if(spatialVertexSel){spatialVertexSel=null;spatialShowVertexSel(host)}options.onChange?.(spatialSnapClean(g,host),type);spatialSessionSync(host)},onDrawing:active=>{U.spatialDrawing=active},onHistory:(can,history)=>{
+    // 套索画完先收尾（越过或停在起点附近的尾点，核查 Z1），再交给完成处理。
+    spatialEditor=engine.mount(host,{...options,onComplete:options.onComplete&&(g=>{if(options.tool==='lasso')g=SpatialGeometry.closeLasso(g,host.clientWidth/100,host.clientHeight/100);options.onComplete(spatialSnapClean(g,host));spatialSessionSync(host)}),onChange:(g,type)=>{if(spatialVertexSel){spatialVertexSel=null;spatialShowVertexSel(host)}options.onChange?.(spatialSnapClean(g,host),type);spatialSessionSync(host)},onDrawing:active=>{U.spatialDrawing=active},onHistory:(can,history)=>{
       if(U.spatialEdit)U.spatialEdit.history=history;
       else if(options.building&&U.buildingDraft)U.buildingHistory=history;
       else if(U.zoneDraft)U.zoneDraftHistory=history;
@@ -55900,14 +56268,20 @@ function spatialPlaceControls() {
   }
 }
 window.addEventListener('resize',()=>{if(document.querySelector('.spatial-drawing-controls'))spatialPlaceControls()});
+// 功能区草稿的范围错误同时写在右侧表单的错误区，由它朗读；图上的提示只作显示，同一句只读一遍（2026-10-05 核查合并细节第 9 条：
+// 原先图上与表单错误区都是 alert）。草稿范围改好或换成另一种错误后，表单错误区里原来那句范围错误随之清除或更新。
+// 调整已保存的边界与楼宇图标记没有表单错误区，图上的提示仍朗读。
 function spatialValidation(cv,geometry) {
-  const error=SpatialGeometry.error(geometry),host=cv?.querySelector('.spatial-editor');
+  const error=SpatialGeometry.error(geometry),host=cv?.querySelector('.spatial-editor'),draft=!!U.zoneDraft&&!U.spatialEdit,fe=$('#spFormError');
+  if(draft&&fe?.dataset.geo&&fe.dataset.geo!==error){delete fe.dataset.geo;if(error)spatialDraftError(error);else fe.replaceChildren()}
   if(!host)return;
   let notice=host.querySelector('.spatial-validation');
   if(!error){notice?.remove();return}
-  if(!notice){notice=document.createElement('div');notice.className='spatial-validation ws-notice error';notice.setAttribute('role','alert');host.append(notice)}
+  if(!notice){notice=document.createElement('div');notice.className='spatial-validation ws-notice error';host.append(notice)}
+  if(draft)notice.removeAttribute('role');else notice.setAttribute('role','alert');
   if(notice.dataset.message!==error){notice.dataset.message=error;notice.innerHTML=ico('circle-x','ic16')+`<span>${esc(error)}</span>`}
 }
+function spatialDraftError(error){formError(Error(error));const fe=$('#spFormError');if(fe)fe.dataset.geo=error}
 // root 可以是页面中的节点，也可以是增量更新前的新内容片段（D4）：外壳在比对前加上，页面中的说明框不必每次拆装。
 function wsProjectTextareas(root) {
   for (const input of root.querySelectorAll('textarea.input')) {
@@ -55943,7 +56317,7 @@ function spatialInitCanvas(cv,vp) {
   if(!geometry)cv.addEventListener('dblclick',e=>{if(U.zoneShape==='polygon'){e.preventDefault();actions.spFinishPolygon()}},{signal:renderSignal()});
   const complete=g=>{
     U.spatialDrawing=false;U.zoneDraftHistory={entries:[M.copy(g)],index:0};spDraft(SpatialGeometry.fromGeo(g,U.zoneShape));
-    const error=SpatialGeometry.error(g);if(error)formError(Error(error));
+    const error=SpatialGeometry.error(g);if(error)spatialDraftError(error);
   };
   const exclude=U.spatialEdit?.id||null;
   if(spatialKept(cv))return;
