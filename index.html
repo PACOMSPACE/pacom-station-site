@@ -3791,6 +3791,18 @@ details[open] > summary::before {
   margin: 0;
   font-size: 13px;
 }
+/* 页签下第一行的按钮固定在右端（规范 2 2；2026-10-10 用户确认，ABB 对比 IA4）：换行时同样靠右；
+   手机上按钮在这一行的右端，说明移到其下方 */
+.ws-section-toolbar > :not(p):not(:empty):last-child {
+  flex: none;
+  margin-left: auto;
+}
+@media (max-width: 600px) {
+  .pbody .ws-section-toolbar:has(> :not(p):not(:empty):last-child) {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}
 .ws-task-row {
   display: flex;
   gap: 12px;
@@ -9738,6 +9750,43 @@ button.ops-kpi:hover {
   gap: 2px;
   min-width: 0;
 }
+/* 页签下第一行（规范 2 2；2026-10-10 用户确认，ABB 对比 IA4）：左侧为状态条或说明条，宽度不够时在左侧换行；
+   右端固定本页签的设置入口或新建，不被挤到下一行 */
+.ops-tabbar {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px 28px;
+  margin: 20px 0 16px;
+}
+.ops-tabbar > .ops-strip,
+.ops-tabbar > .ops-layers {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+}
+.ops-tabbar-tools {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  margin-left: auto;
+}
+/* 手机：左侧放不下时，按钮仍在这一行的右端，状态条或说明条移到其下方、占满宽度 */
+@media (max-width: 600px) {
+  .ops-tabbar {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .ops-tabbar > .ops-strip,
+  .ops-tabbar > .ops-layers {
+    flex: none;
+  }
+  .ops-tabbar-tools {
+    justify-content: flex-end;
+    min-height: 32px;
+  }
+}
 .ops-strip > div span {
   font-size: 12px;
   color: var(--text3);
@@ -11955,6 +12004,7 @@ button.ops-kpi:hover {
   margin-top: 0.5px;
 }
 .ops-strip + .ops-dis-why,
+.ops-tabbar + .ops-dis-why,
 .ops-sys + .ops-dis-why {
   margin: -6px 0 16px;
 }
@@ -12173,14 +12223,9 @@ button.ops-kpi:hover {
 }
 /* 我的区域（普通成员的总览，2026-10-09 用户确认，角色权限方案第 4 条）：按楼层分组的功能区卡片，卡片材质同指标卡；
    每张写灯光、空调与占用，标签列等宽，数值只在“ · ”处换行；点开为功能区面板 */
+/* 页面标题即“我的区域”，这里只写说明与数据截至（2026-10-10 用户确认，ABB 对比 IA7：原先另有 20px 的大标题） */
 .ops-my-h {
-  margin: 4px 0 20px;
-}
-.ops-my-h h2 {
-  margin: 0;
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 500;
+  margin: 0 0 20px;
 }
 .ops-my-floor {
   margin-bottom: 24px;
@@ -12646,6 +12691,20 @@ button.ops-zbadge::before {
   min-width: 0;
   line-height: 18px;
 }
+/* 手机：“新建规则”同样在这一行的右端，说明移到其下方（规范 2 2；2026-10-10 用户确认，ABB 对比 IA4） */
+@media (max-width: 600px) {
+  .ops-toolbar2:has(> .ops-rules-note) {
+    flex-direction: column-reverse;
+    align-items: flex-end;
+  }
+  .ops-toolbar2:has(> .ops-rules-note) > .ops-rules-note {
+    flex: none;
+    align-self: stretch;
+  }
+  .ops-toolbar2:has(> .ops-rules-note) > .sp {
+    display: none;
+  }
+}
 /* 时间线中的通知一行：点开列出每人每个渠道的状态 */
 .ops-notice summary {
   cursor: pointer;
@@ -12776,6 +12835,46 @@ button.ops-zbadge::before {
   .ops-kpis.k3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+/* 功能区面板路径下、设备信息名称下的一行：本区或本设备的未恢复告警与工单（规范 CTRL01、DEVICE08，2026-10-10 用户确认，ABB 对比 IA1）。
+   角标为最高级别色；两段之间为“ · ”，放不下时第二段整段换到下一行，段内不拆开；换行后行首的“·”落在本行左边界之外，被裁去不显示。
+   左右各留 4px，按钮的焦点框不被裁去 */
+p.ops-work {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 16px;
+  margin: 4px -4px 0;
+  padding: 2px 4px;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--text3);
+}
+p.ops-work > span {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+p.ops-work .ops-work-sep {
+  position: absolute;
+  left: -10px;
+}
+p.ops-work .ops-zbadge {
+  position: static;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  font-size: 11px;
+  box-shadow: none;
+  cursor: default;
+}
+p.ops-work .ops-link {
+  font-size: 12px;
+  text-align: left;
 }
 
 }
@@ -24178,7 +24277,7 @@ const StationFlowModel = ((M) => {
   function capacities(db, cx = indexOf(db)) {
     const groups = cx.groups || allGroups(db, cx),
       rows = [],
-      // 每台控制器订阅的灯光／占用／照度分组数与参与的手动场景数：按分组一次累计，代替逐台遍历全部分组与场景。
+      // 每台控制器订阅的灯光／占用／照度分组数与参与的场景数：按分组一次累计，代替逐台遍历全部分组与场景。
       PURPOSES = ["light", "occupancy", "lux"],
       counts = new Map(),
       scenes = new Map(),
@@ -28234,7 +28333,7 @@ function buildDemoWorkspace(seed) {
   // 告警（示例）：LC20 失电合并其 MS20；环境与能耗。环境与能耗告警记下触发时的规则与版本（ruleId、ruleVersion），
   // 证据按规则从运行数据中取（DemoService.evidence；2026-10-08 Vision 核查 V43、V50、V52–V54）
   const alert = (id, extra) => db.alerts.push({ id: "alert-demo-" + id, projectId: ids.project, floorId: ids.floor, state: "active", acknowledged: false, ...extra });
-  // 失电（推断）告警已由王敏确认，之后才创建排查任务（V44）
+  // 失电（推断）告警已由王敏确认，之后才创建工单（V44）
   alert("lc", { kind: "offline", level: "重要", pointId: lcDown.id, name: lcDown.name + " 离线", at: at(38), zoneId: lcDown.zoneId, acknowledged: true, ackBy: "王敏", ackAt: at(32) });
   F.circuitSensors(db, lcDown.id).forEach((s, i) => alert("ms" + i, { kind: "offline", level: "提示", pointId: s.id, name: s.name + " 离线", at: at(38 + msLag(s)), zoneId: s.zoneId }));
   const aqMeet = db.points.find((p) => p.type === "aq" && p.zoneId === zoneId("meet"));
@@ -28245,7 +28344,7 @@ function buildDemoWorkspace(seed) {
   alert("reset", { kind: "device", level: "重要", pointId: reset.id, zoneId: reset.zoneId, name: reset.name + " 被现场复位", detail: "设备已恢复出厂、脱离设备网络；待远程补绑或现场用 App 绑回原点位", at: at(1440 * 2), acknowledged: true, ackBy: "王敏", ackAt: at(1440 * 2 - 18) });
   alert("rec1", { kind: "environment", metric: "tempDev", ruleId: "rule-demo-temp", ruleVersion: 1, level: "提示", zoneId: zoneId("oa"), name: "开放办公区 A 温度偏高", detail: "高于供冷设定 2.3 K，持续 52 分钟", at: day(22, "15:10"), state: "recovered", recoveredAt: day(22, "15:52") });
   alert("rec2", { kind: "offline", level: "紧急", name: "E栋 7F 网关离线", detail: "网络维护，14 分钟后恢复；期间本地联动正常", at: day(20, "07:02"), state: "recovered", recoveredAt: day(20, "07:16"), pointId: db.points.find((p) => p.type === "gw").id, acknowledged: true, ackBy: "王敏", ackAt: day(20, "07:09") });
-  // 排查任务：创建人、说明（不算记录）、计划时间与位置；记录写操作人（V46，ALARM02 待实现第2条）
+  // 工单：创建人、说明（不算记录）、计划时间与位置；记录写操作人（V46，ALARM02 待实现第2条）
   db.investigationTasks.push({
     id: "task-demo-1",
     projectId: ids.project,
@@ -28432,6 +28531,10 @@ const deviceTabs = () =>
     ],
     U.tab || "mark",
   );
+// 设备页的默认页签（2026-10-10 用户确认，ABB 对比 IA5：原先一律为“设备标记”）：地址没有带页签时（如从侧栏进入），
+// 范围是楼层打开“设备标记”，范围是全部项目、项目或楼宇打开“设备台账”（需处理在前）；进入时定下，之后切换范围不改页签。
+// 带页签的地址、项目楼层图的“标记设备”与配置进度等入口照旧按所带的页签；手动选“设备标记”而未选楼层时仍为“选择楼层”。
+const deviceDefaultTab = () => (U.f ? "mark" : "inventory");
 const isFloorWorkspace = () =>
   !!U.f && ((U.page === "projects" && !["status", "network", "params", "info"].includes(U.tab)) || (U.page === "devices" && (!U.tab || U.tab === "mark")));
 const value = (id) => document.getElementById(id)?.value || "",
@@ -28918,10 +29021,12 @@ function route(page, scope = {}, opts = {}) {
         missing: null,
         badPath: "",
         alarmDevice: null,
+        alarmZone: null,
       },
       scope,
     );
     if (opts.restore && U.memory[page]) Object.assign(U, U.memory[page]);
+    if (page === "devices" && !U.tab) U.tab = deviceDefaultTab();
     if (page === "deployment") Object.assign(U, { b: null, f: null, zone: null, net: null, view: "cards", mode: "view", tab: U.tab === "params" ? "params" : "status" });
     // 来源返回：从配置进度、配置参数、设备、总览进入项目空间时记住来源；回到来源、离开项目、换项目或上行到全部项目时清除。
     if ("source" in opts) U.source = opts.source;
@@ -28992,6 +29097,7 @@ function readRoute() {
     U.p = g("buildings", U.b).projectId;
   }
   if (U.b) U.p = g("buildings", U.b).projectId;
+  if (U.page === "devices" && !U.tab) U.tab = deviceDefaultTab();
   if (U.net && !g("networks", U.net)) {
     U.net = null;
     if (U.tab === "network") U.tab = "status";
@@ -29074,7 +29180,7 @@ window.addEventListener("offline", netBanner);
 window.addEventListener("online", netBanner);
 async function transaction(fn, permission = "configure") {
   if (navigator.onLine === false) throw Error("网络连接已中断，修改尚未保存。请恢复网络后重试。");
-  // 运营写入（告警确认、排查任务、场景、照明控制参数等）只给运营人员、配置人员与机构管理员；普通成员只能控制自己的功能区，不经这里（角色权限方案第 4 条）
+  // 运营写入（告警确认、工单、场景、照明控制参数等）只给运营人员、配置人员与机构管理员；普通成员只能控制自己的功能区，不经这里（角色权限方案第 4 条）
   if (permission === "operate" ? !["admin", "config", "ops"].includes(U.role) : !canEdit()) throw Error("当前角色只有查看权限");
   const n = M.copy(W);
   const result = fn(n);
@@ -29283,8 +29389,11 @@ const zoneMemberNote = (zid) => {
   const n = typeof auZoneMemberCount === "function" ? auZoneMemberCount(zid) : 0;
   return n ? `<p>该功能区已授权给 ${n} 位普通成员，修改后需在“成员”中重新授权。</p>` : "";
 };
-// 普通成员只有“总览”（我的区域），没有“搜索或提问”与其他菜单（2026-10-09 用户确认，角色权限方案第 4 条）。
-const wsNav = () => (U.role === "member" ? [["", NAV[0][1].filter(([k]) => k === "overview")]] : NAV);
+// 普通成员只有“我的区域”（总览的地址），没有“搜索或提问”与其他菜单（2026-10-09 用户确认，角色权限方案第 4 条）。
+// 侧栏项、页面标题与浏览器标签都叫“我的区域”（2026-10-10 用户确认，ABB 对比 IA7：原先侧栏项与页面标题为“总览”，正文另有大标题“我的区域”）。
+const MEMBER_HOME = "我的区域";
+const memberHome = () => U.role === "member" && U.page === "overview";
+const wsNav = () => (U.role === "member" ? [["", NAV[0][1].filter(([k]) => k === "overview").map(([k, , i]) => [k, MEMBER_HOME, i])]] : NAV);
 // 侧栏“告警”的数量（2026-10-09 用户确认，ABB 对比 BP104；第14章 §2）：待确认的紧急与重要告警，含已恢复待确认的紧急告警
 // （已恢复的重要告警不计）；只计本人可查看的项目；颜色取最高级别（同告警级别色：紧急 l0，重要 l1）；没有时不显示。
 // 检修中的告警不通知、不计入告警统计，也不计入这里的数量；安全与保护告警照常计入（ABB 对比 BP92）。
@@ -29335,6 +29444,8 @@ function render() {
     : docTitle
       ? docTitle + " · PACOM Station"
       : "PACOM Station";
+  // 普通成员的浏览器标签与页面标题同为“我的区域”（ABB 对比 IA7）；写成整句，构建时的规范覆盖核对据此取出页面标题
+  if (memberHome()) document.title = "我的区域 · PACOM Station";
   if (BARE[U.page]) {
     closePop();
     $("#app").className = "bare bare-" + U.page;
@@ -29428,7 +29539,8 @@ pages.notfound = () =>
   `<div class="ws-syspage">${empty(
     "页面不存在",
     `链接可能有误，或该页面已经移动。${U.badPath ? `<br><code>${esc(U.badPath.slice(0, 120))}</code>` : ""}`,
-    btn("返回总览", "nav", { page: "overview" }, "primary") + (U.role === "member" ? "" : btn("前往项目", "nav", { page: "projects" })),
+    // 普通成员只有“返回我的区域”（2026-10-10 用户确认，ABB 对比 IA7：原为“返回总览”）
+    U.role === "member" ? btn("返回我的区域", "nav", { page: "overview" }, "primary") : btn("返回总览", "nav", { page: "overview" }, "primary") + btn("前往项目", "nav", { page: "projects" }),
     "search",
   )}</div>`;
 // 链接指向的项目、楼宇、楼层或功能区已删除或无权访问：说明原因，提供返回存在的上一级。
@@ -29891,10 +30003,9 @@ pages.devices = () => {
           ))
     );
   }
-  const head =
-    toolbar(
-      btn("修改记录", "changes", {}, "ghost") + (canEdit() ? btn(ico("plus", "ic16") + "标记设备", "startMark", {}, "primary") : ""),
-    ) + deviceTabs();
+  // 页头右侧只放管整页的“修改记录”；各页签的新建在页签下第一行右端，是本页签唯一的主要按钮（2026-10-10 用户确认，ABB 对比 IA4：
+  // 原先这五个页签的页头都有黑色“+ 标记设备”）。标记设备在“设备标记”页签和项目楼层图的“标记设备”进行。
+  const head = toolbar(btn("修改记录", "changes", {}, "ghost")) + deviceTabs();
   if (tab === "networks") return head + networkList();
   if (tab === "connections") return head + connectionList();
   if (tab === "groups") return head + groupList();
@@ -30992,7 +31103,7 @@ function sceneForm(id) {
     );
   formState = { kind: "scenes", id, pid, sceneKind: kind };
   modal(
-    id ? "编辑场景" : "新建" + ({ manual: "手动场景", schedule: "定时场景", link: "联动场景" }[kind] || "场景"),
+    id ? "编辑场景" : "新建" + ({ manual: "场景", schedule: "定时", link: "联动" }[kind] || "场景"),
     `${fld("名称", "sceneName", input("sceneName", o.name || ""))}${
       kind === "manual"
         ? `${fld(
@@ -31052,7 +31163,7 @@ const SPACE_NOUN = { projects: "项目", buildings: "楼宇", floors: "楼层", 
 // 依赖原因 → 处理入口（单个删除与批量删除楼层共用同一写法）。
 const SPACE_DEP_TARGET = (text) => /本次部署范围/.test(text) ? "scope" : /分组/.test(text) ? "groups" : /系统连接|连接被/.test(text) ? "connections" : /网络/.test(text) ? "networks" : /点位|绑定|供电|跟随|照度/.test(text) ? "inventory" : "status";
 const SPACE_DEP_LABEL = { scope: "在配置进度中调整", groups: "查看分组", connections: "查看系统接入", networks: "查看设备网络", inventory: "查看设备", status: "查看配置进度" };
-const SCENE_KIND = { manual: "手动场景", schedule: "定时场景", link: "联动场景" };
+const SCENE_KIND = { manual: "场景", schedule: "定时", link: "联动" };
 function spaceDependencyList(issues, kind, id) {
   const o = g(kind, id), p = kind === "projects" ? id : kind === "buildings" ? o?.projectId : M.projectOfFloor(data(), o?.floorId || id) || U.p;
   // 分组被场景引用时逐个列出引用它的场景，按钮直接打开该场景（规范 DEVICE03）。
@@ -33799,12 +33910,13 @@ function sourceLabel() {
 }
 function sourceBack() {
   // 设备网络详情自带“返回”，不重复显示来源返回。
-  const s = ((["projects", "deployment", "devices"].includes(U.page) && U.tab !== "network") || (U.page === "alarms" && U.source?.page === "analysis")) && U.source;
+  // 从配置进度“应用设置”表的“工作时间与节假日表”进入场景 › 定时时同样有来源返回（ABB 对比 IA3）
+  const s = ((["projects", "deployment", "devices"].includes(U.page) && U.tab !== "network") || (U.page === "alarms" && U.source?.page === "analysis") || (U.page === "scenes" && U.source?.page === "deployment")) && U.source;
   return s ? `<button class="btn ws-source-back" data-act="sourceBack" aria-label="返回${esc(s.label)}">${ico("back", "ic16")}<span>返回${esc(s.label)}</span></button>` : "";
 }
 // 标题区路径：项目 / 广实2号园 / E栋 / 7F。祖先为链接；当前对象为标题，点按打开同级切换与四级搜索。
 function headTitle() {
-  return `<h1>${TITLES[U.page] || "PACOM Station"}</h1>`;
+  return `<h1>${memberHome() ? MEMBER_HOME : TITLES[U.page] || "PACOM Station"}</h1>`;
 }
 // 室外区域只有一张总平面：选择器在楼宇与室外区域之间切换（2026-10-05 核查 S8：原先展开只有这一张总平面，切不到其他室外区域）。
 const switchKind = () => (U.page === "deployment" ? "projects" : U.f && U.zone && g("zones", U.zone) ? "zones" : U.f && !isOutdoor(U.b) ? "floors" : U.b ? "buildings" : "projects");
@@ -38316,7 +38428,7 @@ function devCommCell(db, p) {
 function renderNetworkList() {
   const ns = F.scopedNetworks(data(), U);
   const db = data();
-  return `<div class="ws-section-toolbar"><p class="muted">一个网关对应一个设备网络，服务范围可以跨楼层。</p>${canEdit() ? btn("规划网络", "networkForm") : ""}</div>${table(
+  return `<div class="ws-section-toolbar"><p class="muted">一个网关对应一个设备网络，服务范围可以跨楼层。</p>${canEdit() ? btn("规划网络", "networkForm", {}, "primary") : ""}</div>${table(
     ["设备网络", "服务楼层", "网关联网 / 设备网络", "#节点", "#估算负载", "#中继", "最近全网体检", "网络版本", "最近交付", "状态", "需处理"],
     ns.map((n) => {
       const ps = F.meshPoints(db, n.id),
@@ -38728,7 +38840,7 @@ function renderGroups() {
         ];
       }),
     head = ["分组", "用途", "来源", "范围", "计划", "已绑定", "已应用", "同步", "容量", ""];
-  return `<div class="ws-section-toolbar"><p class="muted">计划、已绑定和已应用分别计数；跨网络分别核对同步。</p>${canEdit() ? btn("新建分组", "groupForm") : ""}</div>${table(head, rows(custom), "尚未创建自定义分组。")}<details class="ws-details"><summary>自动维护的分组 · ${automatic.length} 个</summary>${table(head, rows(automatic), "功能区、回路、楼层和楼宇的分组随已标记设备生成。")}</details>${note("容量为成员中 LC20 的模型订阅与手动场景的最大占用（网络模板上限，如订阅 32、场景 16），实际以产品与固件能力服务校验为准。")}`;
+  return `<div class="ws-section-toolbar"><p class="muted">计划、已绑定和已应用分别计数；跨网络分别核对同步。</p>${canEdit() ? btn("新建分组", "groupForm", {}, "primary") : ""}</div>${table(head, rows(custom), "尚未创建自定义分组。")}<details class="ws-details"><summary>自动维护的分组 · ${automatic.length} 个</summary>${table(head, rows(automatic), "功能区、回路、楼层和楼宇的分组随已标记设备生成。")}</details>${note("容量为成员中 LC20 的模型订阅与场景的最大占用（网络模板上限，如订阅 32、场景 16），实际以产品与固件能力服务校验为准。")}`;
 }
 // 分组列表的“用途”“范围”“容量”三列（规范 DEVICE03）；自动组的灯光订阅也写“照明控制”（2026-10-09 用户确认，ABB 对比 BP49）。
 const GROUP_USAGE = { 照明: "照明控制", 空调: "空调控制", 仅管理: "仅管理" },
@@ -38993,14 +39105,17 @@ defineActions({
   },
   clearAlarmDevice: () => {
     U.alarmDevice = null;
+    U.alarmZone = null;
     render();
   },
 });
 // 告警与设备有关：告警对象是该设备，或该设备在合并的关联对象中
 const alarmForDevice = (a, pid = U.alarmDevice) => !pid || a.pointId === pid || (a.relatedIds || []).includes(pid);
+// 筛选条：设备（“查看本设备告警”、设备信息中的告警与工单）或功能区（功能区面板中的告警与工单，ABB 对比 IA1）
 const alarmDeviceBar = () => {
-  const p = U.alarmDevice && g("points", U.alarmDevice);
-  return p ? `<div class="flow-filter-sum"><p>已筛选：设备 ${esc(p.name)}</p>${btn("清除筛选", "clearAlarmDevice", {}, "ghost sm")}</div>` : "";
+  const p = U.alarmDevice && g("points", U.alarmDevice),
+    z = !p && U.alarmZone && g("zones", U.alarmZone);
+  return p || z ? `<div class="flow-filter-sum"><p>已筛选：${p ? `设备 ${esc(p.name)}` : `功能区 ${esc(z.name)}`}</p>${btn("清除筛选", "clearAlarmDevice", {}, "ghost sm")}</div>` : "";
 };
 function showDeviceInformation(id, tab = "runtime") {
   const p = g("points", id);
@@ -39016,7 +39131,9 @@ function showDeviceInformation(id, tab = "runtime") {
     cfg = F.configItems(data(), p),
     // 有待并入的现场改动：并入前不重新下发，改为查看这条改动（2026-10-05 核查 H4）
     held = F.pendingFieldChanges(data(), p.networkId).find((fc) => F.fieldPointIds(fc).includes(id));
-  let body = `<div class="flow-heading"><div><h3>${esc(p.name)}</h3><p>${esc([M.catalog[p.type].name, M.catalog[p.type].model, where(p.floorId)].filter(Boolean).join(" · "))}</p></div>${stateBadge(F.bindingLabel(p))}</div>${tabsSm(
+  // 名称与“类型 · 型号 · 位置”之下为本设备的未恢复告警与工单（含按根因合并进一条告警的设备），只在有运行数据且有内容时显示（ABB 对比 IA1）
+  const work = typeof workLine === "function" ? workLine("device", id) : "";
+  let body = `<div class="flow-heading"><div><h3>${esc(p.name)}</h3><p>${esc([M.catalog[p.type].name, M.catalog[p.type].model, where(p.floorId)].filter(Boolean).join(" · "))}</p>${work}</div>${stateBadge(F.bindingLabel(p))}</div>${tabsSm(
     [
       ["runtime", "运行数据"],
       ["plan", "规划"],
@@ -40121,7 +40238,7 @@ function renderFirmware() {
     ns = F.scopedNetworks(db, U),
     tasks = db.firmwareTasks.filter((t) => !t.networkIds?.length || t.networkIds.some((id) => ns.some((n) => n.id === id))),
     types = ["lc", "ms", "fc", "aq"];
-  return `<div class="ws-section-toolbar"><p class="muted">按型号与硬件版本筛选；一次一个型号，无人时段执行。</p>${canEdit() ? btn("新建升级任务", "firmwareGuide") : ""}</div>${table(
+  return `<div class="ws-section-toolbar"><p class="muted">按型号与硬件版本筛选；一次一个型号，无人时段执行。</p>${canEdit() ? btn("新建升级任务", "firmwareGuide", {}, "primary") : ""}</div>${table(
     ["型号", "#已绑定设备", "实际版本分布", "可用版本", "硬件与固件条件", "签名验证", "#有新版本"],
     types.map((type) => {
       const ps = scopePoints().filter((p) => p.type === type && M.access(p) === "mesh" && F.boundNow(p)),
@@ -43860,7 +43977,7 @@ const analysisTabs = [
   ["health", "设备健康"],
   ["reports", "报告"],
 ];
-// 运营操作（场景、报告、节假日表、排查任务、告警处理、照明控制参数）只给运营人员、配置人员与机构管理员；
+// 运营操作（场景、报告、节假日表、工单、告警处理、照明控制参数）只给运营人员、配置人员与机构管理员；
 // 普通成员只能控制自己的功能区，见 ops-demo.js 的 memberCtlWhy（2026-10-09 用户确认，角色权限方案第 4 条）
 const canOperate = () => ["admin", "config", "ops"].includes(U.role);
 const latestConfig = (kind, pid = U.p) =>
@@ -43944,14 +44061,15 @@ function renderOverview() {
   if (tab === "energy")
     return (
       head +
+      // 能耗设置与碳排放设置放在右上角，与另外三个应用一致（2026-10-09 用户确认，ABB 对比 BP71 第 15 条）；对所有角色可见，没有编辑权限时只读。
+      // 在页签下第一行的右端，统计在其下（2026-10-10 用户确认，ABB 对比 IA4：原先这一行在四个统计之下）
+      `<div class="ws-section-toolbar"><p class="muted">${esc(whereNow())} · 能耗与碳排放按应用设置核算</p><span>${btn("能耗设置", "applicationSettings", { kind: "能耗" }, "ghost")}${btn("碳排放设置", "applicationSettings", { kind: "碳排放" }, "ghost")}</span></div>` +
       stats([
         ["今日用电", "—", "kWh · 等待验证后的计量数据"],
         ["本月费用", "—", "元 · 由计费设置确定"],
         ["本月碳排放", "—", "等待能源数据与因子"],
         ["数据覆盖", "—", "未收到计量质量回报"],
       ]) +
-      // 能耗设置与碳排放设置放在右上角，与另外三个应用一致（2026-10-09 用户确认，ABB 对比 BP71 第 15 条）；对所有角色可见，没有编辑权限时只读
-      `<div class="ws-section-toolbar"><p class="muted">${esc(whereNow())} · 能耗与碳排放按应用设置核算</p><span>${btn("能耗设置", "applicationSettings", { kind: "能耗" }, "ghost")}${btn("碳排放设置", "applicationSettings", { kind: "碳排放" }, "ghost")}</span></div>` +
       chartPending("能源概况", "本页查看当前情况；趋势、范围和核算口径在数据分析中维护。") +
       btn("进入数据分析", "goAnalysis", { tab: "energy" })
     );
@@ -44258,7 +44376,7 @@ function showControlConfirmation(a) {
       ["动作", a.command === "调光" ? { html: `<span id="controlAction">${dimText(100)}</span>` } : a.command],
       ["范围", ps.length + " 台设备；" + known.length + " 台具有当前在线回报"],
       ["执行方式", ps.length === 1 ? "单设备：以应答和状态反馈核对" : "组控制：先记录已下发，再核对已生效 N/M"],
-    ])}${a.command === "调光" ? numberField("目标亮度（%）", "controlBrightness", 100, "调光即进入手动，工作时间 2 小时 / 非工作时间 30 分钟后或到下一个定时场景时恢复自动") : ""}${
+    ])}${a.command === "调光" ? numberField("目标亮度（%）", "controlBrightness", 100, "调光即进入手动，工作时间 2 小时 / 非工作时间 30 分钟后或到下一次定时执行时恢复自动") : ""}${
       hv
         ? `<div class="ws-form-row">${fld(
             "运行模式",
@@ -44681,7 +44799,7 @@ function ruleNight(v = {}) {
   const m = /每晚 (\d\d:\d\d)–(\d\d:\d\d)/.exec(v.window || "");
   return m ? [m[1], m[2]] : RULE_NIGHT;
 }
-// 夜间时段是否完全在工作时间以外（跨午夜时分两段）；work 为项目登记的工作时间（场景 › 定时场景，2026-10-09 用户确认，ABB 对比 BP77），默认 08:00–19:00
+// 夜间时段是否完全在工作时间以外（跨午夜时分两段）；work 为项目登记的工作时间（场景 › 定时，2026-10-09 用户确认，ABB 对比 BP77），默认 08:00–19:00
 function ruleNightOk(from, to, work = RULE_WORK) {
   const a = ruleMin(from), b = ruleMin(to), ws = ruleMin(work[0]), we = ruleMin(work[1]);
   if (!Number.isFinite(a) || !Number.isFinite(b) || a === b) return false;
@@ -44773,11 +44891,11 @@ function ruleBasisHtml(r) {
   return `配置参数 ${ps.map((x) => `<button class="ops-link" data-act="opsParamGo" data-p="${esc(r.projectId)}" data-row="${esc(x.r.id)}" aria-label="在配置参数中查看 ${esc(x.code)}">${esc(x.code)}</button>`).join("、")}${ps[0].s.t.clause ? " · " + esc(ps[0].s.t.clause) : ""}`;
 }
 // 告警规则页签顶部的说明（2026-10-09 用户确认，ABB 对比 BP100、BP88；原先写“通知对象与升级在规则中设置 · 修改规则需要配置权限”）
-// 排查任务的来源（2026-10-09 用户确认，ABB 对比 BP108 方案A）：告警（从告警详情创建）、报修（“新建任务”登记，选位置，可附照片）
+// 工单的来源（2026-10-09 用户确认，ABB 对比 BP108 方案A）：告警（从告警详情创建）、报修（“新建工单”登记，选位置，可附照片）
 // 与定期检查（按配置参数中第10章的周期自动生成，页签名不变）
 const TASK_SOURCES = { alarm: "告警", repair: "报修", periodic: "定期检查" };
 const taskSource = (t) => t.source || "alarm";
-const TASK_FOOT = "任务来自告警、报修与定期检查；告警任务可回到来源告警，任务完成不等于告警恢复";
+const TASK_FOOT = "工单来自告警、报修与定期检查；来源为告警的工单可回到来源告警，工单完成不等于告警恢复";
 function taskAlarmName(t) {
   if (taskSource(t) !== "alarm") return "";
   const ids = t.alertIds || [t.alarmId];
@@ -44810,7 +44928,7 @@ const periodicText = (db, pid) => {
   const xs = periodicRules(db, pid);
   return xs.length ? `定期检查按配置参数自动生成：${xs.map((x) => `${x.name}（${x.text}，${x.code}）`).join("；")}` : "";
 };
-// 任务的位置随来源告警（2026-10-09 用户确认，ABB 对比 BP107）：楼层与功能区，不在楼层的写项目
+// 工单的位置随来源告警（2026-10-09 用户确认，ABB 对比 BP107）：楼层与功能区，不在楼层的写项目
 function alarmScopeLabel(al) {
   const z = al.zoneId ? g("zones", al.zoneId) : null,
     fid = al.floorId || z?.floorId || g("points", al.pointId)?.floorId;
@@ -44828,7 +44946,7 @@ function repairPlaces(pid) {
 }
 // 照片：文件服务接入前只记下文件名（规范 ALARM02 待实现）
 const repairPhotoNames = (id) => [...($("#" + id)?.files || [])].map((f) => f.name);
-const ALARM_RULES_NOTE = "告警通知按级别发给项目授权内的机构管理员、配置人员和运营人员（查看人员不收告警短信，邮件可自选；普通成员不收），见机构设置 › 通知 · 责任对象只作排查任务的默认负责人 · 条件在配置参数中设定 · 修改规则需要配置权限";
+const ALARM_RULES_NOTE = "告警通知按级别发给项目授权内的机构管理员、配置人员和运营人员（查看人员不收告警短信，邮件可自选；普通成员不收），见机构设置 › 通知 · 责任对象只作工单的默认负责人 · 条件在配置参数中设定 · 修改规则需要配置权限";
 // 已恢复而没有确认的紧急告警仍留在当前告警（2026-10-09 用户确认，ABB 对比 BP94）
 const alarmOpen = (a) => a.state !== "recovered" || (a.level === "紧急" && !a.acknowledged);
 // 规则的默认级别：所依据配置参数写的默认级别；没有时为提示（设备离线为重要）
@@ -44868,7 +44986,7 @@ const ruleFloorName = (fid) => {
 };
 const alarmRuleScope = (r) => (r.scope ? ruleFloorName(r.scope) : "整个项目");
 const alarmRuleVersion = (r) => `v${r.version || 1}${r.pending ? ` · v${r.pending.version}（规划）` : ""}`;
-// 规则版本的时间：有运行数据时按页面时钟，与排查任务、节假日表相同；本地规划用实际时间（2026-10-09 用户确认，Vision 核查 V70：原先都用电脑的时钟）
+// 规则版本的时间：有运行数据时按页面时钟，与工单、节假日表相同；本地规划用实际时间（2026-10-09 用户确认，Vision 核查 V70：原先都用电脑的时钟）
 const ruleNow = () => (typeof Demo !== "undefined" && Demo.on?.() && typeof opsNow === "function" ? new Date(opsNow()).toISOString() : M.now());
 // 报告内容（2026-10-09 用户确认，ABB 对比 BP114 方案A）：与数据分析的页签同名，可多选；之前保存的单选内容按原含义读取
 const REPORT_KINDS = [
@@ -44887,7 +45005,7 @@ function reportRecipients(pid) {
     pref = (m) => (typeof AUTH !== "undefined" && AUTH.prefBy?.[m.uid]?.report ? !!AUTH.prefBy[m.uid].report.mail : true);
   return ms.filter((m) => m.role !== "member" && (m.scope === "all" || (Array.isArray(m.scope) && m.scope.includes(pj))) && pref(m)).map((m) => m.name);
 }
-// 本机构有运营权限（运营人员、配置人员、机构管理员）且授权范围含该项目的成员：排查任务的负责人与规则的责任对象从中选（规范 ALARM02 待实现第1条、ALARM04 待实现第2条）
+// 本机构有运营权限（运营人员、配置人员、机构管理员）且授权范围含该项目的成员：工单的负责人与规则的责任对象从中选（规范 ALARM02 待实现第1条、ALARM04 待实现第2条）
 function opsMembers(pid) {
   const pj = g("projects", pid)?.name,
     ms = typeof auMembers === "function" ? auMembers() : [];
@@ -44895,8 +45013,8 @@ function opsMembers(pid) {
     .filter((m) => ["admin", "config", "ops"].includes(m.role) && (m.scope === "all" || (Array.isArray(m.scope) && m.scope.includes(pj))))
     .map((m) => ({ name: m.name, role: m.role, label: `${m.name} · ${typeof auRole === "function" ? auRole(m.role) : m.role}` }));
 }
-// 成员被移除或本人退出机构后（2026-10-09 用户确认，角色权限方案 R13）：其负责的未完成排查任务与以其为责任对象的告警规则改为“未指定”，
-// 该成员建的场景和时间安排照常运行，不改。由机构设置的“移除”与本人“退出本机构”调用；这是系统随成员变化的处理，不按当前角色检查权限。
+// 成员被移除或本人退出机构后（2026-10-09 用户确认，角色权限方案 R13）：其负责的未完成工单与以其为责任对象的告警规则改为“未指定”，
+// 该成员建的场景和定时照常运行，不改。由机构设置的“移除”与本人“退出本机构”调用；这是系统随成员变化的处理，不按当前角色检查权限。
 async function opsMemberRemoved(name) {
   if (!name || !W) return;
   try {
@@ -44914,7 +45032,7 @@ async function opsMemberRemoved(name) {
         rules++;
       }
     if (!tasks && !rules) return;
-    M.record(n, "改为未指定", null, `${name} 已不在本机构：排查任务 ${tasks} 项、告警规则 ${rules} 条改为“未指定”`);
+    M.record(n, "改为未指定", null, `${name} 已不在本机构：工单 ${tasks} 项、告警规则 ${rules} 条改为“未指定”`);
     await persist(n);
   } catch (e) {
     console.warn("成员移除后的责任对象未更新", e);
@@ -44922,8 +45040,8 @@ async function opsMemberRemoved(name) {
 }
 function ruleOwnerField(pid, cur) {
   const ms = opsMembers(pid);
-  // 责任对象只作排查任务的默认负责人，不决定通知发给谁（2026-10-09 用户确认，ABB 对比 BP100）
-  return fld("责任对象", "ruleOwner", select("ruleOwner", [["", "未指定"], ...ms.map((m) => [m.name, m.label])], ms.some((m) => m.name === cur) ? cur : "", "责任对象"), "排查任务的默认负责人，不影响通知");
+  // 责任对象只作工单的默认负责人，不决定通知发给谁（2026-10-09 用户确认，ABB 对比 BP100）
+  return fld("责任对象", "ruleOwner", select("ruleOwner", [["", "未指定"], ...ms.map((m) => [m.name, m.label])], ms.some((m) => m.name === cur) ? cur : "", "责任对象"), "工单的默认负责人，不影响通知");
 }
 // 室内环境设置中按配置参数（SPACE07）逐项列出当前值与状态，“查看”打开配置参数中的该行，这里不另设字段
 // （规范 OPS04，2026-10-08 第 2 轮第6章，OPS04 待实现第5条）；暖通空调设置按系统分组列出，见 hvacGroupsHtml。
@@ -46185,20 +46303,20 @@ function renderAlarms() {
       tabs(
         [
           ["current", "当前告警"],
-          ["tasks", "排查任务"],
+          ["tasks", "工单"],
           ["history", "告警记录"],
           ["rules", "告警规则"],
         ],
         tab,
       );
-  // 两种数据状态写法相同（2026-10-09 用户确认，ABB 对比 BP107）：列“任务”（下写位置）“来源”“状态”“最近记录”；没有运行数据时任务只存草稿，不写负责人。
+  // 两种数据状态写法相同（2026-10-09 用户确认，ABB 对比 BP107）：列“工单”（下写位置）“来源”“状态”“最近记录”；没有运行数据时工单只存草稿，不写负责人。
   // “来源”为告警、报修或定期检查（BP108），告警下写来源告警
   if (tab === "tasks")
     return (
       head +
-      `<div class="ws-section-toolbar"><p class="muted">${esc(TASK_FOOT)}</p>${canOperate() ? btn("新建任务", "repairForm", {}, "primary") : ""}</div>` +
+      `<div class="ws-section-toolbar"><p class="muted">${esc(TASK_FOOT)}</p>${canOperate() ? btn("新建工单", "repairForm", {}, "primary") : ""}</div>` +
       table(
-        ["任务", "来源", "状态", "最近记录", ""],
+        ["工单", "来源", "状态", "最近记录", ""],
         data()
           .investigationTasks.filter((t) => !U.p || t.projectId === U.p)
           .map((t) => {
@@ -46212,7 +46330,7 @@ function renderAlarms() {
               btn("查看", "investigationDetail", { id: t.id }, "sm"),
             ];
           }),
-        "尚无排查任务。可从告警详情创建（与来源告警双向关联），或用“新建任务”登记报修。",
+        "尚无工单。可从告警详情创建（与来源告警双向关联），或用“新建工单”登记报修。",
       )
     );
   if (tab === "rules")
@@ -46321,12 +46439,12 @@ function showWorkHours(pid, edit = false) {
   if (!edit)
     return modal(
       "工作时间",
-      `<p class="ops-modal-sub">${esc(p.name)} · 所有工作日同一段工作时间；“工作日”按项目节假日表计算，没有登记时按周一至周五。</p><dl class="ops-kv"><dt>工作时间</dt><dd>工作日 ${esc(workHoursText(pid))}</dd><dt>登记</dt><dd>${reg ? `第 ${reg.version} 版 · ${esc(reg.by || "—")}${reg.at ? " · " + sceneAtText(reg.at, pid) : ""}` : "尚未修改，按默认 08:00–19:00"}</dd></dl><p class="ops-foot">按工作时间计算：${WORK_HOURS_USES}。定时场景的“时间”可选“工作时间开始”“工作时间结束”。夜间照明负荷的夜间时段（默认 22:00–06:00）在告警规则中设置，不随工作时间变。</p>${canOperate() ? "" : `<p class="ops-foot">查看人员不能修改工作时间。</p>`}`,
+      `<p class="ops-modal-sub">${esc(p.name)} · 所有工作日同一段工作时间；“工作日”按项目节假日表计算，没有登记时按周一至周五。</p><dl class="ops-kv"><dt>工作时间</dt><dd>工作日 ${esc(workHoursText(pid))}</dd><dt>登记</dt><dd>${reg ? `第 ${reg.version} 版 · ${esc(reg.by || "—")}${reg.at ? " · " + sceneAtText(reg.at, pid) : ""}` : "尚未修改，按默认 08:00–19:00"}</dd></dl><p class="ops-foot">按工作时间计算：${WORK_HOURS_USES}。定时的“时间”可选“工作时间开始”“工作时间结束”。夜间照明负荷的夜间时段（默认 22:00–06:00）在告警规则中设置，不随工作时间变。</p>${canOperate() ? "" : `<p class="ops-foot">查看人员不能修改工作时间。</p>`}`,
       btn("关闭", "close") + (canOperate() ? btn("修改", "workHoursEdit", {}) : ""),
     );
   modal(
     "工作时间",
-    `<p class="ops-modal-sub">${esc(p.name)} · 所有工作日相同，不跨午夜；保存后照明与空调的时间表、按工作时间执行的定时场景随之改变。</p><div class="ws-form-row">${fld("开始", "whFrom", input("whFrom", w.from, "", "time"))}${fld("结束", "whTo", input("whTo", w.to, "", "time"))}</div>`,
+    `<p class="ops-modal-sub">${esc(p.name)} · 所有工作日相同，不跨午夜；保存后照明与空调的时间表、按工作时间执行的定时随之改变。</p><div class="ws-form-row">${fld("开始", "whFrom", input("whFrom", w.from, "", "time"))}${fld("结束", "whTo", input("whTo", w.to, "", "time"))}</div>`,
     btn("取消", "workHours", { p: pid }) + btn("保存", "workHoursSave", {}, "primary"),
   );
 }
@@ -46347,7 +46465,7 @@ async function workHoursSave() {
   }, "operate");
   closeModal(true);
   render();
-  msg(`已保存工作时间（工作日 ${from}–${to}）第 ${ver} 版；时间表与按工作时间执行的定时场景随之改变`);
+  msg(`已保存工作时间（工作日 ${from}–${to}）第 ${ver} 版；时间表与按工作时间执行的定时随之改变`);
 }
 // 场景页写明控制关系（配置参数 X-01），与空调控制确认相同
 const SCENE_PRIORITY = "控制关系（配置参数 X-01）：" + HVC_RELATION;
@@ -46456,6 +46574,10 @@ function sceneExecution(scene) {
     cross = ns.length !== 1 || ps.some((p) => M.access(p) === "system");
   return { ps, ns, label: cross ? "云端与各网关协同" : "网络网关执行", group };
 }
+// 场景各页签的新建（运营及以上角色）：本页签唯一的主要按钮，在页签下第一行的右端；执行记录页签没有（2026-10-10 用户确认，
+// ABB 对比 IA4：原先在页头右侧）。有运行数据时见 renderOpsScenes。
+const sceneNewBtn = (tab) =>
+  canOperate() && tab !== "records" ? btn(tab === "manual" ? "新建场景" : tab === "schedule" ? "新建定时" : "新建联动", "sceneForm", {}, "primary") : "";
 function renderScenes() {
   const tab = U.tab || "manual",
     rows = data().scenes.filter(
@@ -46465,12 +46587,12 @@ function renderScenes() {
         ((!U.b && !U.f) || sceneExecution(s).ps.some((p) => F.floorIn(data(), p.floorId, U))),
     );
   return (
-    toolbar(canOperate() && tab !== "records" ? btn(tab === "manual" ? "新建场景" : tab === "schedule" ? "新建定时" : "新建联动", "sceneForm", {}, "primary") : "") +
+    toolbar() +
     tabs(
       [
-        ["manual", "手动场景"],
-        ["schedule", "定时场景"],
-        ["link", "联动场景"],
+        ["manual", "场景"],
+        ["schedule", "定时"],
+        ["link", "联动"],
         ["records", "执行记录"],
       ],
       tab,
@@ -46478,7 +46600,9 @@ function renderScenes() {
     (tab === "records"
       ? empty("尚无执行记录", "场景由边缘网关执行；网关绑定并交付后，执行记录按设备网络回传最终回报数。未回报不等于未执行。")
       :
-    `<p class="note flow-space">回路内自动控制由 LC20 执行；场景管理网关或跨系统动作。定时与联动引用手动场景，不重复建立同回路照明控制。</p>` +
+    `<div class="ws-section-toolbar">` +
+    `<p class="note flow-space">回路内自动控制由 LC20 执行；场景管理网关或跨系统动作。定时与联动引用场景，不重复建立同回路照明控制。</p>` +
+    `${sceneNewBtn(tab)}</div>` +
     // 定时页签：节假日表（规范 SCENE02，2026-10-08 Vision 核查 V60）；未选项目时各项目按自己的节假日表
     (tab === "schedule" ? (U.p ? holidayLine(U.p, hdYearNow()) : `<p class="ops-hd-line">${ico("clock", "ic16")}<span>工作日按各项目的节假日表计算；选择项目后查看或登记。</span></p>`) : "") +
     // 列表写范围与最近执行（SCENE01 第1条）
@@ -46512,7 +46636,7 @@ function showSceneDetail(id) {
     "场景信息",
     `${infoRows([
       ["名称", s.name],
-      ["类型", { manual: "手动场景", schedule: "定时场景", link: "联动场景" }[s.kind]],
+      ["类型", { manual: "场景", schedule: "定时", link: "联动" }[s.kind]],
       ["动作 / 触发", sceneDesc(s)],
       ["执行位置", ex.label],
       ["时区", zoneText(g("projects", s.projectId)?.timezone || "Asia/Shanghai")],
@@ -46732,7 +46856,7 @@ function renderConnections() {
   const opid = U.p || (typeof Demo !== "undefined" && Demo.on?.() ? OPS_SCOPE.project : "");
   return (
     (quota ? wsNotice(esc(quota), "warning") : "") +
-    `<div class="ws-section-toolbar"><p class="muted">连接、数据、控制和应用分别验证；仅控制型来源需要控制验证。</p>${canEdit() ? btn("新建连接", "connectionForm", {}, "") : ""}</div>` +
+    `<div class="ws-section-toolbar"><p class="muted">连接、数据、控制和应用分别验证；仅控制型来源需要控制验证。</p>${canEdit() ? btn("新建连接", "connectionForm", {}, "primary") : ""}</div>` +
     (opid && g("projects", opid) ? `<p class="ops-basis conn-outdoor">${ico("info", "ic16")}<span>室外温湿度：${esc(outdoorText(opid))}</span>${btn(canEdit() ? "室外温湿度来源" : "查看室外温湿度来源", "outdoorSource", { project: opid }, "ghost sm")}</p>` : "") +
     table(
       ["连接", "协议", "服务楼层", "映射", "连接验证", "数据验证", "控制验证", "应用验证", ""],
@@ -46969,7 +47093,7 @@ defineActions({
     render();
   },
   connectionStage: (a) => showConnectionDetail(U.connectionInfo, Number(a.value)),
-  // 有运行数据时（侧栏搜索等）打开与场景列表相同的“手动场景 · 名称”等弹窗（2026-10-08 Vision 核查 V57）
+  // 有运行数据时（侧栏搜索等）打开与场景列表相同的“场景 · 名称”等弹窗（2026-10-08 Vision 核查 V57）
   sceneDetail: (a) =>
     typeof OPS_SCOPE !== "undefined" && Demo.on() && g("scenes", a.id)?.projectId === OPS_SCOPE.project && actions.opsSceneInfo ? actions.opsSceneInfo(a) : showSceneDetail(a.id),
   holidays: (a) => showHolidays(a.p, a.year),
@@ -47050,20 +47174,20 @@ defineActions({
         btn("关闭", "close") + unavailable("生成报告"),
       );
   },
-  // 没有运行数据时派工与通知服务未接入（2026-10-09 用户确认，ABB 对比 71-23：页面不写“工单”）：任务只保存为草稿并说明（规范 ALARM02，2026-10-08 第3轮第7章，ALARM02 待实现第3条）。
-  // 入口、弹窗、字段、状态与完成按钮按有运行数据时的写法（2026-10-09 用户确认，ABB 对比 BP107）：“创建排查任务”，字段“任务名称”“说明”，
-  // 范围随来源告警（原先另选“项目”）；状态“草稿”“已完成”（原先“草稿，待排查”“已结束”）；“完成任务”要填结论（原先“结束任务”）
+  // 没有运行数据时派工与通知服务未接入（2026-10-09 用户确认，ABB 对比 71-23：当时页面不写“工单”；2026-10-10 用户确认 ABB 对比 IA2 后统一叫“工单”）：工单只保存为草稿并说明（规范 ALARM02，2026-10-08 第3轮第7章，ALARM02 待实现第3条）。
+  // 入口、弹窗、字段、状态与完成按钮按有运行数据时的写法（2026-10-09 用户确认，ABB 对比 BP107）：“创建工单”，字段“工单名称”“说明”，
+  // 范围随来源告警（原先另选“项目”）；状态“草稿”“已完成”（原先“草稿，待排查”“已结束”）；“完成工单”要填结论（原先“结束任务”）
   investigationForm: (a) => {
     const al = F.alarmGroups(data()).find((x) => x.id === a.id) || g("alerts", a.id);
     if (!al) return;
     formState = { kind: "investigationTasks", alarmId: al.id };
     modal(
-      "创建排查任务",
+      "创建工单",
       `<p class="muted">来源告警：${esc(al.name)}</p>` +
-        fld("任务名称", "taskName", input("taskName", al.name + " 排查")) +
+        fld("工单名称", "taskName", input("taskName", al.name + " 排查")) +
         `<p class="muted">位置：${esc(alarmScopeLabel(al))}</p>` +
         fld("说明", "taskNote", `<textarea class="input" id="taskNote" rows="3"></textarea>`) +
-        note("任务与告警双向关联；完成任务不会改变告警恢复状态，也不向现场设备发送指令。派工与通知服务尚未接入：任务保存为草稿，不派工，也不通知负责人。"),
+        note("工单与告警双向关联；完成工单不会改变告警恢复状态，也不向现场设备发送指令。派工与通知服务尚未接入：工单保存为草稿，不派工，也不通知负责人。"),
       btn("取消", "close") + btn("保存草稿", "saveInvestigation", {}, "primary"),
     );
   },
@@ -47071,7 +47195,7 @@ defineActions({
     const name = value("taskName").trim(),
       body = value("taskNote").trim(),
       al = F.alarmGroups(data()).find((x) => x.id === formState.alarmId) || g("alerts", formState.alarmId);
-    if (!name) throw Error("请填写任务名称");
+    if (!name) throw Error("请填写工单名称");
     if (!al) throw Error("来源告警已不存在");
     await transaction((db) => {
       const t = {
@@ -47087,25 +47211,25 @@ defineActions({
         status: "draft",
       };
       db.investigationTasks.unshift(t);
-      M.record(db, "创建排查任务", t.id, t.name);
+      M.record(db, "创建工单", t.id, t.name);
     }, "operate");
     closeModal(true);
     render();
-    msg(`已保存排查任务草稿“${name}”；派工与通知服务尚未接入，不会派工`);
+    msg(`已保存工单草稿“${name}”；派工与通知服务尚未接入，不会派工`);
   },
-  // 报修（2026-10-09 用户确认，ABB 对比 BP108 方案A）：“新建任务”选位置，可附照片；没有运行数据时同样只存草稿
+  // 报修（2026-10-09 用户确认，ABB 对比 BP108 方案A）：“新建工单”选位置，可附照片；没有运行数据时同样只存草稿
   repairForm: () => {
     const pid = U.p || (typeof Demo !== "undefined" && Demo.on() ? OPS_SCOPE.project : data().projects[0]?.id);
     if (!pid) throw Error("尚无项目");
     formState = { kind: "investigationTasks", projectId: pid };
     modal(
-      "新建任务",
+      "新建工单",
       `<p class="muted">报修：登记现场发现的问题，来源写“报修”。</p>` +
-        fld("任务名称", "taskName", input("taskName", "", "如 会议室 7-1 灯具闪烁")) +
+        fld("工单名称", "taskName", input("taskName", "", "如 会议室 7-1 灯具闪烁")) +
         fld("位置", "taskPlace", select("taskPlace", [["", "请选择"], ...repairPlaces(pid)], "", "位置")) +
         fld("说明", "taskNote", `<textarea class="input" id="taskNote" rows="3"></textarea>`) +
         fld("照片（选填）", "taskPhotos", `<input type="file" id="taskPhotos" class="input" accept="image/*" multiple>`, "文件服务接入后上传；现在只记下文件名") +
-        note("完成任务不向现场设备发送指令。派工与通知服务尚未接入：任务保存为草稿，不派工，也不通知负责人。"),
+        note("完成工单不向现场设备发送指令。派工与通知服务尚未接入：工单保存为草稿，不派工，也不通知负责人。"),
       btn("取消", "close") + btn("保存草稿", "saveRepair", {}, "primary"),
     );
   },
@@ -47115,7 +47239,7 @@ defineActions({
       body = value("taskNote").trim(),
       photos = repairPhotoNames("taskPhotos"),
       pid = formState.projectId;
-    if (!name) throw Error("请填写任务名称");
+    if (!name) throw Error("请填写工单名称");
     if (!place) throw Error("请选择位置");
     const z = g("zones", place),
       fid = z ? z.floorId : place;
@@ -47135,20 +47259,20 @@ defineActions({
         status: "draft",
       };
       db.investigationTasks.unshift(t);
-      M.record(db, "新建报修任务", t.id, t.name);
+      M.record(db, "新建报修工单", t.id, t.name);
     }, "operate");
     closeModal(true);
     render();
-    msg(`已保存报修任务草稿“${name}”；派工与通知服务尚未接入，不会派工`);
+    msg(`已保存报修工单草稿“${name}”；派工与通知服务尚未接入，不会派工`);
   },
   investigationDetail: (a) => {
     const t = g("investigationTasks", a.id);
     if (!t) return;
     formState = { kind: "investigationTasks", id: t.id };
     modal(
-      "排查任务",
+      "工单",
       infoRows([
-        ["任务", t.name],
+        ["工单", t.name],
         ["来源", TASK_SOURCES[taskSource(t)] + (taskAlarmName(t) ? `：${taskAlarmName(t)}` : taskSource(t) === "periodic" && t.rule ? `：配置参数 ${t.rule}` : "")],
         ["位置", t.scopeLabel || "—"],
         ["状态", t.closedAt ? "已完成" : "草稿"],
@@ -47160,20 +47284,20 @@ defineActions({
           (t.notes || []).map((n) => [shortDate(n.at), esc(n.body || n.text)]),
           "还没有记录。",
         ) +
-        (!t.closedAt && canOperate() ? fld("追加记录", "taskUpdate", `<textarea class="input" id="taskUpdate" rows="3"></textarea>`, "完成任务需要填写结论；不会改变告警状态，也不向设备发送指令。") : ""),
+        (!t.closedAt && canOperate() ? fld("追加记录", "taskUpdate", `<textarea class="input" id="taskUpdate" rows="3"></textarea>`, "完成工单需要填写结论；不会改变告警状态，也不向设备发送指令。") : ""),
       btn("关闭", "close") +
-        (!t.closedAt && canOperate() ? btn("追加记录", "updateInvestigation") + btn("完成任务", "updateInvestigation", { finish: "true" }, "primary") : ""),
+        (!t.closedAt && canOperate() ? btn("追加记录", "updateInvestigation") + btn("完成工单", "updateInvestigation", { finish: "true" }, "primary") : ""),
     );
   },
   updateInvestigation: async (a) => {
     const id = formState.id,
       body = value("taskUpdate").trim();
-    if (!body) throw Error(a.finish ? "完成任务需要填写结论" : "请填写记录内容");
+    if (!body) throw Error(a.finish ? "完成工单需要填写结论" : "请填写记录内容");
     await transaction((db) => {
       const t = M.get(db, "investigationTasks", id);
       t.notes = [...(t.notes || []), { at: M.now(), body, ...(a.finish ? { kind: "finish" } : {}) }];
       if (a.finish) t.closedAt = M.now();
-      M.record(db, a.finish ? "完成排查任务" : "记录排查进展", id, body);
+      M.record(db, a.finish ? "完成工单" : "记录排查进展", id, body);
     }, "operate");
     closeModal(true);
     render();
@@ -47283,7 +47407,7 @@ defineActions({
         ["条件", ruleCond(r)],
         ...(ruleMiss(r) ? [["缺数", ruleMiss(r)]] : []),
         ...(r.level ? [["级别", r.level]] : []),
-        ...(r.owner != null ? [["责任对象", `${r.owner || "未指定"}（排查任务的默认负责人）`]] : []),
+        ...(r.owner != null ? [["责任对象", `${r.owner || "未指定"}（工单的默认负责人）`]] : []),
         ["范围", alarmRuleScope(r)],
         ["版本", `v${r.version || 1}${r.at ? ` · ${shortDate(r.at, r.projectId)}${r.by ? " " + r.by : ""}` : ""}${r.history?.length ? ` · 此前 ${r.history.length} 个版本` : ""}`],
         ["依据", { html: ruleBasisHtml(r) }],
@@ -47312,7 +47436,7 @@ defineActions({
     render();
     msg(`已删除规则“${name}”`);
   },
-  // 没有运行数据时，告警详情先写已有的关联任务，不再提供建立（规范 ALARM02，2026-10-08 第3轮第7章，ALARM02 待实现第4条）
+  // 没有运行数据时，告警详情先写已有的关联工单，不再提供建立（规范 ALARM02，2026-10-08 第3轮第7章，ALARM02 待实现第4条）
   alarmDetail: (a) => {
     const r = F.alarmGroups(data()).find((r) => r.id === a.id);
     if (!r) return;
@@ -47325,11 +47449,11 @@ defineActions({
         ["影响", r.relatedIds?.length + " 个关联对象"],
         ["恢复", r.state === "recovered" ? "已恢复" : "未恢复"],
         ["确认", r.acknowledged ? "已确认" : "未确认"],
-        ["排查任务", tk ? `${tk.name}（${tk.closedAt ? "已完成" : "草稿"}）` : "未创建"],
+        ["工单", tk ? `${tk.name}（${tk.closedAt ? "已完成" : "草稿"}）` : "未创建"],
         // 离线与被现场复位的未恢复告警：运营人员与查看人员看到“可处理的同事”（B-4h）
         ...(r.state !== "recovered" && ["offline", "device"].includes(r.kind) && g("points", r.pointId) ? [deviceHelpersRow(g("points", r.pointId))].filter(Boolean).map(([l, h]) => [l, { html: h }]) : []),
       ]) + stateNote(),
-      btn("关闭", "close") + (tk ? btn("查看排查任务", "investigationDetail", { id: tk.id }) : canOperate() ? btn("创建排查任务", "investigationForm", { id: a.id }) : "") + (canOperate() ? unavailable("确认告警") : ""),
+      btn("关闭", "close") + (tk ? btn("查看工单", "investigationDetail", { id: tk.id }) : canOperate() ? btn("创建工单", "investigationForm", { id: a.id }) : "") + (canOperate() ? unavailable("确认告警") : ""),
     );
   },
 });
@@ -47553,7 +47677,7 @@ const V13_TPL = [
     "手动后恢复自动",
     "工作时间 2 h · 非工作时间 30 min",
     // 2026-10-09 用户确认，ABB 对比 BP80 方案A：手动在先到的一项结束；“本区无人”一项待固件负责人确认，页面不写；依据只对非工作时间
-    "到时长上限或下一个定时场景时恢复自动，以先到者为准；人执行的场景算一次新的手动；工作时间与非工作时间按项目工作时间由网关下发",
+    "到时长上限或下一次定时执行时恢复自动，以先到者为准；人执行的场景算一次新的手动；工作时间与非工作时间按项目工作时间由网关下发",
     "90.1 (i)(j)、Title 24-2022 §130.1(c)3（非工作时间 ≤ 2 h）",
     "设备本地",
     { range: "15 min–2 h", off: "断网时 LC20 按最后下发的工作时间计时；无工作时间信息按 2 h" },
@@ -47775,7 +47899,7 @@ const V13_TPL = [
     "§5.1",
     "时间表与定时关灯",
     "默认：工作日工作时间开始执行“上班”、结束执行“下班”；每天 21:00、23:00 定时关灯",
-    "已生成为定时场景，之后在场景 › 定时场景中修改；定时关灯执行“下班”，下班后有人照常自动开灯，走廊、楼梯间检测到有人即重开",
+    "已生成为定时，之后在场景 › 定时中修改；定时关灯执行“下班”，下班后有人照常自动开灯，走廊、楼梯间检测到有人即重开",
     "EN 15232-1 占用控制功能 1",
     "网关",
     {},
@@ -48187,7 +48311,7 @@ const V13_TPL = [
     "§11.1",
     "分表之和超过总表",
     "每天比较前一天：分表之和超过所属总表的 1.05 倍且多 1 kWh 以上，连续 2 天告警；连续 2 天回到 1.05 倍以内解除",
-    "总表多于分表之和不告警；能耗设置登记了光伏、储能或自备电源时不判定 · 级别提示；每年 1 月、7 月生成计量数据审核任务（排查任务，来源“定期检查”）",
+    "总表多于分表之和不告警；能耗设置登记了光伏、储能或自备电源时不判定 · 级别提示；每年 1 月、7 月生成计量数据审核工单（来源“定期检查”）",
     "JGJ/T 285-2014 8.2.2（审核每年不少于 2 次）",
     "云端",
     {},
@@ -50431,7 +50555,7 @@ function v13StatusPage() {
   // 4 应用配置：配置参数计数 + 规划检查 + 应用设置（BP69）
   const { states, rc, blocks, hints, appSets } = DS;
   const appSetTable = appSets.length
-    ? `<div class="v13-subhead v13-appset-head"><b>应用设置</b><span>能耗、碳排放待处理时本组待处理；照明、暖通空调、室内环境只显示</span></div>${table(
+    ? `<div class="v13-subhead v13-appset-head"><b>应用设置</b><span>能耗、碳排放待处理时本组待处理；照明、暖通空调、室内环境与跨应用两行只显示</span></div>${table(
         ["应用", "设置", "状态", ""],
         appSets.map((x) => [
           esc(x.app),
@@ -50625,6 +50749,19 @@ function v13AppSettings(db, pid, en, floors) {
       can: true,
     });
   }
+  // 跨应用两行（2026-10-10 用户确认，ABB 对比 IA3）：与跨应用参数一样总是列出，只显示，不计入组状态；修改的地方不变。
+  // 工作时间与节假日表在场景 › 定时（SCENE02），“打开”进入该页签并带“返回配置进度”；室外温湿度来源在设备 › 系统接入（DEVICE06），“打开”打开同一个弹窗。
+  const proj = M.get(db, "projects", pid),
+    year = today.slice(0, 4),
+    wh = proj?.workHours?.from && proj?.workHours?.to ? proj.workHours : WORK_HOURS_DEFAULT;
+  rows.push({
+    app: "跨应用",
+    text: `工作时间与节假日表：工作日 ${wh.from}–${wh.to} · ${proj?.holidays?.[year] ? `${year} 年节假日表已登记` : `${year} 年节假日表未登记，“工作日”按周一至周五计算`}`,
+    act: "openWorkHours",
+    args: { project: pid },
+    can: true,
+  });
+  rows.push({ app: "跨应用", text: `室外温湿度：${outdoorText(pid)}`, act: "outdoorSource", args: { project: pid }, can: true });
   return rows;
 }
 function v13DeployState(db, scope, withParams = !scope.b) {
@@ -50813,6 +50950,8 @@ defineActions({
     route("deployment", { p: a.p || U.p, b: null, f: null, tab: "status", net: null }, { remember: true });
   },
   v13BackProject: () => route("projects", { p: U.p, b: null, f: null, tab: "", net: null }),
+  // 应用设置“工作时间与节假日表”的“打开”（ABB 对比 IA3）：进入场景 › 定时（工作时间与节假日表的修改处，SCENE02），标题旁有“返回配置进度”
+  openWorkHours: (a) => route("scenes", { p: a.project || U.p, b: null, f: null, tab: "schedule" }, { remember: true }),
   v13App: (a) => {
     U.v13App = a.value;
     render();
@@ -51283,7 +51422,7 @@ const DemoService = (() => {
   const dayStart = (ts) => ts - ((ts + TZ) % DAY);
   const TODAY = dayStart(NOW);
   // 工作日按国务院办公厅公布的当年安排：放假日不上班，调休日上班，其余按周一至周五。示例的使用规律按实际日历生成，
-  // 不随项目节假日表的登记或修改而变（项目节假日表只决定定时场景的“工作日”，规范 SCENE02）
+  // 不随项目节假日表的登记或修改而变（项目节假日表只决定定时的“工作日”，规范 SCENE02）
   const isWorkday = (ts) => {
     const l = loc(ts),
       ymd = `${l.y}-${String(l.mo).padStart(2, "0")}-${String(l.d).padStart(2, "0")}`,
@@ -51407,8 +51546,8 @@ const DemoService = (() => {
     return F.lightingFor(data(), { zoneId: zid, floorId: z?.floorId || DEMO_IDS.floor });
   };
   /* 手动后恢复自动（V1.3 §1.3）：工作时间默认 2 h、非工作时间默认 30 分钟，可调 15 分钟–2 h；
-     工作时间按项目登记（场景 › 定时场景，默认工作日 08:00–19:00，由网关下发到 LC20）。旧配置中超过 2 h 的值按上限 2 h 执行。
-     手动在先到的一项结束（2026-10-09 用户确认，ABB 对比 BP80 方案A）：时长上限，或下一个作用于本区的定时场景；
+     工作时间按项目登记（场景 › 定时，默认工作日 08:00–19:00，由网关下发到 LC20）。旧配置中超过 2 h 的值按上限 2 h 执行。
+     手动在先到的一项结束（2026-10-09 用户确认，ABB 对比 BP80 方案A）：时长上限，或下一次作用于本区的定时执行；
      “本区无人到自动控制本该关灯时”待固件负责人确认，这里不计。 */
   const RESUME_MAX = 120;
   const resumeCfg = (v = {}) => ({
@@ -51429,7 +51568,7 @@ const DemoService = (() => {
       [a, b] = workSpan();
     return h >= a && h < b;
   };
-  // 恢复时间与原因：scene 为先到的定时场景（没有时为 null）
+  // 恢复时间与原因：scene 为先到的定时（没有时为 null）
   const resumeInfo = (v, ts, zid) => {
     const r = resumeCfg(v),
       end = ts + (workHours(ts) ? r.work : r.off) * MIN,
@@ -51631,7 +51770,7 @@ const DemoService = (() => {
         part: manual && man.length < live.length ? man.length : 0,
         forced: !manual && ov?.forced ? ov.forced : null,
         until: manual ? resumeAt(cfg, mAt, z.id) : null,
-        // 先到的是定时场景时为该场景（“到 HH:MM 定时“下班”时恢复自动”）
+        // 先到的是定时执行时为该场景（“到 HH:MM 定时“下班”时恢复自动”）
         untilScene: manual ? resumeInfo(cfg, mAt, z.id).scene : null,
         at: manual ? mAt : ov?.at ?? null,
         by: manual ? (mDev?.by ?? ov?.by) : ov?.by,
@@ -53223,7 +53362,7 @@ function lightApply(on, level, mode = "manual", meta = {}) {
   };
 }
 const ROLE_BY = () => ({ admin: "机构管理员", config: "配置人员", ops: "运营人员", member: "普通成员" })[U.role] || "平台";
-// 功能区面板写操作的成员姓名（“10:30 · 王敏操作”）；墙面面板、联动场景等不是人做的操作仍写来源（规范 CTRL01，2026-10-08 Vision 核查 V69：原先只写角色）
+// 功能区面板写操作的成员姓名（“10:30 · 王敏操作”）；墙面面板、联动等不是人做的操作仍写来源（规范 CTRL01，2026-10-08 Vision 核查 V69：原先只写角色）
 const OPS_WHO = () => (typeof auMe === "function" && auMe()?.name) || ROLE_BY();
 // 照明动作的写法（2026-10-09 用户确认，ABB 对比 BP75）：开灯、关灯（保持自动），调光写“调光到 N%（进入手动）”，恢复自动
 const lightLabel = (cmd, level) =>
@@ -53338,7 +53477,7 @@ function ctlLightRows(req) {
     mins = [...new Set(st.map((s) => Demo.resumeCfg(s.cfg)[work ? "work" : "off"]))],
     offs = [...new Set(st.map((s) => s.cfg.offMinutes))],
     rows = [];
-  // 手动在先到的一项结束：时长上限或下一个作用于这些功能区的定时场景（2026-10-09 用户确认，ABB 对比 BP80 方案A）；“无人”一项待固件负责人确认，不写
+  // 手动在先到的一项结束：时长上限或下一次作用于这些功能区的定时执行（2026-10-09 用户确认，ABB 对比 BP80 方案A）；“无人”一项待固件负责人确认，不写
   const nx = ctlZones(req)
     .map((zid) => sceneNextEvent(now, zid))
     .filter(Boolean)
@@ -53351,7 +53490,7 @@ function ctlLightRows(req) {
           ? `到 ${ctlWhen(nx.at)} 定时“${nx.s.name}”执行时恢复自动（先于${work ? "工作时间" : "非工作时间"}的 ${hrsTxt(mins[0])}）`
           : mins.length === 1
             ? `到 ${ctlWhen(now + mins[0] * Demo.MIN)} 恢复自动（${work ? "工作时间" : "非工作时间"} ${hrsTxt(mins[0])}）`
-            : `按各功能区的“手动后恢复自动”时长恢复自动（${work ? "工作时间" : "非工作时间"} ${mins.map(hrsTxt).join(" 或 ")}），定时场景先到时在那时恢复`
+            : `按各功能区的“手动后恢复自动”时长恢复自动（${work ? "工作时间" : "非工作时间"} ${mins.map(hrsTxt).join(" 或 ")}），定时先到时在那时恢复`
       }。`,
     ]);
   else if (req.cmd === "auto")
@@ -53638,7 +53777,7 @@ function opsRecordsModal(back = false) {
   modal(
     "操作记录",
     table(["时间", "对象", "命令", "原值", "生效 / 目标", "未回报", "失败", "执行者与来源"], rows, "还没有从平台下发的控制。") +
-      note("下发、应答、状态生效分别记录；失败重试只针对已确认失败项。这里只列从平台下发的控制，定时与联动场景的执行见“场景 › 执行记录”。"),
+      note("下发、应答、状态生效分别记录；失败重试只针对已确认失败项。这里只列从平台下发的控制，定时与联动的执行见“场景 › 执行记录”。"),
     btn("关闭", "close") + (back && OPS.pendingCtl ? btn("返回确认", "opsCtlBack", {}, "primary") : ""),
   );
   $("#dlg .dialog")?.classList.add("ops-rec-dlg");
@@ -53685,8 +53824,8 @@ function zonePanel(zid, mode = "inline") {
   }</section>`;
   // 普通成员的面板只有照明、暖通空调、室内环境三节，不显示“本区照明控制参数”（2026-10-09 用户确认，角色权限方案第 4 条）
   const params = U.role === "member" ? "" : `<section class="ops-zp-sec"><h4>${ico("edit", "ic16")}本区照明控制参数<span class="sp"></span>${cfgRow ? badge("本区覆盖 · v" + cfgRow.version, "info") : `<span class="ops-dim">沿用楼层默认</span>`}</h4><dl class="ops-kv"><dt>延时时间</dt><dd>${v.offMinutes} 分钟</dd><dt>待机亮度</dt><dd>${v.standbyBrightness}%</dd><dt>待机时间</dt><dd>${v.standbyMinutes} 分钟</dd><dt>有人亮度</dt><dd>${v.occupiedBrightness}%</dd><dt>恒照度目标</dt><dd>${v.luxTarget ? v.luxTarget + " lx" : "关闭"}</dd><dt>手动后恢复自动</dt><dd>工作时间 ${hrsTxt(Demo.resumeCfg(v).work)} · 非工作时间 ${hrsTxt(Demo.resumeCfg(v).off)}${Demo.resumeCfg(v).legacy ? `<small class="ops-warn-t" data-tip="手动后恢复自动最长 2 小时；原配置值超出上限，按 2 小时执行，保存参数后更正">（原配置超出上限，按 2 小时执行）</small>` : ""}</dd></dl>${Demo.ctl.sync?.[z.id] ? syncChip(z.id) : ""}<div class="ops-ctl-row">${U.role === "viewer" ? `<span class="ops-dim">查看人员不能修改</span>` : btn("修改", "opsParams", { zone: z.id }, "sm") + (cfgRow ? btn("恢复楼层默认", "opsParamsReset", { zone: z.id }, "sm ghost") : "")}</div></section>`;
-  // 标题下写功能区完整路径（规范 CTRL01，2026-10-08 第 2 轮第6章，CTRL01 待实现第1条）
-  return `<aside class="ops-zp ${mode}" aria-label="${zhSub(esc(z.name), "r")}功能区面板"><header class="ops-zp-h"><div><h3>${esc(z.name)}</h3><p>${esc(z.type)} · ${z.area} m²${demoTag()}</p><p class="ops-zp-path">${whereHtml(g("zones", z.id)?.floorId, z.name)}</p></div>${iconBtn("关闭功能区面板", "x", "opsZoneClose")}</header>${gw}${light}${hvac}${env}${params}</aside>`;
+  // 标题下写功能区完整路径（规范 CTRL01，2026-10-08 第 2 轮第6章，CTRL01 待实现第1条）；其下为本区的未恢复告警与工单（ABB 对比 IA1）
+  return `<aside class="ops-zp ${mode}" aria-label="${zhSub(esc(z.name), "r")}功能区面板"><header class="ops-zp-h"><div><h3>${esc(z.name)}</h3><p>${esc(z.type)} · ${z.area} m²${demoTag()}</p><p class="ops-zp-path">${whereHtml(g("zones", z.id)?.floorId, z.name)}</p>${workLine("zone", z.id)}</div>${iconBtn("关闭功能区面板", "x", "opsZoneClose")}</header>${gw}${light}${hvac}${env}${params}</aside>`;
 }
 /* 功能区面板“暖通空调”（规范 OPS03、CTRL01，2026-10-09 暖通空调方案评估）：风机盘管、多联机内机与分体空调逐台列出。
    标题右侧写待机、节能或手动（保持到何时）；待机、节能时写规则，本区 MS20 都离线时写明按有人运行。
@@ -53959,8 +54098,9 @@ function memberAreas() {
     multi = new Set(floors.map((f) => pOf(f)?.id)).size > 1;
   floors.sort((a, b) => M.byName(pOf(a) || {}, pOf(b) || {}) || M.byName(bOf(a) || {}, bOf(b) || {}) || M.byHeight(a, b));
   // 有运行数据时同样写数据截至，超过 5 分钟没有取得新数据时卡片数值变暗（VD8）
+  // 页面标题即“我的区域”，正文不再重复大标题，说明与数据截至写在标题下（2026-10-10 用户确认，ABB 对比 IA7）
   const live = zs.length && Demo.on(),
-    head = `<header class="ops-my-h"><h2>我的区域</h2>${zs.length ? `<p class="ops-meta">授权给你的 ${zs.length} 个功能区 · 点击功能区查看与控制</p>` : ""}${live ? liveLine() : ""}</header>`;
+    head = zs.length ? `<header class="ops-my-h"><p class="ops-meta">授权给你的 ${zs.length} 个功能区 · 点击功能区查看与控制</p>${live ? liveLine() : ""}</header>` : "";
   if (!zs.length) return `<section class="ops-my">${head}<div class="ws-empty ops-my-empty">${ico("home")}<p>暂无可控制的区域，请联系机构管理员。</p></div></section>`;
   const groups = floors.map((f) => {
     const title = [multi ? pOf(f)?.name : "", `${bOf(f)?.name || ""} ${f.name}`.trim()].filter(Boolean).join(" · "),
@@ -54190,9 +54330,12 @@ function ovSpace(tab) {
   if (Demo.ctl.gwOffline) strip = strip.map(([l, v, , tip, sub, keep, kind, note]) => [l, kind === "sys" ? "状态未知（网关离线）" : kind === "split" ? "离线" : "状态未知", "", tip, keep ? sub : "", keep, kind, note]);
   const stripHtml = `<div class="ops-strip${opsLive().stale ? " stale" : ""}">${strip
     .map(([l, v, c, tip, sub, , , note, , html]) => `<div${tip ? ` data-tip="${esc(tip)}"` : ""}${note ? ' class="ops-strip-wide"' : ""}><span>${l}</span><b class="${c ? "ops-" + c + "-t" : ""}">${html || esc(v)}</b>${sub ? `<small>${esc(sub)}</small>` : ""}${note ? `<small class="ops-strip-note">${esc(note)}</small>` : ""}</div>`)
-    .join("")}<span class="sp"></span>${tools}${demoTag()}</div>`;
+    .join("")}<span class="sp"></span>${demoTag()}</div>`;
+  // 设置入口固定在页签下第一行的右端，状态条在左侧换行，不把按钮挤到下一行（规范 2 2、OPS02–OPS05；2026-10-10 用户确认，
+  // ABB 对比 IA4：原先按钮排在状态条之后，1440 宽时暖通空调的设置掉到下一行左边、室内环境的在第二行右侧）
+  const stripRow = `<div class="ops-tabbar">${stripHtml}${tools ? `<div class="ops-tabbar-tools">${tools}</div>` : ""}</div>`;
   // 位置选到楼宇、项目或全部项目时，楼层图与功能区表换成下一级的对比表（VD4）
-  if (!U.f) return stripHtml + cmpCard(tab);
+  if (!U.f) return stripRow + cmpCard(tab);
   const gwBanner = Demo.ctl.gwOffline ? `<div class="ops-banner">${ico("alert", "ic16")}<span>本层网关离线，设备状态未知；功能区内的灯光与传感联动不受影响。控制按钮暂不可用。</span></div>` : "";
   const layerLabels = Object.fromEntries(layers.map((l) => [l, LAYERS[l].label]));
   const plan = `<section class="ops-card ops-plan-card big"><header class="ops-card-h"><div><h3>E栋 · 7F</h3><p class="ops-meta">${tab === "environment" ? "点击功能区打开面板 · 点击设备查看读数" : U.role === "viewer" ? "点击功能区查看" : touchPan() ? "点击功能区打开面板 · 点击设备单台控制" : "点击功能区打开面板 · 点击设备单台控制 · 框选或 Shift 点选多台做组控制"}</p></div><div class="ops-card-tools">${segSm(
@@ -54203,7 +54346,7 @@ function ovSpace(tab) {
   const list = zoneTable(tab, zs);
   // 控制不可用的原因常显在状态条下（V7）；网关离线时横幅已写明
   const why = tab !== "environment" && !Demo.ctl.gwOffline ? ctlWhy() : "";
-  return `${stripHtml}${sys}${why}<div class="ops-split ${U.opsZone ? "open" : ""}"><div class="ops-split-main">${plan}${list}</div>${U.opsZone ? zonePanel(U.opsZone) : ""}</div>`;
+  return `${stripRow}${sys}${why}<div class="ops-split ${U.opsZone ? "open" : ""}"><div class="ops-split-main">${plan}${list}</div>${U.opsZone ? zonePanel(U.opsZone) : ""}</div>`;
 }
 function zoneTable(tab, zs) {
   const head =
@@ -54575,8 +54718,9 @@ function ovEnergy() {
     carbon = `<section class="ops-card"><header class="ops-card-h"><div><h3>本月碳排放 ${ce.kg == null ? "待设置" : nf(ce.kg / 1000, 2) + " t" + ce.gas}</h3><p class="ops-meta">用电 × 因子 · ${ce.last ? setLink("碳排放", `碳排放设置 v${ce.last.version}`) : "没有适用的碳排放设置"}</p></div><div class="ops-card-tools">${demoTag()}</div></header><dl class="ops-kv"><dt>排放因子</dt><dd>${
       cv ? setLink("碳排放", `${cv.factor} ${carbonUnit(cv)} · ${cv.region} ${cv.year}`) : "待设置：没有覆盖本月的碳排放设置，不使用参考因子代替"
     }</dd>${cv ? `<dt>来源</dt><dd>${esc(cv.source)}</dd><dt>有效区间</dt><dd>${esc(carbonSpanText(cv, OPS_SCOPE.project))}</dd>` : ""}${ce.missing && ce.kg != null ? `<dt>数据状态</dt><dd>${ce.missing} 天没有适用的排放因子，未计入</dd>` : ""}</dl><div class="ops-ctl-row">${btn("碳排放设置", "applicationSettings", { kind: "碳排放", project: OPS_SCOPE.project }, "ghost sm")}${btn("核算口径", "opsGo", { page: "analysis", tab: "carbon" }, "ghost sm")}</div></section>`;
-  // 右上角为“能耗设置”“碳排放设置”，与另外三个应用一致（2026-10-09 用户确认，ABB 对比 BP71 第 15 条）；对所有角色可见，没有编辑权限时只读
-  const tools = `<div class="ops-strip"><span class="sp"></span>${btn("能耗设置", "applicationSettings", { kind: "能耗", project: OPS_SCOPE.project }, "ghost")}${btn("碳排放设置", "applicationSettings", { kind: "碳排放", project: OPS_SCOPE.project }, "ghost")}</div>`;
+  // 右上角为“能耗设置”“碳排放设置”，与另外三个应用一致（2026-10-09 用户确认，ABB 对比 BP71 第 15 条）；对所有角色可见，没有编辑权限时只读。
+  // 与另外三个页签用同一行（页签下第一行右端，规范 2 2；2026-10-10 ABB 对比 IA4），位置相同
+  const tools = `<div class="ops-tabbar"><div class="ops-tabbar-tools">${btn("能耗设置", "applicationSettings", { kind: "能耗", project: OPS_SCOPE.project }, "ghost")}${btn("碳排放设置", "applicationSettings", { kind: "碳排放", project: OPS_SCOPE.project }, "ghost")}</div></div>`;
   return `${tools}${scopeNote()}${mismatch}${kp}<div class="ops-row r21">${trend}${split}</div><div class="ops-row r21">${todayCard(t)}${carbon}</div>`;
 }
 const avgOf = (ds) => ds.reduce((a, d) => a + d.light + d.hvac, 0) / Math.max(1, ds.length);
@@ -54797,7 +54941,7 @@ function anLoadCard(rg, m, full, hrs, meterName) {
     foot,
   });
 }
-// 数据分析的工作时间按项目登记（场景 › 定时场景，2026-10-09 用户确认，ABB 对比 BP77）：[开始, 结束] 小时数与“08:00–19:00”的写法
+// 数据分析的工作时间按项目登记（场景 › 定时，2026-10-09 用户确认，ABB 对比 BP77）：[开始, 结束] 小时数与“08:00–19:00”的写法
 const anWork = () => [hmHours(workHoursOf(OPS_SCOPE.project).from), hmHours(workHoursOf(OPS_SCOPE.project).to)];
 const anWorkText = () => workHoursText(OPS_SCOPE.project);
 // 点日期弹出当天的功率曲线：与所选期间完整的工作日（按项目节假日表）的平均对比，缺数的小时不计；灰底为工作时间（默认 08:00–19:00）
@@ -55435,7 +55579,7 @@ function anReports() {
 /* ---------- 告警 ---------- */
 const ALARM_TABS = [
   ["current", "当前告警"],
-  ["tasks", "排查任务"],
+  ["tasks", "工单"],
   ["history", "告警记录"],
   ["rules", "告警规则"],
 ];
@@ -55516,10 +55660,52 @@ function taskOf(aid) {
   return data().investigationTasks.find((t) => (t.alertIds || [t.alarmId]).includes(aid));
 }
 const taskState = (t) => (t.closedAt ? "已完成" : t.notes?.length ? "处理中" : "待处理");
+/* 本功能区、本设备的未恢复告警与工单（规范 CTRL01、DEVICE08，2026-10-10 用户确认，ABB 对比 IA1 方案A）：
+   功能区面板的路径下、设备信息的名称下各一行，只在有运行数据且有内容时显示，如“未恢复告警 1 条（重要 · 已确认） · 工单 1 个（处理中 · 李工）”。
+   告警按楼层图告警角标的归入（告警的功能区，设备的告警按设备所在的功能区）；设备含按根因合并进一条告警的设备，同“查看本设备告警”。
+   工单为未完成的任务：在本功能区，或含本设备、来源告警涉及本设备。只有一条时点开它（告警详情、工单面板），多条时进入告警页的
+   “当前告警”或工单页签并按本功能区或本设备筛选。普通成员不显示；查看人员可以点开查看，不能处理。 */
+// 告警在功能区中：与楼层图告警角标同一归入；功能区面板的“未恢复告警 N 条”进入告警页时按它筛选（U.alarmZone）
+const alarmForZone = (a, zid = U.alarmZone) => !zid || alarmTitle(a).zone?.id === zid;
+const taskAlarms = (t) =>
+  (t.alertIds || [t.alarmId]).filter(Boolean).map((id) => F.alarmGroups(data()).find((a) => a.id === id) || g("alerts", id)).filter(Boolean);
+const taskForZone = (t, zid) => t.zoneId === zid || (!t.zoneId && ((t.pointIds || []).some((id) => g("points", id)?.zoneId === zid) || taskAlarms(t).some((a) => alarmForZone(a, zid))));
+const taskForDevice = (t, pid) => (t.pointIds || []).includes(pid) || taskAlarms(t).some((a) => alarmForDevice(a, pid));
+function workOf(kind, id) {
+  const as = F.alarmGroups(data())
+      .filter((a) => a.state !== "recovered" && (kind === "zone" ? alarmForZone(a, id) : alarmForDevice(a, id)))
+      .sort((a, b) => lvlRank(a.level) - lvlRank(b.level) || Date.parse(b.at) - Date.parse(a.at)),
+    ts = data().investigationTasks.filter((t) => !t.closedAt && (kind === "zone" ? taskForZone(t, id) : taskForDevice(t, id)));
+  return { as, ts };
+}
+function workText(as, ts) {
+  const top = as[0],
+    todo = as.filter((a) => !a.acknowledged).length,
+    who = [...new Set(ts.map((t) => t.assignee || ""))].sort((a, b) => !a - !b).map((x) => x || "未指定"),
+    st = ["待处理", "处理中"].map((s) => [s, ts.filter((t) => taskState(t) === s).length]).filter(([, n]) => n);
+  return {
+    alarm: !as.length ? "" : as.length === 1 ? `未恢复告警 1 条（${LV(top.level)} · ${alAck(top)}）` : `未恢复告警 ${as.length} 条（最高：${LV(top.level)} · ${todo ? `${todo} 条待确认` : "都已确认"}）`,
+    task: !ts.length ? "" : ts.length === 1 ? `工单 1 个（${taskState(ts[0])} · ${who[0]}）` : `工单 ${ts.length} 个（${st.map(([s, n]) => `${s} ${n}`).join("、")} · ${who.join("、")}）`,
+  };
+}
+function workLine(kind, id) {
+  if (U.role === "member" || !Demo.on()) return "";
+  const { as, ts } = workOf(kind, id);
+  if (!as.length && !ts.length) return "";
+  const t = workText(as, ts),
+    by = kind === "zone" ? `data-zone="${id}"` : `data-device="${id}"`,
+    link = (text, attrs, how) => `<button type="button" class="ops-link" ${attrs} aria-label="${esc(`${text}，${how}`)}">${esc(text)}</button>`,
+    parts = [
+      as.length && `<i class="ops-zbadge l${lvlRank(as[0].level)}" aria-hidden="true">!</i>${as.length === 1 ? link(t.alarm, `data-act="opsAlarm" data-id="${as[0].id}"`, "打开告警详情") : link(t.alarm, `data-act="opsWorkList" data-tab="current" ${by}`, "在当前告警中查看")}`,
+      ts.length && (ts.length === 1 ? link(t.task, `data-act="opsTask" data-id="${ts[0].id}"`, "打开工单") : link(t.task, `data-act="opsWorkList" data-tab="tasks" ${by}`, "在告警页中查看")),
+    ].filter(Boolean);
+  // 两段以“ · ”分隔；放不下时第二段换到下一行，行首的“·”不显示（见 ops.css）
+  return `<p class="ops-work">${parts.map((x, i) => `<span>${i ? '<span class="ops-work-sep" aria-hidden="true">·</span>' : ""}${x}</span>`).join("")}</p>`;
+}
 // 排查记录的写法（V46、V55）：每条写操作人；采纳 AI 排查步骤、未响应、需返工与完成写明是哪一种
 const taskNoteText = (n) => {
   const by = n.by || "",
-    k = { ai: "采纳 AI 排查步骤：", noresp: "记录未响应：", rework: "记录需返工：", finish: "完成任务：" }[n.kind];
+    k = { ai: "采纳 AI 排查步骤：", noresp: "记录未响应：", rework: "记录需返工：", finish: "完成工单：" }[n.kind];
   return k ? `${zhSub(by, "r")}${k}${n.text || n.body}` : `${by ? by + "：" : ""}${n.text || n.body}`;
 };
 const opsWhen = (ts) => `${opsDay(ts)} ${Demo.hm(ts)}`;
@@ -55553,7 +55739,8 @@ function renderOpsAlarms() {
   if (!Demo.inScope()) return head + outOfScope();
   const body = { current: alCurrent, tasks: alTasks, history: alHistory, rules: alRules }[tab]();
   const dr = U.opsDrawer && U.opsDrawer.page === "alarms" ? (U.opsDrawer.kind === "alarm" ? alarmDrawer(U.opsDrawer.id) : taskDrawer(U.opsDrawer.id)) : "";
-  return head + body + dr;
+  // 按功能区或设备筛选时（ABB 对比 IA1），当前告警与工单页签在页签下写筛选条；告警记录的筛选条在筛选行之下
+  return head + (["current", "tasks"].includes(tab) ? alarmDeviceBar() : "") + body + dr;
 }
 function alCurrent() {
   const lv = U.opsLevel || "all",
@@ -55563,9 +55750,9 @@ function alCurrent() {
     as = F.alarmGroups(data())
       .filter((a) => alarmOpen(a) && a.projectId === OPS_SCOPE.project)
       .sort((a, b) => (a.state === "recovered") - (b.state === "recovered") || lvlRank(a.level) - lvlRank(b.level) || Date.parse(b.at) - Date.parse(a.at)),
-    rows = as.filter((a) => (lv === "all" || LV(a.level) === lv) && (ty === "all" || alarmType(a) === ty) && (st === "all" || (a.acknowledged ? "已确认" : "待确认") === st));
+    rows = as.filter((a) => (lv === "all" || LV(a.level) === lv) && (ty === "all" || alarmType(a) === ty) && (st === "all" || (a.acknowledged ? "已确认" : "待确认") === st) && alarmForDevice(a) && alarmForZone(a));
   const n = (f) => as.filter(f).length,
-    heads = ["级别", "告警", "影响", "状态", "发生", "排查任务"];
+    heads = ["级别", "告警", "影响", "状态", "发生", "工单"];
   let shown = 0;
   const body = rows.map((a) => {
     const t = alarmTitle(a),
@@ -55578,7 +55765,7 @@ function alCurrent() {
     if (!miss) shown++;
     return (
       `<tr class="click ${U.opsDrawer?.id === a.id ? "on" : ""}"${attrs}><td>${lvlChip(a.level)}</td><td><b class="ops-al-t">${esc(t.title)}${maintTag(a)}</b><small class="ops-al-s">${t.subHtml}${t.merged ? ` · <span class="ops-dim ops-nw" data-tip="LC20 与它供电的全部 MS20 在同一时段离线，合并为一条">合并 ${a.relatedIds.length + 1} 台</span>` : ""}</small></td><td class="ops-al-imp sec">${esc(alarmImpact(a))}</td><td class="sec"><span class="ops-st ${a.acknowledged ? "ack" : "todo"}">${ack}</span><small class="ops-al-s">${alRec(a)}</small></td><td class="ops-num sec">${opsWhen(Date.parse(a.at))}<small class="ops-al-s">${a.state === "recovered" ? alDur(a) : dur(alarmStart(a))}</small></td><td class="sec">${tk ? `<button class="ops-link" data-act="opsTask" data-id="${tk.id}">${esc(tkTxt)}</button>` : `<span class="ops-dim">—</span>`}</td></tr>` +
-      alT2(` data-key="t2-${a.id}"${attrs}`, heads.length, [["状态", alState(a)], ["发生", opsWhen(Date.parse(a.at))], ["排查任务", tkTxt], ["影响", alarmImpact(a)]])
+      alT2(` data-key="t2-${a.id}"${attrs}`, heads.length, [["状态", alState(a)], ["发生", opsWhen(Date.parse(a.at))], ["工单", tkTxt], ["影响", alarmImpact(a)]])
     );
   });
   return `<div class="ops-filters">${opsSearch("alarms", "搜索告警、设备或功能区")}${opsFilter(
@@ -55648,9 +55835,9 @@ function alarmTimeline(a) {
   if (nt) ev.push([at, nt.text, nt.html]);
   if (a.acknowledged) ev.push([a.ackAt ? Date.parse(a.ackAt) : at + 25 * Demo.MIN, `${zhSub(a.ackBy || "王敏", "r")}确认`]);
   if (tk) {
-    ev.push([Date.parse(tk.at), `${tk.by ? zhSub(tk.by, "r") : ""}创建排查任务，指派${zhSub(tk.assignee || "—", "l")}${tk.planAt ? `，计划 ${opsWhen(Date.parse(tk.planAt))}` : ""}`]);
+    ev.push([Date.parse(tk.at), `${tk.by ? zhSub(tk.by, "r") : ""}创建工单，指派${zhSub(tk.assignee || "—", "l")}${tk.planAt ? `，计划 ${opsWhen(Date.parse(tk.planAt))}` : ""}`]);
     (tk.notes || []).forEach((n) => ev.push([Date.parse(n.at), taskNoteText(n)]));
-    if (tk.closedAt && !(tk.notes || []).some((n) => n.kind === "finish")) ev.push([Date.parse(tk.closedAt), "排查任务已完成（告警仍以设备数据恢复为准）"]);
+    if (tk.closedAt && !(tk.notes || []).some((n) => n.kind === "finish")) ev.push([Date.parse(tk.closedAt), "工单已完成（告警仍以设备数据恢复为准）"]);
   }
   // 告警期间本区的控制（操作记录）与照明控制参数修改（旧版本记为“修改灯控参数”）
   const zn = t.zone?.name,
@@ -55733,14 +55920,14 @@ function alarmDrawer(id) {
   if (!a) return "";
   const t = alarmTitle(a),
     tk = taskOf(a.id),
-    // 告警确认与排查任务只给有运营权限的角色（查看人员与普通成员没有；角色权限方案第 4 条）
+    // 告警确认与工单只给有运营权限的角色（查看人员与普通成员没有；角色权限方案第 4 条）
     ops = canOperate(),
     devs = [a.pointId, ...(a.relatedIds || [])].filter(Boolean),
     e = alarmEv(a),
     // 离线、失电与被现场复位的未恢复告警：运营人员与查看人员看到“可处理的同事”（B-4h，与设备信息同一行）
     helper = a.state !== "recovered" && ["offline", "device"].includes(a.kind) && typeof deviceHelpersRow === "function" ? deviceHelpersRow(t.p) : null;
-  // 已恢复的告警也能确认（2026-10-09 用户确认，ABB 对比 BP94）；排查任务只给未恢复的告警创建
-  const primary = !a.acknowledged ? (ops ? btn("确认告警", "opsAck", { id }, "primary sm") : "") : a.state !== "recovered" && !tk && ops ? btn("创建排查任务", "opsTaskNew", { id }, "primary sm") : "";
+  // 已恢复的告警也能确认（2026-10-09 用户确认，ABB 对比 BP94）；工单只给未恢复的告警创建
+  const primary = !a.acknowledged ? (ops ? btn("确认告警", "opsAck", { id }, "primary sm") : "") : a.state !== "recovered" && !tk && ops ? btn("创建工单", "opsTaskNew", { id }, "primary sm") : "";
   const mt = alarmMaint(a),
     stChip = `<span class="ops-st ${alStCls(a)}">${alState(a)}</span>${mt ? `<span class="ops-st mt">检修中</span>` : ""}`,
     // 离线与被现场复位都可查看设备网络（V45）
@@ -55752,19 +55939,20 @@ function alarmDrawer(id) {
   ${typeof aiRootCause === "function" ? aiRootCause(a) : ""}
   <section class="ops-dsec"><h4>受影响位置</h4>${opsPlan({ mini: true, highlight: t.zone ? [t.zone.id] : [], hiDevices: devs })}<p class="ops-foot">${devs.map((d) => esc(g("points", d)?.name)).join("、") || esc(t.zone?.name || "")}</p></section>
   <section class="ops-dsec"><h4>时间线</h4>${alarmTimeline(a)}</section>
-  <section class="ops-dsec"><h4>排查任务</h4>${
+  <section class="ops-dsec"><h4>工单</h4>${
     tk
-      ? `<button class="ops-taskcard" data-act="opsTask" data-id="${tk.id}"><b>${esc(tk.name)}</b><span>${esc(taskState(tk))} · ${esc(tk.assignee || "未指定")} · ${(tk.notes || []).length} 条记录</span></button><p class="ops-foot">任务完成不等于告警恢复；告警以设备数据恢复为准。</p>`
+      ? `<button class="ops-taskcard" data-act="opsTask" data-id="${tk.id}"><b>${esc(tk.name)}</b><span>${esc(taskState(tk))} · ${esc(tk.assignee || "未指定")} · ${(tk.notes || []).length} 条记录</span></button><p class="ops-foot">工单完成不等于告警恢复；告警以设备数据恢复为准。</p>`
       : // 先确认、再创建（规范 ALARM05，2026-10-08 Vision 核查 V44：原先待确认的告警也能创建）
-        `<p class="ops-zp-sub">${a.state === "recovered" ? "未创建。" : ops && !a.acknowledged ? "尚未创建。确认告警后可创建排查任务。" : "尚未创建。"}</p>`
+        `<p class="ops-zp-sub">${a.state === "recovered" ? "未创建。" : ops && !a.acknowledged ? "尚未创建。确认告警后可创建工单。" : "尚未创建。"}</p>`
   }</section></div></aside>`;
 }
 function alTasks() {
   const st = U.opsTaskState || "all",
     all = data().investigationTasks.filter((t) => t.projectId === OPS_SCOPE.project),
-    ts = all.filter((t) => st === "all" || taskState(t) === st),
+    // 按本功能区或本设备筛选（ABB 对比 IA1）
+    ts = all.filter((t) => (st === "all" || taskState(t) === st) && (!U.alarmDevice || taskForDevice(t, U.alarmDevice)) && (!U.alarmZone || taskForZone(t, U.alarmZone))),
     // “来源”列（2026-10-09 用户确认，ABB 对比 BP108 方案A）：告警（下写来源告警，可点击）、报修或定期检查（下写配置参数编号）；原为“来源告警”
-    heads = ["任务", "来源", "负责人", "状态", "最近记录"];
+    heads = ["工单", "来源", "负责人", "状态", "最近记录"];
   let shown = 0;
   const body = ts.map((t) => {
     const src = taskSource(t),
@@ -55783,19 +55971,19 @@ function alTasks() {
       alT2(` data-key="t2-${t.id}"${attrs}`, heads.length, [["来源", [TASK_SOURCES[src], ...srcs.map((a) => `${alarmTitle(a).title}（${a.state === "recovered" ? "已恢复" : "未恢复"}）`), srcSub].filter(Boolean).join(" ")], ["负责人", [t.assignee || "未指定", plan].filter(Boolean).join("，")], ["最近记录", lastTxt]])
     );
   });
-  return `<div class="ops-filters">${opsSearch("tasks", "搜索任务、负责人或告警")}${opsFilter(
+  return `<div class="ops-filters">${opsSearch("tasks", "搜索工单、负责人或告警")}${opsFilter(
     "opsTaskSel",
     [["all", `全部状态 · ${all.length}`], ...["待处理", "处理中", "已完成"].map((x) => [x, `${x} · ${all.filter((t) => taskState(t) === x).length}`])],
     st,
-    "任务状态",
-  )}<span class="sp"></span>${demoTag()}${canOperate() ? btn("新建任务", "opsRepairNew", {}, "primary sm") : ""}</div><div class="ops-tw" data-q-scope="tasks"><table class="t ops-t ops-t-fold">${alTh(heads, ["任务", "状态"])}<tbody>${
-    body.join("") || `<tr><td colspan="5" class="flow-no-rows">${all.length ? "此状态没有排查任务" : "尚无排查任务；可从告警详情创建，或用“新建任务”登记报修"}</td></tr>`
-  }<tr data-q-empty hidden><td colspan="5" class="flow-no-rows">没有匹配的任务；可清除搜索</td></tr></tbody></table></div>${alFoot("tasks", { total: all.length, shown, unit: "个", tail: TASK_FOOT })}${(() => {
+    "工单状态",
+  )}<span class="sp"></span>${demoTag()}${canOperate() ? btn("新建工单", "opsRepairNew", {}, "primary sm") : ""}</div><div class="ops-tw" data-q-scope="tasks"><table class="t ops-t ops-t-fold">${alTh(heads, ["工单", "状态"])}<tbody>${
+    body.join("") || `<tr><td colspan="5" class="flow-no-rows">${all.length ? "此状态没有工单" : "尚无工单；可从告警详情创建，或用“新建工单”登记报修"}</td></tr>`
+  }<tr data-q-empty hidden><td colspan="5" class="flow-no-rows">没有匹配的工单；可清除搜索</td></tr></tbody></table></div>${alFoot("tasks", { total: all.length, shown, unit: "个", tail: TASK_FOOT })}${(() => {
     const pt = periodicText(data(), OPS_SCOPE.project);
     return pt ? `<p class="ops-foot">${esc(pt)}。</p>` : "";
   })()}`;
 }
-// 排查任务面板（规范 ALARM02，2026-10-08 Vision 核查 V46；ALARM02 待实现第2条）：说明写在任务名下方，不算记录；
+// 工单面板（规范 ALARM02，2026-10-08 Vision 核查 V46；ALARM02 待实现第2条）：说明写在工单名下方，不算记录；
 // 写负责人、创建人、计划时间与位置（可在图上查看）；记录写操作人与完整日期，未响应与需返工写明原因
 function taskDrawer(id) {
   const t = g("investigationTasks", id);
@@ -55813,8 +56001,8 @@ function taskDrawer(id) {
     ["位置", [t.scopeLabel, devs.join("、")].filter(Boolean).join(" · ")],
   ];
   const notes = (t.notes || []).map((n) => `<li><time class="ops-num">${opsWhen(Date.parse(n.at))}</time><span>${esc(taskNoteText(n))}</span></li>`);
-  if (t.closedAt && !(t.notes || []).some((n) => n.kind === "finish")) notes.push(`<li><time class="ops-num">${opsWhen(Date.parse(t.closedAt))}</time><span>任务完成</span></li>`);
-  return `<aside class="ops-drawer" aria-label="排查任务"><header class="ops-drawer-h"><div><div class="ops-drawer-eb"><span class="ops-st ${t.closedAt ? "ok" : "ack"}">${taskState(t)}</span></div><h3>${esc(t.name)}</h3>${t.description ? `<p>${esc(t.description)}</p>` : ""}</div>${iconBtn("关闭", "x", "opsDrawerClose")}</header><div class="ops-drawer-b">
+  if (t.closedAt && !(t.notes || []).some((n) => n.kind === "finish")) notes.push(`<li><time class="ops-num">${opsWhen(Date.parse(t.closedAt))}</time><span>工单完成</span></li>`);
+  return `<aside class="ops-drawer" aria-label="工单"><header class="ops-drawer-h"><div><div class="ops-drawer-eb"><span class="ops-st ${t.closedAt ? "ok" : "ack"}">${taskState(t)}</span></div><h3>${esc(t.name)}</h3>${t.description ? `<p>${esc(t.description)}</p>` : ""}</div>${iconBtn("关闭", "x", "opsDrawerClose")}</header><div class="ops-drawer-b">
   <dl class="ops-kv">${info.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl>${z ? `<div class="ops-drawer-state">${btn("在图上查看", "opsOpenZone", { id: z.id, tab: "lighting" }, "sm")}</div>` : ""}
   ${
     src !== "alarm"
@@ -55825,14 +56013,14 @@ function taskDrawer(id) {
             : `定期检查，按配置参数 ${t.rule || ""} 的周期自动生成`,
         )}</p>${src === "periodic" && t.rule ? btn("查看配置参数", "v13Params", { p: t.projectId }, "ghost sm") : ""}</section>`
       : ""
-  }${!srcs.length ? "" : `<section class="ops-dsec"><h4>来源告警</h4>${srcs.map((a) => `<button class="ops-taskcard" data-act="opsAlarm" data-id="${a.id}">${lvlChip(a.level)}<b>${esc(alarmTitle(a).title)}</b><span>${alState(a)}</span></button>`).join("")}${t.closedAt && srcs.some((a) => a.state !== "recovered") ? `<p class="ops-banner soft">${ico("alert", "ic16")}<span>任务已完成，但来源告警仍未恢复：告警以设备数据恢复为准，请确认设备是否重新上报。</span></p>` : ""}</section>`}
+  }${!srcs.length ? "" : `<section class="ops-dsec"><h4>来源告警</h4>${srcs.map((a) => `<button class="ops-taskcard" data-act="opsAlarm" data-id="${a.id}">${lvlChip(a.level)}<b>${esc(alarmTitle(a).title)}</b><span>${alState(a)}</span></button>`).join("")}${t.closedAt && srcs.some((a) => a.state !== "recovered") ? `<p class="ops-banner soft">${ico("alert", "ic16")}<span>工单已完成，但来源告警仍未恢复：告警以设备数据恢复为准，请确认设备是否重新上报。</span></p>` : ""}</section>`}
   <section class="ops-dsec"><h4>排查记录</h4>${notes.length ? `<ol class="ops-tl">${notes.join("")}</ol>` : `<p class="ops-zp-sub">还没有记录。</p>`}</section>
   ${
     !ops
       ? ""
       : !t.closedAt
-        ? `<section class="ops-dsec"><h4>追加记录</h4>${fld("记录类型", "opsTaskKind", select("opsTaskKind", [["note", "处理进展"], ["noresp", "未响应（写明原因）"]], "note", "记录类型"))}<textarea class="input" id="opsTaskNote" rows="3" placeholder="现场情况、处理结果或结论" aria-label="追加记录"></textarea><div class="ops-ctl-row">${btn("追加记录", "opsTaskUpd", { id }, "sm")}${btn("完成任务", "opsTaskUpd", { id, finish: "1" }, "primary sm")}</div><p class="ops-foot">完成任务需要填写结论；不会改变告警状态，也不向设备发送指令。</p></section>`
-        : `<section class="ops-dsec"><h4>需返工</h4><textarea class="input" id="opsTaskNote" rows="2" placeholder="写明返工原因"></textarea><div class="ops-ctl-row">${btn("需返工", "opsTaskUpd", { id, rework: "1" }, "sm")}</div><p class="ops-foot">任务回到“处理中”，原因写入排查记录。</p></section>`
+        ? `<section class="ops-dsec"><h4>追加记录</h4>${fld("记录类型", "opsTaskKind", select("opsTaskKind", [["note", "处理进展"], ["noresp", "未响应（写明原因）"]], "note", "记录类型"))}<textarea class="input" id="opsTaskNote" rows="3" placeholder="现场情况、处理结果或结论" aria-label="追加记录"></textarea><div class="ops-ctl-row">${btn("追加记录", "opsTaskUpd", { id }, "sm")}${btn("完成工单", "opsTaskUpd", { id, finish: "1" }, "primary sm")}</div><p class="ops-foot">完成工单需要填写结论；不会改变告警状态，也不向设备发送指令。</p></section>`
+        : `<section class="ops-dsec"><h4>需返工</h4><textarea class="input" id="opsTaskNote" rows="2" placeholder="写明返工原因"></textarea><div class="ops-ctl-row">${btn("需返工", "opsTaskUpd", { id, rework: "1" }, "sm")}</div><p class="ops-foot">工单回到“处理中”，原因写入排查记录。</p></section>`
   }</div></aside>`;
 }
 // 告警记录（规范 ALARM03，2026-10-08 第3轮第7章，ALARM03 待实现第1条：按期间与对象回看；2026-10-09 用户确认，ABB 对比 BP95：原名“处理记录”）。
@@ -55906,7 +56094,7 @@ function alHistory() {
     kpi(`${per.key === "custom" ? "所选期间" : per.label}告警`, st.length + "<small>条</small>", `由 ${raw.length} 条设备事件合并 · 一个根因一条${mt ? ` · 另有检修中 ${mt} 条不计入` : ""}`, "opsNoop"),
     kpi("已恢复", rec.length + "<small>条</small>", "由设备数据恢复判定", "opsNoop"),
     kpi("平均恢复时长", rec.length ? durKpi(mttr) : "—", "已恢复告警", "opsNoop"),
-    kpi("排查任务", tasks.length + "<small>个</small>", `${tasks.filter((t) => !t.closedAt).length} 个进行中`, "opsGo", { page: "alarms", tab: "tasks" }),
+    kpi("工单", tasks.length + "<small>个</small>", `${tasks.filter((t) => !t.closedAt).length} 个进行中`, "opsGo", { page: "alarms", tab: "tasks" }),
   ]);
   // 告警最多（BP98、BP93）：所选期间告警次数最多的 5 个对象，写次数与累计时长，点一行筛出该对象的记录；过于敏感的规则从这里看出，调参在配置参数中进行
   const tally = new Map();
@@ -55922,7 +56110,7 @@ function alHistory() {
     objs = [...new Set(all.map(alarmObj))],
     obj = objs.includes(U.opsHistObj) ? U.opsHistObj : "all",
     resOk = (a) => res === "all" || (res === "recovered" ? a.state === "recovered" : res === "open" ? a.state !== "recovered" : !a.acknowledged),
-    list = all.filter((a) => resOk(a) && (obj === "all" || alarmObj(a) === obj) && alarmForDevice(a)).sort((a, b) => Date.parse(b.at) - Date.parse(a.at)),
+    list = all.filter((a) => resOk(a) && (obj === "all" || alarmObj(a) === obj) && alarmForDevice(a) && alarmForZone(a)).sort((a, b) => Date.parse(b.at) - Date.parse(a.at)),
     heads = ["级别", "告警", "发生", "持续", "结果"];
   const topCard = `<section class="ops-card ops-tablecard ops-al-top"><header class="ops-card-h"><div><h3>告警最多</h3><p class="ops-meta">${esc(per.label)} · 前 5 个对象 · 点一行筛出该对象的记录；过于敏感的规则在配置参数中调整</p></div></header>${
     top.length
@@ -56029,9 +56217,9 @@ function alRules() {
 
 /* ---------- 场景 ---------- */
 const SCENE_TABS = [
-  ["manual", "手动场景"],
-  ["schedule", "定时场景"],
-  ["link", "联动场景"],
+  ["manual", "场景"],
+  ["schedule", "定时"],
+  ["link", "联动"],
   ["records", "执行记录"],
 ];
 /* 定时 / 联动可引用场景，或直接选用“恢复自动”（此时自带 groupId；保存的动作值仍为“恢复自动灯控”） */
@@ -56067,7 +56255,7 @@ function schLcIds(s) {
   if (!SC_LC.has(key)) SC_LC.set(key, new Set(sceneTargets(s).map((p) => p.id)));
   return SC_LC.get(key);
 }
-// 作用于功能区的下一个定时场景（停用的不算）：手动在它到点时结束（2026-10-09 用户确认，ABB 对比 BP80 方案A）。返回 { at, s } 或 null
+// 作用于功能区的下一次定时执行（停用的不算）：手动在它到点时结束（2026-10-09 用户确认，ABB 对比 BP80 方案A）。返回 { at, s } 或 null
 function sceneNextEvent(ts, zid) {
   const lcs = data().points.filter((p) => p.type === "lc" && p.zoneId === zid).map((p) => p.id);
   if (!lcs.length) return null;
@@ -56160,12 +56348,15 @@ const t2Item = (label, html) => `<span class="ops-nw">${label}</span> ${html}`;
 function renderOpsScenes() {
   if (!Demo.on()) return renderScenes();
   opsReset();
+  // 页头右侧只写数据截至；“新建场景”“新建定时”“新建联动”在页签下第一行（执行位置说明条）的右端，说明条在左侧换行，
+  // 不挤走按钮（2026-10-10 用户确认，ABB 对比 IA4：原先在页头右侧）。执行记录页签没有新建。
   const tab = U.tab || "manual",
-    head = toolbar((Demo.inScope() ? liveLine() : "") + (canOperate() && tab !== "records" ? btn(tab === "manual" ? "新建场景" : tab === "schedule" ? "新建定时" : "新建联动", "sceneForm", {}, "primary") : "")) + tabs(SCENE_TABS, tab);
+    head = toolbar(Demo.inScope() ? liveLine() : "") + tabs(SCENE_TABS, tab),
+    create = sceneNewBtn(tab);
   if (!Demo.inScope()) return head + outOfScope();
   // 执行位置说明条的三条说明常显（触屏看不到悬停提示；2026-10-08 Vision 核查 V65）
   const layer = (icon, what, where, note) => `<span>${ico(icon, "ic16")}<span><span>${what} <b>${where}</b></span><small>${note}</small></span></span>`;
-  const layers = `<div class="ops-layers">${layer("bulb", "回路内自动控制、恒照度", "设备本地（LC20）", "断网时照常工作")}${layer("gw", "手动、定时、同网络联动", "网关", "网关与云端断开时，定时和联动照常执行，恢复后补传记录")}${layer("link", "跨网络、跨系统", "云端与网关协同", "受影响部分不执行，执行记录如实标明")}<span class="sp"></span>${demoTag()}</div>`;
+  const layers = `<div class="ops-tabbar"><div class="ops-layers">${layer("bulb", "回路内自动控制、恒照度", "设备本地（LC20）", "断网时照常工作")}${layer("gw", "手动、定时、同网络联动", "网关", "网关与云端断开时，定时和联动照常执行，恢复后补传记录")}${layer("link", "跨网络、跨系统", "云端与网关协同", "受影响部分不执行，执行记录如实标明")}<span class="sp"></span>${demoTag()}</div>${create ? `<div class="ops-tabbar-tools">${create}</div>` : ""}</div>`;
   const ss = data().scenes.filter((s) => s.projectId === OPS_SCOPE.project);
   if (tab === "manual") return head + layers + scManual(ss);
   if (tab === "schedule") return head + layers + scGwLine() + scSchedule(ss);
@@ -56189,7 +56380,7 @@ function scManual(ss) {
         refTxt = refs.length ? `${refs.length} 个<small class="ops-al-s">${esc(refs.map((x) => x.name).join("、"))}</small>` : `<span class="ops-dim">—</span>`,
         cap = nwJoin([`${lcs.length} 台`, `最多 ${capMax} / ${lim}`]),
         last = nwJoin(sceneLast(s, recs));
-      // 点击行打开“手动场景 · 名称”（V57）；“执行”只执行，不打开弹窗。窄屏时“执行”在场景名所在行的右侧，其余列收进第二行（V59）
+      // 点击行打开“场景 · 名称”（V57）；“执行”只执行，不打开弹窗。窄屏时“执行”在场景名所在行的右侧，其余列收进第二行（V59）
       return `<tr class="click" data-act="opsSceneInfo" data-id="${s.id}"><td><b>${esc(s.name)}</b><small class="ops-al-s">${nwJoin(sceneDesc(s).split(" · "))}</small>${r ? rcpt(r) : ""}${hr ? rcpt(hr) : ""}</td><td class="sec">${scope}</td><td class="sec">${execWhere(s)}</td><td class="sec">${syncLabel(s)}</td><td class="sec">${refTxt}</td><td class="ops-num sec">${cap}</td><td class="sec">${last}</td><td class="r">${ctlBtn(ico("play", "ic16") + "执行", "opsRunScene", { id: s.id }, "sm")}</td></tr>${t2("opsSceneInfo", s.id, 8, [
         t2Item("范围", scope),
         t2Item("执行位置", execWhere(s)),
@@ -56286,7 +56477,7 @@ function scSchedule(ss) {
       ])}`;
     })
     .join("")}</tbody></table></div><p class="ops-foot">${esc(SCENE_PRIORITY)}</p>`;
-  return `${holidayLine(OPS_SCOPE.project, Demo.loc(days[0]).y)}<section class="ops-card ops-sch-card"><header class="ops-card-h"><div><h3>${wk === 0 ? "本周" : "下周"}定时 · ${Demo.md(days[0])}–${Demo.md(days[6])}</h3><p class="ops-meta">定时引用手动场景，不重复定义动作 · 节假日表由网关执行</p></div><div class="ops-card-tools">${segSm(
+  return `${holidayLine(OPS_SCOPE.project, Demo.loc(days[0]).y)}<section class="ops-card ops-sch-card"><header class="ops-card-h"><div><h3>${wk === 0 ? "本周" : "下周"}定时 · ${Demo.md(days[0])}–${Demo.md(days[6])}</h3><p class="ops-meta">定时引用场景，不重复定义动作 · 节假日表由网关执行</p></div><div class="ops-card-tools">${segSm(
     [
       ["0", "本周"],
       ["1", "下周"],
@@ -56410,7 +56601,7 @@ function sceneInfoModal(id) {
           }<dt>有效时段</dt><dd>${esc(c.span === "工作时间" ? workHoursLabel(s.projectId) : c.span)}</dd>${c.dcv ? `<dt>控制主体</dt><dd>${esc(c.dcv)}</dd>` : ""}`
         : "";
   modal(
-    { manual: "手动场景", schedule: "定时场景", link: "联动场景" }[s.kind] + " · " + s.name,
+    { manual: "场景", schedule: "定时", link: "联动" }[s.kind] + " · " + s.name,
     `<dl class="ops-kv"><dt>${s.kind === "manual" ? "动作" : "触发"}</dt><dd>${esc(s.kind === "manual" ? sceneDesc(s) : s.kind === "schedule" ? `${s.days} ${schTimeText(s)}` : linkWhen(s))}</dd>${s.kind !== "manual" ? `<dt>状态</dt><dd>${s.stopped ? esc(sceneStopText(s)) + "，网关不执行" : "启用"}</dd>` : ""}${more}${ref ? `<dt>执行场景</dt><dd>${esc(ref.name)} · ${esc(sceneDesc(ref))}</dd>` : s.refId ? `<dt>执行场景</dt><dd class="ops-crit-t">引用的场景已不存在，不能执行</dd>` : s.kind !== "manual" ? `<dt>直接动作</dt><dd>${esc(sceneActionLabel(s.action) || "—")}（不产生设备状态，不占场景容量）</dd>` : ""}${refs.length ? `<dt>被引用</dt><dd>${esc(refs.map((x) => x.name).join("、"))}</dd>` : ""}<dt>范围</dt><dd>${esc(sceneScope(lcs))}</dd><dt>执行位置</dt><dd>${execWhere(s)} · E栋 · 7F 网络</dd><dt>同步</dt><dd>${syncLabel(s)}</dd><dt>目标</dt><dd>${lcs.length} 台 LC20</dd><dt>场景容量</dt><dd>${caps.length ? `最多 ${Math.max(...caps.map((c) => c.scenes))} / ${caps[0].sceneLimit}（单台 LC20）` : "—"}</dd><dt>最近执行</dt><dd>${esc(typeof last === "string" ? last : last ? `${recWhen(last.at)} · 已生效 ${last.ok} / ${last.n}` : "尚未执行")}</dd></dl>${s.kind !== "manual" ? `<p class="ops-foot">定时和联动只引用场景；唯一允许直接选用的动作是“恢复自动”。</p>` : ""}`,
     // 定时与联动可“停用”“启用”（2026-10-09 用户确认，ABB 对比 BP79）
     btn("关闭", "close") + (canOperate() ? btn("编辑", "sceneForm", { id }) + (s.kind !== "manual" ? btn(s.stopped ? "启用" : "停用", "sceneStop", { id }) : "") : ""),
@@ -56432,8 +56623,8 @@ function tzHasDst(tz) {
   }
 }
 
-/* ---------- 场景表单（Doc1 §6.4）：手动场景定义动作；定时与联动只引用场景，唯一可直接选用的动作是“恢复自动” ---------- */
-const SC_KIND = { manual: "手动场景", schedule: "定时场景", link: "联动场景" };
+/* ---------- 场景表单（Doc1 §6.4）：场景定义动作；定时与联动只引用场景，唯一可直接选用的动作是“恢复自动” ---------- */
+const SC_KIND = { manual: "场景", schedule: "定时", link: "联动" };
 const SC_DAYS = [
   ["工作日", "工作日（按项目节假日表）"],
   ["每天", "每天"],
@@ -56521,7 +56712,7 @@ function linkBody(pid, c = {}) {
     }<p class="ops-banner soft">${ico("info", "ic16")}<span>执行对象：${m.target}。${m.none}。</span></p>${ofs("条件、统计窗口与恢复（配置参数）", linkParamList(app, pid), "按配置参数执行，这里不另设；修改在配置参数中进行")}`;
   return `${ofs("触发来源", `<p class="ops-sc-none">${m.source}</p>`)}<div class="ws-form-row">${hold}${fld("恢复", "lkRecover", select("lkRecover", [["auto", "低于条件持续 5 分钟后恢复"], ["none", "不自动恢复"]], c.recoverKey || "auto", "恢复"))}</div><p class="ops-banner soft">${ico("info", "ic16")}<span>执行对象：${m.target}。${m.none}。</span></p>`;
 }
-/* 手动场景按应用选动作（2026-10-09 用户确认，ABB 对比 BP76 方案一）：照明照旧；暖通空调按第10章 H 行（关闭、开启、设定温度、恢复自动，不转节能）；
+/* 场景按应用选动作（2026-10-09 用户确认，ABB 对比 BP76 方案一）：照明照旧；暖通空调按第10章 H 行（关闭、开启、设定温度、恢复自动，不转节能）；
    新风为“最小新风”或“恢复自动”。对象为控制分组中 LC20 所在功能区的空调与新风，没有接入并验证可写时写明原因，不能保存（同联动）。
    “上班”“下班”是第一批跨应用的场景（BP78、X-03）：豁免空间的空调不受影响。 */
 const SC_HV = [
@@ -56657,7 +56848,7 @@ function opsSceneForm(id, preset = {}) {
           select("scHv", SC_HV, o.hvac?.action || "", "暖通空调"),
           "分组所在功能区的风机盘管与多联机内机；关闭按手动关闭处理",
         )}<div id="scHvSpBox"${o.hvac?.action === "sp" ? "" : " hidden"}>${fld("设定温度", "scHvSp", `<div class="ops-unit-in">${input("scHvSp", o.hvac?.sp ?? "", "", "number")}<span>℃</span></div>`, "按当前季节与空间的可调范围（H-02）")}</div></div><div id="scHvWhy"></div><div class="ws-form-row">${fld("新风", "scFresh", select("scFresh", SC_FRESH, o.fresh?.action || "", "新风"), "分组所在功能区的新风机组或风阀")}<div></div></div><div id="scFreshWhy"></div>${note(
-          "人执行动作为调光的场景算一次新的手动操作，按“手动后恢复自动”的时长（工作时间 2 小时 / 非工作时间 30 分钟）或到下一个定时场景时恢复自动，以先到者为准。空调与新风的对象没有接入并验证可写时不能保存。保存时校验分组中的设备型号与调光能力，以及每台 LC20 参与的场景不超过 16 个。",
+          "人执行动作为调光的场景算一次新的手动操作，按“手动后恢复自动”的时长（工作时间 2 小时 / 非工作时间 30 分钟）或到下一次定时执行时恢复自动，以先到者为准。空调与新风的对象没有接入并验证可写时不能保存。保存时校验分组中的设备型号与调光能力，以及每台 LC20 参与的场景不超过 16 个。",
         )}`
       : kind === "schedule"
         ? `${fld("名称", "sceneName", input("sceneName", o.name || "", "如 工作日下班"))}${refFld}<div class="ws-form-row">${fld("日期", "scDays", select("scDays", SC_DAYS, o.days || "工作日", "日期"), "工作日按项目节假日表；没有登记时按周一至周五")}${fld(
@@ -56926,7 +57117,7 @@ function paramsModal(zoneId, floorId) {
     <div class="ws-form-row occ3">${fld("延时时间", "opOff", `<div class="ops-unit-in">${input("opOff", v.offMinutes, "", "number")}<span>分钟</span></div>`, hint.off)}${fld("待机亮度", "opStandby", `<div class="ops-unit-in">${input("opStandby", v.standbyBrightness, "", "number")}<span>%</span></div>`, hint.standby)}${fld("待机时间", "opHold", `<div class="ops-unit-in">${input("opHold", v.standbyMinutes, "", "number")}<span>分钟</span></div>`, hint.hold)}</div>
     <div class="ws-form-row">${fld("有人亮度", "opOcc", `<div class="ops-unit-in">${input("opOcc", v.occupiedBrightness, "", "number")}<span>%</span></div>`, hint.occ)}${fld("恒照度目标", "opLux", `<div class="ops-unit-in">${input("opLux", v.luxTarget, "", "number")}<span>lx</span></div>`, hint.lux)}</div>
     <div class="ws-form-row aligned">${fld("手动后恢复自动 · 工作时间", "opResume", select("opResume", [[15, "15 分钟"], [30, "30 分钟"], [60, "1 小时"], [90, "1 小时 30 分钟"], [120, "2 小时"]], Demo.resumeCfg(v).work, "工作时间手动后恢复自动"), "默认 2 小时")}${fld("手动后恢复自动 · 非工作时间", "opResumeOff", select("opResumeOff", [[15, "15 分钟"], [30, "30 分钟"], [60, "1 小时"], [90, "1 小时 30 分钟"], [120, "2 小时"]], Demo.resumeCfg(v).off, "非工作时间手动后恢复自动"), "默认 30 分钟")}</div>
-    <p class="ops-foot">手动后恢复自动：开 / 关灯不退出自动；调光或执行动作为调光的场景后进入手动，到时长或下一个定时场景时恢复自动，以先到者为准。工作时间与非工作时间按项目工作时间（工作日 ${esc(workHoursText(OPS_SCOPE.project))}）由网关下发，断网时 LC20 按最后下发的工作时间计时。恒照度目标为 0（关闭）时，回路组的控制方式为“固定亮度”。</p>
+    <p class="ops-foot">手动后恢复自动：开 / 关灯不退出自动；调光或执行动作为调光的场景后进入手动，到时长或下一次定时执行时恢复自动，以先到者为准。工作时间与非工作时间按项目工作时间（工作日 ${esc(workHoursText(OPS_SCOPE.project))}）由网关下发，断网时 LC20 按最后下发的工作时间计时。恒照度目标为 0（关闭）时，回路组的控制方式为“固定亮度”。</p>
     <p class="ops-foot" id="opRefresh">${v13LightRefreshText(L, v.offMinutes)}</p>`,
     (own && z ? btn("恢复楼层默认", "opsParamsReset", { zone: z.id }, "ghost") + '<span class="sp"></span>' : "") + btn("取消", "close") + btn("保存", "opsParamsSave", {}, "primary"),
     false,
@@ -57270,9 +57461,18 @@ defineActions({
     render();
   },
   opsTask: (a) => {
+    // 从设备信息（弹窗）打开时先关闭弹窗（ABB 对比 IA1）
+    closeModal(true);
     U.opsDrawer = { page: "alarms", kind: "task", id: a.id };
     if (U.page !== "alarms") return route("alarms", { tab: "tasks" }, { remember: true });
     render();
+  },
+  // 功能区面板、设备信息中的“未恢复告警 N 条”“工单 N 个”有多条时（ABB 对比 IA1）：进入告警页的“当前告警”或工单页签，
+  // 按本功能区或本设备筛选（同“查看本设备告警”的筛选条，可清除）
+  opsWorkList: (a) => {
+    closeModal(true);
+    U.opsDrawer = null;
+    route("alarms", { tab: a.tab, ...(a.device ? { p: objectProjectId(a.device) || U.p, b: null, f: null, alarmDevice: a.device } : { alarmZone: a.zone }) }, { remember: true });
   },
   opsNeedAll: () => {
     U.opsNeedAll = !U.opsNeedAll;
@@ -57301,11 +57501,11 @@ defineActions({
     const al = F.alarmGroups(data()).find((x) => x.id === a.id);
     msg(al?.state === "recovered" ? "已确认" : "已确认。告警仍保持未恢复，直到设备数据恢复");
   },
-  // 创建排查任务（规范 ALARM02，2026-10-08 第3轮第7章）：先确认告警（V44）；负责人从有运营权限且授权范围含本项目的成员中选（待实现第1条）；
-  // 登记计划时间与位置（第2条）；派工与通知服务未接入，任务只保存在平台中并写明（第3条；2026-10-09 用户确认，ABB 对比 71-23：页面不写“工单”）
+  // 创建工单（规范 ALARM02，2026-10-08 第3轮第7章）：先确认告警（V44）；负责人从有运营权限且授权范围含本项目的成员中选（待实现第1条）；
+  // 登记计划时间与位置（第2条）；派工与通知服务未接入，工单只保存在平台中并写明（第3条；2026-10-09 用户确认，ABB 对比 71-23：当时页面不写“工单”；2026-10-10 用户确认 ABB 对比 IA2 后统一叫“工单”）
   opsTaskNew: (a) => {
     const al = F.alarmGroups(data()).find((x) => x.id === a.id);
-    if (!al.acknowledged) throw Error("请先确认告警，再创建排查任务");
+    if (!al.acknowledged) throw Error("请先确认告警，再创建工单");
     const t = alarmTitle(al),
       ms = opsMembers(OPS_SCOPE.project),
       devs = [al.pointId, ...(al.relatedIds || [])].filter(Boolean),
@@ -57313,14 +57513,14 @@ defineActions({
       plan = new Date(Math.ceil((Math.floor(opsNow() / Demo.MIN) * Demo.MIN + 30 * Demo.MIN) / (15 * Demo.MIN)) * 15 * Demo.MIN + 8 * 3600e3).toISOString().slice(0, 16);
     formState = { kind: "opsTask", alertId: a.id };
     modal(
-      "创建排查任务",
-      `<p class="ops-modal-sub">来源告警：${esc(t.title)}</p>${fld("任务名称", "opsTName", input("opsTName", t.title + " 排查"))}<div class="ws-form-row">${fld(
+      "创建工单",
+      `<p class="ops-modal-sub">来源告警：${esc(t.title)}</p>${fld("工单名称", "opsTName", input("opsTName", t.title + " 排查"))}<div class="ws-form-row">${fld(
         "负责人",
         "opsTWho",
         select("opsTWho", ms.map((m) => [m.name, m.label]), ms.find((m) => m.role === "config")?.name || ms[0]?.name || "", "负责人"),
         "有运营权限且授权范围含本项目的成员",
-      )}${fld("计划时间", "opsTPlan", input("opsTPlan", plan, "", "datetime-local"))}</div><p class="ops-modal-sub">位置：${esc([t.zone ? "E栋 7F · " + t.zone.name : "E栋 7F", devs.map((d) => g("points", d)?.name).join("、")].filter(Boolean).join(" · "))}</p>${fld("说明", "opsTNote", `<textarea class="input" id="opsTNote" rows="3">${esc(alarmNext(al))}</textarea>`)}<p class="ops-foot">任务与告警双向关联；完成任务不会改变告警恢复状态，也不向现场设备发送指令。派工与通知服务尚未接入：任务保存在平台中，负责人在“排查任务”中查看；服务接入后按负责人的通知偏好发送。</p>`,
-      btn("取消", "close") + btn("创建任务", "opsTaskSave", {}, "primary"),
+      )}${fld("计划时间", "opsTPlan", input("opsTPlan", plan, "", "datetime-local"))}</div><p class="ops-modal-sub">位置：${esc([t.zone ? "E栋 7F · " + t.zone.name : "E栋 7F", devs.map((d) => g("points", d)?.name).join("、")].filter(Boolean).join(" · "))}</p>${fld("说明", "opsTNote", `<textarea class="input" id="opsTNote" rows="3">${esc(alarmNext(al))}</textarea>`)}<p class="ops-foot">工单与告警双向关联；完成工单不会改变告警恢复状态，也不向现场设备发送指令。派工与通知服务尚未接入：工单保存在平台中，负责人在“工单”中查看；服务接入后按负责人的通知偏好发送。</p>`,
+      btn("取消", "close") + btn("创建工单", "opsTaskSave", {}, "primary"),
       false,
     );
   },
@@ -57331,14 +57531,14 @@ defineActions({
       note = value("opsTNote").trim(),
       aid = formState.alertId,
       planAt = planV ? Date.parse(planV + ":00+08:00") : NaN;
-    if (!name) throw Error("请填写任务名称");
+    if (!name) throw Error("请填写工单名称");
     if (!who) throw Error("请选择负责人");
     if (!Number.isFinite(planAt)) throw Error("请填写计划时间");
     const id = M.uid("investigation"),
       al = F.alarmGroups(data()).find((x) => x.id === aid);
     await transaction((db) => {
       const z = db.zones.find((x) => x.id === (al?.zoneId || g("points", al?.pointId)?.zoneId));
-      // 说明写在任务上，不算记录：新任务为“待处理”，有第一条记录后为“处理中”（V46）
+      // 说明写在工单上，不算记录：新工单为“待处理”，有第一条记录后为“处理中”（V46）
       db.investigationTasks.unshift({
         id,
         projectId: OPS_SCOPE.project,
@@ -57354,20 +57554,20 @@ defineActions({
         description: note,
         notes: [],
       });
-      M.record(db, "创建排查任务", id, name);
+      M.record(db, "创建工单", id, name);
     }, "operate");
     closeModal(true);
     U.opsDrawer = { page: "alarms", kind: "task", id };
     route("alarms", { tab: "tasks" });
   },
-  // 报修（2026-10-09 用户确认，ABB 对比 BP108 方案A）：“新建任务”选位置、可附照片，负责人与计划时间同“创建排查任务”；来源写“报修”
+  // 报修（2026-10-09 用户确认，ABB 对比 BP108 方案A）：“新建工单”选位置、可附照片，负责人与计划时间同“创建工单”；来源写“报修”
   opsRepairNew: () => {
     const ms = opsMembers(OPS_SCOPE.project),
       plan = new Date(Math.ceil((Math.floor(opsNow() / Demo.MIN) * Demo.MIN + 30 * Demo.MIN) / (15 * Demo.MIN)) * 15 * Demo.MIN + 8 * 3600e3).toISOString().slice(0, 16);
     formState = { kind: "opsRepair" };
     modal(
-      "新建任务",
-      `<p class="ops-modal-sub">报修：登记现场发现的问题，来源写“报修”</p>${fld("任务名称", "opsTName", input("opsTName", "", "如 会议室 7-1 灯具闪烁"))}${fld(
+      "新建工单",
+      `<p class="ops-modal-sub">报修：登记现场发现的问题，来源写“报修”</p>${fld("工单名称", "opsTName", input("opsTName", "", "如 会议室 7-1 灯具闪烁"))}${fld(
         "位置",
         "opsTPlace",
         select("opsTPlace", [["", "请选择"], ...repairPlaces(OPS_SCOPE.project)], "", "位置"),
@@ -57381,8 +57581,8 @@ defineActions({
         "opsTPhotos",
         `<input type="file" id="opsTPhotos" class="input" accept="image/*" multiple>`,
         "文件服务接入后上传；现在只记下文件名",
-      )}<p class="ops-foot">完成任务不向现场设备发送指令。派工与通知服务尚未接入：任务保存在平台中，负责人在“排查任务”中查看；服务接入后按负责人的通知偏好发送。</p>`,
-      btn("取消", "close") + btn("创建任务", "opsRepairSave", {}, "primary"),
+      )}<p class="ops-foot">完成工单不向现场设备发送指令。派工与通知服务尚未接入：工单保存在平台中，负责人在“工单”中查看；服务接入后按负责人的通知偏好发送。</p>`,
+      btn("取消", "close") + btn("创建工单", "opsRepairSave", {}, "primary"),
       false,
     );
   },
@@ -57394,7 +57594,7 @@ defineActions({
       note = value("opsTNote").trim(),
       photos = repairPhotoNames("opsTPhotos"),
       planAt = planV ? Date.parse(planV + ":00+08:00") : NaN;
-    if (!name) throw Error("请填写任务名称");
+    if (!name) throw Error("请填写工单名称");
     if (!place) throw Error("请选择位置");
     if (!who) throw Error("请选择负责人");
     if (!Number.isFinite(planAt)) throw Error("请填写计划时间");
@@ -57419,17 +57619,17 @@ defineActions({
         photos,
         notes: [],
       });
-      M.record(db, "新建报修任务", id, name);
+      M.record(db, "新建报修工单", id, name);
     }, "operate");
     closeModal(true);
     U.opsDrawer = { page: "alarms", kind: "task", id };
     route("alarms", { tab: "tasks" });
   },
-  // 追加记录：处理记录或未响应（写明原因）；完成任务写结论；已完成的任务可“需返工”（写明原因，回到处理中）。记录写操作人（V46，ALARM02 待实现第2条）
+  // 追加记录：处理记录或未响应（写明原因）；完成工单写结论；已完成的工单可“需返工”（写明原因，回到处理中）。记录写操作人（V46，ALARM02 待实现第2条）
   opsTaskUpd: async (a) => {
     const text = value("opsTaskNote").trim(),
       kind = a.finish ? "finish" : a.rework ? "rework" : value("opsTaskKind") === "noresp" ? "noresp" : "";
-    if (!text) throw Error(a.finish ? "完成任务需要填写结论" : a.rework ? "请写明返工原因" : kind === "noresp" ? "请写明未响应的原因" : "请填写记录内容");
+    if (!text) throw Error(a.finish ? "完成工单需要填写结论" : a.rework ? "请写明返工原因" : kind === "noresp" ? "请写明未响应的原因" : "请填写记录内容");
     await transaction((db) => {
       const t = db.investigationTasks.find((x) => x.id === a.id),
         now = new Date(opsNow()).toISOString(),
@@ -57440,17 +57640,17 @@ defineActions({
         delete t.closedAt;
         delete t.closedBy;
       }
-      M.record(db, a.finish ? "完成排查任务" : a.rework ? "排查任务需返工" : kind === "noresp" ? "记录排查未响应" : "记录排查进展", a.id, text);
+      M.record(db, a.finish ? "完成工单" : a.rework ? "工单需返工" : kind === "noresp" ? "记录排查未响应" : "记录排查进展", a.id, text);
     }, "operate");
     render();
-    if (a.finish) msg("任务已完成；来源告警以设备数据恢复为准");
-    if (a.rework) msg("任务回到处理中，返工原因已写入排查记录");
+    if (a.finish) msg("工单已完成；来源告警以设备数据恢复为准");
+    if (a.rework) msg("工单回到处理中，返工原因已写入排查记录");
   },
   opsRunScene: (a) => {
     const s = g("scenes", a.id),
       lcs = sceneTargets(s);
     if (!lcs.length) throw Error("该场景没有可执行的 LC20");
-    ctlConfirm({ type: "light", scope: "scene", sid: s.id, ids: lcs.map((p) => p.id), cmd: sceneCmd(s), level: sceneLevel(s), src: "场景 › 手动场景", hv: sceneHvReq(s) });
+    ctlConfirm({ type: "light", scope: "scene", sid: s.id, ids: lcs.map((p) => p.id), cmd: sceneCmd(s), level: sceneLevel(s), src: "场景", hv: sceneHvReq(s) });
   },
   // 重试（SCENE04 第3条）：复核当前场景版本与权限，只对仍可执行的未回报对象重新确认后下发
   opsSceneRetry: (a) => {
@@ -57565,7 +57765,7 @@ document.addEventListener("input", (e) => {
   if (e.target.id === "scRef") scWhenHint();
   // 只在动作为“调光”（保存值“开启”）时显示亮度（2026-10-08 Vision 核查 V66）
   if (e.target.id === "scAction" && $("#scLevelRow")) $("#scLevelRow").hidden = e.target.value !== "开启";
-  // 手动场景的空调与新风：对象没有接入并验证可写时写明原因（2026-10-09 用户确认，ABB 对比 BP76）
+  // 场景的空调与新风：对象没有接入并验证可写时写明原因（2026-10-09 用户确认，ABB 对比 BP76）
   if (["scHv", "scFresh", "sceneGroup"].includes(e.target.id) && $("#scHvWhy")) scAppWhy();
   // 定时的时间：选“指定时刻”时填时刻（2026-10-09 用户确认，ABB 对比 BP77）
   if (e.target.id === "scAt" && $("#scWhenRow")) $("#scWhenRow").hidden = e.target.value !== "fixed";
@@ -57692,12 +57892,12 @@ const AI_SUGGESTIONS = {
     },
   },
   "labe-task": {
-    title: "把 AI 排查步骤写入排查任务",
-    what: "在“实验室 E 照明控制器离线”任务中追加 3 条排查步骤。",
-    targets: "排查任务“实验室 E 照明控制器离线”",
+    title: "把 AI 排查步骤写入工单",
+    what: "在“实验室 E 照明控制器离线”工单中追加 3 条排查步骤。",
+    targets: "工单“实验室 E 照明控制器离线”",
     effect: "现场人员按步骤核对供电，不改变告警状态。",
     basis: "根因分析：控制器与它供电的 MS20 在同一分钟停止上报，网关与同网络其他设备正常。",
-    rollback: "步骤追加在任务记录中，不改变告警与设备；有误时在任务中追加更正说明。",
+    rollback: "步骤追加在工单记录中，不改变告警与设备；有误时在工单中追加更正说明。",
     risk: "",
     kind: "task",
   },
@@ -57722,7 +57922,7 @@ function aiAdoptModal(id) {
         ? unavailable("需要配置权限")
         : refuse
           ? unavailable("确认下发")
-          : btn(s.kind === "config" ? "保存为配置草稿" : s.kind === "task" ? "确认并写入任务" : s.kind === "control" ? "确认下发" : "我已知晓", "aiAdoptOk", { id }, "primary")),
+          : btn(s.kind === "config" ? "保存为配置草稿" : s.kind === "task" ? "确认并写入工单" : s.kind === "control" ? "确认下发" : "我已知晓", "aiAdoptOk", { id }, "primary")),
     false,
   );
 }
@@ -57741,7 +57941,7 @@ function aiDailyBrief() {
     o703 = Demo.zoneState(Demo.zoneOf("o703")),
     o703c = o703.circuits.find((x) => x.src && x.lux != null && x.lux > o703.cfg.luxTarget);
   const items = [
-    lc && lc.state !== "recovered" ? `<li><b>实验室 E 一半照明不可用。</b>E-7F-LC20-09 与其 MS20 同时离线，推断为回路失电；${tk ? `排查任务${taskState(tk)}（${esc(tk.assignee)}）。` : "尚无排查任务。"}</li>` : "",
+    lc && lc.state !== "recovered" ? `<li><b>实验室 E 一半照明不可用。</b>E-7F-LC20-09 与其 MS20 同时离线，推断为回路失电；${tk ? `工单${taskState(tk)}（${esc(tk.assignee)}）。` : "尚无工单。"}</li>` : "",
     meet.aq?.co2 > 1000 ? `<li><b>会议室 7-1 CO₂ ${nf(meet.aq.co2)} ppm（1 分钟均值）。</b>${aiCo2Story()}，建议会后通风。</li>` : "",
     `<li><b>用电平稳。</b>截至 ${Demo.hm(Demo.NOW)} 为 ${nf(t.kwh)} kWh，${t.vsTypical <= 0 ? "低于" : "高于"}典型${t.weekday} ${nf(Math.abs(t.vsTypical), 1)}%；预计全天约 ${nf(t.typicalDay * (1 + t.vsTypical / 100))} kWh。</li>`,
     `<li><b>实验室 B 连续 3 晚夜间照明偏高。</b>整晚无人，回路停在待机亮度 30%，没有关灯。</li>`,
@@ -57769,7 +57969,7 @@ function aiRootCause(a) {
       title: "根因分析：回路失电的可能性最高",
       body: `<p class="ai-p">置信度 <b>较高</b>。${zhSub(esc(p.name), "r")}与它供电的 ${esc(ms)} 在同一分钟停止上报；${h.gwOff ? `当时网关与同网络其他 ${h.unknown.length} 台设备正常（网关现已离线，以下为离线前的数据）` : `网关与同网络其他 ${h.online - 1} 台设备正常`}，同区另一台${zhSub(esc(sib.name))}仍在恒照度运行，可排除网关、无线与整区断电。</p><ol class="ai-steps"><li>检查配电箱中实验室 E 该照明回路的断路器。</li><li>若断路器正常，测量${zhSub(esc(p.name))}输入电压，检查接线端子。</li><li>恢复供电后确认两台设备重新上报；告警会按设备数据自动恢复。</li></ol>`,
       evidence: [aiLink(`${zhSub(p.name, "r")}最后数据 ${Demo.hm(Date.parse(p.telemetry.offlineSince) - Demo.offAfter(p) * Demo.MIN)}`, "opsOpenZone", { id: "zone-demo-labe", tab: "lighting" }), aiLink(`同区${zhSub(sib.name)}在线`, "opsOpenZone", { id: "zone-demo-labe", tab: "lighting" }), aiLink(h.gwOff ? "网关离线 · 在线率暂无法统计" : `网关在线 · 在线率 ${nf(h.rate, 1)}%`, "opsGo", { page: "analysis", tab: "health" })],
-      actions: aiSuggest("写入排查任务", "labe-task"),
+      actions: aiSuggest("写入工单", "labe-task"),
       cls: "ai-inline",
     });
   }
@@ -58200,9 +58400,9 @@ function aiRules(q, z, forced, scope, yd, ydl) {
       html = `<p class="ai-p"><b>${zhSub(esc(zz.name), "r")}只有一半的灯不亮。</b>${esc(p.name)}（带 ${p.drivers} 台灯具驱动）自 ${Demo.hm(Date.parse(p.telemetry.offlineSince) - Demo.offAfter(p) * Demo.MIN)} 起没有数据，它供电的 MS20 也在同一分钟停止上报，推断该回路失电（断路器跳闸或供电中断）。${ok.length ? `同区的${zhSub(esc(ok.map((x) => x.name).join("、")))}正常，当前亮度 ${s.light.level}%（恒照度）。` : ""}</p>${(() => {
         const tk = typeof taskOf === "function" ? taskOf("alert-demo-lc") : null,
           last = tk?.notes?.at(-1);
-        return tk ? `<p class="ai-p">已有排查任务（${esc(taskState(tk))}，负责人${zhSub(esc(tk.assignee || "未指定"), "l")}）${last ? `：${esc(last.text || last.body)}` : "。"}</p>` : `<p class="ai-p">尚无排查任务，可在告警详情中创建。</p>`;
+        return tk ? `<p class="ai-p">已有工单（${esc(taskState(tk))}，负责人${zhSub(esc(tk.assignee || "未指定"), "l")}）${last ? `：${esc(last.text || last.body)}` : "。"}</p>` : `<p class="ai-p">尚无工单，可在告警详情中创建。</p>`;
       })()}`;
-      return { scope, html, ev: [aiLink("告警：" + p.name + " 失电（推断）", "opsAlarm", { id: "alert-demo-lc" }), aiLink("排查任务", "opsTask", { id: "task-demo-1" }), aiLink(zz.name + " · 灯光", "opsOpenZone", { id: zz.id, tab: "lighting" })], follow: ["现在有哪些设备离线？"] };
+      return { scope, html, ev: [aiLink("告警：" + p.name + " 失电（推断）", "opsAlarm", { id: "alert-demo-lc" }), aiLink("工单", "opsTask", { id: "task-demo-1" }), aiLink(zz.name + " · 灯光", "opsOpenZone", { id: zz.id, tab: "lighting" })], follow: ["现在有哪些设备离线？"] };
     }
     if (!s.light.onCount)
       html = `<p class="ai-p"><b>${zhSub(esc(zz.name), "r")}当前无人 ${durText(s.since)}</b>，已超过延时时间（${s.cfg.offMinutes} 分钟）${s.cfg.standbyMinutes ? `和待机时间（${s.cfg.standbyMinutes} 分钟）` : ""}，灯按照明控制参数自动关闭。控制器在线，有人进入会自动开灯。</p>`;
@@ -58414,7 +58614,7 @@ defineActions({
       });
     closeModal(true);
     render();
-    msg(s.kind === "config" ? "已保存为配置草稿；机构管理员在配置参数中批准后才形成新版本" : s.kind === "task" ? "已写入排查任务" : "已记录");
+    msg(s.kind === "config" ? "已保存为配置草稿；机构管理员在配置参数中批准后才形成新版本" : s.kind === "task" ? "已写入工单" : "已记录");
     // 保存后原建议按钮改为“在配置参数中查看”（V39）：焦点移到新按钮，不落到页面开头。
     if (s.kind === "config") requestAnimationFrame(() => $(`[data-act="aiDraftOpen"]`)?.focus());
   },
@@ -59010,7 +59210,7 @@ const AU_PREF0 = () => ({
   // 与机构“按事件通知”相同的分类（ACCOUNT03，03 第 2 条）；安全事件为必需通知，按机构设置发送，个人不能关闭（03 第 3 条）。
   security: { sms: 1, mail: 1 },
   delivery: { sms: 0, mail: 1 },
-  // 指派给本人的排查任务，默认邮件（2026-10-09 用户确认，ABB 对比 BP99）
+  // 指派给本人的工单，默认邮件（2026-10-09 用户确认，ABB 对比 BP99）
   task: { sms: 0, mail: 1 },
   invite: { sms: 0, mail: 1 },
   report: { sms: 0, mail: 1 },
@@ -60524,6 +60724,20 @@ function auLegalBody() {
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
   {
+    version: "1.71",
+    date: "2026-10-10",
+    notes: [
+      "告警：“排查任务”改叫“工单”，按钮为“新建工单”“创建工单”“完成工单”。",
+      "场景：页签改为“场景”“定时”“联动”“执行记录”。",
+      "总览：功能区面板显示本区未恢复的告警和未完成的工单，点击可查看。",
+      "设备信息：名称下显示本设备未恢复的告警和未完成的工单。",
+      "配置进度 → 应用配置：“应用设置”表列出工作时间与节假日表和室外温湿度，可直接打开。",
+      "设备：范围是楼层时打开“设备标记”，否则打开“设备台账”。",
+      "设备、场景与总览：新建与设置按钮移到页签下第一行的右端。",
+      "普通成员：侧栏和页面标题改为“我的区域”。",
+    ],
+  },
+  {
     version: "1.70",
     date: "2026-10-10",
     notes: [
@@ -60650,7 +60864,7 @@ const AU_TERMS = [
   ["复位", "设备复位指在现场把设备恢复出厂，设备离开设备网络，显示为“待绑定（被现场复位）”，可远程补绑或用部署 App 绑回原点位。电表复位指电表读数归零，能耗图的日用电柱上标“复”，复位前后的读数分开计算，不算作负的用电。", "设备复位：设备 → 设备台账、设备信息；电表复位：总览 → 能源，数据分析 → 能耗"],
   ["公共区域", "走廊、电梯厅、楼梯间、卫生间、门厅、车库和机房这类功能区，由运营人员管理，不能授权给普通成员。", "项目 → 楼层，机构设置 → 成员"],
   ["功能区", "楼层中按用途划分的区域，如办公室、实验室或会议室；灯光与空调按功能区控制，普通成员也按功能区授权。", "项目 → 楼层，总览"],
-  ["恢复自动", "结束手动控制，回到按占用与照度的自动控制。开灯、关灯不退出自动控制；调光后进入手动，到“手动后恢复自动”的时长或下一个定时场景时自动恢复，以先到者为准。", "总览 → 照明、功能区面板，场景"],
+  ["恢复自动", "结束手动控制，回到按占用与照度的自动控制。开灯、关灯不退出自动控制；调光后进入手动，到“手动后恢复自动”的时长或下一次定时执行时自动恢复，以先到者为准。", "总览 → 照明、功能区面板，场景"],
   ["回路", "一台照明控制器（LC20）所控制的灯具，连同由它供电的 MS20；本回路 MS20 的占用自动用于这一回路。", "设备 → 设备标记（“回路”模式）"],
   ["回路组", "同一楼层、同一设备网络中共用占用输入和一个照度源的几个回路，在 LC20 面板中“并入回路组…”或“移出回路组”。", "设备 → 设备标记（“回路”模式）"],
   ["回执", "设备、网关或部署 App 执行后返回的确认。“已绑定”“已应用”“已生效”都以回执为准，没有回执不算完成。", "总览（控制结果）、设备、配置进度"],
@@ -60662,7 +60876,7 @@ const AU_TERMS = [
   ["内部标识", "平台给每个点位的内部编号，改名或更换设备都不变；只在联系技术支持时提供，平时用点位名称。", "设备信息 → 高级信息，现场安装资料"],
   ["配置参数", "项目的参数表，列出照明、暖通空调、室内环境与能耗各项的取值和依据；配置人员修改，机构管理员批准后生效。", "配置进度 → 应用配置"],
   ["配置来源", "生成设备期望配置所用的网络模板及版本，写作“模板名称 · vN”。", "设备信息 → 高级信息"],
-  ["普通成员", "按功能区授权的角色，只看到总览中的“我的区域”，可以控制授权功能区的灯光与空调；没有搜索、导出和告警通知。", "机构设置 → 成员、角色与权限，总览 → 我的区域"],
+  ["普通成员", "按功能区授权的角色，只看到“我的区域”，可以控制授权功能区的灯光与空调；没有搜索、导出和告警通知。", "机构设置 → 成员、角色与权限，我的区域"],
   ["期望配置", "平台按规划、网络模板和配置参数为每台设备生成的配置，按版本写作“第 N 版”；设备回执确认后才算已应用。", "设备 → 设备台账，设备信息"],
   ["设备网络", "一个网关和它连接的 Mesh 设备组成一个设备网络，服务范围可以跨楼层；网络版本、体检和交付都按网络进行。", "设备 → 设备网络"],
   ["网关", "楼内的边缘网关，连接设备网络和平台；控制、场景和联动由网关在楼内执行。", "设备 → 设备网络，设备信息（网关信息）"],
@@ -61314,10 +61528,10 @@ Object.assign(actions, {
         `<p class="au-dlead">${zhSub(esc(m.name), "r")}是本机构唯一的机构管理员。请先把另一位成员设为机构管理员。</p>`,
         btn("知道了", "close"),
       );
-    // 在“我的机构”退出非当前机构时标题写机构名称（ACCOUNT04，Account B4）；移除成员时写明其场景、排查任务与告警规则的去向（规则 7）
+    // 在“我的机构”退出非当前机构时标题写机构名称（ACCOUNT04，Account B4）；移除成员时写明其场景、工单与告警规则的去向（规则 7）
     auDialog(
       me ? (a.other ? `退出${zhSub(auOrg().name, "l")}？` : "退出本机构？") : `移除${zhSub(m.name, "l")}？`,
-      `<p class="au-dlead">${me ? "退出后您将无法访问" : `${zhSub(esc(m.name), "r")}将立即失去`}<b>${zhSub(esc(auOrg().name))}</b>的全部项目和数据。个人账户${me ? "" : "及其在其他机构的成员资格"}不受影响，操作记录保留在审计日志中。${me ? "" : "该成员建的场景和时间安排照常运行；其负责的排查任务和以其为责任对象的告警规则改为“未指定”。"}</p>`,
+      `<p class="au-dlead">${me ? "退出后您将无法访问" : `${zhSub(esc(m.name), "r")}将立即失去`}<b>${zhSub(esc(auOrg().name))}</b>的全部项目和数据。个人账户${me ? "" : "及其在其他机构的成员资格"}不受影响，操作记录保留在审计日志中。${me ? "" : "该成员建的场景和定时照常运行；其负责的工单和以其为责任对象的告警规则改为“未指定”。"}</p>`,
       btn("取消", "close") + btn(me ? "退出机构" : "移除成员", "auMemRemoveDo", { uid: m.uid }, "danger"),
     );
   },
@@ -61413,7 +61627,7 @@ Object.assign(actions, {
     list.splice(i, 1);
     if (AUTH.people[m.uid]) delete AUTH.people[m.uid].orgs[AUTH.org];
     auLog(m.uid === AUTH.uid ? "退出机构" : "移除成员", `${m.name} · ${auRole(m.role)}`);
-    // 该成员建的场景和时间安排照常运行；其负责的排查任务和以其为责任对象的告警规则改为“未指定”（规则 7，由运营页面处理）
+    // 该成员建的场景和定时照常运行；其负责的工单和以其为责任对象的告警规则改为“未指定”（规则 7，由运营页面处理）
     typeof opsMemberRemoved === "function" && opsMemberRemoved(m.name);
     closeModal(true);
     if (m.uid === AUTH.uid) {
@@ -61625,7 +61839,7 @@ Object.assign(actions, {
       const row = (pref.viewerMail ||= AU_PREF0().viewerMail);
       row[a.row] = row[a.row] ? 0 : 1;
     } else {
-      // 早先保存的偏好没有“交付与部署”“排查任务”时按默认值补上（ACCOUNT03，03 第 2 条）
+      // 早先保存的偏好没有“交付与部署”“工单”时按默认值补上（ACCOUNT03，03 第 2 条）
       const row = (pref[a.row] ||= AU_PREF0()[a.row]);
       row[a.ch] = row[a.ch] ? 0 : 1;
     }
@@ -62123,8 +62337,8 @@ const AU_ORG_PAGES = {
       ["打开大屏", [0, 1, 1, 1, 1]],
       ["控制自己功能区的灯光与空调", [1, 0, 1, 1, 1]],
       ["控制、执行场景、在批准的可调范围内改照明控制参数", [0, 0, 1, 1, 1]],
-      // 排查任务可从告警创建，也可用“新建任务”登记报修（2026-10-09 用户确认，ABB 对比 BP108）
-      ["确认告警，创建排查任务与登记报修", [0, 0, 1, 1, 1]],
+      // 工单可从告警创建，也可用“新建工单”登记报修（2026-10-09 用户确认，ABB 对比 BP108；2026-10-10 IA2 改叫“工单”）
+      ["确认告警，创建工单与登记报修", [0, 0, 1, 1, 1]],
       ["新建、编辑、删除场景，登记节假日表与工作时间", [0, 0, 1, 1, 1]],
       ["设备与设备网络设为检修中", [0, 0, 1, 1, 1]],
       ["新建报告、编辑报告草稿", [0, 0, 1, 1, 1]],
@@ -63244,14 +63458,14 @@ const AU_ACC_PAGES = {
       org = auNotifyOf().channels,
       p0 = AU_PREF0();
     // 前五类与机构“按事件通知”相同，另有只在个人偏好中设置的三类（ACCOUNT03，03 第 2 条；2026-10-09 用户确认，ABB 对比 BP99：
-    // 加“排查任务（指派给我的）”，报告只有周报和月报）。没有站内通知一列（BP104）。
+    // 加“工单（指派给我的）”，报告只有周报和月报）。没有站内通知一列（BP104）。
     const rows = [
       ["urgent", "紧急告警"],
       ["major", "重要告警"],
       ["minor", "提示告警"],
       ["security", "安全事件"],
       ["delivery", "交付与部署"],
-      ["task", "排查任务（指派给我的）"],
+      ["task", "工单（指派给我的）"],
       ["invite", "邀请与成员变更"],
       ["report", "报告（周报、月报）"],
     ];
@@ -63270,9 +63484,9 @@ const AU_ACC_PAGES = {
             ? "尚未绑定手机号码"
             : "";
     // 安全事件为必需通知：机构启用的渠道不能靠个人偏好关闭（03 第 3 条），锁定勾选。
-    // 普通成员不收告警、交付与部署、排查任务和报告通知，这几行各渠道都不勾选、不可选（角色权限方案第 4 条）
+    // 普通成员不收告警、交付与部署、工单和报告通知，这几行各渠道都不勾选、不可选（角色权限方案第 4 条）
     const memberOff = (r) => U.role === "member" && ["urgent", "major", "minor", "delivery", "task", "report"].includes(r);
-    // 查看人员（2026-10-09 用户确认，ABB 对比 BP100）：不收告警短信；告警邮件由本人选择，默认不选；不会被指派排查任务
+    // 查看人员（2026-10-09 用户确认，ABB 对比 BP100）：不收告警短信；告警邮件由本人选择，默认不选；不会被指派工单
     const viewer = U.role === "viewer",
       alarmRow = (r) => ["urgent", "major", "minor"].includes(r);
     const cell = (r, c) => {
@@ -63280,7 +63494,7 @@ const AU_ACC_PAGES = {
         w = why(r, c);
       if (memberOff(r)) return `<td class="c">${auCheck("", 0, {}, true, label, "普通成员不收此类通知")}</td>`;
       if (viewer && alarmRow(r) && c === "sms") return `<td class="c">${auCheck("", 0, {}, true, label, "查看人员不接收告警短信")}</td>`;
-      if (viewer && r === "task") return `<td class="c">${auCheck("", 0, {}, true, label, "查看人员不会被指派排查任务")}</td>`;
+      if (viewer && r === "task") return `<td class="c">${auCheck("", 0, {}, true, label, "查看人员不会被指派工单")}</td>`;
       if (viewer && alarmRow(r)) return `<td class="c">${auCheck("auPref", (p.viewerMail || {})[r] && !w, { row: r, ch: c, viewer: 1 }, !!w, label, w)}</td>`;
       return r === "security" && !w
         ? `<td class="c">${auCheck("", 1, {}, true, label, "安全事件为必需通知，不能关闭")}</td>`
@@ -63290,9 +63504,9 @@ const AU_ACC_PAGES = {
     const reasons = rows.flatMap(([r]) => chs.map(([c]) => why(r, c)));
     const notes = [
       // 告警通知的收件人为项目授权范围内的机构管理员、配置人员和运营人员（BP100；角色权限方案第 4 条）
-      U.role === "member" ? "您在本机构是普通成员：不收告警、交付与部署、排查任务和报告通知，只收安全事件、邀请与成员变更等账户通知。" : "",
+      U.role === "member" ? "您在本机构是普通成员：不收告警、交付与部署、工单和报告通知，只收安全事件、邀请与成员变更等账户通知。" : "",
       viewer ? "您在本机构是查看人员：不收告警短信；告警邮件默认不收，可在此选择。" : "",
-      "前五项与“机构设置 → 通知”的分类相同，安全事件为必需通知、不能在此关闭；排查任务、邀请与成员变更、报告只在此设置。",
+      "前五项与“机构设置 → 通知”的分类相同，安全事件为必需通知、不能在此关闭；工单、邀请与成员变更、报告只在此设置。",
       !org.sms || !org.mail ? "机构已关闭部分渠道，相应选项不可用。" : "",
       reasons.some((x) => x.startsWith("机构未对此事件启用")) ? "灰色的格子：机构未对该事件启用此渠道，可请机构管理员在“机构设置 → 通知”中开启。" : "",
       reasons.includes("尚未绑定手机号码") ? "短信不可选：尚未绑定手机号码，可在“登录与安全”中绑定。" : "",
@@ -64427,7 +64641,7 @@ function scrBrief(open) {
       p = t.p,
       what = t.merged && p?.type === "lc" ? "一个照明回路失电（推断）" : p?.type === "gw" ? "网关离线，设备状态未知" : top.kind === "offline" ? "有设备离线" : top.kind === "environment" ? "环境超出阈值" : top.kind === "energy" ? "能耗异常" : "有设备需要处理",
       tk = typeof taskOf === "function" ? taskOf(top.id) : null;
-    out.push(`${zhSub(t.zone?.name || scrFloorName(alarmFloor(top)), "r")}${what}，${top.acknowledged ? (tk ? `已确认，排查任务${taskState(tk)}` : "已确认") : "待确认"}。`);
+    out.push(`${zhSub(t.zone?.name || scrFloorName(alarmFloor(top)), "r")}${what}，${top.acknowledged ? (tk ? `已确认，工单${taskState(tk)}` : "已确认") : "待确认"}。`);
   }
   const t = Demo.today();
   out.push(
