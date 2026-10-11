@@ -610,6 +610,35 @@ textarea.input {
   left: 18px;
 }
 
+/* 滚动条（全站，参考组件核查第 435 条，2026-10-11 用户确认）：细滚动条，轨道 10、拇指 7、深灰 #636363、两端圆、没有箭头；
+   平时淡显（不完全隐藏，否则看不出能滚），悬停在滚动条上或正在滚动（脚本加 ws-scrolling）时加深。
+   大屏、运营后台与部署 App 不在此列；不支持这种写法的浏览器用细滚动条和同样的颜色。 */
+:where(html:not(:has(> body > #app:is([data-page=screen], [data-page=display], [data-page=console], [data-page=app]))), body :not(:is([data-page=screen], [data-page=display], [data-page=console], [data-page=app]) *))::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  background: transparent;
+}
+:where(html:not(:has(> body > #app:is([data-page=screen], [data-page=display], [data-page=console], [data-page=app]))), body :not(:is([data-page=screen], [data-page=display], [data-page=console], [data-page=app]) *))::-webkit-scrollbar-thumb {
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  background: rgb(99 99 99 / 0.4) padding-box;
+}
+:where(html:not(:has(> body > #app:is([data-page=screen], [data-page=display], [data-page=console], [data-page=app]))), body :not(:is([data-page=screen], [data-page=display], [data-page=console], [data-page=app]) *)).ws-scrolling::-webkit-scrollbar-thumb,
+:where(html:not(:has(> body > #app:is([data-page=screen], [data-page=display], [data-page=console], [data-page=app]))), body :not(:is([data-page=screen], [data-page=display], [data-page=console], [data-page=app]) *))::-webkit-scrollbar-thumb:hover {
+  background-color: #636363;
+}
+:where(html:not(:has(> body > #app:is([data-page=screen], [data-page=display], [data-page=console], [data-page=app]))), body :not(:is([data-page=screen], [data-page=display], [data-page=console], [data-page=app]) *))::-webkit-scrollbar-button,
+:where(html:not(:has(> body > #app:is([data-page=screen], [data-page=display], [data-page=console], [data-page=app]))), body :not(:is([data-page=screen], [data-page=display], [data-page=console], [data-page=app]) *))::-webkit-scrollbar-corner {
+  display: none;
+  background: transparent;
+}
+@supports not selector(::-webkit-scrollbar) {
+  :where(html, body *):where(:not([data-page=screen] *, [data-page=display] *, [data-page=console] *, [data-page=app] *)) {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(99 99 99 / 0.4) transparent;
+  }
+}
+
 /* content */
 .card {
   background: var(--surface);
@@ -3817,7 +3846,7 @@ details[open] > summary::before {
   align-items: safe center;
   justify-content: safe center;
   border-radius: 8px;
-  scrollbar-width: thin;
+  /* 滚动条按全站细滚动条（参考组件核查第 435 条，style.css） */
 }
 .ws-plan {
   position: relative;
@@ -4062,7 +4091,7 @@ details[open] > summary::before {
   overflow: auto;
   flex: 1;
   min-height: 0;
-  scrollbar-width: thin;
+  /* 滚动条按全站细滚动条（参考组件核查第 435 条，style.css） */
 }
 .ws-panel-body h3 {
   font-size: 14px;
@@ -4711,7 +4740,7 @@ details[open] > summary::before {
 .ws-device-categories {
   margin: 0 0 20px;
   overflow-x: auto;
-  scrollbar-width: thin;
+  /* 滚动条按全站细滚动条（参考组件核查第 435 条，style.css） */
 }
 .ws-device-categories .seg {
   width: max-content;
@@ -6638,7 +6667,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   min-height: 0;
   overflow: auto;
   padding: 16px;
-  scrollbar-width: thin;
+  /* 滚动条按全站细滚动条（参考组件核查第 435 条，style.css） */
 }
 
 .sp-body .field > label {
@@ -8168,7 +8197,7 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 .flow-scroll-list {
   max-height: 270px;
   overflow: auto;
-  scrollbar-width: thin;
+  /* 滚动条按全站细滚动条（参考组件核查第 435 条，style.css） */
 }
 .flow-steps {
   display: grid;
@@ -9521,7 +9550,7 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 .mk-checks-body {
   overflow: auto;
   padding: 8px 8px 12px;
-  scrollbar-width: thin;
+  /* 滚动条按全站细滚动条（参考组件核查第 435 条，style.css） */
 }
 .mk-checks h4 {
   font-size: 12px;
@@ -17489,6 +17518,36 @@ fieldset:disabled .au-primary {
 .au-dlgcode {
   flex: none;
 }
+/* 我的账户的字号（Lovable 核查第 457 条，2026-10-11 用户确认；补做第 132 条，同第 431 条）：通知偏好的表头 14/21 #636363（第 185 条），
+   单元格 14/24；各行下面的说明（“用于登录、接收邀请和重置邮件”“广州 · 昨天 21:04”、免打扰的说明、机构的角色与编号）12/18（第 298 条）。
+   原为表头 12/18、单元格 13/20、说明 13/19。 */
+#app[data-page=account] .au-matrix thead th {
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--text3);
+}
+#app[data-page=account] .au-matrix tbody td {
+  font-size: 14px;
+  line-height: 24px;
+}
+#app[data-page=account] :is(.au-row-l > small, .au-orgline small) {
+  font-size: 12px;
+  line-height: 18px;
+}
+/* 我的机构：机构名称整体不换行（Lovable 核查第 454 条，2026-10-11 用户确认；第 315 条在这里补做）。机构一栏按内容的宽度排，
+   和右边的按钮排不下时按钮换到下一行、靠右，名称比整行还长时才在名称内换行；原先 960 宽时断成“广实物业服务有限 / 公司”。
+   手机宽度沿用下面 600px 以下的写法。 */
+@media (min-width: 601px) {
+  .au-row:has(> .au-orgline) {
+    flex-wrap: wrap;
+  }
+  .au-row > .au-orgline {
+    flex: 1 1 auto;
+  }
+  .au-row:has(> .au-orgline) > .au-row-a {
+    margin-left: auto;
+  }
+}
 
 /* ---------- 窄屏 ---------- */
 @media (max-width: 850px) {
@@ -18608,6 +18667,159 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
 .au-aicard-h small { color: var(--text3); font-size: 12px; line-height: 18px; }
 .au-aicard.warn .au-aicard-h small { color: var(--warn); }
 .au-aicard .au-bar { display: block; height: 4px; }
+/* ---------- 机构设置（参考组件核查第 419–444 条，2026-10-11 用户确认） ---------- */
+/* 第 430 条：机构标识的说明写在标识下方，14/24 #636363，同开通引导 */
+.au-logo-hint { margin: 8px 0 0; color: var(--text3); font-size: 14px; line-height: 24px; }
+/* 第 435 条：窄屏横排的分类导航不显示滚动条（右边已有渐隐提示） */
+.au-subnav { scrollbar-width: none; }
+.au-subnav::-webkit-scrollbar { display: none; }
+/* 第 419 条：成员页的工具栏放不下时换行：搜索框和“邀请成员”一行，两个筛选下一行（同第 294 条的思路） */
+.au-mem-tools-w { container-type: inline-size; }
+@container (max-width: 799.98px) {
+  .toolbar.au-tools.au-mem-tools { flex-wrap: wrap; row-gap: 0; }
+  .au-mem-tools > .au-search { order: 1; flex: 1 1 0; width: auto; min-width: 0; }
+  .au-mem-tools > .btn { order: 2; flex: none; }
+  .au-mem-tools > .sp { order: 3; flex: 0 0 100%; height: 0; }
+  .au-mem-tools > .au-rolefilter { order: 4; margin-top: 8px; }
+}
+@container (max-width: 679.98px) {
+  .toolbar.au-tools.au-mem-tools:not(:has(> .btn)) { flex-wrap: wrap; }
+  .au-mem-tools:not(:has(> .btn)) > .au-search { flex: 1 1 100%; width: auto; }
+}
+@container (max-width: 399.98px) {
+  .au-mem-tools > .au-rolefilter { flex: 1 1 0; width: auto; min-width: 0; }
+}
+/* 第 431 条：表头 14/21 #636363（第 185 条），单元格 14/24，小字 12/18（第 132、298 条），同第 407 条；
+   第 65 条：分节标题、表格里的事件名、选项名字重 480 */
+:is(#app, #dlg)[data-page=org] :is(.au-table, .au-matrix) th { font-size: 14px; line-height: 21px; color: var(--text3); }
+:is(#app, #dlg)[data-page=org] :is(.au-table, .au-matrix) td { font-size: 14px; line-height: 24px; }
+:is(#app, #dlg)[data-page=org] :is(.au-row-l > small, .au-plan small, .au-rolecard span, .au-pay-h small) { font-size: 12px; line-height: 18px; }
+#app[data-page=org] .au-sec-h h2,
+:is(#app, #dlg)[data-page=org] :is(.au-ev, .au-table td b, .au-rolecard b, .au-plan b, .au-ai30-h b, .au-radio b) { font-weight: 480; }
+/* 第 391 条：订阅方块里的数、付款金额与 AI 用量的数字等宽（字体简写会把等宽重置掉）；订单的金额一列靠右 */
+:is(#app, #dlg)[data-page=org] :is(.au-plan b, .au-pay-h > b, .au-ai30-h b, .au-meter-h b) { font-variant-numeric: tabular-nums; }
+.au-orders :is(th, td):nth-child(3) { text-align: right; }
+/* 第 440 条：付款弹窗的应付金额字重 480，靠字号区分（同第 65 条：原为 600） */
+.au-pay-h > b { font-weight: 480; }
+/* 第 429 条：操作名、名称、“数值 单位”、比值整体不拆开 */
+.au-audit .au-ev,
+.au-meter-h > span,
+.au-meter-h > b { white-space: nowrap; }
+/* 第 442 条：头像浅灰底（颜色表 #777771 16%）、#2E2E2E 字；“我”用第 311 条的中性标签；“您的角色”和当前角色一列的表头 #030303，当前角色卡片的外框不变 */
+.au-av { background: rgb(119 119 113 / 0.16); color: #2e2e2e; }
+.chip.au-me-tag { margin-left: 6px; vertical-align: 1px; padding: 0 6px; border-radius: 4px; background: var(--bar-bg); color: var(--text2); font-size: 12px; line-height: 18px; font-weight: 480; }
+.au-rolecard small,
+.au-matrix th.cur { color: var(--text); }
+/* 第 441 条：用量条 8 高、圆角 4，底色为颜色表的浅灰（#777771 16%），填充颜色不变；为 0 时不显示填充（第 426 条） */
+.au-bar { display: block; height: 8px; border-radius: 4px; background: rgb(119 119 113 / 0.16); }
+.au-bar i { border-radius: 4px; }
+/* 第 439 条：AI 用量的 30 天柱状图：3 条虚线网格、首尾日期和最大值刻度，柱子圆角 2，颜色不变 */
+.au-aichart { position: relative; }
+.au-aichart > span > i { border-radius: 2px 2px 0 0; }
+.au-aichart-grid { position: absolute; inset: 0; pointer-events: none; }
+.au-aichart-grid > i { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--line2); }
+.au-aichart-grid > i:nth-child(1) { top: 0; }
+.au-aichart-grid > i:nth-child(2) { top: 33.333%; }
+.au-aichart-grid > i:nth-child(3) { top: 66.667%; }
+.au-aichart-max { position: absolute; top: -18px; left: 0; color: var(--text3); font-size: 12px; line-height: 18px; }
+.au-aichart-w { padding-top: 18px; }
+.au-aichart-x { display: flex; justify-content: space-between; margin-top: 4px; color: var(--text3); font-size: 12px; line-height: 18px; }
+.au-aidetail-dlg .au-aichart-w { margin-bottom: 16px; }
+.au-aidetail-dlg .au-aichart-w .au-aichart { margin-bottom: 0; }
+/* 第 437 条：表格里的操作（展示链接、订单、邀请中、接口密钥）：28 高的小号透明按钮，14 号，间隔 8；悬停叠黑 8%、按下 10%（第 102 条）；
+   “撤销”“吊销”“取消订单”红字，悬停叠红（第 339 条） */
+.t td .btn.ghost.au-tact { height: 28px; min-height: 28px; padding: 0 8px; margin: 0; justify-content: center; font-size: 14px; line-height: 24px; white-space: nowrap; }
+.t td .btn.ghost.au-tact:not(.danger, [aria-disabled="true"]):hover { background: rgb(0 0 0 / 0.08); text-decoration: none; }
+.t td .btn.ghost.au-tact:not(.danger, [aria-disabled="true"]):active { background: rgb(0 0 0 / 0.1); }
+.t td .btn.ghost.au-tact.danger:hover { text-decoration: none; }
+.scr-link-acts,
+.au-rowbtns,
+.au-order-docs,
+.au-order-acts { gap: 8px; }
+.au-order-docs { gap: 4px 8px; }
+.au-order-docs > span:first-child { margin-right: 4px; }
+.au-order-acts { margin: 4px 0 0 -8px; }
+.au-order-acts > span { padding-left: 8px; }
+/* 第 422 条：关掉的渠道那一列：表头变淡，下面写“已关闭”（12/18 #636363）；勾选框仍 50%，能用键盘移到 */
+.au-notify th.au-ch-off > span { opacity: 0.5; }
+.au-notify th.au-ch-off > small { display: block; color: var(--text3); font-size: 12px; line-height: 18px; }
+.au-cbx[aria-disabled="true"] { opacity: 0.5; cursor: default; }
+/* 第 423 条：手机上通知矩阵跟框一样宽，三列勾选固定宽，不出渐隐 */
+@media (max-width: 600px) {
+  .au-matrix.au-notify { min-width: 0; width: 100%; table-layout: fixed; }
+  .au-matrix.au-notify th:first-child { min-width: 0; width: auto; }
+  .au-matrix.au-notify :is(th, td).c { width: 64px; padding-inline: 4px; }
+  .au-matrix.au-notify td:first-child { white-space: normal; }
+}
+/* 第 433 条：企业微信开关和“企业微信”名称对齐，同短信、邮件两行 */
+.au-row.au-row-top { align-items: flex-start; }
+.au-row.au-row-top > .au-row-a { min-height: 24px; }
+/* 第 434 条：“保存地址”32 高，同旁边的输入框（同第 318 条） */
+.au-wecom > .btn { height: 32px; min-height: 32px; }
+/* 第 432 条：开关（全站，账户页与机构设置）：32×20，开为 PACOM 标志色 #202A44（同第 23 条勾选框），关为白底加浅灰内边线；
+   悬停叠黑 4%、按下 8%；150ms；不可用 50%、能用键盘移到（第 217、223 条）。部署 App 的开关不在此列。 */
+button.switch {
+  width: 32px;
+  height: 20px;
+  border: 0;
+  padding: 0;
+  border-radius: 10px;
+  background-color: #fff;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12), inset 0 2px 2px -1px rgb(0 0 0 / 0.04);
+  transition: background-color 150ms cubic-bezier(0.215, 0.61, 0.355, 1), box-shadow 150ms cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+button.switch::after {
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.24), 0 1px 2px rgb(0 0 0 / 0.16);
+  transition: left 150ms cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+button.switch.on { background-color: #202a44; box-shadow: inset 0 0 0 1px #202a44; }
+button.switch.on::after { left: 14px; box-shadow: 0 1px 2px rgb(0 0 0 / 0.24); }
+button.switch:not([aria-disabled="true"], :disabled):hover { background-image: linear-gradient(rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.04)); }
+button.switch:not([aria-disabled="true"], :disabled):active { background-image: linear-gradient(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.08)); }
+:is(.au-box, .au-sec) button.switch[aria-disabled="true"],
+button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) {
+  button.switch, button.switch::after { transition: none; }
+}
+/* 第 436 条：触屏上点按范围至少 44，外观不变，用看不见的外扩（同第 212、405 条）：开关、排序表头、行内“…”、角色按钮、表格里的小按钮 */
+@media (pointer: coarse) {
+  :is(button.switch, .au-sort, .au-rolebtn, .t td .iconbtn.round, .t td .btn.ghost.au-tact, .au-linkbtn) { position: relative; }
+  :is(button.switch, .au-sort, .au-rolebtn, .t td .iconbtn.round, .t td .btn.ghost.au-tact, .au-linkbtn)::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+}
+/* 第 414、218、428 条：机构设置的表格放不下时按所在区域宽度折叠成每行一块（脚本加 fold）：第一格一行，其余写成“列名 值”，
+   行尾的操作放在最后；不横向滚动。展示链接的“范围”一列至少留 160，放不下时整表折叠，不把范围压成一字一行。 */
+.scr-links td:nth-child(3) { min-width: 160px; }
+.tw > .au-table.fold,
+.tw > .au-table.fold > tbody,
+.tw > .au-table.fold > tbody > tr,
+.tw > .au-table.fold > tbody > tr > td { display: block; width: auto; min-width: 0; }
+.au-audit .tw > .au-table.fold { min-width: 0; }
+.tw > .au-table.fold > colgroup { display: none; }
+.tw > .au-table.fold > thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.tw > .au-table.fold > tbody > tr { padding: 12px 16px; border-bottom: 1px solid var(--line2); }
+.tw > .au-table.fold > tbody > tr[hidden] { display: none; }
+.tw > .au-table.fold > tbody > tr:not(:has(~ tr:not([hidden]))) { border-bottom: 0; }
+.tw > .au-table.fold > tbody > tr > td { height: auto; padding: 0; border: 0; text-align: left; white-space: normal; max-width: none; }
+.tw > .au-table.fold > tbody > tr > td + td { margin-top: 4px; }
+.tw > .au-table.fold > tbody > tr > td[data-label]::before { content: attr(data-label); margin-right: 8px; color: var(--text3); }
+.tw > .au-table.fold > tbody > tr > td:empty,
+.tw > .au-table.fold > tbody > tr > td.au-td-act:not(:has(*)) { display: none; }
+.tw > .au-table.fold > tbody > tr > td.au-td-act { margin-top: 8px; text-align: left; }
+.tw > .au-table.fold > tbody > tr > td.au-td-act :is(.au-rowbtns, .scr-link-acts) { justify-content: flex-start; }
+.tw > .au-table.fold > tbody > tr > td.au-td-act > .iconbtn.round { position: absolute; top: 8px; right: 8px; }
+.tw > .au-table.fold > tbody > tr:has(> td.au-td-act > .iconbtn) { position: relative; padding-right: 48px; }
+.tw > .au-table.fold > tbody > tr:has(> td.au-td-act > .iconbtn) > td.au-td-act { margin: 0; }
+.tw > .au-table.fold > tbody > tr > td :is(.au-sub, small) { display: block; }
+.tw > .au-table.fold > tbody > tr > td[data-label] > :is(.au-sub, small) { display: inline; margin-left: 8px; }
+.tw > .au-table.fold > tbody > tr.au-nohit > td { text-align: center; }
 /* 登录页底部的第二行：营业执照信息、ICP 备案号、公安备案号，字号、颜色、内边距与焦点环同页脚，可见间距 24px（≤600px 为 20px）。 */
 .au-filing { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 16px; margin-top: 4px; color: var(--text3); font-size: 13px; line-height: 20px; }
 .au-filing > :is(button, a) { display: inline-flex; align-items: center; gap: 4px; padding: 0 4px; border: 0; background: none; color: var(--text3); font: inherit; font-size: 13px; text-decoration: none; cursor: pointer; }
@@ -24897,6 +25109,21 @@ const tableText = (e) => (e?.textContent || "").replace(/\s+/g, " ").trim();
 function tableScopes(root) {
   if (tableBare()) return;
   root?.querySelectorAll?.("thead th:not([scope])").forEach((th) => th.closest(".scr-stage") || th.setAttribute("scope", "col"));
+  tableLabels(root);
+}
+// 机构设置等账户页的表格（.au-table）折叠时每格写“列名 值”：列名取表头，记在 data-label；第一格（名称）与操作一列不写（参考组件核查第 428 条，按第 218、414 条）。
+function tableLabels(root) {
+  root?.querySelectorAll?.("table.au-table").forEach((t) => {
+    const heads = [...(t.tHead?.rows[0]?.cells || [])].map((th, i) => (i && !th.classList.contains("au-th-act") ? tableText(th) : ""));
+    if (!heads.some(Boolean)) return;
+    for (const tb of t.tBodies)
+      for (const tr of tb.rows) {
+        if (tr.cells.length !== heads.length) continue;
+        [...tr.cells].forEach((td, i) => {
+          if (heads[i] && td.getAttribute("data-label") !== heads[i]) td.setAttribute("data-label", heads[i]);
+        });
+      }
+  });
 }
 function tableCaptionText(t) {
   const own = t.getAttribute("data-caption") || t.getAttribute("aria-label");
@@ -24948,7 +25175,8 @@ function tableCaption(t) {
 // 表格放不下时折叠（Lovable 核查第 414 条，按第 218 条，2026-10-11 用户确认）：配置进度页（连同它的弹窗）里的表格按所在区域的宽度判断，
 // 各列放不下、要横向滚动时，每行折成一块：名称一行，其余写成“列名 值”（列名取表头，见 workflow-ui.js 的 table），不横向滚动；
 // 区域宽度变化（改窗口宽度、打开或关闭面板）时重新判断。fold 由脚本维护，记在 data-morph-classes 中，重新绘制时保留。
-const TABLE_FIT = ":is(#app, #dlg)[data-page=deployment] .flow-table > table.t";
+// 机构设置页的表格同样按所在区域宽度折叠（参考组件核查第 428 条，Section 四第 414、218 条，2026-10-11 用户确认）。
+const TABLE_FIT = ":is(#app, #dlg)[data-page=deployment] .flow-table > table.t, #app[data-page=org] .au-set-body .tw > table.au-table";
 const tableFitW = new WeakMap();
 let tableFitRO = null;
 function tableFit(t) {
@@ -24983,6 +25211,21 @@ if (typeof MutationObserver === "function" && typeof requestAnimationFrame === "
   new MutationObserver(tableAll).observe(document.body, { childList: true, subtree: true, characterData: true });
   window.addEventListener("resize", tableAll);
   document.fonts?.ready?.then(tableAll);
+}
+// 滚动条（参考组件核查第 435 条，2026-10-11 用户确认）：正在滚动的区域加 ws-scrolling，滚动条拇指加深；停下 800ms 后恢复淡显（样式见 style.css）。
+if (typeof document !== "undefined" && typeof document.addEventListener === "function" && typeof WeakMap === "function") {
+  const wsScrollT = new WeakMap();
+  document.addEventListener(
+    "scroll",
+    (e) => {
+      const el = e.target === document ? document.documentElement : e.target;
+      if (!el?.classList) return;
+      el.classList.add("ws-scrolling");
+      clearTimeout(wsScrollT.get(el));
+      wsScrollT.set(el, setTimeout(() => el.classList.remove("ws-scrolling"), 800));
+    },
+    { capture: true, passive: true },
+  );
 }
 
 /* ---------- DOM 增量更新（2026-10-03 D4 分区绘制） ---------- */
@@ -31632,7 +31875,15 @@ function askDiscard(fn, text = wsPlanDirtyText()) {
 }
 // 离开前的未保存判断：guard 与浏览器后退 / 前进共用（核查第 9 项）。
 const wsSpaceDirty = () => U.page === "projects" && !!(U.zoneDraft || U.spFormDirty);
-const wsUnsaved = () => !!(U.dirty || U.attrsDirty || wsSpaceDirty());
+// 我的账户改了“姓名”还没保存（Lovable 核查第 453 条，2026-10-11 用户确认）同样先确认放弃：输入时记下 U.acctDirty，
+// 判断时再核对输入框与已保存的姓名（改回原名不算修改）；放弃后清掉记号，接着的切换不再询问。
+const wsAcctDirty = () => {
+  if (U.page !== "account" || !U.acctDirty || typeof auMe !== "function") return false;
+  const el = document.getElementById("auMyName");
+  return !!el && String(el.value).trim() !== auMe().name;
+};
+const wsAcctText = "“个人资料”中有尚未保存的修改";
+const wsUnsaved = () => !!(U.dirty || U.attrsDirty || wsSpaceDirty() || wsAcctDirty());
 // 楼层结构草稿（C14）有改动：弹窗内的“已删除”与受阻清单中的处理入口等出口先确认放弃（STRUCT01“草稿未保存时关闭询问放弃”，核查 R1）。
 const structDraftDirty = () => !!U.structDraft && !!$("#structPreview") && modalDirty;
 function guard(fn) {
@@ -31652,9 +31903,10 @@ function guard(fn) {
         U.zoneDraft = null;
         U.spFormDirty = false;
         U.rectStart = null;
+        U.acctDirty = false;
         fn();
       },
-      space && !U.dirty && !U.attrsDirty ? "有尚未保存的功能区修改" : undefined,
+      space && !U.dirty && !U.attrsDirty ? "有尚未保存的功能区修改" : wsAcctDirty() && !U.dirty && !U.attrsDirty ? wsAcctText : undefined,
     );
   fn();
 }
@@ -35647,7 +35899,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 window.addEventListener("beforeunload", (e) => {
-  if (U.dirty || U.attrsDirty || modalDirty || U.zoneDraft || U.spFormDirty) {
+  if (U.dirty || U.attrsDirty || modalDirty || U.zoneDraft || U.spFormDirty || wsAcctDirty()) {
     e.preventDefault();
     e.returnValue = "";
   }
@@ -35687,11 +35939,11 @@ window.addEventListener("popstate", () => {
     if ($("#discard")) return;
     return askDiscard(() => {
       D = null;
-      Object.assign(U, { dirty: false, attrsDirty: false, undo: [], redo: [] });
+      Object.assign(U, { dirty: false, attrsDirty: false, undo: [], redo: [], acctDirty: false });
       modalDirty = false;
       history.replaceState(targetState, "", target);
       wsPopGo(leaving);
-    }, wsSpaceDirty() && !U.dirty && !U.attrsDirty ? "有尚未保存的功能区修改" : modalDirty && !U.dirty && !U.attrsDirty ? wsFormDirtyText() : undefined);
+    }, wsSpaceDirty() && !U.dirty && !U.attrsDirty ? "有尚未保存的功能区修改" : modalDirty && !U.dirty && !U.attrsDirty ? wsFormDirtyText() : wsAcctDirty() && !U.dirty && !U.attrsDirty ? wsAcctText : undefined);
   }
   wsPopGo(leaving);
 });
@@ -63168,6 +63420,37 @@ const auProjects = () =>
 const auMask = (a = "") =>
   a.includes("@") ? a.replace(/^([^@])[^@]*(@.+)$/, "$1•••$2") : a.replace(/(\+\d+\s\d{3})\s\d{4}\s(\d{4})/, "$1 •••• $2");
 const auPad = (n) => String(n).padStart(2, "0");
+// 我的账户弹窗里的验证码与密码输入框（Lovable 核查第 456 条，2026-10-11 用户确认）：验证码弹数字键盘、可一键填入短信验证码、最多 6 位；
+// 密码框分别标明当前密码、新密码，供浏览器的密码管理器识别。只加属性，外观不变。
+const AU_OTP = 'inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-describedby="auNewCode-hint"',
+  AU_CUR_PWD = 'autocomplete="current-password"',
+  AU_NEW_PWD = 'autocomplete="new-password"';
+const auInAttrs = (html, attrs) => html.replace("<input ", `<input ${attrs} `);
+/* 弹窗里的验证码（更换电子邮箱、更换手机号码、绑定手机号码；Lovable 核查第 451、455 条，2026-10-11 用户确认），同登录页（AUTH01）：
+   发送后 60 秒内“N 秒后重发”并禁用，之后“重新获取”；发送状态按地址记下，改了地址按新地址的状态，旧地址的状态不用于新地址；
+   验证码下方写“验证码已发送至 n•••@example.test”（号码写“139 •••• 0199”）。原先每秒刷新按钮时按登录页的键处理，
+   把这里的倒计时和已发送的状态清掉，提交时提示“请先获取验证码”。 */
+const auDlgCodeId = (kind, v) => (kind === "phone" ? auPhoneIdentity(v) : String(v || "").trim().toLowerCase());
+const auDlgCodeOf = (kind, v) => (AUX.dlgCode || {})[auDlgCodeId(kind, v)] || null;
+function auDlgCodeLabel(st, now = auNow()) {
+  const left = st ? Math.max(0, Math.ceil((st.until - now) / 1000)) : 0;
+  return { disabled: left > 0, label: left ? `${left} 秒后重发` : st ? "重新获取" : "获取验证码" };
+}
+function auDlgCodeSync() {
+  const b = $('#dlg [data-act="auDlgCode"]');
+  if (!b) return;
+  const kind = b.dataset.kind,
+    st = auDlgCodeOf(kind, value("auNewId").trim()),
+    s = auDlgCodeLabel(st),
+    hint = $("#auNewCode-hint"),
+    text = st ? `验证码已发送至 ${kind === "phone" ? auSmsDestination(st.to) : auMask(st.to)}` : "";
+  if (b.disabled !== s.disabled) b.disabled = s.disabled;
+  if (b.textContent !== s.label) b.textContent = s.label;
+  if (hint && hint.textContent !== text) {
+    hint.textContent = text;
+    hint.hidden = !text;
+  }
+}
 // Account dates are always China Standard Time (UTC+08:00, no daylight saving), whatever the browser's time zone.
 // Non-breaking spaces keep a date and time on one line, e.g. "10 月 3 日 00:00".
 const auFmt = (ts, withYear = false) => {
@@ -63265,13 +63548,14 @@ function auMark(o, size = 24) {
 }
 const auAvatar = (name, size = 28) =>
   `<span class="au-av" style="width:${size}px;height:${size}px;font-size:${Math.round(size * 0.46)}px" aria-hidden="true">${esc((name || "?").slice(0, 1))}</span>`;
-// Shared 36×20 switch (core .switch); a switch without an action is a locked, always-on setting.
+// Shared 32×20 switch (core .switch; auth.css)；不可用时 aria-disabled、50%，仍能用键盘移到（参考组件核查第 432 条，第 217、223 条）。
+// A switch without an action is a locked, always-on setting.
 const auSwitch = (act, on, args = {}, disabled = false, label = "") =>
   `<button type="button" class="switch ${on ? "on" : ""}" role="switch" aria-checked="${!!on}" aria-label="${esc(label)}" ${act ? `data-act="${act}"` : ""} ${Object.entries(
     args,
   )
     .map(([k, v]) => `data-${k}="${esc(v)}"`)
-    .join(" ")} ${disabled ? "disabled" : ""}></button>`;
+    .join(" ")} ${disabled ? 'aria-disabled="true"' : ""}></button>`;
 // Native 16px checkbox (LOVABLE_SPEC §3); a locked cell is checked and disabled with the reason as tooltip.
 const auCheck = (act, on, args = {}, disabled = false, label = "", title = "") =>
   `<input type="checkbox" class="au-cbx" ${on ? "checked" : ""} aria-label="${esc(label)}" ${title ? `title="${esc(title)}"` : ""} ${act ? `data-act="${act}"` : ""} ${Object.entries(
@@ -63281,6 +63565,8 @@ const auCheck = (act, on, args = {}, disabled = false, label = "", title = "") =
     .join(" ")} ${disabled ? "disabled" : ""}>`;
 // A disabled control keeps its reason visible on hover (LOVABLE_SPEC §2 禁用).
 const auDis = (html, why) => `<span class="au-dis" data-tip="${esc(why)}">${html}</span>`;
+// 不可用但仍能用键盘移到的按钮：aria-disabled、50%，读屏和悬停给出原因（第 217、223 条；机构设置见参考组件核查第 419 条起一组，2026-10-11 用户确认）
+const auDisBtn = (html, why) => html.replace('<button class="btn ', `<button aria-disabled="true" aria-description="${esc(why)}" data-tip="${esc(why)}" class="btn ops-dis-btn `);
 const auSec = (title, desc, right = "", body = "") =>
   `<section class="au-sec"><div class="au-sec-h"><div><h2>${title}</h2>${desc ? `<p>${desc}</p>` : ""}</div>${right ? `<div class="au-sec-act">${right}</div>` : ""}</div>${body}</section>`;
 const auRows = (rows) =>
@@ -64543,8 +64829,15 @@ document.addEventListener("change", (e) => {
   }
 });
 setInterval(() => {
-  auUpdateCodeButtons(); auMeasureCodePadding(); auLockUI();
+  auUpdateCodeButtons(); auMeasureCodePadding(); auLockUI(); auDlgCodeSync();
 }, 1000);
+// 改了“姓名”还没保存：切换页签、离开本页、切换机构或退出登录前先问“是否放弃修改？”（guard，Lovable 核查第 453 条，2026-10-11 用户确认）；
+// 改了弹窗里的新地址：验证码按钮与“已发送至”跟着新地址（第 451 条）。
+document.addEventListener("input", (e) => {
+  const t = e.target;
+  if (t?.id === "auMyName") U.acctDirty = t.value.trim() !== auMe().name;
+  else if (t?.id === "auNewId") auDlgCodeSync();
+});
 function auRoleChanged(p) {
   const r = value(p === "inv" ? "auInvRole" : "auEditRole");
   const hint = $(`#${p}RoleHint`);
@@ -64627,6 +64920,8 @@ function auPlaceMenu(anchor) {
 function auDialog(title, body, foot = "", cls = "") {
   modal(title, body, foot || " ", false);
   $("#dlg .dialog")?.classList.add("au-dialog", ...cls.split(" ").filter(Boolean));
+  // 机构设置的确认框（移除成员、退出本机构、撤销邀请、取消订单、吊销接口密钥、撤销展示链接、注销）读作警示对话框，右上关闭按钮保留（参考组件核查第 443 条，第 357 条）
+  if (cls.split(" ").includes("au-alert")) $("#dlg .dialog")?.setAttribute("role", "alertdialog");
   if (cls.split(" ").includes("au-reset-dlg")) $("#dlg")?.classList.add("au-reset-scrim");
   // 用工作区外框、但仍按账户弹窗的做法（浏览器后退时立即关闭、打开后 300ms 内的指针点击不起作用）的弹窗（开通新机构，Lovable 核查第 147 条）
   if (cls.split(" ").includes("au-route-close") && $("#dlg")) {
@@ -64675,6 +64970,16 @@ function auLegalBody() {
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "1.75",
+    date: "2026-10-11",
+    notes: [
+      "全站：开关改为更小的样式；滚动条平时很淡，滚动或指向时加深；触屏上开关、排序表头和小按钮的点击区不小于 44 像素。",
+      "机构设置：表格放不下时按行折叠；确认对话框的标题写出具体对象；用量条和近 30 天用量图更新；“许可与用量”页顶部提示不再重复“订阅”“续期”按钮。",
+      "机构设置：撤销邀请后焦点移到下一条；发放接口密钥后点“完成”不再询问；机构标志的提示移到图片下方。",
+      "我的账户：更换邮箱或手机号时验证码倒计时正常，已发送提示写在输入框下方；修改姓名后未保存就离开时先确认；“退出机构”改为红色文字。",
+    ],
+  },
   {
     version: "1.74",
     date: "2026-10-11",
@@ -65441,15 +65746,22 @@ Object.assign(actions, {
       "撤销邀请？",
       `<p class="au-dlead">发给 <b>${esc(auMask(i.account))}</b> 的邀请链接将立即失效。之后如需加入，可以重新邀请。</p>`,
       btn("取消", "close") + btn("撤销邀请", "auInvRevokeDo", { id: a.id }, "danger"),
+      "au-alert",
     );
   },
   auInvRevokeDo: (a) => {
     const i = auInvites().find((x) => x.id === a.id);
+    // 撤销后焦点移到下一条邀请的“重新发送”，没有了就到“邀请成员”（参考组件核查第 420 条，同第 316 条，2026-10-11 用户确认）
+    const ids = [...document.querySelectorAll('.au-members [data-act="auInvResend"]')].filter((b) => !b.closest("tr")?.hidden).map((b) => b.dataset.id),
+      at = ids.indexOf(a.id),
+      near = at < 0 ? [] : ids.slice(at + 1);
     i.status = "revoked";
     auLog("撤销邀请", auMask(i.account));
     auSave();
     closeModal(true);
     render();
+    const next = near.map((id) => document.querySelector(`.au-members [data-act="auInvResend"][data-id="${CSS.escape(id)}"]`)).find(Boolean) || document.querySelector('[data-act="auInvite"]');
+    next?.focus({ preventScroll: false });
     msg("邀请已撤销，链接已失效");
   },
   auMemMore: (a, el) => {
@@ -65457,9 +65769,13 @@ Object.assign(actions, {
     const me = m.uid === AUTH.uid;
     // 本人一行只有“退出本机构”：任何角色都不能修改自己的角色（R16）；所有机构管理员权限相同，没有所有者（R13）
     // 机构管理员可查看并退出其他成员的登录设备（2026-10-09 用户确认，ABB 对比 BP21：手机丢失时在这里退出）
+    // 和角色菜单一样读作菜单：按钮标明会打开菜单，各项为菜单项，上下键移动，Esc 回到按钮（参考组件核查第 421 条，2026-10-11 用户确认）
     pop(
       el,
-      `${auCanManage() && !me ? btn(ico("edit", "ic16") + (m.role === "member" ? "修改角色和功能区授权" : "修改角色和项目授权"), "auMemEdit", { uid: m.uid }, "popitem") : ""}${auCanManage() && !me ? btn(ico("phone", "ic16") + "登录设备", "auMemSessions", { uid: m.uid }, "popitem") : ""}${btn(ico(me ? "au-logout" : "au-trash", "ic16") + (me ? "退出本机构" : "移除成员"), "auMemRemove", { uid: m.uid }, "popitem danger")}`,
+      menuBox(
+        `${zhSub(m.name, "r")}的操作`,
+        `${auCanManage() && !me ? btn(ico("edit", "ic16") + (m.role === "member" ? "修改角色和功能区授权" : "修改角色和项目授权"), "auMemEdit", { uid: m.uid }, "popitem") : ""}${auCanManage() && !me ? btn(ico("phone", "ic16") + "登录设备", "auMemSessions", { uid: m.uid }, "popitem") : ""}${btn(ico(me ? "au-logout" : "au-trash", "ic16") + (me ? "退出本机构" : "移除成员"), "auMemRemove", { uid: m.uid }, "popitem danger")}`,
+      ),
     );
   },
   auMemEdit: (a) => {
@@ -65539,6 +65855,7 @@ Object.assign(actions, {
       me ? (a.other ? `退出${zhSub(auOrg().name, "l")}？` : "退出本机构？") : `移除${zhSub(m.name, "l")}？`,
       `<p class="au-dlead">${me ? "退出后您将无法访问" : `${zhSub(esc(m.name), "r")}将立即失去`}<b>${zhSub(esc(auOrg().name))}</b>的全部项目和数据。个人账户${me ? "" : "及其在其他机构的成员资格"}不受影响，操作记录保留在审计日志中。${me ? "" : "该成员建的场景和定时照常运行；其负责的工单和以其为责任对象的告警规则改为“未指定”。"}</p>`,
       btn("取消", "close") + btn(me ? "退出机构" : "移除成员", "auMemRemoveDo", { uid: m.uid }, "danger"),
+      "au-alert",
     );
   },
   auReq: (a) => {
@@ -65575,7 +65892,7 @@ Object.assign(actions, {
       btn("取消", "close") +
         // 注销申请：没输对机构名称之前“提交注销申请”为 aria-disabled、50%，仍能 Tab 到，点它照常提示（参考组件核查第 330 条）
         btn(a.kind === "close" ? "提交注销申请" : "提交申请", "auReqDo", a.kind === "close" ? { kind: a.kind, gate: "auReqName", "gate-val": auOrg().name, "gate-trim": "1" } : { kind: a.kind }, a.kind === "close" ? "danger" : "primary"),
-      "wide-form",
+      a.kind === "close" ? "wide-form au-alert" : "wide-form",
     );
   },
   // 字段错误写在所属字段下方，一次核对全部字段并聚焦第一个错误（Account A1）。
@@ -65701,6 +66018,7 @@ Object.assign(actions, {
     if (!n) return auFieldErr("auMyName", "请输入姓名");
     auMe().name = n;
     auMembers().forEach((m) => m.uid === AUTH.uid && (m.name = n));
+    U.acctDirty = false;
     auSave();
     render();
     msg("个人资料已保存");
@@ -65708,22 +66026,34 @@ Object.assign(actions, {
   auChangeId: (a) => {
     const phone = a.kind === "phone",
       bind = phone && !auMe().phone;
+    // 每次打开弹窗，验证码的发送状态重新开始（第 451 条）
+    AUX.dlgCode = {};
     auDialog(
       bind ? "绑定手机号码" : phone ? "更换手机号码" : "更换电子邮箱",
-      `<p class="au-dlead">${bind ? "验证后，可使用此号码和账户密码登录，也可以通过短信接收密码重置链接。" : phone ? "验证后，可使用新号码和账户密码登录；原号码不再用于登录和接收重置链接。" : "验证后，新电子邮箱用于登录、接收邀请和重置邮件；原邮箱不再可用。"}</p>${fld("当前密码", "auCurPwd", input("auCurPwd", "", "", "password"), "用于确认是您本人操作")}${fld(bind ? "手机号码" : phone ? "新手机号码" : "新电子邮箱", "auNewId", input("auNewId", "", phone ? "例如 139 0000 0199" : "name@example.com"))}<div class="field"><label for="auNewCode">验证码</label><div class="au-inrow">${input("auNewCode", "", "6 位数字")}${btn("获取验证码", "auDlgCode", { kind: a.kind }, "au-dlgcode")}</div></div>`,
+      `<p class="au-dlead">${bind ? "验证后，可使用此号码和账户密码登录，也可以通过短信接收密码重置链接。" : phone ? "验证后，可使用新号码和账户密码登录；原号码不再用于登录和接收重置链接。" : "验证后，新电子邮箱用于登录、接收邀请和重置邮件；原邮箱不再可用。"}</p>${fld("当前密码", "auCurPwd", auInAttrs(input("auCurPwd", "", "", "password"), AU_CUR_PWD), "用于确认是您本人操作")}${fld(bind ? "手机号码" : phone ? "新手机号码" : "新电子邮箱", "auNewId", input("auNewId", "", phone ? "例如 139 0000 0199" : "name@example.com"))}<div class="field"><label for="auNewCode">验证码</label><div class="au-inrow">${auInAttrs(input("auNewCode", "", "6 位数字"), AU_OTP)}${btn("获取验证码", "auDlgCode", { kind: a.kind }, "au-dlgcode")}</div><small class="muted" id="auNewCode-hint" aria-live="polite" hidden></small></div>`,
       btn("取消", "close") + btn(bind ? "绑定" : "确认更换", "auChangeIdSave", { kind: a.kind }, "primary"),
     );
   },
-  auDlgCode: (a, el) => {
+  auDlgCode: (a) => {
     const v = value("auNewId").trim();
     if (a.kind === "phone" ? !auPhoneKind(v) : !AU_EMAIL.test(v))
       return auFieldErr("auNewId", a.kind === "phone" ? "请输入有效的手机号码" : "请输入有效的电子邮箱");
-    AUX.cd.dlg = auNow() + 60e3;
-    el.dataset.cd = "dlg";
-    el.disabled = true;
-    el.textContent = "60 秒后重发";
-    formError("");
-    msg(`验证码已发送到 ${v}`);
+    if (auDlgCodeLabel(auDlgCodeOf(a.kind, v)).disabled) return;
+    (AUX.dlgCode ||= {})[auDlgCodeId(a.kind, v)] = { to: v, until: auNow() + 60e3 };
+    // 不再用 formError 传空字符串清空：那样会写出一条只有图标、没有字的红色提示条（第 452 条）；只清掉弹窗底部原有的提示和“请先获取验证码”
+    if ($("#formError")) $("#formError").innerHTML = "";
+    clearFieldErr($("#auNewCode")?.closest(".field"));
+    auDlgCodeSync();
+    // 已发送写在验证码下方，不弹消息提示；鼠标设备焦点到验证码框，触屏到“验证码已发送至…”这一行，不弹键盘（第 455 条，同登录页 AUTH01）
+    if (!matchMedia("(pointer:coarse)").matches) $("#auNewCode")?.focus();
+    else {
+      const hint = $("#auNewCode-hint");
+      if (hint) {
+        hint.tabIndex = -1;
+        hint.focus({ preventScroll: true });
+        hint.scrollIntoView({ block: "nearest" });
+      }
+    }
   },
   auChangeIdSave: (a) => {
     const phone = a.kind === "phone",
@@ -65732,7 +66062,8 @@ Object.assign(actions, {
     const errs = [];
     if (!value("auCurPwd")) errs.push(["auCurPwd", "请输入当前密码"]);
     if (phone ? !auPhoneKind(v) : !AU_EMAIL.test(v)) errs.push(["auNewId", phone ? "请输入有效的手机号码" : "请输入有效的电子邮箱"]);
-    if (!AUX.cd.dlg) errs.push(["auNewCode", "请先获取验证码"]);
+    // 验证码要发给当前填写的地址（第 451 条）
+    if (!auDlgCodeOf(a.kind, v)) errs.push(["auNewCode", "请先获取验证码"]);
     else if (!/^\d{6}$/.test(value("auNewCode").trim())) errs.push(["auNewCode", "验证码为 6 位数字"]);
     if (errs.length) return auFieldErrs(errs);
     const me = auMe();
@@ -65740,7 +66071,7 @@ Object.assign(actions, {
     const nv = phone ? (auIdKind(v) === "cn" ? auNormPhone(v) : v) : v;
     if (phone) me.phone = nv;
     else me.email = nv;
-    delete AUX.cd.dlg;
+    AUX.dlgCode = {};
     auLog(bind ? "绑定手机号码" : phone ? "更换手机号码" : "更换电子邮箱", auMask(nv), "security");
     auSave();
     closeModal(true);
@@ -65750,7 +66081,7 @@ Object.assign(actions, {
   auChangePwd: () =>
     auDialog(
       "修改密码",
-      `${fld("当前密码", "auPwd0", input("auPwd0", "", "", "password"))}${fld("新密码", "auPwd1", input("auPwd1", "", "", "password"), PACOM_PASSWORD_POLICY.hint)}${fld("确认新密码", "auPwd2", input("auPwd2", "", "", "password"))}${note("保存后，其他设备上的登录会退出；当前会话保留。")}`,
+      `${fld("当前密码", "auPwd0", auInAttrs(input("auPwd0", "", "", "password"), AU_CUR_PWD))}${fld("新密码", "auPwd1", auInAttrs(input("auPwd1", "", "", "password"), AU_NEW_PWD), PACOM_PASSWORD_POLICY.hint)}${fld("确认新密码", "auPwd2", auInAttrs(input("auPwd2", "", "", "password"), AU_NEW_PWD))}${note("保存后，其他设备上的登录会退出；当前会话保留。")}`,
       btn("取消", "close") + btn("保存新密码", "auChangePwdSave", {}, "primary"),
     ),
   auChangePwdSave: () => {
@@ -65804,7 +66135,7 @@ Object.assign(actions, {
       );
     auDialog(
       "注销账户？",
-      `<p class="au-dlead">注销后，您将退出全部机构（${auMyOrgs().length} 个），姓名、电子邮箱和手机号码随即删除，不能恢复。审计日志保留操作事实，不再显示您的姓名。</p>${fld("当前密码", "auDelPwd", input("auDelPwd", "", "", "password"), "高风险操作，需再次验证身份")}`,
+      `<p class="au-dlead">注销后，您将退出全部机构（${auMyOrgs().length} 个），姓名、电子邮箱和手机号码随即删除，不能恢复。审计日志保留操作事实，不再显示您的姓名。</p>${fld("当前密码", "auDelPwd", auInAttrs(input("auDelPwd", "", "", "password"), AU_CUR_PWD), "高风险操作，需再次验证身份")}`,
       btn("取消", "close") + btn("注销账户", "auDeleteAccountDo", {}, "danger"),
     );
   },
@@ -65945,6 +66276,11 @@ const auSetBody = (items, active, html) =>
 pages.org = () => {
   const list = auOrgTabs(),
     tab = list.some(([id]) => id === U.tab) ? U.tab : auRenewOnly() ? "license" : "info";
+  // 没有权限的页签（如查看人员打开“订单与发票”、只能续期时打开“审计日志”）：地址跟着回到显示的那一页（ORG09；参考组件核查第 424 条，2026-10-11 用户确认）
+  if (U.tab && U.tab !== tab) {
+    U.tab = tab;
+    if (location.hash.startsWith("#org")) history.replaceState(history.state, "", "#org?tab=" + tab);
+  }
   // 离开“机构信息”即放弃尚未保存的标识预览（ORG01，03 第 2 条）
   if (tab !== "info") AUX.logoDraft = null;
   return `<div class="au-settings">${auSubnav(list, tab)}${auSetBody(list, tab, AU_ORG_PAGES[tab]())}</div>`;
@@ -66205,12 +66541,13 @@ const AU_RETENTION = [
   ["审计日志", "12 个月"],
   ["已删除的内容", "30 天，期满自动彻底删除"],
 ];
+// 类名整体不拆开（参考组件核查第 429 条）
 const auRetentionSec = () =>
   auSec(
     "数据保存",
     "以下期限由许可服务按合同提供；合同另有约定的，以合同为准。",
     "",
-    `${auRows(AU_RETENTION)}${note("以上为有效期内的期限。到期满 90 天仍未续期的，合同终止，删除本机构全部数据。")}`,
+    `${auRows(AU_RETENTION.map(([k, v]) => [`<span class="au-nowrap">${k}</span>`, v]))}${note("以上为有效期内的期限。到期满 90 天仍未续期的，合同终止，删除本机构全部数据。")}`,
   );
 const AU_ORG_PAGES = {
   data: () => {
@@ -66219,14 +66556,14 @@ const AU_ORG_PAGES = {
     const kinds = Object.entries(AU_REQ_KINDS)
       .map(
         ([k, [l, sub]]) =>
-          `<div class="au-row"><div class="au-row-l">${l}<small>${sub}</small></div><div class="au-row-a">${btn(k === "close" ? "申请注销" : "提交申请", "auReq", { kind: k, disabled: !edit }, k === "close" ? "sm ghost danger" : "sm")}</div></div>`,
+          `<div class="au-row"><div class="au-row-l">${l}<small>${sub}</small></div><div class="au-row-a">${((b) => (edit ? b : auDisBtn(b, "只有机构管理员可以提交数据导出与删除申请")))(btn(k === "close" ? "申请注销" : "提交申请", "auReq", { kind: k }, k === "close" ? "sm ghost danger" : "sm"))}</div></div>`,
       )
       .join("");
     const rows = list.length
       ? `<div class="tw"><table class="t au-table au-wrap"><thead><tr><th>申请</th><th>范围</th><th>申请人 · 时间</th><th>状态</th><th class="au-th-act"><span class="au-sr">操作</span></th></tr></thead><tbody>${list
           .map(
             (r) =>
-              `<tr><td><b class="au-ev">${AU_REQ_KINDS[r.kind][0]}</b></td><td class="muted">${esc(r.scope)}</td><td class="muted">${nwJoin([r.by, auFmt(r.at)])}</td><td>${badge(...AU_REQ_ST[r.status])}${r.done ? `<small class="au-sub">${esc(r.done)}</small>` : ""}</td><td class="au-td-act">${r.status === "pending" && edit ? btn("撤回", "auReqCancel", { id: r.id }, "sm ghost") : ""}</td></tr>`,
+              `<tr><td><b class="au-ev">${AU_REQ_KINDS[r.kind][0]}</b></td><td class="muted">${nwJoin(String(r.scope).split(" · "))}</td><td class="muted">${nwJoin([r.by, auFmt(r.at)])}</td><td>${badge(...AU_REQ_ST[r.status])}${r.done ? `<small class="au-sub">${esc(r.done)}</small>` : ""}</td><td class="au-td-act">${r.status === "pending" && edit ? btn("撤回", "auReqCancel", { id: r.id }, "sm ghost") : ""}</td></tr>`,
           )
           .join("")}</tbody></table></div>`
       : `<div class="au-empty">${ico("download")}<b>尚无申请</b><span>提交后由 PACOM 核对申请人身份与范围，文件只发给申请人，链接 7 天有效。</span></div>`;
@@ -66249,9 +66586,12 @@ const AU_ORG_PAGES = {
     // “上传图片”为按钮，键盘可达（A7）；有标识就显示“移除”，含内置标识（A8）；选择文件或“移除”后先预览，点“保存”后生效（03 第 2 条）
     const mark = `<div class="field"><label>机构标识</label><div class="au-logo-row">${auMark({ ...o, logo }, 48)}${
       edit
-        ? `<button type="button" class="btn sm" id="auOrgLogoBtn" data-act="auOrgLogoPick">上传图片</button><input type="file" id="auOrgLogo" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>${logo ? btn("移除", "auOrgLogoClear", {}, "sm ghost") : ""}<small class="muted">建议使用正方形 PNG 或 SVG；未上传时显示名称首字。</small>`
+        ? `<button type="button" class="btn sm" id="auOrgLogoBtn" data-act="auOrgLogoPick">上传图片</button><input type="file" id="auOrgLogo" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>${logo ? btn("移除", "auOrgLogoClear", {}, "sm ghost") : ""}`
         : ""
-    }</div>${draft ? `<div class="au-logo-draft" role="status"><span>${draft.logo ? "新标识" : "移除标识"}尚未保存，点“保存”后生效。</span>${btn("恢复原标识", "auOrgLogoUndo", {}, "sm ghost")}</div>` : ""}</div>`;
+    }</div>${
+      // 说明写在标识下方，14/24 #636363，同开通引导（参考组件核查第 430 条，按第 90 条，2026-10-11 用户确认：原为“建议使用正方形 PNG 或 SVG；未上传时显示名称首字。”，12/18）
+      edit ? `<p class="au-logo-hint">建议使用正方形 PNG 或 SVG。</p>` : ""
+    }${draft ? `<div class="au-logo-draft" role="status"><span>${draft.logo ? "新标识" : "移除标识"}尚未保存，点“保存”后生效。</span>${btn("恢复原标识", "auOrgLogoUndo", {}, "sm ghost")}</div>` : ""}</div>`;
     // 机构联系人分为“联系人姓名”“联系邮箱”（必填，接收服务通知和许可到期提醒）与“联系电话”（选填），开通时从申请资料带入；
     // 机构管理员以外的角色只读，联系邮箱与联系电话打码显示，与成员列表不写邮箱一致（2026-10-09 用户确认，ABB 对比 BP24）
     const contact = `${fld("联系人姓名", "auOrgContact", val("auOrgContact", o.contact))}${fld(
@@ -66295,12 +66635,13 @@ const AU_ORG_PAGES = {
     // 页签指向其下的搜索、筛选与列表（页签面板，Lovable 核查第 321 条，2026-10-11 用户确认）；只有查看时没有页签，也不标面板
     const listPanel = (html) => (edit ? `<div class="ws-tabpanel" id="auMemPanel" role="tabpanel" aria-labelledby="auMemTab-${tab}">${html}</div>` : html);
     const seg = `<div class="seg" role="tablist" aria-label="成员与邀请"><button role="tab" id="auMemTab-joined" aria-controls="auMemPanel" class="${tab === "joined" ? "on" : ""}" aria-selected="${tab === "joined"}" data-act="auMemTab" data-value="joined" tabindex="${tab === "joined" ? 0 : -1}">已加入 <span class="au-count">${ms.length}</span></button><button role="tab" id="auMemTab-pending" aria-controls="auMemPanel" class="${tab === "pending" ? "on" : ""}" aria-selected="${tab === "pending"}" data-act="auMemTab" data-value="pending" tabindex="${tab === "pending" ? 0 : -1}">邀请中 <span class="au-count">${pendingN}</span></button></div>`;
-    const tools = `<div class="toolbar au-tools"><label class="ws-search au-search">${ico("search", "ic16")}<input id="auMemQ" type="search" value="${esc(AUX.memQ || "")}" placeholder="${tab === "pending" ? "搜索受邀账户或姓名" : edit ? "搜索姓名或电子邮箱" : "搜索姓名"}" aria-label="搜索成员" autocomplete="off"></label><div class="au-rolefilter">${select(
+    // 工具栏放不下时换行：搜索框和“邀请成员”一行，两个筛选下一行（参考组件核查第 419 条，样式见 auth.css）
+    const tools = `<div class="au-mem-tools-w"><div class="toolbar au-tools au-mem-tools"><label class="ws-search au-search">${ico("search", "ic16")}<input id="auMemQ" type="search" value="${esc(AUX.memQ || "")}" placeholder="${tab === "pending" ? "搜索受邀账户或姓名" : edit ? "搜索姓名或电子邮箱" : "搜索姓名"}" aria-label="搜索成员" autocomplete="off"></label><div class="au-rolefilter">${select(
       "auMemRole",
       [["all", "全部角色"], ...AU_ROLE_OPTS.slice().reverse()],
       roleF,
       "按角色筛选",
-    )}</div><div class="au-rolefilter">${select("auMemProj", [["all", "全部项目"], ...auProjects().map((n) => [n, n])], projF, "按项目授权筛选")}</div><span class="sp"></span>${edit ? btn(ico("au-plus", "ic16") + "邀请成员", "auInvite", {}, "primary") : ""}</div>`;
+    )}</div><div class="au-rolefilter">${select("auMemProj", [["all", "全部项目"], ...auProjects().map((n) => [n, n])], projF, "按项目授权筛选")}</div><span class="sp"></span>${edit ? btn(ico("au-plus", "ic16") + "邀请成员", "auInvite", {}, "primary") : ""}</div></div>`;
     const rows = tab === "pending" ? auSortRows(inv, "invite") : auSortRows(ms, "member");
     const shown = rows.filter((x) => (roleF === "all" || x.role === roleF) && inProj(x));
     const hit = (x) => auMemHit(x, AUX.memQ);
@@ -66318,7 +66659,7 @@ const AU_ORG_PAGES = {
           edit && !me
             ? `<button type="button" class="au-rolebtn" data-act="auRoleMenu" data-uid="${m.uid}" aria-haspopup="menu" aria-expanded="false" aria-label="${zhSub(esc(m.name), "r")}的角色：${auRole(m.role)}">${auRole(m.role)}${ico("chevron", "ic16")}</button>`
             : `<span class="au-roletext">${auRole(viewAs ? U.role : m.role)}</span>${viewAs && typeof DEMO_ROLE_MARK === "string" ? DEMO_ROLE_MARK : ""}`;
-        return `<tr data-q="${esc(auQText(m))}" ${hit(m) ? "" : "hidden"}><td><div class="au-person">${auAvatar(m.name)}<span><b>${esc(m.name)}${me ? `<span class="au-me-tag">我</span>` : ""}</b>${edit ? `<small>${esc(auMask(m.account))}</small>` : ""}</span></div></td><td class="au-nowrap">${role}</td><td class="au-scope">${auAccessHtml(m)}</td>${edit ? `<td class="muted au-nowrap">${at ? auFmtY(at) : "—"}</td><td class="muted">${m.last === "在线" ? `<span class="au-online"></span>在线` : esc(m.last)}</td>` : ""}<td class="au-td-act">${edit || me ? iconBtn(`${zhSub(m.name, "r")}的操作`, "more", "auMemMore", { uid: m.uid }) : ""}</td></tr>`;
+        return `<tr data-q="${esc(auQText(m))}" ${hit(m) ? "" : "hidden"}><td><div class="au-person">${auAvatar(m.name)}<span><b>${esc(m.name)}${me ? `<span class="chip au-me-tag">我</span>` : ""}</b>${edit ? `<small>${esc(auMask(m.account))}</small>` : ""}</span></div></td><td class="au-nowrap">${role}</td><td class="au-scope">${auAccessHtml(m)}</td>${edit ? `<td class="muted au-nowrap">${at ? auFmtY(at) : "—"}</td><td class="muted">${m.last === "在线" ? `<span class="au-online"></span>在线` : esc(m.last)}</td>` : ""}<td class="au-td-act">${edit || me ? menuTrigger(iconBtn(`${zhSub(m.name, "r")}的操作`, "more", "auMemMore", { uid: m.uid })) : ""}</td></tr>`;
       })
       .join("")}${auNoHit(edit ? 6 : 4, vis)}</tbody></table></div>`;
     const pending = inv.length
@@ -66326,7 +66667,7 @@ const AU_ORG_PAGES = {
           .map((i) => {
             const st = auInviteState(i),
               exp = i.sent + 7 * auDay;
-            return `<tr data-q="${esc(auQText(i))}" ${hit(i) ? "" : "hidden"}><td><div class="au-person">${auAvatar(i.name || (i.account.includes("@") ? i.account : "邀"), 28)}<span><b>${esc(i.name || auMask(i.account))}</b><small>${i.name ? esc(auMask(i.account)) : i.account.includes("@") ? "邮箱邀请" : "短信邀请"}</small></span></div></td><td>${auRole(i.role)}</td><td class="au-scope">${auAccessHtml(i)}</td><td class="muted au-brk">${nwJoin([i.by, auFmt(i.sent)])}</td><td>${st === "pending" ? `<span class="chip">待接受</span><small class="au-sub">至 ${auFmt(exp)}</small>` : `<span class="chip warn">已过期</span><small class="au-sub">${auFmt(exp)} 到期</small>`}</td><td class="au-td-act">${edit ? `<div class="au-rowbtns">${btn(st === "pending" ? "重新发送" : "重新邀请", "auInvResend", { id: i.id }, "sm")}${st === "pending" ? btn("撤销", "auInvRevoke", { id: i.id }, "sm ghost") : ""}</div>` : ""}</td></tr>`;
+            return `<tr data-q="${esc(auQText(i))}" ${hit(i) ? "" : "hidden"}><td><div class="au-person">${auAvatar(i.name || (i.account.includes("@") ? i.account : "邀"), 28)}<span><b>${esc(i.name || auMask(i.account))}</b><small>${i.name ? esc(auMask(i.account)) : i.account.includes("@") ? "邮箱邀请" : "短信邀请"}</small></span></div></td><td>${auRole(i.role)}</td><td class="au-scope">${auAccessHtml(i)}</td><td class="muted au-brk">${nwJoin([i.by, auFmt(i.sent)])}</td><td>${st === "pending" ? `<span class="chip">待接受</span><small class="au-sub">至 ${auFmt(exp)}</small>` : `<span class="chip warn">已过期</span><small class="au-sub">${auFmt(exp)} 到期</small>`}</td><td class="au-td-act">${edit ? `<div class="au-rowbtns">${btn(st === "pending" ? "重新发送" : "重新邀请", "auInvResend", { id: i.id }, "sm ghost au-tact")}${st === "pending" ? btn("撤销", "auInvRevoke", { id: i.id }, "sm ghost danger au-tact") : ""}</div>` : ""}</td></tr>`;
           })
           .join("")}${auNoHit(6, vis)}</tbody></table></div>`
       : `<div class="au-empty">${ico("au-send")}<b>没有待接受的邀请</b><span>${edit ? "邀请的成员接受后会出现在“已加入”中。" : "邀请由机构管理员发出。"}</span></div>`;
@@ -66427,10 +66768,13 @@ const AU_ORG_PAGES = {
       const on = !!n.matrix[r][c],
         chOff = !n.channels[c];
       const label = `${AU_NOTIFY_ROWS[r]} · ${AU_CH[c]}`;
-      return `<td class="c">${auCheck("auNotifyCell", on && !chOff, { row: r, ch: c }, !edit || chOff, label, chOff ? `${AU_CH[c]}渠道已关闭` : "")}</td>`;
+      // 渠道关闭的一列：勾选框 50%、能用键盘移到，读屏读出“不可用，…渠道已关闭”（参考组件核查第 422 条，第 217 条，2026-10-11 用户确认）
+      if (chOff) return `<td class="c">${auCheck("auNotifyCell", false, { row: r, ch: c }, false, label).replace("<input ", `<input aria-disabled="true" aria-description="${AU_CH[c]}渠道已关闭" `)}</td>`;
+      return `<td class="c">${auCheck("auNotifyCell", on, { row: r, ch: c }, !edit, label)}</td>`;
     };
+    // 带 Webhook 地址的一行开关与名称对齐，不在整行竖直中间（参考组件核查第 433 条）
     const chRow = (c, title, sub, extra = "") =>
-      `<div class="au-row"><div class="au-row-l">${title}<small>${sub}</small>${extra}</div><div class="au-row-a">${auSwitch("auChannel", n.channels[c], { ch: c }, !edit, title)}</div></div>`;
+      `<div class="au-row${extra ? " au-row-top" : ""}"><div class="au-row-l">${title}<small>${sub}</small>${extra}</div><div class="au-row-a">${auSwitch("auChannel", n.channels[c], { ch: c }, !edit, title)}</div></div>`;
     return `${auSec(
       "通知渠道",
       "机构统一的告警通知去向。个人可在“我的账户 → 通知偏好”关闭部分渠道，不影响告警本身。",
@@ -66440,7 +66784,7 @@ const AU_ORG_PAGES = {
         "企业微信",
         "群机器人 Webhook，推送到指定群",
         n.channels.wecom
-          ? `<div class="field au-wecom-f"><div class="au-inrow au-wecom">${input("auWecom", n.wecom, "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=…").replace("<input", `<input aria-label="企业微信 Webhook 地址" ${edit ? "" : "disabled"}`)}${edit ? btn("保存地址", "auNotifySave", {}, "sm") : ""}</div></div><small class="au-sub">通知服务未接入，暂不能发送测试消息。</small>`
+          ? `<div class="field au-wecom-f"><div class="au-inrow au-wecom">${input("auWecom", n.wecom, "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=…").replace("<input", `<input aria-label="企业微信 Webhook 地址" ${edit ? "" : "disabled"}`)}${edit ? btn("保存地址", "auNotifySave") : ""}</div></div><small class="au-sub">通知服务未接入，暂不能发送测试消息。</small>`
           : "",
       )}</div>`,
     )}${auSec(
@@ -66448,7 +66792,7 @@ const AU_ORG_PAGES = {
       "按事件通知",
       "告警级别与合并规则见告警规则；一个根因只通知一次，紧急告警恢复时再告知一次。",
       "",
-      `<div class="tw"><table class="t au-matrix au-notify"><thead><tr><th>事件</th>${chs.map(([c, l]) => `<th class="c">${l}</th>`).join("")}</tr></thead><tbody>${rows
+      `<div class="tw"><table class="t au-matrix au-notify"><thead><tr><th>事件</th>${chs.map(([c, l]) => (n.channels[c] ? `<th class="c">${l}</th>` : `<th class="c au-ch-off"><span>${l}</span><small>已关闭</small></th>`)).join("")}</tr></thead><tbody>${rows
         .map(
           ([r, l, s]) =>
             `<tr><td><b class="au-ev">${l}</b><small class="au-sub">${s}</small></td>${chs.map(([c]) => cell(r, c)).join("")}</tr>`,
@@ -66733,10 +67077,16 @@ function auAiMenuCard() {
   if (a.state === "none") return "";
   const known = a.state !== "unknown",
     over = a.state === "pack" || a.state === "out";
-  return `<button class="popitem au-aicard${over ? " warn" : ""}" role="menuitem" data-act="auPage" data-page="org" data-tab="license"><span class="au-aicard-h"><b>${known ? "AI 用量 · 已用 " + a.pct + "%" : "AI 用量 · 未取得"}</b>${known ? `<small>${over ? "本月额度已用完" : auAiReset()}</small>` : ""}</span><span class="au-bar">${known ? `<i style="width:${a.pct}%" class="${a.pct >= 80 ? "warn" : ""}"></i>` : ""}</span></button>`;
+  return `<button class="popitem au-aicard${over ? " warn" : ""}" role="menuitem" data-act="auPage" data-page="org" data-tab="license"><span class="au-aicard-h"><b>${known ? "AI 用量 · 已用 " + a.pct + "%" : "AI 用量 · 未取得"}</b>${known ? `<small>${over ? "本月额度已用完" : auAiReset()}</small>` : ""}</span>${auBar(known ? a.pct : null, "本月 AI 额度用量", `已用 ${a.pct}%`)}</button>`;
 }
 // 工作区页头下方的提示条（ORG06、AUTH15）：许可到期暂停后续期中、未订阅（只给机构管理员）、有效期最后一天前 30 天起。不能关闭。
 function auLicBarInfo() {
+  const info = auLicBarText();
+  // 在“许可与用量”页上提示条不放按钮，页面里已有“订阅”“续期”（一个视图一个主要按钮；参考组件核查第 444 条，2026-10-11 用户确认）；其他页面照旧
+  if (info?.act && U.page === "org" && (U.tab || (auRenewOnly() ? "license" : "info")) === "license") delete info.act;
+  return info;
+}
+function auLicBarText() {
   if (typeof AUTH === "undefined" || AUTH.session !== "in" || !AUTH.orgs[AUTH.org] || BARE[U.page]) return null;
   const o = auOrg(),
     l = auLic(),
@@ -66759,6 +67109,8 @@ function auLicBar() {
     el.id = "licBanner";
     el.className = "net-bar au-licbar";
     el.dataset.tone = "warning";
+    // 读屏读出，同页面里的提示（参考组件核查第 443 条）
+    el.setAttribute("role", "status");
   }
   const html = `<span class="net-bar-icon" aria-hidden="true">${ico("alert", "ic16")}</span><span class="au-licbar-t">${info.text}</span>${info.act || ""}`;
   if (el.auHtml !== html) {
@@ -66888,16 +67240,26 @@ function auQtyErr(q, kind) {
 }
 // 订单的单据（报价单、订单合同、开通确认单、发票）与服务协议由订单服务生成。
 const auDocBtn = (label, doc = "") => `<button type="button" class="au-linkbtn" data-act="auOrderDoc" data-doc="${doc}">${label}</button>`;
+// 表格里的操作（订单、展示链接、邀请中、接口密钥）：28 高的小号透明按钮，14 号，间隔 8（参考组件核查第 437 条，2026-10-11 用户确认：原为 20 高、13 号的文字链接）
+const auDocAct = (label, doc = "") => btn(label, "auOrderDoc", { doc }, "sm ghost au-tact");
 // 用量柱状图：每天一根，悬停显示日期与用量（万词元）；days 为按天的用量，最后一天为今天。
+// 3 条虚线网格、首尾日期和最大值刻度，柱子圆角 2，颜色不变（参考组件核查第 439 条，按第 122 条，2026-10-11 用户确认：原先没有网格和刻度，柱子圆角 4）。
 function auAiBars(days, label, end = auCstYmd()) {
-  const max = Math.max(1, ...days);
-  return `<div class="au-aichart" role="img" aria-label="${esc(label)}">${days
+  const max = Math.max(1, ...days),
+    first = auYmdAdd(end, 1 - days.length);
+  return `<div class="au-aichart-w"><div class="au-aichart" role="img" aria-label="${esc(label)}"><span class="au-aichart-grid" aria-hidden="true"><i></i><i></i><i></i></span><small class="au-aichart-max" aria-hidden="true">${auWan(max)}</small>${days
     .map((n, i) => {
       const d = auYmdAdd(end, i - days.length + 1);
       return `<span data-tip="${esc(`${auDate(d)} · ${auWan(n)}词元`)}"><i style="height:${Math.max(n ? 2 : 0, (n / max) * 100)}%"></i></span>`;
     })
-    .join("")}</div>`;
+    .join("")}</div><div class="au-aichart-x" aria-hidden="true"><span>${auDate(first)}</span><span>${auDate(end)}</span></div></div>`;
 }
+// 用量条（参考组件核查第 441 条，2026-10-11 用户确认）：8 高、圆角 4，底色为颜色表的浅灰；读屏读出当前值（第 248 条）。
+// 为 0 时不显示填充（第 426 条）；pct 为 null（未取得）时只有底条。
+const auBar = (pct, label, text, warn = pct >= 80) =>
+  `<span class="au-bar" role="meter" aria-label="${esc(label)}" aria-valuemin="0" aria-valuemax="100"${pct == null ? "" : ` aria-valuenow="${Math.round(Math.min(100, pct))}" aria-valuetext="${esc(text)}"`}>${pct > 0 ? `<i style="width:${Math.min(100, pct)}%" class="${warn ? "warn" : ""}"></i>` : ""}</span>`;
+// 日期范围整体不拆开，放不下时在“至”后换行（参考组件核查第 429 条，按第 299 条）
+const auRangeHtml = (from, to) => auDateRange(from, to).split("至 ").map((x, i, xs) => `<span class="au-nowrap">${x}${i < xs.length - 1 ? "至" : ""}</span>`).join(" ");
 const auAiShare = (rows, total) => rows.map(([n, s]) => [n, Math.round(total * s)]).sort((a, b) => b[1] - a[1]);
 AU_ORG_PAGES.license = () => {
   const o = auOrg(),
@@ -66919,7 +67281,7 @@ AU_ORG_PAGES.license = () => {
   else {
     const left = auYmdDiff(today, l.end) + 1;
     // 有效期写到最后一天，次日 0:00 起暂停（BP33，商业许可方案“照方案补上”）
-    body = `<div class="au-plan au-plan4"><div><span class="au-plan-k">有效期</span><b class="num">${auDateRange(l.start, l.end)}</b><small>${left > 0 ? `剩余 ${left} 天 · ${auDate(auYmdAdd(l.end, 1))}起暂停使用` : `${auDate(auYmdAdd(l.end, 1))}起已暂停使用`}，续期后自动恢复</small></div><div><span class="au-plan-k">设备额度</span><b class="num">${fmt(l.quota)} 台</b><small>以 100 台为单位，期中可增加，续期时可调整</small></div><div><span class="au-plan-k">开放接口</span><b>${l.api ? "已开通" : "未开通"}</b>${l.api ? "" : "<small>如需开通，请联系 PACOM 客户经理</small>"}</div><div><span class="au-plan-k">客户经理</span>${l.manager ? `<b>${esc(l.manager.split(" · ")[0])}</b><small>${esc(l.manager.split(" · ").slice(1).join(" · "))}</small>` : "<b class=\"au-plan-none\">请在帮助中联系支持</b>"}</div></div>`;
+    body = `<div class="au-plan au-plan4"><div><span class="au-plan-k">有效期</span><b class="num">${auRangeHtml(l.start, l.end)}</b><small>${left > 0 ? `剩余 ${left} 天 · ${auDate(auYmdAdd(l.end, 1))}起暂停使用` : `${auDate(auYmdAdd(l.end, 1))}起已暂停使用`}，续期后自动恢复</small></div><div><span class="au-plan-k">设备额度</span><b class="num">${fmt(l.quota)} 台</b><small>以 100 台为单位，期中可增加，续期时可调整</small></div><div><span class="au-plan-k">开放接口</span><b>${l.api ? "已开通" : "未开通"}</b>${l.api ? "" : "<small>如需开通，请联系 PACOM 客户经理</small>"}</div><div><span class="au-plan-k">客户经理</span>${l.manager ? `<b>${esc(l.manager.split(" · ")[0])}</b><small>${esc(l.manager.split(" · ").slice(1).join(" · "))}</small>` : "<b class=\"au-plan-none\">请在帮助中联系支持</b>"}</div></div>`;
   }
   // 已到期的只能续期，不能增加设备额度
   const right = admin && l.state === "active" ? btn("续期", "auLicBuy", { kind: "renew" }) + (l.end >= today ? btn("增加设备额度", "auLicAdd") : "") : "";
@@ -66941,14 +67303,14 @@ AU_ORG_PAGES.license = () => {
             ? `<div class="tw"><table class="t au-table au-wrap"><thead><tr><th>名称</th><th>项目授权</th><th>到期</th><th>状态</th><th class="au-th-act">操作</th></tr></thead><tbody>${keys
                 .map(
                   (k) =>
-                    `<tr><td><b class="au-ev">${esc(k.name)}</b><small class="au-sub num">${esc(k.mask)}</small></td><td class="muted">${esc(auScopeText(k.scope))}</td><td class="num">${k.until ? auDate(k.until) : "不设到期"}</td><td>${k.revoked ? badge("已吊销") : badge("有效", "good")}</td><td class="au-td-act">${k.revoked ? "" : btn("吊销", "auKeyRevoke", { id: k.id }, "sm ghost danger")}</td></tr>`,
+                    `<tr><td><b class="au-ev">${esc(k.name)}</b><small class="au-sub num">${esc(k.mask)}</small></td><td class="muted">${esc(auScopeText(k.scope))}</td><td class="num">${k.until ? auDate(k.until) : "不设到期"}</td><td>${k.revoked ? badge("已吊销") : badge("有效", "good")}</td><td class="au-td-act">${k.revoked ? "" : btn("吊销", "auKeyRevoke", { id: k.id }, "sm ghost danger au-tact")}</td></tr>`,
                 )
                 .join("")}</tbody></table></div>`
             : `<div class="au-empty">${ico("au-lock")}<b>尚无接口密钥</b></div>`,
         )
       : "";
   const pct = l.quota ? (use.used / l.quota) * 100 : 0;
-  const meter = `<div class="au-meter"><div class="au-meter-h"><span>设备（已绑定或已接入）</span><b class="num">${fmt(use.used)}<span class="muted"> / ${fmt(l.state === "active" ? l.quota : 0)} 台</span></b></div><div class="au-bar"><i style="width:${Math.min(100, pct)}%" class="${pct >= 80 ? "warn" : ""}"></i></div>${use.planned ? `<small>另有 ${fmt(use.planned)} 个规划点位未绑定</small>` : ""}</div>`;
+  const meter = `<div class="au-meter"><div class="au-meter-h"><span>设备（已绑定或已接入）</span><b class="num">${fmt(use.used)}<span class="muted"> / ${fmt(l.state === "active" ? l.quota : 0)} 台</span></b></div>${auBar(pct, "设备额度用量", `已绑定或已接入 ${fmt(use.used)} / ${fmt(l.state === "active" ? l.quota : 0)} 台`)}${use.planned ? `<small>另有 ${fmt(use.planned)} 个规划点位未绑定</small>` : ""}</div>`;
   const usage = auSec(
     "用量",
     "Mesh 设备与网关按已绑定计（EG20 与配套的 WA20 合计 1 台），系统接入设备按已接入计；规划点位不占用额度。成员、项目、楼层图和存储不限。",
@@ -66972,9 +67334,9 @@ function auAiSection() {
       : a.state === "out"
         ? `<div class="au-licnote warn" role="status">${ico("alert", "ic16")}<span>本月 AI 用量已用完，${auDate(a.reset)} 0:00 恢复。${admin ? "购买用量包后可立即继续使用。" : "如需继续使用，请联系机构管理员。"}</span>${admin ? btn("购买用量包", "auPackBuy", {}, "sm") : ""}</div>`
         : "";
-  const month = `<div class="au-meter au-aiq"><div class="au-meter-h"><span>本月额度</span><b class="num">${known ? `已用 ${a.pct}%` : `<span class="muted">未取得</span>`}</b></div><div class="au-bar">${known ? `<i style="width:${a.pct}%" class="${a.pct >= 80 ? "warn" : ""}"></i>` : ""}</div><small>${auAiReset()}${admin && known ? ` · ${auWan(a.used)} / ${auWan(a.quota)}词元` : admin ? ` · 每月 ${auWan(a.quota)}词元` : ""}</small></div>`;
+  const month = `<div class="au-meter au-aiq"><div class="au-meter-h"><span>本月额度</span><b class="num">${known ? `已用 ${a.pct}%` : `<span class="muted">未取得</span>`}</b></div>${auBar(known ? a.pct : null, "本月 AI 额度用量", `已用 ${a.pct}%`)}<small>${auAiReset()}${admin && known ? ` · <span class="au-nowrap">${auWan(a.used)} / ${auWan(a.quota)}词元</span>` : admin ? ` · <span class="au-nowrap">每月 ${auWan(a.quota)}词元</span>` : ""}</small></div>`;
   if (!admin) return auSec("AI 用量", desc, "", `${banner}<div class="au-meters au-meters1">${month}</div>${note("用量包由机构管理员购买。")}`);
-  const packs = `<div class="au-meter au-aipack"><div class="au-meter-h"><span>AI 用量包</span><b class="num">${l.packs.length ? `剩余 ${auWan(a.left)}词元` : `<span class="muted">没有用量包</span>`}</b>${l.packs.length ? btn("明细", "auPacks", {}, "sm ghost") : ""}</div><small>先用本月额度，再用用量包。用量包不设有效期，云服务有效时都能用。</small><div class="au-aipack-a">${btn("购买用量包", "auPackBuy", {}, "sm")}</div></div>`;
+  const packs = `<div class="au-meter au-aipack"><div class="au-meter-h"><span>AI 用量包</span><b class="num">${l.packs.length ? (a.left > 0 ? `剩余 ${auWan(a.left)}词元` : "已用完") : `<span class="muted">没有用量包</span>`}</b>${l.packs.length ? btn("明细", "auPacks", {}, "sm ghost") : ""}</div><small>先用本月额度，再用用量包。用量包不设有效期，云服务有效时都能用。</small><div class="au-aipack-a">${btn("购买用量包", "auPackBuy", {}, "sm")}</div></div>`;
   let recent = "";
   if (known) {
     const days = l.ai.daily.slice(-30),
@@ -67003,23 +67365,23 @@ AU_ORG_PAGES.orders = () => {
     filters = tabs(kinds, k, "auOrderKind", "auOrderPanel", "订单页签");
   const docs = (x) =>
     x.status === "pending"
-      ? [auDocBtn("报价单", "quote"), auDocBtn("订单合同", "contract")]
+      ? [auDocAct("报价单", "quote"), auDocAct("订单合同", "contract")]
       : x.status === "paid"
-        ? [auDocBtn("订单合同", "contract"), auDocBtn("开通确认单", "confirm"), x.invoice === "issued" ? auDocBtn("发票", "invoice") : `<span class="muted">开票中</span>`]
+        ? [auDocAct("订单合同", "contract"), auDocAct("开通确认单", "confirm"), x.invoice === "issued" ? auDocAct("发票", "invoice") : `<span class="muted">开票中</span>`]
         : [];
   const acts = (x) =>
     x.status === "pending"
-      ? btn("去付款", "auPay", { id: x.id }, "sm") + btn("取消订单", "auOrderCancel", { id: x.id }, "sm ghost")
+      ? btn("去付款", "auPay", { id: x.id }, "sm ghost au-tact") + btn("取消订单", "auOrderCancel", { id: x.id }, "sm ghost danger au-tact")
       : x.status === "paid"
         ? x.stamp
           ? `<span class="muted">已申请双方盖章</span>`
-          : btn("申请双方盖章", "auOrderStamp", { id: x.id }, "sm ghost")
+          : btn("申请双方盖章", "auOrderStamp", { id: x.id }, "sm ghost au-tact")
         : "";
   const rows = list.length
-    ? `<div class="tw"><table class="t au-table au-wrap au-orders"><thead><tr><th>时间</th><th>内容</th><th>金额</th><th>状态</th><th>付款方式与单据</th></tr></thead><tbody>${list
+    ? `<div class="tw"><table class="t au-table au-wrap au-orders"><thead><tr><th>时间</th><th>内容</th><th class="num">金额</th><th>状态</th><th>付款方式与单据</th></tr></thead><tbody>${list
         .map(
           (x) =>
-            `<tr><td class="num au-nowrap">${auFmtY(x.at)}</td><td><b class="au-ev">${esc(x.text)}</b><small class="au-sub num">${esc(x.no)}${x.by === "PACOM" ? " · PACOM 代下单" : ""}</small></td><td class="num au-nowrap">${auYuan(x.amount)}</td><td>${badge(...AU_ORDER_ST[x.status])}${x.status === "pending" ? `<small class="au-sub">${auDate(x.until)}前有效</small>` : ""}</td><td><div class="au-order-docs">${x.pay ? `<span>${esc(x.pay)}</span>` : ""}${docs(x).join("")}</div><div class="au-order-acts">${acts(x)}</div></td></tr>`,
+            `<tr><td class="num au-nowrap">${auFmtY(x.at)}</td><td><b class="au-ev">${nwJoin(String(x.text).split(" · "))}</b><small class="au-sub num">${nwJoin([x.no, x.by === "PACOM" ? "PACOM 代下单" : ""])}</small></td><td class="num au-nowrap">${auYuan(x.amount)}</td><td>${badge(...AU_ORDER_ST[x.status])}${x.status === "pending" ? `<small class="au-sub">${auDate(x.until)}前有效</small>` : ""}</td><td><div class="au-order-docs">${x.pay ? `<span>${esc(x.pay)}</span>` : ""}${docs(x).join("")}</div><div class="au-order-acts">${acts(x)}</div></td></tr>`,
         )
         .join("")}</tbody></table></div>`
     : l.orders.length
@@ -67050,7 +67412,7 @@ AU_ORG_PAGES.orders = () => {
     "请用本单位的对公账户汇款。到账后自动对上待付款的订单。",
     "",
     auRows([
-      ["户名", acc ? esc(acc.name) : `<span class="muted">未取得</span>`],
+      ["户名", acc ? `<span class="au-nowrap">${esc(acc.name)}</span>` : `<span class="muted">未取得</span>`],
       ["开户银行", acc ? esc(acc.bank) : `<span class="muted">未取得</span>`],
       ["账号", acc ? `<span class="num">${esc(acc.no)}</span>` : `<span class="muted">未取得</span>`],
     ]),
@@ -67069,7 +67431,7 @@ AU_ORG_PAGES.orders = () => {
 // 付款弹窗中的专属汇款账号
 const auAccRows = (acc) =>
   auRows([
-    ["户名", acc ? esc(acc.name) : `<span class="muted">未取得</span>`],
+    ["户名", acc ? `<span class="au-nowrap">${esc(acc.name)}</span>` : `<span class="muted">未取得</span>`],
     ["开户银行", acc ? esc(acc.bank) : `<span class="muted">未取得</span>`],
     ["账号", acc ? `<span class="num">${esc(acc.no)}</span>` : `<span class="muted">未取得</span>`],
   ]);
@@ -67205,7 +67567,10 @@ defineActions({
     );
   },
   auOrderCancel: (a) => {
-    auDialog("取消订单？", `<p class="au-dlead">取消后不能恢复，需要时重新下单。</p>`, btn("返回", "close") + btn("取消订单", "auOrderCancelDo", { id: a.id }, "danger"));
+    // 标题写出是哪一笔订单（参考组件核查第 438 条，同第 410 条）；读作警示对话框（第 443 条）。2026-10-11 用户确认
+    const od = auLic().orders.find((x) => x.id === a.id);
+    if (!od) return;
+    auDialog(`取消订单“${od.text}”？`, `<p class="au-dlead">取消后不能恢复，需要时重新下单。</p>`, btn("返回", "close") + btn("取消订单", "auOrderCancelDo", { id: a.id }, "danger"), "au-alert");
   },
   auOrderCancelDo: withPolicy({ busy: "modal" }, async (a) => {
     const l = auLic(),
@@ -67337,6 +67702,9 @@ defineActions({
     AUX.keyShown = r.key;
     $("#dlg .db") && ($("#dlg .db").innerHTML = `<div class="au-key"><code class="num">${esc(r.key)}</code>${btn(ico("copy", "ic16") + "复制", "auKeyCopy", {}, "sm")}</div><p class="au-dlead">密钥只显示这一次，关闭后不能再查看。</p>`);
     $("#dlg .df") && ($("#dlg .df").innerHTML = btn("完成", "close", {}, "primary"));
+    // 密钥已签发，没有未保存的修改：“完成”直接关闭，不问“是否放弃修改？”（规范第 131 行；参考组件核查第 425 条，2026-10-11 用户确认）
+    $("#dlg .dialog")?.classList.add("nodirty");
+    modalDirty = false;
   }),
   // 复制成功：图标变勾、按钮上方“已复制”约 2 秒，不弹消息提示（Lovable 核查第 177 条，2026-10-11 用户确认）；不成功的提示不变。
   auKeyCopy: async (a, el) => {
@@ -67350,7 +67718,8 @@ defineActions({
   auKeyRevoke: (a) => {
     const k = auLic().keys.find((x) => x.id === a.id);
     if (!k) return;
-    auDialog("吊销接口密钥？", `<p class="au-dlead">吊销后使用该密钥的调用立即失败，不能恢复。</p>`, btn("返回", "close") + btn("吊销", "auKeyRevokeDo", { id: a.id }, "danger"));
+    // 标题写出密钥名称（参考组件核查第 438 条）；读作警示对话框（第 443 条）
+    auDialog(`吊销接口密钥“${k.name}”？`, `<p class="au-dlead">吊销后使用该密钥的调用立即失败，不能恢复。</p>`, btn("返回", "close") + btn("吊销", "auKeyRevokeDo", { id: a.id }, "danger"), "au-alert");
   },
   auKeyRevokeDo: withPolicy({ busy: "modal" }, async (a) => {
     const k = auLic().keys.find((x) => x.id === a.id);
@@ -67545,8 +67914,9 @@ const AU_ACC_PAGES = {
       `<div class="au-box">${orgs
         .map((o) => {
           const cur = o.id === AUTH.org;
-          // 每行显示机构的当前状态：已暂停（ACCOUNT04，03 第 1 条；中性实底，Lovable 核查第 392 条）；正常时不另标。按钮写“退出机构”（2026-10-09 用户确认，ABB 对比 BP13）
-          return `<div class="au-row"><div class="au-row-l au-orgline">${auMark(o, 32)}<span><b>${esc(o.name)}${cur ? `<span class="chip info au-ml">当前</span>` : ""}${o.suspended ? `<span class="chip au-ml">已暂停</span>` : ""}</b><small>${auRole(o.role)} · ${esc(o.code)}</small></span></div><div class="au-row-a">${cur ? "" : btn("切换到此机构", "auSwitchOrg", { org: o.id }, "sm")}${btn("退出机构", "auLeaveOrg", { org: o.id }, "sm ghost")}</div></div>`;
+          // 每行显示机构的当前状态：已暂停（ACCOUNT04，03 第 1 条；中性实底，Lovable 核查第 392 条）；正常时不另标。按钮写“退出机构”（2026-10-09 用户确认，ABB 对比 BP13），
+          // 透明红字，同其他危险操作的入口（参考组件核查第 339 条在我的账户补做，见第 29 号记录“四”）
+          return `<div class="au-row"><div class="au-row-l au-orgline">${auMark(o, 32)}<span><b>${esc(o.name)}${cur ? `<span class="chip info au-ml">当前</span>` : ""}${o.suspended ? `<span class="chip au-ml">已暂停</span>` : ""}</b><small>${auRole(o.role)} · ${esc(o.code)}</small></span></div><div class="au-row-a">${cur ? "" : btn("切换到此机构", "auSwitchOrg", { org: o.id }, "sm")}${btn("退出机构", "auLeaveOrg", { org: o.id }, "sm ghost danger")}</div></div>`;
         })
         .join("")}</div>${note("退出机构不会删除个人账户；如果您是该机构唯一的机构管理员，需要先指定另一位。")}`,
     );
@@ -68867,7 +69237,7 @@ if (typeof AU_ORG_PAGES !== "undefined")
           .map(
             (l) =>
               `<tr><td><b class="au-ev">${esc(l.name)}</b></td><td class="au-nowrap">${SCR_LAYOUTS[l.layout] || "—"}</td><td class="muted">${esc(scrScopeText(l))}</td><td class="muted au-brk">${nwJoin([l.by || "—", auFmtY(l.at)])}</td><td class="muted au-nowrap">${l.last ? auFmtY(l.last) : "尚未访问"}</td><td class="au-td-act">${
-                edit ? `<div class="scr-link-acts">${btn(ico("copy", "ic16") + "复制链接", "scrLinkCopy", { id: l.id }, "sm ghost")}${btn("修改", "scrLinkEdit", { id: l.id }, "sm ghost")}${btn("撤销", "scrLinkRevoke", { id: l.id }, "sm ghost danger")}</div>` : ""
+                edit ? `<div class="scr-link-acts">${btn(ico("copy", "ic16") + "复制链接", "scrLinkCopy", { id: l.id }, "sm ghost au-tact")}${btn("修改", "scrLinkEdit", { id: l.id }, "sm ghost au-tact")}${btn("撤销", "scrLinkRevoke", { id: l.id }, "sm ghost danger au-tact")}</div>` : ""
               }</td></tr>`,
           )
           .join("")}</tbody></table></div>`
@@ -68875,7 +69245,8 @@ if (typeof AU_ORG_PAGES !== "undefined")
     return auSec(
       "展示链接",
       "给一直开着的屏（值班室、管理办公室、大堂与电梯厅）：不用账户，只读，只显示所选版式和范围，撤销前一直有效。",
-      edit ? btn(ico("plus", "ic16") + "新建展示链接", "scrLinkNew", {}, "sm primary") : "",
+      // “新建展示链接”32 高（第 318 条）
+      edit ? btn(ico("plus", "ic16") + "新建展示链接", "scrLinkNew", {}, "primary") : "",
       `${edit ? "" : auReadonlyNote("新建、修改和撤销展示链接")}${rows}${note("复制链接后，在屏上的浏览器中以全屏或 kiosk 方式打开，并关闭浏览器与电脑的自动休眠；屏幕的开关机时间用屏幕自带的定时功能。修改版式或范围后链接不变，屏上 1 分钟内换成新内容；撤销后 1 分钟内失效，屏上显示“此展示链接已停用，请联系机构管理员”。新建、修改和撤销写入审计日志。")}`,
     );
   };
@@ -69015,10 +69386,12 @@ defineActions({
   scrLinkRevoke: (a) => {
     const l = scrLinks().find((x) => x.id === a.id);
     if (!l || !auCanManage()) return;
+    // 标题写出是哪一条链接，说明照旧（参考组件核查第 438 条）；读作警示对话框（第 443 条）。2026-10-11 用户确认
     auDialog(
-      "撤销展示链接？",
+      `撤销展示链接“${l.name}”？`,
       `<p class="au-dlead">“${esc(l.name)}”的链接将在 1 分钟内停用，屏上显示“此展示链接已停用，请联系机构管理员”。撤销后不能恢复，需要时请新建展示链接。</p>`,
       btn("取消", "close") + btn("撤销", "scrLinkRevokeOk", { id: l.id }, "danger"),
+      "au-alert",
     );
   },
   scrLinkRevokeOk: (a) => {
