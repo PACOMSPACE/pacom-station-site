@@ -24941,6 +24941,8 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
 /* 交互核查第 13 条：截图文件类型不对时的错误写在截图一行下面 */
 #dlg #supShotErr { display: block; margin-top: 4px; }
 #dlg #supShotErr[hidden] { display: none; }
+/* 账户核查第 16 条：重置密码弹窗底部的“取消”“发送重置链接”“下一步”文字 14/24，同账户页其他按钮；高度仍为电脑 32、窄屏与触屏 44（原为 14/20）。 */
+#dlg .au-account-dlg.au-reset-dlg .df .btn { line-height: 24px; }
 /* ==== 2026-10-12 全面设计核查第二部分 · 总览（第 19、74、81–95 条）
    [OVERVIEW] 本区的样式改动写在这一段注释之后、下一段注释之前。
    ==== */
@@ -66157,8 +66159,14 @@ function auField(o) {
   const counter = count ? PACOM_AUTH_FLOW.charCount(name, val) : "";
   return `<div class="au-field ${rightAfter ? "au-field-right-after" : ""}" data-f="${name}"><div class="au-lab"><label for="au-${name}">${label}</label>${rightAfter ? "" : right}</div><div class="au-ctl"><input id="au-${name}" name="${name}" class="au-in ${suffix ? "has-suffix" : ""}" type="${type}" value="${esc(val)}" ${auto ? `autocomplete="${auto}"` : ""} ${inputmode ? `inputmode="${inputmode}"` : ""} ${ph ? `placeholder="${esc(ph)}"` : ""} ${maxlength ? `maxlength="${maxlength}"` : ""} ${required ? 'required aria-required="true"' : ""} aria-describedby="au-${name}-err au-${name}-hint${count ? ` au-${name}-count` : ""}" spellcheck="false" ${type === "password" || ["email", "tel", "username", "one-time-code"].includes(auto) ? 'autocapitalize="none" autocorrect="off"' : ""}>${suffix}</div>${rightAfter ? `<div class="au-field-right">${right}</div>` : ""}<p class="au-err" id="au-${name}-err" aria-live="polite"></p><p class="au-hint" id="au-${name}-hint" ${hintRole ? `role="${hintRole}" aria-live="polite"` : ""}>${hint}</p>${count ? `<p class="au-hint au-char-count" id="au-${name}-count" ${counter ? "" : "hidden"}>${counter}</p>` : ""}</div>`;
 }
+// 显示密码按钮按所在字段命名并关联输入框：“显示新密码”“显示确认新密码”，切换后为“隐藏……”（账户核查第 15 条：原先都叫“显示密码”）。
+const AU_EYE_NAME = { np1: "新密码", np2: "确认新密码", iv_pwd2: "确认密码" };
 const auEye = (name) =>
-  `<button type="button" class="au-suffix au-eye" data-act="auEye" data-for="au-${name}" aria-label="显示密码">${ico("eye", "ic16")}</button>`;
+  `<button type="button" class="au-suffix au-eye" data-act="auEye" data-for="au-${name}" data-name="${AU_EYE_NAME[name] || "密码"}" aria-controls="au-${name}" aria-label="显示${AU_EYE_NAME[name] || "密码"}">${ico("eye", "ic16")}</button>`;
+// 最近一次操作的方式：键盘为空，否则为指针类型（mouse / touch / pen），供显示密码按钮决定焦点去向。
+let auPointerKind = "";
+document.addEventListener("pointerdown", (e) => { auPointerKind = e.pointerType || "mouse"; }, true);
+document.addEventListener("keydown", () => { auPointerKind = ""; }, true);
 function auSmsState(key, phone = AUX.v[AU_SMS_KEYS[key][0]]) {
   const identity = PACOM_AUTH_FLOW.loginIdentity(phone), store = (AUX.smsByNumber ||= {});
   const map = (store[key] ||= {});
@@ -67926,14 +67934,19 @@ Object.assign(actions, {
     auRoute("login");
     requestAnimationFrame(() => actions.auForgot());
   },
+  // 焦点去向按操作方式（账户核查第 14 条：原先一律回到输入框，键盘用户 Tab 又回到同一个按钮）：
+  // 键盘激活时焦点留在按钮上；鼠标点击后回到输入框并保留原来的光标位置；触屏不回到输入框，不重新弹出键盘。
   auEye: (a, el) => {
     const inp = document.getElementById(a.for);
     if (!inp) return;
-    const show = inp.type === "password";
+    const show = inp.type === "password", start = inp.selectionStart, end = inp.selectionEnd;
     inp.type = show ? "text" : "password";
     el.innerHTML = ico(show ? "au-eyeoff" : "eye", "ic16");
-    el.setAttribute("aria-label", show ? "隐藏密码" : "显示密码");
-    inp.focus();
+    el.setAttribute("aria-label", (show ? "隐藏" : "显示") + (a.name || "密码"));
+    if (auPointerKind === "mouse") {
+      inp.focus();
+      if (start != null) try { inp.setSelectionRange(start, end); } catch {}
+    }
   },
   auCode: async (a, el) => {
     const phone = PACOM_AUTH_FLOW.identifier(AUX.v[a.for]), error = auPhoneCheck(phone);
