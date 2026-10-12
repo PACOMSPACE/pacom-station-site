@@ -67976,6 +67976,13 @@ Object.assign(actions, {
     const same = auPhoneIdentity(phone) === auPhoneIdentity(AUX.v[a.for]);
     const name = AU_SMS_KEYS[a.key][1];
     if (status === 'ok' && same) auErr(name, '');
+    // 服务确认新码替代旧码时，清掉已经输入的旧码，免得提交已失效的码；发送失败或结果未知时旧码可能仍有效，保留不动。
+    // 有效期与替代关系以服务返回为准，页面不自行假定（账户核查第 20 条）。
+    if (status === 'ok' && same && response?.replacesPrevious && AUX.v[name]) {
+      delete AUX.v[name];
+      const code = $(`#au-${name}`);
+      if (code) code.value = '';
+    }
     // Focus follows the result only while it is still on the button: a sent code moves to the code field (touch: the
     // “已发送至” line, so no keyboard opens); a limit disables the button and moves to the number; a failure stays.
     if (!focused || !same) return;
@@ -68058,11 +68065,13 @@ Object.assign(actions, {
     requestAnimationFrame(() => actions.auForgot({ fromInvite: true }));
   },
   // Each opening records its own origin: only a dialog opened from the invitation page returns there when closed.
+  // 短信登录受限时的“重置密码”：用验证码重置，带入当前手机号码（账户核查第 19 条）
+  auForgotPhone: () => actions.auForgot({ account: AUX.v.sphone || "" }),
   auForgot: (a = {}) => {
     AUX.resetDialogInvite = a.fromInvite === true ? AUX.resetInviteOrigin || null : null;
     if (!AUX.resetDialogInvite) AUX.resetInviteContext = null;
     document.querySelector('[data-act="auForgot"]')?.focus({ preventScroll: true });
-    PACOM_AUTH_FLOW.resetDraft(AUX, AUX.v.id, AUX.resetInviteContext);
+    PACOM_AUTH_FLOW.resetDraft(AUX, a.account || AUX.v.id, AUX.resetInviteContext);
     AUX.resetDialogSubmission = false;
     delete AUX.errors.rid; delete AUX.errors.rcode; delete AUX.v.rcode;
     AUX.attempted.resetDialog = false;
@@ -70961,20 +70970,24 @@ function auFocusSecret(form) {
 }
 function auCurrentLock() { return AUX.loginLocks[auLoginIdentity(auVal(AUX.sms ? 'sphone' : 'id'))] || 0; }
 function auLockText(ms, sms = AUX.sms) {
-  // SMS mode has no “忘记密码？” on the page, so it names the way there.
-  return `尝试次数过多，请 ${auWaitText(ms)}后再试，或${sms ? '切换到密码登录后' : ''}通过“忘记密码”重置。`;
+  // SMS mode has no “忘记密码？” on the page: the message offers “重置密码” directly, with the number already filled in
+  // (手机号码已能用验证码重置；账户核查第 19 条，原为“切换到密码登录后通过“忘记密码”重置”). Waits and failure counts are unchanged.
+  return sms ? `尝试次数过多，请 ${auWaitText(ms)}后再试，或重置密码。` : `尝试次数过多，请 ${auWaitText(ms)}后再试，或通过“忘记密码”重置。`;
 }
 // After 100 failures in a row only a password reset lets the account sign in again (Account 核查第 4、5 点).
 const AU_LOGIN_RESET_TEXT = '登录失败次数过多，请通过“忘记密码”重置密码后再登录。';
 // SMS mode has no “忘记密码？” on the page: like the pause message, it names the way there (2026-10-08 用户确认 G-6).
-const AU_LOGIN_RESET_SMS_TEXT = '登录失败次数过多，请切换到密码登录，通过“忘记密码”重置密码后再登录。';
+const AU_LOGIN_RESET_SMS_TEXT = '登录失败次数过多，请重置密码后再登录。';
 // A pause has ended: the next failure pauses again, for the time the service returned. When the next failure is the 100th, the service
 // returns that a reset is then required instead of minutes; SMS mode names the way to “忘记密码”, as G-6 does (2026-10-09 用户确认，Account 核查 K6).
 const AU_RESUME_RESET_TEXT = '现在可以再次登录。再错 1 次需要通过“忘记密码”重置密码后才能登录。';
-const AU_RESUME_RESET_SMS_TEXT = '现在可以再次登录。再错 1 次需要切换到密码登录，通过“忘记密码”重置密码后才能登录。';
+const AU_RESUME_RESET_SMS_TEXT = '现在可以再次登录。再错 1 次需要重置密码后才能登录。';
 const auResumeText = (next, sms = AUX.sms) => next === 'reset' ? (sms ? AU_RESUME_RESET_SMS_TEXT : AU_RESUME_RESET_TEXT) : `现在可以再次登录。再错 1 次将暂停登录 ${auWaitText(next)}。`;
 // “通过“忘记密码”” never breaks across lines (neither the quoted word nor “通过” before it); the rest of the message wraps normally.
-const auLockMarkup = text => esc(text).replace('通过“忘记密码”', '<span class="au-keep">通过“忘记密码”</span>');
+// 短信登录时句中的“重置密码”是按钮，打开重置密码并带入当前手机号码（账户核查第 19 条）。
+const auLockMarkup = text => AUX.sms
+  ? esc(text).replace('重置密码', '<button type="button" class="au-inline" data-act="auForgotPhone">重置密码</button>')
+  : esc(text).replace('通过“忘记密码”', '<span class="au-keep">通过“忘记密码”</span>');
 function auLockUI() {
   const form = document.querySelector('form[data-form="login"]');
   if (!form || form.getAttribute('aria-busy') === 'true') return;
@@ -78605,7 +78618,8 @@ Object.assign(AU_SVC, {
   send: (key) => {
     const s = DEMO_FAIL.send;
     DEMO_FAIL.send = "";
-    if (!s) return { status: "ok", retryAt: auNow() + 60e3 };
+    // 演示服务：每次成功发送的新码替代之前的码（replacesPrevious），与正式服务约定的返回字段相同。
+    if (!s) return { status: "ok", retryAt: auNow() + 60e3, replacesPrevious: true };
     if (s === "failed") return { status: "unavailable", message: "暂时无法发送短信验证码，请稍后再试。" };
     const retryAt = s === "limit" ? demoNextDay() : auNow() + 36e5;
     // 全面设计核查第 131 条：替代方式接在同一句末（“，或使用密码登录。”“，或先跳过此步骤。”），每日上限写“请明天再试”（截止为次日 0 点）。
