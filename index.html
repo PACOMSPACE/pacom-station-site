@@ -24685,6 +24685,35 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
   .pbody > .ws-toolbar > .ws-page-more { display: grid; order: 1; }
   .pbody > .ws-toolbar > .ops-live { order: 2; width: 100%; margin-top: -4px; }
 }
+/* 第 13 条：手机上（屏宽 600 以下）“搜索或提问”面板距屏幕四边 8，高度为屏高减 16（390×844 时 374×828），回答区可见高度约为原来的 2.5 倍；
+   电脑和平板仍是 768 宽、最高 480（第 136 条）。显示演示层时与弹窗一样从距顶 80 开始（演示条在遮罩之上，G-9），高度为屏高减 88。 */
+@media (max-width: 599.98px) {
+  #ai-pal,
+  body:has(.demo-cap) > #ai-pal { padding: 8px; }
+  #ai-pal > .ai-pal { height: calc(100dvh - 16px); max-height: none; }
+  body:has(.demo-cap) > #ai-pal { padding-top: 80px; }
+  body:has(.demo-cap) > #ai-pal > .ai-pal { height: calc(100dvh - 88px); max-height: none; }
+  #ai-pal > .ai-pal > .ai-pal-body { flex: 1; min-height: 0; }
+}
+/* 第 23 条：弹层里的无结果行统一为 14/21 #636363，行高和同一弹层的其他行相同（位置选择与切换 32、“搜索或提问”36，触屏和窄屏 44），
+   文字左边和行文字对齐。原先位置选择的“没有匹配的位置”12/18、左边没有缩进；切换项目的“没有找到匹配的项目或空间”行高 22.4、上下留白 6；
+   “搜索或提问”的“没有匹配结果”文字比结果行的文字靠左 26。 */
+#pop :is(p.ws-pop-empty:not(.small), #locationEmpty) {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  margin: 0;
+  padding: 0 8px;
+  font-size: 14px;
+  line-height: 21px;
+  color: #636363;
+}
+#pop #locationEmpty[hidden] { display: none; }
+.ai-pal-body .note { display: flex; align-items: center; min-height: 36px; padding: 0 10px 0 36px; }
+@media (max-width: 850px), (pointer: coarse) {
+  #pop :is(p.ws-pop-empty:not(.small), #locationEmpty),
+  .ai-pal-body .note { min-height: 44px; }
+}
 /* 第 10 条：页签到下面内容统一 20，与卡片之间的间距相同（总览 › 概况的统计范围说明原为 16，数据分析、告警、场景、设备已是 20）；电脑和手机相同。 */
 .pbody > .seg + .ws-tabpanel > .ops-scope-note:first-child { margin-top: 20px; }
 /* 侧栏收起成图标栏时，机构入口仍显示机构标识（上传的标识或首字）。原先“收起时隐藏机构入口里的文字”的规则也藏掉了标识本身，
@@ -32523,10 +32552,12 @@ function wsAlarmCount() {
     open = F.alarmGroups(db).filter((a) => !a.acknowledged && lv(a) >= 0 && mayViewProject(a.projectId, db) && !maint(a));
   return open.length ? { n: open.length, lvl: Math.min(...open.map(lv)) } : null;
 }
-// 数量写进入口的读屏名称与悬停提示，如“告警 · 2 条待确认”；收起时为图标右上角的小角标。
+// 数量写进入口的读屏名称与悬停提示，如“告警 · 2 条重要及以上待确认”；收起时为图标右上角的小角标。
+// 角标只计紧急与重要，写明“重要及以上”，借用总览“未恢复告警”卡的说法；原为“告警 · 2 条待确认”，
+// 和总览卡计全部级别的“待确认”数对不上（全面设计核查第 11 条，2026-10-12 用户确认，改规范 2 1；计数规则不变）。
 function wsNavItem(k, l, i) {
   const al = k === "alarms" ? wsAlarmCount() : null,
-    name = al ? `${l} · ${al.n} 条待确认` : l;
+    name = al ? `${l} · ${al.n} 条重要及以上待确认` : l;
   return `<a href="${esc(wsNavHref(k))}" class="navitem ${U.page === k ? "on" : ""}" data-act="nav" data-page="${k}" aria-label="${esc(name)}" ${U.page === k ? 'aria-current="page"' : ""} data-tip="${esc(name)}"><span class="ib">${ico(i)}</span><span class="navlabel">${esc(l)}</span>${al ? `<span class="ws-nav-count l${al.lvl}" aria-hidden="true">${al.n > 99 ? "99+" : al.n}</span>` : ""}</a>`;
 }
 function wsSideHtml() {
@@ -44570,46 +44601,50 @@ function globalSpaceResult(kind, o, running = false) {
   const main = btn(`${searchName(kind, o.name)}<small>${sub} · ${kind === "zones" ? "查看运行" : kind === "floors" ? (isOutdoor(o.buildingId) ? "定位总平面" : "定位楼层") : "查看空间资料"}</small>`, act, kind === "zones" ? { id: o.id, tab: "lighting" } : args, "popitem");
   return kind === "zones" || kind === "floors" ? `<div class="ws-search-space-result">${main}${btn(canEdit() ? "编辑空间" : "查看空间资料", "switchTo", args, "sm")}</div>` : main;
 }
+// 分组按规范顺序：项目、楼宇、楼层、功能区、设备、设备网络、场景，未恢复告警放最后；名称和输入完全相同（不计空格与大小写）的排在本组第一，
+// 默认高亮第一组的第一条（全面设计核查第 12 条，2026-10-12 用户确认：原先功能区与告警排在最前，搜“7F”回车打开的是一条告警，名为“7F”的楼层在第 3 行以后）。
+const searchNorm = (v) => String(v || "").replace(/\s+/g, "").toLowerCase();
+const searchRow = (label, sub, act, args, i = "bell") => `<button class="btn popitem" data-act="${act}" ${Object.entries(args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")}>${ico(i, "ic16")}<span>${esc(label)}</span><small>${esc(sub)}</small></button>`;
 function renderGlobalSearch(query) {
-  const q = query.trim().toLowerCase();
+  const q = query.trim().toLowerCase(),
+    n = searchNorm(q),
+    exactFirst = (name) => (a, b) => (searchNorm(name(b)) === n) - (searchNorm(name(a)) === n);
   let results = "";
-  if (q)
-    for (const [kind, label] of [
-      ["projects", "项目"],
-      ["buildings", "楼宇"],
-      ["floors", "楼层"],
-      ["points", "设备"],
-      ["networks", "设备网络"],
-      ["scenes", "场景"],
-    ]) {
-      const matches = [...data()[kind]]
-        .filter((o) => [o.name, o.deviceUuid, o.serial].some((v) => v?.toLowerCase().includes(q)))
-        .sort(M.byName)
-        .slice(0, 30);
-      if (!matches.length) continue;
-      // 室外区域与总平面不归入“楼宇”“楼层”的称呼（第 8 步 F2 全站核对）。
-      results +=
-        `<div class="flow-result-group">${kindGroupLabel(kind, matches, label)}</div>` +
-        matches
-          .map((o) => ["projects", "buildings", "floors"].includes(kind) ? globalSpaceResult(kind, o) :
-            btn(
-              searchName(kind, o.name) +
-                `<small>${kind === "floors" || kind === "points" ? whereHtml(kind === "floors" ? o.id : o.floorId) : esc(g("projects", o.projectId)?.name || "")}</small>`,
-              kind === "points"
-                ? "locatePoint"
-                : kind === "floors"
-                  ? "goFloor"
-                  : kind === "networks"
-                    ? "networkInfo"
-                    : kind === "scenes"
-                      ? "sceneDetail"
-                      : "spaceOpen",
-              { kind, id: o.id },
-              "popitem",
-            ),
-          )
-          .join("");
-    }
+  const group = (kind, label, matches, row) => {
+    if (!matches.length) return;
+    // 室外区域与总平面不归入“楼宇”“楼层”的称呼（第 8 步 F2 全站核对）。
+    results += `<div class="flow-result-group">${kindGroupLabel(kind, matches, label)}</div>` + matches.map(row).join("");
+  };
+  const objects = (kind) => [...data()[kind]]
+    .filter((o) => [o.name, o.deviceUuid, o.serial].some((v) => v?.toLowerCase().includes(q)))
+    .sort((a, b) => exactFirst((o) => o.name)(a, b) || M.byName(a, b))
+    .slice(0, 30);
+  const objectRow = (kind) => (o) => ["projects", "buildings", "floors"].includes(kind) ? globalSpaceResult(kind, o) :
+    btn(
+      searchName(kind, o.name) +
+        `<small>${kind === "floors" || kind === "points" ? whereHtml(kind === "floors" ? o.id : o.floorId) : esc(g("projects", o.projectId)?.name || "")}</small>`,
+      kind === "points"
+        ? "locatePoint"
+        : kind === "floors"
+          ? "goFloor"
+          : kind === "networks"
+            ? "networkInfo"
+            : kind === "scenes"
+              ? "sceneDetail"
+              : "spaceOpen",
+      { kind, id: o.id },
+      "popitem",
+    );
+  if (q) {
+    for (const [kind, label] of [["projects", "项目"], ["buildings", "楼宇"], ["floors", "楼层"]]) group(kind, label, objects(kind), objectRow(kind));
+    // 功能区按名称查找（不计空格），最多 8 条
+    const zones = data().zones.filter((z) => searchNorm(z.name).includes(n)).sort((a, b) => exactFirst((z) => z.name)(a, b)).slice(0, 8);
+    group("zones", "功能区", zones, (z) => globalSpaceResult("zones", z, aiDemo() && z.id.startsWith("zone-demo-")));
+    for (const [kind, label] of [["points", "设备"], ["networks", "设备网络"], ["scenes", "场景"]]) group(kind, label, objects(kind), objectRow(kind));
+    // 未恢复告警按标题与说明查找；行前是侧栏“告警”的图标（Lovable 核查第 129 条）
+    const alarms = aiDemo() ? F.alarmGroups(data()).filter((a) => a.state !== "recovered" && searchNorm(alarmTitle(a).title + (a.detail || "")).includes(n)).sort((a, b) => exactFirst((x) => alarmTitle(x).title)(a, b)) : [];
+    group("alarms", "未恢复告警", alarms, (a) => searchRow(alarmTitle(a).title, LV(a.level) + " · " + (a.acknowledged ? "已确认" : "待确认"), "opsAlarm", { id: a.id }));
+  }
   $("#globalResults").className = "flow-results";
   $("#globalResults").innerHTML = results || note(q ? "没有匹配结果" : "输入名称、UUID 或序列号查找。");
 }
@@ -62521,21 +62556,12 @@ function aiRefresh() {
   if (!q.trim()) $("#globalResults").innerHTML = `<div class="ai-examples"><small>快捷入口</small>${[...(OPS_SCOPE.floor && g("floors", OPS_SCOPE.floor) ? [[where(OPS_SCOPE.floor).split(" / ").slice(1).join(" "), "goFloor", { id: OPS_SCOPE.floor }, "building-2"]] : []), ["告警", "opsGo", { page: "alarms" }, "bell"], ["场景", "opsGo", { page: "scenes" }, "workflow"]].map(([l, a, args, i]) => `<button data-act="${a}" ${Object.entries(args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")}>${ico(i, "ic16")}${esc(l)}</button>`).join("")}</div>`;
   aiMarkRows(q);
 }
+// 功能区与未恢复告警已按规范顺序并入 renderGlobalSearch（全面设计核查第 12 条）；这里只留“其他端”一组。
 function aiExtraResults(q) {
   const n = q.trim().replace(/\s+/g, "").toLowerCase();
   if (!n) return "";
-  const zs = data()
-      .zones.filter((z) => z.name.replace(/\s+/g, "").toLowerCase().includes(n))
-      .slice(0, 8),
-    as = aiDemo() ? F.alarmGroups(data()).filter((a) => a.state !== "recovered" && (alarmTitle(a).title + (a.detail || "")).replace(/\s+/g, "").toLowerCase().includes(n)) : [];
-  // 结果行前面是所在分组的图标（Lovable 核查第 129 条，2026-10-11 用户确认）
-  const row = (label, sub, act, args, i = "bell") => `<button class="btn popitem" data-act="${act}" ${Object.entries(args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")}>${ico(i, "ic16")}<span>${esc(label)}</span><small>${esc(sub)}</small></button>`;
   const ends = [];
-  return (
-    (ends.length ? `<div class="flow-result-group">其他端</div>` + ends.map((x) => row(x[0], x[1], x[2], {})).join("") : "") +
-    (zs.length ? `<div class="flow-result-group">功能区</div>` + zs.map(z => globalSpaceResult("zones", z, aiDemo() && z.id.startsWith("zone-demo-"))).join("") : "") +
-    (as.length ? `<div class="flow-result-group">告警</div>` + as.map((a) => row(alarmTitle(a).title, LV(a.level) + " · " + (a.acknowledged ? "已确认" : "待确认"), "opsAlarm", { id: a.id })).join("") : "")
-  );
+  return ends.length ? `<div class="flow-result-group">其他端</div>` + ends.map((x) => searchRow(x[0], x[1], x[2], {})).join("") : "";
 }
 function aiClose() {
   const back = AIP.back,
