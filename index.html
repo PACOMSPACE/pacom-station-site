@@ -24930,6 +24930,10 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
   .ai-scope::after { content: ""; position: absolute; inset: -10px 0; }
   .ai-scope-menu button { min-height: 44px; }
 }
+/* 交互核查第 2 条：位置选择里当前范围是楼宇时，楼宇一行右侧打勾（#636363，行高亮时 #030303），同项目一行（第 97 条：只打勾、不加底色）；
+   楼层格子仍用选中底色。各级当前项都带 aria-current，读屏读出“当前”。 */
+.ws-pop .ws-locations summary > .ws-loc-cur { display: grid; place-items: center; flex: none; width: 32px; height: 32px; color: var(--text3); }
+.ws-pop .ws-locations summary.on:is(:hover, :focus-visible) > .ws-loc-cur { color: var(--text); }
 /* ==== 2026-10-12 全面设计核查第二部分 · 总览（第 19、74、81–95 条）
    [OVERVIEW] 本区的样式改动写在这一段注释之后、下一段注释之前。
    ==== */
@@ -33239,13 +33243,17 @@ function pop(anchor, html, wide = false) {
   p.innerHTML = html;
   p.anchor = anchor;
   document.body.append(p);
-  const r = anchor.getBoundingClientRect();
-  if (wide) p.style.width = Math.min(r.width, innerWidth - 24) + "px";
-  const pr = p.getBoundingClientRect();
-  p.style.left = Math.max(8, Math.min(r.left, innerWidth - pr.width - 8)) + "px";
-  // 离按钮 4（2026-10-11 用户确认，Lovable 核查第 107 条：原为 6）；选择框（role=combobox）的选择列表离框 8（第 346 条）
-  const gap = anchor.matches?.("[role=combobox]") ? 8 : 4;
-  p.style.top = Math.max(8, Math.min(r.bottom + gap, innerHeight - pr.height - 8)) + "px";
+  // 定位写成 p.place，窗口尺寸变化（转屏、改窗口宽度）时按新位置重算（见下方 resize；交互核查第 1 条）
+  p.place = () => {
+    const r = anchor.getBoundingClientRect();
+    if (wide) p.style.width = Math.min(r.width, innerWidth - 24) + "px";
+    const pr = p.getBoundingClientRect();
+    p.style.left = Math.max(8, Math.min(r.left, innerWidth - pr.width - 8)) + "px";
+    // 离按钮 4（2026-10-11 用户确认，Lovable 核查第 107 条：原为 6）；选择框（role=combobox）的选择列表离框 8（第 346 条）
+    const gap = anchor.matches?.("[role=combobox]") ? 8 : 4;
+    p.style.top = Math.max(8, Math.min(r.bottom + gap, innerHeight - pr.height - 8)) + "px";
+  };
+  p.place();
   anchor.setAttribute("aria-expanded", "true");
   p.querySelector("input,button")?.focus();
   Promise.resolve().then(() => wsPopIn(p));
@@ -39216,9 +39224,14 @@ defineActions({
     p.classList.add("ws-switch-pop");
     p.setAttribute("role", "dialog");
     p.setAttribute("aria-label", U.page === "deployment" ? "切换或搜索项目" : "切换或搜索空间");
-    const r = el.getBoundingClientRect(), availableWidth = document.documentElement.clientWidth;
-    p.style.width = Math.min(360, availableWidth - 16) + "px";
-    p.style.left = Math.max(8, Math.min(r.left, availableWidth - p.offsetWidth - 8)) + "px";
+    const below = p.place;
+    p.place = () => {
+      below();
+      const r = el.getBoundingClientRect(), availableWidth = document.documentElement.clientWidth;
+      p.style.width = Math.min(360, availableWidth - 16) + "px";
+      p.style.left = Math.max(8, Math.min(r.left, availableWidth - p.offsetWidth - 8)) + "px";
+    };
+    p.place();
     p.querySelector(".ws-switch-row.on")?.scrollIntoView({ block: "nearest" });
   },
   switchTo: (a) => {
@@ -39314,9 +39327,13 @@ defineActions({
       }<hr>${btn("在配置进度中查看", "dirStatus", { p: pid, anchor: "space" }, "popitem")}</div>`,
     );
     const p = $("#pop"),
-      r = el.getBoundingClientRect();
+      below = p.place;
     p.classList.add("ws-todo-popbox");
-    p.style.left = Math.max(8, Math.min(r.right - p.offsetWidth, innerWidth - p.offsetWidth - 8)) + "px";
+    p.place = () => {
+      below();
+      p.style.left = Math.max(8, Math.min(el.getBoundingClientRect().right - p.offsetWidth, innerWidth - p.offsetWidth - 8)) + "px";
+    };
+    p.place();
   },
 });
 // ---------- 2026-09-28 实施基线第 3 步（b）：楼宇页（UI_RULES §17） ----------
@@ -39894,12 +39911,15 @@ function floorPickMenu(anchor) {
     const on = x.id === U.f, todo = !!S && S.todo(x), recent = floorRecent(x.id);
     return `<button class="popitem ${on ? "on" : ""}${recent ? " recent" : ""}" role="menuitemradio" aria-checked="${on}" data-act="floor" data-id="${x.id}"><span>${esc(x.name)}${todo ? '<small class="ws-floor-menu-todo">待处理</small>' : ""}${!x.image ? '<small>未上传图纸</small>' : ""}${recent ? '<small>刚离开</small>' : ""}</span>${on ? ico("check", "ic16 pop-check") : ""}</button>`;
   }).join("")}</div>`);
-  const p = $("#pop"), r = anchor.getBoundingClientRect();
+  const p = $("#pop");
   p.classList.add("ws-floor-pop");
-  const h = p.getBoundingClientRect().height;
   // 按钮在画布左下：菜单向上展开，放不下时贴近视口顶部并在菜单内滚动。
-  p.style.left = Math.max(8, Math.min(r.left, innerWidth - p.offsetWidth - 8)) + "px";
-  p.style.top = Math.max(8, r.top - h - 6) + "px";
+  p.place = () => {
+    const r = anchor.getBoundingClientRect(), h = p.getBoundingClientRect().height;
+    p.style.left = Math.max(8, Math.min(r.left, innerWidth - p.offsetWidth - 8)) + "px";
+    p.style.top = Math.max(8, r.top - h - 6) + "px";
+  };
+  p.place();
   // 楼宇页打开时焦点在刚离开的楼层（没有时为“楼宇主页”）；楼层页在当前层。
   const start = p.querySelector(".popitem.recent") || p.querySelector(".popitem.on");
   start?.focus();
@@ -43176,8 +43196,32 @@ const STATE_TONE = {
 function popRight(el, html) {
   pop(el, html);
   const p = $("#pop");
-  if (p) p.style.left = Math.max(8, Math.min(el.getBoundingClientRect().right - p.offsetWidth, innerWidth - p.offsetWidth - 8)) + "px";
+  if (!p) return;
+  const below = p.place;
+  p.place = () => {
+    below();
+    p.style.left = Math.max(8, Math.min(el.getBoundingClientRect().right - p.offsetWidth, innerWidth - p.offsetWidth - 8)) + "px";
+  };
+  p.place();
 }
+// 窗口尺寸变化（手机转屏、改窗口宽度）时，带锚点的浮层按新尺寸重新定位，上下至少留 8，放不下的部分在浮层内滚动（#pop 最高为屏高减 24）；
+// 锚点已不在屏幕上或已不可操作（如抽屉收起、侧栏换版式）时关闭浮层（交互核查第 1 条：原先保持原位置，转为横屏后机构菜单超出屏幕 188）。
+// 侧栏随宽度收起或展开有 240ms 的过渡，锚点在过渡中还在移动：过渡结束后再定位一次。
+let popPlaceTimer = 0;
+function popReplace() {
+  const p = $("#pop"),
+    a = p?.anchor;
+  if (!p || !a) return;
+  const r = a.isConnected ? a.getBoundingClientRect() : null;
+  if (!r || !r.width || !r.height || a.closest("[inert]") || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) return closePop();
+  p.place?.();
+}
+addEventListener("resize", () => {
+  popReplace();
+  clearTimeout(popPlaceTimer);
+  popPlaceTimer = setTimeout(popReplace, 280);
+});
+document.addEventListener("transitionend", (e) => e.target?.id === "app" && e.propertyName === "grid-template-columns" && popReplace());
 // 弹窗与卡片内的切换用紧凑分段（.seg.sm 32/26、14px，LOVABLE_SPEC §4）
 const tabsSm = (items, active, act, panel = "", name = "") => tabs(items, active, act, panel, name).replace('<div class="seg"', '<div class="seg sm"');
 const stateBadge = (text) => badge(text, Object.keys(STATE_TONE).find((k) => STATE_TONE[k].includes(text)) || "");
@@ -43240,18 +43284,20 @@ const scopeFloors = () => F.scopedFloors(data(), U);
 // 选中的“全部项目”或项目只在右侧打勾，不加底色（2026-10-11 用户确认，Lovable 核查第 97 条：原先只有“全部项目”打勾，项目靠灰底表示）。
 function showLocationPicker(anchor, intent) {
   U.pickIntent = intent || null;
-  let body = `<div class="ws-search">${ico("search", "ic16")}<input id="locQuery" placeholder="搜索项目、楼宇或楼层" aria-label="搜索位置"></div><div class="ws-locations" id="locationRows"><button class="location-row ${!U.p ? "on" : ""}" data-act="chooseLocation">全部项目${!U.p ? ico("check", "ic16") : ""}</button>`;
+  let body = `<div class="ws-search">${ico("search", "ic16")}<input id="locQuery" placeholder="搜索项目、楼宇或楼层" aria-label="搜索位置"></div><div class="ws-locations" id="locationRows"><button class="location-row ${!U.p ? "on" : ""}" data-act="chooseLocation"${!U.p ? ' aria-current="true"' : ""}>全部项目${!U.p ? ico("check", "ic16") : ""}</button>`;
   for (const p of [...data().projects].sort(M.byName)) {
-    body += `<section class="flow-location-project" data-project-name="${esc(p.name)}"><button class="location-row ${U.p === p.id && !U.b ? "on" : ""}" data-act="chooseLocation" data-p="${p.id}">${esc(p.name)}${U.p === p.id && !U.b ? ico("check", "ic16") : ""}</button>`;
+    body += `<section class="flow-location-project" data-project-name="${esc(p.name)}"><button class="location-row ${U.p === p.id && !U.b ? "on" : ""}" data-act="chooseLocation" data-p="${p.id}"${U.p === p.id && !U.b ? ' aria-current="true"' : ""}>${esc(p.name)}${U.p === p.id && !U.b ? ico("check", "ic16") : ""}</button>`;
     for (const b of data()
       .buildings.filter((b) => b.projectId === p.id)
       .sort(M.byName)) {
-      body += `<details data-b="${b.id}" data-search="${esc(p.name + " " + b.name)}" ${U.b === b.id || intent ? "open" : ""}><summary><span>${ico("building-2", "ic16")}<span>${esc(b.name)}</span></span>${btn("进入", "chooseLocation", { p: p.id, b: b.id }, "ghost sm")}</summary><div class="ws-floor-grid">${sortedFloors(
+      // 当前范围是这栋楼宇时（没有选到楼层），和项目一样在右侧打勾并标为当前项，“进入”不再出现；选到楼层时楼宇只展开、不标选中（交互核查第 2 条）
+      const bCur = U.b === b.id && !U.f;
+      body += `<details data-b="${b.id}" data-search="${esc(p.name + " " + b.name)}" ${U.b === b.id || intent ? "open" : ""}><summary${bCur ? ' class="on" aria-current="true"' : ""}><span>${ico("building-2", "ic16")}<span>${esc(b.name)}</span></span>${bCur ? `<span class="ws-loc-cur">${ico("check", "ic16")}</span>` : btn("进入", "chooseLocation", { p: p.id, b: b.id }, "ghost sm")}</summary><div class="ws-floor-grid">${sortedFloors(
         b.id,
       )
         .map(
           (f) =>
-            `<button class="${f.id === U.f ? "on" : ""}" data-act="chooseLocation" data-p="${p.id}" data-b="${b.id}" data-f="${f.id}" data-search="${esc(p.name + " " + b.name + " " + f.name)}">${esc(f.name)}</button>`,
+            `<button class="${f.id === U.f ? "on" : ""}" data-act="chooseLocation" data-p="${p.id}" data-b="${b.id}" data-f="${f.id}"${f.id === U.f ? ' aria-current="true"' : ""} data-search="${esc(p.name + " " + b.name + " " + f.name)}">${esc(f.name)}</button>`,
         )
         .join("")}</div></details>`;
     }
@@ -67447,6 +67493,8 @@ function auPlaceMenu(anchor) {
   const p = $("#pop");
   if (!p) return;
   p.classList.add("au-menu-pop");
+  // 转屏或改窗口宽度时按同样的规则重新定位（交互核查第 1 条）
+  p.place = () => auPlaceMenu(anchor);
   // 在窄屏抽屉里打开时，菜单宽度为抽屉宽减 16（280 − 16 = 264），左右各留 8，不超出抽屉压到遮罩上（全面设计核查第 8 条：原为 288 宽，右边超出抽屉 16）。
   const side = isMobile() && anchor.closest("#side");
   p.classList.toggle("au-menu-drawer", !!side);
@@ -79614,9 +79662,12 @@ defineActions({
     pop(el, demoMenuHtml());
     const p = $("#pop");
     p.classList.add("demo-menu-pop");
-    const r = el.getBoundingClientRect();
-    p.style.left = Math.max(8, r.right - p.offsetWidth) + "px";
-    p.style.top = Math.max(8, Math.min(r.bottom + 6, innerHeight - p.offsetHeight - 8)) + "px";
+    p.place = () => {
+      const r = el.getBoundingClientRect();
+      p.style.left = Math.max(8, r.right - p.offsetWidth) + "px";
+      p.style.top = Math.max(8, Math.min(r.bottom + 6, innerHeight - p.offsetHeight - 8)) + "px";
+    };
+    p.place();
   },
   demoData: (a) =>
     guard(() => {
