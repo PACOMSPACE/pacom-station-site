@@ -26188,6 +26188,54 @@ body:has(> #app[data-page=alarms]) #dlg :is(.ops-modal-sub, .field > small.muted
 /* ==== 2026-10-12 总览核查（第三批）· 总览状态与室内环境（总览核查第 30–36 条）
    [B3-OVW] 本区的样式改动写在这一段注释之后、下一段注释之前。
    ==== */
+/* 总览核查第 30 条（2026-10-12 用户确认）：照明、暖通空调、室内环境页签选到楼宇及以上时，状态条前写统计范围，与概况指标卡前同距 10 */
+.ops-scope-note + .ops-tabbar {
+  margin-top: 10px;
+}
+/* 总览核查第 32、33 条（2026-10-12 用户确认）：功能区面板顶部“以下为 HH:MM 的最后数据”，写法同工具栏“数据截至 … 正在重试”：
+   12/18 警示色，前面 7px 黄点；网关离线时在横幅之下 */
+.ops-zp-last {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--warn);
+}
+.ops-zp-last::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #eda100;
+  transform: translateY(-1px);
+}
+/* 面板读数纳入“数据未更新变暗”（VD8，同指标卡与表格：文字改 #636363，不用透明度）；按钮、标签和告警不变 */
+.ops-zp.stale .ops-metric b,
+.ops-zp.stale .ops-metric > small,
+.ops-zp.stale .ops-circ-h .ops-num,
+.ops-zp.stale .ops-circ-m,
+.ops-zp.stale .ops-manual > span {
+  color: var(--text3);
+}
+/* 网关离线时“手动”标签、亮度、恢复时间前的“最后记录”（第 33 条）：12/18 #636363 */
+.ops-lastrec {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 400;
+  color: var(--text3);
+}
+.ops-lastrec-w > .ops-lastrec {
+  display: block;
+  margin: 0 0 4px;
+}
+/* 有功能区覆盖分档时 CO₂、PM2.5 图例末尾的说明（第 36 条），靠右 */
+.ops-legend-ref {
+  margin-left: auto;
+  color: var(--text3);
+}
 
 /* ==== 2026-10-12 总览核查（第三批）· 照明与暖通空调（总览核查第 37–46 条，第 55 条中暖通空调与室内环境设置）
    [B3-LIGHT] 本区的样式改动写在这一段注释之后、下一段注释之前。
@@ -57425,6 +57473,16 @@ const DemoService = (() => {
       activity: act,
       sensor: sensorsOk.length > 0,
       sensorAge: sensorsOk.length ? age(sensorsOk[0], 9) : null,
+      // 总览核查第 35 条（2026-10-12 用户确认）：MS20、AQ20 分别给出已安装台数与在线台数，“未安装”与“离线”分开写；本区 MS20 都离线时
+      // 另给离线分钟数（取最近离线的一台）、最后读数的时刻与当时的温湿度。原先只有 sensor（MS20 是否有在线的），未安装与离线不分，
+      // MS20 离线时面板连同 AQ20 的 CO₂、PM2.5 一起隐藏。
+      ms: (() => {
+        const off = z.mss.filter(offline),
+          last = !sensorsOk.length && off.length ? off.reduce((a, p) => (Date.parse(p.telemetry.offlineSince) > Date.parse(a.telemetry.offlineSince) ? p : a)) : null,
+          since = last ? Date.parse(last.telemetry.offlineSince) : null;
+        return { count: z.mss.length, online: sensorsOk.length, offMin: last ? minutesAgo(since) : null, lastAt: last ? since - offAfter(last) * MIN : null, temp: last ? +temp.toFixed(1) : null, rh: last ? Math.round(rh) : null };
+      })(),
+      aqDev: { count: z.aqs.length, online: z.aqs.filter((p) => !offline(p)).length },
       temp: sensorsOk.length ? +temp.toFixed(1) : null,
       rh: sensorsOk.length ? Math.round(rh) : null,
       // 设定：本区空调（风机盘管、多联机内机）当前运行的设定，各台不同时为 null（spMixed）；偏离按供冷设定（取各台最高）与供热设定（取各台最低）
@@ -58634,7 +58692,10 @@ function deviceCurveCard(pid, key = "", ctx = null) {
 /* ---------- 楼层图（运营）：功能区着色、设备状态、框选组控制 ---------- */
 const OPS_T0 = Date.now();
 const opsNow = () => Demo.NOW + (Date.now() - OPS_T0);
-const agoText = (min) => (min == null ? "未取得" : min > 20 ? "无最新数据" : min < 1 ? "更新于刚刚" : `更新于 ${min} 分钟前`);
+// 总览核查第 31 条（2026-10-12 用户确认）：读数的“更新于”按数据截至计算——读数在数据截至前 min 分钟，距现在再加上未取得新数据的分钟数；
+// 原为只按读数时的分钟数写，数据已 6 分钟未更新时仍写“更新于刚刚”。
+const liveMin = (min) => (min == null ? min : min + opsLive().mins);
+const agoText = (min) => ((min = liveMin(min)), min == null ? "未取得" : min > 20 ? "无最新数据" : min < 1 ? "更新于刚刚" : `更新于 ${min} 分钟前`);
 /* 数据截至（规范 OPS06，2026-10-09 用户确认，可视化设计 VD8）：总览各页签、告警与场景每分钟自动更新，工具栏右侧写“数据截至 HH:MM · 每分钟更新”；
    超过 5 分钟没有取得新数据时写“数据截至 HH:MM · 已 N 分钟未取得新数据，正在重试”，指标与楼层图数值变暗，取得新数据后自动恢复。
    数据分析看历史期间，不自动更新。at 为运行数据服务最后一次取得数据的时刻（服务没有写明时按页面时钟取整到分钟）。 */
@@ -58647,6 +58708,21 @@ function opsLive() {
 }
 // 指标卡“今日用电”等写的“截至”与数据截至相同
 const liveHm = () => Demo.hm(opsLive().at);
+// 总览核查第 31 条（2026-10-12 用户确认）：超过 5 分钟没有取得新数据时，数据质量一律用黄色（warn，不另设状态），写“最后数据完整；已 N 分钟未取得新数据”，
+// 原本不完整的写原因后接“已 N 分钟未取得新数据”；状态未知（网关离线）照旧。原为照常写“数据完整：… 1 分钟内更新”。返回 [cls, text]
+function liveQuality(cls, text) {
+  const L = opsLive();
+  if (!L.stale || cls === "unk") return [cls, text];
+  const lag = `已 ${durText(L.mins)}未取得新数据`;
+  return ["warn", cls === "ok" ? `最后数据完整；${lag}` : `${text}；${lag}`];
+}
+const liveDq = (cls, text) => dq(...liveQuality(cls, text));
+// 功能区面板等写“最后数据”的时刻（总览核查第 32、33 条）：数据截至；网关离线时取离线时刻与数据截至中较早的一个
+const lastDataAt = () => {
+  const at = opsLive().at,
+    gw = Demo.ctl.gwOffline && Demo.ctl.gwOfflineAt;
+  return gw ? Math.min(at, gw) : at;
+};
 function liveLine() {
   const L = opsLive();
   OPS.liveKey = `${L.at}|${L.mins}`;
@@ -58674,6 +58750,8 @@ setInterval(() => {
 const RAMP = { blue: ["#e3effc", "#bcd6f6", "#8fbaf0", "#5a98e6", "#2a78d6"], amber: ["#fef9ec", "#fcefcc", "#f8df9f", "#f1c661"], warm: ["#fad8c6", "#f0a47e"], cool: ["#cfe0f8", "#9dbff0"] };
 // 活动强度 0–100 的含义（2026-10-09 用户确认，ABB 对比 BP71 第 21 条；MS20 的算法待工程确认）
 const ACT_DEF = "有人时 MS20 检测到动作的分钟占比：0 为有人但几乎不动，100 为每分钟都有动作";
+// 没有 MS20 读数的原因（总览核查第 35 条）：本区没有安装 MS20，或安装的都离线
+const msNone = (s) => (s.ms?.count ? "MS20 离线" : "无 MS20");
 const LAYERS = {
   occ: {
     label: "占用",
@@ -58681,8 +58759,9 @@ const LAYERS = {
     short: (s) => (!s.sensor ? "—" : s.occupied ? "有人" : "无人"),
     val: (s) => (!s.sensor ? null : s.occupied ? s.activity : 0),
     fill: (s) => (!s.sensor ? "hatch" : !s.occupied ? "" : RAMP.blue[s.activity < 25 ? 0 : s.activity < 45 ? 1 : s.activity < 65 ? 2 : 3]),
-    text: (s) => (!s.sensor ? "无传感器" : s.occupied ? "有人" : "无人"),
-    legend: [[RAMP.blue[0], "活动强度 < 25"], [RAMP.blue[1], "25–45"], [RAMP.blue[2], "45–65"], [RAMP.blue[3], "≥ 65"], ["#fff", "无人", "sq line"]],
+    // 没有 MS20 读数时分开写“MS20 离线”与“无 MS20”（总览核查第 35 条，2026-10-12 用户确认；原先都写“无传感器”）
+    text: (s) => (!s.sensor ? msNone(s) : s.occupied ? "有人" : "无人"),
+    legend: [[RAMP.blue[0], "活动强度 < 25"], [RAMP.blue[1], "25–45"], [RAMP.blue[2], "45–65"], [RAMP.blue[3], "≥ 65"], ["#fff", "无人", "sq line"], ["hatch", "MS20 离线或未安装"]],
     tip: `占用是“有人 / 无人”，不是人数；填色深浅为活动强度 0–100（${ACT_DEF}）`,
   },
   light: {
@@ -58705,7 +58784,7 @@ const LAYERS = {
       const d = s.temp - (s.setpoint ?? s.coolSetpoint);
       return d <= -1.5 ? RAMP.cool[1] : d <= -0.5 ? RAMP.cool[0] : d < 0.5 ? "#efefed" : d < 1.5 ? RAMP.warm[0] : RAMP.warm[1];
     },
-    text: (s) => (s.temp == null ? "无传感器" : `${nf(s.temp, 1)} ℃${hvcIdle(s) ? " · " + HV_USE[s.use] : ""}`),
+    text: (s) => (s.temp == null ? msNone(s) : `${nf(s.temp, 1)} ℃${hvcIdle(s) ? " · " + HV_USE[s.use] : ""}`),
     legend: [[RAMP.cool[1], "低于设定 ≥ 1.5 K"], [RAMP.cool[0], "−0.5 ~ −1.5"], ["#efefed", "±0.5 K"], [RAMP.warm[0], "+0.5 ~ +1.5"], [RAMP.warm[1], "高于设定 ≥ 1.5 K"], ["#fff", "待机或节能，不计偏离", "sq idle"]],
     tip: "与本区空调设定比较；无空调的区域不着色",
   },
@@ -58719,10 +58798,12 @@ const LAYERS = {
     get legend() {
       const r = zoneRef(),
         [a, b] = r.co2Cuts;
+      // 有功能区覆盖分档或参考值时图例只写档名，不写数值（总览核查第 36 条，2026-10-12 用户确认；各区的值见功能区面板）
+      if (aqRefMixed()) return [...AQ_BANDS.map((n, i) => [AQ_COLORS[i], n]), ["hatch", "无 AQ20"]];
       return [[AQ_COLORS[0], `优 < ${nf(a)}`], [AQ_COLORS[1], `良 ${nf(a)}–${nf(b)}`], ...(b < r.co2 ? [[AQ_COLORS[2], `一般 ${nf(b)}–${nf(r.co2)}`]] : []), [AQ_COLORS[3], `差 > ${nf(r.co2)} ppm`], ["hatch", "无 AQ20"]];
     },
     get tip() {
-      return `当前值（1 分钟均值）分档，只用于即时着色；“一般”的上限即参考值 ${nf(zoneRef().co2)} ppm（配置参数）`;
+      return aqRefMixed() ? `当前值（1 分钟均值）分档，只用于即时着色；按各功能区参考范围判断，“一般”的上限即本区参考值（配置参数），见功能区面板` : `当前值（1 分钟均值）分档，只用于即时着色；“一般”的上限即参考值 ${nf(zoneRef().co2)} ppm（配置参数）`;
     },
   },
   pm: {
@@ -58733,10 +58814,11 @@ const LAYERS = {
     get legend() {
       const r = zoneRef(),
         [a, b] = r.pmCuts;
+      if (aqRefMixed()) return [...AQ_BANDS.map((n, i) => [AQ_COLORS[i], n]), ["hatch", "无 AQ20"]];
       return [[AQ_COLORS[0], `优 ≤ ${nf(a)}`], [AQ_COLORS[1], `良 ≤ ${nf(b)}`], ...(b < r.pm ? [[AQ_COLORS[2], `一般 ≤ ${nf(r.pm)}`]] : []), [AQ_COLORS[3], `差 > ${nf(r.pm)} μg/m³`], ["hatch", "无 AQ20"]];
     },
     get tip() {
-      return `按 24 h 滚动均值分档；“一般”的上限即参考值 ${nf(zoneRef().pm)} μg/m³（配置参数）`;
+      return aqRefMixed() ? `按 24 h 滚动均值分档；按各功能区参考范围判断，“一般”的上限即本区参考值（配置参数），见功能区面板` : `按 24 h 滚动均值分档；“一般”的上限即参考值 ${nf(zoneRef().pm)} μg/m³（配置参数）`;
     },
   },
   // 空气质量（原“IAQS”）：CO₂ 与 PM2.5 中较差的一档，括号写决定它的一项，如“差（CO₂）”；窄的功能区只写档名
@@ -58751,6 +58833,22 @@ const LAYERS = {
 };
 // 功能区（不传时为当前楼层）适用的参考范围与分档，取配置参数（envRef）
 const zoneRef = (s) => envRef(OPS_SCOPE.project, s?.z ? { zoneId: s.z.id } : { floorId: OPS_SCOPE.floor });
+/* 总览核查第 36 条（2026-10-12 用户确认）：配置参数中有功能区覆盖 CO₂、PM2.5 的分档或参考值（Q-01、Q-02、Q-03）时，各区的档不再是同一套数值：
+   aqRefMixed 为本层有功能区的值与楼层不同；此时 CO₂、PM2.5 图例只写档名，图例下写“按各功能区参考范围判断”，功能区面板写本区实际的值与来源。
+   没有覆盖时图例照旧写数值。 */
+const aqRefKey = (r) => JSON.stringify([r.co2, r.pm, r.co2Cuts, r.pmCuts]);
+function aqRefMixed() {
+  const fk = aqRefKey(zoneRef());
+  return Demo.zones().some((z) => aqRefKey(zoneRef({ z })) !== fk);
+}
+// 本区 CO₂、PM2.5 参考值的来源：取该区实际适用的配置参数行（功能区 > 楼层 > 楼宇 > 项目），有一项为下级覆盖即写那一级
+function aqRefSrc(z) {
+  const db = data(),
+    rows = envRows(db, OPS_SCOPE.project),
+    lv = ["Q-01", "Q-02", "Q-03"].map((c) => envRowFor(rows, c, envAt(db, g("zones", z.id) || z))?.level).filter(Boolean),
+    k = ["zone", "floor", "building"].find((l) => lv.includes(l));
+  return { zone: "功能区覆盖", floor: "楼层覆盖", building: "楼宇覆盖" }[k] || "项目级";
+}
 // 暖通空调页签显示风机盘管、多联机内机与分体空调电表（split：所接负载“分体空调”的电表，只计量）
 const DEV_TYPES = { lighting: ["lc"], hvac: ["fc", "idu", "split"], environment: ["aq"], general: [] };
 const devKind = (p) => (hvacSplit(p) ? "split" : p.type);
@@ -58783,7 +58881,9 @@ const hvRangeText = (r) => `${hvcT(r.min)}–${hvcT(r.max)} ℃`;
 /* 数据质量（规范 OPS01，2026-10-08 第 2 轮第6章）：指标卡与图层写明数据是否完整、是否过期；网关离线时状态未知。
    ok 数据完整 · warn 数据不完整 · unk 状态未知 */
 const dq = (cls, text) => `<span class="ops-dq ${cls}">${esc(text)}</span>`;
-function layerQuality(layer) {
+// 未取得新数据时按数据截至改写（总览核查第 31 条，liveQuality）
+const layerQuality = (layer) => liveQuality(...layerQuality0(layer));
+function layerQuality0(layer) {
   if (Demo.ctl.gwOffline) return ["unk", "状态未知：本层网关离线"];
   const zs = Demo.zones().map((z) => Demo.zoneState(z));
   if (layer === "light") {
@@ -58796,7 +58896,7 @@ function layerQuality(layer) {
     ages = have.map((s) => (aq ? s.aq.age : s.sensorAge)),
     stale = ages.filter((a) => a > 20).length,
     msOff = aq ? 0 : Demo.zones().reduce((a, z) => a + z.mss.filter(Demo.offline).length, 0),
-    fresh = `${have.length} 个功能区的${aq ? " AQ20 " : ""}读数在 ${Math.max(1, Math.ceil(Math.max(0, ...ages.filter((a) => a <= 20))))} 分钟内更新`;
+    fresh = `${have.length} 个功能区的${aq ? " AQ20 " : ""}读数在 ${Math.max(1, Math.ceil(liveMin(Math.max(0, ...ages.filter((a) => a <= 20)))))} 分钟内更新`;
   if (stale) return ["warn", `数据不完整：${stale} 个功能区超过 20 分钟没有新数据`];
   return msOff ? ["warn", `数据不完整：${msOff} 台 MS20 离线，同区其他传感器照常；${fresh}`] : ["ok", `数据完整：${fresh}`];
 }
@@ -58814,7 +58914,9 @@ function planLegend(layer, tab = "") {
       .filter(([zid]) => Demo.zoneOf(zid))
       .map(([, as]) => lvlRank(as[0].level)),
     al = tops.length ? `<p class="ops-plan-al"><i class="ops-zbadge l${Math.min(...tops)}" aria-hidden="true">!</i>未恢复告警（颜色为最高级别，点开看详情）</p>` : "";
-  return `<div class="ops-legend ops-plan-legend">${L.legend.map(([c, n, k]) => `<span><i class="${c === "hatch" ? "sq hatch" : k || "sq"}" style="--c:${c}"></i>${n}</span>`).join("")}${L.legend.some((x) => x[0] === "hatch") ? "" : `<span class="ops-legend-na"><i class="sq hatch"></i>无传感器</span>`}</div>${al}<p class="ops-plan-note">${dq(q, qt)}<span>${esc(tab === "lighting" && LIGHT_NOTE[layer] ? LIGHT_NOTE[layer] : L.tip)}</span></p>`;
+  // 有功能区覆盖分档时 CO₂、PM2.5 图例只写档名，末尾写“按各功能区参考范围判断”（总览核查第 36 条）
+  const mixed = ["co2", "pm"].includes(layer) && aqRefMixed() ? `<span class="ops-legend-ref">按各功能区参考范围判断</span>` : "";
+  return `<div class="ops-legend ops-plan-legend">${L.legend.map(([c, n, k]) => `<span><i class="${c === "hatch" ? "sq hatch" : k || "sq"}" style="--c:${c}"></i>${n}</span>`).join("")}${L.legend.some((x) => x[0] === "hatch") ? "" : `<span class="ops-legend-na"><i class="sq hatch"></i>无传感器</span>`}${mixed}</div>${al}<p class="ops-plan-note">${dq(q, qt)}<span>${esc(tab === "lighting" && LIGHT_NOTE[layer] ? LIGHT_NOTE[layer] : L.tip)}</span></p>`;
 }
 // 窄屏（≤ 850px）楼层图可左右拖动与放大（规范 OPS06，2026-10-08 Vision 核查 V6）：宽度不小于 720px，按 100%、150%、200% 放大
 const PLAN_ZOOM = [1, 1.5, 2];
@@ -58908,7 +59010,9 @@ function opsPlan({ layer = "occ", tab = "general", mini = false, highlight = [],
         fa = ["co2", "pm", "aq"].includes(layer) && AQ_COLORS.includes(f) ? [20, 20, 45, 66][AQ_COLORS.indexOf(f)] : null,
         hi = highlight.includes(z.id),
         active = U.opsZone === z.id && !mini,
-        tip = `${z.name} · ${s.gwUnknown ? "状态未知" : L.text(s)} · ${agoText(layer === "co2" || layer === "pm" || layer === "aq" ? s.aq?.age : s.sensorAge)}`;
+        aqL = layer === "co2" || layer === "pm" || layer === "aq",
+        // MS20 都离线时写最后读数的时刻（总览核查第 35 条；原为“未取得”）
+        tip = `${z.name} · ${s.gwUnknown ? "状态未知" : L.text(s)} · ${!aqL && !s.sensor && s.ms?.lastAt ? `最后读数 ${Demo.hm(s.ms.lastAt)}` : agoText(aqL ? s.aq?.age : s.sensorAge)}`;
       return `<button class="ops-zone ${f === "hatch" || f === "idle" ? f : ""} ${hi ? "hi" : ""} ${active ? "on" : ""} ${z.w < 9 ? "narrow" : ""} ${z.h < 12 ? "flat" : ""}${need === z.id ? " need" : ""}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${f && f !== "hatch" && f !== "idle" ? `--fill:${f};` : ""}${fa ? `--fa:${fa}%;` : ""}" ${mini ? "tabindex=-1" : `data-act="opsZone" data-id="${z.id}" data-morph-classes="zl-bl zl-br zl-tr"`} data-tip="${esc(tip)}" aria-label="${esc(tip)}">${mini ? "" : `<span class="ops-zl"><span class="ops-zn">${esc(z.name)}</span><b>${esc(s.gwUnknown ? (z.w < 9 ? "?" : "状态未知") : z.w < 9 ? L.short(s) : L.text(s))}</b></span>`}</button>`;
     })
     .join("");
@@ -59101,8 +59205,12 @@ function opsPlanAfter() {
 /* ---------- 控制与回执（Doc1 §6.1） ---------- */
 // ids：要控制的设备。普通成员只能控制授权功能区内的设备（memberCtlWhy），不给 ids 时不能控制（2026-10-09 用户确认，角色权限方案第 4 条）。
 const canControl = (ids) => Demo.on() && U.role !== "viewer" && !Demo.ctl.gwOffline && !memberCtlWhy(ids);
+// 网关离线的说法与服务暂停页相同（总览核查第 33 条，2026-10-12 用户确认）：设备状态无法核对，平台远程控制暂不可用，现场设备正常时已下发的本地控制可继续运行；
+// 不再承诺“不受影响”。原为“本层网关离线，控制暂不可用；功能区内的自动控制不受影响”。GW_OFF_TEXT 用于横幅，GW_OFF_LOCAL 为后半句
+const GW_OFF_LOCAL = "现场设备正常时，已下发的本地控制可继续运行",
+  GW_OFF_TEXT = `本层网关离线，当前设备状态无法核对，平台远程控制暂不可用。${GW_OFF_LOCAL}。`;
 const controlReason = (ids) =>
-  !Demo.on() ? "尚未取得运行数据，不能控制" : U.role === "viewer" ? "查看人员不能控制设备" : Demo.ctl.gwOffline ? "本层网关离线，控制暂不可用；功能区内的自动控制不受影响" : memberCtlWhy(ids);
+  !Demo.on() ? "尚未取得运行数据，不能控制" : U.role === "viewer" ? "查看人员不能控制设备" : Demo.ctl.gwOffline ? `本层网关离线，平台远程控制暂不可用；${GW_OFF_LOCAL}` : memberCtlWhy(ids);
 // 不可用的控制按钮用 aria-disabled（Lovable 核查第 217 条，2026-10-11 用户确认）：能 Tab 到，回车、空格不动作（全站点击处理不执行
 // aria-disabled 的按钮），读屏读出“不可用”和原因（原因作为按钮的说明）；外观与提示气泡同原先的 disabled。功能区面板、单台弹层、组控制条同用
 const disBtn = (label, act, args, cls, why) => btn(label, act, args, `${cls} ops-dis-btn`).replace("<button ", `<button aria-disabled="true" aria-description="${esc(why)}" data-tip="${esc(why)}" `);
@@ -59529,6 +59637,8 @@ function ctlRestRows(req) {
     ...(req.type === "fc" ? ctlFcRows(req) : ctlLightRows(req)).map(([l, v]) => [l, esc(v)]),
     ...(req.hv ? sceneHvRows(req.hv).map(([l, v]) => [l, esc(v)]) : []),
     ["执行方式", esc(one ? "单台控制：设备确认后显示“设备已确认”；5 秒内未确认显示“未确认”，不自动重发。" : "组控制：先显示“已下发 · 等待回报”，约 10–30 秒内逐台回报“已生效 N / M”；45 秒后仍未回报的单独列出，未回报不等于未执行。")],
+    // 超过 5 分钟没有取得新数据时写明下发前的核对，不禁用控制（总览核查第 32 条，2026-10-12 用户确认，扩 VD8）
+    ...(opsLive().stale ? [["下发前核对", esc(`数据截至 ${liveHm()}，已 ${durText(opsLive().mins)}未取得新数据：下发前重新读取设备状态，读不到不下发。`)]] : []),
     ["执行者", esc(ctlActor())],
     ["来源", esc(req.src || "—")],
     ...(old ? [["重试", esc(req.retryText || `${Demo.hm(old.sentAt ?? opsNow())} 下发的“${old.label}”5 秒内未收到设备确认；本次按当前条件重新确认后再发。`)]] : []),
@@ -59680,13 +59790,23 @@ function zonePanel(zid, mode = "inline") {
     cfgRow = data().lightingConfigs.find((c) => c.scope === "zone" && c.scopeId === z.id && c.values),
     v = s.cfg,
     last = Demo.ctl.zoneCmd?.[z.id];
-  const gw = Demo.ctl.gwOffline ? `<div class="ops-banner">${ico("alert", "ic16")}<span>本层网关离线，设备状态未知；功能区内的灯光与传感联动不受影响。</span></div>` : "";
-  const light = `<section class="ops-zp-sec"><h4>${ico("bulb", "ic16")}照明<span class="sp"></span>${s.light.manual ? badge("手动", "warn") : badge("自动", "info")}</h4>
+  // 网关离线的横幅用站内已有说法（总览核查第 33 条；原为“设备状态未知；功能区内的灯光与传感联动不受影响”）。
+  // 网关离线或超过 5 分钟没有取得新数据时，面板顶部写一次“以下为 … 的最后数据”（总览核查第 32、33 条，2026-10-12 用户确认：原先只在回路列表上写“以下为网关离线前的最后数据”，
+  // 数据未更新时面板不写也不变暗），面板读数随之变暗（.ops-zp.stale，同 VD8）；控制按钮不变
+  const L = opsLive(),
+    lastAt = lastDataAt(),
+    old = s.gwUnknown || L.stale,
+    lastTag = s.gwUnknown ? `<span class="ops-lastrec">最后记录</span>` : "";
+  const gw = Demo.ctl.gwOffline ? `<div class="ops-banner">${ico("alert", "ic16")}<span>${GW_OFF_TEXT}</span></div>` : "";
+  const lastLine = old ? `<p class="ops-zp-last">${s.gwUnknown ? `以下为网关离线前的最后数据（${Demo.hm(lastAt)}）` : `以下为 ${Demo.hm(lastAt)} 的最后数据 · 已 ${durText(L.mins)}未取得新数据`}</p>` : "";
+  // 网关离线时“手动”标签、亮度与恢复时间前标“最后记录”（总览核查第 33 条）
+  const rt = resumeText(s);
+  const light = `<section class="ops-zp-sec"><h4>${ico("bulb", "ic16")}照明<span class="sp"></span>${s.gwUnknown ? `${lastTag}<span class="ops-dim">${s.light.onCount ? `亮度 ${s.light.level}%` : "关"}</span>` : ""}${s.light.manual ? badge("手动", "warn") : badge("自动", "info")}</h4>
     <p class="ops-zp-sub">${s.light.count} 个照明控制器 · 亮 ${s.light.onCount}${s.light.offline ? ` · <span class="${offCls(z.lcs.filter(Demo.offline))}">离线 ${s.light.offline}</span>` : ""}${s.gwUnknown ? " · 状态未知" : ""}</p>
-    ${resumeText(s)}
+    ${rt && s.gwUnknown ? `<div class="ops-lastrec-w">${lastTag}${rt}</div>` : rt}
     <div class="ops-ctl-row">${ctlBtn("开灯", "opsZoneLight", { id: z.id, cmd: "on" }, "sm", lcIds)}${ctlBtn("关灯", "opsZoneLight", { id: z.id, cmd: "off" }, "sm", lcIds)}<label class="ops-slider ${canControl(lcIds) ? "" : "dis"}" data-tip="${esc(canControl(lcIds) ? "调光即进入手动，按“手动后恢复自动”的时长恢复自动；开 / 关灯不退出自动" : controlReason(lcIds))}"><input type="range" min="10" max="100" step="5" value="${s.light.on ? s.light.level || 10 : 10}" data-zone-level="${z.id}" data-out="${s.light.on ? s.light.level + "%" : "关"}" style="--p:${(((s.light.on ? s.light.level || 10 : 10) - 10) / 90) * 100}%" ${canControl(lcIds) ? "" : "disabled"} aria-label="亮度（进入手动）"><output>${s.light.on ? s.light.level + "%" : "关"}</output></label></div>
     ${ctlWhy("p", lcIds)}${last ? rcpt(last) : ""}
-    <div class="ops-circuits ${s.gwUnknown ? "ops-stale" : ""}">${s.gwUnknown ? `<p class="ops-zp-sub">以下为网关离线前的最后数据</p>` : ""}${s.circuits
+    <div class="ops-circuits ${s.gwUnknown ? "ops-stale" : ""}">${s.circuits
       .map(
         (c) => `<div class="ops-circ"><div class="ops-circ-h"><b>${esc(c.name)}</b><span class="ops-chip-mode" data-tip="${esc(c.mode === "constant" ? "运行 3–7 天后按数据判定：日光增量经常超过目标 20%" : c.mode === "maintain" ? "日光增量很少超过目标 20%，维持亮度加占用三段" : c.mode === "fixed" ? "恒照度目标为 0（关闭）：有人时按有人亮度，不随日光调节" : "开关型回路：占用加时间表")}">${c.modeLabel}</span><span class="sp"></span><span class="ops-num">${c.on ? c.level + "%" : "关"}</span></div>
         <div class="ops-circ-m">${c.lcs.length} 台 LC20 · ${c.drivers} 台驱动 · 约 ${nf(c.watts)} W${c.offline.length ? ` · <span class="${offCls(c.offline)}">${zhSub(c.offline.map((p) => esc(p.name)).join("、"), "r")}离线</span>` : ""}</div>
@@ -59699,16 +59819,23 @@ function zonePanel(zid, mode = "inline") {
   // CO₂、PM2.5 的档与空气质量按本区的参考范围（配置参数）分档，空气质量写档名标签（2026-10-09 用户确认，可视化设计 VD1、ABB 对比 BP87）
   const ref = zoneRef(s),
     aql = s.aq ? aqLevel(s.aq, ref) : null;
-  const env = `<section class="ops-zp-sec env"><h4>${ico("sensor", "ic16")}室内环境<span class="sp"></span>${s.sensor ? `<span class="ops-dim">MS20 · ${agoText(s.sensorAge)}</span>` : ""}</h4>${
-    s.gwUnknown
-      ? `<p class="ops-zp-sub">状态未知：网关离线，暂无最新数据。</p>`
-      : !s.sensor
-      ? `<p class="ops-zp-sub">无传感器覆盖</p>`
-      : `<div class="ops-metrics">${m("占用", s.gwUnknown ? "状态未知" : s.occupied ? "有人" : `无人 <small>${durText(s.since)}</small>`, "占用是“有人 / 无人”，不是人数")}${m("活动强度", s.occupied ? s.activity : "—", `0–100，${ACT_DEF}；图上以填色深浅表示`)}${m("照度", s.lux == null ? "未取得" : nf(s.lux) + " <small>lx</small>", "照度源读数，按夜间标定换算为估算工作面照度")}${m("温度", nf(s.temp, 1) + " <small>℃</small>")}${m("湿度", s.rh + " <small>%</small>")}</div>${
-          s.aq
-            ? `<p class="ops-zp-sub ops-aqh">AQ20 · ${agoText(s.aq.age)}</p><div class="ops-metrics">${m("CO₂", `${nf(s.aq.co2)} <small>ppm</small>`, "", `${AQ_BANDS[co2Level(s.aq.co2, ref)]} · 1 h 均值 ${nf(s.aq.co2h)} ppm`)}${m("PM2.5", `${s.aq.pm25} <small>μg/m³</small>`, "", AQ_BANDS[pmLevel(s.aq.pm25, ref)])}${m("空气质量", aqChip(aql.text, aql.i), "空气质量取 CO₂ 与 PM2.5 中较差的一档，括号里是决定它的一项")}</div>${aqPlace(z)}<p class="ops-foot">CO₂ 为 1 分钟均值，PM2.5 为 24 h 滚动均值，空气质量取两项中较差的一档；占用、照度与温湿度为本区 MS20 的当前读数。</p>`
-            : `<p class="ops-zp-sub ops-aqh">CO₂ / PM2.5：本区无 AQ20</p>`
-        }`
+  // 总览核查第 35 条（2026-10-12 用户确认）：MS20 与 AQ20 分开判断。MS20 不可用只影响占用、活动强度、照度与温湿度，写“MS20 离线 N 分钟 · 最后读数”
+  // 或“本区无 MS20”；AQ20 有读数时 CO₂、PM2.5 与空气质量照常显示。原先本区 MS20 都离线时整节只写“无传感器覆盖”，AQ20 的读数一起隐藏。
+  // 网关离线时标题右侧的“MS20 · 更新于…”改为“最后记录 · MS20 HH:MM”（第 33 条）。
+  const msHead = s.gwUnknown ? (s.ms.count ? `${lastTag}<span class="ops-dim">MS20 · ${Demo.hm(lastAt)}</span>` : "") : s.sensor ? `<span class="ops-dim">MS20 · ${agoText(s.sensorAge)}</span>` : "",
+    msBody = s.sensor
+      ? `<div class="ops-metrics">${m("占用", s.occupied ? "有人" : `无人 <small>${durText(s.since)}</small>`, "占用是“有人 / 无人”，不是人数")}${m("活动强度", s.occupied ? s.activity : "—", `0–100，${ACT_DEF}；图上以填色深浅表示`)}${m("照度", s.lux == null ? "未取得" : nf(s.lux) + " <small>lx</small>", "照度源读数，按夜间标定换算为估算工作面照度")}${m("温度", nf(s.temp, 1) + " <small>℃</small>")}${m("湿度", s.rh + " <small>%</small>")}</div>`
+      : s.ms.count
+        ? `<p class="ops-zp-sub">${segs(`<span class="${offCls(z.mss.filter(Demo.offline))}">MS20 离线 ${durText(s.ms.offMin)}</span>`, `最后读数 ${Demo.hm(s.ms.lastAt)}：${nf(s.ms.temp, 1)} ℃、${s.ms.rh}%`)}</p><p class="ops-zp-sub">占用、活动强度、照度与温湿度暂无最新数据；本区照明按本地回退运行。</p>`
+        : `<p class="ops-zp-sub">本区无 MS20：没有占用、照度与温湿度读数</p>`,
+    aqOff = s.aqDev.count > 0 && !s.aqDev.online,
+    // 有功能区覆盖分档时写本区实际的参考值与来源（第 36 条）
+    refLine = s.aq && aqRefMixed() ? `<p class="ops-zp-sub">${segs(`本区参考范围（${aqRefSrc(z)}）`, `CO₂ ≤ ${nf(ref.co2)} ppm（优 &lt; ${nf(ref.co2Cuts[0])}，良 ${nf(ref.co2Cuts[0])}–${nf(ref.co2Cuts[1])}）`, `PM2.5 ≤ ${nf(ref.pm)} μg/m³（优 ≤ ${nf(ref.pmCuts[0])}，良 ≤ ${nf(ref.pmCuts[1])}）`)}</p>` : "",
+    aqBody = s.aq
+      ? `<p class="ops-zp-sub ops-aqh">${aqOff ? `<span class="${offCls(z.aqs)}">AQ20 离线</span> · 最后读数` : `AQ20 · ${agoText(s.aq.age)}`}</p><div class="ops-metrics">${m("CO₂", `${nf(s.aq.co2)} <small>ppm</small>`, "", `${AQ_BANDS[co2Level(s.aq.co2, ref)]} · 1 h 均值 ${nf(s.aq.co2h)} ppm`)}${m("PM2.5", `${s.aq.pm25} <small>μg/m³</small>`, "", AQ_BANDS[pmLevel(s.aq.pm25, ref)])}${m("空气质量", aqChip(aql.text, aql.i), "空气质量取 CO₂ 与 PM2.5 中较差的一档，括号里是决定它的一项")}</div>${refLine}${aqPlace(z)}<p class="ops-foot">CO₂ 为 1 分钟均值，PM2.5 为 24 h 滚动均值，空气质量取两项中较差的一档${s.sensor ? "；占用、照度与温湿度为本区 MS20 的当前读数" : ""}。</p>`
+      : `<p class="ops-zp-sub ops-aqh">CO₂ / PM2.5：本区无 AQ20</p>`;
+  const env = `<section class="ops-zp-sec env"><h4>${ico("sensor", "ic16")}室内环境<span class="sp"></span>${msHead}</h4>${
+    s.gwUnknown ? `<p class="ops-zp-sub">状态未知：网关离线，暂无最新数据。</p>` : !s.ms.count && !s.aqDev.count ? `<p class="ops-zp-sub">无传感器覆盖</p>` : msBody + aqBody
   }</section>`;
   // 普通成员的面板只有照明、暖通空调、室内环境三节，不显示“本区照明控制参数”（2026-10-09 用户确认，角色权限方案第 4 条）
   const params = U.role === "member" ? "" : `<section class="ops-zp-sec"><h4>${ico("edit", "ic16")}本区照明控制参数<span class="sp"></span>${cfgRow ? badge("本区覆盖 · v" + cfgRow.version, "info") : `<span class="ops-dim">沿用楼层默认</span>`}</h4><dl class="ops-kv"><dt>延时时间</dt><dd>${v.offMinutes} 分钟</dd><dt>待机亮度</dt><dd>${v.standbyBrightness}%</dd><dt>待机时间</dt><dd>${v.standbyMinutes} 分钟</dd><dt>有人亮度</dt><dd>${v.occupiedBrightness}%</dd><dt>恒照度目标</dt><dd>${v.luxTarget ? v.luxTarget + " lx" : "关闭"}</dd><dt>手动后恢复自动</dt><dd>${
@@ -59717,7 +59844,7 @@ function zonePanel(zid, mode = "inline") {
     auSegs([`工作时间 ${hrsTxt(Demo.resumeCfg(v).work)}`, `非工作时间 ${hrsTxt(Demo.resumeCfg(v).off)}`])
   }${Demo.resumeCfg(v).legacy ? `<small class="ops-warn-t" data-tip="手动后恢复自动最长 2 小时；原配置值超出上限，按 2 小时执行，保存参数后更正">（原配置超出上限，按 2 小时执行）</small>` : ""}</dd></dl>${Demo.ctl.sync?.[z.id] ? syncChip(z.id) : ""}<div class="ops-ctl-row">${U.role === "viewer" ? `<span class="ops-dim">查看人员不能修改</span>` : btn("修改", "opsParams", { zone: z.id }, "sm") + (cfgRow ? btn("恢复楼层默认", "opsParamsReset", { zone: z.id }, "sm ghost") : "")}</div></section>`;
   // 标题下写功能区完整路径（规范 CTRL01，2026-10-08 第 2 轮第6章，CTRL01 待实现第1条）；其下为本区的未恢复告警与工单（ABB 对比 IA1）
-  return `<aside class="ops-zp ${mode}" aria-label="${zhSub(esc(z.name), "r")}功能区面板"><header class="ops-zp-h"><div><h3 id="opsZpTitle" tabindex="-1">${esc(z.name)}</h3><p>${esc(z.type)} · ${z.area} m²${demoTag()}</p><p class="ops-zp-path">${whereHtml(g("zones", z.id)?.floorId, z.name)}</p>${workLine("zone", z.id)}</div>${iconBtn("关闭功能区面板", "x", "opsZoneClose")}</header>${gw}${light}${hvac}${env}${params}</aside>`;
+  return `<aside class="ops-zp ${mode}${old ? " stale" : ""}" aria-label="${zhSub(esc(z.name), "r")}功能区面板"><header class="ops-zp-h"><div><h3 id="opsZpTitle" tabindex="-1">${esc(z.name)}</h3><p>${esc(z.type)} · ${z.area} m²${demoTag()}</p><p class="ops-zp-path">${whereHtml(g("zones", z.id)?.floorId, z.name)}</p>${workLine("zone", z.id)}</div>${iconBtn("关闭功能区面板", "x", "opsZoneClose")}</header>${gw}${lastLine}${light}${hvac}${env}${params}</aside>`;
 }
 /* 功能区面板“暖通空调”（规范 OPS03、CTRL01，2026-10-09 暖通空调方案评估）：风机盘管、多联机内机与分体空调逐台列出。
    标题右侧写待机、节能或手动（保持到何时）；待机、节能时写规则，本区 MS20 都离线时写明按有人运行。
@@ -59782,14 +59909,15 @@ function hvSetSegs(p, d) {
 // 风机盘管逐台写温度来源、模式与风速、设定与回读（规范 OPS03）：室温为 FC20 内置传感器的读数（表格的室温为本区 MS20 读数）。
 // 只在“ · ”处换行（与指标卡副文相同）
 function fcLines(p, d) {
-  if (d.unknown) return `<p class="ops-fc-m">${segs("状态未知（网关离线）", `最后已知室温 ${nf(d.temp, 1)} ℃`)}</p>`;
+  // 网关离线时设定温度同样标“最后记录”（总览核查第 33 条，2026-10-12 用户确认；原先只写最后已知室温，设定照常显示在调节按钮之间）
+  if (d.unknown) return `<p class="ops-fc-m">${segs("状态未知（网关离线）", `最后已知室温 ${nf(d.temp, 1)} ℃`, `最后记录设定 ${hvSpText(p, d.setpoint)}`)}</p>`;
   if (!d.online) return `<p class="ops-fc-m"><span class="${offCls([p])}">离线 ${durText(d.offlineMin)}</span> · 最后已知室温 ${nf(d.temp, 1)} ℃</p>`;
   return `<p class="ops-fc-m">${segs(`室温 ${nf(d.temp, 1)} ℃（FC20 内置传感器）`, ...(d.on ? [d.mode, `风速 ${d.fan}`] : ["已关闭"]))}</p><p class="ops-fc-m">${segs(...hvSetSegs(p, d), agoText(d.age))}</p>`;
 }
 // 多联机内机：回风温度、温控开 / 关（原厂 Thermo ON/OFF）、模式（随外机）与风速；网关离线时只写最后已知的回风温度
 const THERMO_TIP = "原厂 Thermo ON/OFF：温控需求，不等于压缩机在运行";
 function iduLines(p, d) {
-  if (d.unknown) return `<p class="ops-fc-m">${segs("状态未知（网关离线）", `最后已知回风温度 ${nf(d.rat, 1)} ℃`)}</p>`;
+  if (d.unknown) return `<p class="ops-fc-m">${segs("状态未知（网关离线）", `最后已知回风温度 ${nf(d.rat, 1)} ℃`, `最后记录设定 ${hvSpText(p, d.setpoint)}`)}</p>`;
   if (!d.online) return `<p class="ops-fc-m"><span class="${offCls([p])}">离线 ${durText(d.offlineMin)}</span> · 最后已知回风温度 ${nf(d.rat, 1)} ℃</p>`;
   const th = d.thermo ? "温控开" : "温控关";
   return `<p class="ops-fc-m">${segs(`回风温度 ${nf(d.rat, 1)} ℃`, ...(d.on ? [`<span class="ops-tip-t" tabindex="0" data-tip="${esc(THERMO_TIP)}" aria-label="${esc(`${th}：${THERMO_TIP}`)}">${th}</span>`, d.mode, `风速 ${d.fan}`] : ["已关闭"]))}</p><p class="ops-fc-m">${segs(...hvSetSegs(p, d), agoText(d.age))}</p>`;
@@ -59804,6 +59932,8 @@ const splitRow = (p) => `<div class="ops-fc"><div class="ops-fc-h"><b>${esc(p.na
 // 采集位置与代表性（规范 OPS04，2026-10-08 第 2 轮第6章，OPS04 待实现第4条）：按室内环境设置中逐台登记的显示；没有登记时写明，编辑权限可去登记
 const AQ_POS = { breath: "呼吸区（距地 0.9–1.8 m）", high: "高于 1.8 m 或吸顶", near: "靠近送风口、门窗或热源" },
   AQ_REP = { zone: "代表整个功能区", part: "只代表局部", check: "待核对" };
+// 本区 AQ20 登记的代表性：zone、part、check，未登记为空（总览核查第 34 条，概况“监测点在参考范围内”按它区分监测点与功能区）
+const aqRep = (z) => latestConfig("室内环境", OPS_SCOPE.project)?.values?.sensors?.[z.aqs[0]?.id]?.rep || "";
 function aqPlace(z) {
   const reg = latestConfig("室内环境", OPS_SCOPE.project)?.values?.sensors?.[z.aqs[0]?.id];
   if (reg?.pos || reg?.rep) return `<p class="ops-zp-sub">采集位置：${esc([AQ_POS[reg.pos] || "位置未登记", AQ_REP[reg.rep] || "代表性未登记"].join(" · "))}</p>`;
@@ -60041,7 +60171,7 @@ function todayQuality() {
 }
 // 室温偏离设定（配置参数 H-17，与 G36 相同；2026-10-09 用户确认）：高于供冷设定或低于供热设定才算偏离，两个设定之间不算。
 // 正数为高于供冷设定的 K 数，负数为低于供热设定的 K 数，两个设定之间为 0；无空调或没有读数时为 null。
-// 暖通空调状态条“偏离设定 ≥ 1 K”、概况“环境正常的空间”与数据分析的温度参考范围都按这一口径。
+// 暖通空调状态条“偏离设定 ≥ 1 K”、概况“监测点在参考范围内”与数据分析的温度参考范围都按这一口径。
 function tempOff(s) {
   const cool = s?.coolSetpoint ?? s?.setpoint,
     heat = s?.heatSetpoint ?? s?.setpoint;
@@ -60068,10 +60198,25 @@ function ovGeneral() {
     zs = Demo.zones().map((z) => Demo.zoneState(z)),
     aqs = zs.filter((s) => s.aq && !s.gwUnknown),
     stale = aqs.filter((s) => s.aq.age > 20),
-    evald = zs.filter((s) => s.sensor && s.aq && !s.gwUnknown && s.aq.age <= 20),
+    // CO₂、PM2.5 只要求 AQ20 有数据；本区 MS20 离线时温湿度不判断（envOut 跳过没有读数的项），不再整区不计（总览核查第 35 条，2026-10-12 用户确认：
+    // 原先要求 MS20 也在线，会议室 7-1 的 MS20 离线时指标成了 7 / 7，副文仍写 8 台 AQ20）
+    evald = zs.filter((s) => s.aq && !s.gwUnknown && s.aq.age <= 20),
     ok = evald.filter((s) => !envOut(s).length),
     bad = evald.filter((s) => !ok.includes(s)),
     others = h.off.filter((p) => p.type !== "gw").length;
+  /* 总览核查第 34 条（2026-10-12 用户确认）：AQ20 的代表性未登记为“代表整个功能区”时，读数只代表监测点，指标名为“监测点在参考范围内”，
+     副文写“N 台 AQ20 代表性未登记，按监测点读数”；有 AQ20 登记为“代表整个功能区”（rep=zone）后改为“环境正常的功能区”，只计这些功能区，
+     副文写“可判断 N 个功能区；另有 M 个代表性待核对”，只代表局部（part）、待核对（check）与未登记的仍计入监测点。原名“环境正常的空间”。 */
+  const zoneEv = evald.filter((s) => aqRep(s.z) === "zone"),
+    zoneOk = zoneEv.filter((s) => ok.includes(s)),
+    repN = (k) => evald.filter((s) => aqRep(s.z) === k).length,
+    repText = [repN("") && `${repN("")} 台 AQ20 代表性未登记`, repN("part") && `${repN("part")} 台只代表局部`, repN("check") && `${repN("check")} 台代表性待核对`].filter(Boolean).join("、") + "，按监测点读数",
+    badText = (xs) => (xs.length ? `${zhSub(xs.map((s) => s.z.name).join("、"), "r")}超出参考范围` : ""),
+    // 副文较长，按原写法用“ · ”连接、可在段内换行（不用 segs，手机上整段不断行会撑出横向滚动）
+    dots = (...xs) => xs.filter(Boolean).join(" · "),
+    // 指标名在手机两列时只在“监测点在”之后换行
+    ptLabel = `监测点在<span class="ops-nw">参考范围内</span>`,
+    envQ = stale.length ? liveDq("warn", `数据不完整：${stale.length} 台 AQ20 超过 20 分钟没有新数据，未计入`) : liveDq("ok", `数据完整：${aqs.length} 台 AQ20 都在 ${Math.max(1, Math.ceil(Math.max(...aqs.map((s) => s.aq.age))))} 分钟内更新`);
   const layer = ["occ", "light", "temp", "co2"].includes(U.opsLayer) ? U.opsLayer : "occ";
   // 网关离线：在线率不计算，注明网关离线与状态未知的台数（与设备台账同一口径）；环境正常的空间没有可计的功能区时不写“全部在参考范围内”
   // （2026-10-08 Vision 核查 V4、V12）
@@ -60086,11 +60231,13 @@ function ovGeneral() {
     kpi("未恢复告警", as.length, asSub, "opsGo", { page: "alarms" }, gwOff ? dq("warn", "数据不完整：网关离线期间，其下设备不单独告警") : ""),
     h.rate == null
       ? kpi("设备在线率", "—", segs("E栋 7F 网关离线", `${h.unknown.length} 台状态未知`, others ? `另有 ${others} 台离线` : ""), "opsGo", { page: "analysis", tab: "health" }, dq("unk", "状态未知的设备不计为离线"))
-      : kpi("设备在线率", nf(h.rate, 1) + "<small>%</small>", `${h.online} / ${h.total} 台 · ${h.off.length} 台离线`, "opsGo", { page: "analysis", tab: "health" }, dq("ok", "数据完整：没有状态未知的设备")),
+      : kpi("设备在线率", nf(h.rate, 1) + "<small>%</small>", `${h.online} / ${h.total} 台 · ${h.off.length} 台离线`, "opsGo", { page: "analysis", tab: "health" }, liveDq("ok", "数据完整：没有状态未知的设备")),
     kpi("今日用电", nf(t.kwh) + "<small>kWh</small>", `截至 ${liveHm()} · 比上周同日同时段 ${pctTxt(t.vsLastWeek)}`, "opsGo", { page: "overview", tab: "energy" }, todayQuality()),
-    evald.length
-      ? kpi("环境正常的空间", `${ok.length}<small> / ${evald.length}</small>`, `${bad.length ? `${zhSub(bad.map((s) => s.z.name).join("、"), "r")}超出参考范围` : "全部在参考范围内"} · CO₂ 按 1 h 均值，只计有空气质量传感器的功能区`, "opsGo", { page: "overview", tab: "environment" }, stale.length ? dq("warn", `数据不完整：${stale.length} 台 AQ20 超过 20 分钟没有新数据，未计入`) : dq("ok", `数据完整：${aqs.length} 台 AQ20 都在 ${Math.max(1, Math.ceil(Math.max(...aqs.map((s) => s.aq.age))))} 分钟内更新`))
-      : kpi("环境正常的空间", "—", "没有可计的功能区 · 只计有空气质量传感器且网关在线的功能区", "opsGo", { page: "overview", tab: "environment" }, gwOff ? dq("unk", "状态未知：E栋 7F 网关离线") : dq("warn", "数据不完整：没有取得 AQ20 读数")),
+    zoneEv.length
+      ? kpi("环境正常的功能区", `${zoneOk.length}<small> / ${zoneEv.length}</small>`, dots(badText(zoneEv.filter((s) => !zoneOk.includes(s))), `可判断 ${zoneEv.length} 个功能区；另有 ${evald.length - zoneEv.length} 个代表性待核对`, `监测点 ${ok.length} / ${evald.length} 在参考范围内`, "CO₂ 按 1 h 均值"), "opsGo", { page: "overview", tab: "environment" }, envQ)
+      : evald.length
+        ? kpi(ptLabel, `${ok.length}<small> / ${evald.length}</small>`, dots(badText(bad), repText, "CO₂ 按 1 h 均值"), "opsGo", { page: "overview", tab: "environment" }, envQ)
+        : kpi(ptLabel, "—", "没有可计的监测点 · 只计有 AQ20 读数且网关在线的功能区", "opsGo", { page: "overview", tab: "environment" }, gwOff ? dq("unk", "状态未知：E栋 7F 网关离线") : dq("warn", "数据不完整：没有取得 AQ20 读数")),
   ], opsLive().stale);
   // 位置选到楼宇、项目或全部项目时，楼层图换成下一级的对比表（VD4）
   // 图层页签组以卡片命名，楼层图与图例标为它控制的页签面板（Lovable 核查第 321 条，2026-10-11 用户确认）
@@ -60202,8 +60349,9 @@ function spaceItems(tab, zs) {
   const aqs = zs.filter((s) => s.aq),
     top = [...aqs].sort((a, b) => b.aq.co2 - a.aq.co2)[0],
     ms = zs.filter((s) => s.sensor),
-    aqAge = Math.max(1, Math.ceil(Math.max(...aqs.map((s) => s.aq.age)))),
-    msAge = Math.max(1, Math.ceil(Math.max(...ms.map((s) => s.sensorAge)))),
+    // 按数据截至计算（总览核查第 31 条，2026-10-12 用户确认：原先数据已 6 分钟未更新时仍写“1 分钟内更新”）
+    aqAge = Math.max(1, Math.ceil(liveMin(Math.max(...aqs.map((s) => s.aq.age))))),
+    msAge = Math.max(1, Math.ceil(liveMin(Math.max(...ms.map((s) => s.sensorAge))))),
     aqSrc = `${aqs.length} 个功能区的 AQ20 · ${aqAge} 分钟内更新`,
     // 空气质量：本层最差的一档与功能区数，括号写决定它的一项（几个功能区由不同的项决定或两项同档时不写；可视化设计 VD1）
     lv = aqs.map((s) => aqLevel(s.aq, zoneRef(s))),
@@ -60259,9 +60407,11 @@ function ovSpace(tab) {
   // 设置入口固定在页签下第一行的右端，状态条在左侧换行，不把按钮挤到下一行（规范 2 2、OPS02–OPS05；2026-10-10 用户确认，
   // ABB 对比 IA4：原先按钮排在状态条之后，1440 宽时暖通空调的设置掉到下一行左边、室内环境的在第二行右侧）
   const stripRow = `<div class="ops-tabbar">${stripHtml}${tools ? `<div class="ops-tabbar-tools">${tools}</div>` : ""}</div>`;
-  // 位置选到楼宇、项目或全部项目时，楼层图与功能区表换成下一级的对比表（VD4）
-  if (!U.f) return stripRow + cmpCard(tab);
-  const gwBanner = Demo.ctl.gwOffline ? `<div class="ops-banner">${ico("alert", "ic16")}<span>本层网关离线，设备状态未知；功能区内的灯光与传感联动不受影响。控制按钮暂不可用。</span></div>` : "";
+  // 位置选到楼宇、项目或全部项目时，楼层图与功能区表换成下一级的对比表（VD4）；状态条前同概况、能源写“指标按已接入运行数据的楼层统计：…”
+  // （总览核查第 30 条，2026-10-12 用户确认：原先照明、暖通空调、室内环境三个页签没有这一行）
+  if (!U.f) return scopeNote() + stripRow + cmpCard(tab);
+  // 网关离线的横幅用站内已有说法（总览核查第 33 条；原为“设备状态未知；功能区内的灯光与传感联动不受影响。控制按钮暂不可用。”）
+  const gwBanner = Demo.ctl.gwOffline ? `<div class="ops-banner">${ico("alert", "ic16")}<span>${GW_OFF_TEXT}</span></div>` : "";
   const layerLabels = Object.fromEntries(layers.map((l) => [l, LAYERS[l].label])),
     layerItems = layers.map((l) => [l, layerLabels[l]]);
   const plan = `<section class="ops-card ops-plan-card big"><header class="ops-card-h"><div><h3>E栋 · 7F</h3><p class="ops-meta">${tab === "environment" ? "点击功能区打开面板 · 点击设备查看读数" : U.role === "viewer" ? "点击功能区查看" : touchPan() ? "点击功能区打开面板 · 点击设备单台控制" : "点击功能区打开面板 · 点击设备单台控制 · 框选或 Shift 点选多台做组控制"}</p></div><div class="ops-card-tools">${segSm(layerItems, layer, "opsLayerTab", "opsPlanPanel", "楼层图页签")}</div></header>${gwBanner}${tabPanel("opsPlanPanel", "opsLayerTab", layerItems, layer, `<div class="ops-plan-wrap">${opsPlan({ layer, tab, select: tab !== "environment" })}${groupBar(tab)}</div>${planZoom()}${planLegend(layer, tab)}`)}</section>`;
@@ -60284,7 +60434,8 @@ function zoneTable(tab, zs) {
     sec = head.map((h) => !main.includes(h)),
     rows = zs.map((s) => {
       const z = s.z,
-        occ = s.sensor ? (s.occupied ? "有人" : "无人") : "—";
+        // 没有 MS20 读数时写“MS20 离线”或“无 MS20”（总览核查第 35 条；原为“—”）
+        occ = s.sensor ? (s.occupied ? "有人" : "无人") : msNone(s);
       const cells =
         tab === "lighting"
           ? [occ, s.light.onCount ? `${s.light.level}%${s.light.manual ? " · 手动" : ""}` : "关", [...new Set(s.circuits.map((c) => c.modeLabel))].join("、"), s.lux == null ? "未取得" : nf(s.lux) + " lx", agoText(s.sensorAge)]
@@ -61467,7 +61618,7 @@ function anCompBody(comp, all = false) {
           .map((c) => `<tr><td>${esc(c.z.name)}</td><td data-l="CO₂">${anCompBar(c.co2)}</td><td data-l="PM2.5">${anCompBar(c.pm)}</td><td data-l="温度">${anCompBar(c.temp)}<small class="ops-cbasis">${c.tBasis.includes(" 至") ? nwJoin(c.tBasis.split(" 至").map((x, i) => (i ? "至" + x : x)), " ") : esc(c.tBasis)}</small></td></tr>`)
           .join("")}</tbody></table></div>`
       : `<p class="ops-empty-note">全部在参考范围内：${comp.length} 个功能区的 CO₂、PM2.5 与温度都不低于 95%。</p>`
-  }<p class="ops-foot">在线监测读数，不是 GB/T 18883 的检测结论。</p>`;
+  }<p class="ops-foot">按 AQ20、MS20 监测点的在线读数，读数代表的范围见室内环境设置中的采集位置与代表性；不是 GB/T 18883 的检测结论。</p>`;
 }
 function anEnv() {
   const kind = U.opsHeat || "occ",
@@ -61539,8 +61690,9 @@ function anEnv() {
   // “参考范围内的时长”：参考值取配置参数（envRef），不再写死 CO₂ 1,000 ppm、PM2.5 35 μg/m³（2026-10-09 用户确认，ABB 对比 BP85）
   const ref = zoneRef();
   const compCard = chartCard({
-    title: `${rg.label}工作时间 CO₂ 在参考范围内 ${nf(comp.filter((c) => c.co2 != null).reduce((a, c) => a + c.co2, 0) / comp.filter((c) => c.co2 != null).length, 1)}%，${zhSub(worst.z.name, "r")}最低`,
-    meta: `参考范围内的时长 · 工作日 ${anWorkText()} · CO₂ ≤ ${nf(ref.co2)} ppm（1 h 均值）· PM2.5 ≤ ${nf(ref.pm)} μg/m³（24 h）· 温度见各行口径`,
+    // 与概况“监测点在参考范围内”同一口径，写明按监测点（总览核查第 34 条，2026-10-12 用户确认；原为“工作时间 CO₂ 在参考范围内”“参考范围内的时长”）
+    title: `${rg.label}工作时间监测点 CO₂ 在参考范围内 ${nf(comp.filter((c) => c.co2 != null).reduce((a, c) => a + c.co2, 0) / comp.filter((c) => c.co2 != null).length, 1)}%，${zhSub(worst.z.name, "r")}最低`,
+    meta: `监测点在参考范围内的时长 · 工作日 ${anWorkText()} · CO₂ ≤ ${nf(ref.co2)} ppm（1 h 均值）· PM2.5 ≤ ${nf(ref.pm)} μg/m³（24 h）· 温度见各行口径`,
     legend: [
       [SGRAY, "≥ 95%"],
       [S2, "< 95%"],
@@ -61751,14 +61903,16 @@ function alarmImpact(a) {
   if (p?.type === "gw")
     return a.state === "recovered"
       ? `本层设备状态未知 ${durText(Math.max(1, Math.round((Date.parse(a.recoveredAt) - Date.parse(a.at)) / Demo.MIN)))}；本地联动正常`
-      : `本层 ${Demo.health().unknown.length} 台设备状态未知，控制暂不可用；功能区内的灯光与传感联动不受影响`;
+      : // 不再承诺“不受影响”，用站内已有说法（总览核查第 33 条，2026-10-12 用户确认；原为“控制暂不可用；功能区内的灯光与传感联动不受影响”）
+        `本层 ${Demo.health().unknown.length} 台设备状态无法核对，平台远程控制暂不可用；${GW_OFF_LOCAL}`;
   if (a.kind === "offline" && p) return `${t.zone?.name || "E栋 7F"} · ${{ ms: "占用、照度与温湿度标“数据缺失”，照明按本地回退运行", lc: "照明回路无法控制与上报", fc: "风机盘管按最后参数本地运行，室温标“数据缺失”", aq: "空气质量标“数据缺失”" }[p.type] || "数据标“数据缺失”"}`;
   return "—";
 }
 function alarmNext(a) {
   if (a.state === "recovered") return "已由设备数据恢复，无需处理；可在时间线中复盘";
   const p = a.pointId ? g("points", a.pointId) : null;
-  if (a.kind === "offline") return p?.type === "gw" ? "检查网关上联与机房网络；本地联动不受影响" : p?.type === "lc" ? "检查该照明回路的断路器与 LC20 供电；恢复后两台设备应自动重新上报" : "在图上定位设备，检查供电与安装";
+  // 网关离线（总览核查第 33 条；原为“本地联动不受影响”）
+  if (a.kind === "offline") return p?.type === "gw" ? `检查网关上联与机房网络；${GW_OFF_LOCAL}` : p?.type === "lc" ? "检查该照明回路的断路器与 LC20 供电；恢复后两台设备应自动重新上报" : "在图上定位设备，检查供电与安装";
   // 被现场复位：设备已退出设备网络，先补绑再验证（规范 ALARM05，2026-10-08 Vision 核查 V45：原先写“安排现场功能验证”）
   return { environment: "确认新风是否在加风状态；会议结束后观察是否回落", energy: "核对回路为何在无人时没有按照明控制参数关灯（如 LC20 的待机结束动作）", device: "远程补绑，或安排现场用 App 绑回原点位；绑回后重新下发配置并做功能验证" }[a.kind] || "查看详情";
 }
@@ -64487,18 +64641,29 @@ function aiDailyBrief() {
     offAt = Demo.ctl.gwOfflineAt || opsNow(),
     offDur = dur(offAt),
     gwA = gwOff ? (Demo.ctl.gwAlarms || []).filter((a) => a.state === "active").at(-1) : null;
+  /* 超过 5 分钟没有取得新数据时同网关离线（第 81 条）处理（总览核查第 32 条，2026-10-12 用户确认，扩 VD8）：第一条写数据未更新，读数写明是几点的最后数据，
+     用电不预计全天，控制类建议（703 提前恢复自动）不给按钮，不改设备的提醒类建议（会后通风）照常。原先只换了标题时刻，正文照常按当前时刻写、预计全天并给出控制建议。
+     网关离线与数据未更新同时出现时，“离线前”的时刻取网关离线与数据截至中较早的一个，与标题一致（原先标题 10:24、正文却写“10:30 之前”）。 */
+  const L = opsLive(),
+    stale = L.stale && !gwOff,
+    lastAt = lastDataAt(),
+    ofAt = stale ? `（${at} 的最后数据）` : "";
   const items = [
     gwOff
-      ? `<li><b>E栋 7F 网关${offDur === "刚刚" ? "刚刚离线" : `已离线 ${offDur}`}。</b>其下 ${h.unknown.length} 台设备状态未知，设备在线率与环境指标暂不统计，本层控制暂不可用；以下只引用离线前（${Demo.hm(offAt)} 之前）的数据。</li>`
-      : "",
+      ? `<li><b>E栋 7F 网关${offDur === "刚刚" ? "刚刚离线" : `已离线 ${offDur}`}。</b>其下 ${h.unknown.length} 台设备状态未知，设备在线率与环境指标暂不统计，本层控制暂不可用；以下只引用离线前（${Demo.hm(lastAt)} 之前）的数据。</li>`
+      : stale
+        ? `<li><b>数据已 ${durText(L.mins)}未更新，正在重试。</b>以下只引用 ${at} 的最后数据，暂不预计全天用电；控制类建议待取得新数据后再给出。</li>`
+        : "",
     lc && lc.state !== "recovered" ? `<li><b>实验室 E 一半照明不可用。</b>E-7F-LC20-09 与其 MS20 同时离线，推断为回路失电；${tk ? `工单${taskState(tk)}（${esc(tk.assignee)}）。` : "尚无工单。"}</li>` : "",
-    !gwOff && meet.aq?.co2 > 1000 ? `<li><b>会议室 7-1 CO₂ ${nf(meet.aq.co2)} ppm（1 分钟均值）。</b>${aiCo2Story()}，建议会后通风。</li>` : "",
+    !gwOff && meet.aq?.co2 > 1000 ? `<li><b>会议室 7-1 CO₂ ${nf(meet.aq.co2)} ppm（${stale ? `${at} 的 ` : ""}1 分钟均值）。</b>${aiCo2Story()}，建议会后通风。</li>` : "",
     gwOff
       ? `<li><b>今日用电停在网关离线时。</b>离线前为 ${nf(t.kwh)} kWh，${t.vsTypical <= 0 ? "低于" : "高于"}典型${t.weekday} ${nf(Math.abs(t.vsTypical), 1)}%；之后电表没有新读数，暂不预计全天用电。</li>`
-      : `<li><b>用电平稳。</b>截至 ${at} 为 ${nf(t.kwh)} kWh，${t.vsTypical <= 0 ? "低于" : "高于"}典型${t.weekday} ${nf(Math.abs(t.vsTypical), 1)}%；预计全天约 ${nf(t.typicalDay * (1 + t.vsTypical / 100))} kWh。</li>`,
+      : stale
+        ? `<li><b>用电停在 ${at}。</b>截至 ${at} 为 ${nf(t.kwh)} kWh，${t.vsTypical <= 0 ? "低于" : "高于"}典型${t.weekday} ${nf(Math.abs(t.vsTypical), 1)}%；之后没有新数据，暂不预计全天用电。</li>`
+        : `<li><b>用电平稳。</b>截至 ${at} 为 ${nf(t.kwh)} kWh，${t.vsTypical <= 0 ? "低于" : "高于"}典型${t.weekday} ${nf(Math.abs(t.vsTypical), 1)}%；预计全天约 ${nf(t.typicalDay * (1 + t.vsTypical / 100))} kWh。</li>`,
     `<li><b>实验室 B 连续 3 晚夜间照明偏高。</b>整晚无人，回路停在待机亮度 30%，没有关灯。</li>`,
     !gwOff && o703.light.manual
-      ? `<li><b>办公室 703 ${o703.light.on ? `手动调到 ${o703.light.level}% 已` : "手动关灯已"} ${aiDur(Math.max(1, Math.round((opsNow() - o703.light.at) / Demo.MIN)))}。</b>${o703c ? `照度源读数 ${nf(o703c.lux)} lx，高于恒照度目标 ${nf(o703.cfg.luxTarget)} lx；` : ""}原定 ${Demo.hm(o703.light.until)} 才恢复自动，可以提前恢复。</li>`
+      ? `<li><b>办公室 703 ${o703.light.on ? `手动调到 ${o703.light.level}% 已` : "手动关灯已"} ${aiDur(Math.max(1, Math.round(((stale ? lastAt : opsNow()) - o703.light.at) / Demo.MIN)))}${ofAt}。</b>${o703c ? `照度源读数 ${nf(o703c.lux)} lx，高于恒照度目标 ${nf(o703.cfg.luxTarget)} lx；` : ""}原定 ${Demo.hm(o703.light.until)} 才恢复自动，${stale ? "取得新数据后再判断是否提前恢复" : "可以提前恢复"}。</li>`
       : "",
   ].filter(Boolean);
   return aiCard({
@@ -64509,7 +64674,9 @@ function aiDailyBrief() {
       : [aiLink("告警：E-7F-LC20-09 失电（推断）", "opsAlarm", { id: "alert-demo-lc" }), aiLink("会议室 7-1 · AQ20 当前读数", "opsOpenZone", { id: "zone-demo-meet", tab: "environment" }), aiLink("今日用电 vs 典型" + t.weekday, "opsGo", { page: "overview", tab: "energy" }), aiLink("实验室 B 夜间照明分析", "opsGo", { page: "analysis", tab: "energy" }), ...(o703.light.manual ? [aiLink("办公室 703 · 灯光与照度源", "opsOpenZone", { id: "zone-demo-o703", tab: "lighting" })] : [])],
     actions: gwOff
       ? `${canOperate() ? `<span class="ops-ai-off">本层网关离线，控制暂不可用</span>` : ""}<button class="btn ghost sm" data-act="aiOpen" data-q="为什么实验室 E 没有灯？">追问</button>`
-      : aiSuggest("会后通风提醒", "meet-air") + (o703.light.manual ? aiSuggest("703 提前恢复自动", "o703-auto") : "") + `<button class="btn ghost sm" data-act="aiOpen" data-q="为什么实验室 E 没有灯？">追问</button>`,
+      : aiSuggest("会后通风提醒", "meet-air") +
+        (o703.light.manual ? (stale ? (canOperate() ? `<span class="ops-ai-off">数据未更新，控制类建议暂不给出</span>` : "") : aiSuggest("703 提前恢复自动", "o703-auto")) : "") +
+        `<button class="btn ghost sm" data-act="aiOpen" data-q="为什么实验室 E 没有灯？">追问</button>`,
     cls: "ai-brief",
   });
 }
@@ -64656,7 +64823,8 @@ function aiReportSections(r) {
   // 能耗按一级分项汇总，空调写到二级（2026-10-09 用户确认，ABB 对比 BP116 方案A）；折标煤按能耗设置的折标系数（BP121）
   const en = `<p class="ai-p">${r.lab}用电 ${nf(e.total)} kWh，折标 ${nf(typeof coalTce === "function" ? coalTce(e.total) : (e.total * 0.1229) / 1000, 2)} tce：照明插座 ${nf(e.light)} kWh（${nf((e.light / e.total) * 100)}%），空调 ${nf(e.hvac)} kWh（空调末端；冷热源未计量）；${touTxt}。${qs.length ? qs.map((q) => `${opsDay(q.t)}${/^[\x00-\x7f]/.test(q.text) ? " " : ""}${q.text}`).join("；") + "。" : "期内两块电表数据完整。"}</p>`;
   const cb = `<p class="ai-p">${ce.kg == null ? `${r.lab}排放待设置：碳排放设置没有覆盖期内的排放因子，不使用参考因子代替。` : `${r.lab}排放 ${nf(ce.kg / 1000, 2)} t${ce.gas}（外购电力），${ce.configs.map((c) => `按碳排放设置 v${c.version}，因子 ${c.values.factor} ${carbonUnit(c.values)} · ${c.values.region} ${c.values.year}`).join("；")}${ce.missing ? `；${ce.missing} 天没有适用的排放因子，未计入` : ""}。`}</p>`;
-  const env = `<p class="ai-p">工作时间 CO₂ 在参考范围内的平均比例为 ${nf(co2Avg, 1)}%，${zhSub(meet.z.name, "r")}最低（${pct(meet.co2)}%）。工作日 ${hi} 个功能区高峰有人占比超过 90%，${zhSub(low.z.name, "r")}白天平均仅 ${nf(low.v)}%。</p>`;
+  // 按监测点（总览核查第 34 条，2026-10-12 用户确认；原为“工作时间 CO₂ 在参考范围内的平均比例”）
+  const env = `<p class="ai-p">工作时间监测点 CO₂ 在参考范围内的平均比例为 ${nf(co2Avg, 1)}%，${zhSub(meet.z.name, "r")}最低（${pct(meet.co2)}%）。工作日 ${hi} 个功能区高峰有人占比超过 90%，${zhSub(low.z.name, "r")}白天平均仅 ${nf(low.v)}%。</p>`;
   const alTxt = al.map((a) => `${t(Date.parse(a.at))} ${alarmTitle(a).title}（${rec(a) ? `${t(Date.parse(a.recoveredAt))} 已恢复` : "未恢复"}）`).join("；"),
     dev = `<p class="ai-p">${al.length ? `期内告警 ${al.length} 条：${alTxt}。` : "期内没有告警。"}${reach.length ? `全网体检与夜间复测 ${reach.length} 次，到达率最低 ${nf(Math.min(...reach.map((x) => x.v)), 1)}%。` : "期内没有全网体检记录。"}${
       h
@@ -64669,8 +64837,8 @@ function aiReportSections(r) {
     lost = open.find((a) => alarmTitle(a).merged),
     reset = open.find((a) => a.kind === "device"),
     gwA = open.find((a) => alarmTitle(a).p?.type === "gw");
-  // 网关离线未恢复时先查网关（紧急）
-  if (gwA) adv.push([`检查本层网关的上联与机房网络（${h?.rate == null && h ? `其下 ${h.unknown.length} 台设备状态未知，` : ""}本地联动不受影响）`, aiLink(alarmTitle(gwA).title, "opsAlarm", { id: gwA.id })]);
+  // 网关离线未恢复时先查网关（紧急）；不再写“本地联动不受影响”（总览核查第 33 条，2026-10-12 用户确认）
+  if (gwA) adv.push([`检查本层网关的上联与机房网络（${h?.rate == null && h ? `其下 ${h.unknown.length} 台设备状态无法核对，` : ""}${GW_OFF_LOCAL}）`, aiLink(alarmTitle(gwA).title, "opsAlarm", { id: gwA.id })]);
   if (night) adv.push([`把${zhSub(alarmTitle(night).zone?.name, "lr")}的 LC20 待机结束动作改为关灯，夜间无人时不再保持 30% 亮度（估算 2.1 kWh/晚）`, aiLink(alarmTitle(night).title, "opsAlarm", { id: night.id })]);
   if (lost) adv.push([`检查${zhSub(alarmTitle(lost).zone?.name, "lr")}照明回路的断路器与 ${alarmTitle(lost).p.name} 供电`, aiLink(alarmTitle(lost).title, "opsAlarm", { id: lost.id })]);
   if (reset) adv.push([`远程补绑 ${alarmTitle(reset).p.name}，或现场用 App 绑回原点位`, aiLink(alarmTitle(reset).title, "opsAlarm", { id: reset.id })]);
@@ -64687,7 +64855,8 @@ function aiReportSections(r) {
       `${rg.span} 日用电（kWh，按分项）`,
       `<div class="ops-legend">${sq(S1, "照明插座")}${sq(SAC, "空调末端")}</div>${anDailyBars(eds, dayLabelEvery(eds.length), 200)}<p class="ops-foot">与“数据分析 › 能耗”同一张图，按本报告的期间与数据截止固定${marks.length ? `；柱上的${marks.map((k) => `“${Demo.QMARK[k]}”为${k}`).join("、")}` : ""}。</p>`,
     ),
-    vfig = fig("工作时间在参考范围内的时长 · 需关注的功能区", `${comp.some(anCompNeed) ? `<div class="ops-legend">${sq(SGRAY, "≥ 95%")}${sq(S2, "< 95%")}</div>` : ""}${anCompBody(comp)}<p class="ops-foot">与“数据分析 › 室内环境”同一张表，只列需关注的功能区。</p>`),
+    // 图名写“监测点”，与数据分析、概况同一口径（总览核查第 34 条，2026-10-12 用户确认；原为“工作时间在参考范围内的时长”）
+    vfig = fig("工作时间监测点在参考范围内的时长 · 需关注的功能区", `${comp.some(anCompNeed) ? `<div class="ops-legend">${sq(SGRAY, "≥ 95%")}${sq(S2, "< 95%")}</div>` : ""}${anCompBody(comp)}<p class="ops-foot">与“数据分析 › 室内环境”同一张表，只列需关注的功能区。</p>`),
     afig = al.length ? fig(`期内告警 ${al.length} 条（按发生日期）`, aiAlarmDays(r, al, rec, now ?? cut)) : "";
   const mk = (html, ev, f = "") => ({ html, ev, fig: f, text: aiPlain(html).replace(/^\n/, "") });
   return {
