@@ -24934,6 +24934,13 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
    楼层格子仍用选中底色。各级当前项都带 aria-current，读屏读出“当前”。 */
 .ws-pop .ws-locations summary > .ws-loc-cur { display: grid; place-items: center; flex: none; width: 32px; height: 32px; color: var(--text3); }
 .ws-pop .ws-locations summary.on:is(:hover, :focus-visible) > .ws-loc-cur { color: var(--text); }
+/* 交互核查第 8、9 条：帮助、术语、更新说明、联系支持（.au-help-dlg）的文字规格不随打开时所在的页面改变：帮助各行说明 14/24 #636363；
+   联系支持的“问题说明”“附带内容”和术语名称字重 480（同帮助的行名），复选项正文仍 400。原先从机构设置打开时说明变成 12/18，这三处为 500。 */
+#dlg .au-help-dlg .au-help-rows .au-row-l > small { font-size: 14px; line-height: 24px; color: #636363; }
+#dlg .au-help-dlg :is(.field > label, .au-sup-checks > legend, .au-terms dt) { font-weight: 480; }
+/* 交互核查第 13 条：截图文件类型不对时的错误写在截图一行下面 */
+#dlg #supShotErr { display: block; margin-top: 4px; }
+#dlg #supShotErr[hidden] { display: none; }
 /* ==== 2026-10-12 全面设计核查第二部分 · 总览（第 19、74、81–95 条）
    [OVERVIEW] 本区的样式改动写在这一段注释之后、下一段注释之前。
    ==== */
@@ -33124,7 +33131,7 @@ const infoRows = (rows) => `<dl class="kv">${rows.map(([l, v]) => `<dt>${esc(l)}
 // 弹窗打开时（工作区弹窗，账户弹窗除外）结果提示写进弹窗底部的状态行，不弹全局提示条，不遮挡底部按钮（ch14 §3，核查 R2）；
 // 紧接着关闭弹窗的提示（先提示后关闭）在关闭时改由全局提示条显示。
 // 联系支持可附带的日志（GLOBAL05，2026-10-08）：本次打开页面以来最近 20 条提示、表单错误与页面错误，只留在本页内存中，不写入浏览器存储；
-// 附带前由用户勾选，并去掉电子邮箱、手机号码、网址路径与密钥（auth-ui.js 的 auSupportClean）。
+// 附带前由用户勾选；当前对象、日志与截图文件名去掉电子邮箱、手机号码、网址路径与密钥（auth-ui.js 的 auSupportClean），截图本身不处理。
 const wsLog = [];
 const wsLogAdd = (kind, text) => {
   const t = String(text ?? "").replace(/<[^>]*>/g, "").trim();
@@ -67820,14 +67827,15 @@ const AU_TERMS = [
   ["UUID", "设备出厂时的唯一标识（Mesh 设备 UUID），绑定时由部署 App 读取；可以用它搜索设备。", "设备信息 → 高级信息，搜索，设备台账"],
 ];
 // “更新说明”“术语”与“联系支持”一样替换“帮助”弹窗打开，只有“关闭”，关闭后焦点回到机构入口。
-function auReleaseNotesOpen() {
+function auReleaseNotesOpen(fromHelp = false) {
   auDialog(
     "更新说明",
     `<p class="au-dlead">按版本从新到旧，列出各版本中您能看到的变化。</p>${AU_RELEASES.map(
       (r, i) =>
         `<section class="au-notes"><h3>${esc(r.version)} · ${esc(auReleaseDate(r))}${i ? "" : `<span class="chip info au-ml">当前版本</span>`}</h3><ul class="au-legal">${r.notes.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></section>`,
     ).join("")}`,
-    btn("关闭", "close"),
+    (fromHelp ? btn("返回帮助", "auHelpBack") : "") + btn("关闭", "close"),
+    "au-help-dlg",
   );
 }
 // 成员的登录设备（ORG02，2026-10-09 用户确认，ABB 对比 BP21）：与“我的账户 › 登录与安全 › 登录设备”同样逐台列出，部署 App 的会话单独一行；
@@ -67856,13 +67864,14 @@ function auMemSessionsOpen(uid) {
     btn("关闭", "close"),
   );
 }
-function auTermsOpen() {
+function auTermsOpen(fromHelp = false) {
   auDialog(
     "术语",
     `<p class="au-dlead">按拼音排列，字母开头的词排在最后。设备有几种标识：平时用点位名称；现场核对与报修用序列号；绑定时部署 App 读取 UUID；联系技术支持时提供内部标识。</p><dl class="au-terms">${AU_TERMS.map(
       ([t, d, where]) => `<div><dt>${esc(t)}</dt><dd>${esc(d)}<small>出现在：${esc(where)}</small></dd></div>`,
     ).join("")}</dl>`,
-    btn("关闭", "close"),
+    (fromHelp ? btn("返回帮助", "auHelpBack") : "") + btn("关闭", "close"),
+    "au-help-dlg",
   );
 }
 
@@ -68128,25 +68137,36 @@ Object.assign(actions, {
     auDialog(
       "帮助",
       // 各行不加框，行与行之间一条细线（Lovable 核查第 151 条，2026-10-11 用户确认：原先六行放在白框里）
+      // 帮助按本人角色实际可用的功能显示：普通成员没有搜索与 AI，不列“搜索或提问”“AI 模型”（交互核查第 7 条）。
       `<div class="au-box au-help-rows">${[
-        ["搜索或提问", `${COARSE_MQ?.matches ? (isMobile() ? "打开菜单，点“搜索”" : "点侧栏的“搜索”") : `在任意页面按 ${IS_APPLE ? "⌘K" : "Ctrl+K"}`}；AI 只给建议，由您确认后执行。`],
+        U.role === "member" ? null : ["搜索或提问", `${COARSE_MQ?.matches ? (isMobile() ? "打开菜单，点“搜索”" : "点侧栏的“搜索”") : `在任意页面按 ${IS_APPLE ? "⌘K" : "Ctrl+K"}`}；AI 只给建议，由您确认后执行。`],
         ...(AU_GUIDE_URL ? [["使用指南", "按页面说明各项功能的用法。", `<a class="btn sm" href="${esc(AU_GUIDE_URL)}" target="_blank" rel="noopener">打开</a>`]] : []),
-        ["术语", "按拼音列出常用名词，并写明在哪个页面出现。", btn("查看术语", "auTerms", {}, "sm")],
-        ["联系支持", "说明问题，并由您选择是否附带当前对象、截图或日志；附带前去掉个人信息与密钥。", btn("联系支持", "auSupport", {}, "sm")],
-        ["软件版本", AU_RELEASE_TEXT, btn("更新说明", "auReleaseNotes", {}, "sm")],
-        ["AI 模型", "PACOM"],
+        ["术语", "按拼音列出常用名词，并写明在哪个页面出现。", btn("查看术语", "auTerms", { from: "help" }, "sm")],
+        ["联系支持", "说明问题，并由您选择是否附带当前对象、截图或日志；截图请在发送前自行遮盖个人信息。", btn("联系支持", "auSupport", { from: "help" }, "sm")],
+        ["软件版本", AU_RELEASE_TEXT, btn("更新说明", "auReleaseNotes", { from: "help" }, "sm")],
+        U.role === "member" ? null : ["AI 模型", "PACOM"],
       ]
+        .filter(Boolean)
         .map(([a, b, act]) => `<div class="au-row"><div class="au-row-l">${a}<small>${b}</small></div>${act ? `<div class="au-row-a">${act}</div>` : ""}</div>`)
         .join("")}</div>`,
       btn("关闭", "close"),
+      // 帮助与从帮助打开的术语、更新说明、联系支持用同一套文字规格，不随打开时所在的页面改变（交互核查第 8 条）
+      "au-help-dlg",
     );
   },
-  auSupport: () => auSupportOpen(),
-  auTerms: () => auTermsOpen(),
-  auReleaseNotes: () => auReleaseNotesOpen(),
+  // 从帮助打开的子页面有“返回帮助”，右上关闭仍退出整个帮助；联系支持有未复制的内容时先确认是否放弃（交互核查第 10 条）
+  auSupport: (a) => auSupportOpen(a?.from === "help"),
+  auTerms: (a) => auTermsOpen(a?.from === "help"),
+  auReleaseNotes: (a) => auReleaseNotesOpen(a?.from === "help"),
+  auHelpBack: () => {
+    const go = () => { closeModal(true); actions.auHelp(); };
+    if (modalDirty) return askDiscard(go, "联系支持中有尚未复制的内容");
+    go();
+  },
   auSupportPick: () => $("#supShot")?.click(),
   auSupportShotClear: () => {
     AUX.supportShot = null;
+    auSupportShotErr("");
     if ($("#supShot")) $("#supShot").value = "";
     auSupportShotShow();
     $("#supShotPick")?.focus();
@@ -68161,15 +68181,20 @@ Object.assign(actions, {
       $("#supText")?.focus();
       throw err;
     }
-    const text = auSupportText(desc), st = $("#supStatus"), out = $("#supOut");
+    const text = auSupportText(desc), st = $("#supStatus"), out = $("#supOut"),
+      // 复制完成前内容又改了、弹窗关了或换了一个，旧的回执不改动新内容的状态（交互核查第 12 条：原先回执一到就清除“未处理修改”）
+      ticket = AUX.supportCopy,
+      current = () => AUX.supportCopy === ticket && $("#supStatus") === st && auSupportText(($("#supText")?.value || "").trim()) === text;
     // 结果放进提示条：已复制为浅绿，无法自动复制为“需关注”（Lovable 核查第 154 条，2026-10-11 用户确认：原为一行黑字）
     const show = (t, type) => st && (st.innerHTML = wsNotice(esc(t), type, false));
     try {
       await navigator.clipboard.writeText(text);
+      if (!current()) return;
       if (out) out.hidden = true;
       show(`已复制。请粘贴到发给 ${AU_SUPPORT_MAIL} 的邮件中${AUX.supportShot ? "，并把截图作为附件添加" : ""}。`, "success");
       modalDirty = false;
     } catch {
+      if (!current()) return;
       if (out) Object.assign(out, { value: text, hidden: false });
       show("无法自动复制，请在下方选中全部内容后复制。", "warning");
       out?.focus();
@@ -70675,7 +70700,7 @@ function auAccessLostPage(pid) {
 }
 
 /* ---------- 联系支持（GLOBAL05，2026-10-08 下一批第 2 轮） ---------- */
-// 由“帮助”中“联系我们”一行的“联系支持”打开：问题说明，加上由用户选择的当前对象、日志与截图；附带内容先去掉电子邮箱、手机号码、网址路径与密钥。
+// 由“帮助”中“联系支持”一行打开：问题说明，加上由用户选择的当前对象、日志与截图；当前对象、日志与截图文件名中的可识别信息会隐藏，截图本身不处理，请用户发送前自行遮盖。
 // 支持服务尚未接入（见第12章）：不能在页面中直接提交，“复制内容”后发到支持邮箱，截图在邮件中作为附件添加。
 const AU_SUPPORT_MAIL = "support@pacom.cn";
 function auSupportClean(s) {
@@ -70706,6 +70731,14 @@ function auSupportText(desc) {
   if (AUX.supportShot) parts.push(`截图：${AUX.supportShot.name}（${AUX.supportShot.size}，作为邮件附件添加）`);
   return parts.join("\n\n");
 }
+function auSupportShotErr(text) {
+  const el = $("#supShotErr"), pick = $("#supShotPick");
+  if (!el) return;
+  el.textContent = text;
+  el.hidden = !text;
+  if (text) pick?.setAttribute("aria-describedby", "supShotErr");
+  else pick?.removeAttribute("aria-describedby");
+}
 function auSupportShotShow() {
   const s = AUX.supportShot, el = $("#supShotInfo");
   if (!el) return;
@@ -70714,12 +70747,15 @@ function auSupportShotShow() {
     : `<small>页面不会自动截屏；可选择您保存的截图（PNG 或 JPG）。</small>`;
   $("#supShotPick").textContent = s ? "更换截图…" : "选择截图…";
 }
-function auSupportOpen() {
+function auSupportOpen(fromHelp = false) {
   AUX.supportShot = null;
+  // 每次打开记一个新编号：之前的复制回执晚到时不影响这次的草稿（交互核查第 12 条）
+  AUX.supportCopy = (AUX.supportCopy || 0) + 1;
   const object = auSupportObject(), lines = auSupportLog();
   auDialog(
     "联系支持",
-    `<p class="au-dlead">说明遇到的问题，并选择是否附带下列内容。附带内容先去掉电子邮箱、手机号码、网址路径和密钥。</p>${fld(
+    // 脱敏说明写清范围（交互核查第 11 条：原为“附带内容先去掉电子邮箱、手机号码、网址路径和密钥”，读来像截图也会处理）
+    `<p class="au-dlead">说明遇到的问题，并选择是否附带下列内容。当前对象和日志中的可识别信息会隐藏。截图不会自动脱敏，请在发送前遮盖个人信息、密码和密钥。</p>${fld(
       "问题说明",
       "supText",
       `<textarea id="supText" class="input" rows="4"></textarea>`,
@@ -70728,11 +70764,12 @@ function auSupportOpen() {
       lines.length ? `本次打开页面以来最近 ${lines.length} 条提示与错误` : "本次打开页面以来没有提示或错误"
     }</small></span></label>${
       lines.length ? `<details class="au-sup-log"><summary>查看将附带的日志</summary><pre>${esc(lines.join("\n"))}</pre></details>` : ""
-    }<div class="au-sup-shot"><span class="au-sup-shot-l">截图<span id="supShotInfo"></span></span><button type="button" class="btn sm" id="supShotPick" data-act="auSupportPick">选择截图…</button><input type="file" id="supShot" accept="image/png,image/jpeg" hidden></div></fieldset>${
+    }<div class="au-sup-shot"><span class="au-sup-shot-l">截图<span id="supShotInfo"></span></span><button type="button" class="btn sm" id="supShotPick" data-act="auSupportPick">选择截图…</button><input type="file" id="supShot" accept="image/png,image/jpeg" hidden></div><small id="supShotErr" class="ws-field-err" role="alert" hidden></small></fieldset>${
       // 用全站的灰色信息提示条（Lovable 核查第 152 条，2026-10-11 用户确认：原为偏蓝的灰底说明框，没有图标）
       wsNotice(`支持服务尚未接入，暂不能在页面中直接提交。点“复制内容”后，粘贴到发给 <a href="mailto:${AU_SUPPORT_MAIL}">${AU_SUPPORT_MAIL}</a> 的邮件中；截图请在邮件中作为附件添加。`, "info", false).replace('class="ws-notice ', 'class="ws-notice au-sup-send ')
     }<div class="au-sup-status" id="supStatus" role="status"></div><textarea id="supOut" class="input au-sup-out" rows="8" readonly hidden aria-label="要发送的内容" data-resize-readonly="1"></textarea>`,
-    btn("关闭", "close") + btn("复制内容", "auSupportCopy", {}, "primary"),
+    (fromHelp ? btn("返回帮助", "auHelpBack") : "") + btn("关闭", "close") + btn("复制内容", "auSupportCopy", {}, "primary"),
+    "au-help-dlg",
   );
   // 两个多行框用 8×8 灰色弧形手柄，只能纵向拉（Lovable 核查第 155 条，2026-10-11 用户确认：原为浏览器的斜线手柄，能横向拉宽）
   if (typeof wsProjectTextareas === "function" && $("#dlg")) wsProjectTextareas($("#dlg"));
@@ -70740,12 +70777,15 @@ function auSupportOpen() {
   $("#supShot")?.addEventListener("change", (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
+    // 文件类型不对时，错误写在截图一行下面；换成合法图片或移除截图时只清这一条，不动其他字段的错误（交互核查第 13 条：原先写在弹窗底部，换图后不消失）
     if (!/^image\/(png|jpeg)$/.test(f.type)) {
       e.target.value = "";
-      return formError("请选择 PNG 或 JPG 图片");
+      return auSupportShotErr("请选择 PNG 或 JPG 图片");
     }
+    auSupportShotErr("");
     const kb = f.size / 1024;
-    AUX.supportShot = { name: f.name, size: kb < 1024 ? `${Math.max(1, Math.round(kb))} KB` : `${(kb / 1024).toFixed(1)} MB` };
+    // 文件名同样经过文本脱敏后才写进要发送的内容（交互核查第 11 条）
+    AUX.supportShot = { name: auSupportClean(f.name), size: kb < 1024 ? `${Math.max(1, Math.round(kb))} KB` : `${(kb / 1024).toFixed(1)} MB` };
     auSupportShotShow();
     $("#supShotPick")?.focus();
   });
