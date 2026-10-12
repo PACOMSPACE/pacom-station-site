@@ -26196,6 +26196,120 @@ body:has(> #app[data-page=alarms]) #dlg :is(.ops-modal-sub, .field > small.muted
 /* ==== 2026-10-12 总览核查（第三批）· 能源（总览核查第 47–49、51–54、58 条，第 55 条中能耗与碳排放设置）
    [B3-ENERGY] 本区的样式改动写在这一段注释之后、下一段注释之前。
    ==== */
+/* 总览核查第 49 条（2026-10-12 用户确认）：碳排放有未覆盖的日期时，主数值旁标“已覆盖部分”（12/18 #636363，与单位同一行） */
+.ops-kpi-v small.ops-kpi-part {
+  margin-left: 8px;
+  font-size: 12px;
+  line-height: 18px;
+  color: #636363;
+}
+/* 跨多个碳排放设置版本时“按 N 个版本分段计算”可展开（第 49 条）：每段一行“日期 · 用电 · 版本与因子 · 排放量”，最后一行合计；
+   写法同分项卡的“二级分项”（12/18，摘要 #2E2E2E），段内只在“ · ”处换行 */
+.ops-cspans {
+  font-size: 12px;
+  line-height: 18px;
+  color: #636363;
+}
+.ops-kpi .ops-cspans {
+  margin-top: 6px;
+}
+.ops-cspans > summary {
+  cursor: pointer;
+  color: #2e2e2e;
+  border-radius: 4px;
+}
+.ops-cspans > summary:focus-visible {
+  outline: 2px solid #00aeef;
+  outline-offset: 2px;
+}
+.ops-cspans ul {
+  margin: 4px 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+.ops-cspans li + li {
+  margin-top: 2px;
+}
+.ops-cspans b {
+  font-weight: 480;
+  color: #2e2e2e;
+}
+.ops-cspans .ops-cspans-sum {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid #ebebeb;
+}
+/* 触屏与窄屏：摘要的点按范围用看不见的外扩做到 44 高，外观不变 */
+@media (max-width: 850px), (pointer: coarse) {
+  .ops-cspans > summary {
+    position: relative;
+  }
+  .ops-cspans > summary::after {
+    content: "";
+    position: absolute;
+    left: -6px;
+    right: -6px;
+    top: 50%;
+    height: 44px;
+    transform: translateY(-50%);
+  }
+}
+/* 第 58 条：从总览 › 能源的“核算口径”进入时聚焦这张卡（tabindex=-1，只用于定位），不画焦点框 */
+#anCarbonBasis:focus {
+  outline: none;
+}
+/* 第 52 条：保存能耗设置、碳排放设置前的说明（变更字段、生效期间与影响），14/24 #636363，同放弃确认的说明 */
+#discard .ops-appsave .db > p,
+#discard .ops-appsave .db li {
+  margin: 0;
+  font-size: 14px;
+  line-height: 24px;
+  color: #636363;
+}
+#discard .ops-appsave .db ul {
+  margin: 0 0 8px;
+  padding-left: 20px;
+}
+#discard .ops-appsave .db > p + p {
+  margin-top: 8px;
+}
+/* 总览核查第 53 条（2026-10-12 用户确认）：屏宽 600 以下，共用的指标卡（.ops-kpis：总览各页签、数据分析、告警）改为单列紧凑行卡——
+   名称与数值同一行（数值靠右），下面是比较与数据质量；缺数、估算与异常原因照常显示，不用省略号；折标、因子等细节（.ops-kpi-x）不显示，
+   在数据分析与碳排放卡中查看。原为两列、每张约 157 宽、273 高。桌面与平板布局不变 */
+@media (max-width: 599px) {
+  .ops-kpis,
+  .ops-kpis.k3 {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .ops-kpi {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: 12px;
+    row-gap: 2px;
+    min-height: 0;
+    padding: 12px 16px;
+  }
+  .ops-kpi > * {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+  .ops-kpi > .ops-kpi-l {
+    grid-column: 1;
+  }
+  .ops-kpi > .ops-kpi-v {
+    grid-column: 2;
+    text-align: right;
+  }
+  .ops-kpi .ops-dq,
+  .ops-kpi .ops-cspans {
+    margin-top: 2px;
+  }
+  .ops-kpis .ops-kpi-x {
+    display: none;
+  }
+}
 
 /* ==== 2026-10-12 总览核查（第三批）· 字号字重与操作记录（总览核查第 56、57 条）
    [B3-MISC] 本区的样式改动写在这一段注释之后、下一段注释之前。
@@ -33499,7 +33613,8 @@ function wsFormDirtyText() {
   const title = $("#dlg .dialog")?.getAttribute("aria-label")?.trim();
   return title ? `“${esc(title)}”中有尚未保存的修改` : "表单中有尚未保存的修改";
 }
-function askDiscard(fn, text = wsPlanDirtyText()) {
+// tail：说明的后半句，默认“离开后不会保留”；切换计量来源时写“切换后不会保留”（总览核查第 51 条）
+function askDiscard(fn, text = wsPlanDirtyText(), tail = "，离开后不会保留。") {
   if ($("#discard")) return;
   const saved = $("#dlg")?.editFocus || wsRememberFocus($("#dlg") || $("#app"));
   U.discardFocus = saved || ($("#dlg") ? null : wsLastField?.isConnected ? { el: wsLastField, id: wsLastField.id } : null);
@@ -33508,7 +33623,7 @@ function askDiscard(fn, text = wsPlanDirtyText()) {
   el.id = "discard";
   el.dataset.page = U.page;
   el.className = "scrim ws-dlg-enter";
-  el.innerHTML = `<section class="dialog" role="alertdialog" aria-modal="true" aria-label="保留未保存修改"><div class="dh"><h2>是否放弃修改？</h2></div><div class="db"><p>${text}，离开后不会保留。</p></div><div class="df">${btn("继续编辑", "keep")}${btn("放弃修改", "discard", {}, "danger")}</div></section>`;
+  el.innerHTML = `<section class="dialog" role="alertdialog" aria-modal="true" aria-label="保留未保存修改"><div class="dh"><h2>是否放弃修改？</h2></div><div class="db"><p>${text}${tail}</p></div><div class="df">${btn("继续编辑", "keep")}${btn("放弃修改", "discard", {}, "danger")}</div></section>`;
   document.body.append(el);
   el.querySelector("[data-act=keep]").focus();
   U.discard = fn;
@@ -49540,13 +49655,16 @@ function renderOverview() {
       // 能耗设置与碳排放设置放在右上角，与另外三个应用一致（2026-10-09 用户确认，ABB 对比 BP71 第 15 条）；对所有角色可见，没有编辑权限时只读。
       // 在页签下第一行的右端，统计在其下（2026-10-10 用户确认，ABB 对比 IA4：原先这一行在四个统计之下）
       `<div class="ws-section-toolbar"><p class="muted">${esc(whereNow())} · 能耗与碳排放按应用设置核算</p><span>${btn("能耗设置", "applicationSettings", { kind: "能耗" })}${btn("碳排放设置", "applicationSettings", { kind: "碳排放" })}</span></div>` +
+      // 总览核查第 54 条（2026-10-12 用户确认）：与接入后同一组四个指标（今日用电、本月用电、本月碳排放、能耗强度），数值写“—”，各写缺少的条件；
+      // 费用写在本月用电、数据覆盖写在今日用电的说明里（接入后分别在分项卡与各卡的数据质量一行）。原为今日用电、本月费用、本月碳排放、数据覆盖，
+      // 说明写“趋势、范围和核算口径在数据分析中维护”（核算口径实际在设置里维护）
       stats([
-        ["今日用电", "—", "kWh · 等待验证后的计量数据"],
-        ["本月费用", "—", "元 · 由计费设置确定"],
-        ["本月碳排放", "—", "等待能源数据与因子"],
-        ["数据覆盖", "—", "未收到计量质量回报"],
+        ["今日用电", "—", "kWh · 等待经过验证的计量数据 · 数据覆盖：未收到计量质量回报"],
+        ["本月用电", "—", "kWh · 等待经过验证的计量数据 · 电费在能耗设置中登记计费方式后估算"],
+        ["本月碳排放", "—", "t · 需要计量数据，并在碳排放设置中登记覆盖本月的因子"],
+        ["能耗强度", "—", "kWh/(m²·a) · 需要近 30 天的计量数据与楼层面积"],
       ]) +
-      chartPending("能源概况", "本页查看当前情况；趋势、范围和核算口径在数据分析中维护。", btn("进入数据分析", "goAnalysis", { tab: "energy" }))
+      chartPending("能源概况", "接入经过验证的计量数据并完成相关设置后，这里显示用电与碳排放概况；历史趋势在数据分析中查看。", btn("进入数据分析", "goAnalysis", { tab: "energy" }))
     );
   const kind = tab === "lighting" ? "照明" : tab === "hvac" ? "暖通空调" : "室内环境",
     types = tab === "lighting" ? ["lc", "ms"] : tab === "hvac" ? ["fc", "idu", "odu", "vg"] : ["ms", "aq"],
@@ -51091,12 +51209,15 @@ const periodText = (start, end) => {
   return `${f(start)}–${f(end)}`;
 };
 const carbonLabel = (c) => `碳排放设置 v${c.version} · ${c.values.factor} ${carbonUnit(c.values)} · ${c.values.region} ${c.values.year}`;
-// 报告的排放因子：保存时固定引用的碳排放设置版本；更早保存的草稿按当前登记核对
+// 报告的排放因子：已发布的报告固定引用的碳排放设置版本；草稿的标签与数值同按当前的碳排放设置（总览核查第 52 条，2026-10-12 用户确认：
+// 已发布的报告保持原版本，草稿随设置更新；原先草稿写保存时固定的旧版本，数值却按最新版本计算）
 function reportCarbonText(r) {
-  const fixed = (r.carbon || []).map((id) => g("configs", id)).filter(Boolean);
+  const fixed = r.receiptId ? (r.carbon || []).map((id) => g("configs", id)).filter(Boolean) : [];
   if (fixed.length) return fixed.map(carbonLabel).join("；");
   const gaps = carbonGaps(r.projectId, r.start, r.end);
-  return gaps.length ? `没有适用的排放因子（${spanText(gaps, r.projectId)}），不能生成含碳排放的报告` : [...new Set(ymdDays(r.start, r.end).map((d) => carbonFor(r.projectId, d)))].map(carbonLabel).join("；");
+  return gaps.length
+    ? `没有适用的排放因子（${spanText(gaps, r.projectId)}），不能生成含碳排放的报告`
+    : [...new Set(ymdDays(r.start, r.end).map((d) => carbonFor(r.projectId, d)))].map(carbonLabel).join("；") + (r.receiptId ? "" : "（草稿按当前设置，发布时固定）");
 }
 // 计量点：所选连接中的电能数据点（单位为 kWh、Wh 或 MWh，BP57），逐个写表计层级、分项、计入方式与覆盖楼层（1.54 之前只登记一个总表数据点）。
 // 倍率（含 CT/PT）、额定功率与起始底数只在系统接入的数据映射登记，这里只读显示（2026-10-09 用户确认，ABB 对比 BP117 方案A：原先另填“互感器倍率”）
@@ -51462,7 +51583,8 @@ function carbonForm(pid, entries, v) {
     "<input ",
     '<input aria-label="有效区间结束" ',
   )}</div></div>${fld("核算边界", "appBoundary", input("appBoundary", v.boundary || "", "填写计入本次核算的用电范围"))}${note(
-    "不预填参考因子；与能源数据的口径和年份匹配。修改形成新版本，历史报告固定引用原版本。",
+    // 总览核查第 52 条（2026-10-12 用户确认）：草稿报告随设置更新，只有已发布的报告保持原版本；原为“历史报告固定引用原版本”
+    "不预填参考因子；与能源数据的口径和年份匹配。修改形成新版本，已发布的报告保持原版本。",
   )}${settingVersions(entries, pid, (x) => {
     const [from] = carbonSpan(x.values);
     return ` · ${esc(x.values.factor)} ${esc(carbonUnit(x.values))}${from ? ` · 有效区间 ${esc(carbonSpanText(x.values, pid))}` : ""}`;
@@ -51481,15 +51603,48 @@ function applicationForm(kind, project) {
       .configs.filter((c) => c.projectId === pid && c.kind === kind)
       .sort((a, b) => b.version - a.version),
     v = entries[0]?.values || {},
-    ro = !canEdit();
-  formState = { kind: "configs", appKind: kind, projectId: pid };
+    ro = !canEdit(),
+    cur = entries[0]?.version,
+    // 标题下写项目与版本（总览核查第 55 条，2026-10-12 用户确认，写法同照明控制参数、工作时间）：“项目 · 当前 vN · 保存后形成 vN+1”，没有版本时“尚未保存”。
+    // 位置为“全部项目”时，总览 › 能源与数据分析的两个设置按钮打开的是有运行数据的项目，另写一句明确将修改哪个项目（原先页面写“全部项目”，看不出改的是哪个项目）
+    pname = g("projects", pid)?.name || "",
+    sub = `<p class="ops-modal-sub">${esc([pname, cur ? `当前 v${cur}` : "尚未保存", cur && !ro ? `保存后形成 v${cur + 1}` : ""].filter(Boolean).join(" · "))}${!U.p && !ro ? `。位置为“全部项目”，这里修改的是${esc(zhSub(pname))}的${kind}设置。` : ""}</p>`;
+  // appConn 与 appSnap：切换计量来源前判断计量点与进线表有没有未保存的修改（总览核查第 51 条）
+  formState = { kind: "configs", appKind: kind, projectId: pid, appConn: v.connectionId || "" };
   modal(
     kind + "设置",
-    (ro ? wsNotice("需要配置权限才能修改。", "info", false) : "") + (kind === "能耗" ? energyForm(pid, entries, v, ro) + energyUploadRow(pid) : carbonForm(pid, entries, v)),
+    sub + (ro ? wsNotice("需要配置权限才能修改。", "info", false) : "") + (kind === "能耗" ? energyForm(pid, entries, v, ro) + energyUploadRow(pid) : carbonForm(pid, entries, v)),
     // 保存按钮写“保存”，与照明控制参数相同（全面设计核查第 95 条，2026-10-12 用户确认：原为“保存设置”）
     ro ? btn("关闭", "close") : btn("取消", "close") + btn("保存", "saveApplication", {}, "primary"),
   );
   if (ro) $("#dlgBody").querySelectorAll("input:not([type=hidden]), textarea, [role=combobox]").forEach((x) => (x.disabled = true));
+  if (kind === "能耗") formState.appSnap = energySwitchSnap();
+}
+// 计量点与计费的进线表（功率因数考核、核定需量）的当前取值；切换计量来源会按新来源重列这些字段（总览核查第 51 条）
+const energySwitchSnap = () => JSON.stringify([...document.querySelectorAll("#appPoints input, #dlg [data-line] input")].map((x) => (x.type === "checkbox" ? x.checked : x.value)));
+// 切换计量来源（总览核查第 51 条，2026-10-12 用户确认）：计量点或进线表有未保存的修改时先确认放弃，“继续编辑”退回原来的来源；
+// 原先直接按新来源重列，已改的计量点、功率因数与核定需量的进线表被清掉
+function energySwitchSource(id) {
+  const s = formState,
+    apply = () => {
+      const ctl = $("#appConnection-control"),
+        opts = JSON.parse(ctl?.dataset.options || "[]");
+      $("#appConnection").value = id;
+      if (ctl) ctl.querySelector("span").textContent = opts.find(([x]) => String(x) === id)?.[1] || "请选择";
+      $("#appPoints").innerHTML = energyPointsHtml(id, latestConfig("能耗", s.projectId)?.values || {});
+      // 功率因数考核与核定需量的进线表按新的计量来源重列（能耗方案 EN9）
+      document.querySelectorAll("#dlg [data-line]").forEach((x) => (x.innerHTML = energyLineSelect(x.dataset.line, id)));
+      s.appConn = id;
+      s.appSnap = energySwitchSnap();
+      modalDirty = true;
+    };
+  if (s.appSnap == null || energySwitchSnap() === s.appSnap) return apply();
+  // 先退回原来的来源，确认放弃后再切换
+  const ctl = $("#appConnection-control"),
+    opts = JSON.parse(ctl?.dataset.options || "[]");
+  $("#appConnection").value = s.appConn;
+  if (ctl) ctl.querySelector("span").textContent = opts.find(([x]) => String(x) === s.appConn)?.[1] || "请选择";
+  askDiscard(apply, "切换计量来源会按新来源重列计量点与进线表：计量点或计费（进线表）中有尚未保存的修改", "，切换后不会保留。");
 }
 function appTariffShow() {
   const t = value("appTariff") || "none",
@@ -51681,10 +51836,87 @@ function carbonValues() {
 // 保存设置后在原处提示结果，写设置名称、版本与状态，暖通空调、室内环境、能耗与碳排放设置同一写法
 // （GLOBAL03，2026-10-09 用户确认，Vision 核查 V78：原先弹窗关闭后没有提示，暖通空调设置保存后页面上看不出变化）
 const configSaved = (c) => msg(`已保存${c.kind}设置 v${c.version}`);
+// 能耗设置、碳排放设置的字段名，用于保存前列出改了哪些（总览核查第 52 条）
+const APP_FIELDS = {
+  碳排放: { method: "核算口径", factor: "排放因子", unit: "因子单位", year: "因子年份", region: "适用地区", source: "来源与版本", purpose: "核算用途", from: "有效区间", to: "有效区间", boundary: "核算边界" },
+  能耗: {
+    connectionId: "计量来源",
+    points: "计量点",
+    boundary: "计量边界",
+    ownGen: "光伏、储能或自备电源",
+    coal: "折标系数",
+    baseline: "节能基线",
+    tariff: "计费方式",
+    userClass: "用户类别与电压等级",
+    tariffFrom: "电价生效日期",
+    tariffSource: "电价依据",
+    readDay: "抄表日",
+    pf: "功率因数考核",
+    price: "单价",
+    tou: "分时电价",
+    basicBy: "基本电费",
+    basicQty: "容量",
+    basicPrice: "基本电价",
+    twoEnergy: "电度电价",
+    demands: "核定需量",
+    demandLimit: "需量限制",
+  },
+};
+// 比较用的规范写法：键排序，空值（undefined、null、空字符串）不计
+const appNorm = (x) =>
+  Array.isArray(x)
+    ? x.map(appNorm)
+    : x && typeof x === "object"
+      ? Object.fromEntries(
+          Object.keys(x)
+            .sort()
+            .filter((k) => x[k] != null && x[k] !== "")
+            .map((k) => [k, appNorm(x[k])]),
+        )
+      : x;
+const appSame = (a, b) => JSON.stringify(appNorm(a)) === JSON.stringify(appNorm(b));
+// 较早保存的版本没有的字段按表单的默认值补齐后再比较（如未勾选自备电源、折标按当量值、不设基线、不计算费用），原样保存不算修改
+const appDefaults = (kind, v = {}) =>
+  kind === "能耗"
+    ? { ownGen: false, coal: { basis: "equal" }, baseline: { method: "none" }, tariff: "none", ...v }
+    : { method: "CO2", unit: "kg/kWh", purpose: CARBON_USES[0], ...v };
+// 保存前的说明（总览核查第 52 条）：改了哪些字段（碳排放设置写原值与新值）、生效期间，以及对日常核算与报告的影响
+function appChangeHtml(kind, pid, old, vs, n) {
+  const FL = APP_FIELDS[kind],
+    keys = [...new Set([...Object.keys(old), ...Object.keys(vs)])].filter((k) => !appSame(old[k], vs[k])),
+    names = [...new Set(keys.map((k) => FL[k] || "其他"))],
+    cv = (v, k) => (k === "有效区间" ? carbonSpanText(v, pid) : k === "核算口径" ? gasOf(v) : k === "因子单位" ? carbonUnit(v) : String(v[Object.keys(FL).find((x) => FL[x] === k)] ?? "—")),
+    items = names.map((k) => (kind === "碳排放" && k !== "其他" ? `${k}：${cv(old, k)} → ${cv(vs, k)}` : k)),
+    when =
+      kind === "碳排放"
+        ? `${carbonSpanText(vs, pid)}（这些日期按 v${n} 核算${appSame(carbonSpan(old), carbonSpan(vs)) ? "" : "；不在其中的日期仍按原有的版本"}）`
+        : `保存后的各期间（能耗设置不分有效区间）${vs.tariff && vs.tariff !== "none" && vs.tariffFrom ? `；电费自 ${projectDay(vs.tariffFrom, pid)}起按登记的电价估算` : ""}`;
+  return `<p>变更字段：</p><ul>${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul><p>生效期间：${esc(when)}</p><p>将更新该期间的日常核算，已发布的报告保持原版本。</p>`;
+}
+// 保存前确认（第 52 条）：与放弃确认同一个上层弹窗，“返回修改”留在设置中，“保存”形成新版本
+function appSaveAsk(title, html, fn) {
+  if ($("#discard")) return;
+  // 清掉上一次保存留下的提示（如“没有修改”）
+  if ($("#formError")) $("#formError").textContent = "";
+  U.discardFocus = $("#dlg")?.editFocus || wsRememberFocus($("#dlg"));
+  const el = document.createElement("div");
+  el.id = "discard";
+  el.dataset.page = U.page;
+  el.className = "scrim ws-dlg-enter";
+  el.innerHTML = `<section class="dialog ops-appsave" role="alertdialog" aria-modal="true" aria-label="${esc(title)}"><div class="dh"><h2>${esc(title)}</h2></div><div class="db">${html}</div><div class="df">${btn("返回修改", "keep")}${btn("保存", "discard", {}, "primary")}</div></section>`;
+  document.body.append(el);
+  el.querySelector("[data-act=discard]").focus();
+  U.discard = fn;
+}
 async function saveApplication() {
   const s = formState,
     kind = s.appKind,
-    vs = kind === "能耗" ? energyValues(s.projectId) : carbonValues();
+    vs = kind === "能耗" ? energyValues(s.projectId) : carbonValues(),
+    prev = latestConfig(kind, s.projectId);
+  // 总览核查第 52 条（2026-10-12 用户确认）：内容与当前版本相同时不生成新版本（原先原样保存也形成新版本）；有修改时先说明变更字段、生效期间与影响，确认后保存
+  if (prev && appSame(appDefaults(kind, prev.values), appDefaults(kind, vs))) throw Error(`没有修改：内容与当前 v${prev.version} 相同，不生成新版本`);
+  if (prev && !s.appConfirmed) return appSaveAsk(`保存为${kind}设置 v${prev.version + 1}？`, appChangeHtml(kind, s.projectId, appDefaults(kind, prev.values), appDefaults(kind, vs), prev.version + 1), () => ((s.appConfirmed = true), actions.saveApplication()));
+  s.appConfirmed = false;
   const saved = await transaction((db) => {
     const c = {
       id: M.uid("config"),
@@ -53026,11 +53258,8 @@ document.addEventListener("input", (e) => {
   if (e.target.id === "analysisRange") U.analysisRange = e.target.value;
   if (e.target.id === "analysisPeriod") U.analysisPeriod = e.target.value;
   // 能耗设置：换计量来源时重列计量点；计费方式与节能基线只显示所需的字段（规范 APP01，2026-10-08 Vision 核查 V25）
-  if (e.target.id === "appConnection" && $("#appPoints") && formState?.appKind === "能耗") {
-    $("#appPoints").innerHTML = energyPointsHtml(e.target.value, latestConfig("能耗", formState.projectId)?.values || {});
-    // 功率因数考核与核定需量的进线表按新的计量来源重列（能耗方案 EN9）
-    document.querySelectorAll("#dlg [data-line]").forEach((x) => (x.innerHTML = energyLineSelect(x.dataset.line, e.target.value)));
-  }
+  // 计量点或进线表有未保存的修改时先确认放弃（总览核查第 51 条，见 energySwitchSource）
+  if (e.target.id === "appConnection" && $("#appPoints") && formState?.appKind === "能耗" && e.target.value !== formState.appConn) energySwitchSource(e.target.value);
   if (["appTariff", "appTwoEnergy", "appBasicBy", "appDemandLimit"].includes(e.target.id)) appTariffShow();
   // 计入方式为“仅作分项”时登记所属总表，还没选的按当前表单自动带入（能耗方案 EN8、EN9）
   if (/^appUse\d+$/.test(e.target.id)) {
@@ -60033,11 +60262,10 @@ function renderOpsOverview() {
   return head + ovSpace(tab);
 }
 // 今日用电的数据质量：网关离线后电表没有新读数；今日有缺数、补采等时写明（规范 OPS01、OPS05）
+// 总览核查第 47 条（2026-10-12 用户确认）：按日合计与缺数时段两级判断，与本月用电、能耗强度、本月碳排放共用 energyGrade；
+// 原为今日有补采以外的标注即“数据不完整”
 function todayQuality() {
-  if (Demo.ctl.gwOffline) return dq("warn", "数据不完整：网关离线后电表没有新读数");
-  const q = Demo.days().at(-1)?.quality || [],
-    bad = q.some((x) => x.type !== "补采");
-  return q.length ? dq(bad ? "warn" : "ok", `${bad ? "数据不完整" : "数据完整"}：今日有${[...new Set(q.map((x) => x.type))].join("、")}`) : dq("ok", "数据完整：两块电表实测");
+  return gradeDq(energyGrade(Demo.days().at(-1)?.quality || [], { offline: Demo.ctl.gwOffline }));
 }
 // 室温偏离设定（配置参数 H-17，与 G36 相同；2026-10-09 用户确认）：高于供冷设定或低于供热设定才算偏离，两个设定之间不算。
 // 正数为高于供冷设定的 K 数，负数为低于供热设定的 K 数，两个设定之间为 0；无空调或没有读数时为 null。
@@ -60434,7 +60662,9 @@ const ymdOf = (t) => {
 const setLink = (kind, label, html) => `<button class="ops-link" data-act="applicationSettings" data-kind="${kind}" data-project="${OPS_SCOPE.project}">${html ?? esc(label)}</button>`;
 // 碳排放：每天按有效区间覆盖该日的碳排放设置计算；没有适用因子的日期不计入，写“待设置”或“不完整”，不用参考因子代替
 function carbonIn(rg, asOf) {
-  const used = new Map();
+  const used = new Map(),
+    byGas = {},
+    spans = [];
   let light = 0,
     hvac = 0,
     kwh = 0,
@@ -60442,41 +60672,96 @@ function carbonIn(rg, asOf) {
     n = 0;
   for (const d of Demo.days().filter((x) => x.t >= rg.from && x.t < rg.to)) {
     n++;
-    const c = carbonFor(OPS_SCOPE.project, ymdOf(d.t), asOf);
+    const c = carbonFor(OPS_SCOPE.project, ymdOf(d.t), asOf) || null,
+      dk = d.light + d.hvac,
+      sp = spans.at(-1);
+    // 分段（总览核查第 49 条）：相邻的天用同一版本（或同为没有适用因子）时并为一段
+    if (sp && sp.c === c && sp.to === d.t) Object.assign(sp, { to: d.t + Demo.DAY, kwh: sp.kwh + dk });
+    else spans.push({ c, from: d.t, to: d.t + Demo.DAY, kwh: dk, kg: 0 });
     if (!c) {
       missing++;
       continue;
     }
-    const k = carbonKg(c);
+    const k = carbonKg(c),
+      gas = gasOf(c.values);
     used.set(c.id, c);
     light += d.light * k;
     hvac += d.hvac * k;
-    kwh += d.light + d.hvac;
+    kwh += dk;
+    byGas[gas] = (byGas[gas] || 0) + dk * k;
+    spans.at(-1).kg += dk * k;
   }
   const cs = [...used.values()].sort((a, b) => a.version - b.version),
     last = cs.at(-1),
     // 活动数据（用电）的缺数、估算与补采（规范 ANALYSIS02，2026-10-08 第 3 轮，ANALYSIS02 待实现第1条）
     act = (Demo.quality ? Demo.quality() : Demo.QUALITY).filter((q) => q.at >= rg.from && q.at < rg.to);
-  // 期间内的版本口径不同（CO₂ 与 CO₂e）时提示，合计按各日的口径相加
-  return { kg: cs.length ? light + hvac : null, light, hvac, kwh, missing, days: n, configs: cs, last, gas: last ? gasOf(last.values) : "CO₂", mixed: new Set(cs.map((x) => gasOf(x.values))).size > 1, act };
+  // 总览核查第 48 条（2026-10-12 用户确认）：期间内的版本口径不同（CO₂ 与 CO₂e）时按口径分列小计（byGas），不合计，页面写“口径不一致”；
+  // 原为按各日的口径相加成一个总量。kg 仍为各日相加，只供口径一致时使用。spans 为按版本分段（第 49 条）
+  return { kg: cs.length ? light + hvac : null, light, hvac, kwh, missing, days: n, configs: cs, last, gas: last ? gasOf(last.values) : "CO₂", mixed: Object.keys(byGas).length > 1, byGas, spans, act };
 }
-// 活动数据的质量：缺数与补采的日合计按电表读数差或补传的读数计入，仍算完整；有估算的天为“数据有估算”（规范 ANALYSIS02、OPS05）
-const actText = (act = []) => {
-  const n = (t) => new Set(act.filter((q) => q.type === t).map((q) => Demo.dayStart(q.at))).size;
-  return ["缺数", "补采", "复位", "换表"].filter(n).map((t) => `${n(t)} 天${t}`).join("、");
-};
+// 期间排放量的写法（总览核查第 48 条）：口径一致时为一个总量；CO₂ 与 CO₂e 并存时分列两个小计，注明不合计
+const carbonGasText = (c) => Object.entries(c.byGas || {}).map(([gas, kg]) => `${gas} ${nf(kg / 1000, 2)} t`).join(" · ");
+const carbonAmt = (c) => (c.kg == null ? "待设置" : c.mixed ? `口径不一致：${carbonGasText(c)}，不合计` : `${nf(c.kg / 1000, 2)} t${c.gas}`);
+// 指标卡的主数值：口径不一致时写“口径不一致”，小计写在副文；有未覆盖的日期时在数值旁标“已覆盖部分”（第 49 条）
+const carbonKpiV = (c, div = 1000, unit = "t") =>
+  c.kg == null ? "待设置" : c.mixed ? "口径不一致" : nf(c.kg / div, 2) + `<small>${unit}${c.gas}</small>${c.missing ? `<small class="ops-kpi-part">已覆盖部分</small>` : ""}`;
+// 跨多个碳排放设置版本时分段列出（总览核查第 49 条，2026-10-12 用户确认）：各段的日期、用电、因子与排放量，最后合计；只用到一个版本时不显示。
+// 原先只写最新版本的因子，看不出期间内换过因子
+function carbonSpans(c) {
+  if (c.configs.length < 2) return "";
+  const d = (s) => `${Demo.md(s.from)}–${Demo.md(s.to - Demo.DAY)}`,
+    li = c.spans.map(
+      (s) =>
+        `<li>${segs(
+          esc(d(s)),
+          esc(nf(s.kwh) + " kWh"),
+          s.c ? esc(`v${s.c.version}`) : "",
+          s.c ? esc(`${s.c.values.factor} ${carbonUnit(s.c.values)}`) : "没有适用的因子",
+          s.c ? `<b>${esc(nf(s.kg / 1000, 2) + " t" + gasOf(s.c.values))}</b>` : "未计入",
+        )}</li>`,
+    ),
+    // 合计按段只在“ · ”处换行；口径不一致时各口径一段，另写“不合计”
+    total = c.mixed
+      ? [...Object.entries(c.byGas).map(([gas, kg]) => `<b>${esc(`${gas} ${nf(kg / 1000, 2)} t`)}</b>`), "口径不一致，不合计"]
+      : [`<b>${esc(`${nf(c.kg / 1000, 2)} t${c.gas}`)}</b>`, c.missing ? "已覆盖部分" : ""];
+  return `<details class="ops-cspans"><summary>按 ${c.configs.length} 个版本分段计算</summary><ul>${li.join("")}<li class="ops-cspans-sum">${segs("合计", ...total)}</li></ul></details>`;
+}
+// 缺数时段（总览核查第 47 条）：连续缺数的小时并为一段；只知道整段的电量（缺数前后的电表读数差），不知道逐小时的分布
+function gapBlocks() {
+  const out = [];
+  for (const r of Demo.series()) {
+    if (r.hvac != null) continue;
+    const b = out.at(-1);
+    if (b && b.to === r.t) Object.assign(b, { to: r.t + Demo.H, kwh: b.kwh + r.hvacTrue, hours: [...b.hours, r.h] });
+    else out.push({ from: r.t, to: r.t + Demo.H, kwh: r.hvacTrue, hours: [r.h] });
+  }
+  return out;
+}
+const gapHours = (b) => `${String(Demo.loc(b.from).h).padStart(2, "0")}–${String(Demo.loc(b.to - 1).h + 1).padStart(2, "0")} 时`;
+// 用电数据质量的两级判断（总览核查第 47 条，2026-10-12 用户确认）：今日用电、本月用电、能耗强度与本月碳排放四张卡共用。
+// 先看日合计：缺数、补采、复位与换表的日合计按电表读数差或补传的读数计入，仍完整；有估算的天、网关离线后没有新读数时不完整（黄点）。
+// 再写缺数的时段（这些小时的数据未取得，按小时的统计与电费估算不用它们），补采、复位、换表各计天数。
+// 原为：用电三张卡把缺数判为“数据不完整”，碳排放卡判为“数据完整”，写法各不相同且较长
+function energyGrade(qs = [], o = {}) {
+  const days = (t) => [...new Set(qs.filter((q) => q.type === t).map((q) => Demo.dayStart(q.at)))],
+    est = days("估算").length,
+    gd = days("缺数"),
+    bs = gapBlocks().filter((b) => gd.includes(Demo.dayStart(b.from))),
+    hrs = bs.reduce((a, b) => a + b.hours.length, 0),
+    gap = gd.length ? `缺数 ${gd.length} 天（${bs.length === 1 ? gapHours(bs[0]) : `共 ${hrs} 小时`}未取得）` : "",
+    head = o.offline ? "日合计不完整：网关离线后没有新读数" : est ? `日合计有估算：${est} 天为估算值` : qs.length ? "日合计完整" : "数据完整",
+    parts = [head, gap, ...["补采", "复位", "换表"].map((t) => days(t).length && `${t} ${days(t).length} 天`)].filter(Boolean);
+  if (!qs.length && !o.offline) parts.push("两块电表实测");
+  return { warn: !!(est || o.offline), text: parts.join(" · ") };
+}
+const gradeDq = (gr) => dq(gr.warn ? "warn" : "ok", gr.text);
+// 碳排放卡的数据质量：因子的覆盖与口径写在前面，再接用电的两级判断（总览核查第 47、48 条）。没有适用因子的天与口径不一致同时出现时两项都写
+// （原先只写前者，口径提示被盖住）
 const carbonQuality = (c) => {
-  const at = actText(c.act),
-    est = new Set((c.act || []).filter((q) => q.type === "估算").map((q) => Demo.dayStart(q.at))).size;
-  return c.kg == null
-    ? dq("unk", "没有适用的排放因子")
-    : c.missing
-      ? dq("warn", `数据不完整：${c.missing} 天没有适用的排放因子，未计入`)
-      : c.mixed
-        ? dq("warn", "口径不一致：期间内的碳排放设置有 CO₂ 也有 CO₂e，按各日的口径相加")
-        : est
-          ? dq("warn", `数据有估算：活动数据 ${est} 天为估算值`)
-          : dq("ok", `数据完整：按碳排放设置 ${c.configs.map((x) => "v" + x.version).join("、")}${at ? `；活动数据 ${at}，日合计完整` : ""}`);
+  if (c.kg == null) return dq("unk", "没有适用的排放因子");
+  const gr = energyGrade(c.act),
+    fac = [c.missing && `${c.missing} 天没有适用的因子，未计入`, c.mixed && "口径不一致（CO₂ 与 CO₂e）"].filter(Boolean);
+  return dq(fac.length || gr.warn ? "warn" : "ok", [...fac, gr.text].join(" · "));
 };
 // 电费估算：按能耗设置登记的计费方式与生效日期，从小时用电计算；两部制的基本电费按月另写（规范 APP01）
 function costIn(rg, meter = "all") {
@@ -60490,20 +60775,42 @@ function costIn(rg, meter = "all") {
     return null;
   }
   const from = v.tariffFrom ? Date.parse(v.tariffFrom + "T00:00:00+08:00") : rg.from,
-    by = {};
+    lo = Math.max(rg.from, from),
+    by = {},
+    price = (h) => [map?.[h], map?.[h] ? v.tou[map[h]].price : v.price],
+    gaps = [];
   let energy = 0;
-  for (const r of Demo.series().filter((x) => x.t >= Math.max(rg.from, from) && x.t < rg.to)) {
-    const e = meter === "light" ? r.light : meter === "hvac" ? r.hvacTrue : r.light + r.hvacTrue,
-      l = map?.[r.h];
-    energy += e * (l ? v.tou[l].price : v.price);
+  // 总览核查第 47 条（2026-10-12 用户确认）：缺数的小时不用未采到的小时值（原先按 hvacTrue 逐小时计价）；缺数时段整段另算：
+  // 整段在期间内且同一电价时按该电价计入整段电量，否则不计入费用；都写进费用说明
+  for (const r of Demo.series().filter((x) => x.t >= lo && x.t < rg.to)) {
+    const e = (meter === "hvac" ? 0 : r.light) + (meter === "light" ? 0 : (r.hvac ?? 0)),
+      [l, p] = price(r.h);
+    energy += e * p;
     if (l) by[l] = (by[l] || 0) + e;
   }
+  if (meter !== "light")
+    for (const b of gapBlocks().filter((x) => x.to > lo && x.from < rg.to)) {
+      const inside = b.from >= lo && b.to <= rg.to,
+        one = new Set(b.hours.map((h) => price(h).join())).size === 1;
+      if (inside && one) {
+        const [l, p] = price(b.hours[0]);
+        energy += b.kwh * p;
+        if (l) by[l] = (by[l] || 0) + b.kwh;
+      }
+      gaps.push({ b, l: price(b.hours[0])[0], ok: inside && one, inside });
+    }
   // 两部制的基本电费：按需量时为该月各进线适用的核定需量之和 × 基本电价（能耗方案 EN6、EN9，核定需量可逐月变更）
-  return { c, v, energy, by, map, basic: v.tariff === "two" ? energyBasicQty(v, ymdOf(Math.min(rg.to, Demo.NOW) - 1).slice(0, 7)) * v.basicPrice : 0, before: from > rg.from ? v.tariffFrom : null };
+  return { c, v, energy, by, map, gaps, basic: v.tariff === "two" ? energyBasicQty(v, ymdOf(Math.min(rg.to, Demo.NOW) - 1).slice(0, 7)) * v.basicPrice : 0, before: from > rg.from ? v.tariffFrom : null };
 }
+// 缺数时段对电费估算的影响（总览核查第 47 条）：分时计价时写按哪一段电价计入，或未计入；统一电价且整段在期间内时没有影响，不写
+const costGapText = (cost) =>
+  (cost.gaps || [])
+    .filter((x) => !x.ok || x.l)
+    .map((x) => `${Demo.md(x.b.from)} ${gapHours(x.b)}空调末端缺数，${x.ok ? `该时段 ${nf(x.b.kwh, 1)} kWh 按${x.l}段电价计入` : x.inside ? `该时段 ${nf(x.b.kwh, 1)} kWh 跨不同电价时段，未计入费用` : "缺数时段跨期间边界，期间内的部分未计入费用"}`)
+    .join("；");
 const costText = (cost, label) =>
   cost
-    ? `${label}电费估算约 ${nf(cost.energy)} 元（${tariffName(cost.v)}${cost.basic ? `；另有基本电费每月约 ${nf(cost.basic)} 元` : ""}${cost.before ? `；${opsDay(Date.parse(cost.before + "T12:00:00+08:00"))}之前的用电不计费用` : ""}；按能耗设置 v${cost.c.version}）。费用为估算，不作为供电单位结算依据。`
+    ? `${label}电费估算约 ${nf(cost.energy)} 元（${tariffName(cost.v)}${cost.basic ? `；另有基本电费每月约 ${nf(cost.basic)} 元` : ""}${cost.before ? `；${opsDay(Date.parse(cost.before + "T12:00:00+08:00"))}之前的用电不计费用` : ""}；按能耗设置 v${cost.c.version}）。${costGapText(cost) ? costGapText(cost) + "。" : ""}费用为估算，不作为供电单位结算依据。`
     : "费用未计算：本项目未配置电价与用户类别（非专变一般工商业不当然执行峰谷）。";
 // 计量口径：引用能耗设置的计量点、计入方式与计量边界；与本页统计的电表不一致时提示（规范 ANALYSIS01）
 function energyCounted() {
@@ -60592,15 +60899,22 @@ function anBaseline(rg) {
   );
 }
 // 本月用电比上月同期（全面设计核查第 84 条，2026-10-12 用户确认）：上月从 1 日起同样的天数、到同一时刻，同一口径（两块电表合计，
-// 进行中的小时按已过时段折算，与“今日用电”比上周同日同时段相同）；上月同期不全在计量数据之内时不比较，返回 null
+// 进行中的小时按已过时段折算，与“今日用电”比上周同日同时段相同）；上月同期不全在计量数据之内时不比较，返回 null。
+// 总览核查第 47 条（2026-10-12 用户确认）：缺数的小时不用未采到的小时值（原先逐小时取 hvacTrue）——整段落在比较期间内的缺数时段按整段电量
+// （前后读数差）计入；比较期间的起止落在缺数时段内时，期间内那部分的电量不知道，不比较，返回 { pct: null, why } 写在卡片上
 function monthVsPrev(mrg, cur) {
   const l = Demo.loc(mrg.from),
     pf = Date.parse(`${l.mo === 1 ? l.y - 1 : l.y}-${String(l.mo === 1 ? 12 : l.mo - 1).padStart(2, "0")}-01T00:00:00+08:00`),
     pt = pf + (mrg.to - mrg.from),
     rs = Demo.series();
   if (!rs.length || rs[0].t > pf || pt > mrg.from) return null;
-  const prev = rs.filter((r) => r.t >= pf && r.t < pt).reduce((a, r) => a + (r.light + r.hvacTrue) * Math.min(1, (pt - r.t) / Demo.H), 0);
-  return prev > 0 ? ((cur - prev) / prev) * 100 : null;
+  const bs = gapBlocks(),
+    cut = bs.find((b) => [pf, pt, mrg.from, mrg.to].some((t) => b.from < t && t < b.to));
+  if (cut) return { pct: null, why: `${Demo.md(cut.from)} ${gapHours(cut)}缺数，比较期间的起止落在其中，不比较` };
+  const prev =
+    rs.filter((r) => r.t >= pf && r.t < pt).reduce((a, r) => a + (r.light + (r.hvac ?? 0)) * Math.min(1, (pt - r.t) / Demo.H), 0) +
+    bs.filter((b) => b.from >= pf && b.to <= pt).reduce((a, b) => a + b.kwh, 0);
+  return prev > 0 ? { pct: ((cur - prev) / prev) * 100 } : null;
 }
 function ovEnergy() {
   const t = Demo.today(),
@@ -60611,29 +60925,39 @@ function ovEnergy() {
     ce = carbonIn(mrg),
     eset = latestConfig("能耗", OPS_SCOPE.project),
     mismatch = energyMismatch();
-  // 本月的计量数据质量：缺数、估算、补采、复位与换表分别计天数（规范 OPS05，2026-10-08 第 2 轮第6章）
+  // 本月的计量数据质量：缺数、估算、补采、复位与换表分别计天数（规范 OPS05，2026-10-08 第 2 轮第6章）；
+  // 按日合计与缺数时段两级判断（energyGrade，总览核查第 47 条；原先缺数即“数据不完整”，并另写“日合计按电表前后读数差计入”）
   const mq = Demo.days()
       .filter((d) => d.t >= mrg.from)
       .flatMap((d) => d.quality),
-    mqTxt = [...new Set(mq.map((q) => q.type))].map((k) => `${k} ${mq.filter((q) => q.type === k).length} 天`).join("、"),
-    mqBad = mq.some((q) => q.type !== "补采"),
     mvp = monthVsPrev(mrg, m.total);
-  // 能耗强度折年所用的近 30 个完整的天（与 Demo.intensity 相同）的数据质量，写法同本月用电
+  // 能耗强度折年所用的近 30 个完整的天（与 Demo.intensity 相同）的数据质量，判断同本月用电
   const iq = Demo.days()
-      .filter((d) => !d.partial)
-      .slice(-30)
-      .flatMap((d) => d.quality),
-    iqTxt = [...new Set(iq.map((q) => q.type))].map((k) => `${k} ${iq.filter((q) => q.type === k).length} 天`).join("、"),
-    iqBad = iq.some((q) => q.type !== "补采");
+    .filter((d) => !d.partial)
+    .slice(-30)
+    .flatMap((d) => d.quality);
+  // 窄屏的紧凑指标卡不显示折标与因子的细节（.ops-kpi-x，总览核查第 53 条），在数据分析与下方的碳排放卡中查看
+  const kx = (html) => `<span class="ops-kpi-x">${html}</span>`,
+    cSub =
+      ce.kg == null
+        ? "在碳排放设置中登记覆盖本月的因子"
+        : [
+            ce.mixed && `${esc(carbonGasText(ce))}，不合计，见明细`,
+            // 跨多个版本时写“按 N 个版本分段计算”，各段在下方的碳排放卡中展开（总览核查第 49 条）
+            ce.configs.length > 1 ? `按 ${ce.configs.length} 个版本分段计算` : kx(esc(`因子 ${ce.last.values.factor} ${carbonUnit(ce.last.values)} · ${ce.last.values.region} ${ce.last.values.year}`)),
+          ]
+            .filter(Boolean)
+            .join(" · ");
   const kp = kpiRow([
     kpi("今日用电", nf(t.kwh) + "<small>kWh</small>", `截至 ${liveHm()} · 比上周同日同时段 ${pctTxt(t.vsLastWeek)}`, "opsGo", { page: "analysis", tab: "energy" }, todayQuality()),
     // 写比上月同期（全面设计核查第 84 条，2026-10-12 用户确认：原先只写期间、分项占比与折标煤）；上月同期计量数据不全时写明不比较
-    kpi("本月用电", nf(m.total) + "<small>kWh</small>", `9/1–${Demo.md(Demo.NOW)} · ${mvp == null ? "上月同期计量数据不全，不比较" : `比上月同期 ${pctTxt(mvp)}`} · 照明插座 ${nf((m.light / m.total) * 100)}% · 折标 ${nf(coalTce(m.total), 2)} tce`, "opsGo", { page: "analysis", tab: "energy" }, mq.length ? (mqBad ? dq("warn", `数据不完整：含${mqTxt}${mq.some((q) => q.type === "缺数") ? "；日合计按电表前后读数差计入" : ""}`) : dq("ok", `数据完整：含${mqTxt}`)) : dq("ok", "数据完整：两块电表实测")),
-    // 本月碳排放只引用碳排放设置；没有适用因子时写“待设置”（规范 OPS05、APP02）
-    kpi("本月碳排放", ce.kg == null ? "待设置" : nf(ce.kg / 1000, 2) + `<small>t${ce.gas}</small>`, ce.last ? esc(`因子 ${ce.last.values.factor} ${carbonUnit(ce.last.values)} · ${ce.last.values.region} ${ce.last.values.year}`) : "在碳排放设置中登记覆盖本月的因子", "opsGo", { page: "analysis", tab: "carbon" }, carbonQuality(ce)),
+    // 本月用电、本月碳排放进入数据分析时带期间“本月”（总览核查第 58 条，2026-10-12 用户确认：原先沿用数据分析上次的期间，默认近 30 天）
+    kpi("本月用电", nf(m.total) + "<small>kWh</small>", `9/1–${Demo.md(Demo.NOW)} · ${mvp == null ? "上月同期计量数据不全，不比较" : mvp.pct == null ? esc(mvp.why) : `比上月同期 ${pctTxt(mvp.pct)}`} · 照明插座 ${nf((m.light / m.total) * 100)}%${kx(` · 折标 ${nf(coalTce(m.total), 2)} tce`)}`, "opsGo", { page: "analysis", tab: "energy", range: "month" }, gradeDq(energyGrade(mq))),
+    // 本月碳排放只引用碳排放设置；没有适用因子时写“待设置”（规范 OPS05、APP02）；CO₂ 与 CO₂e 并存时写“口径不一致”，小计在副文（第 48 条）
+    kpi("本月碳排放", carbonKpiV(ce), cSub, "opsGo", { page: "analysis", tab: "carbon", range: "month" }, carbonQuality(ce)),
     // “能耗对标”从碳排放卡移到这里（BP119）
     // 同另外三张指标卡带数据质量一行，按折年所用的近 30 个完整的天（规范 OPS05；全面设计核查第 85 条，2026-10-12 用户确认：原先没有这一行）
-    kpi("能耗强度", nf(I.annual, 1) + "<small>kWh/(m²·a)</small>", `近 30 天折年 · ${esc(anBench().text)}`, "opsGo", { page: "analysis", tab: "energy" }, iq.length ? (iqBad ? dq("warn", `数据不完整：近 30 天含${iqTxt}${iq.some((q) => q.type === "缺数") ? "；日合计按电表前后读数差计入" : ""}`) : dq("ok", `数据完整：近 30 天含${iqTxt}`)) : dq("ok", "数据完整：近 30 天两块电表实测")),
+    kpi("能耗强度", nf(I.annual, 1) + "<small>kWh/(m²·a)</small>", `近 30 天折年 · ${esc(anBench().text)}`, "opsGo", { page: "analysis", tab: "energy" }, gradeDq(energyGrade(iq))),
   ], opsLive().stale);
   // 分项按一级汇总，空调可展开到二级（2026-10-09 用户确认，ABB 对比 BP116 方案A）
   const split = `<section class="ops-card"><header class="ops-card-h"><div><h3>分项：照明插座占 ${nf((m.light / m.total) * 100)}%</h3><p class="ops-meta">本月 · ${eset && !mismatch ? setLink("能耗", `按能耗设置 v${eset.version}`) : "按电表"} · kWh</p></div><div class="ops-card-tools">${demoTag()}</div></header><div class="ops-split-bars">${[
@@ -60666,11 +60990,23 @@ function ovEnergy() {
       rows: ds.map((d, i) => ({ label: (ds.length - 1 - i) % 5 === 0 ? Demo.md(d.t) : "", title: `${Demo.md(d.t)} ${Demo.WEEK[Demo.loc(d.t).dow]}${d.partial ? "（截至 " + liveHm() + "）" : ""}`, values: [d.light, d.hvac], faded: d.partial, note: d.quality.map((q) => `${q.type}：${q.text}`).join("；"), mark: d.quality.map((q) => Demo.QMARK[q.type]).join("") })),
     }),
   });
+  // 总览核查第 48、49 条（2026-10-12 用户确认）：CO₂ 与 CO₂e 并存时标题写“口径不一致，见明细”，分列两个小计、不合计；跨多个版本时“排放因子”
+  // 写“按 N 个版本分段计算”，展开列出各段；有未覆盖的日期时总量标“已覆盖部分”。只用一个版本时同原先
   const cv = ce.last?.values,
-    carbon = `<section class="ops-card"><header class="ops-card-h"><div><h3>本月碳排放 ${ce.kg == null ? "待设置" : nf(ce.kg / 1000, 2) + " t" + ce.gas}</h3><p class="ops-meta">用电 × 因子 · ${ce.last ? setLink("碳排放", `碳排放设置 v${ce.last.version}`) : "没有适用的碳排放设置"}</p></div><div class="ops-card-tools">${demoTag()}</div></header><dl class="ops-kv"><dt>排放因子</dt><dd>${
-      // 链接只在“ · ”处换行，“第 47 号”不拆开（Lovable 核查第 229 条，2026-10-11 用户确认）
-      cv ? setLink("碳排放", "", nwJoin([`${cv.factor} ${carbonUnit(cv)}`, `${cv.region} ${cv.year}`])) : "待设置：没有覆盖本月的碳排放设置，不使用参考因子代替"
-    }</dd>${cv ? `<dt>来源</dt><dd>${esc(cv.source).replace(/第 ?\d+ ?号/g, (x) => `<span class="nw">${x}</span>`)}</dd><dt>有效区间</dt><dd>${esc(carbonSpanText(cv, OPS_SCOPE.project))}</dd>` : ""}${ce.missing && ce.kg != null ? `<dt>数据状态</dt><dd>${ce.missing} 天没有适用的排放因子，未计入</dd>` : ""}</dl><div class="ops-ctl-row ops-ctl-start">${btn("碳排放设置", "applicationSettings", { kind: "碳排放", project: OPS_SCOPE.project }, "ghost sm")}${btn("核算口径", "opsGo", { page: "analysis", tab: "carbon" }, "ghost sm")}</div></section>`;
+    multi = ce.configs.length > 1,
+    carbon = `<section class="ops-card"><header class="ops-card-h"><div><h3>本月碳排放${ce.mixed ? "：口径不一致，见明细" : ` ${ce.kg == null ? "待设置" : nf(ce.kg / 1000, 2) + " t" + ce.gas}${ce.kg != null && ce.missing ? "（已覆盖部分）" : ""}`}</h3><p class="ops-meta">用电 × 因子 · ${ce.last ? ce.configs.map((x) => setLink("碳排放", `碳排放设置 v${x.version}`)).join("、") : "没有适用的碳排放设置"}</p></div><div class="ops-card-tools">${demoTag()}</div></header><dl class="ops-kv">${
+      ce.mixed ? `<dt>小计</dt><dd>${esc(carbonGasText(ce))}（口径不一致，不合计）</dd>` : ""
+    }<dt>排放因子</dt><dd>${
+      multi
+        ? carbonSpans(ce)
+        : // 链接只在“ · ”处换行，“第 47 号”不拆开（Lovable 核查第 229 条，2026-10-11 用户确认）
+          cv
+          ? setLink("碳排放", "", nwJoin([`${cv.factor} ${carbonUnit(cv)}`, `${cv.region} ${cv.year}`]))
+          : "待设置：没有覆盖本月的碳排放设置，不使用参考因子代替"
+    }</dd>${cv && !multi ? `<dt>来源</dt><dd>${esc(cv.source).replace(/第 ?\d+ ?号/g, (x) => `<span class="nw">${x}</span>`)}</dd><dt>有效区间</dt><dd>${esc(carbonSpanText(cv, OPS_SCOPE.project))}</dd>` : ""}${ce.missing && ce.kg != null ? `<dt>数据状态</dt><dd>${ce.missing} 天没有适用的排放因子，未计入</dd>` : ""}</dl><div class="ops-ctl-row ops-ctl-start">${btn("碳排放设置", "applicationSettings", { kind: "碳排放", project: OPS_SCOPE.project }, "ghost sm")}${
+      // “核算口径”进入数据分析 › 碳排放时带期间“本月”，并定位到核算口径卡（总览核查第 58 条，2026-10-12 用户确认：原先沿用上次的期间、停在页顶）
+      btn("核算口径", "opsGo", { page: "analysis", tab: "carbon", range: "month", focus: "anCarbonBasis" }, "ghost sm")
+    }</div></section>`;
   // 右上角为“能耗设置”“碳排放设置”，与另外三个应用一致（2026-10-09 用户确认，ABB 对比 BP71 第 15 条）；对所有角色可见，没有编辑权限时只读。
   // 两个按钮在页签那一行的右端，由 renderOpsOverview 画在页签旁（全面设计核查第 87 条，2026-10-12 用户确认：原先在页签下单独一行）
   return `${scopeNote()}${mismatch}${kp}<div class="ops-row r21">${trend}${split}</div><div class="ops-row r21">${todayCard(t)}${carbon}</div>`;
@@ -61205,15 +61541,20 @@ function anCarbon() {
   const rg = anRange(),
     e = Demo.energyIn(rg),
     c = carbonIn(rg),
-    gas = c.gas,
+    // 口径不一致时单位只写 kg，各日的口径见数据表（总览核查第 48 条）
+    gas = c.mixed ? "" : c.gas,
     cv = c.last?.values,
     ec = energyCounted(),
     ds = Demo.days().filter((d) => d.t >= rg.from && d.t < rg.to),
     every = dayLabelEvery(ds.length);
+  // 总览核查第 48、49 条（2026-10-12 用户确认）：CO₂ 与 CO₂e 并存时排放量写“口径不一致”、两个小计写在副文、不合计，单位面积不计算；
+  // 跨多个版本时“排放因子”写版本数与“按 N 个版本分段计算”，可展开各段；有未覆盖的日期时数值旁标“已覆盖部分”
   const kp = kpiRow([
-    kpi("排放量", c.kg == null ? "待设置" : nf(c.kg / 1000, 2) + `<small>t${gas}</small>`, onlyIn(`${rg.label} · 用电 ${nf(e.total)} kWh`), "opsNoop", {}, carbonQuality(c)),
-    kpi("单位面积", c.kg == null ? "—" : nf(c.kg / Demo.intensity().area, 2) + `<small>kg${gas}/m²</small>`, onlyIn(rg.label), "opsNoop"),
-    kpi("排放因子", cv ? esc(cv.factor) + `<small>${esc(carbonUnit(cv))}</small>` : "待设置", cv ? esc(`${cv.region} ${cv.year} · 碳排放设置 v${c.last.version}`) : "没有适用的碳排放设置", "opsNoop"),
+    kpi("排放量", carbonKpiV(c), onlyIn(`${rg.label} · 用电 ${nf(e.total)} kWh${c.mixed ? ` · ${esc(carbonGasText(c))}，不合计，见明细` : ""}`), "opsNoop", {}, carbonQuality(c)),
+    kpi("单位面积", c.kg == null || c.mixed ? "—" : carbonKpiV(c, Demo.intensity().area, "kg").replace(/(<small>kg[^<]*)<\/small>/, "$1/m²</small>"), onlyIn(c.mixed ? `${rg.label} · 口径不一致，不计算` : rg.label), "opsNoop"),
+    c.configs.length > 1
+      ? kpi("排放因子", `${c.configs.length}<small>个版本</small>`, esc(`碳排放设置 ${c.configs.map((x) => "v" + x.version).join("、")} · 按各自的有效区间`), "opsNoop", {}, carbonSpans(c))
+      : kpi("排放因子", cv ? esc(cv.factor) + `<small>${esc(carbonUnit(cv))}</small>` : "待设置", cv ? esc(`${cv.region} ${cv.year} · 碳排放设置 v${c.last.version}`) : "没有适用的碳排放设置", "opsNoop"),
   ]);
   const rows = ds.map((d) => {
     const f = carbonFor(OPS_SCOPE.project, ymdOf(d.t)),
@@ -61226,7 +61567,7 @@ function anCarbon() {
     c.kg == null
       ? `<section class="ops-card"><header class="ops-card-h"><div><h3>排放趋势</h3><p class="ops-meta">${rg.span}</p></div></header><p class="ops-empty-note">没有适用的排放因子：在碳排放设置中登记覆盖本期间的因子后显示排放。不使用参考因子代替。</p></section>`
       : chartCard({
-          title: `${rg.label}排放 ${nf(c.kg / 1000, 2)} t${gas}，照明插座占 ${nf((c.light / c.kg) * 100)}%`,
+          title: c.mixed ? `${rg.label}排放口径不一致：${carbonGasText(c)}，不合计` : `${rg.label}排放 ${nf(c.kg / 1000, 2)} t${gas}${c.missing ? "（已覆盖部分）" : ""}，照明插座占 ${nf((c.light / c.kg) * 100)}%`,
           meta: `${rg.span} · ${cms ? "月" : "日"}排放 kg${gas} = 用电 × 当日适用的因子 · ${c.configs.map((x) => setLink("碳排放", `碳排放设置 v${x.version}`)).join("、")}`,
           legend: [
             [S1, "照明插座"],
@@ -61263,11 +61604,13 @@ function anCarbon() {
                 rows: rows.map((r, i) => ({ label: (rows.length - 1 - i) % every === 0 ? Demo.md(r.d.t) : "", title: Demo.md(r.d.t) + " " + Demo.WEEK[Demo.loc(r.d.t).dow], values: [r.light, r.hvac], faded: r.d.partial, note: r.f ? "" : "没有适用的排放因子，未计入" })),
               }),
         });
-  const basis = `<section class="ops-card"><header class="ops-card-h"><div><h3>核算口径</h3><p class="ops-meta">引用碳排放设置；修改形成新版本，历史报告固定引用原版本</p></div></header><dl class="ops-kv"><dt>范围</dt><dd>${CARBON_SCOPE_TEXT}</dd>${
+  // id 与 tabindex 供总览 › 能源的“核算口径”进入时定位并聚焦（总览核查第 58 条）；“已发布的报告保持原版本”（第 52 条；原为“历史报告固定引用原版本”，
+  // 草稿报告随设置更新）
+  const basis = `<section class="ops-card" id="anCarbonBasis" tabindex="-1"><header class="ops-card-h"><div><h3>核算口径</h3><p class="ops-meta">引用碳排放设置；修改形成新版本，已发布的报告保持原版本</p></div></header><dl class="ops-kv"><dt>范围</dt><dd>${CARBON_SCOPE_TEXT}</dd>${
     cv
       ? `<dt>碳排放设置</dt><dd>${setLink("碳排放", configVersionText(c.last))}</dd><dt>口径与因子</dt><dd>${esc(`${gasOf(cv)} · ${cv.factor} ${carbonUnit(cv)}`)}</dd><dt>来源</dt><dd>${setLink("碳排放", cv.source)}</dd><dt>地区与年份</dt><dd>${esc(`${cv.region} · ${cv.year}`)}</dd><dt>有效区间</dt><dd>${esc(carbonSpanText(cv, OPS_SCOPE.project))}</dd><dt>核算用途</dt><dd>${esc(cv.purpose || "—")}</dd><dt>核算边界</dt><dd>${esc(cv.boundary || "—")}</dd>`
       : `<dt>排放因子</dt><dd>待设置：没有覆盖本期间的碳排放设置，不使用参考因子代替</dd>`
-  }${c.configs.length > 1 ? `<dt>期间内版本</dt><dd>${c.configs.map((x) => "v" + x.version).join("、")}，按各自的有效区间计算</dd>` : ""}<dt>活动数据</dt><dd>${ec ? `${setLink("能耗", `能耗设置 v${ec.c.version}`)}：${esc(ec.names)}` : "7F 照明插座、空调末端两块电表（系统接入，已验证）"}</dd><dt>说明</dt><dd>截至 2026-09 未公布 2024 年电力 CO₂ 排放因子；“电力碳足迹因子”口径不同，不替代</dd></dl></section>`;
+  }${c.configs.length > 1 ? `<dt>期间内版本</dt><dd>${c.configs.map((x) => "v" + x.version).join("、")}，按各自的有效区间计算${c.mixed ? "；口径有 CO₂ 也有 CO₂e，分列小计，不合计" : ""}</dd>` : ""}<dt>活动数据</dt><dd>${ec ? `${setLink("能耗", `能耗设置 v${ec.c.version}`)}：${esc(ec.names)}` : "7F 照明插座、空调末端两块电表（系统接入，已验证）"}</dd><dt>说明</dt><dd>截至 2026-09 未公布 2024 年电力 CO₂ 排放因子；“电力碳足迹因子”口径不同，不替代</dd></dl></section>`;
   // 查看来源：核算口径卡的“来源”打开碳排放设置中登记的来源；“新建报告”带入“能耗”“碳排放”两项内容与所选期间，保存为报告草稿（规范 ANALYSIS02，2026-10-08 第 3 轮，ANALYSIS02 待实现第2条；2026-10-09 用户确认，ABB 对比 BP114）
   // 本页签唯一的主要按钮：黑色 32 高（规范 2 2；Lovable 核查第 295 条，2026-10-11 用户确认）
   // 期间早于计量数据起始日时（近 12 个月、上月）从起始日带入（全面设计核查第 96 条）
@@ -63559,7 +63902,17 @@ defineActions({
     U.opsDrawer = null;
     // 带告警类型时（数据分析 › 设备健康的“离线”“被现场复位”）当前告警只列这一类，级别与确认状态回到全部，页上写“已筛选”（全面设计核查第 105 条）
     if (a.altype) Object.assign(U, { opsAlType: a.altype, alTypeJump: a.altype, opsLevel: "all", opsAlState: "all" });
+    // 带期间时（总览核查第 58 条，2026-10-12 用户确认）：数据分析按所给的期间预设（如“本月”）显示，并像报告的依据链接（opsReportBasis）
+    // 一样清掉自定义期间未应用的草稿与错误；focus 为进入后定位并聚焦的卡片 id（如碳排放页签的“核算口径”）
+    if (a.range) Object.assign(U, { opsRange: a.range, opsFromDraft: undefined, opsToDraft: undefined, opsRangeErr: "" });
     route(a.page, { tab: a.tab || "" }, { remember: true });
+    if (a.focus)
+      requestAnimationFrame(() => {
+        const el = document.getElementById(a.focus);
+        if (!el) return;
+        el.scrollIntoView({ block: "start" });
+        el.focus({ preventScroll: true });
+      });
   },
   opsGoDemoFloor: () => route(U.page, { p: OPS_SCOPE.project, b: g("floors", OPS_SCOPE.floor).buildingId, f: OPS_SCOPE.floor, tab: U.tab }),
   // 对比表点一行进入下一级：项目进各楼宇，楼宇进各楼层，楼层进楼层图（VD4）
@@ -64652,10 +65005,11 @@ function aiReportSections(r) {
         hi = ls.filter((l) => l === "尖峰" || l === "峰");
       return `${hi.join("与") || ls[0]}时段用电占 ${nf(((hi.length ? hi : ls.slice(0, 1)).reduce((a, l) => a + cost.by[l], 0) / sum) * 100)}%`;
     })();
-  const sum = `<p class="ai-p">${r.lab}本层用电 <b>${nf(e.total)} kWh</b>，排放 <b>${ce.kg == null ? "待设置" : nf(ce.kg / 1000, 2) + " t" + ce.gas}</b>${ce.kg != null && ce.missing ? `（${ce.missing} 天没有适用的排放因子，未计入）` : ""}${e.offShare == null ? "" : `；夜间及非工作日用电占 ${nf(e.offShare, 1)}%`}。工作时间 CO₂ 在参考范围内平均 ${nf(co2Avg, 1)}%，${zhSub(meet.z.name, "r")}最低。${al.length ? `期内告警 ${al.length} 条，${open.length ? `截至数据截止 ${open.length} 条未恢复` : "均已恢复"}` : "期内没有告警"}${h ? `；${h.rate == null ? "设备在线率暂无法统计（网关离线）" : `当前设备在线率 ${nf(h.rate, 1)}%`}` : ""}。</p>`;
+  const sum = `<p class="ai-p">${r.lab}本层用电 <b>${nf(e.total)} kWh</b>，排放 <b>${carbonAmt(ce)}</b>${ce.kg != null && ce.missing ? `（${ce.missing} 天没有适用的排放因子，未计入）` : ""}${e.offShare == null ? "" : `；夜间及非工作日用电占 ${nf(e.offShare, 1)}%`}。工作时间 CO₂ 在参考范围内平均 ${nf(co2Avg, 1)}%，${zhSub(meet.z.name, "r")}最低。${al.length ? `期内告警 ${al.length} 条，${open.length ? `截至数据截止 ${open.length} 条未恢复` : "均已恢复"}` : "期内没有告警"}${h ? `；${h.rate == null ? "设备在线率暂无法统计（网关离线）" : `当前设备在线率 ${nf(h.rate, 1)}%`}` : ""}。</p>`;
   // 能耗按一级分项汇总，空调写到二级（2026-10-09 用户确认，ABB 对比 BP116 方案A）；折标煤按能耗设置的折标系数（BP121）
   const en = `<p class="ai-p">${r.lab}用电 ${nf(e.total)} kWh，折标 ${nf(typeof coalTce === "function" ? coalTce(e.total) : (e.total * 0.1229) / 1000, 2)} tce：照明插座 ${nf(e.light)} kWh（${nf((e.light / e.total) * 100)}%），空调 ${nf(e.hvac)} kWh（空调末端；冷热源未计量）；${touTxt}。${qs.length ? qs.map((q) => `${opsDay(q.t)}${/^[\x00-\x7f]/.test(q.text) ? " " : ""}${q.text}`).join("；") + "。" : "期内两块电表数据完整。"}</p>`;
-  const cb = `<p class="ai-p">${ce.kg == null ? `${r.lab}排放待设置：碳排放设置没有覆盖期内的排放因子，不使用参考因子代替。` : `${r.lab}排放 ${nf(ce.kg / 1000, 2)} t${ce.gas}（外购电力），${ce.configs.map((c) => `按碳排放设置 v${c.version}，因子 ${c.values.factor} ${carbonUnit(c.values)} · ${c.values.region} ${c.values.year}`).join("；")}${ce.missing ? `；${ce.missing} 天没有适用的排放因子，未计入` : ""}。`}</p>`;
+  // CO₂ 与 CO₂e 并存时分列小计、不合计（总览核查第 48 条）
+  const cb = `<p class="ai-p">${ce.kg == null ? `${r.lab}排放待设置：碳排放设置没有覆盖期内的排放因子，不使用参考因子代替。` : `${r.lab}排放${ce.mixed ? `口径不一致：${carbonGasText(ce)}，不合计` : ` ${nf(ce.kg / 1000, 2)} t${ce.gas}`}（外购电力），${ce.configs.map((c) => `按碳排放设置 v${c.version}，因子 ${c.values.factor} ${carbonUnit(c.values)} · ${c.values.region} ${c.values.year}`).join("；")}${ce.missing ? `；${ce.missing} 天没有适用的排放因子，未计入` : ""}。`}</p>`;
   const env = `<p class="ai-p">工作时间 CO₂ 在参考范围内的平均比例为 ${nf(co2Avg, 1)}%，${zhSub(meet.z.name, "r")}最低（${pct(meet.co2)}%）。工作日 ${hi} 个功能区高峰有人占比超过 90%，${zhSub(low.z.name, "r")}白天平均仅 ${nf(low.v)}%。</p>`;
   const alTxt = al.map((a) => `${t(Date.parse(a.at))} ${alarmTitle(a).title}（${rec(a) ? `${t(Date.parse(a.recoveredAt))} 已恢复` : "未恢复"}）`).join("；"),
     dev = `<p class="ai-p">${al.length ? `期内告警 ${al.length} 条：${alTxt}。` : "期内没有告警。"}${reach.length ? `全网体检与夜间复测 ${reach.length} 次，到达率最低 ${nf(Math.min(...reach.map((x) => x.v)), 1)}%。` : "期内没有全网体检记录。"}${
@@ -65131,7 +65485,10 @@ function aiRules(q, z, forced, scope, yd, ydl) {
       html: `<p class="ai-p">今天截至 ${Demo.hm(Demo.NOW)} 用电 <b>${nf(t.kwh)} kWh</b>，${t.vsTypical <= 0 ? "低于" : "高于"}典型${t.weekday} ${nf(Math.abs(t.vsTypical), 1)}%。本月（9 月 1 日起）用电 <b>${nf(m.total)} kWh</b>，${
         ce.kg == null
           ? "碳排放待设置：没有覆盖本月的碳排放设置。"
-          : `按碳排放设置 v${ce.last.version}（${esc(`${ce.last.values.factor} ${carbonUnit(ce.last.values)}，${ce.last.values.region} ${ce.last.values.year}`)}）折合 <b>${nf(ce.kg / 1000, 2)} t${ce.gas}</b>${ce.missing ? `（${ce.missing} 天没有适用的排放因子，未计入）` : ""}。`
+          : // 跨多个版本或口径不一致时不写单一因子与总量（总览核查第 48、49 条）
+            ce.configs.length > 1
+            ? `按碳排放设置 ${ce.configs.map((x) => "v" + x.version).join("、")} 分段计算，${ce.mixed ? `<b>${esc(carbonAmt(ce))}</b>` : `折合 <b>${esc(carbonAmt(ce))}</b>`}${ce.missing ? `（${ce.missing} 天没有适用的排放因子，未计入）` : ""}。`
+            : `按碳排放设置 v${ce.last.version}（${esc(`${ce.last.values.factor} ${carbonUnit(ce.last.values)}，${ce.last.values.region} ${ce.last.values.year}`)}）折合 <b>${nf(ce.kg / 1000, 2)} t${ce.gas}</b>${ce.missing ? `（${ce.missing} 天没有适用的排放因子，未计入）` : ""}。`
       }</p>${/电费/.test(q) ? `<p class="ai-note">${esc(cost ? costText(cost, "本月") : "电费未计算：项目尚未配置电价与用户类别。")}</p>` : ""}`,
       ev: [aiLink("能源", "opsGo", { page: "overview", tab: "energy" }), aiLink("碳排放口径", "opsGo", { page: "analysis", tab: "carbon" })],
     };
@@ -71868,7 +72225,8 @@ function scrMgmt(cfg) {
     h = Demo.health();
   const kpis = [
     scrCard("本月用电", scrNum(nf(m.total), "kWh"), esc(mrg.span)),
-    scrCard("本月碳排放", ce.kg == null ? scrNum("—") : scrNum(nf(ce.kg / 1000, 2), "t" + ce.gas), cv ? esc(`${cv.region} ${cv.year} 因子`) : "尚未设置碳排放因子"),
+    // 口径不一致时不写合计（总览核查第 48 条）
+    scrCard("本月碳排放", ce.kg == null || ce.mixed ? scrNum("—") : scrNum(nf(ce.kg / 1000, 2), "t" + ce.gas), ce.mixed ? esc(carbonGasText(ce) + "，口径不一致，不合计") : cv ? esc(`${cv.region} ${cv.year} 因子`) : "尚未设置碳排放因子"),
     // 对标条件齐全时才写引导值，否则写“暂不对标”，与总览、数据分析相同（2026-10-09 用户确认，ABB 对比 BP119 方案A）
     scrCard("能耗强度", scrNum(nf(I.annual, 1), "kWh/(m²·a)"), esc(`近 30 天折年 · ${BK.ok ? `引导值 ${BK.std.guide}` : "暂不对标"}`)),
     h.rate == null ? scrCard("设备在线率", scrNum("—"), esc(`网关离线 · ${h.unknown.length} 台状态未知`)) : scrCard("设备在线率", scrNum(nf(h.rate, 1), "%"), esc(`${h.online} / ${h.total} 台`)),
@@ -71969,7 +72327,7 @@ function scrPublic(cfg) {
   const aq = co2 != null && pm != null ? aqLevel({ co2, pm25: pm }, ref) : null,
     energy = [
       scrCard("今日用电", scrNum(nf(t.kwh), "kWh"), `截至 ${liveHm()}`, "scr-air"),
-      scrCard("本月碳排放", ce.kg == null ? scrNum("—") : scrNum(nf(ce.kg / 1000, 2), "t" + ce.gas), `${l.mo} 月 1 日至今`, "scr-air"),
+      scrCard("本月碳排放", ce.kg == null || ce.mixed ? scrNum("—") : scrNum(nf(ce.kg / 1000, 2), "t" + ce.gas), ce.mixed ? esc(carbonGasText(ce) + "，口径不一致，不合计") : `${l.mo} 月 1 日至今`, "scr-air"),
     ].join("");
   const [c1, c2] = ref.co2Cuts,
     [p1, p2] = ref.pmCuts,
