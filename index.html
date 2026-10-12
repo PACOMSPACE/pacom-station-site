@@ -4848,12 +4848,13 @@ details[open] > summary::before {
  .ws-side-toggle > .ws-side-close {
    display: block;
  }
+ /* 遮罩只有两档：弹窗 70%，侧栏抽屉与“搜索或提问”等不打断操作的浅一档 20%（全面设计核查第 73 条，2026-10-12 用户确认：抽屉原为 25%） */
  #app.navopen .side-scrim {
    display: block;
    position: fixed;
    inset: 0;
    z-index: 89;
-   background: rgba(0, 0, 0, 0.25);
+   background: rgba(0, 0, 0, 0.2);
  }
  .brand > .iconbtn,
  .phead > .mobnav {
@@ -23375,11 +23376,12 @@ button.app-row:active {
 }
 
 /* drawer */
+/* 运营后台的侧拉面板遮罩同为浅一档 20%（全面设计核查第 73 条：全站只留 70% 与 20% 两档，原为 12%） */
 .adm-scrim {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.2);
   animation: adm-fade 0.16s ease-out;
 }
 /* Drawer (LOVABLE_SPEC §5): right side, 440 wide, radius 12, the standard dialog's shadow;
@@ -24722,6 +24724,9 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
 /* 第 15 条：没有上传标识的机构，首字标识用和个人头像相同的配色（第 442 条：浅灰底 #777771 16%、#2E2E2E 字），圆角不变；
    机构菜单、我的账户 › 我的机构、选择机构页与侧栏左下角的机构入口共用（原为浅蓝底、#1C5CAB 蓝字，蓝色只表示选中和聚焦）。 */
 .au-mark { background: rgb(119 119 113 / 0.16); color: #2e2e2e; }
+/* 第 72 条：在机构设置、我的账户各页时，左下角的机构入口用侧栏菜单行的选中样式：8% 灰底、文字 #030303；再悬停时 8% 上叠 4%（同 .navitem.on）。 */
+.au-orgbtn.on { background: var(--sel); color: var(--text); }
+.au-orgbtn.on:hover { background: linear-gradient(var(--hover), var(--hover)), var(--sel); }
 /* 第 8 条：从窄屏抽屉里打开机构菜单时，菜单（含弹层内边距 8）宽 264 = 抽屉 280 − 16，左右各留 8（auPlaceMenu）。 */
 #pop.au-menu-drawer { width: 264px; max-width: calc(100vw - 16px); }
 #pop.au-menu-drawer .au-menu { width: auto; }
@@ -65143,9 +65148,12 @@ function auRoleChanged(p) {
 
 /* ---------- 左下角机构入口 ---------- */
 // 侧栏设计规范 §1: the institution entry shows only the mark and name — no dropdown arrow on the right.
+// 在机构设置、我的账户各页时，机构入口用侧栏的选中样式（8% 灰底，文字变黑）并标为当前页，侧栏收起时也一样
+// （全面设计核查第 72 条，2026-10-12 用户确认：原先这两处侧栏没有任何一项标为当前页）。
 function orgButton() {
-  const o = auOrg();
-  return `<button class="orgbtn au-orgbtn" data-act="orgMenu" aria-haspopup="menu" aria-expanded="false" aria-label="机构与账户：${esc(o.name)}" data-tip="${esc(o.name)}"><span class="ws-org-logo">${auMark(o, 24)}</span><span class="au-orgbtn-name">${esc(o.name)}</span></button>`;
+  const o = auOrg(),
+    cur = U.page === "org" || U.page === "account";
+  return `<button class="orgbtn au-orgbtn${cur ? " on" : ""}" data-act="orgMenu" aria-haspopup="menu" aria-expanded="false" aria-label="机构与账户：${esc(o.name)}"${cur ? ' aria-current="page"' : ""} data-tip="${esc(o.name)}"><span class="ws-org-logo">${auMark(o, 24)}</span><span class="au-orgbtn-name">${esc(o.name)}</span></button>`;
 }
 // 机构菜单里各机构的角色。演示中切换了角色时，当前机构一行写切换后的角色并标“演示”，如“运营人员 · 演示”，
 // 同成员表本人一行（DEMO05；全面设计核查第 16 条，2026-10-12 用户确认：原先页面已按运营人员显示，菜单仍写“机构管理员”）。
