@@ -24651,6 +24651,54 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
 /* ==== 2026-10-12 全面设计核查第二部分 · 工作区外框：侧栏、页头、搜索、机构菜单、帮助（第 5–18、23、72、73 条）
    [SHELL] 本区的样式改动写在这一段注释之后、下一段注释之前。
    ==== */
+/* 第 6 条：触屏且侧栏显示（宽于 850）时，菜单行与机构入口 44 高，文字和图标大小不变；收起时图标栏的行与机构入口为 44×44。
+   “收起侧栏”按钮外观仍 32，外扩 6，点按范围 44×44。窄屏抽屉里本来就是 44（原先平板上菜单行 36、机构入口 40、收起按钮 32 没有外扩）。 */
+@media (pointer: coarse) and (min-width: 851px) {
+  #side .navitem { height: 44px; }
+  #side .orgbtn { height: 44px; min-height: 44px; }
+  .collapsed #side .navitem { width: 44px; height: 44px; margin-inline: -2px; }
+  .collapsed #side .navitem .ib { width: 44px; height: 44px; }
+  .collapsed #side .orgbtn { width: 44px; height: 44px; min-height: 44px; margin-inline: -2px; padding: 8px; }
+  .brand > .ws-side-toggle { position: relative; }
+  .brand > .ws-side-toggle::after { content: ""; position: absolute; inset: -6px; border-radius: 8px; }
+}
+/* 第 7 条：触屏时各页页头工具栏一律 44 高，和项目页相同：位置选择、“操作记录”“修改记录”“大屏”等按钮与圆形图标按钮。
+   胶囊页签按第 184 条保持 40/32 的外观，只给每个页签加看不见的上下外扩，点按范围 44 高；
+   页签行在平板上放得下，不再需要横向滚动，轨道不裁掉外扩（手机上页签行仍可横向滚动，点按范围为轨道的 40）。 */
+@media (pointer: coarse) {
+  .pbody > .ws-toolbar :is(.btn, .ws-location, .ws-select > button) { height: 44px; min-height: 44px; }
+  .pbody > .ws-toolbar .iconbtn.round { width: 44px; height: 44px; }
+  .pbody > .seg[role="tablist"] > [role="tab"]::after { content: ""; position: absolute; inset: -6px 0; }
+}
+@media (pointer: coarse) and (min-width: 601px) {
+  .pbody > .seg[role="tablist"] { overflow: visible; }
+}
+/* 第 9 条（方案 A）：页头的整页按钮（pageActs）。宽屏照旧排在工具栏右端；屏宽 600 以下收进位置选择右边 44 宽的“更多”（间隔 8），
+   “数据截至…”是位置选择下面的一行 12/18 小字（距位置选择 8），工具栏约 70 高（原先总览三行 156 高、设备两行 100 高）。 */
+.ws-page-acts { display: contents; }
+.ws-toolbar > .ops-live + .ws-page-acts > .btn:first-child { margin-left: 8px; }
+.ws-toolbar > .ws-page-more { display: none; }
+@media (max-width: 599.98px) {
+  .pbody > .ws-toolbar > .sp,
+  .pbody > .ws-toolbar > .ws-page-acts { display: none; }
+  .pbody > .ws-toolbar:has(> .ws-page-more) > .ws-location-group { width: calc(100% - 52px); }
+  .pbody > .ws-toolbar > .ws-page-more { display: grid; order: 1; }
+  .pbody > .ws-toolbar > .ops-live { order: 2; width: 100%; margin-top: -4px; }
+}
+/* 第 10 条：页签到下面内容统一 20，与卡片之间的间距相同（总览 › 概况的统计范围说明原为 16，数据分析、告警、场景、设备已是 20）；电脑和手机相同。 */
+.pbody > .seg + .ws-tabpanel > .ops-scope-note:first-child { margin-top: 20px; }
+/* 侧栏收起成图标栏时，机构入口仍显示机构标识（上传的标识或首字）。原先“收起时隐藏机构入口里的文字”的规则也藏掉了标识本身，
+   图标栏左下角是空的；851–1199 宽默认收起后（第 5 条）每台平板都会看到，一并改正。 */
+.collapsed .orgbtn .ws-org-logo > :is(.au-mark, .au-mark-box) { display: inline-grid; }
+/* 第 15 条：没有上传标识的机构，首字标识用和个人头像相同的配色（第 442 条：浅灰底 #777771 16%、#2E2E2E 字），圆角不变；
+   机构菜单、我的账户 › 我的机构、选择机构页与侧栏左下角的机构入口共用（原为浅蓝底、#1C5CAB 蓝字，蓝色只表示选中和聚焦）。 */
+.au-mark { background: rgb(119 119 113 / 0.16); color: #2e2e2e; }
+/* 第 8 条：从窄屏抽屉里打开机构菜单时，菜单（含弹层内边距 8）宽 264 = 抽屉 280 − 16，左右各留 8（auPlaceMenu）。 */
+#pop.au-menu-drawer { width: 264px; max-width: calc(100vw - 16px); }
+#pop.au-menu-drawer .au-menu { width: auto; }
+/* 菜单变窄时“AI 用量 · 已用 34%”与重置时间各自整体换行，不在“34%”“重置”中间断开。 */
+.au-aicard-h { flex-wrap: wrap; row-gap: 0; }
+.au-aicard-h > :is(b, small) { white-space: nowrap; }
 
 /* ==== 2026-10-12 全面设计核查第二部分 · 总览（第 19、74、81–95 条）
    [OVERVIEW] 本区的样式改动写在这一段注释之后、下一段注释之前。
@@ -32381,6 +32429,10 @@ function toolbar(right = "", showViews = false, leftExtra = "") {
     : `<div class="ws-location-group ${showViews ? "with-views" : ""}">${scopeControl()}${showViews ? views() : ""}</div>`;
   return `<div class="toolbar ws-toolbar">${left}${leftExtra}<span class="sp"></span>${right}</div>`;
 }
+// 页头工具栏里的整页按钮（操作记录、大屏、修改记录等）。屏宽 600 以下这些按钮收进位置选择右边 44 宽的“更多”，
+// “数据截至…”改为位置选择下面的一行小字，工具栏从三行（156 高）降到约 70 高（全面设计核查第 9 条，2026-10-12 用户确认方案 A）。
+const pageActs = (html) =>
+  `<span class="ws-page-acts">${html}</span>${menuTrigger(iconBtn("更多", "more", "pageMore")).replace('class="iconbtn round"', 'class="iconbtn round ws-page-more"')}`;
 function projectNavigation(showViews = false) {
   const parent = U.zone && U.f ? ["f", currentFloor()?.name] : U.f && isOutdoor(U.b) ? ["p", g("projects", U.p)?.name] : U.f ? ["b", currentBuilding()?.name] : U.b ? ["p", g("projects", U.p)?.name] : U.p ? ["root", "全部项目"] : null;
   return `<div class="ws-space-nav">${parent ? `<button class="btn ws-parent-back" data-act="crumb" data-to="${parent[0]}" aria-label="返回${esc(parent[1])}" title="返回${esc(parent[1])}">${ico("back", "ic16")}</button>` : ""}${dirSearch()}${showViews ? views() : ""}</div>`;
@@ -33138,7 +33190,7 @@ pages.devices = () => {
   // 页头右侧只放管整页的“修改记录”；各页签的新建在页签下第一行右端，是本页签唯一的主要按钮（2026-10-10 用户确认，ABB 对比 IA4：
   // 原先这五个页签的页头都有黑色“+ 标记设备”）。标记设备在“设备标记”页签和项目楼层图的“标记设备”进行。
   // “修改记录”用全站默认浅色按钮（Lovable 核查第 104 条，2026-10-11 用户确认：原为透明按钮）
-  const head = toolbar(btn("修改记录", "changes")) + deviceTabs();
+  const head = toolbar(pageActs(btn("修改记录", "changes"))) + deviceTabs();
   if (tab === "networks") return head + networkList();
   if (tab === "connections") return head + connectionList();
   if (tab === "groups") return head + groupList();
@@ -35082,6 +35134,17 @@ defineActions({
     wsSyncSidebarState();
     if (open) ($("#side .navitem.on") || $("#side .navitem"))?.focus({ preventScroll: true });
     else $(".phead > .mobnav")?.focus({ preventScroll: true });
+  },
+  // 手机上页头的“更多”：列出同一工具栏里的整页按钮，各项的动作与参数不变（全面设计核查第 9 条）
+  pageMore: (a, el) => {
+    if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
+    const items = [...(el.closest(".ws-toolbar")?.querySelectorAll(".ws-page-acts > button") || [])].map((b) => {
+      const c = b.cloneNode(true);
+      c.className = "btn popitem";
+      c.removeAttribute("id");
+      return c.outerHTML;
+    });
+    if (items.length) popRight(el, menuBox("更多", items.join("")));
   },
   nav: (a) => route(a.page, {}, a.page === "projects" ? { root: true, source: null } : { restore: true, source: null }),
   location: (a, el) => openLocation(el),
@@ -47753,7 +47816,7 @@ function renderOverview() {
     unknown = connected.filter((p) => F.communication(data(), p) === "状态未知"),
     head =
       // 页头按钮用全站默认浅色按钮（Lovable 核查第 104 条，2026-10-11 用户确认：原为透明按钮）
-      toolbar(btn("操作记录", "operationRecords") + (U.p ? btn("配置进度", "deployList", { p: U.p, b: U.b }) : "")) +
+      toolbar(pageActs(btn("操作记录", "operationRecords") + (U.p ? btn("配置进度", "deployList", { p: U.p, b: U.b }) : ""))) +
       tabs(overviewTabs, tab, "tab", "wsPagePanel", "总览页签");
   if (tab === "general")
     return (
@@ -58076,7 +58139,7 @@ function renderOpsOverview() {
   const tab = U.tab || "general",
     // 工具栏右侧写数据截至（VD8）；所选范围没有运行数据时不写。“大屏”在新窗口打开当前范围的大屏（OPS07，2026-10-09 用户确认，大屏显示方案 DP1、ABB 对比 BP39）
     // 页头的“操作记录”“大屏”用全站默认浅色按钮（Lovable 核查第 104 条，2026-10-11 用户确认：原为透明按钮）
-    head = toolbar((Demo.inScope() ? liveLine() : "") + btn("操作记录", "opsRecords") + btn("大屏", "opsScreen")) + tabs(overviewTabs, tab, "tab", "wsPagePanel", "总览页签");
+    head = toolbar((Demo.inScope() ? liveLine() : "") + pageActs(btn("操作记录", "opsRecords") + btn("大屏", "opsScreen"))) + tabs(overviewTabs, tab, "tab", "wsPagePanel", "总览页签");
   if (!Demo.inScope()) return head + outOfScope();
   if (tab === "general") return head + ovGeneral();
   if (tab === "energy") return head + ovEnergy();
@@ -65090,8 +65153,17 @@ function auPlaceMenu(anchor) {
   const p = $("#pop");
   if (!p) return;
   p.classList.add("au-menu-pop");
+  // 在窄屏抽屉里打开时，菜单宽度为抽屉宽减 16（280 − 16 = 264），左右各留 8，不超出抽屉压到遮罩上（全面设计核查第 8 条：原为 288 宽，右边超出抽屉 16）。
+  const side = isMobile() && anchor.closest("#side");
+  p.classList.toggle("au-menu-drawer", !!side);
   const r = anchor.getBoundingClientRect(),
     pr = p.getBoundingClientRect();
+  if (side) {
+    const s = side.getBoundingClientRect();
+    p.style.left = s.left + 8 + "px";
+    p.style.top = Math.max(8, r.top - pr.height - 4) + "px";
+    return;
+  }
   // 离机构入口 4（2026-10-11 用户确认，Lovable 核查第 107 条：原为上方 6、右侧 8）
   if ($("#app").classList.contains("collapsed") && innerWidth > 850) {
     p.style.left = r.right + 4 + "px";
