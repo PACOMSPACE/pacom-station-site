@@ -7095,7 +7095,8 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .ws-info-project { display:grid; gap:4px; padding:16px 0; border-bottom:1px solid var(--line2); }
 .ws-info-project > span { font-size:14px; color:var(--text3); }
 .ws-space-info .ws-info-image { width:100%; height:160px; object-fit:cover; border-radius:8px; }
-@media (max-width:850px), (pointer:coarse) {
+/* 只在窄屏占满宽度；触屏平板与告警详情、参数详情一样 400 宽（全面设计核查第 20 条，2026-10-12 用户确认：原先触屏上也占满宽度） */
+@media (max-width:850px) {
  .v13-drawer.ws-space-info { top:8px; right:8px; bottom:8px; width:calc(100% - 16px); max-width:calc(100% - 16px); }
 }
 @media (prefers-reduced-motion:reduce) {
@@ -24663,6 +24664,285 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
 /* ==== 2026-10-12 全面设计核查第二部分 · 告警与侧面板（第 20、107–116、118–121 条）
    [ALARM] 本区的样式改动写在这一段注释之后、下一段注释之前。
    ==== */
+/* 第 20 条（2026-10-12 用户确认）：侧面板统一。告警详情与工单、参数详情宽 400（原为 420、440；项目信息已是 400，楼层面板保持 320），
+   距窗口右、下 16，顶边由脚本放到工具栏下方 8（wsPlaceInfo；原先告警详情从 8、参数详情从 16 开始，盖住工具栏）。窄屏仍占满宽度。 */
+@media (min-width: 851px) {
+  .ops-drawer {
+    top: 16px;
+    right: 16px;
+    bottom: 16px;
+    width: 400px;
+    max-width: calc(100vw - 32px);
+  }
+}
+@media (min-width: 901px) {
+  aside.v13-drawer {
+    width: 400px;
+  }
+}
+/* 参数详情收窄后，信息列表里折成两行的链接（如“下级覆盖”）左对齐，不居中 */
+aside.v13-drawer .v13-dg dd > .v13-link {
+  text-align: left;
+}
+/* 标题 16/24 字重 480（原为字重 500）；告警详情与工单抽屉按第 110 条为 18/24 字重 480（原为 18/25 字重 500），副标题 14/24（原为 13 号）。
+   第 20 条写“标题 16/24”，第 110 条又定告警抽屉标题 18/24，以较新的第 110 条为准。 */
+.v13-dh h2,
+.sp-panel .mk-title {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 480;
+}
+.ops-drawer-h h3 {
+  margin: 6px 0 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 480;
+}
+.ops-drawer-h p {
+  font-size: 14px;
+  line-height: 24px;
+}
+/* 关闭按钮和弹窗相同：透明 32，悬停叠黑 8%、按下 10%（原先项目信息、参数详情、楼层面板为带边线的白色圆按钮）；触屏 44 */
+:is(.v13-dh, .sp-panel) > .iconbtn.round {
+  flex: none;
+  background: none;
+  box-shadow: none;
+}
+:is(.v13-dh, .sp-panel) > .iconbtn.round:hover {
+  background: var(--sel);
+}
+:is(.v13-dh, .sp-panel) > .iconbtn.round:active {
+  background: rgba(0, 0, 0, 0.1);
+}
+@media (max-width: 850px), (pointer: coarse) {
+  :is(.v13-dh, .ops-drawer-h, .sp-panel) > .iconbtn.round {
+    width: 44px;
+    height: 44px;
+  }
+  :is(.v13-dh, .ops-drawer-h) > .iconbtn.round {
+    margin: -6px -6px -6px 0;
+  }
+}
+/* 第 107 条（2026-10-12 用户确认）：屏宽 1440 及以上时，告警页的抽屉把列表推开而不是盖住（“列表 + 详情”）：页签内容右侧让出抽屉的位置，
+   抽屉与表格间隔 16（400 宽 + 距窗口右 16 + 间隔 16，减去内容区原有的右侧 36）；“影响”列折到名称下面第二行。1440 以下仍浮在上面。 */
+@media (min-width: 1440px) {
+  #app[data-page=alarms] #wsPagePanel:has(> .ops-drawer) {
+    padding-right: 396px;
+  }
+  #app[data-page=alarms] #wsPagePanel:has(> .ops-drawer) .ops-alarms .ops-c-imp {
+    display: none;
+  }
+  #app[data-page=alarms] #wsPagePanel:has(> .ops-drawer) .ops-alarms .ops-al-imp2 {
+    display: block;
+  }
+  /* 搜索框收窄到 240，筛选仍排在一行 */
+  #app[data-page=alarms] #wsPagePanel:has(> .ops-drawer) .ops-filters .ops-q {
+    flex-basis: 240px;
+  }
+}
+/* 第 119 条（2026-10-12 用户确认）：屏宽 851–1279 时“影响”折到名称下面第二行（12/18 灰字），每行回到一两行高（原先 1024 宽时影响列约 150–220 宽，断成多行）；
+   850 以下仍按手机折叠，影响写在第二行“影响 …”。 */
+#app[data-page=alarms] .ops-al-imp2 {
+  display: none;
+}
+@media (min-width: 851px) and (max-width: 1279.98px) {
+  #app[data-page=alarms] .ops-alarms .ops-c-imp {
+    display: none;
+  }
+  #app[data-page=alarms] .ops-alarms .ops-al-imp2 {
+    display: block;
+  }
+}
+/* 第 110 条：抽屉里的按钮 32 高、触屏 44（原为 28）；第 150 条：工单抽屉的“完成工单”（及同一行的“追加记录”、返工的“需返工”）同样 32 高、触屏 44 */
+@media (max-width: 850px), (pointer: coarse) {
+  .ops-drawer :is(.ops-drawer-state, .ops-ctl-row) .btn {
+    height: 44px;
+  }
+}
+/* 第 145 条（2026-10-12 用户确认）：告警与工单抽屉的分节标题（数据证据、受影响位置、时间线、来源告警、排查记录等）14/24 字重 480 黑字（原为 13/21 字重 500 #2E2E2E） */
+.ops-drawer .ops-dsec h4 {
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 480;
+  color: var(--text);
+}
+/* 第 109 条：告警详情顶部信息列表中的“工单”一行，链接折行时左对齐 */
+.ops-drawer .ops-kv dd > .ops-link {
+  text-align: left;
+}
+/* 第 118 条：恢复与确认两个标签并排，间隔 4；第 112 条：逾期为红色标签 */
+.ops-st-pair {
+  display: inline-flex;
+  gap: 4px;
+  vertical-align: middle;
+}
+.ops-st.over {
+  background: var(--critbg);
+  color: var(--crit);
+}
+.ops-st.ops-al-over {
+  margin-left: 6px;
+  vertical-align: 1px;
+}
+/* 第 113 条（2026-10-12 用户确认）：当前告警的勾选列与行尾“确认”。勾选框所在的格整格可点（在铺满整行的名称按钮之上），触屏宽 44；
+   勾选后表头换成“已选 N 条 · 确认 N 条 · 取消选择”，表头仍 40 高 */
+#app[data-page=alarms] .ops-alarms .ops-ck {
+  position: relative;
+  z-index: 1;
+  width: 40px;
+  padding-right: 0;
+  cursor: pointer;
+}
+.ops-ck-in {
+  margin: 0;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  cursor: pointer;
+}
+#app[data-page=alarms] .ops-alarms .ops-ack-c {
+  width: 1px;
+  white-space: nowrap;
+  text-align: right;
+}
+#app[data-page=alarms] .ops-alarms .ops-ack-c .btn.ghost {
+  margin: 0;
+  white-space: nowrap;
+}
+.ops-bulk-in {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+.ops-bulk-in > span {
+  margin-right: 4px;
+}
+#app[data-page=alarms] .ops-alarms .ops-bulk th {
+  padding-block: 3px 4px;
+}
+@media (max-width: 850px), (pointer: coarse) {
+  #app[data-page=alarms] .ops-alarms .ops-ck {
+    width: 44px;
+  }
+  .ops-bulk-in .btn {
+    height: 44px;
+  }
+  /* 行尾“确认”外观不变，点按范围用看不见的外扩做到 44 高 */
+  #app[data-page=alarms] .ops-alarms .ops-ack-c .btn.ghost::after {
+    content: "";
+    position: absolute;
+    inset: -10px -8px;
+  }
+}
+/* 手机上表格只留级别、名称与行尾“确认”，不放勾选列（名称列太窄）；批量确认在电脑和平板上做 */
+@media (max-width: 850px) {
+  #app[data-page=alarms] .ops-alarms .ops-ck {
+    display: none;
+  }
+}
+/* 第 114 条（2026-10-12 用户确认）：“告警最多”的列宽按内容，不撑满整张卡片 */
+#app[data-page=alarms] .ops-al-top .ops-t {
+  width: auto;
+  min-width: 0;
+}
+/* 手机上单元格左右 6（两端 8）、“累计时长”表头可换行，四列放得下，不横向滚动（原先表格至少 720 宽、横向滚动） */
+@media (max-width: 850px) {
+  #app[data-page=alarms] .ops-al-top .ops-t :is(th, td) {
+    padding-inline: 6px;
+  }
+  #app[data-page=alarms] .ops-al-top .ops-t :is(th, td):first-child {
+    padding-left: 8px;
+  }
+  #app[data-page=alarms] .ops-al-top .ops-t :is(th, td):last-child {
+    padding-right: 8px;
+  }
+  #app[data-page=alarms] .ops-al-top .ops-t th:not(:nth-child(2)) {
+    white-space: normal;
+  }
+}
+/* 第 115 条（2026-10-12 用户确认）：告警规则的四张卡共用一组固定列宽（名称 / 级别 / 条件 / 状态 / 操作），上下对齐；手机仍按折叠表 */
+@media (min-width: 851px) {
+  #app[data-page=alarms] .ops-rules-t {
+    table-layout: fixed;
+    width: 100%;
+  }
+  .ops-rules-t .ops-rl-n {
+    width: 220px;
+  }
+  .ops-rules-t .ops-rl-l {
+    width: 128px;
+  }
+  .ops-rules-t .ops-rl-s {
+    width: 136px;
+  }
+  .ops-rules-t .ops-rl-a {
+    width: 104px;
+  }
+}
+/* 第 116、117 条（2026-10-12 用户确认，只改告警页）：表格单元格 14/24（原为 13/24）；首列名称 14/24 字重 480（原先当前告警 13 号字重 500，
+   告警记录、告警最多、告警规则 13 号字重 400）；卡片标题字重 480（原为 500）；指标卡名称 14/24（原为 13/20）、单位 12/18（原为 13/18）；
+   字段名 14/24 字重 480 黑字（原为字重 500）；灰色说明 12/18 #636363（原先弹窗说明 13 号、字段说明 14/24） */
+#app[data-page=alarms] .ops-t > tbody > tr:not(.ops-t2) > td {
+  font-size: 14px;
+  line-height: 24px;
+}
+#app[data-page=alarms] .ops-t .ops-al-t {
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 480;
+}
+#app[data-page=alarms] .ops-card-h h3 {
+  font-weight: 480;
+}
+#app[data-page=alarms] .ops-kpi-l {
+  font-size: 14px;
+  line-height: 24px;
+}
+#app[data-page=alarms] .ops-kpi-v small {
+  font-size: 12px;
+  line-height: 18px;
+}
+:is(body:has(> #app[data-page=alarms]) #dlg, #app[data-page=alarms] .ops-drawer) .field > label,
+body:has(> #app[data-page=alarms]) #dlg .ws-checks label {
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 480;
+  color: var(--text);
+}
+body:has(> #app[data-page=alarms]) #dlg :is(.ops-modal-sub, .field > small.muted),
+#app[data-page=alarms] .ops-drawer :is(.ops-zp-sub, .field > small.muted) {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text3);
+}
+/* 第 121 条（2026-10-12 用户确认）：手机折叠后第二行高度随内容（原先每格最少 44 高，一行 18 高的字下面空出约 20）；44 的点按区由整行（两行合起来）承担 */
+#app[data-page=alarms] .ops-t .ops-t2 > td {
+  height: auto;
+}
+/* 第 120 条（2026-10-12 用户确认）：当前告警的三个筛选在电脑上照常排在搜索后面；手机上三个各占三分之一宽排成一行，放不下时这一行横向滑动 */
+.ops-fsels {
+  display: contents;
+}
+@media (max-width: 850px) {
+  .ops-fsels {
+    display: flex;
+    flex: 1 1 100%;
+    gap: 8px;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .ops-fsels::-webkit-scrollbar {
+    display: none;
+  }
+  .ops-fsels > .ops-fsel {
+    flex: 1 0 0;
+    width: auto;
+    min-width: max-content;
+  }
+}
 
 /* ==== 2026-10-12 全面设计核查第二部分 · 场景、空状态与提示条（第 2、22、24、122–127 条）
    [SCENE] 本区的样式改动写在这一段注释之后、下一段注释之前。
@@ -36455,13 +36735,17 @@ defineActions({
     pop.getElement()?.querySelector(".popitem")?.focus();
   },
 });
+// 侧面板（项目信息、参数详情、告警详情与工单）都从工具栏下方 8 开始，工具栏滚出视野后回到面板自身的顶边（CSS 的 top）
+// （全面设计核查第 20 条（2026-10-12 用户确认）：原先只有项目信息如此，参数详情从窗口顶 16、告警详情从 8 开始，盖住工具栏）。
 function wsPlaceInfo() {
-  const d = $(".ws-space-info"); if (!d) return;
-  d.style.top = "";
-  const tb = $("#pbody .ws-tb-actions"), base = parseFloat(getComputedStyle(d).top) || 16;
-  if (!tb) return;
-  const top = Math.round(tb.getBoundingClientRect().bottom + 8);
-  if (top > base && innerHeight - top - base >= 240) d.style.top = top + "px";
+  const tb = $("#pbody .ws-toolbar") || $("#pbody .ws-tb-actions");
+  document.querySelectorAll(".ws-space-info, aside.v13-drawer, .ops-drawer").forEach((d) => {
+    d.style.top = "";
+    const base = parseFloat(getComputedStyle(d).top) || 16;
+    if (!tb) return;
+    const top = Math.round(tb.getBoundingClientRect().bottom + 8);
+    if (top > base && innerHeight - top - base >= 240) d.style.top = top + "px";
+  });
 }
 document.addEventListener("scroll", (e) => { if (e.target === document || e.target?.id === "pbody") wsPlaceInfo(); }, true);
 window.addEventListener("resize", () => wsPlaceInfo());
@@ -37533,7 +37817,9 @@ function projectInformationPanel() {
   const isB = target.kind === "buildings", noun = all ? "全部项目" : spaceNoun(target.kind, o);
   // C12（2026-10-03 用户确认）：保留按项目展开完整资料；汇总去掉与目录重复的项目数，增加各项目配置进度状态的分布。
   const summary = all ? `${infoRows([["全部空间", { html: nwSeps(spaceScale(db.buildings, db.zones.length)) }], ["配置进度", { html: nwSeps(progressDistribution(db.projects)) }]])}${[...db.projects].sort(M.byName).map(x => `<details class="ws-details ws-info-project"><summary>${esc(x.name)}</summary>${spaceInformationBody(x)}<div class="sp-actions">${btn("进入项目", "spaceOpen", { kind: "projects", id: x.id })}${canEdit() ? btn("编辑项目", "spaceForm", { kind: "projects", id: x.id }) : ""}</div></details>`).join("") || `<p class="muted">${canEdit() ? "尚未创建项目" : "当前没有可访问的项目"}</p>`}` : spaceInformationBody(o, isB);
-  return `<aside class="v13-drawer ws-space-info" id="wsSpaceInfo" role="dialog" aria-modal="false" aria-label="${noun}信息"><div class="v13-dh"><div><h2>${noun}信息</h2>${o ? `<p>${esc(o.name)}</p>` : ""}</div>${iconBtn("关闭信息面板", "x", "spacePanelInfoClose")}</div><div class="v13-db" data-key="${esc(all ? "info|all" : `info|${target.kind}|${o.id}`)}">${summary}<p class="note">空间数量按全部授权空间统计；空间检查按本次部署范围计算。资料不代表设备已应用或已交付。</p></div><div class="v13-df">${o ? '<span class="sp"></span>' : ""}${btn("关闭", "spacePanelInfoClose")}${o && canEdit() ? btn("编辑" + noun, "spaceForm", { kind: target.kind, id: o.id }, "primary") : ""}</div></aside>`;
+  // 只读面板不放底部“关闭”，由右上角的关闭按钮关闭；底部只在能编辑时放“编辑项目”（全面设计核查第 20 条（2026-10-12 用户确认）：原先底部另有“关闭”）
+  const foot = o && canEdit() ? `<div class="v13-df"><span class="sp"></span>${btn("编辑" + noun, "spaceForm", { kind: target.kind, id: o.id }, "primary")}</div>` : "";
+  return `<aside class="v13-drawer ws-space-info" id="wsSpaceInfo" role="dialog" aria-modal="false" aria-label="${noun}信息"><div class="v13-dh"><div><h2>${noun}信息</h2>${o ? `<p>${esc(o.name)}</p>` : ""}</div>${iconBtn("关闭信息面板", "x", "spacePanelInfoClose")}</div><div class="v13-db" data-key="${esc(all ? "info|all" : `info|${target.kind}|${o.id}`)}">${summary}<p class="note">空间数量按全部授权空间统计；空间检查按本次部署范围计算。资料不代表设备已应用或已交付。</p></div>${foot}</aside>`;
 }
 function initInfoMap() {
   const el = $("#infoMap"),
@@ -59574,7 +59860,9 @@ const alarmType = (a) => (a.kind === "safety" ? "安全与保护" : a.kind === "
 const alRec = (a) => (a.state === "recovered" ? "已恢复" : "未恢复"),
   alAck = (a) => (a.acknowledged ? "已确认" : "待确认"),
   alState = (a) => `${alRec(a)} · ${alAck(a)}`,
-  alStCls = (a) => (!a.acknowledged ? "todo" : a.state === "recovered" ? "ok" : "ack");
+  // 表格与抽屉中画成两个标签并排：恢复状态（已恢复为绿色）与确认状态（待确认实底、已确认只有边线）
+  // （全面设计核查第 118 条（2026-10-12 用户确认）：原先当前告警为“已确认”标签加一段“未恢复”文字，告警记录为一个“未恢复 · 已确认”标签）
+  alStChips = (a) => `<span class="ops-st-pair"><span class="ops-st ${a.state === "recovered" ? "ok" : "ack"}">${alRec(a)}</span><span class="ops-st ${a.acknowledged ? "ack" : "todo"}">${alAck(a)}</span></span>`;
 // 检修中（2026-10-09 用户确认，ABB 对比 BP92）：触发时设备（或其设备网络）在检修中的告警照常记录与显示，标“检修中”，不通知，
 // 不计入告警记录的统计；安全与保护照常通知。按页面时钟判断（opsRecAt 把保存时的实际时间换成页面时钟）。
 function alarmMaint(a) {
@@ -59649,7 +59937,15 @@ function alarmNext(a) {
 function taskOf(aid) {
   return data().investigationTasks.find((t) => (t.alertIds || [t.alarmId]).includes(aid));
 }
-const taskState = (t) => (t.closedAt ? "已完成" : t.notes?.length ? "处理中" : "待处理");
+// 改派记在排查记录中（kind 为 reassign），不算处理进展：只改派过的工单仍为“待处理”（全面设计核查第 112 条，2026-10-12 用户确认）
+const taskWork = (t) => (t.notes || []).filter((n) => n.kind !== "reassign");
+const taskState = (t) => (t.closedAt ? "已完成" : taskWork(t).length ? "处理中" : "待处理");
+// 逾期：过了计划时间还没完成，状态旁加红色“逾期”标签，工单列表可按逾期筛选（全面设计核查第 112 条（2026-10-12 用户确认）：原先没有任何标识）
+const taskOverdue = (t) => !t.closedAt && !!t.planAt && Date.parse(t.planAt) < opsNow();
+const taskStChips = (t) =>
+  `<span class="ops-st-pair"><span class="ops-st ${t.closedAt ? "ok" : taskWork(t).length ? "ack" : "todo"}">${taskState(t)}</span>${taskOverdue(t) ? `<span class="ops-st over">逾期</span>` : ""}</span>`;
+// 工单一行的摘要：状态 · 负责人 · 计划时间（告警详情的“工单”一行，第 109 条）
+const taskLine = (t) => [taskState(t), t.assignee || "未指定", t.planAt ? `计划 ${opsWhen(Date.parse(t.planAt))}` : ""].filter(Boolean).join(" · ");
 /* 本功能区、本设备的未恢复告警与工单（规范 CTRL01、DEVICE08，2026-10-10 用户确认，ABB 对比 IA1 方案A）：
    功能区面板的路径下、设备信息的名称下各一行，只在有运行数据且有内容时显示，如“未恢复告警 1 条（重要 · 已确认） · 工单 1 个（处理中 · 李工）”。
    告警按楼层图告警角标的归入（告警的功能区，设备的告警按设备所在的功能区）；设备含按根因合并进一条告警的设备，同“查看本设备告警”。
@@ -59692,10 +59988,10 @@ function workLine(kind, id) {
   // 两段以“ · ”分隔；放不下时第二段换到下一行，行首的“·”不显示（见 ops.css）
   return `<p class="ops-work">${parts.map((x, i) => `<span>${i ? '<span class="ops-work-sep" aria-hidden="true">·</span>' : ""}${x}</span>`).join("")}</p>`;
 }
-// 排查记录的写法（V46、V55）：每条写操作人；采纳 AI 排查步骤、未响应、需返工与完成写明是哪一种
+// 排查记录的写法（V46、V55）：每条写操作人；采纳 AI 排查步骤、未响应、需返工、改派（第 112 条）与完成写明是哪一种
 const taskNoteText = (n) => {
   const by = n.by || "",
-    k = { ai: "采纳 AI 排查步骤：", noresp: "记录未响应：", rework: "记录需返工：", finish: "完成工单：" }[n.kind];
+    k = { ai: "采纳 AI 排查步骤：", noresp: "记录未响应：", rework: "记录需返工：", reassign: "改派：", finish: "完成工单：" }[n.kind];
   return k ? `${zhSub(by, "r")}${k}${n.text || n.body}` : `${by ? by + "：" : ""}${n.text || n.body}`;
 };
 const opsWhen = (ts) => `${opsDay(ts)} ${Demo.hm(ts)}`;
@@ -59704,7 +60000,15 @@ const opsWhen = (ts) => `${opsDay(ts)} ${Demo.hm(ts)}`;
 // 已打开的一行 aria-current（第 306 条）。html 为已转义的名称
 const alRowBtn = (act, id, html, cls = "") =>
   `<button type="button" class="ops-rowbtn${cls ? " " + cls : ""}" data-act="${act}" data-id="${id}"${U.opsDrawer?.id === id ? ' aria-current="true"' : ""}>${html}</button>`;
-const alTh = (heads, main) => `<thead><tr>${heads.map((h) => `<th${main.includes(h) ? "" : ' class="sec"'}>${h}</th>`).join("")}</tr></thead>`;
+// cls 为各列另加的类名（如“影响”列在窄屏折到名称下面，第 119 条；规则表的固定列宽，第 115 条）
+const alThs = (heads, main, cls = {}) =>
+  heads
+    .map((h) => {
+      const c = [main.includes(h) ? "" : "sec", cls[h] || ""].filter(Boolean).join(" ");
+      return `<th${c ? ` class="${c}"` : ""}>${h}</th>`;
+    })
+    .join("");
+const alTh = (heads, main, cls) => `<thead><tr>${alThs(heads, main, cls)}</tr></thead>`;
 // 句子里的功能区名称（影响“会议室 7-1 · 在场人员舒适度”、联动条件“开放办公区 A 或开放办公区 B 有人”）整体不换行，
 // 句子其余部分照常换行；文字不变（Lovable 核查第 315 条，2026-10-11 用户确认：原先断成“会议室 7- / 1”“开放 / 办公区 B”）
 function nwZoneText(s) {
@@ -59767,7 +60071,21 @@ function alCurrent() {
       .sort((a, b) => (a.state === "recovered") - (b.state === "recovered") || lvlRank(a.level) - lvlRank(b.level) || Date.parse(b.at) - Date.parse(a.at)),
     rows = as.filter((a) => (lv === "all" || LV(a.level) === lv) && (ty === "all" || alarmType(a) === ty) && (st === "all" || (a.acknowledged ? "已确认" : "待确认") === st) && alarmForDevice(a) && alarmForZone(a));
   const n = (f) => as.filter(f).length,
-    heads = ["级别", "告警", "影响", "状态", "发生", "工单"];
+    heads = ["级别", "告警", "影响", "状态", "发生", "工单"],
+    // 批量确认（全面设计核查第 113 条（2026-10-12 用户确认）：原先只能打开抽屉一条条确认）：有运营权限且有待确认的告警时，
+    // 行首可勾选待确认的告警，勾选后表头换成“已选 N 条 · 确认 N 条”；行尾另有“确认”文字按钮。只保留当前筛选中仍待确认的勾选。
+    todo = rows.filter((a) => !a.acknowledged),
+    bulk = canOperate() && todo.length > 0,
+    sel = (U.opsAlSel = bulk ? (U.opsAlSel || []).filter((id) => todo.some((a) => a.id === id)) : []),
+    cols = heads.length + (bulk ? 2 : 0),
+    // “影响”列在窄屏（851–1279）与抽屉推开表格时（≥ 1440）折到名称下面第二行（第 107、119 条），见 [ALARM] 样式
+    thCls = { 影响: "ops-c-imp" },
+    ckAll = `<input type="checkbox" class="ops-ck-in" data-act="opsAlCheckAll"${sel.length === todo.length ? " checked" : ""} aria-label="选择全部待确认的告警">`,
+    thead = !bulk
+      ? alTh(heads, ["级别", "告警"], thCls)
+      : sel.length
+        ? `<thead><tr class="ops-bulk"><th class="ops-ck" data-act="opsAlCheckAll">${ckAll}</th><th colspan="${cols - 1}"><div class="ops-bulk-in"><span>已选 ${sel.length} 条</span>${btn(`确认 ${sel.length} 条`, "opsAckMany")}${btn("取消选择", "opsAlCheckNone", {}, "ghost")}</div></th></tr></thead>`
+        : `<thead><tr><th class="ops-ck" data-act="opsAlCheckAll">${ckAll}</th>${alThs(heads, ["级别", "告警"], thCls)}<th class="ops-ack-c"><span class="sr-only">操作</span></th></tr></thead>`;
   let shown = 0;
   const body = rows.map((a) => {
     const t = alarmTitle(a),
@@ -59775,15 +60093,18 @@ function alCurrent() {
       q = [t.title, t.sub, alarmImpact(a), tk?.assignee].join(" "),
       miss = qMiss("alarms", q),
       attrs = ` data-act="opsAlarm" data-id="${a.id}" data-q="${esc(q)}"${miss}`,
-      ack = a.acknowledged ? "已确认" : "待确认",
-      tkTxt = tk ? `${taskState(tk)} · ${tk.assignee || "未指定"}` : "";
+      tkTxt = tk ? `${taskState(tk)} · ${tk.assignee || "未指定"}` : "",
+      t2 = alT2(` data-key="t2-${a.id}"${attrs}`, cols, [["状态", alState(a)], ["发生", opsWhen(Date.parse(a.at))], ["工单", tkTxt], ["影响", alarmImpact(a)]]);
     if (!miss) shown++;
     return (
-      `<tr class="click ${U.opsDrawer?.id === a.id ? "on" : ""}"${attrs}><td>${lvlChip(a.level)}</td><td>${alRowBtn("opsAlarm", a.id, alTitleHtml(t) + maintTag(a), "ops-al-t")}<small class="ops-al-s">${t.subHtml}${t.merged ? ` · <span class="ops-dim ops-nw" data-tip="LC20 与它供电的全部 MS20 在同一时段离线，合并为一条">合并 ${a.relatedIds.length + 1} 台</span>` : ""}</small></td><td class="ops-al-imp sec">${nwZoneText(alarmImpact(a))}</td><td class="sec"><span class="ops-st ${a.acknowledged ? "ack" : "todo"}">${ack}</span><small class="ops-al-s">${alRec(a)}</small></td><td class="ops-num sec">${opsWhen(Date.parse(a.at))}<small class="ops-al-s">${a.state === "recovered" ? alDur(a) : dur(alarmStart(a))}</small></td><td class="sec">${tk ? `<button class="ops-link" data-act="opsTask" data-id="${tk.id}">${esc(tkTxt)}</button>` : `<span class="ops-dim">—</span>`}</td></tr>` +
-      alT2(` data-key="t2-${a.id}"${attrs}`, heads.length, [["状态", alState(a)], ["发生", opsWhen(Date.parse(a.at))], ["工单", tkTxt], ["影响", alarmImpact(a)]])
+      `<tr class="click ${U.opsDrawer?.id === a.id ? "on" : ""}"${attrs}>${bulk ? `<td class="ops-ck"${a.acknowledged ? "" : ` data-act="opsAlCheck" data-id="${a.id}"`}>${a.acknowledged ? "" : `<input type="checkbox" class="ops-ck-in" data-act="opsAlCheck" data-id="${a.id}"${sel.includes(a.id) ? " checked" : ""} aria-label="${esc(`选择 ${t.title}`)}">`}</td>` : ""}<td>${lvlChip(a.level)}</td><td>${alRowBtn("opsAlarm", a.id, alTitleHtml(t) + maintTag(a), "ops-al-t")}<small class="ops-al-s">${t.subHtml}${t.merged ? ` · <span class="ops-dim ops-nw" data-tip="LC20 与它供电的全部 MS20 在同一时段离线，合并为一条">合并 ${a.relatedIds.length + 1} 台</span>` : ""}</small><small class="ops-al-s ops-al-imp2">${nwLabel("影响", nwZoneText(alarmImpact(a)))}</small></td><td class="ops-al-imp ops-c-imp sec">${nwZoneText(alarmImpact(a))}</td><td class="sec">${alStChips(a)}</td><td class="ops-num sec">${opsWhen(Date.parse(a.at))}<small class="ops-al-s">${a.state === "recovered" ? alDur(a) : dur(alarmStart(a))}</small></td><td class="sec">${tk ? `<button class="ops-link" data-act="opsTask" data-id="${tk.id}">${esc(tkTxt)}</button>${taskOverdue(tk) ? `<span class="ops-st over ops-al-over">逾期</span>` : ""}` : `<span class="ops-dim">—</span>`}</td>${bulk ? `<td class="ops-ack-c">${a.acknowledged ? "" : btn("确认", "opsAck", { id: a.id, row: "1" }, "ghost")}</td>` : ""}</tr>` +
+      // 手机上第二行从勾选列之后开始
+      (bulk ? t2.replace(`<td colspan="${cols}">`, `<td class="ops-ck"></td><td colspan="${cols - 1}">`) : t2)
     );
   });
-  return `<div class="ops-filters">${opsSearch("alarms", "搜索告警、设备或功能区")}${opsFilter(
+  // 三个筛选包在一组里：电脑上照常排在搜索后面；手机上三个各占三分之一宽排成一行，放不下时这一行横向滑动（全面设计核查第 120 条（2026-10-12 用户确认）：
+  // 原先各 144 宽排成两行，第三个单独一行）
+  return `<div class="ops-filters">${opsSearch("alarms", "搜索告警、设备或功能区")}<div class="ops-fsels" role="group" aria-label="筛选">${opsFilter(
     "opsLevelSel",
     [
       ["all", `全部级别 · ${as.length}`],
@@ -59796,9 +60117,9 @@ function alCurrent() {
     [["all", `全部状态 · ${as.length}`], ...["待确认", "已确认"].map((x) => [x, `${x} · ${n((a) => (a.acknowledged ? "已确认" : "待确认") === x)}`])],
     st,
     "确认状态",
-  )}<span class="sp"></span>${demoTag()}</div><div class="ops-tw" data-q-scope="alarms"><table class="t ops-t ops-alarms ops-t-fold">${alTh(heads, ["级别", "告警"])}<tbody>${
-    body.join("") || `<tr><td colspan="6" class="flow-no-rows">没有符合筛选的未恢复告警</td></tr>`
-  }<tr data-q-empty hidden><td colspan="6" class="flow-no-rows">没有匹配的告警；可清除搜索</td></tr></tbody></table></div>${alFoot("alarms", { total: as.length, shown, unit: "条", tail: "一个根因只产生一条告警；确认不等于恢复，恢复以设备数据为准" })}`;
+  )}</div><span class="sp"></span>${demoTag()}</div><div class="ops-tw" data-q-scope="alarms"><table class="t ops-t ops-alarms ops-t-fold">${thead}<tbody>${
+    body.join("") || `<tr><td colspan="${cols}" class="flow-no-rows">没有符合筛选的未恢复告警</td></tr>`
+  }<tr data-q-empty hidden><td colspan="${cols}" class="flow-no-rows">没有匹配的告警；可清除搜索</td></tr></tbody></table></div>${alFoot("alarms", { total: as.length, shown, unit: "条", tail: "一个根因只产生一条告警；确认不等于恢复，恢复以设备数据为准" })}`;
 }
 // 同一规则（或同一设备）此前已恢复的告警：恢复与再次触发是两条告警（规范 ALARM03，2026-10-08 第3轮第7章，ALARM03 待实现第3条）
 function alarmPrev(a) {
@@ -59850,7 +60171,11 @@ function alarmTimeline(a) {
   if (nt) ev.push([at, nt.text, nt.html]);
   if (a.acknowledged) ev.push([a.ackAt ? Date.parse(a.ackAt) : at + 25 * Demo.MIN, `${zhSub(a.ackBy || "王敏", "r")}确认`]);
   if (tk) {
-    ev.push([Date.parse(tk.at), `${tk.by ? zhSub(tk.by, "r") : ""}创建工单，指派${zhSub(tk.assignee || "—", "l")}${tk.planAt ? `，计划 ${opsWhen(Date.parse(tk.planAt))}` : ""}`]);
+    // 改派过的工单：创建这一行写创建时的负责人与计划时间，之后的改派各记一行（第 112 条）
+    const re0 = (tk.notes || []).find((n) => n.kind === "reassign" && n.prev),
+      who0 = re0 ? re0.prev.assignee : tk.assignee,
+      plan0 = re0 ? re0.prev.planAt : tk.planAt;
+    ev.push([Date.parse(tk.at), `${tk.by ? zhSub(tk.by, "r") : ""}创建工单，指派${zhSub(who0 || "—", "l")}${plan0 ? `，计划 ${opsWhen(Date.parse(plan0))}` : ""}`]);
     (tk.notes || []).forEach((n) => ev.push([Date.parse(n.at), taskNoteText(n)]));
     if (tk.closedAt && !(tk.notes || []).some((n) => n.kind === "finish")) ev.push([Date.parse(tk.closedAt), "工单已完成（告警仍以设备数据恢复为准）"]);
   }
@@ -59941,31 +60266,57 @@ function alarmDrawer(id) {
     e = alarmEv(a),
     // 离线、失电与被现场复位的未恢复告警：运营人员与查看人员看到“可处理的同事”（B-4h，与设备信息同一行）
     helper = a.state !== "recovered" && ["offline", "device"].includes(a.kind) && typeof deviceHelpersRow === "function" ? deviceHelpersRow(t.p) : null;
-  // 已恢复的告警也能确认（2026-10-09 用户确认，ABB 对比 BP94）；工单只给未恢复的告警创建
-  const primary = !a.acknowledged ? (ops ? btn("确认告警", "opsAck", { id }, "primary sm") : "") : a.state !== "recovered" && !tk && ops ? btn("创建工单", "opsTaskNew", { id }, "primary sm") : "";
+  // 按钮只有一个黑色主按钮，其余为白底按钮，32 高（触屏 44，见 [ALARM] 样式）（全面设计核查第 110 条（2026-10-12 用户确认）：
+  // 原先“创建工单”黑色、“在图上查看”白底、“查看设备网络”透明，都只有 28 高）。
+  // 创建工单时自动确认告警（第 111 条（2026-10-12 用户确认），改 ALARM05“先确认、再创建工单”，V44：原先待确认的告警要先确认才能创建）：
+  // 未恢复且没有工单时主按钮为“创建工单”，待确认的另有白底“确认告警”给只确认、不建单的情况；已恢复的告警也能确认（BP94），工单只给未恢复的告警创建。
+  const canTask = ops && a.state !== "recovered" && !tk,
+    primary = canTask ? btn("创建工单", "opsTaskNew", { id }, "primary") : ops && !a.acknowledged ? btn("确认告警", "opsAck", { id }, "primary") : "",
+    ackBtn = canTask && !a.acknowledged ? btn("确认告警", "opsAck", { id }) : "";
   const mt = alarmMaint(a),
-    stChip = `<span class="ops-st ${alStCls(a)}">${alState(a)}</span>${mt ? `<span class="ops-st mt">检修中</span>` : ""}`,
+    stChip = `${alStChips(a)}${mt ? `<span class="ops-st mt">检修中</span>` : ""}`,
     // 离线与被现场复位都可查看设备网络（V45）
-    acts = primary + (t.zone ? btn("在图上查看", "opsOpenZone", { id: t.zone.id, tab: a.kind === "environment" ? "environment" : "lighting" }, "sm") : "") + (["offline", "device"].includes(a.kind) ? btn("查看设备网络", "opsGo", { page: "devices", tab: "networks" }, "ghost sm") : "");
-  return `<aside class="ops-drawer" aria-label="告警详情"><header class="ops-drawer-h"><div><div class="ops-drawer-eb">${lvlChip(a.level)}${stChip}</div><h3 tabindex="-1">${esc(t.title)}</h3><p>${t.subHtml}</p></div>${iconBtn("关闭", "x", "opsDrawerClose")}</header><div class="ops-drawer-b">
-  <dl class="ops-kv ops-3q"><dt>发生了什么</dt><dd>${esc(t.merged ? `${zhSub(t.p.name, "r")}与它供电的 ${a.relatedIds.length} 台 MS20 在同一分钟停止上报，网关与同网络其他设备正常` : alarmDesc(a) || a.name)}</dd><dt>影响</dt><dd>${esc(alarmImpact(a))}</dd><dt>下一步</dt><dd>${esc(alarmNext(a))}</dd>${mt ? `<dt>检修中</dt><dd>${esc(mt.by === "task" ? `${mt.reason}执行中，所涉设备自动算检修中` : `${mt.reason}${mt.until ? `（至 ${opsWhen(opsRecAt(mt.until))}）` : ""}`)} · 不通知，不计入告警统计</dd>` : ""}${helper ? `<dt>${helper[0]}</dt><dd class="dev-helpers-dd">${helper[1]}</dd>` : ""}</dl>
+    acts = primary + ackBtn + (t.zone ? btn("在图上查看", "opsOpenZone", { id: t.zone.id, tab: a.kind === "environment" ? "environment" : "lighting" }) : "") + (["offline", "device"].includes(a.kind) ? btn("查看设备网络", "opsGo", { page: "devices", tab: "networks" }) : ""),
+    // 工单写在顶部信息列表中，点击打开工单（第 109 条（2026-10-12 用户确认）：原先放在抽屉最底部，排在证据、AI 建议、楼层图与时间线之后）
+    tkRow = tk
+      ? `<dt>工单</dt><dd><button type="button" class="ops-link" data-act="opsTask" data-id="${tk.id}" aria-label="${esc(`打开工单“${tk.name}”：${taskLine(tk)}`)}">${esc(taskLine(tk))}</button>${taskOverdue(tk) ? ` <span class="ops-st over">逾期</span>` : ""}${tk.closedAt && a.state !== "recovered" ? `<small class="ops-al-s">工单已完成；告警以设备数据恢复为准</small>` : ""}</dd>`
+      : a.state !== "recovered"
+        ? `<dt>工单</dt><dd>未创建</dd>`
+        : "";
+  // 副标题只写位置（第 108 条），“发生了什么”留在下面的信息列表里
+  return `<aside class="ops-drawer" aria-label="告警详情"><header class="ops-drawer-h"><div><div class="ops-drawer-eb">${lvlChip(a.level)}${stChip}</div><h3 tabindex="-1">${esc(t.title)}</h3><p>${nwJoin(alarmPlace(a))}</p></div>${iconBtn("关闭", "x", "opsDrawerClose")}</header><div class="ops-drawer-b">
+  <dl class="ops-kv ops-3q"><dt>发生了什么</dt><dd>${esc(t.merged ? `${zhSub(t.p.name, "r")}与它供电的 ${a.relatedIds.length} 台 MS20 在同一分钟停止上报，网关与同网络其他设备正常` : alarmDesc(a) || a.name)}</dd><dt>影响</dt><dd>${esc(alarmImpact(a))}</dd><dt>下一步</dt><dd>${esc(alarmNext(a))}</dd>${tkRow}${mt ? `<dt>检修中</dt><dd>${esc(mt.by === "task" ? `${mt.reason}执行中，所涉设备自动算检修中` : `${mt.reason}${mt.until ? `（至 ${opsWhen(opsRecAt(mt.until))}）` : ""}`)} · 不通知，不计入告警统计</dd>` : ""}${helper ? `<dt>${helper[0]}</dt><dd class="dev-helpers-dd">${helper[1]}</dd>` : ""}</dl>
   ${acts ? `<div class="ops-drawer-state">${acts}</div>` : ""}
   ${e ? `<section class="ops-dsec ops-ev"><h4>数据证据</h4>${evidenceHtml(e)}</section>` : ""}
   ${typeof aiRootCause === "function" ? aiRootCause(a) : ""}
   <section class="ops-dsec"><h4>受影响位置</h4>${opsPlan({ mini: true, highlight: t.zone ? [t.zone.id] : [], hiDevices: devs })}<p class="ops-foot">${devs.map((d) => esc(g("points", d)?.name)).join("、") || esc(t.zone?.name || "")}</p></section>
-  <section class="ops-dsec"><h4>时间线</h4>${alarmTimeline(a)}</section>
-  <section class="ops-dsec"><h4>工单</h4>${
-    tk
-      ? `<button class="ops-taskcard" data-act="opsTask" data-id="${tk.id}"><b>${esc(tk.name)}</b><span>${esc(taskState(tk))} · ${esc(tk.assignee || "未指定")} · ${(tk.notes || []).length} 条记录</span></button><p class="ops-foot">工单完成不等于告警恢复；告警以设备数据恢复为准。</p>`
-      : // 先确认、再创建（规范 ALARM05，2026-10-08 Vision 核查 V44：原先待确认的告警也能创建）
-        `<p class="ops-zp-sub">${a.state === "recovered" ? "未创建。" : ops && !a.acknowledged ? "尚未创建。确认告警后可创建工单。" : "尚未创建。"}</p>`
-  }</section></div></aside>`;
+  <section class="ops-dsec"><h4>时间线</h4>${alarmTimeline(a)}</section></div></aside>`;
+}
+// 告警详情的副标题：项目、楼宇楼层与功能区，如“广实2号园 E栋 7F · 会议室 7-1”；网关等不在功能区的写到楼层
+// （全面设计核查第 108 条（2026-10-12 用户确认）：原先写说明与功能区，与下面“发生了什么”逐字重复）。返回各段，由 nwJoin 以“ · ”连接
+function alarmPlace(a) {
+  const t = alarmTitle(a),
+    fid = a.floorId || t.zone?.floorId || t.p?.floorId || OPS_SCOPE.floor;
+  return [fid ? where(fid).split(" / ").join(" ") : g("projects", a.projectId)?.name, t.zone?.name].filter(Boolean);
+}
+// 勾选框本身被点时，点击处理取消了默认动作，浏览器会在事件结束后把它恢复成点之前的状态；事件结束后再按绘制结果（checked 属性）对齐（第 113 条）
+const opsAlCheckSync = () => setTimeout(() => document.querySelectorAll(".ops-alarms .ops-ck-in").forEach((b) => (b.checked = b.defaultChecked)));
+// 确认一条告警（在 transaction 中）：抽屉的“确认告警”、行尾的“确认”、批量确认与创建工单时的自动确认共用（第 111、113 条）。
+// “E栋 7F 网关离线”告警只在本页内存（Demo.ctl.gwAlarms），确认写在原条目上；已确认的不再重复记录。返回是否新确认
+function opsAckIn(db, id) {
+  const al = db.alerts.find((x) => x.id === id) || Demo.ctl.gwAlarms?.find((x) => x.id === id);
+  if (!al || al.acknowledged) return false;
+  al.acknowledged = true;
+  al.ackAt = new Date(opsNow()).toISOString();
+  al.ackBy = (typeof auMe === "function" ? auMe()?.name : { admin: "王敏", config: "李工", ops: "值班运营", viewer: "—" }[U.role]) || "当前用户";
+  M.record(db, "确认告警", id, al.name);
+  return true;
 }
 function alTasks() {
   const st = U.opsTaskState || "all",
     all = data().investigationTasks.filter((t) => t.projectId === OPS_SCOPE.project),
-    // 按本功能区或本设备筛选（ABB 对比 IA1）
-    ts = all.filter((t) => (st === "all" || taskState(t) === st) && (!U.alarmDevice || taskForDevice(t, U.alarmDevice)) && (!U.alarmZone || taskForZone(t, U.alarmZone))),
+    // 按本功能区或本设备筛选（ABB 对比 IA1）；状态筛选另有“逾期”（全面设计核查第 112 条，2026-10-12 用户确认）
+    ts = all.filter((t) => (st === "all" || (st === "逾期" ? taskOverdue(t) : taskState(t) === st)) && (!U.alarmDevice || taskForDevice(t, U.alarmDevice)) && (!U.alarmZone || taskForZone(t, U.alarmZone))),
     // “来源”列（2026-10-09 用户确认，ABB 对比 BP108 方案A）：告警（下写来源告警，可点击）、报修或定期检查（下写配置参数编号）；原为“来源告警”
     heads = ["工单", "来源", "负责人", "状态", "最近记录"];
   let shown = 0;
@@ -59982,7 +60333,7 @@ function alTasks() {
       attrs = ` data-act="opsTask" data-id="${t.id}" data-q="${esc(q)}"${miss}`;
     if (!miss) shown++;
     return (
-      `<tr class="click ${U.opsDrawer?.id === t.id ? "on" : ""}"${attrs}><td>${alRowBtn("opsTask", t.id, nwText(t.name), "ops-row-n")}<small class="ops-al-s">${nwDots(t.scopeLabel || "")}</small></td><td class="sec">${esc(TASK_SOURCES[src])}${srcs.map((a) => `<button class="ops-link ops-al-s" data-act="opsAlarm" data-id="${a.id}">${alTitleHtml(alarmTitle(a))}</button><small class="ops-al-s">${a.state === "recovered" ? "已恢复" : "未恢复"}</small>`).join("")}${srcSub ? `<small class="ops-al-s">${nwText(srcSub)}</small>` : ""}</td><td class="sec">${nwText(t.assignee || "未指定")}${plan ? `<small class="ops-al-s">${esc(plan)}</small>` : ""}</td><td><span class="ops-st ${t.closedAt ? "ok" : t.notes?.length ? "ack" : "todo"}">${taskState(t)}</span></td><td class="ops-al-imp sec">${lastTxt ? esc(lastTxt) : "—"}</td></tr>` +
+      `<tr class="click ${U.opsDrawer?.id === t.id ? "on" : ""}"${attrs}><td>${alRowBtn("opsTask", t.id, nwText(t.name), "ops-row-n")}<small class="ops-al-s">${nwDots(t.scopeLabel || "")}</small></td><td class="sec">${esc(TASK_SOURCES[src])}${srcs.map((a) => `<button class="ops-link ops-al-s" data-act="opsAlarm" data-id="${a.id}">${alTitleHtml(alarmTitle(a))}</button><small class="ops-al-s">${a.state === "recovered" ? "已恢复" : "未恢复"}</small>`).join("")}${srcSub ? `<small class="ops-al-s">${nwText(srcSub)}</small>` : ""}</td><td class="sec">${nwText(t.assignee || "未指定")}${plan ? `<small class="ops-al-s">${esc(plan)}</small>` : ""}</td><td>${taskStChips(t)}</td><td class="ops-al-imp sec">${lastTxt ? esc(lastTxt) : "—"}</td></tr>` +
       alT2(` data-key="t2-${t.id}"${attrs}`, heads.length, [["来源", [TASK_SOURCES[src], ...srcs.map((a) => `${alarmTitle(a).title}（${a.state === "recovered" ? "已恢复" : "未恢复"}）`), srcSub].filter(Boolean).join(" ")], ["负责人", [t.assignee || "未指定", plan].filter(Boolean).join("，")], ["最近记录", lastTxt]])
     );
   });
@@ -59990,7 +60341,7 @@ function alTasks() {
   const right = demoTag() + (canOperate() ? btn("新建工单", "opsRepairNew", {}, "primary") : "");
   return `<div class="ops-filters split"><div class="ops-filters-l">${opsSearch("tasks", "搜索工单、负责人或告警")}${opsFilter(
     "opsTaskSel",
-    [["all", `全部状态 · ${all.length}`], ...["待处理", "处理中", "已完成"].map((x) => [x, `${x} · ${all.filter((t) => taskState(t) === x).length}`])],
+    [["all", `全部状态 · ${all.length}`], ...["待处理", "处理中", "已完成"].map((x) => [x, `${x} · ${all.filter((t) => taskState(t) === x).length}`]), ["逾期", `逾期 · ${all.filter(taskOverdue).length}`]],
     st,
     "工单状态",
   )}</div>${right ? `<div class="ops-filters-r">${right}</div>` : ""}</div><div class="ops-tw" data-q-scope="tasks"><table class="t ops-t ops-t-fold">${alTh(heads, ["工单", "状态"])}<tbody>${
@@ -60019,8 +60370,11 @@ function taskDrawer(id) {
   ];
   const notes = (t.notes || []).map((n) => `<li><time class="ops-num">${opsWhen(Date.parse(n.at))}</time><span>${esc(taskNoteText(n))}</span></li>`);
   if (t.closedAt && !(t.notes || []).some((n) => n.kind === "finish")) notes.push(`<li><time class="ops-num">${opsWhen(Date.parse(t.closedAt))}</time><span>工单完成</span></li>`);
-  return `<aside class="ops-drawer" aria-label="工单"><header class="ops-drawer-h"><div><div class="ops-drawer-eb"><span class="ops-st ${t.closedAt ? "ok" : t.notes?.length ? "ack" : "todo"}">${taskState(t)}</span></div><h3 tabindex="-1">${esc(t.name)}</h3>${t.description ? `<p>${esc(t.description)}</p>` : ""}</div>${iconBtn("关闭", "x", "opsDrawerClose")}</header><div class="ops-drawer-b">
-  <dl class="ops-kv">${info.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl>${z ? `<div class="ops-drawer-state">${btn("在图上查看", "opsOpenZone", { id: z.id, tab: "lighting" }, "sm")}</div>` : ""}
+  // “改派”改负责人和计划时间，记入排查记录与告警时间线；过了计划时间还没完成的在状态旁和计划时间后标红色“逾期”（全面设计核查第 112 条（2026-10-12 用户确认）：
+  // 原先工单建好后不能改负责人和计划时间，也没有逾期标识）。按钮白底 32 高（第 110 条）
+  const acts = (z ? btn("在图上查看", "opsOpenZone", { id: z.id, tab: "lighting" }) : "") + (ops && !t.closedAt ? btn("改派", "opsTaskReassign", { id }) : "");
+  return `<aside class="ops-drawer" aria-label="工单"><header class="ops-drawer-h"><div><div class="ops-drawer-eb">${taskStChips(t)}</div><h3 tabindex="-1">${esc(t.name)}</h3>${t.description ? `<p>${esc(t.description)}</p>` : ""}</div>${iconBtn("关闭", "x", "opsDrawerClose")}</header><div class="ops-drawer-b">
+  <dl class="ops-kv">${info.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}${k === "计划时间" && taskOverdue(t) ? ` <span class="ops-st over">逾期</span>` : ""}</dd>`).join("")}</dl>${acts ? `<div class="ops-drawer-state">${acts}</div>` : ""}
   ${
     src !== "alarm"
       ? // 报修与定期检查（BP108）：写来源；报修的照片在文件服务接入后可查看，定期检查写所依据的配置参数
@@ -60036,8 +60390,9 @@ function taskDrawer(id) {
     !ops
       ? ""
       : !t.closedAt
-        ? `<section class="ops-dsec"><h4>追加记录</h4>${fld("记录类型", "opsTaskKind", select("opsTaskKind", [["note", "处理进展"], ["noresp", "未响应（写明原因）"]], "note", "记录类型"))}<div class="field ops-note-f"><textarea class="input" id="opsTaskNote" rows="3" placeholder="现场情况、处理结果或结论" aria-label="追加记录"></textarea></div><div class="ops-ctl-row">${btn("追加记录", "opsTaskUpd", { id }, "sm")}${btn("完成工单", "opsTaskUpd", { id, finish: "1" }, "primary sm")}</div><p class="ops-foot">完成工单需要填写结论；不会改变告警状态，也不向设备发送指令。</p></section>`
-        : `<section class="ops-dsec"><h4>需返工</h4><div class="field ops-note-f"><textarea class="input" id="opsTaskNote" rows="2" placeholder="写明返工原因"></textarea></div><div class="ops-ctl-row">${btn("需返工", "opsTaskUpd", { id, rework: "1" }, "sm")}</div><p class="ops-foot">工单回到“处理中”，原因写入排查记录。</p></section>`
+        ? `<section class="ops-dsec"><h4>追加记录</h4>${fld("记录类型", "opsTaskKind", select("opsTaskKind", [["note", "处理进展"], ["noresp", "未响应（写明原因）"]], "note", "记录类型"))}<div class="field ops-note-f"><textarea class="input" id="opsTaskNote" rows="3" placeholder="现场情况、处理结果或结论" aria-label="追加记录"></textarea></div><div class="ops-ctl-row">${btn("追加记录", "opsTaskUpd", { id })}${btn("完成工单", "opsTaskUpd", { id, finish: "1" }, "primary")}</div><p class="ops-foot">完成工单需要填写结论；不会改变告警状态，也不向设备发送指令。</p></section>`
+        : // “完成工单”“追加记录”“需返工”32 高、触屏 44（全面设计核查第 150 条（2026-10-12 用户确认）：原为 28 高）
+          `<section class="ops-dsec"><h4>需返工</h4><div class="field ops-note-f"><textarea class="input" id="opsTaskNote" rows="2" placeholder="写明返工原因"></textarea></div><div class="ops-ctl-row">${btn("需返工", "opsTaskUpd", { id, rework: "1" })}</div><p class="ops-foot">工单回到“处理中”，原因写入排查记录。</p></section>`
   }</div></aside>`;
 }
 // 告警记录（规范 ALARM03，2026-10-08 第3轮第7章，ALARM03 待实现第1条：按期间与对象回看；2026-10-09 用户确认，ABB 对比 BP95：原名“处理记录”）。
@@ -60088,6 +60443,13 @@ const alarmObj = (a) => {
   return ["offline", "device"].includes(a.kind) && t.p ? t.p.name : t.zone?.name || "E栋 7F";
 };
 const alarmWhere = (a) => alarmTitle(a).zone?.name || "E栋 7F";
+// 告警所属的规则（“告警最多”按对象与规则统计，全面设计核查第 114 条）：项目规则写规则名，随网络模板启用的写告警规则页中的名称
+const alarmRuleName = (a) => {
+  const r = a.ruleId && g("alertRules", a.ruleId);
+  if (r) return r.name;
+  const t = alarmTitle(a);
+  return t.merged ? "控制器失电（推断）" : t.p?.type === "gw" ? "网关离线" : a.kind === "device" ? "设备被现场复位" : a.kind === "offline" ? "设备离线" : a.name;
+};
 // 告警的时长（分钟）：已恢复的为“持续”，未恢复的算到现在（G-7）
 const alMins = (a) => Math.max(0, ((a.state === "recovered" ? Date.parse(a.recoveredAt) : opsNow()) - alarmStart(a)) / Demo.MIN);
 // 指标卡上的时长写“N 小时 M 分钟”（BP97）
@@ -60113,26 +60475,34 @@ function alHistory() {
     kpi("平均恢复时长", rec.length ? durKpi(mttr) : "—", "已恢复告警", "opsNoop"),
     kpi("工单", tasks.length + "<small>个</small>", `${tasks.filter((t) => !t.closedAt).length} 个进行中`, "opsGo", { page: "alarms", tab: "tasks" }),
   ]);
-  // 告警最多（BP98、BP93）：所选期间告警次数最多的 5 个对象，写次数与累计时长，点一行筛出该对象的记录；过于敏感的规则从这里看出，调参在配置参数中进行
+  // 告警最多（BP98、BP93）：所选期间告警次数最多的 5 项，按对象与规则统计，每行写“会议室 7-1 · CO₂ 偏高”、次数、累计时长和“调整规则”，
+  // 点一行筛出该对象的记录（全面设计核查第 114 条（2026-10-12 用户确认）：原先只按对象统计，看不出是哪条规则太敏感）
   const tally = new Map();
   st.forEach((a) => {
     const o = alarmObj(a),
-      x = tally.get(o) || { o, n: 0, m: 0 };
+      r = alarmRuleName(a),
+      x = tally.get(o + "\u0000" + r) || { o, r, rid: a.ruleId && g("alertRules", a.ruleId) && !ruleByNet(g("alertRules", a.ruleId)) ? a.ruleId : null, n: 0, m: 0 };
     x.n++;
     x.m += alMins(a);
-    tally.set(o, x);
+    tally.set(o + "\u0000" + r, x);
   });
-  const top = [...tally.values()].sort((a, b) => b.n - a.n || b.m - a.m || a.o.localeCompare(b.o, "zh-CN")).slice(0, 5);
+  const top = [...tally.values()].sort((a, b) => b.n - a.n || b.m - a.m || a.o.localeCompare(b.o, "zh-CN") || a.r.localeCompare(b.r, "zh-CN")).slice(0, 5);
   const res = ["recovered", "open", "todo"].includes(U.opsHistRes) ? U.opsHistRes : "all",
     objs = [...new Set(all.map(alarmObj))],
     obj = objs.includes(U.opsHistObj) ? U.opsHistObj : "all",
     resOk = (a) => res === "all" || (res === "recovered" ? a.state === "recovered" : res === "open" ? a.state !== "recovered" : !a.acknowledged),
     list = all.filter((a) => resOk(a) && (obj === "all" || alarmObj(a) === obj) && alarmForDevice(a) && alarmForZone(a)).sort((a, b) => Date.parse(b.at) - Date.parse(a.at)),
     heads = ["级别", "告警", "发生", "持续", "结果"];
-  const topCard = `<section class="ops-card ops-tablecard ops-al-top"><header class="ops-card-h"><div><h3>告警最多</h3><p class="ops-meta">${esc(per.label)} · 前 5 个对象 · 点一行筛出该对象的记录；过于敏感的规则在配置参数中调整</p></div></header>${
+  // 列宽按内容，不撑满（第 114 条：原先 3 列横跨整张卡片，中间大片空白）；项目规则可点“调整规则”（查看人员为“查看规则”）打开该规则，随网络模板启用的写“随网络模板”
+  const topCard = `<section class="ops-card ops-tablecard ops-al-top"><header class="ops-card-h"><div><h3>告警最多</h3><p class="ops-meta">${esc(per.label)} · 按对象与规则统计的前 5 项 · 点一行筛出该对象的记录；${canEdit() ? "规则过于敏感时点“调整规则”" : "规则由配置人员调整"}</p></div></header>${
     top.length
-      ? `<div class="ops-tw"><table class="t ops-t"><thead><tr><th>对象</th><th class="r">次数</th><th class="r">累计时长</th></tr></thead><tbody>${top
-          .map((x) => `<tr class="click${obj === x.o ? " on" : ""}" data-act="opsHistObj" data-obj="${esc(x.o)}"><td><button type="button" class="ops-rowbtn" data-act="opsHistObj" data-obj="${esc(x.o)}" aria-pressed="${obj === x.o}">${nwDots(x.o)}</button></td><td class="r ops-num">${x.n}</td><td class="r ops-num">${esc(durText(x.m))}</td></tr>`)
+      ? `<div class="ops-tw"><table class="t ops-t"><thead><tr><th>对象 · 规则</th><th class="r">次数</th><th class="r">累计时长</th><th><span class="sr-only">规则</span></th></tr></thead><tbody>${top
+          .map(
+            (x) =>
+              `<tr class="click${obj === x.o ? " on" : ""}" data-act="opsHistObj" data-obj="${esc(x.o)}"><td><button type="button" class="ops-rowbtn ops-row-n" data-act="opsHistObj" data-obj="${esc(x.o)}" aria-pressed="${obj === x.o}">${nwJoin([x.o, x.r])}</button></td><td class="r ops-num">${x.n}</td><td class="r ops-num">${esc(durText(x.m))}</td><td>${
+                x.rid ? `<button type="button" class="ops-link" data-act="alarmRuleDetail" data-id="${esc(x.rid)}">${canEdit() ? "调整规则" : "查看规则"}</button>` : `<span class="ops-dim">随网络模板</span>`
+              }</td></tr>`,
+          )
           .join("")}</tbody></table></div>`
       : `<p class="ops-empty-s">所选期间没有告警</p>`
   }</section>`;
@@ -60147,7 +60517,8 @@ function alHistory() {
       attrs = ` data-act="opsAlarm" data-id="${a.id}" data-q="${esc(q)}"${miss}`;
     if (!miss) shown++;
     return (
-      `<tr class="click ${U.opsDrawer?.id === a.id ? "on" : ""}"${attrs}><td>${lvlChip(a.level)}</td><td>${alRowBtn("opsAlarm", a.id, alTitleHtml(alarmTitle(a)) + maintTag(a))}<small class="ops-al-s">${esc(desc)}</small></td><td class="ops-num sec">${opsWhen(Date.parse(a.at))}</td><td class="ops-num sec">${dTxt}</td><td class="sec"><span class="ops-st ${alStCls(a)}">${resTxt}</span></td></tr>` +
+      // 名称与当前告警同一写法 14/24 字重 480（第 116 条）；结果画成恢复、确认两个标签（第 118 条）
+      `<tr class="click ${U.opsDrawer?.id === a.id ? "on" : ""}"${attrs}><td>${lvlChip(a.level)}</td><td>${alRowBtn("opsAlarm", a.id, alTitleHtml(alarmTitle(a)) + maintTag(a), "ops-al-t")}<small class="ops-al-s">${esc(desc)}</small></td><td class="ops-num sec">${opsWhen(Date.parse(a.at))}</td><td class="ops-num sec">${dTxt}</td><td class="sec">${alStChips(a)}</td></tr>` +
       alT2(` data-key="t2-${a.id}"${attrs}`, heads.length, [["发生", opsWhen(Date.parse(a.at))], ["持续", dTxt], ["结果", resTxt]])
     );
   });
@@ -60201,10 +60572,14 @@ const SAFETY_RULES = [
 // 告警规则（规范 ALARM04，2026-10-08 第3轮第7章，ALARM04 待实现第1条；2026-10-09 用户确认，ABB 对比 BP88、BP91、BP97、BP100）：
 // 按四类分组（原先为“环境与能耗”与“设备与网络”两张卡）；条件按配置参数的当前值写，依据中的参数编号可点开该参数行；状态写“已启用”或“规划，未启用”
 function alRules() {
+  // 四张卡共用一组列：名称 / 级别 / 条件 / 状态 / 操作，列宽固定、上下对齐；级别写成色点加文字，同当前告警；名称 14/24 字重 480
+  // （全面设计核查第 115、116 条（2026-10-12 用户确认）：原先各卡的表格各自按内容排列宽、上下对不齐，级别为 13 号纯文字，名称 13 号字重 400）。
+  // 原先单列的范围与版本写在名称下面，依据、合并与抑制、说明写在条件下面（12/18 灰字）
   const rs = data().alertRules.filter((r) => r.projectId === OPS_SCOPE.project && !ruleByNet(r)),
-    heads = ["规则", "级别", "条件", "范围", "版本", "依据", "状态"],
-    nh = ["告警", "级别", "触发", "合并与抑制"],
-    sh = ["告警", "级别", "触发", "说明"];
+    heads = ["名称", "级别", "条件", "状态", "操作"],
+    main = ["名称", "状态"],
+    cls = { 名称: "ops-rl-n", 级别: "ops-rl-l", 条件: "ops-rl-c", 状态: "ops-rl-s", 操作: "ops-rl-a" },
+    edit = canEdit();
   const ruleRows = (list) =>
     list.map((r) => {
       const on = !!r.serviceReceiptId,
@@ -60212,26 +60587,40 @@ function alRules() {
         cond = ruleCond(r),
         attrs = ` data-act="alarmRuleDetail" data-id="${r.id}"`;
       return (
-        `<tr class="click"${attrs}><td>${alRowBtn("alarmRuleDetail", r.id, nwText(r.name))}</td><td class="sec">${nwText(LV(r.level || "提示"))}</td><td class="ops-al-imp sec">${esc(cond)}</td><td class="sec">${nwDots(alarmRuleScope(r))}</td><td class="ops-num sec">${esc(ver)}</td><td class="ops-al-imp sec">${ruleBasisHtml(r)}</td><td>${on ? `<span class="ops-st ok">已启用</span>` : `<span class="ops-st todo">规划，未启用</span>`}${r.pending ? `<small class="ops-al-s">v${r.pending.version} 规划，未启用</small>` : ""}</td></tr>` +
+        `<tr class="click"${attrs}><td>${alRowBtn("alarmRuleDetail", r.id, nwText(r.name), "ops-row-n")}<small class="ops-al-s">${nwJoin([alarmRuleScope(r), ver])}</small></td><td class="sec">${lvlChip(r.level || "提示")}</td><td class="ops-rl-c sec">${esc(cond)}<small class="ops-al-s">依据 ${ruleBasisHtml(r)}</small></td><td>${on ? `<span class="ops-st ok">已启用</span>` : `<span class="ops-st todo">规划，未启用</span>`}${r.pending ? `<small class="ops-al-s">v${r.pending.version} 规划，未启用</small>` : ""}</td><td class="sec">${edit ? `<button type="button" class="ops-link" data-act="alarmRuleForm" data-id="${r.id}">修改</button>` : ""}</td></tr>` +
         alT2(` data-key="t2-${r.id}"${attrs}`, heads.length, [["级别", LV(r.level || "提示")], ["条件", cond], ["范围", alarmRuleScope(r)], ["版本", ver], ["依据", ruleBasis(r)]])
       );
     });
-  const table = (list) => `<div class="ops-tw"><table class="t ops-t ops-t-fold">${alTh(heads, ["规则", "状态"])}<tbody>${ruleRows(list).join("") || `<tr><td colspan="${heads.length}" class="flow-no-rows">尚无项目规则</td></tr>`}</tbody></table></div>`,
+  const tbl = (rows) => `<div class="ops-tw"><table class="t ops-t ops-t-fold ops-rules-t">${alTh(heads, main, cls)}<tbody>${rows}</tbody></table></div>`,
+    table = (list) => tbl(ruleRows(list).join("") || `<tr><td colspan="${heads.length}" class="flow-no-rows">尚无项目规则</td></tr>`),
     card = (title, meta, body) => `<section class="ops-card ops-tablecard"><header class="ops-card-h"><div><h3>${title}</h3><p class="ops-meta">${meta}</p></div></header>${body}</section>`,
-    fixed = (h, rows, key) => `<div class="ops-tw"><table class="t ops-t ops-t-fold">${alTh(h, ["告警", "级别"])}<tbody>${rows.map(([n, l, c, m], i) => `<tr><td>${nwText(n)}</td><td>${nwJoin(l.split("；"), "；")}</td><td class="ops-al-imp sec">${esc(c)}</td><td class="ops-al-imp sec">${esc(m)}</td></tr>` + alT2(` data-key="t2-${key}-${i}"`, h.length, [[h[2], c], [h[3], m]]).replace('class="ops-t2 click"', 'class="ops-t2"')).join("")}</tbody></table></div>`,
+    // 随网络模板与随应用设置启用的告警：[名称, 级别, 条件, 条件下面的说明, 状态, 操作]；级别“提示；持续超过上限为重要”写色点“提示”，其后的说明写在下面
+    fixed = (rows, key) =>
+      tbl(
+        rows
+          .map(([n, l, c, m, st, act], i) => {
+            const [l0, ...lx] = l.split("；");
+            return (
+              `<tr><td><span class="ops-row-n">${nwText(n)}</span></td><td class="sec">${lvlChip(l0)}${lx.length ? `<small class="ops-al-s">${esc(lx.join("；"))}</small>` : ""}</td><td class="ops-rl-c sec">${esc(c)}${m && m !== "—" ? `<small class="ops-al-s">${esc(m)}</small>` : ""}</td><td><span class="ops-st ack">${st}</span></td><td class="sec">${act || ""}</td></tr>` +
+              alT2(` data-key="t2-${key}-${i}"`, heads.length, [["级别", l], ["条件", c], ["", m && m !== "—" ? m : ""]]).replace('class="ops-t2 click"', 'class="ops-t2"')
+            );
+          })
+          .join(""),
+      ),
     of = (type) => rs.filter((r) => r.type === type),
-    // 安全与保护的触发写配置参数的值（项目层的当前值）
-    sp = (code) => (code ? ruleParams(OPS_SCOPE.project, [code])[0]?.s : null),
+    // 安全与保护的触发写配置参数的值（项目层的当前值）；操作为“查看参数”，打开配置参数中的该行
+    sp = (code) => (code ? ruleParams(OPS_SCOPE.project, [code])[0] : null),
+    net = NET_RULES.map(([n, l, c, m]) => [n, l, c, m === "—" ? "" : `合并与抑制：${m}`, "随网络模板"]),
     safety = SAFETY_RULES.map(([n, code, c, m]) => {
-      const s = sp(code),
-        trig = typeof c === "function" ? c(s?.value) : c || s?.value || "—";
-      return [n, "紧急", code ? `${trig}（配置参数 ${code}）` : trig, m];
+      const p = sp(code),
+        trig = typeof c === "function" ? c(p?.s?.value) : c || p?.s?.value || "—";
+      return [n, "紧急", code ? `${trig}（配置参数 ${code}）` : trig, m, "随应用设置", p ? `<button type="button" class="ops-link" data-act="opsParamGo" data-p="${esc(OPS_SCOPE.project)}" data-row="${esc(p.r.id)}" aria-label="在配置参数中查看 ${esc(code)}">查看参数</button>` : ""];
     });
   return `<div class="ops-toolbar2"><span class="ops-scope ops-rules-note">${esc(ALARM_RULES_NOTE)}</span><span class="sp"></span>${canEdit() ? btn("新建规则", "alarmRuleForm", {}, "primary") : ""}</div>
   ${card("环境越限", "项目规则 · 条件取配置参数", table(of("环境越限")))}
   ${card("能耗异常", "项目规则 · 条件取配置参数", table(of("能耗异常")))}
-  ${card("设备与网络", "项目规则与随网络模板启用的告警 · 一个根因只产生一条告警", (of("设备与网络").length ? table(of("设备与网络")) : "") + fixed(nh, NET_RULES, "net"))}
-  ${card("安全与保护", "随应用设置启用 · 紧急 · 检修中照常通知", fixed(sh, safety, "safe"))}`;
+  ${card("设备与网络", "项目规则与随网络模板启用的告警 · 一个根因只产生一条告警", (of("设备与网络").length ? table(of("设备与网络")) : "") + fixed(net, "net"))}
+  ${card("安全与保护", "随应用设置启用 · 紧急 · 检修中照常通知", fixed(safety, "safe"))}`;
 }
 
 /* ---------- 场景 ---------- */
@@ -61613,26 +62002,53 @@ defineActions({
     render();
   },
   opsAck: async (a) => {
-    await transaction((db) => {
-      // “E栋 7F 网关离线”告警只在本页内存（Demo.ctl.gwAlarms），确认写在原条目上
-      const al = db.alerts.find((x) => x.id === a.id) || Demo.ctl.gwAlarms?.find((x) => x.id === a.id);
-      al.acknowledged = true;
-      al.ackAt = new Date(opsNow()).toISOString();
-      al.ackBy = (typeof auMe === "function" ? auMe()?.name : { admin: "王敏", config: "李工", ops: "值班运营", viewer: "—" }[U.role]) || "当前用户";
-      M.record(db, "确认告警", a.id, al.name);
-    }, "operate");
+    await transaction((db) => opsAckIn(db, a.id), "operate");
     render();
-    // “确认告警”按钮已换成别的按钮：焦点移到面板标题，消息提示（role=status）读出“已确认”（Lovable 核查第 316 条（2026-10-11 用户确认），GLOBAL03）
-    $(".ops-drawer-h h3")?.focus({ preventScroll: true });
+    // “确认告警”按钮已换成别的按钮：焦点移到面板标题，消息提示（role=status）读出“已确认”（Lovable 核查第 316 条（2026-10-11 用户确认），GLOBAL03）；
+    // 从表格行尾的“确认”确认时（第 113 条）焦点回到这一行的名称
+    (a.row ? document.querySelector(`.ops-rowbtn[data-id="${CSS.escape(a.id)}"]`) : $(".ops-drawer-h h3"))?.focus({ preventScroll: true });
     // 已恢复的告警确认后离开当前告警（BP94）
     const al = F.alarmGroups(data()).find((x) => x.id === a.id);
     msg(al?.state === "recovered" ? "已确认" : "已确认。告警仍保持未恢复，直到设备数据恢复");
   },
-  // 创建工单（规范 ALARM02，2026-10-08 第3轮第7章）：先确认告警（V44）；负责人从有运营权限且授权范围含本项目的成员中选（待实现第1条）；
-  // 登记计划时间与位置（第2条）；派工与通知服务未接入，工单只保存在平台中并写明（第3条；2026-10-09 用户确认，ABB 对比 71-23：当时页面不写“工单”；2026-10-10 用户确认 ABB 对比 IA2 后统一叫“工单”）
+  // 当前告警的勾选与批量确认（全面设计核查第 113 条，2026-10-12 用户确认）：只勾选待确认的告警；勾选后表头换成“已选 N 条 · 确认 N 条”
+  opsAlCheck: (a) => {
+    const s = new Set(U.opsAlSel || []);
+    s.has(a.id) ? s.delete(a.id) : s.add(a.id);
+    U.opsAlSel = [...s];
+    render();
+    opsAlCheckSync();
+    document.querySelector(`.ops-ck-in[data-id="${CSS.escape(a.id)}"]`)?.focus({ preventScroll: true });
+  },
+  // 全选只选当前筛选与搜索中看得到的待确认告警；已全选时取消
+  opsAlCheckAll: () => {
+    const ids = [...document.querySelectorAll('[data-q-scope="alarms"] tr[data-q]:not([hidden]) .ops-ck-in[data-id]')].map((x) => x.dataset.id),
+      all = ids.length && ids.every((id) => (U.opsAlSel || []).includes(id));
+    U.opsAlSel = all ? [] : ids;
+    render();
+    opsAlCheckSync();
+    $('.ops-ck-in[data-act="opsAlCheckAll"]')?.focus({ preventScroll: true });
+  },
+  opsAlCheckNone: () => {
+    U.opsAlSel = [];
+    render();
+    $('.ops-ck-in[data-act="opsAlCheckAll"]')?.focus({ preventScroll: true });
+  },
+  opsAckMany: async () => {
+    const ids = [...(U.opsAlSel || [])];
+    if (!ids.length) return;
+    await transaction((db) => ids.forEach((id) => opsAckIn(db, id)), "operate");
+    U.opsAlSel = [];
+    render();
+    // 全部确认后勾选列随之去掉，焦点回到表格第一行的名称
+    ($('.ops-ck-in[data-act="opsAlCheckAll"]') || $('[data-q-scope="alarms"] .ops-rowbtn'))?.focus({ preventScroll: true });
+    msg(`已确认 ${ids.length} 条。告警仍保持未恢复，直到设备数据恢复`);
+  },
+  // 创建工单（规范 ALARM02，2026-10-08 第3轮第7章）：负责人从有运营权限且授权范围含本项目的成员中选（待实现第1条）；
+  // 登记计划时间与位置（第2条）；派工与通知服务未接入，工单只保存在平台中并写明（第3条；2026-10-09 用户确认，ABB 对比 71-23：当时页面不写“工单”；2026-10-10 用户确认 ABB 对比 IA2 后统一叫“工单”）。
+  // 待确认的告警创建工单时同时确认（全面设计核查第 111 条（2026-10-12 用户确认），改 ALARM05 与 V44 的“先确认、再创建工单”），时间线记确认与创建工单两条
   opsTaskNew: (a) => {
     const al = F.alarmGroups(data()).find((x) => x.id === a.id);
-    if (!al.acknowledged) throw Error("请先确认告警，再创建工单");
     const t = alarmTitle(al),
       ms = opsMembers(OPS_SCOPE.project),
       devs = [al.pointId, ...(al.relatedIds || [])].filter(Boolean),
@@ -61641,7 +62057,7 @@ defineActions({
     formState = { kind: "opsTask", alertId: a.id };
     modal(
       "创建工单",
-      `<p class="ops-modal-sub">来源告警：${esc(t.title)}</p>${fld("工单名称", "opsTName", input("opsTName", t.title + " 排查"))}<div class="ws-form-row">${fld(
+      `<p class="ops-modal-sub">来源告警：${esc(t.title)}${al.acknowledged ? "" : "（待确认，创建工单时同时确认）"}</p>${fld("工单名称", "opsTName", input("opsTName", t.title + " 排查"))}<div class="ws-form-row">${fld(
         "负责人",
         "opsTWho",
         select("opsTWho", ms.map((m) => [m.name, m.label]), ms.find((m) => m.role === "config")?.name || ms[0]?.name || "", "负责人"),
@@ -61664,7 +62080,10 @@ defineActions({
     if (!Number.isFinite(planAt)) throw fieldErr("opsTPlan", "请填写计划时间");
     const id = M.uid("investigation"),
       al = F.alarmGroups(data()).find((x) => x.id === aid);
+    let acked = false;
     await transaction((db) => {
+      // 待确认的告警先记确认、再记创建工单（第 111 条）
+      acked = opsAckIn(db, aid);
       const z = db.zones.find((x) => x.id === (al?.zoneId || g("points", al?.pointId)?.zoneId));
       // 说明写在工单上，不算记录：新工单为“待处理”，有第一条记录后为“处理中”（V46）
       db.investigationTasks.unshift({
@@ -61687,6 +62106,48 @@ defineActions({
     closeModal(true);
     U.opsDrawer = { page: "alarms", kind: "task", id };
     route("alarms", { tab: "tasks" });
+    msg(acked ? "已创建工单，并确认了来源告警" : "已创建工单");
+  },
+  // 改派（全面设计核查第 112 条（2026-10-12 用户确认）：原先工单建好后不能改负责人和计划时间）：改负责人和计划时间，
+  // 记入排查记录（不算处理进展）与来源告警的时间线；负责人同“创建工单”，从有运营权限且授权范围含本项目的成员中选
+  opsTaskReassign: (a) => {
+    const t = g("investigationTasks", a.id);
+    if (!t || t.closedAt) throw Error("已完成的工单不能改派");
+    const ms = opsMembers(t.projectId || OPS_SCOPE.project),
+      opts = ms.map((m) => [m.name, m.label]),
+      plan = t.planAt ? new Date(Date.parse(t.planAt) + 8 * 3600e3).toISOString().slice(0, 16) : "";
+    if (t.assignee && !opts.some(([v]) => v === t.assignee)) opts.unshift([t.assignee, t.assignee]);
+    formState = { kind: "opsReassign", id: t.id };
+    modal(
+      "改派工单",
+      `<p class="ops-modal-sub">${esc(t.name)} · 现为 ${esc(t.assignee || "未指定")}${t.planAt ? `，计划 ${esc(opsWhen(Date.parse(t.planAt)))}` : ""}</p><div class="ws-form-row">${fld("负责人", "opsTWho", select("opsTWho", opts, t.assignee || "", "负责人"), "有运营权限且授权范围含本项目的成员")}${fld("计划时间", "opsTPlan", input("opsTPlan", plan, "", "datetime-local"))}</div><p class="ops-foot">改派记入排查记录与告警时间线。派工与通知服务尚未接入：新负责人在“工单”中查看；服务接入后按负责人的通知偏好发送。</p>`,
+      btn("取消", "close") + btn("改派", "opsTaskReassignSave", {}, "primary"),
+      false,
+    );
+  },
+  opsTaskReassignSave: async () => {
+    const who = value("opsTWho"),
+      planV = (wsDtCheck("opsTPlan"), value("opsTPlan")),
+      planAt = planV ? Date.parse(planV + ":00+08:00") : NaN,
+      id = formState.id,
+      t0 = g("investigationTasks", id);
+    if (!who) throw fieldErr("opsTWho", "请选择负责人");
+    if (!Number.isFinite(planAt)) throw fieldErr("opsTPlan", "请填写计划时间");
+    const was = t0?.assignee || "未指定",
+      wasAt = t0?.planAt ? Date.parse(t0.planAt) : null,
+      text = [who !== (t0?.assignee || "") ? `负责人 ${was} → ${who}` : "", planAt !== wasAt ? `计划 ${wasAt ? opsWhen(wasAt) : "未登记"} → ${opsWhen(planAt)}` : ""].filter(Boolean).join("；");
+    if (!text) throw fieldErr("opsTWho", "负责人和计划时间都没有改变");
+    await transaction((db) => {
+      const t = db.investigationTasks.find((x) => x.id === id),
+        prev = { assignee: t.assignee || "", planAt: t.planAt || null };
+      Object.assign(t, { assignee: who, planAt: new Date(planAt).toISOString() });
+      t.notes = [...(t.notes || []), { at: new Date(opsNow()).toISOString(), by: OPS_WHO(), kind: "reassign", text, prev }];
+      M.record(db, "改派工单", id, text);
+    }, "operate");
+    closeModal(true);
+    render();
+    $(".ops-drawer-h h3")?.focus({ preventScroll: true });
+    msg(`已改派：${text}`);
   },
   // 报修（2026-10-09 用户确认，ABB 对比 BP108 方案A）：“新建工单”选位置、可附照片，负责人与计划时间同“创建工单”；来源写“报修”
   opsRepairNew: () => {
