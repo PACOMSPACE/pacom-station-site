@@ -24659,6 +24659,163 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
 /* ==== 2026-10-12 全面设计核查第二部分 · 数据分析（第 96–106、117 条）
    [ANALYSIS] 本区的样式改动写在这一段注释之后、下一段注释之前。
    ==== */
+/* 全面设计核查第 97 条（2026-10-12 用户确认，方案 A）：能耗页签里峰谷、能耗强度对标、与基线比较没有可比数据的几项合成一行提示，
+   卡片材质（圆角 12、#EBEBEB 描边），信息图标与文字 14/24 #636363，“能耗设置”在右端；原为三张各只有一句灰字的卡。 */
+.ops-cmp-off {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 20px;
+  padding: 12px 16px 12px 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--line2);
+  color: var(--text3);
+}
+.ops-cmp-off > .ic {
+  flex: none;
+  margin-top: 4px;
+}
+.ops-cmp-off > p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+  line-height: 24px;
+}
+.ops-cmp-off > .btn {
+  flex: none;
+}
+/* 手机宽度：文字占满一行，“能耗设置”换到下一行的右端 */
+@media (max-width: 600px) {
+  .ops-cmp-off {
+    flex-wrap: wrap;
+    padding: 12px 16px;
+  }
+  .ops-cmp-off > p {
+    flex-basis: calc(100% - 24px);
+  }
+  .ops-cmp-off > .btn {
+    margin-left: auto;
+  }
+}
+/* 全面设计核查第 100 条（2026-10-12 用户确认）：数据表弹窗（总览与数据分析共用）的表格按内容定宽，不撑满弹窗；首列日期是行标题，
+   “8/26 周三”不换行（原先行标题的 white-space: normal 盖过了首列不换行，“周”“三”分在两行）；数字列靠右（JS 标 .r）；
+   说明一类的长文字限宽 360 折行。原先表格撑满，数据挤在左边、其余是空白列宽。 */
+#dlg .ops-dtable > .tw {
+  width: fit-content;
+  max-width: 100%;
+}
+#dlg .ops-dtable table.t {
+  width: auto;
+}
+#dlg .ops-dtable tbody th[scope="row"] {
+  white-space: nowrap;
+}
+#dlg .ops-dtable .ops-dtable-txt {
+  display: inline-block;
+  max-width: 360px;
+}
+/* 全面设计核查第 102 条（2026-10-12 用户确认）：报告页签左右两列时（宽于 1100），左边的报告列表高度随内容，向下滚动时停在原处
+   （与右边预览的上沿对齐，滚动区内留 20）；列表比窗口高时在卡内滚动。原先列表卡被拉到和预览一样高（约 1,660）。 */
+@media (min-width: 1101px) {
+  .ops-row.r12 > .ops-replist {
+    align-self: start;
+    position: sticky;
+    top: 20px;
+    max-height: calc(100dvh - 140px);
+    overflow-y: auto;
+  }
+}
+/* “导出 PDF”“编辑草稿”“发布”在预览卡标题行的右端；窄屏时随标题行换到标题下面，从左排起 */
+.ai-report > .ops-card-h > .ops-card-tools {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.ai-report-acts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 850px) {
+  .ai-report > .ops-card-h > .ops-card-tools {
+    flex: 1 1 100%;
+    min-width: 0;
+    justify-content: flex-start;
+  }
+}
+/* 全面设计核查第 103 条：报告各节标题下的期间（原先写在每个依据链接后的括号里）12/18 #636363 */
+.ai-rsec-span {
+  margin: -2px 0 6px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text3);
+}
+/* 全面设计核查第 106 条（2026-10-12 用户确认）：能点的指标卡（数据分析 › 设备健康的“离线”“被现场复位”、告警 › 告警记录的“工单”）
+   照第 28 条的可点小卡加最浅一级（xs）阴影：两层黑 4% 投影（2 倍屏 1.5px），保留卡片自己的 #EBEBEB 描边，与同一行不能点的卡外沿对齐；
+   悬停底色 #FAFAFA 并升到 sm（阴影过渡 150ms），按下 #F5F5F5。原先与不能点的卡外观相同，悬停只把描边加深一点。 */
+:is(#app[data-page="analysis"], #app[data-page="alarms"]) button.ops-kpi {
+  --an-kpi-xs: 0 2px 1px 0 rgb(0 0 0 / 0.04), 0 2px 1px -0.5px rgb(0 0 0 / 0.04);
+  --an-kpi-sm: 0 4px 3px -1.5px rgb(0 0 0 / 0.04);
+  box-shadow: inset 0 0 0 1px var(--line2), var(--an-kpi-xs);
+  transition:
+    box-shadow 150ms cubic-bezier(0.215, 0.61, 0.355, 1),
+    background-color 150ms cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+@media (min-resolution: 2dppx) {
+  :is(#app[data-page="analysis"], #app[data-page="alarms"]) button.ops-kpi {
+    --an-kpi-xs: 0 1.5px 1px 0 rgb(0 0 0 / 0.04), 0 1.5px 1px -0.5px rgb(0 0 0 / 0.04);
+    --an-kpi-sm: 0 3.5px 3px -1.5px rgb(0 0 0 / 0.04);
+  }
+}
+@media (hover: hover) {
+  :is(#app[data-page="analysis"], #app[data-page="alarms"]) button.ops-kpi:hover {
+    background: #fafafa;
+    box-shadow: inset 0 0 0 1px var(--line2), var(--an-kpi-xs), var(--an-kpi-sm);
+  }
+}
+:is(#app[data-page="analysis"], #app[data-page="alarms"]) button.ops-kpi:active {
+  background: #f5f5f5;
+}
+/* 全面设计核查第 117 条（2026-10-12 用户确认，只改数据分析页）：表格单元格 14/24（原 13/24，比 14/21 的表头小）；卡片标题 16/24 字重 480（原 500）；
+   指标卡名称 14/24（原 13/20）、单位 12/18（原 13/18）；自定义期间两个日期之间的“至”14/24（原 13）。
+   本页打开的弹窗：字段名与勾选组的小标题 14/24 字重 480 #030303（原字重 500；“内容”原为 13 号灰字），勾选项 14/24（原 13），
+   灰色说明一律 12/18 #636363（原 13、14、12 三种），数据表的单元格 14/24。 */
+#app[data-page="analysis"] table.t :is(td, tbody th[scope="row"]),
+#dlg[data-page="analysis"] table.t :is(td, tbody th[scope="row"]) {
+  font-size: 14px;
+  line-height: 24px;
+}
+#app[data-page="analysis"] .ops-card-h h3 {
+  font-weight: 480;
+}
+#app[data-page="analysis"] .ops-kpi-l {
+  font-size: 14px;
+  line-height: 24px;
+}
+#app[data-page="analysis"] .ops-kpi-v small {
+  font-size: 12px;
+  line-height: 18px;
+}
+#app[data-page="analysis"] .ops-period > span:not(.ws-dt, .ops-period-err) {
+  font-size: 14px;
+  line-height: 24px;
+}
+#dlg[data-page="analysis"] :is(.field > label, fieldset > legend, .appset-k) {
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 480;
+  color: var(--text);
+}
+#dlg[data-page="analysis"] :is(.ws-checks label, label.row) {
+  font-size: 14px;
+  line-height: 24px;
+}
+#dlg[data-page="analysis"] :is(.ops-modal-sub, small.muted, p.muted, .note, .appset-upload-state) {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text3);
+}
 
 /* ==== 2026-10-12 全面设计核查第二部分 · 告警与侧面板（第 20、107–116、118–121 条）
    [ALARM] 本区的样式改动写在这一段注释之后、下一段注释之前。
@@ -42577,16 +42734,22 @@ defineActions({
   clearAlarmDevice: () => {
     U.alarmDevice = null;
     U.alarmZone = null;
+    // 当前告警页签上一并清除从设备健康带来的告警类型（全面设计核查第 105 条）
+    if (alarmTypeJumped()) Object.assign(U, { opsAlType: "all", alTypeJump: null });
     render();
   },
 });
 // 告警与设备有关：告警对象是该设备，或该设备在合并的关联对象中
 const alarmForDevice = (a, pid = U.alarmDevice) => !pid || a.pointId === pid || (a.relatedIds || []).includes(pid);
-// 筛选条：设备（“查看本设备告警”、设备信息中的告警与工单）或功能区（功能区面板中的告警与工单，ABB 对比 IA1）
+// 从数据分析 › 设备健康跳来、仍按带来的告警类型筛选的当前告警页签（全面设计核查第 105 条，2026-10-12 用户确认）；在筛选框里改选别的类型后不再算
+const alarmTypeJumped = () => (U.tab || "current") === "current" && !!U.alTypeJump && U.opsAlType === U.alTypeJump;
+// 筛选条：设备（“查看本设备告警”、设备信息中的告警与工单）或功能区（功能区面板中的告警与工单，ABB 对比 IA1），
+// 以及从设备健康带来的告警类型（第 105 条）；“清除筛选”一并清除
 const alarmDeviceBar = () => {
   const p = U.alarmDevice && g("points", U.alarmDevice),
-    z = !p && U.alarmZone && g("zones", U.alarmZone);
-  return p || z ? `<div class="flow-filter-sum"><p>已筛选：${p ? `设备 ${esc(p.name)}` : `功能区 ${esc(z.name)}`}</p>${btn("清除筛选", "clearAlarmDevice", {}, "ghost sm")}</div>` : "";
+    z = !p && U.alarmZone && g("zones", U.alarmZone),
+    parts = [p ? `设备 ${esc(p.name)}` : z ? `功能区 ${esc(z.name)}` : "", alarmTypeJumped() ? `类型 ${esc(U.opsAlType)}` : ""].filter(Boolean);
+  return parts.length ? `<div class="flow-filter-sum"><p>已筛选：${parts.join(" · ")}</p>${btn("清除筛选", "clearAlarmDevice", {}, "ghost sm")}</div>` : "";
 };
 function showDeviceInformation(id, tab = "runtime") {
   const p = g("points", id);
@@ -48276,6 +48439,8 @@ function renderAnalysis() {
               ["7", "近 7 天"],
               ["30", "近 30 天"],
               ["month", "本月"],
+              ["lastMonth", "上月"],
+              ["12m", "近 12 个月"],
               ["custom", "自定义"],
             ],
             U.opsRange || "30",
@@ -48284,7 +48449,8 @@ function renderAnalysis() {
             tab === "energy"
               ? segPress(
                   [
-                    ["day", "按日"],
+                    // 近 12 个月按月（全面设计核查第 96 条）
+                    ["day", typeof anRange === "function" && anRange().monthly ? "按月" : "按日"],
                     ["hour", "按小时"],
                   ],
                   U.analysisPeriod || "day",
@@ -50895,13 +51061,19 @@ defineActions({
     const pid = a.project || U.p || (typeof Demo !== "undefined" && Demo.on() ? OPS_SCOPE.project : ""),
       pre = String(a.kinds || "energy")
         .split(",")
-        .filter((k) => REPORT_KINDS.some(([v]) => v === k));
+        .filter((k) => REPORT_KINDS.some(([v]) => v === k)),
+      // 期间默认为上一个完整的自然月（全面设计核查第 104 条，2026-10-12 用户确认：原先两个日期框都空着，只显示示例“2026-09-24”，看起来像只选了一天）；
+      // 从碳排放页签进入时仍带入所选期间
+      lm = typeof Demo !== "undefined" ? Demo.loc(Demo.NOW) : null,
+      lmFrom = lm ? new Date(Date.UTC(lm.y, lm.mo - 2, 1)).toISOString().slice(0, 10) : "",
+      lmTo = lm ? new Date(Date.UTC(lm.y, lm.mo - 1, 0)).toISOString().slice(0, 10) : "";
     modal(
       "新建报告",
       fld("报告名称", "reportName", input("reportName", "", "填写报告名称")) +
-        `<fieldset class="ws-checks report-kinds"><legend>内容</legend>${REPORT_KINDS.map(([v, l]) => `<label><input type="checkbox" name="reportKinds" value="${v}" ${pre.includes(v) ? "checked" : ""}>${l}</label>`).join("")}<small class="muted">报告按所选内容分节，另有摘要与建议；勾选碳排放时，期间内每天都要有适用的排放因子。</small></fieldset>` +
+        // 第一个勾选框带 id，“至少选择一项内容”的错误写在这组下面（全面设计核查第 104 条）
+        `<fieldset class="ws-checks report-kinds"><legend>内容</legend>${REPORT_KINDS.map(([v, l], i) => `<label><input type="checkbox" name="reportKinds" value="${v}"${i ? "" : ' id="reportKinds-0"'} ${pre.includes(v) ? "checked" : ""}>${l}</label>`).join("")}<small class="muted">报告按所选内容分节，另有摘要与建议；勾选碳排放时，期间内每天都要有适用的排放因子。</small></fieldset>` +
         fld("项目", "reportProject", projectSelect("reportProject", pid)) +
-        `<div class="ws-form-row">${fld("开始日期", "reportStart", input("reportStart", a.start || "", "", "date"))}${fld("结束日期", "reportEnd", input("reportEnd", a.end || "", "", "date"))}</div>` +
+        `<div class="ws-form-row">${fld("开始日期", "reportStart", input("reportStart", a.start || lmFrom, "", "date"))}${fld("结束日期", "reportEnd", input("reportEnd", a.end || lmTo, "", "date"))}</div>` +
         note("保存报告草稿，不发送邮件。正式生成时需固定实际数据截止、质量说明和配置版本。"),
       btn("取消", "close") + btn("保存草稿", "saveReport", {}, "primary"),
       // 短表单 512 宽（原 720；Lovable 核查第 300 条，2026-10-11 用户确认）
@@ -50914,8 +51086,17 @@ defineActions({
       start = (wsDtCheck("reportStart", "reportEnd"), value("reportStart")),
       end = value("reportEnd"),
       kinds = REPORT_KINDS.map(([v]) => v).filter((v) => [...document.querySelectorAll('input[name="reportKinds"]:checked')].some((x) => x.value === v));
-    if (!name || !projectId || !start || !end || start > end) throw Error("请填写名称、项目与有效时间范围");
-    if (!kinds.length) throw Error("请至少选择一项内容");
+    // 错误写在各字段下面，字段标红，一次列出全部（全面设计核查第 104 条，2026-10-12 用户确认，照第 153、313 条的字段错误写法；
+    // 原先只在底部按钮上方写一条“请填写名称、项目与有效时间范围”，字段没有标红）
+    const errs = [
+      !name && ["reportName", "请填写报告名称"],
+      !kinds.length && ["reportKinds-0", "请至少选择一项内容"],
+      !projectId && ["reportProject", "请选择项目"],
+      !start && ["reportStart", "请填写开始日期"],
+      !end && ["reportEnd", "请填写结束日期"],
+      start && end && start > end && ["reportEnd", "结束日期不能早于开始日期"],
+    ].filter(Boolean);
+    if (errs.length) throw fieldErrs(errs);
     // 勾选碳排放时：报告期间每天都要有适用的排放因子，并固定引用这些碳排放设置版本（规范 APP02、OPS05，2026-10-08 第 2 轮第6章；
     // 2026-10-09 用户确认，ABB 对比 BP114：只在勾选碳排放时检查）
     let carbon;
@@ -55797,6 +55978,8 @@ const DemoService = (() => {
         d = (t) => (yr ? `${loc(t).y}/` : "") + md(t);
       return { from, to: Math.min(end, NOW), end, days: Math.round((end - from) / DAY), label: "所选期间", span: `${d(from)}–${d(end - DAY)}`, custom: true, key: key.from + "~" + key.to };
     }
+    // 全面设计核查第 96 条（2026-10-12 用户确认）：另有“上月”“近 12 个月”，见 anMonthRange
+    if (key === "lastMonth" || key === "12m") return anMonthRange(key, NOW, loc, md);
     const n = key === "7" ? 7 : key === "month" ? loc(NOW).d : 30,
       from = key === "month" ? dayStart(Date.parse("2026-09-01T00:00:00+08:00")) : TODAY - (n - 1) * DAY,
       ymd = (t) => `${loc(t).y}-${String(loc(t).mo).padStart(2, "0")}-${String(loc(t).d).padStart(2, "0")}`;
@@ -56294,6 +56477,22 @@ const DemoService = (() => {
 // 演示层提供 DemoService 与演示范围；正式版没有运行数据服务：on() 为 false，时间常量取当前时间。
 const OPS_SCOPE = typeof DEMO_IDS !== "undefined" ? DEMO_IDS : { project: null, building: null, floor: null, network: null };
 const Demo = typeof DemoService !== "undefined" ? DemoService : opsNoService();
+// 统计期间“上月”“近 12 个月”（全面设计核查第 96 条，2026-10-12 用户确认；原先只有近 7 天、近 30 天、本月与自定义，月报对比上月、能耗强度按滚动 12 个月
+// 都要自己填日期）：上月为上一个完整的自然月；近 12 个月为本月与之前 11 个自然月，本月截至当前时刻，图表按月显示（monthly）。
+// 有运行数据与没有运行数据时共用；期间跨年时起止都写年份，与自定义期间相同
+function anMonthRange(key, NOW, loc, md) {
+  const DAY = 864e5,
+    TZ = 8 * 3600e3,
+    l = loc(NOW),
+    monthAt = (k) => Date.UTC(l.y, l.mo - 1 + k, 1) - TZ,
+    last = key === "lastMonth",
+    from = monthAt(last ? -1 : -11),
+    end = last ? monthAt(0) : NOW - ((NOW + TZ) % DAY) + DAY,
+    yr = loc(from).y !== l.y || loc(end - DAY).y !== l.y,
+    d = (t) => (yr ? `${loc(t).y}/` : "") + md(t),
+    ymd = (t) => `${loc(t).y}-${String(loc(t).mo).padStart(2, "0")}-${String(loc(t).d).padStart(2, "0")}`;
+  return { from, to: Math.min(end, NOW), end, days: Math.round((end - from) / DAY), label: last ? "上月" : "近 12 个月", span: `${d(from)}–${d(end - DAY)}`, key: `${ymd(from)}~${ymd(end - DAY)}`, monthly: !last };
+}
 function opsNoService() {
   const MIN = 60e3,
     H = 3600e3,
@@ -56337,6 +56536,7 @@ function opsNoService() {
           d = (t) => (yr ? `${loc(t).y}/` : "") + md(t);
         return { from, to: Math.min(end, NOW), end, days: Math.round((end - from) / DAY), label: "所选期间", span: `${d(from)}–${d(end - DAY)}`, custom: true, key: key.from + "~" + key.to };
       }
+      if (key === "lastMonth" || key === "12m") return anMonthRange(key, NOW, loc, md);
       const n = key === "7" ? 7 : key === "month" ? loc(NOW).d : 30,
         from = TODAY - (n - 1) * DAY;
       return { from, to: NOW, end: TODAY + DAY, days: n, label: key === "7" ? "近 7 天" : key === "month" ? "本月" : "近 30 天", span: `${md(from)}–${md(NOW)}`, key: String(key) };
@@ -56560,7 +56760,8 @@ document.addEventListener("pointermove", (e) => {
     if (!bar) return opsTipHide();
     bar.classList.add("hover");
     const r = sp.rows[+bar.dataset.i];
-    const sum = r.values.reduce((a, v) => a + (v || 0), 0);
+    // 没有数据的柱（如近 12 个月里没有计量数据的月份）合计写“—”，不写 0（全面设计核查第 96 条）
+    const sum = r.values.every((v) => v == null) ? null : r.values.reduce((a, v) => a + (v || 0), 0);
     return opsTip(
       `<div class="ops-tip-h">${esc(r.title || r.label)}</div>${sp.series.map((s, k) => tipBarRow(s.color, s.name, nf(r.values[k], sp.digits ?? 0) + " " + (sp.unitShort || ""))).join("")}${sp.series.length > 1 ? `<div class="ops-tip-sum">合计 <b>${nf(sum, sp.digits ?? 0)} ${sp.unitShort || ""}</b></div>` : ""}${r.note ? `<div class="ops-tip-note">${esc(r.note)}</div>` : ""}`,
       e,
@@ -56581,7 +56782,8 @@ document.addEventListener("pointermove", (e) => {
     .join("");
   opsTip(
     // 提示里各条的顺序与图例相同（tipOrder，如今日在前，Lovable 核查第 191 条，2026-10-11 用户确认）；画线的先后不变
-    `<div class="ops-tip-h">${esc(sp.tipTitle ? sp.tipTitle(sp.xs[i], i) : sp.xs[i])}</div>${(sp.tipOrder ? sp.tipOrder.map((k) => sp.series[k]) : sp.series).map((s) => tipRow(s.color, s.name, s.vals[i] == null ? "未取得" : nf(s.vals[i], sp.digits ?? 1) + " " + (sp.unitShort || ""), s.dash)).join("")}${sp.tipNote ? `<div class="ops-tip-note">${esc(sp.tipNote(sp.xs[i], i) || "")}</div>` : ""}`,
+    // nullText：没有值不是缺数时（进行中的今天、没有计量数据的月份）写的字，默认“未取得”（全面设计核查第 96、98 条）
+    `<div class="ops-tip-h">${esc(sp.tipTitle ? sp.tipTitle(sp.xs[i], i) : sp.xs[i])}</div>${(sp.tipOrder ? sp.tipOrder.map((k) => sp.series[k]) : sp.series).map((s) => tipRow(s.color, s.name, s.vals[i] == null ? sp.nullText || "未取得" : nf(s.vals[i], sp.digits ?? 1) + " " + (sp.unitShort || ""), s.dash)).join("")}${sp.tipNote ? `<div class="ops-tip-note">${esc(sp.tipNote(sp.xs[i], i) || "")}</div>` : ""}`,
     e,
   );
 });
@@ -58585,7 +58787,8 @@ function anBench() {
       type && climate && !std && `尚未收录“${climate} · ${type}”的引导值与约束值`,
       !year && `不足滚动 12 个月数据${start != null ? `（计量数据从 ${opsDay(start)}开始）` : ""}`,
     ].filter(Boolean);
-  return { ok: !miss.length, std, label: std ? `GB/T 51161 · ${climate} · ${type}` : "", text: miss.length ? `暂不对标：${miss.join("、")}` : `引导值 ${std.guide} / 约束值 ${std.constraint}（GB/T 51161 · ${climate} · ${type}）` };
+  // miss 逐条列出缺什么，数据分析 › 能耗合成提示时用（全面设计核查第 97 条）
+  return { ok: !miss.length, std, miss, label: std ? `GB/T 51161 · ${climate} · ${type}` : "", text: miss.length ? `暂不对标：${miss.join("、")}` : `引导值 ${std.guide} / 约束值 ${std.constraint}（GB/T 51161 · ${climate} · ${type}）` };
 }
 // 与基线比较（2026-10-09 用户确认，ABB 对比 BP124 方案A）：本期用电与能耗设置节能基线基期同月（同样的日期）的用电及差值；
 // 未做温度与工作日修正，不是节能量。基期同月缺数时不比较
@@ -58728,17 +58931,20 @@ function filterRow(opts = {}) {
   const rg = U.opsRange || "30",
     gr = U.opsGran || "day",
     right = (opts.right || "") + demoTag();
+  // 预设另有“上月”“近 12 个月”；选近 12 个月时图表按月显示，“按日”写作“按月”（全面设计核查第 96 条，2026-10-12 用户确认）
   return `<div class="ops-filters split"><div class="ops-filters-l">${opsFilter(
     "opsRangeSel",
     [
       ["7", "近 7 天"],
       ["30", "近 30 天"],
       ["month", "本月"],
+      ["lastMonth", "上月"],
+      ["12m", "近 12 个月"],
       ["custom", "自定义"],
     ],
     rg,
     "时间范围",
-  )}${periodInputs()}${opts.meter ? opsFilter("opsMeterSel", METER_OPTS, anMeter(), "计量点") : ""}${opts.gran ? segPress([["day", "按日"], ["hour", "按小时"]], gr, "opsGran", "粒度") : ""}<span class="ops-scope">${anScopeText()} · ${zoneText(g("projects", OPS_SCOPE.project)?.timezone || "Asia/Shanghai")} · ${anRange().span}</span></div>${right ? `<div class="ops-filters-r">${right}</div>` : ""}</div>`;
+  )}${periodInputs()}${opts.meter ? opsFilter("opsMeterSel", METER_OPTS, anMeter(), "计量点") : ""}${opts.gran ? segPress([["day", anRange().monthly ? "按月" : "按日"], ["hour", "按小时"]], gr, "opsGran", "粒度") : ""}<span class="ops-scope">${anScopeText()} · ${zoneText(g("projects", OPS_SCOPE.project)?.timezone || "Asia/Shanghai")} · ${anRange().span}</span></div>${right ? `<div class="ops-filters-r">${right}</div>` : ""}</div>`;
 }
 function renderOpsAnalysis() {
   if (!Demo.on()) return renderAnalysis();
@@ -58820,6 +59026,63 @@ function anDailyBars(ds, every, height = 260) {
       // 数据质量按天标注，与总览 › 能源相同（规范 OPS05、ANALYSIS01）
       mark: d.quality.map((q) => Demo.QMARK[q.type]).join(""),
       note: d.quality.map((q) => `${q.type}：${q.text}`).join("；"),
+    })),
+  });
+}
+/* 近 12 个月按月显示（全面设计核查第 96 条，2026-10-12 用户确认）：期间内每个自然月一项，合计各天的数值（items 每项有 t、light、hvac，
+   可带 partial 与 quality）；没有计量数据的月份留空，不足一个月的写明从哪天起有数据，本月为进行中（浅色）。
+   能耗的日用电柱图、基载与峰荷、碳排放的排放趋势共用 */
+function anMonths(rg, items) {
+  const out = [];
+  for (let t = rg.from; t < rg.end; ) {
+    const l = Demo.loc(t),
+      next = Math.min(rg.end, Date.UTC(l.y, l.mo, 1) - 8 * Demo.H),
+      xs = items.filter((d) => d.t >= t && d.t < next);
+    out.push({ t, next, l, xs, light: xs.reduce((a, d) => a + d.light, 0), hvac: xs.reduce((a, d) => a + d.hvac, 0), partial: xs.some((d) => d.partial), quality: xs.flatMap((d) => (d.quality || []).map((q) => ({ ...q, t: d.t }))) });
+    t = next;
+  }
+  return out;
+}
+const anMonthName = (m) => `${m.l.y} 年 ${m.l.mo} 月`;
+// 每月的数据覆盖：没有计量数据、从哪天起有数据、进行中
+function anMonthCover(m) {
+  if (!m.xs.length) return "没有计量数据";
+  if (m.partial) return `进行中，截至 ${Demo.md(Demo.NOW)} ${Demo.hm(Demo.NOW)}`;
+  const n = Math.round((m.next - m.t) / Demo.DAY);
+  return m.xs.length < n ? `${Demo.md(m.xs[0].t)} 起有计量数据（${m.xs.length} 天）` : "";
+}
+// 图下说明：哪些月份没有计量数据
+function anMonthGap(ms) {
+  const e = ms.filter((m) => !m.xs.length),
+    start = Demo.dataStart();
+  return e.length ? `${anMonthName(e[0])}${e.length > 1 ? "至 " + anMonthName(e.at(-1)) : ""}没有计量数据${start ? `（计量数据从 ${opsDay(Date.parse(start + "T12:00:00+08:00"))}开始）` : ""}。` : "";
+}
+// 按日显示时期间早于计量数据起始日（如“上月”）：图上从起始日画起，图下写明
+function anDayGap(rg) {
+  const start = Demo.dataStart(),
+    s = start ? Date.parse(start + "T00:00:00+08:00") : null;
+  return s != null && rg.from < s && rg.end > s ? `计量数据从 ${opsDay(s + 12 * Demo.H)}开始，之前的日期没有数据。` : "";
+}
+// 月份的刻度：手机宽度隔一个月标一次，从最后一个月往回取（与日柱图的取法相同）
+const anMonthEvery = () => (typeof isMobile === "function" && isMobile() ? 2 : 1);
+const anMonthLabel = (ms, i) => ((ms.length - 1 - i) % anMonthEvery() === 0 ? `${ms[i].l.mo} 月` : "");
+function anMonthlyBars(ms, unit = "kWh", height = 260) {
+  return chartSlot({
+    type: "bars",
+    height,
+    unit,
+    unitShort: unit,
+    series: [
+      { name: "照明插座", color: S1 },
+      { name: "空调末端", color: SAC },
+    ],
+    rows: ms.map((m, i) => ({
+      label: anMonthLabel(ms, i),
+      title: anMonthName(m),
+      values: m.xs.length ? [m.light, m.hvac] : [null, null],
+      faded: m.partial,
+      mark: [...new Set(m.quality.map((q) => Demo.QMARK[q.type]))].join(""),
+      note: [anMonthCover(m), ...m.quality.map((q) => `${Demo.md(q.t)} ${q.type}：${q.text}`)].filter(Boolean).join("；"),
     })),
   });
 }
@@ -59003,13 +59266,15 @@ function anEnergy() {
     I.why ? kpi("能耗强度", "—", onlyIn(I.why + "，不计算"), "opsNoop") : kpi("能耗强度", nf(I.annual, 1) + "<small>kWh/(m²·a)</small>", onlyIn(`${rg.label}折年 · ${nf(I.area)} m²`), "opsNoop"),
   ]);
   let main;
+  // 近 12 个月按月显示（全面设计核查第 96 条）：每月一根柱，数据表每行一个月
+  const ms = rg.monthly ? anMonths(rg, ds) : null;
   if (gran === "hour") {
     main = anLoadCard(rg, m, full, hrs, meterName);
   } else {
     main = chartCard({
       title: `${rg.label}用电 ${nf(e.total)} kWh，工作日日均约为周末的 ${nf(wk / we, 1)} 倍`,
-      meta: `${rg.span} · 日用电 kWh · ${m === "all" ? "按分项堆叠" : meterName}${ds.some((d) => d.partial) ? " · 今日为进行中" : ""}`,
-      foot: qualityFoot(ds),
+      meta: `${rg.span} · ${ms ? "月" : "日"}用电 kWh · ${m === "all" ? "按分项堆叠" : meterName}${ds.some((d) => d.partial) ? (ms ? " · 本月为进行中" : " · 今日为进行中") : ""}`,
+      foot: (ms ? anMonthGap(ms) : anDayGap(rg)) + qualityFoot(ds),
       legend:
         m === "all"
           ? [
@@ -59017,12 +59282,22 @@ function anEnergy() {
               [SAC, "空调末端"],
             ]
           : [[m === "light" ? S1 : SAC, meterName.split(" ")[0]]],
-      table: regTable(
-        "daily",
-        m === "all" ? ["日期", "照明插座 kWh", "空调末端 kWh", "数据质量"] : ["日期", meterName.split(" ")[0] + " kWh", "数据质量"],
-        ds.map((d) => [Demo.md(d.t) + " " + Demo.WEEK[Demo.loc(d.t).dow], ...(m === "all" ? [nf(d.light, 1), nf(d.hvac, 1)] : [nf(m === "light" ? d.light : d.hvac, 1)]), d.quality.length ? d.quality.map((q) => `${q.type}：${q.text}`).join("；") : d.partial ? "实测（进行中）" : "实测"]),
-      ),
-      body: anDailyBars(ds, every),
+      table: ms
+        ? regTable(
+            "daily",
+            m === "all" ? ["月份", "照明插座 kWh", "空调末端 kWh", "数据质量"] : ["月份", meterName.split(" ")[0] + " kWh", "数据质量"],
+            ms.map((x) => [
+              anMonthName(x),
+              ...(!x.xs.length ? (m === "all" ? ["—", "—"] : ["—"]) : m === "all" ? [nf(x.light, 1), nf(x.hvac, 1)] : [nf(m === "light" ? x.light : x.hvac, 1)]),
+              [anMonthCover(x), ...x.quality.map((q) => `${Demo.md(q.t)} ${q.type}：${q.text}`)].filter(Boolean).join("；") || "实测",
+            ]),
+          )
+        : regTable(
+            "daily",
+            m === "all" ? ["日期", "照明插座 kWh", "空调末端 kWh", "数据质量"] : ["日期", meterName.split(" ")[0] + " kWh", "数据质量"],
+            ds.map((d) => [Demo.md(d.t) + " " + Demo.WEEK[Demo.loc(d.t).dow], ...(m === "all" ? [nf(d.light, 1), nf(d.hvac, 1)] : [nf(m === "light" ? d.light : d.hvac, 1)]), d.quality.length ? d.quality.map((q) => `${q.type}：${q.text}`).join("；") : d.partial ? "实测（进行中）" : "实测"]),
+          ),
+      body: ms ? anMonthlyBars(ms) : anDailyBars(ds, every),
     });
   }
   // 峰谷时段：登记了分时电价时按能耗设置的时段与电价统计并估算费用，否则按参考时段只统计用电（规范 APP01、ANALYSIS01）
@@ -59052,29 +59327,50 @@ function anEnergy() {
     });
   } else {
     // 没有登记分时电价时不统计峰谷占比，不套用某省的参考时段（2026-10-09 用户确认，ABB 对比 BP118 方案A：原先按广东分时时段统计）；
-    // 按小时的用电曲线照常显示（“按小时”）
-    touCard = `<section class="ops-card"><header class="ops-card-h"><div><h3>未登记分时电价，不统计峰谷时段</h3><p class="ops-meta">${rg.label} · 峰谷时段按能耗设置登记的分时电价统计</p></div><div class="ops-card-tools">${canEdit() ? btn("能耗设置", "applicationSettings", { kind: "能耗", project: OPS_SCOPE.project }, "ghost sm") : ""}</div></header><p class="ops-empty-note">在能耗设置中登记分时电价（时段与电价）后，按登记的时段统计各时段用电与费用。按小时的用电见“按小时”。</p><p class="ops-foot">${esc(costText(cost, rg.label))}</p></section>`;
+    // 按小时的用电曲线照常显示（“按小时”）。登记了不分时的电价时显示这张卡（有费用估算）；什么电价都没登记时并入下方的提示（全面设计核查第 97 条）。
+    // 已在“按小时”时不再写“按小时的用电见‘按小时’”（全面设计核查第 99 条，2026-10-12 用户确认：原先指向自己）
+    touCard = cost
+      ? `<section class="ops-card"><header class="ops-card-h"><div><h3>未登记分时电价，不统计峰谷时段</h3><p class="ops-meta">${rg.label} · 峰谷时段按能耗设置登记的分时电价统计</p></div><div class="ops-card-tools">${canEdit() ? btn("能耗设置", "applicationSettings", { kind: "能耗", project: OPS_SCOPE.project }, "ghost sm") : ""}</div></header><p class="ops-empty-note">在能耗设置中登记分时电价（时段与电价）后，按登记的时段统计各时段用电与费用。${gran === "hour" ? "" : "按小时的用电见“按小时”。"}</p><p class="ops-foot">${esc(costText(cost, rg.label))}</p></section>`
+      : "";
   }
   const bp = full.map((d) => ({ t: d.t, base: Demo.pct(hrs(d), 0.025), peak: Demo.pct(hrs(d), 0.975) }));
+  // 横轴与日用电柱图相同：期间内的每一天（含进行中的今天，今天不计算、不画点），日期从最后一天往回按柱图的间隔等距取，两张图上下对得上
+  // （全面设计核查第 98 条，按 Lovable 核查第 227 条，2026-10-12 用户确认；原先只含完整的天、从第一天往后取，最后一天常没有日期）。
+  // 近 12 个月按月：每月一点，为该月各天的中位数（全面设计核查第 96 条）
+  const bpAt = new Map(bp.map((x) => [x.t, x])),
+    bpX = ms ? ms.map((x) => x.t) : ds.map((d) => d.t),
+    bpV = (k) =>
+      ms
+        ? ms.map((x) => {
+            const v = bp.filter((b) => b.t >= x.t && b.t < x.next);
+            return v.length ? Demo.median(v.map((b) => b[k])) : null;
+          })
+        : ds.map((d) => bpAt.get(d.t)?.[k] ?? null),
+    bpPeak = bpV("peak"),
+    bpBase = bpV("base");
   const bpCard = chartCard({
     title: `峰荷 / 基载约 ${nf(Demo.median(bp.map((x) => x.peak / x.base)), 1)} 倍，夜间仍有约 ${nf(Demo.median(bp.map((x) => x.base)), 1)} kW 持续负荷`,
-    meta: `${rg.span} · 日负荷 2.5 / 97.5 百分位（LBNL 方法）· kW`,
+    meta: `${rg.span} · ${ms ? "每月日负荷 2.5 / 97.5 百分位的中位数" : "日负荷 2.5 / 97.5 百分位"}（LBNL 方法）· kW`,
     legend: [
       [S1, "峰荷（97.5%）", "line"],
       [SBASE, "基载（2.5%）", "line"],
     ],
-    table: regTable("bp", ["日期", "基载 kW", "峰荷 kW"], bp.map((x) => [Demo.md(x.t), nf(x.base, 2), nf(x.peak, 2)])),
+    table: ms
+      ? regTable("bp", ["月份", "基载 kW", "峰荷 kW"], ms.map((x, i) => [anMonthName(x), nf(bpBase[i], 2), nf(bpPeak[i], 2)]))
+      : regTable("bp", ["日期", "基载 kW", "峰荷 kW"], bp.map((x) => [Demo.md(x.t), nf(x.base, 2), nf(x.peak, 2)])),
     body: chartSlot({
       type: "lines",
       height: 180,
-      xs: bp.map((x) => x.t),
-      xLabel: (t, i, step) => (i % step === 0 ? Demo.md(t) : ""),
-      tipTitle: (t) => Demo.md(t) + " " + Demo.WEEK[Demo.loc(t).dow],
+      xs: bpX,
+      xLabel: ms ? (t, i) => anMonthLabel(ms, i) : (t, i) => ((bpX.length - 1 - i) % every === 0 ? Demo.md(t) : ""),
+      tipTitle: ms ? (t, i) => anMonthName(ms[i]) : (t) => Demo.md(t) + " " + Demo.WEEK[Demo.loc(t).dow],
+      tipNote: ms ? (t, i) => anMonthCover(ms[i]) : (t) => (bpAt.has(t) ? "" : "进行中，按完整的天计算，今天不计"),
+      nullText: "—",
       unit: "kW",
       unitShort: "kW",
       series: [
-        { name: "峰荷", color: S1, vals: bp.map((x) => x.peak), dots: bp.length <= 10 },
-        { name: "基载", color: SBASE, vals: bp.map((x) => x.base), dots: bp.length <= 10 },
+        { name: "峰荷", color: S1, vals: bpPeak, dots: !!ms || bpX.length <= 10, noGap: true },
+        { name: "基载", color: SBASE, vals: bpBase, dots: !!ms || bpX.length <= 10, noGap: true },
       ],
     }),
   });
@@ -59094,6 +59390,26 @@ function anEnergy() {
   // 异常解释只针对所选期间内的异常：期间不含实验室 B 夜间照明偏高的日子（9/21 起）时不显示，基载与峰荷卡占满一行
   // （规范 ANALYSIS01，2026-10-09 用户确认，Vision 核查 V74：原先看 9/14–9/20、8/20–8/31 时仍显示）
   const ai = typeof aiAnomalyCard === "function" && Demo.NIGHT_B != null && rg.end > Demo.dayStart(Demo.NIGHT_B) ? aiAnomalyCard() : "";
+  // 峰谷、能耗强度对标与基线比较（全面设计核查第 97 条方案 A，2026-10-12 用户确认；原先三张卡总是并排一行，示例数据下三张都只有一句
+  // “未登记”“暂不对标”“未设基线”，整行没有数据）：登记了哪一项就显示哪张卡（一张占满一行，两张各半）；其余合成一行灰色提示，
+  // 写明缺什么，右边是“能耗设置”。能耗强度本身在指标卡里，不对标时不另占一张卡
+  const baseSet = latestConfig("能耗", OPS_SCOPE.project)?.values?.baseline?.method === "period",
+    regs = [],
+    benchWhy = [],
+    notes = [];
+  if (!touCard) regs.push("峰谷电价");
+  if (I.why === "楼层面积未登记") regs.push("楼层面积");
+  else if (I.why === "能耗设置未登记计量边界") regs.push("计量边界");
+  else if (I.why) notes.push(`${I.why}，不计算能耗强度`);
+  else if (!BK.ok) BK.miss.forEach((x) => (x === "建筑类型未登记" ? regs.push("建筑类型") : x === "气候区未登记" ? regs.push("气候区") : benchWhy.push(x)));
+  if (!baseSet) regs.push("基线");
+  if (benchWhy.length) notes.push(`能耗强度暂不对标：${benchWhy.join("、")}`);
+  const cmpCards = [touCard, !I.why && BK.ok ? bench : "", baseSet ? anBaseline(rg) : ""].filter(Boolean),
+    cmpRow = cmpCards.length ? `<div class="ops-row${["", "", " r11", " r111"][cmpCards.length]}">${cmpCards.join("")}</div>` : "",
+    cmpOff =
+      regs.length || notes.length
+        ? `<div class="ops-cmp-off">${ico("info", "ic16")}<p>${esc([regs.length ? `${regs.join("、")}未登记，登记后显示对比` : "", ...notes].filter(Boolean).join("；"))}</p>${canEdit() ? btn("能耗设置", "applicationSettings", { kind: "能耗", project: OPS_SCOPE.project }, "ghost sm") : ""}</div>`
+        : "";
   return (
     // 筛选行右端的设置入口用默认浅色按钮，与同一行的选择框同为 32 高（Lovable 核查第 104 条，2026-10-11 用户确认：原为 28 高透明按钮）
     filterRow({ gran: true, meter: true, right: btn("能耗设置", "applicationSettings", { kind: "能耗", project: OPS_SCOPE.project }) }) +
@@ -59102,7 +59418,9 @@ function anEnergy() {
     kp +
     anCompare(full) +
     main +
-    `<div class="ops-row r111">${touCard}${bench}${anBaseline(rg)}</div>${ai ? `<div class="ops-row r21">${bpCard}${ai}</div>` : bpCard}`
+    cmpRow +
+    cmpOff +
+    (ai ? `<div class="ops-row r21">${bpCard}${ai}</div>` : bpCard)
   );
 }
 // 碳排放分析只引用碳排放设置：每天按有效区间覆盖该日的版本计算，不在页面上切换因子重算（规范 ANALYSIS02、APP02，2026-10-08 第 2 轮第6章）
@@ -59125,33 +59443,48 @@ function anCarbon() {
       k = f ? carbonKg(f) : 0;
     return { d, f, light: d.light * k, hvac: d.hvac * k };
   });
+  // 近 12 个月按月显示（全面设计核查第 96 条）
+  const cms = rg.monthly ? anMonths(rg, rows.map((r) => ({ ...r, t: r.d.t, partial: r.d.partial }))) : null;
   const chart =
     c.kg == null
       ? `<section class="ops-card"><header class="ops-card-h"><div><h3>排放趋势</h3><p class="ops-meta">${rg.span}</p></div></header><p class="ops-empty-note">没有适用的排放因子：在碳排放设置中登记覆盖本期间的因子后显示排放。不使用参考因子代替。</p></section>`
       : chartCard({
           title: `${rg.label}排放 ${nf(c.kg / 1000, 2)} t${gas}，照明插座占 ${nf((c.light / c.kg) * 100)}%`,
-          meta: `${rg.span} · 日排放 kg${gas} = 用电 × 当日适用的因子 · ${c.configs.map((x) => setLink("碳排放", `碳排放设置 v${x.version}`)).join("、")}`,
+          meta: `${rg.span} · ${cms ? "月" : "日"}排放 kg${gas} = 用电 × 当日适用的因子 · ${c.configs.map((x) => setLink("碳排放", `碳排放设置 v${x.version}`)).join("、")}`,
           legend: [
             [S1, "照明插座"],
             [SAC, "空调末端"],
           ],
-          table: regTable(
-            "carbon",
-            ["日期", `照明插座 kg${gas}`, `空调末端 kg${gas}`, "排放因子"],
-            rows.map((r) => [Demo.md(r.d.t), r.f ? nf(r.light, 1) : "—", r.f ? nf(r.hvac, 1) : "—", r.f ? `${r.f.values.factor} ${carbonUnit(r.f.values)} · 碳排放设置 v${r.f.version}` : "没有适用的排放因子，未计入"]),
-          ),
-          foot: c.missing ? `${c.missing} 天没有适用的排放因子，未计入；在碳排放设置中登记覆盖这些日期的因子后计入。` : "",
-          body: chartSlot({
-            type: "bars",
-            height: 240,
-            unit: "kg" + gas,
-            unitShort: "kg" + gas,
-            series: [
-              { name: "照明插座", color: S1 },
-              { name: "空调末端", color: SAC },
-            ],
-            rows: rows.map((r, i) => ({ label: (rows.length - 1 - i) % every === 0 ? Demo.md(r.d.t) : "", title: Demo.md(r.d.t) + " " + Demo.WEEK[Demo.loc(r.d.t).dow], values: [r.light, r.hvac], faded: r.d.partial, note: r.f ? "" : "没有适用的排放因子，未计入" })),
-          }),
+          table: cms
+            ? regTable(
+                "carbon",
+                ["月份", `照明插座 kg${gas}`, `空调末端 kg${gas}`, "排放因子"],
+                cms.map((x) => [
+                  anMonthName(x),
+                  x.xs.length ? nf(x.light, 1) : "—",
+                  x.xs.length ? nf(x.hvac, 1) : "—",
+                  x.xs.length ? [...new Set(x.xs.map((r) => (r.f ? `${r.f.values.factor} ${carbonUnit(r.f.values)} · 碳排放设置 v${r.f.version}` : "部分日期没有适用的排放因子，未计入")))].join("；") : "没有计量数据",
+                ]),
+              )
+            : regTable(
+                "carbon",
+                ["日期", `照明插座 kg${gas}`, `空调末端 kg${gas}`, "排放因子"],
+                rows.map((r) => [Demo.md(r.d.t), r.f ? nf(r.light, 1) : "—", r.f ? nf(r.hvac, 1) : "—", r.f ? `${r.f.values.factor} ${carbonUnit(r.f.values)} · 碳排放设置 v${r.f.version}` : "没有适用的排放因子，未计入"]),
+              ),
+          foot: (cms ? anMonthGap(cms) : anDayGap(rg)) + (c.missing ? `${c.missing} 天没有适用的排放因子，未计入；在碳排放设置中登记覆盖这些日期的因子后计入。` : ""),
+          body: cms
+            ? anMonthlyBars(cms, "kg" + gas, 240)
+            : chartSlot({
+                type: "bars",
+                height: 240,
+                unit: "kg" + gas,
+                unitShort: "kg" + gas,
+                series: [
+                  { name: "照明插座", color: S1 },
+                  { name: "空调末端", color: SAC },
+                ],
+                rows: rows.map((r, i) => ({ label: (rows.length - 1 - i) % every === 0 ? Demo.md(r.d.t) : "", title: Demo.md(r.d.t) + " " + Demo.WEEK[Demo.loc(r.d.t).dow], values: [r.light, r.hvac], faded: r.d.partial, note: r.f ? "" : "没有适用的排放因子，未计入" })),
+              }),
         });
   const basis = `<section class="ops-card"><header class="ops-card-h"><div><h3>核算口径</h3><p class="ops-meta">引用碳排放设置；修改形成新版本，历史报告固定引用原版本</p></div></header><dl class="ops-kv"><dt>范围</dt><dd>${CARBON_SCOPE_TEXT}</dd>${
     cv
@@ -59160,7 +59493,9 @@ function anCarbon() {
   }${c.configs.length > 1 ? `<dt>期间内版本</dt><dd>${c.configs.map((x) => "v" + x.version).join("、")}，按各自的有效区间计算</dd>` : ""}<dt>活动数据</dt><dd>${ec ? `${setLink("能耗", `能耗设置 v${ec.c.version}`)}：${esc(ec.names)}` : "7F 照明插座、空调末端两块电表（系统接入，已验证）"}</dd><dt>说明</dt><dd>截至 2026-09 未公布 2024 年电力 CO₂ 排放因子；“电力碳足迹因子”口径不同，不替代</dd></dl></section>`;
   // 查看来源：核算口径卡的“来源”打开碳排放设置中登记的来源；“新建报告”带入“能耗”“碳排放”两项内容与所选期间，保存为报告草稿（规范 ANALYSIS02，2026-10-08 第 3 轮，ANALYSIS02 待实现第2条；2026-10-09 用户确认，ABB 对比 BP114）
   // 本页签唯一的主要按钮：黑色 32 高（规范 2 2；Lovable 核查第 295 条，2026-10-11 用户确认）
-  const newReport = canOperate() ? btn("新建报告", "reportForm", { kinds: "energy,carbon", project: OPS_SCOPE.project, start: ymdOf(rg.from), end: ymdOf(rg.end - Demo.DAY) }, "primary") : "";
+  // 期间早于计量数据起始日时（近 12 个月、上月）从起始日带入（全面设计核查第 96 条）
+  const repFrom = Demo.dataStart() && ymdOf(rg.from) < Demo.dataStart() ? Demo.dataStart() : ymdOf(rg.from),
+    newReport = canOperate() ? btn("新建报告", "reportForm", { kinds: "energy,carbon", project: OPS_SCOPE.project, start: repFrom, end: ymdOf(rg.end - Demo.DAY) }, "primary") : "";
   return filterRow({ right: newReport + btn("碳排放设置", "applicationSettings", { kind: "碳排放", project: OPS_SCOPE.project }) }) + anGwLine() + kp + `<div class="ops-row r21">${chart}${basis}</div>`;
 }
 // 今日环境趋势（规范 ANALYSIS03，2026-10-08 第 3 轮，ANALYSIS03 待实现第1、2条）：选功能区与指标查看今日 07:00 起的曲线（窗口平均），
@@ -59475,9 +59810,10 @@ function anHealth() {
     h.rate == null
       ? kpi("在线率", "—", onlyIn(segs("E栋 7F 网关离线", `${h.unknown.length} 台状态未知`, `共 ${h.total} 台（含网关）`)), "opsNoop")
       : kpi("在线率", nf(h.rate, 1) + "<small>%</small>", onlyIn(`${h.online} / ${h.total} 台（含网关）`), "opsNoop"),
-    kpi("离线", h.off.length + "<small>台</small>", onlyIn(h.off.length ? (() => { const gw = h.off.filter((p) => p.type === "gw").length, r = h.off.filter((p) => p.fieldReset).length, c = h.off.length - r - gw; return segs(gw ? `${gw} 台网关` : "", c ? `${c} 台同一回路失电` : "", r ? `${r} 台被现场复位` : ""); })() : "无"), "opsGo", { page: "alarms" }),
+    // “离线”“被现场复位”打开当前告警时只列“设备与网络”一类，告警页写“已筛选”，可一键清除（全面设计核查第 105 条，2026-10-12 用户确认：原先列出全部告警）
+    kpi("离线", h.off.length + "<small>台</small>", onlyIn(h.off.length ? (() => { const gw = h.off.filter((p) => p.type === "gw").length, r = h.off.filter((p) => p.fieldReset).length, c = h.off.length - r - gw; return segs(gw ? `${gw} 台网关` : "", c ? `${c} 台同一回路失电` : "", r ? `${r} 台被现场复位` : ""); })() : "无"), "opsGo", { page: "alarms", altype: "设备与网络" }),
     reach.length ? kpi("体检到达率", nf(reach.at(-1).v, 1) + "<small>%</small>", onlyIn(`期间内最近 ${opsDay(reach.at(-1).t)} · 通过标准 ≥ 99%`), "opsNoop") : kpi("体检到达率", "—", onlyIn("所选期间没有全网体检或夜间复测"), "opsNoop"),
-    kpi("被现场复位", resets.length + "<small>次</small>", onlyIn(resets.length ? `${resets.map((p) => p.name).join("、")} · ${rg.span}` : `${rg.span} 没有`), resets.length ? "opsGo" : "opsNoop", resets.length ? { page: "alarms" } : {}),
+    kpi("被现场复位", resets.length + "<small>次</small>", onlyIn(resets.length ? `${resets.map((p) => p.name).join("、")} · ${rg.span}` : `${rg.span} 没有`), resets.length ? "opsGo" : "opsNoop", resets.length ? { page: "alarms", altype: "设备与网络" } : {}),
   ]);
   const basis = `<p class="ops-basis">${ico("info", "ic16")}<span>${esc(`统计时间 ${at} · 设备网络 ${net ? `${net.name}（网络版本 v${net.version}）` : "未建立"} · 在线率、离线、跳数、固件与配置同步为统计时间的状态；体检到达率与被现场复位按所选期间 ${rg.span} 统计`)}</span></p>`;
   const reachCard = chartCard({
@@ -59556,7 +59892,8 @@ function anReports() {
     )
     .join("")}${REPORTS.map((x0) => (typeof aiReportEff === "function" ? aiReportEff(x0) : x0)).map((x) => `<li><button class="${x.id === cur ? "on" : ""}"${x.id === cur ? ' aria-current="true"' : ""} data-act="opsReport" data-id="${x.id}">${ico("doc", "ic16")}<span><b>${esc(x.name)}</b><small>${esc(x.span)} · ${esc(x.at)}</small></span>${x.state === "AI 草稿" ? `<span class="ai-badge">AI 草稿</span>` : `<span class="ops-need-s">已发布</span>`}</button></li>`).join("")}</ul></section>`;
   const preview = typeof aiReportDraft === "function" ? aiReportDraft(r) : "";
-  return `<div class="ops-toolbar2"><span class="ops-scope">广实2号园 / E栋 / 7F · 报告固定保存范围、数据截止与计算版本</span><span class="sp"></span>${canOperate() ? btn("新建报告", "reportForm", {}, "primary") : ""}</div>${anGwLine()}<div class="ops-row r12">${list}${preview}</div>`;
+  // 范围与其他页签同一写法（anScopeText，如“全部项目 · 已接入 1 个楼层（广实2号园 E栋 7F）”；全面设计核查第 101 条，2026-10-12 用户确认：原为“广实2号园 / E栋 / 7F”）
+  return `<div class="ops-toolbar2"><span class="ops-scope">${anScopeText()} · 报告固定保存范围、数据截止与计算版本</span><span class="sp"></span>${canOperate() ? btn("新建报告", "reportForm", {}, "primary") : ""}</div>${anGwLine()}<div class="ops-row r12">${list}${preview}</div>`;
 }
 
 /* ---------- 告警 ---------- */
@@ -61256,6 +61593,8 @@ defineActions({
   opsGo: (a) => {
     closeModal(true);
     U.opsDrawer = null;
+    // 带告警类型时（数据分析 › 设备健康的“离线”“被现场复位”）当前告警只列这一类，级别与确认状态回到全部，页上写“已筛选”（全面设计核查第 105 条）
+    if (a.altype) Object.assign(U, { opsAlType: a.altype, alTypeJump: a.altype, opsLevel: "all", opsAlState: "all" });
     route(a.page, { tab: a.tab || "" }, { remember: true });
   },
   opsGoDemoFloor: () => route(U.page, { p: OPS_SCOPE.project, b: g("floors", OPS_SCOPE.floor).buildingId, f: OPS_SCOPE.floor, tab: U.tab }),
@@ -61511,10 +61850,20 @@ defineActions({
     const t = OPS_TABLES[a.key];
     if (!t) return;
     const head = `<p class="ops-modal-sub">与图表同一口径${t.title ? ` · ${esc(t.title)}` : ""}</p>${t.meta ? `<p class="ops-meta">${esc(t.meta)}</p>` : ""}`,
-      foot = t.foot ? `<p class="ops-foot">${esc(t.foot)}</p>` : "";
+      foot = t.foot ? `<p class="ops-foot">${esc(t.foot)}</p>` : "",
+      // 数字列（除首列外，每格都是数、百分数或“—”“未取得”一类占位）靠右、等宽数字；说明一类的文字列限宽折行，表格按内容定宽，不撑满弹窗
+      // （全面设计核查第 100 条，2026-10-12 用户确认，按 Lovable 核查第 391 条；原先数字列靠左，表格撑满后数据挤在左边）
+      blank = (c) => /^(—|-|未取得|无 AQ20)?$/.test(String(c ?? "").trim()),
+      isNum = (c) => /^[-+−]?[\d,]+(\.\d+)?\s*%?$/.test(String(c ?? "").trim()),
+      num = t.headers.map((h, i) => i > 0 && t.rows.some((r) => isNum(r[i])) && t.rows.every((r) => isNum(r[i]) || blank(r[i])));
     modal(
       "数据表",
-      head + `<div class="ops-dtable">${table(t.headers, t.rows.map((r) => r.map((c) => esc(c))))}</div>` + foot,
+      head +
+        `<div class="ops-dtable">${table(
+          t.headers.map((h, i) => (num[i] ? "#" + h : h)),
+          t.rows.map((r) => r.map((c, i) => (i && !num[i] && String(c ?? "").length > 12 ? `<span class="ops-dtable-txt">${esc(c)}</span>` : esc(c)))),
+        )}</div>` +
+        foot,
       // 底部都靠右：“关闭”在左、“导出 Excel”在右，都用白色次要按钮（Lovable 核查第 302 条，2026-10-11 用户确认）
       btn("关闭", "close") + (opsCanExportTable() ? btn("导出 Excel", "opsTableExport", { key: a.key }) : ""),
     );
@@ -61869,8 +62218,10 @@ document.addEventListener("input", (e) => {
     // 改选“自定义”时先带入原来的期间（规范 ANALYSIS01）
     if (e.target.id === "opsRangeSel") {
       if (e.target.value === "custom" && !U.opsFrom) {
-        const r = anRange();
-        Object.assign(U, { opsFrom: ymdOf(r.from), opsTo: ymdOf(r.end - Demo.DAY) });
+        const r = anRange(),
+          min = Demo.dataStart();
+        // 近 12 个月、上月可能早于计量数据起始日，带入时从起始日开始（全面设计核查第 96 条）
+        Object.assign(U, { opsFrom: min && ymdOf(r.from) < min ? min : ymdOf(r.from), opsTo: ymdOf(r.end - Demo.DAY) });
       }
       Object.assign(U, { opsFromDraft: undefined, opsToDraft: undefined, opsRangeErr: "" });
     }
@@ -62231,7 +62582,9 @@ function aiReportSections(r) {
         return { z: x.z, v: x.cells.slice(a, b).reduce((s, c) => s + (c || 0), 0) / Math.max(1, b - a) };
       })
       .sort((a, b) => a.v - b.v)[0],
-    basis = (tab, label) => aiLink(`${label}（${rg.span}）`, "opsReportBasis", { tab, from: per.from, to: per.to }),
+    // 依据链接与数据分析的页签同名（“能耗”“室内环境”“设备健康”），期间写在各节标题下面（全面设计核查第 103 条，2026-10-12 用户确认：
+    // 原为“能耗分析（9/1–9/24）”“室内环境与空间使用（…）”）
+    basis = (tab, label) => aiLink(label, "opsReportBasis", { tab, from: per.from, to: per.to }),
     // 峰谷只在能耗设置登记了分时电价时写（2026-10-09 用户确认，ABB 对比 BP118 方案A）
     cost = typeof costIn === "function" ? costIn(rg) : null,
     touTxt = (() => {
@@ -62283,10 +62636,10 @@ function aiReportSections(r) {
     rg,
     cutTxt: published ? `${opsDay(rg.end - Demo.DAY)} 24:00` : t(now ?? Demo.NOW),
     ce,
-    summary: mk(sum, basis("energy", "能耗分析") + basis("environment", "室内环境")),
-    energy: mk(en, basis("energy", "能耗分析"), efig),
+    summary: mk(sum, basis("energy", "能耗") + basis("environment", "室内环境")),
+    energy: mk(en, basis("energy", "能耗"), efig),
     carbon: mk(cb, basis("carbon", "碳排放")),
-    env: mk(env, basis("environment", "室内环境与空间使用"), vfig),
+    env: mk(env, basis("environment", "室内环境"), vfig),
     devices: mk(dev, aiLink("告警记录", "opsGo", { page: "alarms", tab: "history" }) + basis("health", "设备健康"), afig),
     advice: { html: advH, ev: adv.map(([, l]) => l).join(""), text: adv.length ? adv.map(([x], i) => `${i + 1}. ${x}`).join("\n") : "期内没有需要处理的事项。" },
   };
@@ -62334,22 +62687,27 @@ function aiReportDraft(r0) {
           : `<p class="ai-p">${esc(x).replace(/\n/g, "<br>")}</p>`;
       })
       .join("");
+  // 有依据链接打开报告期间数据分析的各节，标题下写这段期间（全面设计核查第 103 条：原先写在每个链接后面的括号里）
   const sec = (k, t) =>
-    `<section class="ai-rsec"><h4>${t}${changed(k) ? `<span class="ai-redit">已修改</span>` : ""}</h4>${
+    `<section class="ai-rsec"><h4>${t}${changed(k) ? `<span class="ai-redit">已修改</span>` : ""}</h4>${k === "advice" ? "" : `<p class="ai-rsec-span">${esc(S.rg.span)}</p>`}${
       r.frozen?.[k] != null ? paras(r.frozen[k]) : changed(k) ? paras(ed.sections[k]) : S[k].html
     }${S[k].fig || ""}${S[k].ev ? `<div class="ai-rev">${S[k].ev}</div>` : ""}</section>`;
-  return `<section class="ops-card ai-report"><header class="ops-card-h"><div><h3>${esc(r.name)}</h3><p class="ops-meta">${esc(r.span)} · 数据截至 ${S.cutTxt} · 计算版本 ${eset ? "能耗设置 v" + eset.version : "能耗设置未登记"} / ${S.ce.configs.length ? S.ce.configs.map((c) => "碳排放设置 v" + c.version).join("、") : "碳排放设置待设置"}</p></div><div class="ops-card-tools">${published ? `<span class="ops-st ok">已发布</span>` : aiBadge()}${demoTag()}</div></header>
+  // 顺序“导出 PDF”“编辑草稿”“发布”，三个都用白色次要按钮；本页签只有“新建报告”是黑色，发布的确认弹窗里“发布”是黑色（Lovable 核查第 297 条，2026-10-11 用户确认）
+  // 导出 PDF 按角色（R14）：能看到报告的角色都能下载；正式导出待报告服务。
+  // 三个按钮在预览卡标题行的右端，顺序不变（全面设计核查第 102 条，2026-10-12 用户确认：原先只在预览最底部，要往下滚约 1,100 才看得到）；底部只留说明
+  const actBtns = `${
+      U.role === "member" ? "" : `<span class="ops-dis" data-tip="正式导出需固定数据截止、质量说明与计算版本">${btn(ico("download", "ic16") + "导出 PDF", "noop", { disabled: true }, "sm")}</span>`
+    }${published || !canOperate() ? "" : btn("编辑草稿", "aiReportEdit", { id: r.id }, "sm")}${published || !aiCanPublish() ? "" : btn("发布", "aiReportPublish", { id: r.id }, "sm")}`,
+    // 三个按钮为一组，窄屏放不下时整组换到状态标签的下一行，不拆开
+    acts = actBtns ? `<span class="ai-report-acts">${actBtns}</span>` : "";
+  return `<section class="ops-card ai-report"><header class="ops-card-h"><div><h3>${esc(r.name)}</h3><p class="ops-meta">${esc(r.span)} · 数据截至 ${S.cutTxt} · 计算版本 ${eset ? "能耗设置 v" + eset.version : "能耗设置未登记"} / ${S.ce.configs.length ? S.ce.configs.map((c) => "碳排放设置 v" + c.version).join("、") : "碳排放设置待设置"}</p></div><div class="ops-card-tools">${published ? `<span class="ops-st ok">已发布</span>` : aiBadge()}${demoTag()}${acts}</div></header>
   <div class="ai-report-b">${secs.map(([k, t]) => sec(k, t)).join("")}</div><footer class="ai-report-f"><span class="ai-foot">${
     published
       ? `已由${zhSub(r.by, "lr")}审阅发布${r.mailedTo ? `；已按通知偏好发邮件给 ${r.mailedTo.length} 人（摘要与“查看报告”链接）` : ""}`
       : edited
         ? `AI 起草，${esc(ed.by)} ${edAt} 修改；需机构管理员或配置人员审阅后发布，数值与依据可逐项核对`
         : "AI 起草，需机构管理员或配置人员审阅后发布；数值与依据均来自报告期间的运行数据，可逐项核对"
-  }</span><span class="sp"></span>${
-    // 顺序“导出 PDF”“编辑草稿”“发布”，三个都用白色次要按钮；本页签只有“新建报告”是黑色，发布的确认弹窗里“发布”是黑色（Lovable 核查第 297 条，2026-10-11 用户确认）
-    // 导出 PDF 按角色（R14）：能看到报告的角色都能下载；正式导出待报告服务
-    U.role === "member" ? "" : `<span class="ops-dis" data-tip="正式导出需固定数据截止、质量说明与计算版本">${btn(ico("download", "ic16") + "导出 PDF", "noop", { disabled: true }, "sm")}</span>`
-  }${published || !canOperate() ? "" : btn("编辑草稿", "aiReportEdit", { id: r.id }, "sm")}${published || !aiCanPublish() ? "" : btn("发布", "aiReportPublish", { id: r.id }, "sm")}</footer></section>`;
+  }</span></footer></section>`;
 }
 
 /* ---------- ⌘K 搜索或提问 ---------- */
