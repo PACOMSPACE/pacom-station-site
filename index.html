@@ -3944,7 +3944,8 @@ details[open] > summary::before {
   border-style: solid;
   color: #333;
 }
-/* 角色小圆点“代”“中”：圆点 18、字 12，位置不变（Lovable 核查第 374 条，2026-10-11 用户确认：原为圆点 15、字 9） */
+/* 角色小圆点“代”“中”：圆点 18、字 12，位置不变（Lovable 核查第 374 条，2026-10-11 用户确认：原为圆点 15、字 9）。
+   白底、1px #DEDEDE 边、#030303 字，不用蓝色（全面设计核查第 4 条（2026-10-12 用户确认）；原为 #00AEEF 边、#0085B8 字，对比度 4.16:1，易与选中的蓝色混淆）。 */
 .ws-role-dot {
   position: absolute;
   right: -6px;
@@ -3958,8 +3959,8 @@ details[open] > summary::before {
   line-height: 18px;
   font-size: 12px;
   background: #fff;
-  border: 1px solid #00aeef;
-  color: #0085b8;
+  border: 1px solid var(--line);
+  color: var(--text);
 }
 .ws-point:active {
   cursor: grabbing;
@@ -4002,12 +4003,13 @@ details[open] > summary::before {
   align-items: flex-start;
   justify-content: flex-start;
 }
+/* 功能区名称字色 #2E2E2E（次级文字）（全面设计核查第 3 条（2026-10-12 用户确认）；原为 #555555，不在色板里）。项目楼层的名称标签见 .sp-zone-label。 */
 .ws-zone > span {
   font-size: 12px;
   line-height: 16px;
   padding: 2px 6px;
   background: #ffffffe6;
-  color: #555;
+  color: var(--text2);
   border-radius: 4px;
 }
 /* 功能区名称只占一行、不越出区域（2026-10-05 核查 S7 与合并细节第 1 条）：data-fit 由页面按实际像素给出，
@@ -6510,6 +6512,15 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   border-radius: 50%;
   background: #e0a100;
 }
+/* 触屏平板上楼层轨道的层号（32×32）、上下滚动（32×28）与楼宇主页（40×40）用看不见的外扩把点按范围做到 44×44，外观不变；
+   范围重叠时按离谁近算谁（脚本 RAIL_ZOOM_HIT）（全面设计核查第 39 条（2026-10-12 用户确认），补第 351 条：原先只有脚本补点，按钮本身没有外扩）。
+   层号在滚动框内：滚动框左右各加 6 的透明边、轨道不再裁切，外扩不被裁掉。宽度 ≤850px 时按钮本身已是 44。项目楼层、楼宇页与设备标记共用。 */
+@media (pointer:coarse) and (min-width:851px) {
+ .ws-rail-track { overflow:visible; }
+ .ws-rail-scroll { width:44px; margin-inline:-6px; padding-inline:6px; }
+ .rail-arrow { position:relative; }
+ .ws-rail-scroll > button::before, .rail-arrow::before, .ws-home::after { content:""; position:absolute; left:50%; top:50%; width:max(100%, 44px); height:max(100%, 44px); transform:translate(-50%, -50%); }
+}
 .spatial-building-top { position:absolute; top:12px; left:0; right:0; z-index:8; pointer-events:none; }
 /* 楼宇页：入口以楼宇图片区域（标记工具条）居中，不另设让出。 */
 .spatial-building-top .spatial-drawing-controls { --ws-to-l:0px; --ws-to-r:0px; --ctl-l:0px; --ctl-r:0px; --ctl-wrap-r:0px; }
@@ -6632,7 +6643,18 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
  .ws-rail-legend { margin-left:8px; }
 }
 @media (max-width:540px), (max-height:500px) {
- .ws-rail-legend { display:none; }
+ /* 设备标记的图例另有小点颜色，轨道收起时仍说明（全面设计核查第 32 条，见下） */
+ .ws-rail-legend:not(.mk-rail-legend) { display:none; }
+}
+/* 设备标记的图例（全面设计核查第 32 条（2026-10-12 用户确认））：在楼层轨道下方，同项目楼层；设备点画成小点时加写小点的颜色（设备大类），
+   没有要说明的内容时不占位；轨道收起（≤540px 或高 ≤500px）时只说明小点的颜色。 */
+.mk-rail-legend .lg-pt { width:8px; height:8px; border-radius:50%; background:var(--pt); }
+.mk-rail-legend > .pt-legend { display:none; }
+.mk-bench:has(#floorCanvas.pt-dots) ~ .mk-rail-legend > .pt-legend { display:inline-flex; }
+.mk-rail-legend:not(:has(> :not(.pt-legend))) { display:none; }
+.mk-bench:has(#floorCanvas.pt-dots) ~ .mk-rail-legend { display:flex; }
+@media (max-width:540px), (max-height:500px) {
+ .mk-rail-legend, .mk-rail-legend > span:not(.pt-legend), .mk-bench:has(#floorCanvas.pt-dots) ~ .mk-rail-legend > .lg-sep { display:none; }
 }
 /* 室外区域（B7）：只有一张总平面图，不显示楼层轨道与选层按钮，图纸占满画布宽度。 */
 .ws-space-page .sp-bench.no-rail .ws-canvas-col { padding-left:12px; }
@@ -6768,6 +6790,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   fill: #00aeef1a;
   pointer-events: none;
 }
+/* 名称字色 #2E2E2E（全面设计核查第 3 条（2026-10-12 用户确认）；原为 #555555）。 */
 .sp-zone-label {
   position: absolute;
   z-index: 3;
@@ -6777,7 +6800,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   background: #ffffffe6;
   font-size: 12px;
   line-height: 16px;
-  color: #555;
+  color: var(--text2);
   pointer-events: none;
   white-space: nowrap;
 }
@@ -8776,10 +8799,12 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
   color: var(--text3);
   white-space: nowrap;
 }
+/* 楼层面板与设备标记面板的分节标题 14/24 字重 480 黑字（全面设计核查第 145 条（2026-10-12 用户确认）；原为 14/22 字重 500） */
 .mk-title {
   font-size: 14px;
-  line-height: 22px;
-  font-weight: 500;
+  line-height: 24px;
+  font-weight: 480;
+  color: var(--text);
   margin: 0;
 }
 .mk-row {
@@ -8889,13 +8914,15 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
   margin: 4px -16px 0;
   padding: 14px 16px 16px;
 }
+/* 点位面板的分节标题（如“照明负载”）同上 14/24 字重 480 黑字（全面设计核查第 145 条（2026-10-12 用户确认）；原为 13/20 字重 500） */
 .mk-sec h4 {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
-  line-height: 20px;
-  font-weight: 500;
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 480;
+  color: var(--text);
   margin: 0 0 10px;
 }
 .mk-sec h4 .mk-sub {
@@ -9053,10 +9080,10 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
   line-height: 18px;
   color: #636363;
 }
-.mk-lux .mk-seg {
+.mk-lux .mk-opt {
   grid-column: 3;
   grid-row: 2;
-  background: #fff;
+  margin: 0;
 }
 .mk-lux .mk-star-lg {
   grid-row: 1 / 3;
@@ -9192,9 +9219,6 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 .mk-last > span {
   display: block;
   color: var(--text3);
-}
-.mk-last .mk-seg {
-  background: #ebebeb;
 }
 .mk-last .mk-meters {
   background: #fff;
@@ -9446,6 +9470,7 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
   cursor: crosshair;
 }
 /* 检查 pill + panel */
+/* “检查”文字 14 号 #030303，同画布上的其他按钮（全面设计核查第 33 条（2026-10-12 用户确认）；原为 13 号 #2E2E2E） */
 .mk-pill {
   display: inline-flex;
   align-items: center;
@@ -9455,9 +9480,9 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
   border-radius: 999px;
   background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.04)), #fff;
   box-shadow: var(--btn);
-  font-size: 13px;
+  font-size: 14px;
   white-space: nowrap;
-  color: var(--text2);
+  color: var(--text);
 }
 /* 触屏上“规划检查”胶囊的点击区上下各扩 6px 到 44px，外观不变（2026-10-05 核查 C5：原先只有 32px 高）。 */
 @media (max-width: 850px), (pointer: coarse) {
@@ -9915,12 +9940,8 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
   color: var(--text3);
   margin-bottom: 4px;
 }
-.mk-hvac .mk-seg {
+.mk-hvac .mk-opt {
   margin-bottom: 0;
-}
-.mk-hvac .mk-seg button {
-  min-width: 0;
-  padding: 0 6px;
 }
 .ws-panel-body .mk-hvac > small,
 .ws-panel-body .mk-hvac > .ws-field-err {
@@ -9936,11 +9957,6 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 .mk-inline-num .input {
   width: 72px;
   flex: none;
-}
-@media (max-width: 850px), (pointer: coarse) {
-  .mk-hvac .mk-seg button {
-    height: 36px;
-  }
 }
 /* 名称一列做行标题（th scope=row，Lovable 核查第 413 条，2026-10-11 用户确认）：外观同普通单元格，不用表头的灰色小字与不换行；
    下面逐条对应 .t td、.flow-table td 等单元格规则（选择器多一层 tbody，盖过 .t th、.flow-table .t th）。 */
@@ -24671,6 +24687,197 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
 /* ==== 2026-10-12 全面设计核查第二部分 · 项目楼层工作区与设备标记（第 3、4、21、31–35、39、147 条）
    [FLOOR] 本区的样式改动写在这一段注释之后、下一段注释之前。
    ==== */
+/* 点位面板的分段选择（控制类型、照度源、暖通登记项）用紧凑页签 .seg.sm：32 高的轨道、26 高的选中块、14 号字，触屏不放大
+   （全面设计核查第 147 条（2026-10-12 用户确认）；原为 .mk-seg，控制类型 28 高 13 号字、照度源 24 高 12 号字）。按内容宽，独占一行。 */
+.mk-opt {
+  display: flex;
+  width: fit-content;
+  margin-bottom: 12px;
+}
+/* 设备标记的面板 320 宽、正文 14/21，同项目楼层面板（全面设计核查第 33 条（2026-10-12 用户确认）；原为 280 宽（≤1250 宽时 264）、正文与说明 13/20）。 */
+@media (min-width: 851px) {
+  .mk-bench > .ws-planning-panel {
+    width: 320px;
+  }
+}
+.mk-bench .ws-panel-body,
+.mk-bench .ws-panel-body :is(.mk-lead, .kv) {
+  font-size: 14px;
+  line-height: 21px;
+}
+/* 画布按钮（“编辑功能区”“取消校准”）32 高、14 号字，触屏 44，同项目楼层画布上的按钮（第 33 条；原为 28 高）。 */
+.mk-bench .ws-canvas-top > .btn {
+  height: 32px;
+  padding-inline: 16px;
+  font-size: 14px;
+}
+@media (pointer: coarse) {
+  .mk-bench .ws-canvas-top > :is(.btn, .iconbtn) {
+    min-height: 44px;
+  }
+  .mk-bench .ws-canvas-top > .iconbtn {
+    min-width: 44px;
+  }
+}
+/* 面板浮在图上（第 31 条，照项目楼层 sp-overlay）：面板并排后画布不足 700 时由页面加上 mk-overlay，面板覆盖画布右侧、不压缩画布，
+   切换面板不改缩放与滚动；画布上方与下方的按钮、提示和检查清单让出面板。851–980 宽原先面板排在画布下方，现在同样浮在图上。 */
+.mk-bench.mk-overlay {
+  flex-direction: row;
+}
+.mk-bench.mk-overlay > .ws-planning-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  width: 320px;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  border: 0;
+  border-left: 1px solid #e0e0e0;
+  box-shadow: var(--pop);
+}
+.mk-bench.mk-overlay .ws-network-context {
+  border-right: 0;
+  border-bottom: 1px solid #eee;
+}
+.mk-bench.mk-overlay .ws-panel-body {
+  max-height: none;
+}
+.mk-bench.mk-overlay .ws-canvas-col {
+  min-height: 0;
+}
+.mk-bench.mk-overlay.with-panel :is(.ws-canvas-top, .ws-canvas-bottom) {
+  margin-right: 316px;
+}
+.mk-bench.mk-overlay.with-panel .mk-checks {
+  right: 332px;
+  max-width: calc(100% - 412px);
+}
+/* 面板上的“收起面板”：透明 32 圆形按钮，在设备网络一行的末端；触屏用看不见的外扩做到 44 */
+.mk-net > .mk-panel-close {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin: -4px -8px -4px 0;
+  background: none;
+  box-shadow: none;
+  position: relative;
+}
+.mk-net > .mk-panel-close:hover {
+  background: var(--hover);
+}
+.ws-planning-panel > .mk-panel-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  background: none;
+  box-shadow: none;
+}
+@media (pointer: coarse) {
+  .mk-net > .mk-panel-close::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+}
+/* 设备点看全图时（图纸画宽 <900，由页面加 pt-dots）画成 12 的实心小点，只用设备大类的颜色区分（全面设计核查第 32 条（2026-10-12 用户确认）；
+   原先固定 28×28 图标，图纸窄时大片重叠）。白色 1.5 描边与图纸分开；选中、多选与检查定位加 #00AEEF 外圈，回路组为组色外圈；
+   图标、照度源星号与“代”“中”角标放大后再显示。触屏点按范围仍外扩到 44（第 212 条）。 */
+.pt-light { --pt: #6250d6; }
+.pt-sense { --pt: #008300; }
+.pt-hvac { --pt: #c2457c; }
+.pt-infra { --pt: #52514e; }
+.mk-bench .ws-plan.pt-dots .ws-point {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  background-color: var(--pt);
+  box-shadow: 0 0 0 1.5px #fff, 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+.mk-bench .ws-plan.pt-dots .ws-point > :is(svg, .ws-role-dot, .mk-star) {
+  display: none;
+}
+.mk-bench .ws-plan.pt-dots .ws-point:is(.selected, .batch-selected, .mk-focus) {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #00aeef;
+  z-index: 7;
+}
+.mk-bench .ws-plan.pt-dots .ws-point.mk-grouped {
+  box-shadow: 0 0 0 1.5px #fff, 0 0 0 3px var(--cg);
+}
+.mk-bench .ws-plan.pt-dots .ws-point.flow-health-point.fail {
+  box-shadow: 0 0 0 1.5px #fff, 0 0 0 3.5px #c84343;
+}
+.mk-bench .ws-plan.pt-dots .ws-point.mk-pickable {
+  box-shadow: 0 0 0 1.5px #fff, 0 0 0 5px #00aeef55;
+}
+@media (pointer: coarse) {
+  .mk-bench .ws-plan.pt-dots .ws-point::before {
+    inset: -16px;
+  }
+}
+/* 图例里小点的颜色见 project 层楼层轨道图例（.mk-rail-legend）。 */
+/* 屏宽 ≤540px：画布上方只放模式页签，放不下时页签在自己的框内横向滑动，“⋯”留在本行末端；“编辑功能区”和“检查”收进“⋯”菜单
+   （全面设计核查第 35 条（2026-10-12 用户确认）；原先五个页签与“编辑功能区”“检查”挤在一行，“编辑功能区”被截到屏幕外）。 */
+@media (max-width: 540px) {
+  .mk-bench .ws-canvas-top {
+    overflow: visible;
+  }
+  .mk-bench .ws-canvas-top > .seg {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .mk-bench .ws-canvas-top > :is([data-act="toSpace"], .mk-pill) {
+    display: none;
+  }
+  .mk-bench .ws-canvas-top > .sp {
+    display: block;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+.popitem > .mk-menu-count {
+  margin-left: auto;
+  padding-left: 12px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text3);
+  font-variant-numeric: tabular-nums;
+}
+/* 触屏平板上缩放胶囊的 − +：用看不见的外扩把点按范围做到 44×44，外观不变；范围重叠时按离谁近算谁（脚本 RAIL_ZOOM_HIT）
+   （全面设计核查第 39 条（2026-10-12 用户确认），补第 351 条；原为 28×44，设备标记只有 28×28）。设备标记的缩放胶囊同项目楼层：触屏时按钮 44 高。
+   楼层轨道的层号、上下滚动与楼宇主页在 project 层（楼层轨道一节）。宽度 ≤850px 时按钮本身已是 44。 */
+@media (pointer: coarse) and (min-width: 851px) {
+  .ws-zoom[role="group"] > .iconbtn {
+    position: relative;
+  }
+  .ws-zoom[role="group"] > .iconbtn::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+  .mk-bench .ws-zoom :is(.iconbtn, .btn) {
+    min-height: 44px;
+  }
+}
+/* 项目、设备与配置进度的弹窗里的小文字按钮（复制到其他楼层的“全选 / 全不选”、新建分组的“选择显示的点位”、新建系统连接的“添加数据点 / 添加计算点”等）
+   统一 32 高、左右 16 的胶囊按钮，触屏 44（已有规则）（全面设计核查第 21 条（2026-10-12 用户确认）；原为 28 高）。 */
+:is(#dlg[data-page="projects"], #dlg[data-page="devices"], #dlg[data-page="deployment"]) .btn.sm {
+  height: 32px;
+  padding-inline: 16px;
+}
 
 /* ==== 2026-10-12 全面设计核查第二部分 · 设备表格与配置进度（第 1、25–30、36–38、40、155 条）
    [DEVICE] 本区的样式改动写在这一段注释之后、下一段注释之前。
@@ -32031,6 +32238,11 @@ function snapshot() {
     scroll: $("#pbody")?.scrollTop || 0,
   };
 }
+// 楼层画布的默认模式：项目与配置进度为“查看”；设备标记能编辑的角色为“标记”，查看人员与运营人员为“查看”
+// （全面设计核查第 34 条（2026-10-12 用户确认）；原先设备标记对所有角色都默认“标记”，他们却不能编辑）。
+function floorDefaultMode(page) {
+  return ["projects", "deployment"].includes(page) || !canEdit() ? "view" : "mark";
+}
 function route(page, scope = {}, opts = {}) {
   guard(() => {
     closePop();
@@ -32049,7 +32261,7 @@ function route(page, scope = {}, opts = {}) {
         tab: "",
         net: null,
         ntab: "summary",
-        mode: ["projects", "deployment"].includes(page) ? "view" : "mark",
+        mode: floorDefaultMode(page),
         canvasScrollX: 0,
         canvasScrollY: 0,
         point: null,
@@ -32122,7 +32334,7 @@ function syncRoute(replace = false) {
   for (const k of ["p", "b", "f", "tab", "net", "ntab"]) if (U[k] && !(k === "ntab" && U[k] === "summary")) q.set(k, U[k]);
   if (["projects", "devices"].includes(U.page) && U.f && U.zone) q.set("z", U.zone);
   if (U.view !== "cards") q.set("view", U.view);
-  if (U.mode !== (["projects", "deployment"].includes(U.page) ? "view" : "mark")) q.set("mode", U.mode);
+  if (U.mode !== floorDefaultMode(U.page)) q.set("mode", U.mode);
   history[replace ? "replaceState" : "pushState"]({ source: U.source || null }, "", "#" + U.page + (q.size ? "?" + q : ""));
 }
 function readRoute() {
@@ -32133,7 +32345,7 @@ function readRoute() {
   U.missing = null;
   for (const k of ["p", "b", "f", "tab", "net", "ntab"]) U[k] = q.get(k) || null;
   U.view = q.get("view") || "cards";
-  U.mode = q.get("mode") || (["projects", "deployment"].includes(U.page) ? "view" : "mark");
+  U.mode = q.get("mode") || floorDefaultMode(U.page);
   const aliases = { gen: "general", light: "lighting", env: "environment", report: "reports", hist: "history", ledger: "inventory", devices: "inventory" };
   if (aliases[U.tab]) U.tab = aliases[U.tab];
   if (U.p === "p2") U.p = data().projects.find((p) => p.name === "广实2号园")?.id;
@@ -32916,14 +33128,83 @@ function floorRail() {
 // 设备标记的轨道用同一图例，只写本轨道用到的标记（没有待处理的小点；各层都有图纸时不显示），见 deviceRailLegend（Editor 核查 E6）。
 const railLegend = (hollow = true, dot = true) => isOutdoor(U.b) || !(hollow || dot) ? "" : `<p class="ws-rail-legend" aria-hidden="true">${hollow ? `<span><i class="lg-hollow">8</i>虚线圈：未上传图纸</span>` : ""}${hollow && dot ? `<span class="lg-sep">·</span>` : ""}${dot ? `<span><i class="lg-dot"></i>小点：待处理</span>` : ""}</p>`;
 const deviceRailLegend = () => railLegend(railFloors().some((f) => !f.image), false);
+// 设备点看全图时画成 12 的实心小点，只用类型颜色区分（全面设计核查第 32 条（2026-10-12 用户确认）；原先设备点固定 28×28，
+// 7F 的 108 个点在图纸窄时大片重叠，挡住功能区名称，也难点中单台）。按设备大类取色（照明、传感、暖通、网关与电表），
+// 不用选中的蓝色和告警的红、橙、黄；放大后仍是 28 的图标，图例写在楼层轨道下方。颜色经全站数据图配色校验（彼此、色弱可分，对浅底 ≥3:1）。
+const PT_FAMILY = { lc: "light", ls: "light", tp: "light", ms: "sense", aq: "sense", fc: "hvac", vg: "hvac", idu: "hvac", odu: "hvac", gw: "infra", meter: "infra" };
+const PT_FAMILY_TEXT = [["light", "照明"], ["sense", "传感"], ["hvac", "暖通空调"], ["infra", "网关与电表"]];
+// 图纸画宽小于此值（像素）时用小点；缩放不低于 100%，所以“看全图”即图纸窄于约 900。
+const PT_DOT_W = 900;
+const ptDots = (w) => w > 0 && w < PT_DOT_W;
+// 图纸尺寸变化（缩放、捏合、窗口与侧栏、面板收起展开）时重新判断，在绘制之前完成，不闪。
+let ptDotObserver = null;
+function ptDotWatch() {
+  ptDotObserver?.disconnect();
+  ptDotObserver = null;
+  const cv = $(".mk-bench #floorCanvas");
+  if (!cv || typeof ResizeObserver !== "function") return;
+  ptDotObserver = new ResizeObserver(() => cv.isConnected && cv.classList.toggle("pt-dots", ptDots(cv.offsetWidth)));
+  ptDotObserver.observe(cv);
+}
+// 设备标记的图例：未上传图纸的虚线圈（有这样的楼层时）与小点的颜色（只在画成小点时显示）。
+const markLegend = () => {
+  const hollow = !isOutdoor(U.b) && railFloors().some((f) => !f.image);
+  return `<p class="ws-rail-legend mk-rail-legend" aria-hidden="true">${hollow ? `<span><i class="lg-hollow">8</i>虚线圈：未上传图纸</span><span class="lg-sep pt-legend">·</span>` : ""}${PT_FAMILY_TEXT.map(([k, t]) => `<span class="pt-legend"><i class="lg-pt pt-${k}"></i>${t}</span>`).join("")}</p>`;
+};
+// 设备标记的面板（全面设计核查第 31、33 条（2026-10-12 用户确认）；原先 280 宽、任何宽度都并排、不能收起，1280 宽时图纸只有 597）：
+// 照项目楼层（D2、B-4b）——面板 320 宽；面板并排后画布不足 700 时改为浮在图上（mk-overlay），默认收起，选中设备、功能区或点面板按钮再展开；
+// 并排时默认展开，同样可以用页头的面板按钮或面板上的“收起面板”收起。宽度 ≤850px 时面板仍排在画布下方，不收起。
+const MK_PANEL_W = 320;
+function mkBenchWidth() {
+  const bench = $(".mk-bench");
+  if (bench?.clientWidth) return bench.clientWidth;
+  const body = $("#pbody");
+  if (body?.clientWidth && typeof getComputedStyle === "function") { const cs = getComputedStyle(body); return body.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); }
+  return (typeof innerWidth === "number" ? innerWidth : 1440) - (U.collapsed ? 56 : 256) - 64;
+}
+function mkPlanInset() {
+  const col = $(".mk-bench > .ws-canvas-col");
+  if (col && typeof getComputedStyle === "function") { const cs = getComputedStyle(col); return parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 2; }
+  return (isOutdoor(U.b) ? 12 : 68) + 12 + 2;
+}
+const mkStacked = () => isMobile();
+const mkOverlay = () => !mkStacked() && mkBenchWidth() - MK_PANEL_W - mkPlanInset() < SP_PLAN_MIN;
+// 选中的设备、功能区或正在连线、放置、多选时面板要展开；用户收起后再选中别的对象时重新展开。
+const mkPanelWant = () => [U.point, U.zone, U.joinFrom, U.connectFrom, U.type, (U.selectedPoints || []).join(",")].filter(Boolean).join("|");
+const mkPanelOpen = () => mkStacked() || (U.mkPanel ?? (!mkOverlay() || !!mkPanelWant()));
+let mkModeObserver = null;
+function mkPanelModeWatch() {
+  mkModeObserver?.disconnect();
+  mkModeObserver = null;
+  const bench = $(".mk-bench:not(.no-plan)");
+  if (U.page !== "devices" || !bench || typeof ResizeObserver !== "function") return;
+  let w = bench.clientWidth;
+  mkModeObserver = new ResizeObserver(() => {
+    if (!bench.isConnected || bench.clientWidth === w) return;
+    w = bench.clientWidth;
+    // 跨过并排与浮动的分界（窗口、侧栏展开或收起）时换版式；在下一帧重新绘制，不在尺寸回调中同步重画。
+    if (bench.classList.contains("mk-overlay") !== mkOverlay() || bench.classList.contains("with-panel") !== mkPanelOpen()) requestAnimationFrame(() => U.page === "devices" && render());
+  });
+  mkModeObserver.observe(bench);
+}
 function floorPage() {
   if (U.page === "projects") return spaceFloorPage();
   if (U.mode === "zones") U.mode = "mark";
+  // 查看人员与运营人员不能编辑：没有“标记”“回路”页签，进入时为“查看”（全面设计核查第 34 条（2026-10-12 用户确认）；含切换角色后）
+  if (!canEdit() && ["mark", "relations"].includes(U.mode)) U.mode = "view";
   const f = currentFloor(),
     b = currentBuilding();
   // 室外区域（第 8 步 F2f）：“总平面资料”“上传总平面图”，说明不写“楼层”。
   const out = isOutdoor(f.buildingId);
-  const right = btn(out ? "总平面资料" : "楼层资料", "spaceInfo", { kind: "floors", id: f.id });
+  // 选中新的对象时，收起过的面板重新展开（第 31 条）
+  const want = mkPanelWant();
+  if (want && want !== U.mkPanelFor && U.mkPanel === false) U.mkPanel = null;
+  U.mkPanelFor = want;
+  const panelOpen = !!f.image && mkPanelOpen(),
+    overlay = !!f.image && mkOverlay();
+  // 页头右侧的面板按钮同项目楼层（第 31 条）；宽度 ≤850px 时面板排在画布下方，没有这个按钮。
+  const panelBtn = f.image && !mkStacked() ? `<button class="iconbtn round sp-panel-btn mk-panel-btn" data-act="mkPanel" aria-pressed="${panelOpen}" aria-label="${panelOpen ? "收起面板" : "展开面板"}" data-tip="${panelOpen ? "收起面板" : "展开面板"}">${ico("collapse", "sp-panel-ic")}</button>` : "";
+  const right = `<div class="ws-tb-actions">${btn(out ? "总平面资料" : "楼层资料", "spaceInfo", { kind: "floors", id: f.id })}${panelBtn}</div>`;
   const body = toolbar(right) + (U.page === "devices" ? `<div class="ws-device-categories">${deviceTabs()}</div>` : "");
   // 查看人员与运营人员不给上传指导（第14章；2026-10-05 核查 D16：原先设备页对他们也写“先保存本层图纸…”），说法同项目楼层图（SPACE04）。
   if (!f.image)
@@ -32945,8 +33226,7 @@ function floorPage() {
     : `<div class="ws-canvas-top">${tabs(
         [
           ["view", "查看"],
-          ["mark", "标记"],
-          ["relations", "回路"],
+          ...(canEdit() ? [["mark", "标记"], ["relations", "回路"]] : []),
           ["roles", "角色"],
           ["health", "体检"],
         ],
@@ -32960,7 +33240,7 @@ function floorPage() {
   const pts = M.points(data(), f.id).filter((p) => p.positionAttached !== false);
   return (
     body +
-    `<div class="ws-workbench mk-bench ${viewing ? "viewing" : "editing"}">${floorRail()}<div class="ws-canvas-col">${canvasTop}${!viewing ? canvasOverlay(checks) : ""}<div class="ws-canvas-viewport" id="canvasViewport"${viewing ? "" : ` role="tabpanel" aria-labelledby="mode-${esc(U.mode)}"`}><div class="ws-plan ${U.joinFrom ? "picking" : ""}" id="floorCanvas" style="width:${U.zoom * 100}%" tabindex="0" aria-label="${esc(b.name + " " + f.name)}${planWord(f.buildingId)}${viewing ? "" : "；选择设备类型后点击或拖放"}"><img src="${esc(f.image)}" alt="${zhSub(esc(b.name + " " + f.name), "r")}楼层图" draggable="false">${renderZones()}${renderGroupHulls()}${renderRelations()}${renderRoleCoverage(net)}${pts.map(renderPoint).join("")}</div></div>${canvasBottom}</div>${viewing ? "" : planningPanel(net)}</div>${deviceRailLegend()}` +
+    `<div class="ws-workbench mk-bench ${viewing ? "viewing" : "editing"}${overlay ? " mk-overlay" : ""}${panelOpen ? " with-panel" : ""}">${floorRail()}<div class="ws-canvas-col">${canvasTop}${!viewing ? canvasOverlay(checks) : ""}<div class="ws-canvas-viewport" id="canvasViewport"${viewing ? "" : ` role="tabpanel" aria-labelledby="mode-${esc(U.mode)}"`}><div class="ws-plan ${U.joinFrom ? "picking" : ""}${ptDots(($("#canvasViewport")?.clientWidth || mkBenchWidth() - mkPlanInset() - (panelOpen && !overlay && !mkStacked() ? MK_PANEL_W : 0)) * U.zoom) ? " pt-dots" : ""}" id="floorCanvas" style="width:${U.zoom * 100}%" tabindex="0" aria-label="${esc(b.name + " " + f.name)}${planWord(f.buildingId)}${viewing ? "" : "；选择设备类型后点击或拖放"}"><img src="${esc(f.image)}" alt="${zhSub(esc(b.name + " " + f.name), "r")}楼层图" draggable="false">${renderZones()}${renderGroupHulls()}${renderRelations()}${renderRoleCoverage(net)}${pts.map(renderPoint).join("")}</div></div>${canvasBottom}</div>${viewing || !panelOpen ? "" : planningPanel(net)}</div>${markLegend()}` +
     // “查看”模式（含从项目“在设备中查看”进入）只查看：没有未保存的修改时不显示保存条与“准备现场绑定”（2026-10-05 核查合并细节第 8 条）。
     (!viewing && canEdit() && !(U.mode === "view" && !U.dirty && !U.attrsDirty)
       ? `<div class="ws-savebar">${btn("撤销", "undo", { disabled: !U.undo.length }, "ghost")}${btn("重做", "redo", { disabled: !U.redo.length }, "ghost")}<span role="status" class="mk-save-state">${saveState()}</span><span class="sp"></span>${planSaveBtn("取消修改", "cancelPlan", "ghost")}${planSaveBtn("保存规划", "savePlan", "primary")}${btn("准备现场绑定" + (checks.blocks.length ? `<b class="mk-count">${checks.blocks.length}</b>` : ""), "prepareApp", {}, checks.blocks.length ? "mk-gated" : "")}</div>`
@@ -33013,6 +33293,8 @@ function renderPoint(p) {
       color ? "mk-grouped" : "",
       dim ? "mk-dim" : "",
       U.joinFrom && p.type === "lc" && p.id !== U.joinFrom ? "mk-pickable" : "",
+      // 看全图时小点的颜色按设备大类（第 32 条）
+      "pt-" + (PT_FAMILY[p.type] || "infra"),
     ].filter(Boolean);
   const state = M.access(p) === "pending" ? "规则待确认" : F.bindingLabel(p);
   return `<button class="${cls.join(" ")}" style="left:${p.x}%;top:${p.y}%${color ? ";--cg:" + color : ""}" data-act="point" data-id="${p.id}" aria-label="${esc(p.name)}" title="${esc(pointTitle(p, state))}" tabindex="0">${ico(M.catalog[p.type].icon)}${star ? '<i class="mk-star" aria-label="照度源">★</i>' : ""}${p.relay ? '<i class="ws-role-dot">中</i>' : p.proxy ? '<i class="ws-role-dot">代</i>' : ""}</button>`;
@@ -33070,13 +33352,13 @@ function renderRelations() {
         style = cg ? ` style="--cg:${groupColor(cg)}"` : "";
       let head = "";
       if (l.kind === "follow") {
-        // Arrowhead stops at the receiving LC20's edge (points are 28 px regardless of zoom).
+        // Arrowhead stops at the receiving LC20's edge (points are 28 px regardless of zoom; 12 px dots when the whole plan is shown, 第 32 条).
         const dx = q.x - p.x,
           dy = Y(q.y) - Y(p.y),
           len = Math.hypot(dx, dy) || 1,
           ux = dx / len,
           uy = dy / len,
-          tip = 16 / unit,
+          tip = ($(".mk-bench #floorCanvas.pt-dots") ? 8 : 16) / unit,
           size = 7 / unit,
           tx = q.x - ux * tip,
           ty = Y(q.y) - uy * tip,
@@ -34470,7 +34752,7 @@ function goFloor(fid, mode = null, point = null, page = U.page === "devices" ? "
       b: b.id,
       f: fid,
       tab: page === "devices" ? "mark" : "",
-      mode: mode || (page === "projects" ? "view" : "mark"),
+      mode: mode || floorDefaultMode(page),
       point,
       zoom: saved.zoom,
       canvasScrollX: saved.x,
@@ -35112,7 +35394,7 @@ defineActions({
   },
   parentProject: () => route("projects", { b: null, f: null, tab: "", net: null }),
   buildingHome: () => route("projects", { f: null, tab: "", net: null }, { remember: true }),
-  floor: (a) => goFloor(a.id, isFloorWorkspace() ? U.mode : ["projects", "deployment"].includes(U.page) ? "view" : "mark"),
+  floor: (a) => goFloor(a.id, isFloorWorkspace() ? U.mode : floorDefaultMode(U.page)),
   goFloor: (a) => {
     closeModal(true);
     goFloor(a.id);
@@ -35505,11 +35787,21 @@ defineActions({
       el,
       menuBox(
         "图纸与比例尺",
+        // 屏宽 ≤540px 时画布上方只放模式页签，“编辑功能区”和“检查”收在这里（全面设计核查第 35 条（2026-10-12 用户确认）；
+        // 原先与页签挤在一行，“编辑功能区”被截到屏幕外）。
+        (U.page === "devices" && MK_NARROW_MQ?.matches ? mkNarrowMenu() : "") +
         // 查看人员、运营人员与“查看”模式只有“楼层资料”（2026-10-05 核查 D17：原先能进入比例尺取点，点完没有反应）。
         (canEdit() && U.mode !== "view" ? btn(ico("image", "ic16") + "更换" + planWord(U.b), "replacePlan", {}, "popitem") + btn(ico("ruler", "ic16") + "设置比例尺", "scale", {}, "popitem") : "") +
           btn(ico("doc", "ic16") + (isOutdoor(U.b) ? "总平面资料" : "楼层资料"), "spaceInfo", { kind: "floors", id: U.f }, "popitem"),
       ),
     ),
+  // 设备标记面板的展开与收起（第 31 条）：收起时焦点回到页头的面板按钮。
+  mkPanel: (a, el) => {
+    const closing = mkPanelOpen();
+    U.mkPanel = !closing;
+    render();
+    if (closing && el?.closest?.(".ws-planning-panel")) $(".mk-panel-btn")?.focus({ preventScroll: true });
+  },
   // 设备标记的“取消校准”（画布上方，触屏没有 Esc；Lovable 核查第 372 条）
   scaleCancel: () => {
     U.scalePoints = null;
@@ -35813,6 +36105,16 @@ defineLayer({ name: "zoneMulti", level: 19, prevent: true, open: (e) => U.page =
 // 焦点在输入框、多行文字或下拉中、功能区资料有未保存的修改或正在命名草稿时不收起。
 const spOverlayPanelOpen = (e) =>
   U.page === "projects" && !!U.f && overlayPanel() && U.spPanel === true && !!$(".sp-panel") && !U.spFormDirty && !U.zoneDraft && !(e && /INPUT|TEXTAREA|SELECT/.test(e.target?.tagName));
+// 设备标记浮在图上的面板（第 31 条）：由面板按钮展开时，选点、放置、连线、多选与检查清单先由 Esc 退出（pageState），再按 Esc 收起面板，焦点回到面板按钮。
+defineLayer({
+  name: "markPanelOverlay",
+  level: 18,
+  prevent: true,
+  open: (e) =>
+    U.page === "devices" && !!U.f && U.mkPanel === true && !!$(".mk-bench.mk-overlay .ws-planning-panel") && !U.point && !U.type && !U.joinFrom && !U.connectFrom && !U.selectedPoints?.length && !U.selectingPoints && !U.scalePoints && !U.checksOpen && !escTextTarget(e),
+  focus: () => $(".mk-panel-btn"),
+  close: () => { U.mkPanel = false; render(); $(".mk-panel-btn")?.focus({ preventScroll: true }); },
+});
 defineLayer({ name: "spacePanelOverlay", level: 18, prevent: true, open: spOverlayPanelOpen, focus: () => $(".sp-panel-btn"), close: () => { U.spPanel = false; render(); $(".sp-panel-btn")?.focus({ preventScroll: true }); } });
 // 逐层核对（2026-10-03 用户确认 B1）：绘制与选中先退，再按 Esc 退出核对，留在当前楼层。
 // 焦点在输入框、文本域或下拉中时不退出核对（与 R9 一致，第 8 步 F3）：Esc 只交给输入框本身（清空搜索、放弃输入等）。
@@ -36574,6 +36876,9 @@ function wsAfterRender() {
   }
   if (U.page === "projects" && U.f) { initSpaceCanvas(); return spPanelModeWatch(); }
   spPanelModeWatch();
+  // 设备标记：面板并排与浮动随工作台宽度切换（第 31 条），设备点小点与图标随图纸宽度切换（第 32 条）
+  mkPanelModeWatch();
+  ptDotWatch();
   const cv = $("#floorCanvas");
   if (!cv) return;
   const vp = $("#canvasViewport");
@@ -42848,14 +43153,16 @@ function renderPlanningPanel(n) {
     body = `<h3 class="mk-title">${esc(f.name)}</h3><p class="mk-lead">选择设备或功能区查看信息。</p><div class="mk-actions">${btn(isOutdoor(f.buildingId) ? "总平面资料" : "楼层资料", "spaceInfo", { kind: "floors", id: f.id }, "sm")}${btn("设备台账", "floorInventory", {}, "ghost sm")}</div>`;
   else body = renderContinuousMarking(n);
   // 面板正文按“页面 · 楼层 · 模式 · 点位 · 类型 · 功能区”区分：相同时增量更新保留滚动位置，换了对象时为新的正文、从顶部开始（2026-10-03 D4，取代原重绘时的滚动补偿）。
-  return `<aside class="ws-planning-panel">${U.mode === "zones" ? "" : networkContext(n, f)}<div class="ws-panel-body" data-key="${esc(["panel", U.page, U.f, U.mode, U.point, U.type, U.zone].join("|"))}">${body}</div>${foot ? `<div class="ws-panel-foot">${foot}</div>` : ""}</aside>`;
+  // 面板上的“收起面板”同项目楼层面板的关闭（第 31 条）；面板排在画布下方（≤850px）时没有。
+  const close = U.page === "devices" && !mkStacked() ? iconBtn("收起面板", "x", "mkPanel").replace('class="iconbtn round"', 'class="iconbtn round mk-panel-close"') : "";
+  return `<aside class="ws-planning-panel" aria-label="设备标记面板">${U.mode === "zones" ? close : networkContext(n, f, close)}<div class="ws-panel-body" data-key="${esc(["panel", U.page, U.f, U.mode, U.point, U.type, U.zone].join("|"))}">${body}</div>${foot ? `<div class="ws-panel-foot">${foot}</div>` : ""}</aside>`;
 }
-function networkContext(n, f) {
+function networkContext(n, f, extra = "") {
   return `<div class="ws-network-context mk-net">${
     n
       ? `<button class="ws-network-name" data-act="chooseNetwork" aria-label="切换设备网络" aria-haspopup="menu" aria-expanded="false"><span><small>设备网络</small><b>${esc(n.name)}</b></span>${ico("chevron", "ic16")}</button><span class="mk-net-state">${F.networkState(data(), n)}${F.changeSinceDelivery?.(data(), n) ? ` · v${F.changeSinceDelivery(data(), n).deliveredVersion} 已交付，有待交付变更` : ""}</span>`
       : `<span><small>设备网络</small><b class="muted">尚未规划</b></span>${canEdit() && !["view", "relations", "roles", "health"].includes(U.mode) ? btn(isOutdoor(f.buildingId) ? "规划设备网络" : "规划本层网络", "networkForm", { floor: f.id }, "sm") : ""}`
-  }</div>`;
+  }${extra}</div>`;
 }
 function pointProperties(p, n) {
   if (p.type === "lc") return mkLcEditor(p, n);
@@ -45827,6 +46134,15 @@ function renderGroupHulls() {
 
 /* ---------- 规划检查 (§5.4 step 6) ---------- */
 // Canvas top bar always shows 检查 · 阻止 N · 提示 N (UI_RULES §8); zero counts are muted, not hidden.
+// 屏宽 ≤540px 时“⋯”菜单里的“编辑功能区”（只读角色为“在项目中查看”）与“检查”（第 35 条）
+const MK_NARROW_MQ = typeof matchMedia === "function" ? matchMedia("(max-width: 540px)") : null;
+function mkNarrowMenu() {
+  const c = F.planChecks(data(), { floorId: U.f });
+  return (
+    btn(ico("edit", "ic16") + (canEdit() ? "编辑功能区" : "在项目中查看"), "toSpace", {}, "popitem") +
+    btn(ico(c.blocks.length ? "alert" : "check", "ic16") + `检查<small class="mk-menu-count">阻止 ${c.blocks.length} · 提示 ${c.hints.length}</small>`, "checksToggle", {}, "popitem")
+  );
+}
 function checkPill(c) {
   const b = c.blocks.length,
     h = c.hints.length;
@@ -46006,7 +46322,8 @@ function lcMeters(p) {
 function driverFields(p) {
   if (!canEdit())
     return `${roRow("控制类型", (p.ctrl || "dim") === "switch" ? "开关" : "0–10 V 调光")}${fld("驱动型号", "pe-driverModel", peSelect("pe-driverModel", [["", "未选择"], ...M.DRIVERS.map((d) => [d.model, `${d.model} · ${d.watts} W`]), ["other", "其他（待兼容测试）"]], p.driverModel || "", "驱动型号"))}${roRow("驱动台数", p.drivers)}${roRow("每台灯具功率 W", p.fixtureWatts)}<div class="mk-meters" data-meters="${p.id}">${lcMeters(p)}</div>`;
-  return `<div class="mk-seg" role="radiogroup" aria-label="控制类型">${[
+  // 分段选择用紧凑页签（.seg.sm：32 高的轨道、26 高的选中块、14 号字，触屏不放大）（全面设计核查第 147 条（2026-10-12 用户确认）；原为 28 高、13 号字的 .mk-seg）
+  return `<div class="seg sm mk-opt" role="radiogroup" aria-label="控制类型">${[
     ["dim", "0–10 V 调光"],
     ["switch", "开关"],
   ]
@@ -46047,9 +46364,10 @@ const mkNetRoles = (p) =>
 // FC20 的水系统、水温传感器与电加热，多联机外机的品牌、类型、原厂限温、设定步长与写入限制，多联机内机的所属外机，电表的所接负载。
 // 与 LC20 的照明负载一样写入规划草稿，保存规划时校验并记入修改记录；只登记，不向设备下发。
 // 分段选择未登记时不选中任何一项，下面写按什么默认；品牌与写入限制改完离开字段时写入，有误时写在字段下。
+// 分段选择同控制类型、照度源，用紧凑页签 .seg.sm（全面设计核查第 147 条（2026-10-12 用户确认）；原为 28 高、13 号字，触屏 36 高）。
 function mkHvacSeg(p, field, label, opts, cur, foot = "") {
   if (!canEdit()) return roRow(label, opts.find(([v]) => v === cur)?.[1] || "未登记");
-  return `<div class="field mk-hvac"><span class="mk-hvac-label" id="pe-${field}-label">${label}</span><div class="mk-seg" role="radiogroup" id="pe-${field}" aria-labelledby="pe-${field}-label">${opts
+  return `<div class="field mk-hvac"><span class="mk-hvac-label" id="pe-${field}-label">${label}</span><div class="seg sm mk-opt" role="radiogroup" id="pe-${field}" aria-labelledby="pe-${field}-label">${opts
     .map(
       ([v, l]) =>
         `<button role="radio" aria-checked="${cur === v}" class="${cur === v ? "on" : ""}" data-act="peHvac" data-point="${p.id}" data-field="${field}" data-value="${esc(v)}"${dis()}>${l}</button>`,
@@ -46162,8 +46480,9 @@ function mkLcEditor(p) {
     sensors = cg ? cgSensors(cg) : [],
     src = cg?.luxSourceId ? g("points", cg.luxSourceId) : null,
     follows = (p.followIds || []).map((id) => g("points", id)).filter(Boolean);
+  // 照度源“自动 / 锁定”用紧凑页签 .seg.sm（全面设计核查第 147 条（2026-10-12 用户确认）；原为 24 高、12 号字）
   const lux = src
-    ? `<div class="mk-lux"><span class="mk-star-lg">★</span><b>${esc(src.name)}</b><small>照度源 · ${LUX_BASIS[cg.luxBasis] || "首台标记"}</small><div class="mk-seg sm" role="radiogroup" aria-label="照度源选择方式">${[
+    ? `<div class="mk-lux"><span class="mk-star-lg">★</span><b>${esc(src.name)}</b><small>照度源 · ${LUX_BASIS[cg.luxBasis] || "首台标记"}</small><div class="seg sm mk-opt" role="radiogroup" aria-label="照度源选择方式">${[
         ["auto", "自动", "运行 3–7 天后按日光占比自动选最暗的有效位置"],
         ["locked", "锁定", "锁定后平台不再自动更换"],
       ]
