@@ -11841,9 +11841,8 @@ button.ops-zbadge:active {
 }
 /* 操作记录：单元格不折行（设备编号、命令与数值保持完整），窄屏时表格横向滚动 */
 /* 手机上同其他弹窗离屏幕两边各 8（Lovable 核查第 149 条，2026-10-11 用户确认：原先各 16）。 */
-.dialog.ops-rec-dlg {
-  width: 1000px;
-}
+/* 全面设计核查第 19 条（2026-10-12 用户确认，方案 A）：操作记录与设备的修改记录同用 1200 档（modal 的 "xl"，窗口不够宽时为窗口宽减 48）；
+   原为本类单独设 1000 宽。 */
 .ops-rec-dlg td {
   white-space: nowrap;
 }
@@ -24655,6 +24654,215 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
 /* ==== 2026-10-12 全面设计核查第二部分 · 总览（第 19、74、81–95 条）
    [OVERVIEW] 本区的样式改动写在这一段注释之后、下一段注释之前。
    ==== */
+/* 全面设计核查第 74 条（2026-10-12 用户确认）：“需要处理”里灯光手动控制中的条目不写级别、不加级别色点，写灰色“手动”，
+   宽度同级别一列（min-width 38），标题与告警条目对齐；原先标成“提示”级别。 */
+.ops-need-list .ops-lvl.ops-lvl-man {
+  color: var(--text3);
+}
+.ops-lvl.ops-lvl-man::before {
+  content: none;
+}
+/* 全面设计核查第 81 条（2026-10-12 用户确认）：网关离线时今日要点不显示控制类建议按钮，在按钮的位置写“本层网关离线，控制暂不可用”，12/18 #636363 */
+.ops-ai-off {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text3);
+}
+/* 全面设计核查第 82 条（2026-10-12 用户确认）：没有运行数据时“运行概况”卡只留“接入后才有运行数据”三行，小标题紧接卡片标题，
+   距标题 16，与左边“空间与配置”标题到内容相同；原先接在四行说明之后，距上 14。 */
+.ops-nodata .card > h3 + .flow-todo-h {
+  margin-top: 16px;
+}
+/* 全面设计核查第 83 条（2026-10-12 用户确认）：未恢复告警指标卡副文的级别写法同对比表（圆点为最高级别色），字号与颜色仍随副文 12/18 #636363 */
+.ops-kpi-s .ops-lvl {
+  display: inline;
+  min-width: 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  white-space: nowrap;
+}
+.ops-kpi-s .ops-lvl::before {
+  display: inline-block;
+  margin: 0 5px 1px 0;
+  vertical-align: middle;
+}
+/* 全面设计核查第 86 条（2026-10-12 用户确认，改 VD1）：CO₂、PM2.5、空气质量图层的填色深浅按档（--fa，由 opsPlan 写入）：优、良 20%，一般 45%，差 66%；
+   颜色与档名标签（实色底）不变，其他图层仍为 66%。数据未更新时同原先按 30 / 66 的比例变淡。 */
+.ops-zone[style*="--fa"] {
+  background: color-mix(in srgb, var(--fill, #fff) var(--fa), transparent);
+}
+.ops-plan.stale .ops-zone[style*="--fa"] {
+  background: color-mix(in srgb, var(--fill, #fff) calc(var(--fa) * 0.45), transparent);
+}
+/* 全面设计核查第 87 条（2026-10-12 用户确认）：能源页签的“能耗设置”“碳排放设置”在页签那一行的右端，与页签垂直居中，
+   指标卡与概况同高（1440 宽均从 192 开始；原先按钮在页签下单独一行，指标卡从 252 开始）。一行放不下时（手机）按钮换到页签下一行、靠右，
+   与页签相距 12，不溢出。 */
+.ops-tabs-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+.ops-tabs-row > .seg {
+  min-width: 0;
+}
+.ws-tabs-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+/* 与页签同一行时这一块高 40（同页签），触屏 44 高的按钮上下各伸出 2，不把这一行撑高：指标卡仍与概况同高 */
+@media (min-width: 601px) {
+  .ws-tabs-tools {
+    height: 40px;
+  }
+}
+/* 手机上（≤ 600）页签行同其他页签居中（Lovable 核查第 184 条），按钮固定换到页签下一行、靠右，与另外三个页签设置入口在状态条上方靠右相同 */
+@media (max-width: 600px) {
+  .ops-tabs-row > .seg {
+    display: flex;
+    width: fit-content;
+    margin-inline: auto;
+  }
+  .ws-tabs-tools {
+    flex-basis: 100%;
+    justify-content: flex-end;
+  }
+}
+/* 全面设计核查第 89 条（2026-10-12 用户确认，按第 132、185 条）：总览各页签、功能区面板与从总览打开的弹窗不再用 13 号字：
+   表格、清单 14/24；指标卡名称 14/21、单位 14；说明与元数据 12/18；能耗设置里的 14/22.4 改为 14/24。
+   通用表格 .t（单元格 13/21）、勾选组 .ws-checks、折叠块 .ws-details 是共用规则，这里只在总览范围内（#app / #dlg 的 data-page="overview"）覆盖；
+   今日要点正文用全站共用的 AI 卡片样式（.ai-card-b），由“全站统一”一组改（第 144 条）。原先为 13/20、13/21、13/24 与 14/22.4。 */
+#app[data-page="overview"] .ops-kpi-l {
+  font-size: 14px;
+  line-height: 21px;
+}
+#app[data-page="overview"] .ops-kpi-v small {
+  font-size: 14px;
+}
+/* 窄屏折叠后的第二行（.ops-t2）仍是 12/18 的说明 */
+#app[data-page="overview"] .ops-t tr:not(.ops-t2) > td {
+  font-size: 14px;
+  line-height: 24px;
+}
+#app[data-page="overview"] .ops-my-row {
+  font-size: 14px;
+  line-height: 24px;
+}
+#app[data-page="overview"] .ops-my-l {
+  height: 24px;
+}
+#app[data-page="overview"] .ops-zp-sub {
+  font-size: 12px;
+  line-height: 18px;
+}
+#app[data-page="overview"] .ops-zp-sub .ops-link {
+  font-size: inherit;
+}
+#app[data-page="overview"] .ops-manual,
+#app[data-page="overview"] .ops-circ-h,
+#app[data-page="overview"] .ops-fc-h {
+  font-size: 14px;
+  line-height: 24px;
+}
+#dlg[data-page="overview"] .t td,
+#dlg[data-page="overview"] .t tbody th[scope="row"],
+#dlg[data-page="overview"] .ops-list,
+#dlg[data-page="overview"] .ws-checks label,
+#dlg[data-page="overview"] .ws-details summary,
+#dlg[data-page="overview"] .ops-param-list li > div,
+#dlg[data-page="overview"] .hvac-none,
+#dlg[data-page="overview"] .ops-legacy,
+#dlg[data-page="overview"] .appset-tou-t th,
+#dlg[data-page="overview"] .appset-tou-t td {
+  font-size: 14px;
+  line-height: 24px;
+}
+#dlg[data-page="overview"] .ws-details > p {
+  line-height: 24px;
+}
+#dlg[data-page="overview"] .ops-modal-sub,
+#dlg[data-page="overview"] .appset-upload-state {
+  font-size: 12px;
+  line-height: 18px;
+}
+/* 全面设计核查第 90 条（2026-10-12 用户确认，按第 28 条）：总览里能点的指标卡（概况、能源各 4 张）与普通成员“我的区域”的功能区卡用可点小卡的阴影，
+   与第 28 条的机构行（.au-orgpick）同一组值：1px 白 + 1px 16% 暖灰细边与 xs 两层 4% 投影（2 倍屏 0.5px 28%）；悬停叠黑 2% 并加 sm，
+   按下叠黑 4% 再加 md，阴影过渡 150ms。不能点的指标卡仍是一圈细边线。原先能点的卡也只有细边线，悬停时边线加深。 */
+#app[data-page="overview"] button.ops-kpi,
+button.ops-my-card {
+  --ov-card-ring: 0 0 0 1px #fff, 0 0 0 2px rgb(119 119 113 / 0.16);
+  --ov-card-xs: 0 2px 1px 0 rgb(0 0 0 / 0.04), 0 2px 1px -0.5px rgb(0 0 0 / 0.04);
+  --ov-card-sm: 0 4px 3px -1.5px rgb(0 0 0 / 0.04);
+  --ov-card-md: 0 7px 6px -3px rgb(0 0 0 / 0.04);
+  background: #fff;
+  box-shadow: var(--ov-card-ring), var(--ov-card-xs);
+  transition: box-shadow 150ms cubic-bezier(0.215, 0.61, 0.355, 1), background-color 150ms cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+@media (min-resolution: 2dppx) {
+  #app[data-page="overview"] button.ops-kpi,
+  button.ops-my-card {
+    --ov-card-ring: 0 0 0 0.5px #fff, 0 0 0 1px rgb(119 119 113 / 0.28);
+    --ov-card-xs: 0 1.5px 1px 0 rgb(0 0 0 / 0.04), 0 1.5px 1px -0.5px rgb(0 0 0 / 0.04);
+    --ov-card-sm: 0 3.5px 3px -1.5px rgb(0 0 0 / 0.04);
+    --ov-card-md: 0 6.5px 6px -3px rgb(0 0 0 / 0.04);
+  }
+}
+@media (hover: hover) {
+  #app[data-page="overview"] button.ops-kpi:hover,
+  button.ops-my-card:hover {
+    background: #fafafa;
+    box-shadow: var(--ov-card-ring), var(--ov-card-xs), var(--ov-card-sm);
+  }
+}
+#app[data-page="overview"] button.ops-kpi:active,
+button.ops-my-card:active {
+  background: #f5f5f5;
+  box-shadow: var(--ov-card-ring), var(--ov-card-xs), var(--ov-card-sm), var(--ov-card-md);
+}
+/* 打开着面板的功能区卡仍是 #00AEEF 细框（选中），悬停与按下时同样保留 */
+button.ops-my-card.on,
+button.ops-my-card.on:hover,
+button.ops-my-card.on:active {
+  box-shadow: inset 0 0 0 1px #00aeef, var(--ov-card-xs);
+}
+/* 全面设计核查第 91 条（2026-10-12 用户确认）：“我的区域”的功能区卡同全站卡片网格（第 14 章 §1）：3 列、间距 20（1920 宽每张 520），
+   窄于 1024 时 2 列、窄于 640 时 1 列；原先按最小 280 自动排列，1920 宽 5 列（每张 307、间距 16）。 */
+.ops-my-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+@media (max-width: 1023px) {
+  .ops-my-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 639px) {
+  .ops-my-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* 全面设计核查第 92 条（2026-10-12 用户确认）：总览里“离线”文字用该设备未恢复告警的级别色（紧急红、重要橙、提示黄，与楼层图告警角标同色）；
+   原先一律用紧急红。 */
+.ops-al0-t {
+  color: var(--crit);
+}
+.ops-al1-t {
+  color: #d4631f;
+}
+.ops-al2-t {
+  color: #d9a404;
+}
+/* 全面设计核查第 94 条（2026-10-12 用户确认）：手机与窄屏上卡片标题右侧的透明小按钮（“全部告警”“数据表”“在数据分析中查看”）移到标题下方时，
+   第一个按钮左移自己的左内边距 12，字与标题左边对齐，同“另有 N 条”与第 234 条；原先比标题缩进 12。 */
+@media (max-width: 850px) {
+  #app[data-page="overview"] .ops-card-h > .ops-card-tools > .btn.ghost.sm:first-child {
+    margin-left: -12px;
+  }
+}
 
 /* ==== 2026-10-12 全面设计核查第二部分 · 数据分析（第 96–106、117 条）
    [ANALYSIS] 本区的样式改动写在这一段注释之后、下一段注释之前。
@@ -31474,6 +31682,19 @@ function wsPageTabPanel(html) {
   if (at < 0) return html;
   const start = html.lastIndexOf('role="tablist"', at);
   let end = html.indexOf("</div>", at) + 6;
+  // 页签同一行右端的按钮（.ws-tabs-tools，紧跟在页签组之后，与页签组同在一个只装这两者的容器里，如总览 › 能源的“能耗设置”“碳排放设置”）
+  // 不算页签面板的内容：跳过这一块，读屏与 Tab 顺序仍是页签、按钮、面板（全面设计核查第 87 条，2026-10-12 用户确认）
+  if (html.startsWith('<div class="ws-tabs-tools">', end)) {
+    let depth = 0;
+    for (const m of html.slice(end).matchAll(/<(\/?)([a-zA-Z][\w-]*)\b[^>]*>/g)) {
+      if (WS_VOID_TAG.test(m[2]) || m[0].endsWith("/>")) continue;
+      depth += m[1] ? -1 : 1;
+      if (!depth) {
+        end += m.index + m[0].length;
+        break;
+      }
+    }
+  }
   while (html.startsWith("</div>", end)) end += 6;
   const rest = html.slice(end), list = html.slice(start, end);
   if (start < 0 || !wsBalancedHtml(rest)) return html.replace(/ aria-controls="wsPagePanel"/g, "");
@@ -35388,7 +35609,8 @@ defineActions({
     const p = g("points", a.id);
     goFloor(p.floorId, "mark", p.id);
   },
-  changes: () => modal("修改记录", recordsTable(data().records), btn("关闭", "close")),
+  // 记录类弹窗用 1200 档，与总览的操作记录同宽（全面设计核查第 19 条，2026-10-12 用户确认：原为 720 宽）
+  changes: () => modal("修改记录", recordsTable(data().records), btn("关闭", "close"), "xl"),
   openConnections: () => route("devices", { tab: "connections", net: null }, { remember: true }),
   connectionForm: withPolicy({ guard: true }, (a) => connectionForm(a.id)),
   saveConnection,
@@ -47778,12 +48000,11 @@ function renderOverview() {
         ["楼层", scopeFloors().length],
         ["图纸", scopeFloors().filter((f) => f.image).length + " 个楼层已上传"],
         ["设备网络", F.scopedNetworks(data(), U).length + " 个"],
-      ])}${btn("查看项目", "openProjectsScope")}</section><section class="card"><h3>运行概况</h3>${infoRows([
-        ["照明", "按功能区查看占用、开关与亮度"],
-        ["暖通空调", "按功能区查看室温与设定值"],
-        ["室内环境", "使用实际传感器数据，不推算人数"],
-        ["能源", "使用验证后的计量来源和版本化因子"],
-      ])}${connectTodo(points, connected)}${!connected.length ? note("尚无绑定或接入回执。可以继续配置，当前不生成运行指标。") : note("网关离线时其 Mesh 节点显示状态未知，保留最后上报时间。")}</section></div>`
+      ])}${btn("查看项目", "openProjectsScope")}</section><section class="card"><h3>运行概况</h3>${
+        // 只列“接入后才有运行数据”下的三行与底部一句（规范 OPS01；全面设计核查第 82 条，2026-10-12 用户确认：
+        // 原先前面另有照明、暖通空调、室内环境、能源四行固定说明，没有数据）
+        connectTodo(points, connected)
+      }${!connected.length ? note("尚无绑定或接入回执。可以继续配置，当前不生成运行指标。") : note("网关离线时其 Mesh 节点显示状态未知，保留最后上报时间。")}</section></div>`
     );
   if (tab === "energy")
     return (
@@ -49196,7 +49417,8 @@ function showApplicationSettings(kind, project, floor) {
     }`,
     (old ? btn("清空适用范围", "clearOpsConfig", {}, "ghost") + '<span class="sp"></span>' : "") +
       btn("取消", "close") +
-      btn("保存设置", "saveOpsConfig", {}, "primary"),
+      // 设置弹窗的保存按钮都写“保存”，与照明控制参数相同（全面设计核查第 95 条，2026-10-12 用户确认：原为“保存设置”）
+      btn("保存", "saveOpsConfig", {}, "primary"),
   );
   opsFloorCount();
 }
@@ -49715,7 +49937,7 @@ function carbonForm(pid, entries, v) {
     return ` · ${esc(x.values.factor)} ${esc(carbonUnit(x.values))}${from ? ` · 有效区间 ${esc(carbonSpanText(x.values, pid))}` : ""}`;
   })}`;
 }
-// 没有编辑权限时以只读方式打开：字段不可改，不显示“保存设置”（2026-10-08 Vision 核查 V24）
+// 没有编辑权限时以只读方式打开：字段不可改，不显示“保存”（2026-10-08 Vision 核查 V24）
 function applicationForm(kind, project) {
   const pid = project || U.p;
   if (!pid)
@@ -49733,7 +49955,8 @@ function applicationForm(kind, project) {
   modal(
     kind + "设置",
     (ro ? wsNotice("需要配置权限才能修改。", "info", false) : "") + (kind === "能耗" ? energyForm(pid, entries, v, ro) + energyUploadRow(pid) : carbonForm(pid, entries, v)),
-    ro ? btn("关闭", "close") : btn("取消", "close") + btn("保存设置", "saveApplication", {}, "primary"),
+    // 保存按钮写“保存”，与照明控制参数相同（全面设计核查第 95 条，2026-10-12 用户确认：原为“保存设置”）
+    ro ? btn("关闭", "close") : btn("取消", "close") + btn("保存", "saveApplication", {}, "primary"),
   );
   if (ro) $("#dlgBody").querySelectorAll("input:not([type=hidden]), textarea, [role=combobox]").forEach((x) => (x.disabled = true));
 }
@@ -56913,6 +57136,13 @@ function alarmIndex() {
     });
   return { zones, devs };
 }
+// “离线”文字的颜色：取这些离线设备未恢复告警的最高级别色，与楼层图上该设备的标记、功能区的告警角标同色；还没有形成告警时不着色
+// （全面设计核查第 92 条，2026-10-12 用户确认：原先一律用紧急红，而实验室 E 那台控制器的告警是“重要”）
+function offCls(pts) {
+  const devs = alarmIndex().devs,
+    r = Math.min(9, ...pts.map((p) => (devs[p.id] ? lvlRank(devs[p.id]) : 9)));
+  return r < 3 ? `ops-al${r}-t` : "";
+}
 // 告警角标：功能区右下角一个，颜色为该区未恢复告警的最高级别，同一区多条仍是一个；点开最高级别中最新的一条（与告警列表同一个详情面板）。
 // 告警详情的小楼层图同样画，只作标示，不能点击。
 function zoneBadge(z, as, mini) {
@@ -56969,10 +57199,13 @@ function opsPlan({ layer = "occ", tab = "general", mini = false, highlight = [],
       const s = Demo.zoneState(z),
         // 网关离线时各图层都不按旧数据着色，占用图层同样用斜线（2026-10-08 Vision 核查 V4）
         f = mini ? "" : s.gwUnknown ? "hatch" : L.fill(s),
+        // CO₂、PM2.5、空气质量图层按档定填色深浅：优、良 20%，一般 45%，差 66%，颜色不变，超标的功能区更突出（全面设计核查第 86 条，
+        // 2026-10-12 用户确认，改 VD1：原先各档都是 66%，整层一片黄橙）；其他图层仍为 66%
+        fa = ["co2", "pm", "aq"].includes(layer) && AQ_COLORS.includes(f) ? [20, 20, 45, 66][AQ_COLORS.indexOf(f)] : null,
         hi = highlight.includes(z.id),
         active = U.opsZone === z.id && !mini,
         tip = `${z.name} · ${s.gwUnknown ? "状态未知" : L.text(s)} · ${agoText(layer === "co2" || layer === "pm" || layer === "aq" ? s.aq?.age : s.sensorAge)}`;
-      return `<button class="ops-zone ${f === "hatch" || f === "idle" ? f : ""} ${hi ? "hi" : ""} ${active ? "on" : ""} ${z.w < 9 ? "narrow" : ""} ${z.h < 12 ? "flat" : ""}${need === z.id ? " need" : ""}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${f && f !== "hatch" && f !== "idle" ? `--fill:${f};` : ""}" ${mini ? "tabindex=-1" : `data-act="opsZone" data-id="${z.id}" data-morph-classes="zl-bl zl-br zl-tr"`} data-tip="${esc(tip)}" aria-label="${esc(tip)}">${mini ? "" : `<span class="ops-zl"><span class="ops-zn">${esc(z.name)}</span><b>${esc(s.gwUnknown ? (z.w < 9 ? "?" : "状态未知") : z.w < 9 ? L.short(s) : L.text(s))}</b></span>`}</button>`;
+      return `<button class="ops-zone ${f === "hatch" || f === "idle" ? f : ""} ${hi ? "hi" : ""} ${active ? "on" : ""} ${z.w < 9 ? "narrow" : ""} ${z.h < 12 ? "flat" : ""}${need === z.id ? " need" : ""}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${f && f !== "hatch" && f !== "idle" ? `--fill:${f};` : ""}${fa ? `--fa:${fa}%;` : ""}" ${mini ? "tabindex=-1" : `data-act="opsZone" data-id="${z.id}" data-morph-classes="zl-bl zl-br zl-tr"`} data-tip="${esc(tip)}" aria-label="${esc(tip)}">${mini ? "" : `<span class="ops-zl"><span class="ops-zn">${esc(z.name)}</span><b>${esc(s.gwUnknown ? (z.w < 9 ? "?" : "状态未知") : z.w < 9 ? L.short(s) : L.text(s))}</b></span>`}</button>`;
     })
     .join("");
   const devs = data()
@@ -57585,7 +57818,7 @@ function ctlRestRows(req) {
           .map((zid) => `<li>${esc(zoneNm(zid))}：${esc(ps.filter((p) => Demo.zoneOf(p.zoneId)?.id === zid).map((p) => p.name).join("、"))}</li>`)
           .join("")}</ul></details>`;
   return [
-    ["范围", `${kind} · ${ps.length - off.length} 台在线${off.length ? ` · <span class="ops-crit-t">${off.length} 台离线</span>` : ""}${zids.length > 1 ? ` · ${zids.length} 个功能区` : ""}${all}`],
+    ["范围", `${kind} · ${ps.length - off.length} 台在线${off.length ? ` · <span class="${offCls(off)}">${off.length} 台离线</span>` : ""}${zids.length > 1 ? ` · ${zids.length} 个功能区` : ""}${all}`],
     ...(off.length
       ? [["当前离线", esc(`${off.map((p) => `${p.name}（${zoneNm(p.zoneId)} · 离线 ${durText(Demo.device(p).offlineMin)}）`).join("、")}：${one ? "命令会发出，但设备离线时不会执行，5 秒内收不到确认时显示“未确认”。" : "不会执行，回报中计为未回报。"}`)]]
       : []),
@@ -57723,11 +57956,13 @@ function opsRecordsModal(back = false) {
       `${esc(r.by)}<small class="ops-al-s">${esc(r.src)}</small>`,
     ];
   });
+  // 记录类弹窗用 1200 档（全面设计核查第 19 条，2026-10-12 用户确认：原为 1000 宽）
   modal(
     "操作记录",
     table(["时间", "对象", "命令", "原值", "生效 / 目标", "未回报", "失败", "执行者与来源"], rows, "还没有从平台下发的控制。") +
       note("下发、应答、状态生效分别记录；失败重试只针对已确认失败项。这里只列从平台下发的控制，定时与联动的执行见“场景 › 执行记录”。"),
     btn("关闭", "close") + (back && OPS.pendingCtl ? btn("返回确认", "opsCtlBack", {}, "primary") : ""),
+    "xl",
   );
   $("#dlg .dialog")?.classList.add("ops-rec-dlg");
 }
@@ -57743,14 +57978,14 @@ function zonePanel(zid, mode = "inline") {
     last = Demo.ctl.zoneCmd?.[z.id];
   const gw = Demo.ctl.gwOffline ? `<div class="ops-banner">${ico("alert", "ic16")}<span>本层网关离线，设备状态未知；功能区内的灯光与传感联动不受影响。</span></div>` : "";
   const light = `<section class="ops-zp-sec"><h4>${ico("bulb", "ic16")}照明<span class="sp"></span>${s.light.manual ? badge("手动", "warn") : badge("自动", "info")}</h4>
-    <p class="ops-zp-sub">${s.light.count} 个照明控制器 · 亮 ${s.light.onCount}${s.light.offline ? ` · <span class="ops-crit-t">离线 ${s.light.offline}</span>` : ""}${s.gwUnknown ? " · 状态未知" : ""}</p>
+    <p class="ops-zp-sub">${s.light.count} 个照明控制器 · 亮 ${s.light.onCount}${s.light.offline ? ` · <span class="${offCls(z.lcs.filter(Demo.offline))}">离线 ${s.light.offline}</span>` : ""}${s.gwUnknown ? " · 状态未知" : ""}</p>
     ${resumeText(s)}
     <div class="ops-ctl-row">${ctlBtn("开灯", "opsZoneLight", { id: z.id, cmd: "on" }, "sm", lcIds)}${ctlBtn("关灯", "opsZoneLight", { id: z.id, cmd: "off" }, "sm", lcIds)}<label class="ops-slider ${canControl(lcIds) ? "" : "dis"}" data-tip="${esc(canControl(lcIds) ? "调光即进入手动，按“手动后恢复自动”的时长恢复自动；开 / 关灯不退出自动" : controlReason(lcIds))}"><input type="range" min="10" max="100" step="5" value="${s.light.on ? s.light.level || 10 : 10}" data-zone-level="${z.id}" data-out="${s.light.on ? s.light.level + "%" : "关"}" style="--p:${(((s.light.on ? s.light.level || 10 : 10) - 10) / 90) * 100}%" ${canControl(lcIds) ? "" : "disabled"} aria-label="亮度（进入手动）"><output>${s.light.on ? s.light.level + "%" : "关"}</output></label></div>
     ${ctlWhy("p", lcIds)}${last ? rcpt(last) : ""}
     <div class="ops-circuits ${s.gwUnknown ? "ops-stale" : ""}">${s.gwUnknown ? `<p class="ops-zp-sub">以下为网关离线前的最后数据</p>` : ""}${s.circuits
       .map(
         (c) => `<div class="ops-circ"><div class="ops-circ-h"><b>${esc(c.name)}</b><span class="ops-chip-mode" data-tip="${esc(c.mode === "constant" ? "运行 3–7 天后按数据判定：日光增量经常超过目标 20%" : c.mode === "maintain" ? "日光增量很少超过目标 20%，维持亮度加占用三段" : c.mode === "fixed" ? "恒照度目标为 0（关闭）：有人时按有人亮度，不随日光调节" : "开关型回路：占用加时间表")}">${c.modeLabel}</span><span class="sp"></span><span class="ops-num">${c.on ? c.level + "%" : "关"}</span></div>
-        <div class="ops-circ-m">${c.lcs.length} 台 LC20 · ${c.drivers} 台驱动 · 约 ${nf(c.watts)} W${c.offline.length ? ` · <span class="ops-crit-t">${zhSub(c.offline.map((p) => esc(p.name)).join("、"), "r")}离线</span>` : ""}</div>
+        <div class="ops-circ-m">${c.lcs.length} 台 LC20 · ${c.drivers} 台驱动 · 约 ${nf(c.watts)} W${c.offline.length ? ` · <span class="${offCls(c.offline)}">${zhSub(c.offline.map((p) => esc(p.name)).join("、"), "r")}离线</span>` : ""}</div>
         ${c.src ? `<div class="ops-circ-m">★ 照度源${zhSub(esc(c.src.name), "l")} · ${c.lux == null ? "未取得" : nf(c.lux) + " lx"}<span class="ops-dim" data-tip="平台按数据自动选定回路内最暗的有效位置；每个回路组只采用一个照度源">${c.cg.luxBasis === "data" ? " · 按数据选定" : " · 回路内唯一"}</span></div>` : `<div class="ops-circ-m">无照度源 · 占用加固定亮度</div>`}
         ${c.calib?.state === "done" ? `<div class="ops-circ-m ops-dim">夜间自动标定 · ${opsDay(Date.parse(c.calib.at))} · 维持亮度 ${c.calib.maintain}%</div>` : ""}</div>`,
       )
@@ -57772,7 +58007,11 @@ function zonePanel(zid, mode = "inline") {
         }`
   }</section>`;
   // 普通成员的面板只有照明、暖通空调、室内环境三节，不显示“本区照明控制参数”（2026-10-09 用户确认，角色权限方案第 4 条）
-  const params = U.role === "member" ? "" : `<section class="ops-zp-sec"><h4>${ico("edit", "ic16")}本区照明控制参数<span class="sp"></span>${cfgRow ? badge("本区覆盖 · v" + cfgRow.version, "info") : `<span class="ops-dim">沿用楼层默认</span>`}</h4><dl class="ops-kv"><dt>延时时间</dt><dd>${v.offMinutes} 分钟</dd><dt>待机亮度</dt><dd>${v.standbyBrightness}%</dd><dt>待机时间</dt><dd>${v.standbyMinutes} 分钟</dd><dt>有人亮度</dt><dd>${v.occupiedBrightness}%</dd><dt>恒照度目标</dt><dd>${v.luxTarget ? v.luxTarget + " lx" : "关闭"}</dd><dt>手动后恢复自动</dt><dd>工作时间 ${hrsTxt(Demo.resumeCfg(v).work)} · 非工作时间 ${hrsTxt(Demo.resumeCfg(v).off)}${Demo.resumeCfg(v).legacy ? `<small class="ops-warn-t" data-tip="手动后恢复自动最长 2 小时；原配置值超出上限，按 2 小时执行，保存参数后更正">（原配置超出上限，按 2 小时执行）</small>` : ""}</dd></dl>${Demo.ctl.sync?.[z.id] ? syncChip(z.id) : ""}<div class="ops-ctl-row">${U.role === "viewer" ? `<span class="ops-dim">查看人员不能修改</span>` : btn("修改", "opsParams", { zone: z.id }, "sm") + (cfgRow ? btn("恢复楼层默认", "opsParamsReset", { zone: z.id }, "sm ghost") : "")}</div></section>`;
+  const params = U.role === "member" ? "" : `<section class="ops-zp-sec"><h4>${ico("edit", "ic16")}本区照明控制参数<span class="sp"></span>${cfgRow ? badge("本区覆盖 · v" + cfgRow.version, "info") : `<span class="ops-dim">沿用楼层默认</span>`}</h4><dl class="ops-kv"><dt>延时时间</dt><dd>${v.offMinutes} 分钟</dd><dt>待机亮度</dt><dd>${v.standbyBrightness}%</dd><dt>待机时间</dt><dd>${v.standbyMinutes} 分钟</dd><dt>有人亮度</dt><dd>${v.occupiedBrightness}%</dd><dt>恒照度目标</dt><dd>${v.luxTarget ? v.luxTarget + " lx" : "关闭"}</dd><dt>手动后恢复自动</dt><dd>${
+    // 只在“ · ”处换行：放不下时“工作时间 2 小时 ·”一行、“非工作时间 30 分钟”下一行（全面设计核查第 93 条，2026-10-12 用户确认：
+    // 原先在 380 宽的面板里折成“非工作时 / 间”）
+    auSegs([`工作时间 ${hrsTxt(Demo.resumeCfg(v).work)}`, `非工作时间 ${hrsTxt(Demo.resumeCfg(v).off)}`])
+  }${Demo.resumeCfg(v).legacy ? `<small class="ops-warn-t" data-tip="手动后恢复自动最长 2 小时；原配置值超出上限，按 2 小时执行，保存参数后更正">（原配置超出上限，按 2 小时执行）</small>` : ""}</dd></dl>${Demo.ctl.sync?.[z.id] ? syncChip(z.id) : ""}<div class="ops-ctl-row">${U.role === "viewer" ? `<span class="ops-dim">查看人员不能修改</span>` : btn("修改", "opsParams", { zone: z.id }, "sm") + (cfgRow ? btn("恢复楼层默认", "opsParamsReset", { zone: z.id }, "sm ghost") : "")}</div></section>`;
   // 标题下写功能区完整路径（规范 CTRL01，2026-10-08 第 2 轮第6章，CTRL01 待实现第1条）；其下为本区的未恢复告警与工单（ABB 对比 IA1）
   return `<aside class="ops-zp ${mode}" aria-label="${zhSub(esc(z.name), "r")}功能区面板"><header class="ops-zp-h"><div><h3 id="opsZpTitle" tabindex="-1">${esc(z.name)}</h3><p>${esc(z.type)} · ${z.area} m²${demoTag()}</p><p class="ops-zp-path">${whereHtml(g("zones", z.id)?.floorId, z.name)}</p>${workLine("zone", z.id)}</div>${iconBtn("关闭功能区面板", "x", "opsZoneClose")}</header>${gw}${light}${hvac}${env}${params}</aside>`;
 }
@@ -57840,21 +58079,21 @@ function hvSetSegs(p, d) {
 // 只在“ · ”处换行（与指标卡副文相同）
 function fcLines(p, d) {
   if (d.unknown) return `<p class="ops-fc-m">${segs("状态未知（网关离线）", `最后已知室温 ${nf(d.temp, 1)} ℃`)}</p>`;
-  if (!d.online) return `<p class="ops-fc-m"><span class="ops-crit-t">离线 ${durText(d.offlineMin)}</span> · 最后已知室温 ${nf(d.temp, 1)} ℃</p>`;
+  if (!d.online) return `<p class="ops-fc-m"><span class="${offCls([p])}">离线 ${durText(d.offlineMin)}</span> · 最后已知室温 ${nf(d.temp, 1)} ℃</p>`;
   return `<p class="ops-fc-m">${segs(`室温 ${nf(d.temp, 1)} ℃（FC20 内置传感器）`, ...(d.on ? [d.mode, `风速 ${d.fan}`] : ["已关闭"]))}</p><p class="ops-fc-m">${segs(...hvSetSegs(p, d), agoText(d.age))}</p>`;
 }
 // 多联机内机：回风温度、温控开 / 关（原厂 Thermo ON/OFF）、模式（随外机）与风速；网关离线时只写最后已知的回风温度
 const THERMO_TIP = "原厂 Thermo ON/OFF：温控需求，不等于压缩机在运行";
 function iduLines(p, d) {
   if (d.unknown) return `<p class="ops-fc-m">${segs("状态未知（网关离线）", `最后已知回风温度 ${nf(d.rat, 1)} ℃`)}</p>`;
-  if (!d.online) return `<p class="ops-fc-m"><span class="ops-crit-t">离线 ${durText(d.offlineMin)}</span> · 最后已知回风温度 ${nf(d.rat, 1)} ℃</p>`;
+  if (!d.online) return `<p class="ops-fc-m"><span class="${offCls([p])}">离线 ${durText(d.offlineMin)}</span> · 最后已知回风温度 ${nf(d.rat, 1)} ℃</p>`;
   const th = d.thermo ? "温控开" : "温控关";
   return `<p class="ops-fc-m">${segs(`回风温度 ${nf(d.rat, 1)} ℃`, ...(d.on ? [`<span class="ops-tip-t" tabindex="0" data-tip="${esc(THERMO_TIP)}" aria-label="${esc(`${th}：${THERMO_TIP}`)}">${th}</span>`, d.mode, `风速 ${d.fan}`] : ["已关闭"]))}</p><p class="ops-fc-m">${segs(...hvSetSegs(p, d), agoText(d.age))}</p>`;
 }
 // 分体空调：电表有功功率，≥ 30 W 为用电中；非工作时间用电中用警示色。家用分体空调不接入控制
 function splitLines(p, d) {
   const tail = `<p class="ops-fc-m">家用分体空调不接入控制；用电中不等于在制冷。</p>`;
-  if (!d.online) return `<p class="ops-fc-m">${segs(`<span class="ops-crit-t">离线${d.offlineMin != null ? " " + durText(d.offlineMin) : ""}</span>`, `最后读数 ${nf(d.power)} W`)}</p>${tail}`;
+  if (!d.online) return `<p class="ops-fc-m">${segs(`<span class="${offCls([p])}">离线${d.offlineMin != null ? " " + durText(d.offlineMin) : ""}</span>`, `最后读数 ${nf(d.power)} W`)}</p>${tail}`;
   return `<p class="ops-fc-m">${segs(d.using ? "用电中" : "未用电", `${nf(d.power)} W`, d.using && d.offHours ? `<span class="ops-warn-t">非工作时间用电中</span>` : "", agoText(d.age))}</p>${tail}`;
 }
 const splitRow = (p) => `<div class="ops-fc"><div class="ops-fc-h"><b>${esc(p.name)}</b><span class="ops-dim">分体空调 · 只计量</span></div>${splitLines(p, Demo.device(p))}</div>`;
@@ -57977,9 +58216,11 @@ function needItems() {
   if (!Demo.ctl.gwOffline)
     Demo.zones().forEach((z) => {
       const s = Demo.zoneState(z);
-      if (s.light.manual) items.push({ lvl: "提示", t: s.light.at, title: `${zhSub(z.name, "r")}灯光手动控制中`, sub: at(g("zones", z.id)?.floorId, `将在 ${Demo.hm(s.light.until)} 恢复自动`), dur: "", act: "opsOpenZone", args: { id: z.id, tab: "lighting", zone: z.id }, state: "" });
+      if (s.light.manual) items.push({ lvl: "", manual: true, t: s.light.at, title: `${zhSub(z.name, "r")}灯光手动控制中`, sub: at(g("zones", z.id)?.floorId, `将在 ${Demo.hm(s.light.until)} 恢复自动`), dur: "", act: "opsOpenZone", args: { id: z.id, tab: "lighting", zone: z.id }, state: "" });
     });
-  return items.sort((a, b) => !!a.rec - !!b.rec || lvlRank(a.lvl) - lvlRank(b.lvl) || b.t - a.t);
+  // 告警先排（按级别，再按时间），灯光手动控制中排在全部告警之后，不写级别、写灰色“手动”：未恢复告警不会被挤到“另有 N 条”里
+  // （全面设计核查第 74 条，2026-10-12 用户确认：原先手动控制按“提示”级别与告警混排）
+  return items.sort((a, b) => !!a.manual - !!b.manual || !!a.rec - !!b.rec || lvlRank(a.lvl) - lvlRank(b.lvl) || b.t - a.t);
 }
 // 告警所在的楼层：告警记下的楼层，或设备、功能区所在的楼层
 const alarmFloor = (a) => a.floorId || g("points", a.pointId)?.floorId || g("zones", a.zoneId)?.floorId || null;
@@ -58076,7 +58317,12 @@ function renderOpsOverview() {
   const tab = U.tab || "general",
     // 工具栏右侧写数据截至（VD8）；所选范围没有运行数据时不写。“大屏”在新窗口打开当前范围的大屏（OPS07，2026-10-09 用户确认，大屏显示方案 DP1、ABB 对比 BP39）
     // 页头的“操作记录”“大屏”用全站默认浅色按钮（Lovable 核查第 104 条，2026-10-11 用户确认：原为透明按钮）
-    head = toolbar((Demo.inScope() ? liveLine() : "") + btn("操作记录", "opsRecords") + btn("大屏", "opsScreen")) + tabs(overviewTabs, tab, "tab", "wsPagePanel", "总览页签");
+    // 能源页签没有状态条：“能耗设置”“碳排放设置”放在页签那一行的右端，指标卡与概况同高（全面设计核查第 87 条，2026-10-12 用户确认：
+    // 原先单独占页签下的一行，指标卡比概况低 60）；另外三个页签的设置入口仍在状态条那一行的右端
+    seg = tabs(overviewTabs, tab, "tab", "wsPagePanel", "总览页签"),
+    head =
+      toolbar((Demo.inScope() ? liveLine() : "") + btn("操作记录", "opsRecords") + btn("大屏", "opsScreen")) +
+      (tab === "energy" && Demo.inScope() ? `<div class="ops-tabs-row">${seg}<div class="ws-tabs-tools">${btn("能耗设置", "applicationSettings", { kind: "能耗", project: OPS_SCOPE.project })}${btn("碳排放设置", "applicationSettings", { kind: "碳排放", project: OPS_SCOPE.project })}</div></div>` : seg);
   if (!Demo.inScope()) return head + outOfScope();
   if (tab === "general") return head + ovGeneral();
   if (tab === "energy") return head + ovEnergy();
@@ -58125,8 +58371,15 @@ function ovGeneral() {
   const layer = ["occ", "light", "temp", "co2"].includes(U.opsLayer) ? U.opsLayer : "occ";
   // 网关离线：在线率不计算，注明网关离线与状态未知的台数（与设备台账同一口径）；环境正常的空间没有可计的功能区时不写“全部在参考范围内”
   // （2026-10-08 Vision 核查 V4、V12）
+  // 未恢复告警的副文与对比表同一写法：按级别写条数，圆点用最高级别色，再写待确认条数；数值颜色不变
+  // （全面设计核查第 83 条，2026-10-12 用户确认：原为“1 条待确认 · 2 条重要及以上”灰字，没有级别色）
+  const asLv = ["紧急", "重要", "提示"].map((l) => [l, as.filter((a) => LV(a.level) === l).length]).filter(([, n]) => n),
+    asTodo = as.filter((a) => !a.acknowledged).length,
+    asSub = asLv.length
+      ? `<span class="ops-lvl l${lvlRank(asLv[0][0])}">${asLv[0][0]} ${asLv[0][1]}</span>${asLv.length > 1 || asTodo ? " · " : ""}${segs(...asLv.slice(1).map(([l, n]) => `${l} ${n}`), asTodo ? `${asTodo} 条待确认` : "")}`
+      : "没有未恢复告警";
   const kp = kpiRow([
-    kpi("未恢复告警", as.length, `${as.filter((a) => !a.acknowledged).length} 条待确认 · ${as.filter((a) => lvlRank(a.level) <= 1).length} 条重要及以上`, "opsGo", { page: "alarms" }, gwOff ? dq("warn", "数据不完整：网关离线期间，其下设备不单独告警") : ""),
+    kpi("未恢复告警", as.length, asSub, "opsGo", { page: "alarms" }, gwOff ? dq("warn", "数据不完整：网关离线期间，其下设备不单独告警") : ""),
     h.rate == null
       ? kpi("设备在线率", "—", segs("E栋 7F 网关离线", `${h.unknown.length} 台状态未知`, others ? `另有 ${others} 台离线` : ""), "opsGo", { page: "analysis", tab: "health" }, dq("unk", "状态未知的设备不计为离线"))
       : kpi("设备在线率", nf(h.rate, 1) + "<small>%</small>", `${h.online} / ${h.total} 台 · ${h.off.length} 台离线`, "opsGo", { page: "analysis", tab: "health" }, dq("ok", "数据完整：没有状态未知的设备")),
@@ -58149,7 +58402,7 @@ function ovGeneral() {
     rest = need.length - shown.length;
   const needCard = `<section class="ops-card ops-need"><header class="ops-card-h"><div><h3>需要处理</h3><p class="ops-meta">按级别与时间排序 · ${U.opsNeedAll && need.length > 5 ? `共 ${need.length} 条` : "最多 5 条"}</p></div><div class="ops-card-tools">${btn("全部告警", "opsGo", { page: "alarms" }, "ghost sm")}</div></header>${
     need.length
-      ? `<ul class="ops-need-list" id="opsNeedList">${shown.map((n) => `<li><button data-act="${n.act}" ${Object.entries(n.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")}${n.args.zone && n.args.zone === U.opsNeedHi ? ' class="hl"' : ""}>${lvlChip(n.lvl)}<span class="ops-need-t"><b>${needTitle(n.title)}</b><small>${esc(n.sub)}</small></span><span class="ops-need-r">${n.state ? `<span class="ops-need-s ${n.state.endsWith("待确认") ? "todo" : ""}">${n.state}</span>` : ""}${n.dur ? `<span class="ops-need-d">${esc(n.dur)}</span>` : ""}</span>${ico("chevron", "ic16 ops-chev")}</button></li>`).join("")}</ul>${
+      ? `<ul class="ops-need-list" id="opsNeedList">${shown.map((n) => `<li><button data-act="${n.act}" ${Object.entries(n.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")}${n.args.zone && n.args.zone === U.opsNeedHi ? ' class="hl"' : ""}>${n.manual ? `<span class="ops-lvl ops-lvl-man">手动</span>` : lvlChip(n.lvl)}<span class="ops-need-t"><b>${needTitle(n.title)}</b><small>${esc(n.sub)}</small></span><span class="ops-need-r">${n.state ? `<span class="ops-need-s ${n.state.endsWith("待确认") ? "todo" : ""}">${n.state}</span>` : ""}${n.dur ? `<span class="ops-need-d">${esc(n.dur)}</span>` : ""}</span>${ico("chevron", "ic16 ops-chev")}</button></li>`).join("")}</ul>${
           // “另有 N 条”“收起”用透明小按钮，后面 16 的箭头朝下 / 朝上，带展开状态（Lovable 核查第 189、234 条，2026-10-11 用户确认）
           rest > 0 || (U.opsNeedAll && need.length > 5)
             ? btn(`${rest > 0 ? `另有 ${rest} 条` : "收起"}${ico("chevron", "ic16")}`, "opsNeedAll", {}, `ghost sm ops-need-more${rest > 0 ? "" : " up"}`).replace("<button ", `<button aria-expanded="${rest > 0 ? "false" : "true"}" aria-controls="opsNeedList" `)
@@ -58208,7 +58461,8 @@ function spaceItems(tab, zs) {
       items: [
         ["亮灯控制器", `${on} / ${tot}`],
         ["手动控制中", man.length ? (man.length > 2 ? `${man.length} 个功能区` : man.map((s) => s.z.name).join("、")) : "无"],
-        ["离线", off ? `${off} 台` : "无", off ? "crit" : ""],
+        // 颜色取离线设备告警的级别色（全面设计核查第 92 条；原为紧急红）
+        ["离线", off ? `${off} 台` : "无", off ? offCls(zs.flatMap((s) => s.z.lcs.filter(Demo.offline))).replace(/^ops-|-t$/g, "") : ""],
         ["照明功率", `约 ${nf(kw, 1)} kW`, "", "", "按亮度与驱动功率估算，不是计量值", true, "", "", kw],
       ],
     };
@@ -58273,7 +58527,8 @@ function ovSpace(tab) {
     sys = "";
   if (tab === "lighting") {
     // 整层控制与照明控制参数只在选到楼层时提供（VD4：范围更大时没有“整层”）
-    tools = U.f ? menuTrigger(ctlBtn("整层控制", "opsFloorCtl", {}, "")) + (canOperate() ? btn("照明控制参数", "opsParams", { floor: OPS_SCOPE.floor }, "ghost") : "") : "";
+    // “照明控制参数”同其他设置入口用浅色按钮（全面设计核查第 88 条，2026-10-12 用户确认：原为透明按钮，第 104 条没改到）
+    tools = U.f ? menuTrigger(ctlBtn("整层控制", "opsFloorCtl", {}, "")) + (canOperate() ? btn("照明控制参数", "opsParams", { floor: OPS_SCOPE.floor }) : "") : "";
   } else if (tab === "hvac") {
     // 按实际系统类型列出本层空调（规范 OPS03）
     const { fcs, idus, splits, odus, vgs } = hv,
@@ -58351,7 +58606,7 @@ function zoneTable(tab, zs) {
         more = segs(...cells.map((c, i) => (sec[i + 1] ? (head[i + 1] === "更新" ? esc(c) : `${esc(head[i + 1])} ${cellHtml(c, i)}`) : "")));
       // 功能区名称整体不换行，名称列按最长的名称（Lovable 核查第 315 条，2026-10-11 用户确认）
       // 名称做成按钮，::after 铺满整行：整行照样能点，Tab 走到名称，回车或空格打开功能区面板（Lovable 核查第 186 条，2026-10-11 用户确认）
-      return `<tr class="click ${on}" data-act="opsZone" data-id="${z.id}"><td><button type="button" class="ops-rowbtn" data-act="opsZone" data-id="${z.id}">${nwText(z.name)}</button>${s.light.offline && tab === "lighting" ? ` <span class="ops-crit-t">· ${s.light.offline} 台离线</span>` : ""}</td>${cells.map((c, i) => `<td class="ops-num${sec[i + 1] ? " sec" : ""}">${cellHtml(c, i)}</td>`).join("")}</tr><tr class="ops-t2 click ${on}" data-key="t2-${z.id}" data-act="opsZone" data-id="${z.id}"><td colspan="${head.length}">${more}</td></tr>`;
+      return `<tr class="click ${on}" data-act="opsZone" data-id="${z.id}"><td><button type="button" class="ops-rowbtn" data-act="opsZone" data-id="${z.id}">${nwText(z.name)}</button>${s.light.offline && tab === "lighting" ? ` <span class="${offCls(s.z.lcs.filter(Demo.offline))}">· ${s.light.offline} 台离线</span>` : ""}</td>${cells.map((c, i) => `<td class="ops-num${sec[i + 1] ? " sec" : ""}">${cellHtml(c, i)}</td>`).join("")}</tr><tr class="ops-t2 click ${on}" data-key="t2-${z.id}" data-act="opsZone" data-id="${z.id}"><td colspan="${head.length}">${more}</td></tr>`;
     });
   return `<section class="ops-card ops-tablecard"><header class="ops-card-h"><div><h3>功能区</h3><p class="ops-meta">与楼层图同一数据${tab === "environment" ? " · CO₂ 为 1 分钟均值，PM2.5 为 24 h 滚动均值，其余为当前读数" : tab === "hvac" ? " · 室温为本区 MS20 读数；风机盘管按 FC20 内置传感器控制，多联机按内机回风温度控制" : ""} · 点击行打开功能区面板</p></div></header><div class="ops-tw"><table class="t ops-t ops-t-fold ops-t-fit${opsLive().stale ? " stale" : ""}" data-morph-classes="fold"><thead><tr>${head.map((h, i) => `<th${sec[i] ? ' class="sec"' : ""}>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div></section>`;
 }
@@ -58631,6 +58886,17 @@ function anBaseline(rg) {
     tb,
   );
 }
+// 本月用电比上月同期（全面设计核查第 84 条，2026-10-12 用户确认）：上月从 1 日起同样的天数、到同一时刻，同一口径（两块电表合计，
+// 进行中的小时按已过时段折算，与“今日用电”比上周同日同时段相同）；上月同期不全在计量数据之内时不比较，返回 null
+function monthVsPrev(mrg, cur) {
+  const l = Demo.loc(mrg.from),
+    pf = Date.parse(`${l.mo === 1 ? l.y - 1 : l.y}-${String(l.mo === 1 ? 12 : l.mo - 1).padStart(2, "0")}-01T00:00:00+08:00`),
+    pt = pf + (mrg.to - mrg.from),
+    rs = Demo.series();
+  if (!rs.length || rs[0].t > pf || pt > mrg.from) return null;
+  const prev = rs.filter((r) => r.t >= pf && r.t < pt).reduce((a, r) => a + (r.light + r.hvacTrue) * Math.min(1, (pt - r.t) / Demo.H), 0);
+  return prev > 0 ? ((cur - prev) / prev) * 100 : null;
+}
 function ovEnergy() {
   const t = Demo.today(),
     mrg = Demo.range("month"),
@@ -58645,14 +58911,24 @@ function ovEnergy() {
       .filter((d) => d.t >= mrg.from)
       .flatMap((d) => d.quality),
     mqTxt = [...new Set(mq.map((q) => q.type))].map((k) => `${k} ${mq.filter((q) => q.type === k).length} 天`).join("、"),
-    mqBad = mq.some((q) => q.type !== "补采");
+    mqBad = mq.some((q) => q.type !== "补采"),
+    mvp = monthVsPrev(mrg, m.total);
+  // 能耗强度折年所用的近 30 个完整的天（与 Demo.intensity 相同）的数据质量，写法同本月用电
+  const iq = Demo.days()
+      .filter((d) => !d.partial)
+      .slice(-30)
+      .flatMap((d) => d.quality),
+    iqTxt = [...new Set(iq.map((q) => q.type))].map((k) => `${k} ${iq.filter((q) => q.type === k).length} 天`).join("、"),
+    iqBad = iq.some((q) => q.type !== "补采");
   const kp = kpiRow([
     kpi("今日用电", nf(t.kwh) + "<small>kWh</small>", `截至 ${liveHm()} · 比上周同日同时段 ${pctTxt(t.vsLastWeek)}`, "opsGo", { page: "analysis", tab: "energy" }, todayQuality()),
-    kpi("本月用电", nf(m.total) + "<small>kWh</small>", `9/1–${Demo.md(Demo.NOW)} · 照明插座 ${nf((m.light / m.total) * 100)}% · 折标 ${nf(coalTce(m.total), 2)} tce`, "opsGo", { page: "analysis", tab: "energy" }, mq.length ? (mqBad ? dq("warn", `数据不完整：含${mqTxt}${mq.some((q) => q.type === "缺数") ? "；日合计按电表前后读数差计入" : ""}`) : dq("ok", `数据完整：含${mqTxt}`)) : dq("ok", "数据完整：两块电表实测")),
+    // 写比上月同期（全面设计核查第 84 条，2026-10-12 用户确认：原先只写期间、分项占比与折标煤）；上月同期计量数据不全时写明不比较
+    kpi("本月用电", nf(m.total) + "<small>kWh</small>", `9/1–${Demo.md(Demo.NOW)} · ${mvp == null ? "上月同期计量数据不全，不比较" : `比上月同期 ${pctTxt(mvp)}`} · 照明插座 ${nf((m.light / m.total) * 100)}% · 折标 ${nf(coalTce(m.total), 2)} tce`, "opsGo", { page: "analysis", tab: "energy" }, mq.length ? (mqBad ? dq("warn", `数据不完整：含${mqTxt}${mq.some((q) => q.type === "缺数") ? "；日合计按电表前后读数差计入" : ""}`) : dq("ok", `数据完整：含${mqTxt}`)) : dq("ok", "数据完整：两块电表实测")),
     // 本月碳排放只引用碳排放设置；没有适用因子时写“待设置”（规范 OPS05、APP02）
     kpi("本月碳排放", ce.kg == null ? "待设置" : nf(ce.kg / 1000, 2) + `<small>t${ce.gas}</small>`, ce.last ? esc(`因子 ${ce.last.values.factor} ${carbonUnit(ce.last.values)} · ${ce.last.values.region} ${ce.last.values.year}`) : "在碳排放设置中登记覆盖本月的因子", "opsGo", { page: "analysis", tab: "carbon" }, carbonQuality(ce)),
     // “能耗对标”从碳排放卡移到这里（BP119）
-    kpi("能耗强度", nf(I.annual, 1) + "<small>kWh/(m²·a)</small>", `近 30 天折年 · ${esc(anBench().text)}`, "opsGo", { page: "analysis", tab: "energy" }),
+    // 同另外三张指标卡带数据质量一行，按折年所用的近 30 个完整的天（规范 OPS05；全面设计核查第 85 条，2026-10-12 用户确认：原先没有这一行）
+    kpi("能耗强度", nf(I.annual, 1) + "<small>kWh/(m²·a)</small>", `近 30 天折年 · ${esc(anBench().text)}`, "opsGo", { page: "analysis", tab: "energy" }, iq.length ? (iqBad ? dq("warn", `数据不完整：近 30 天含${iqTxt}${iq.some((q) => q.type === "缺数") ? "；日合计按电表前后读数差计入" : ""}`) : dq("ok", `数据完整：近 30 天含${iqTxt}`)) : dq("ok", "数据完整：近 30 天两块电表实测")),
   ], opsLive().stale);
   // 分项按一级汇总，空调可展开到二级（2026-10-09 用户确认，ABB 对比 BP116 方案A）
   const split = `<section class="ops-card"><header class="ops-card-h"><div><h3>分项：照明插座占 ${nf((m.light / m.total) * 100)}%</h3><p class="ops-meta">本月 · ${eset && !mismatch ? setLink("能耗", `按能耗设置 v${eset.version}`) : "按电表"} · kWh</p></div><div class="ops-card-tools">${demoTag()}</div></header><div class="ops-split-bars">${[
@@ -58691,9 +58967,8 @@ function ovEnergy() {
       cv ? setLink("碳排放", "", nwJoin([`${cv.factor} ${carbonUnit(cv)}`, `${cv.region} ${cv.year}`])) : "待设置：没有覆盖本月的碳排放设置，不使用参考因子代替"
     }</dd>${cv ? `<dt>来源</dt><dd>${esc(cv.source).replace(/第 ?\d+ ?号/g, (x) => `<span class="nw">${x}</span>`)}</dd><dt>有效区间</dt><dd>${esc(carbonSpanText(cv, OPS_SCOPE.project))}</dd>` : ""}${ce.missing && ce.kg != null ? `<dt>数据状态</dt><dd>${ce.missing} 天没有适用的排放因子，未计入</dd>` : ""}</dl><div class="ops-ctl-row ops-ctl-start">${btn("碳排放设置", "applicationSettings", { kind: "碳排放", project: OPS_SCOPE.project }, "ghost sm")}${btn("核算口径", "opsGo", { page: "analysis", tab: "carbon" }, "ghost sm")}</div></section>`;
   // 右上角为“能耗设置”“碳排放设置”，与另外三个应用一致（2026-10-09 用户确认，ABB 对比 BP71 第 15 条）；对所有角色可见，没有编辑权限时只读。
-  // 与另外三个页签用同一行（页签下第一行右端，规范 2 2；2026-10-10 ABB 对比 IA4），位置相同
-  const tools = `<div class="ops-tabbar"><div class="ops-tabbar-tools">${btn("能耗设置", "applicationSettings", { kind: "能耗", project: OPS_SCOPE.project })}${btn("碳排放设置", "applicationSettings", { kind: "碳排放", project: OPS_SCOPE.project })}</div></div>`;
-  return `${tools}${scopeNote()}${mismatch}${kp}<div class="ops-row r21">${trend}${split}</div><div class="ops-row r21">${todayCard(t)}${carbon}</div>`;
+  // 两个按钮在页签那一行的右端，由 renderOpsOverview 画在页签旁（全面设计核查第 87 条，2026-10-12 用户确认：原先在页签下单独一行）
+  return `${scopeNote()}${mismatch}${kp}<div class="ops-row r21">${trend}${split}</div><div class="ops-row r21">${todayCard(t)}${carbon}</div>`;
 }
 const avgOf = (ds) => ds.reduce((a, d) => a + d.light + d.hvac, 0) / Math.max(1, ds.length);
 
@@ -62087,20 +62362,36 @@ function aiDailyBrief() {
     meet = Demo.zoneState(Demo.zoneOf("meet")),
     o703 = Demo.zoneState(Demo.zoneOf("o703")),
     o703c = o703.circuits.find((x) => x.src && x.lux != null && x.lux > o703.cfg.luxTarget);
+  // 网关离线（演示菜单）：第一条写网关离线与影响，不再引用离线后的实时读数（会议室 7-1 CO₂、办公室 703 的灯光），用电写到离线时为止、不预计全天；
+  // 控制类建议不显示按钮，写“本层网关离线，控制暂不可用”（全面设计核查第 81 条，2026-10-12 用户确认：原先照常写实时读数并给出“703 提前恢复自动”）
+  const h = Demo.health(),
+    gwOff = h.gwOff,
+    offAt = Demo.ctl.gwOfflineAt || opsNow(),
+    offDur = dur(offAt),
+    gwA = gwOff ? (Demo.ctl.gwAlarms || []).filter((a) => a.state === "active").at(-1) : null;
   const items = [
+    gwOff
+      ? `<li><b>E栋 7F 网关${offDur === "刚刚" ? "刚刚离线" : `已离线 ${offDur}`}。</b>其下 ${h.unknown.length} 台设备状态未知，设备在线率与环境指标暂不统计，本层控制暂不可用；以下只引用离线前（${Demo.hm(offAt)} 之前）的数据。</li>`
+      : "",
     lc && lc.state !== "recovered" ? `<li><b>实验室 E 一半照明不可用。</b>E-7F-LC20-09 与其 MS20 同时离线，推断为回路失电；${tk ? `工单${taskState(tk)}（${esc(tk.assignee)}）。` : "尚无工单。"}</li>` : "",
-    meet.aq?.co2 > 1000 ? `<li><b>会议室 7-1 CO₂ ${nf(meet.aq.co2)} ppm（1 分钟均值）。</b>${aiCo2Story()}，建议会后通风。</li>` : "",
-    `<li><b>用电平稳。</b>截至 ${at} 为 ${nf(t.kwh)} kWh，${t.vsTypical <= 0 ? "低于" : "高于"}典型${t.weekday} ${nf(Math.abs(t.vsTypical), 1)}%；预计全天约 ${nf(t.typicalDay * (1 + t.vsTypical / 100))} kWh。</li>`,
+    !gwOff && meet.aq?.co2 > 1000 ? `<li><b>会议室 7-1 CO₂ ${nf(meet.aq.co2)} ppm（1 分钟均值）。</b>${aiCo2Story()}，建议会后通风。</li>` : "",
+    gwOff
+      ? `<li><b>今日用电停在网关离线时。</b>离线前为 ${nf(t.kwh)} kWh，${t.vsTypical <= 0 ? "低于" : "高于"}典型${t.weekday} ${nf(Math.abs(t.vsTypical), 1)}%；之后电表没有新读数，暂不预计全天用电。</li>`
+      : `<li><b>用电平稳。</b>截至 ${at} 为 ${nf(t.kwh)} kWh，${t.vsTypical <= 0 ? "低于" : "高于"}典型${t.weekday} ${nf(Math.abs(t.vsTypical), 1)}%；预计全天约 ${nf(t.typicalDay * (1 + t.vsTypical / 100))} kWh。</li>`,
     `<li><b>实验室 B 连续 3 晚夜间照明偏高。</b>整晚无人，回路停在待机亮度 30%，没有关灯。</li>`,
-    o703.light.manual
+    !gwOff && o703.light.manual
       ? `<li><b>办公室 703 ${o703.light.on ? `手动调到 ${o703.light.level}% 已` : "手动关灯已"} ${aiDur(Math.max(1, Math.round((opsNow() - o703.light.at) / Demo.MIN)))}。</b>${o703c ? `照度源读数 ${nf(o703c.lux)} lx，高于恒照度目标 ${nf(o703.cfg.luxTarget)} lx；` : ""}原定 ${Demo.hm(o703.light.until)} 才恢复自动，可以提前恢复。</li>`
       : "",
   ].filter(Boolean);
   return aiCard({
     title: `今日要点 · ${at}`,
     body: `<ul class="ai-list">${items.join("")}</ul>`,
-    evidence: [aiLink("告警：E-7F-LC20-09 失电（推断）", "opsAlarm", { id: "alert-demo-lc" }), aiLink("会议室 7-1 · AQ20 当前读数", "opsOpenZone", { id: "zone-demo-meet", tab: "environment" }), aiLink("今日用电 vs 典型" + t.weekday, "opsGo", { page: "overview", tab: "energy" }), aiLink("实验室 B 夜间照明分析", "opsGo", { page: "analysis", tab: "energy" }), ...(o703.light.manual ? [aiLink("办公室 703 · 灯光与照度源", "opsOpenZone", { id: "zone-demo-o703", tab: "lighting" })] : [])],
-    actions: aiSuggest("会后通风提醒", "meet-air") + (o703.light.manual ? aiSuggest("703 提前恢复自动", "o703-auto") : "") + `<button class="btn ghost sm" data-act="aiOpen" data-q="为什么实验室 E 没有灯？">追问</button>`,
+    evidence: gwOff
+      ? [...(gwA ? [aiLink("告警：E栋 7F 网关离线", "opsAlarm", { id: gwA.id })] : []), aiLink("告警：E-7F-LC20-09 失电（推断）", "opsAlarm", { id: "alert-demo-lc" }), aiLink("今日用电 vs 典型" + t.weekday, "opsGo", { page: "overview", tab: "energy" }), aiLink("实验室 B 夜间照明分析", "opsGo", { page: "analysis", tab: "energy" })]
+      : [aiLink("告警：E-7F-LC20-09 失电（推断）", "opsAlarm", { id: "alert-demo-lc" }), aiLink("会议室 7-1 · AQ20 当前读数", "opsOpenZone", { id: "zone-demo-meet", tab: "environment" }), aiLink("今日用电 vs 典型" + t.weekday, "opsGo", { page: "overview", tab: "energy" }), aiLink("实验室 B 夜间照明分析", "opsGo", { page: "analysis", tab: "energy" }), ...(o703.light.manual ? [aiLink("办公室 703 · 灯光与照度源", "opsOpenZone", { id: "zone-demo-o703", tab: "lighting" })] : [])],
+    actions: gwOff
+      ? `${canOperate() ? `<span class="ops-ai-off">本层网关离线，控制暂不可用</span>` : ""}<button class="btn ghost sm" data-act="aiOpen" data-q="为什么实验室 E 没有灯？">追问</button>`
+      : aiSuggest("会后通风提醒", "meet-air") + (o703.light.manual ? aiSuggest("703 提前恢复自动", "o703-auto") : "") + `<button class="btn ghost sm" data-act="aiOpen" data-q="为什么实验室 E 没有灯？">追问</button>`,
     cls: "ai-brief",
   });
 }
