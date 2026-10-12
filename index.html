@@ -24912,6 +24912,24 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
 .au-aicard-h { flex-wrap: wrap; row-gap: 0; }
 .au-aicard-h > :is(b, small) { white-space: nowrap; }
 
+/* ---- 2026-10-12 搜索与提问、帮助的补充核查（交互核查第 1–13 条）---- */
+/* 第 4 条：窄屏（≤850）与触屏上“搜索或提问”输入框右侧有“关闭”，点按范围 44×44，透明按钮、16 图标 #636363；
+   电脑上仍只显示“esc”键帽。原先窄屏与触屏既没有关闭按钮，也不显示“esc”，只能点遮罩，手机上面板几乎铺满，遮罩点不到。 */
+.ai-pal-x { display: none; }
+@media (max-width: 850px), (pointer: coarse) {
+  .ai-pal-in { padding-right: 6px; }
+  .ai-pal-x { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 8px; background: none; box-shadow: none; color: var(--text3); }
+  .ai-pal-x:hover { background: var(--hover); color: var(--text); }
+  .ai-pal-x:active { background: var(--sel); color: var(--text); }
+}
+/* 第 5 条：触屏上“回答范围”按钮外观仍 24 高，所在一行撑到 44，按钮上下各外扩 10，点按范围 44 高且不压到上面的问题和下面的正文；
+   范围菜单的选项行 44 高。 */
+@media (max-width: 850px), (pointer: coarse) {
+  .ai-ans-h:has(> .ai-scope) { min-height: 44px; }
+  .ai-scope { position: relative; }
+  .ai-scope::after { content: ""; position: absolute; inset: -10px 0; }
+  .ai-scope-menu button { min-height: 44px; }
+}
 /* ==== 2026-10-12 全面设计核查第二部分 · 总览（第 19、74、81–95 条）
    [OVERVIEW] 本区的样式改动写在这一段注释之后、下一段注释之前。
    ==== */
@@ -64697,13 +64715,13 @@ function aiPalette(q = "", mode = "search") {
   const el = document.createElement("div");
   el.id = "ai-pal";
   el.className = "ai-scrim";
-  el.innerHTML = `<section class="ai-pal" role="dialog" aria-modal="true" aria-label="搜索或提问"><div class="ai-pal-in">${ico("search", "ic16")}<input id="globalQuery" autocomplete="off" placeholder="搜索或提问：空间、设备、场景，或直接问一个问题" aria-label="搜索或提问" role="combobox" aria-expanded="true" aria-controls="aiList" aria-autocomplete="list" value="${esc(q)}"><kbd>esc</kbd></div><div class="ai-pal-modes"><div class="seg sm" role="tablist" aria-label="搜索或提问">${[
+  el.innerHTML = `<section class="ai-pal" role="dialog" aria-modal="true" aria-label="搜索或提问"><div class="ai-pal-in">${ico("search", "ic16")}<input id="globalQuery" autocomplete="off" placeholder="搜索或提问：空间、设备、场景，或直接问一个问题" aria-label="搜索或提问" role="combobox" aria-expanded="true" aria-controls="aiList" aria-autocomplete="list" value="${esc(q)}"><kbd>esc</kbd><button type="button" class="iconbtn ai-pal-x" data-act="aiPalClose" aria-label="关闭" data-tip="关闭">${ico("x", "ic16")}</button></div><div class="ai-pal-modes"><div class="seg sm" role="tablist" aria-label="搜索或提问">${[
     // “提问”在前、“搜索”在后，两个页签都带 16 的图标；打开面板时仍在“搜索”（Lovable 核查第 128 条，2026-10-11 用户确认：原为“搜索”在前、只有“提问”带图标）
     ["ask", ico("spark", "ic16") + "提问"],
     ["search", ico("search", "ic16") + "搜索"],
   ]
-    .map(([v, l]) => `<button role="tab" aria-selected="${mode === v}" class="${mode === v ? "on" : ""}" data-act="aiMode" data-value="${v}" id="aiMode-${v}" aria-controls="aiPalBody">${l}</button>`)
-    .join("")}</div><span class="sp"></span><small>${(typeof auAiPalNote === "function" && auAiPalNote()) || (aiDemo() ? "基于运行数据回答 · 附依据" : "尚未取得运行数据 · 可以搜索空间、设备和场景")}</small></div><div class="ai-pal-body" id="aiPalBody" role="tabpanel" aria-labelledby="aiMode-${mode}"><div id="aiList" role="listbox" aria-label="搜索结果"><div id="aiAsk"></div><div id="aiExtra"></div><div id="globalResults"></div></div><div id="aiAnswer"></div></div></section>`;
+    .map(([v, l]) => `<button role="tab" aria-selected="${mode === v}" tabindex="${mode === v ? 0 : -1}" class="${mode === v ? "on" : ""}" data-act="aiMode" data-value="${v}" id="aiMode-${v}" aria-controls="aiPalBody">${l}</button>`)
+    .join("")}</div><span class="sp"></span><small>${(typeof auAiPalNote === "function" && auAiPalNote()) || (aiDemo() ? "基于运行数据回答 · 附依据" : "尚未取得运行数据 · 可以搜索空间、设备和场景")}</small></div><div class="ai-pal-body" id="aiPalBody" role="tabpanel" aria-labelledby="aiMode-${mode}"><div id="aiList" role="listbox" aria-label="搜索结果"><div id="aiAsk"></div><div id="aiExtra"></div><div id="globalResults"></div></div><div id="aiAnswer" role="region" aria-label="回答" aria-live="polite"></div></div></section>`;
   document.body.append(el);
   AIP.mode = mode;
   const inp = $("#globalQuery");
@@ -64718,6 +64736,8 @@ const aiSetMode = (v) => {
   document.querySelectorAll(".ai-pal-modes .seg button").forEach((b) => {
     b.classList.toggle("on", b.dataset.value === v);
     b.setAttribute("aria-selected", String(b.dataset.value === v));
+    // 只有选中的页签进入 Tab 顺序；←/→、Home、End 由全站共用页签的键盘处理切换（第 3 条）
+    b.tabIndex = b.dataset.value === v ? 0 : -1;
   });
   // 结果区是两个页签控制的页签面板，以选中的页签命名（Lovable 核查第 321 条，2026-10-11 用户确认）
   $("#aiPalBody")?.setAttribute("aria-labelledby", "aiMode-" + v);
@@ -64742,6 +64762,8 @@ function aiHi(i, scroll = true) {
 function aiMarkRows(q) {
   const rows = aiRows();
   if (!rows.length && !$("#ai-pal")?.querySelectorAll) return;
+  // 有可选的行时列表为展开（第 6 条：回答后收起，回到搜索或输入时按实际行数）
+  $("#globalQuery")?.setAttribute("aria-expanded", String(rows.length > 0));
   rows.forEach((r, i) => {
     r.id = "aiOpt" + i;
     r.setAttribute("role", "option");
@@ -64814,6 +64836,10 @@ function aiAnswer(q, pick) {
   $("#aiAsk").innerHTML = "";
   $("#aiExtra").innerHTML = "";
   $("#globalResults").innerHTML = "";
+  // 回答替换了结果列表：输入框收起列表、不再指向已不存在的选项；回答区是单独的“回答”区域，内容出现时读出（交互核查第 6 条）
+  AIP.hi = -1;
+  $("#globalQuery")?.setAttribute("aria-expanded", "false");
+  $("#globalQuery")?.removeAttribute("aria-activedescendant");
   if (AIP.down) {
     $("#aiAnswer").innerHTML = `<div class="ai-ans ai-ans-down"><div class="ai-ans-q">${esc(q)}</div>${aiNotice(`<b>AI 暂时无法回答。</b>服务没有响应，这次提问没有得到回答${AIP.tries > 1 ? `（已重试 ${AIP.tries - 1} 次）` : ""}。可以稍后重试，或改用搜索查找空间、设备和场景；仍有问题可在帮助中联系我们。`, "error", btn("重试", "aiRetry", {}, "sm") + btn("改用搜索", "aiMode", { value: "search" }, "ghost sm") + btn("帮助", "aiHelp", {}, "ghost sm"))}</div>`;
     return;
@@ -65076,12 +65102,15 @@ function aiRules(q, z, forced, scope, yd, ydl) {
 }
 defineActions({
   aiOpen: (a) => aiPalette(a.q || "", a.q ? "ask" : "search"),
-  aiMode: (a) => {
+  aiMode: (a, el) => {
     AIP.mode = a.value;
     aiSetMode(a.value);
     aiRefresh();
-    $("#globalQuery").focus();
+    // 点选页签后回到输入框；用 ←/→、Home、End 切换时焦点留在页签上（第 3 条）
+    if (!(el && document.activeElement === el && el.matches(":focus-visible"))) $("#globalQuery").focus();
   },
+  // 窄屏与触屏上输入框右侧的“关闭”（第 4 条）
+  aiPalClose: () => aiClose(),
   aiAskGo: () => aiAnswer($("#globalQuery").value),
   aiScopeMenu: () => aiScopeToggle($("#aiScopeList")?.hidden !== false),
   // 选另一个范围：按同一问题重新回答，焦点回到范围按钮。
@@ -65328,7 +65357,7 @@ document.addEventListener("click", (e) => {
   if (menu && !menu.hidden && !menu.contains(e.target) && !e.target.closest?.(".ai-scope")) aiScopeToggle(false, false);
   if (e.target === pal) return aiClose();
   const b = e.target.closest("[data-act]");
-  if (b && pal.contains(b) && !/^ai(Mode|AskGo|AskEx|ScopeMenu|Scope|Retry|Help)$/.test(b.dataset.act)) setTimeout(aiClose, 0);
+  if (b && pal.contains(b) && !/^ai(Mode|AskGo|AskEx|ScopeMenu|Scope|Retry|Help|PalClose)$/.test(b.dataset.act)) setTimeout(aiClose, 0);
 });
 
 /* Shared policy for every new-password entry and the future identity service.
