@@ -26240,6 +26240,93 @@ body:has(> #app[data-page=alarms]) #dlg :is(.ops-modal-sub, .field > small.muted
 /* ==== 2026-10-12 总览核查（第三批）· 照明与暖通空调（总览核查第 37–46 条，第 55 条中暖通空调与室内环境设置）
    [B3-LIGHT] 本区的样式改动写在这一段注释之后、下一段注释之前。
    ==== */
+/* 总览核查第 39 条（2026-10-12 用户确认）：楼层默认的恒照度目标按空间类型逐类填写，一组字段，组名同字段名 14/24 #030303；
+   每类一个框，两列。本区为开关型回路时恒照度目标写“不适用”。原为一个“恒照度目标”框。 */
+.ops-lux-types {
+  border: 0;
+  margin: 0 0 16px;
+  padding: 0;
+  min-width: 0;
+}
+.ops-lux-types > legend,
+.ops-lux-na > .ops-lux-l,
+.ops-rs-h {
+  padding: 0;
+  margin: 0 0 6px;
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 480;
+  color: #030303;
+}
+.ops-lux-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.ops-lux-grid > .field {
+  margin: 0;
+}
+.ops-lux-types > .ops-foot {
+  margin: 8px 0 0;
+}
+.ops-lux-na > .ops-lux-v {
+  margin: 0;
+  font-size: 14px;
+  line-height: 24px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  color: #2e2e2e;
+}
+/* 总览核查第 44 条（2026-10-12 用户确认）：屏宽 600 以下照明控制参数排成两列：占用三段保持顺序（延时时间、待机亮度一行，待机时间下一行），
+   有人亮度单独，恒照度目标独占一行；“手动后恢复自动”作为分组名写在上面，字段名只写“工作时间”“非工作时间”（读屏仍读全名）。
+   输入框、44 高与固定底部按钮不变。原为三列，输入框 67 宽，恒照度说明与“手动后恢复自动”的字段名折成多行。宽屏不变。 */
+.ops-rs-h {
+  display: none;
+}
+@media (max-width: 599.98px) {
+  #dlg .ws-form-row.occ3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(4, auto) 12px repeat(4, auto);
+  }
+  #dlg .ws-form-row.occ3 > .field:nth-child(3) {
+    grid-column: 1;
+    grid-row: 6 / span 4;
+  }
+  #dlg .ws-form-row.ops-occ-lux > .field:nth-child(2) {
+    grid-column: 1 / -1;
+  }
+  #dlg .ops-rs-h {
+    display: block;
+  }
+  #dlg .ops-rs-p {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+/* 总览核查第 46 条（2026-10-12 用户确认）：暖通空调、室内环境设置的适用楼层下列出本次增加、移除的楼层，12/18 #636363 */
+.ops-floor-diff {
+  margin: 4px 0 16px;
+  font-size: 12px;
+  line-height: 18px;
+  color: #636363;
+}
+/* 总览核查第 42 条：参数同步有离线设备待同步时，图标用警示色；楼层默认的整层回执在状态条下，通栏 */
+.ops-sync.warn > svg {
+  color: var(--warn);
+}
+.ops-floor-sync > .ops-sync {
+  margin: 0 0 16px;
+}
+/* 总览核查第 37 条：本区都是开关型回路时，滑块的位置写“开关型回路，只能开灯、关灯”，与按钮垂直居中 */
+.ops-sw-note {
+  align-self: center;
+}
 
 /* ==== 2026-10-12 总览核查（第三批）· 能源（总览核查第 47–49、51–54、58 条，第 55 条中能耗与碳排放设置）
    [B3-ENERGY] 本区的样式改动写在这一段注释之后、下一段注释之前。
@@ -28637,11 +28724,23 @@ const StationFlowModel = ((M) => {
       zone = list.find((x) => x.scope === "zone" && x.scopeId === p.zoneId && val(x)),
       fl = list.find((x) => x.scope === "floor" && x.scopeId === p.floorId && val(x)),
       hit = zone || fl;
-    if (hit) return plan && hit.planned !== undefined ? { ...hit, values: hit.planned } : hit;
-    return {
+    if (hit) {
+      const r = plan && hit.planned !== undefined ? { ...hit, values: hit.planned } : hit;
+      return hit === zone ? r : lightingTyped(db, r, p);
+    }
+    return lightingTyped(db, {
       version: 0,
       values: { offMinutes: 5, standbyMinutes: 0, standbyBrightness: 10, occupiedBrightness: 100, luxTarget: 300, resumeMinutes: 120, resumeOffMinutes: 30 },
-    };
+    }, p);
+  }
+  // 楼层默认（与参考默认）的恒照度目标按功能区的空间类型（总览核查第 39 条（2026-10-12 用户确认），改 BP81：原先一个值作用于全部功能区，
+  // 走廊、电梯厅、卫生间实际生效 300 lx，超出其范围）：楼层默认登记了该类型（luxByType）的按登记，否则按配置参数中该类型的目标照度；
+  // 没有空间类型的功能区仍用 luxTarget
+  function lightingTyped(db, r, p) {
+    const z = p?.zoneId && (db.zones || []).find((x) => x.id === p.zoneId);
+    if (!z?.spaceType || !r.values) return r;
+    const lux = r.values.luxByType?.[z.spaceType] ?? (typeof v13TypeLux === "function" ? v13TypeLux(db, z.floorId, z.spaceType) : null);
+    return lux == null ? r : { ...r, values: { ...r.values, luxTarget: lux } };
   }
   // 保存照明控制参数（BP64）：network 为 false 时是运营调整，只形成照明控制参数的新版本，planned 保留原来进入期望配置的值，
   // 不改变点位期望配置的版本；network 为 true 时是网络变更，planned 随之改为新值。values 为 null 表示删除这一层（恢复楼层默认或参考默认）。
@@ -28665,7 +28764,8 @@ const StationFlowModel = ((M) => {
       by,
       history: [...(old?.history || []), ...(old?.values ? [{ version: old.version, values: old.values, at: old.at }] : [])],
     };
-    const same = !!planned && !!values && Object.keys({ ...planned, ...values }).every((k) => planned[k] === values[k]);
+    // 楼层默认的按空间类型目标（luxByType）是对象，按内容比较（总览核查第 39 条）
+    const same = !!planned && !!values && Object.keys({ ...planned, ...values }).every((k) => JSON.stringify(planned[k]) === JSON.stringify(values[k]));
     if (!same) cfg.planned = planned;
     i >= 0 ? list.splice(i, 1, cfg) : list.push(cfg);
     return cfg;
@@ -50133,47 +50233,20 @@ function showLightingSettings(zoneId, fid) {
     o = data().lightingConfigs.find((c) => c.scope === (z ? "zone" : "floor") && c.scopeId === (z?.id || floorId) && c.values),
     cfg = F.lightingFor(data(), { zoneId: z?.id, floorId }),
     v = cfg.values,
-    // 按配置参数中批准的可调范围（BP81 方案一）
-    L = v13LightLimits(data(), floorId, z?.id || null),
-    hint = v13LightHints(L);
-  formState = { kind: "lightingConfigs", floorId, zoneId: z?.id, id: o?.id, limits: L };
-  // 与有运行数据时同一种样子（Lovable 核查第 255 条，2026-10-11 用户确认）：512 宽，单位在输入框后，开头一句说明，按钮“保存”
-  const unitIn = (label, id, val, unit, hint) => fld(label, id, `<div class="ops-unit-in">${input(id, val, "", "number")}<span>${unit}</span></div>`, hint);
+    // 按配置参数中批准的可调范围（BP81 方案一）；楼层的恒照度目标按空间类型（总览核查第 39 条）
+    L = v13LightLimits(data(), floorId, z?.id || null);
+  formState = { kind: "lightingConfigs", floorId, zoneId: z?.id, id: o?.id, limits: L, base: v };
+  // 与有运行数据时同一种样子（Lovable 核查第 255 条，2026-10-11 用户确认）：512 宽，单位在输入框后，开头一句说明，按钮“保存”；
+  // 字段与校验同用 v13LightFormHtml、v13LightRead、v13LightIssues（总览核查第 39–41、44 条）
   modal(
     "照明控制参数",
-    `<p class="ops-modal-sub">${esc(where(floorId) + (z ? " / " + z.name : ""))} · ${o ? "本范围设置 v" + o.version : z ? "继承本层参数" : "配置参数默认值"}。楼层参数统一继承，功能区可覆盖；保存后形成照明控制参数的新版本，不代表现场已应用。</p>${z ? `<label class="row small"><input type="checkbox" id="lightingOverride" ${o ? "checked" : ""}>为此功能区单独设置（关闭后继承楼层）</label>` : ""}<div class="ws-form-row occ3">${unitIn("延时时间", "lightOff", v.offMinutes, "分钟", hint.off)}${unitIn("待机亮度", "lightStandby", v.standbyBrightness, "%", hint.standby)}${unitIn("待机时间", "lightHold", v.standbyMinutes, "分钟", "0 表示延时时间结束后直接关灯；" + hint.hold)}</div><div class="ws-form-row">${unitIn("有人亮度", "lightOccupied", v.occupiedBrightness, "%", hint.occ)}${unitIn("恒照度目标", "lightLux", v.luxTarget, "lx", hint.lux)}</div><div class="ws-form-row aligned">${fld(
-      "手动后恢复自动 · 工作时间",
-      "lightResume",
-      select(
-        "lightResume",
-        [
-          [15, "15 分钟"],
-          [30, "30 分钟"],
-          [60, "1 小时"],
-          [90, "1 小时 30 分钟"],
-          [120, "2 小时"],
-        ],
-        Math.min(120, v.resumeMinutes ?? 120),
-        "工作时间恢复自动",
-      ),
-      "默认 2 小时",
-    )}${fld(
-      "手动后恢复自动 · 非工作时间",
-      "lightResumeOff",
-      select(
-        "lightResumeOff",
-        [
-          [15, "15 分钟"],
-          [30, "30 分钟"],
-          [60, "1 小时"],
-          [90, "1 小时 30 分钟"],
-          [120, "2 小时"],
-        ],
-        Math.min(120, v.resumeOffMinutes ?? 30),
-        "非工作时间恢复自动",
-      ),
-      "默认 30 分钟",
-    )}</div><p class="note" id="lightingRefresh">${v13LightRefreshText(L, v.offMinutes)}</p>${note("照度源在“回路”模式的回路组中维护。")}`,
+    `<p class="ops-modal-sub">${esc(where(floorId) + (z ? " / " + z.name : ""))} · ${o ? "本范围设置 v" + o.version : z ? "继承本层参数" : "配置参数默认值"}。楼层参数统一继承，功能区可覆盖；保存后形成照明控制参数的新版本，不代表现场已应用。</p>${z ? `<label class="row small"><input type="checkbox" id="lightingOverride" ${o ? "checked" : ""}>为此功能区单独设置（关闭后继承楼层）</label>` : ""}${v13LightFormHtml(
+      L,
+      v,
+      V13_LIGHT_IDS.plain,
+      !z,
+      "0 表示延时时间结束后直接关灯；",
+    )}<p class="note" id="lightingRefresh">${v13LightRefreshText(L, v.offMinutes)}</p>${note("照度源在“回路”模式的回路组中维护。")}`,
     (o ? btn(z ? "恢复楼层设置" : "恢复参考默认", "resetLighting", {}, "ghost") + '<span class="sp"></span>' : "") +
       btn("取消", "close") +
       btn("保存", "saveLighting", {}, "primary"),
@@ -50183,25 +50256,19 @@ function showLightingSettings(zoneId, fid) {
 async function saveLighting(a = {}) {
   const keep = a.confirmed && U.lightPending?.act === "saveLighting" ? U.lightPending : null,
     s = keep ? keep.form : formState,
-    v = keep
-      ? keep.values
-      : {
-          offMinutes: Number(value("lightOff")),
-          occupiedBrightness: Number(value("lightOccupied")),
-          standbyBrightness: Number(value("lightStandby")),
-          standbyMinutes: Number(value("lightHold")),
-          luxTarget: Number(value("lightLux")),
-          resumeMinutes: Number(value("lightResume")),
-          resumeOffMinutes: Number(value("lightResumeOff")),
-        };
+    ids = V13_LIGHT_IDS.plain;
   const override = keep ? !!keep.values : !s.zoneId || $("#lightingOverride").checked;
-  // 按配置参数中批准的可调范围、驱动下限（L-11）与 L-30 校验（BP81 方案一）；需要缩短占用刷新的修改属于网络变更，按 v13LightSave 处理（BP63、BP64）
+  let v = keep ? keep.values : { ...s.base };
+  // 先看是否填写，再按配置参数中批准的可调范围、驱动下限（L-11）与 L-30 校验（BP81 方案一），问题写在各字段下方（总览核查第 40、41 条）；
+  // 需要缩短占用刷新的修改属于网络变更，按 v13LightSave 处理（BP63、BP64）
   if (override && !keep) {
-    const bad = v13LightIssue(v, v13LightLimits(data(), s.floorId, s.zoneId || null));
-    if (bad) throw Error(bad);
+    const L = v13LightLimits(data(), s.floorId, s.zoneId || null),
+      r = v13LightRead(ids, L, s.base, !s.zoneId),
+      errs = [...r.errs, ...v13LightIssues(r.v, L, ids, !s.zoneId)];
+    if (errs.length) throw fieldErrs(errs);
+    v = r.v;
     F.validateLighting(v);
   }
-  const fill = { lightOff: v.offMinutes, lightOccupied: v.occupiedBrightness, lightStandby: v.standbyBrightness, lightHold: v.standbyMinutes, lightLux: v.luxTarget, lightResume: v.resumeMinutes, lightResumeOff: v.resumeOffMinutes };
   const r = await v13LightSave(
     {
       scope: s.zoneId ? "zone" : "floor",
@@ -50214,7 +50281,7 @@ async function saveLighting(a = {}) {
       record: (db, cfg, old) => M.record(db, "修改照明控制参数", s.zoneId || s.floorId, override ? `保存本范围设置 v${cfg.version}` : "恢复继承楼层参数", old || null),
       reopen: () => {
         showLightingSettings(s.zoneId, s.floorId);
-        for (const [id, x] of Object.entries(fill)) if ($("#" + id)) $("#" + id).value = x;
+        v13LightFill(ids, formState.limits, v, !s.zoneId);
         if ($("#lightingOverride")) $("#lightingOverride").checked = true;
         $("#lightingRefresh") && ($("#lightingRefresh").textContent = v13LightRefreshText(formState.limits, v.offMinutes));
       },
@@ -51153,11 +51220,15 @@ function showApplicationSettings(kind, project, floor) {
   // 室内环境设置不再填上下限与阈值依据（2026-10-09 用户确认，ABB 对比 BP85）：参考范围按所选楼层只读列出配置参数；原先保存的上下限与依据不再使用，新版本不写
   const old = latestConfig(kind, pid),
     v = old?.values || {},
-    floors = v.floorIds || [floor || U.f].filter((f) => f && M.projectOfFloor(data(), f) === pid);
-  formState = { kind: "opsConfig", appKind: kind, projectId: pid, aq: { ...(v.sensors || {}) }, notes: v.notes || "" };
+    // 打开时把当前楼层也勾上（总览核查第 46 条（2026-10-12 用户确认）：原先已有设置时只勾已保存的楼层）；增加、移除的楼层在选择下方列出
+    here = [floor || U.f].filter((f) => f && M.projectOfFloor(data(), f) === pid),
+    floors = [...new Set([...(v.floorIds || []), ...here])],
+    next = 1 + data().configs.filter((c) => c.projectId === pid && c.kind === kind).length;
+  formState = { kind: "opsConfig", appKind: kind, projectId: pid, aq: { ...(v.sensors || {}) }, notes: v.notes || "", floors0: old ? v.floorIds || [] : null, sensors0: v.sensors || {} };
   modal(
     kind + "设置",
-    `${opsFloorPicker(pid, floors)}${
+    // 标题下写项目与版本（总览核查第 55 条（2026-10-12 用户确认）：原先看不出改的是哪个项目、哪一版）
+    `<p class="ops-modal-sub">${esc(g("projects", pid)?.name || "")} · ${old ? `当前 v${old.version} · 保存后形成 v${next}` : "尚未保存"}</p>${opsFloorPicker(pid, floors)}<p class="ops-floor-diff" id="opsFloorDiff">${opsFloorDiffHtml(floors)}</p>${
       kind === "室内环境"
         ? `<div class="field"><span class="appset-k">参考范围（配置参数）</span><div id="envRefs">${envRefHtml(pid, floors)}</div></div><div class="field"><span class="appset-k">采集位置与代表性</span><div id="envSensors">${envSensorsHtml(floors, formState.aq)}</div></div><div class="field"><span class="appset-k">统计窗口与告警（配置参数）</span><p class="muted small appset-points-tip">统计窗口、进入、持续、解除与缺数回退按配置参数登记与批准，这里不另设。</p>${opsParamList(kind, pid)}</div>`
         : `<div class="field"><span class="appset-k">各系统的当前值（配置参数）</span><div id="hvacGroups">${opsParamList("暖通空调", pid, floors)}</div></div>${
@@ -51187,8 +51258,40 @@ function opsFloorPicker(pid, picked) {
     })
     .join("")}</fieldset><p class="muted small ws-shift-tip">按住 Shift 点选可连续选择。</p>`;
 }
+/* 暖通空调、室内环境设置的适用楼层（总览核查第 46 条（2026-10-12 用户确认）：原先取消勾选某层保存后，该层 AQ20 的采集位置登记一并清空，
+   看不出本次改了哪些楼层）：选择下方列出相对已保存版本增加、移除的楼层；移除的楼层上有采集位置登记时写明将一并移除，保存时再确认一次。 */
+// 移除的楼层上已登记的 AQ20（室内环境设置）
+function opsFloorRemovedRegs(picked) {
+  const s = formState;
+  if (s?.kind !== "opsConfig" || s.appKind !== "室内环境" || !s.floors0) return [];
+  const gone = s.floors0.filter((f) => !picked.includes(f));
+  return Object.entries(s.sensors0 || {})
+    .map(([id, r]) => [g("points", id), r])
+    .filter(([p, r]) => p && gone.includes(p.floorId) && (r.pos || r.rep));
+}
+function opsFloorDiffHtml(picked) {
+  const s = formState;
+  if (s?.kind !== "opsConfig") return "";
+  if (!s.floors0) return `首次保存，适用 ${esc(floorCountText(picked))}。`;
+  const add = picked.filter((f) => !s.floors0.includes(f)),
+    gone = s.floors0.filter((f) => !picked.includes(f)),
+    regs = opsFloorRemovedRegs(picked),
+    nm = (ids) => esc(ids.map((f) => floorLabel(f)).join("、"));
+  if (!add.length && !gone.length) return "适用楼层与当前版本相同。";
+  return [add.length ? `本次增加：${nm(add)}` : "", gone.length ? `本次移除：${nm(gone)}${regs.length ? `（该层 ${regs.length} 台 AQ20 的采集位置登记将一并移除）` : ""}` : ""].filter(Boolean).join("；") + "。";
+}
 function opsFloorCount() {
   const inputs = [...document.querySelectorAll('input[name="opsFloors"]')];
+  // 改选楼层后重列增减；已提示过的移除登记要按新的选择重新确认
+  if ($("#opsFloorDiff") && formState?.kind === "opsConfig") {
+    $("#opsFloorDiff").innerHTML = opsFloorDiffHtml(inputs.filter((x) => x.checked).map((x) => x.value));
+    if (formState.removeAck) {
+      formState.removeAck = null;
+      if ($("#formError")) $("#formError").innerHTML = "";
+      const b = $('#dlg [data-act="saveOpsConfig"]');
+      if (b) b.textContent = "保存";
+    }
+  }
   if ($("#envSensors") && formState?.kind === "opsConfig") {
     formState.aq = envSensorsRead(formState.aq);
     $("#envSensors").innerHTML = envSensorsHtml(
@@ -52745,8 +52848,11 @@ function renderConnections() {
 }
 defineActions({
   // 恢复楼层设置或参考默认是运营调整（BP64）：删除这一层，不改变点位期望配置的版本
-  resetLighting: async () => {
-    const s = formState;
+  // 先确认（总览核查第 43 条）：逐项列出当前值 → 恢复后的值、受影响的功能区与设备；确认时按按钮上带的范围恢复
+  resetLighting: async (a = {}) => {
+    const s = a.confirmed ? { zoneId: a.zone || null, floorId: a.floor } : formState;
+    if (!a.confirmed)
+      return lightResetModal({ scope: s.zoneId ? "zone" : "floor", scopeId: s.zoneId || s.floorId, floorId: s.floorId, act: "resetLighting", args: { zone: s.zoneId || "", floor: s.floorId } });
     await v13LightSave({
       scope: s.zoneId ? "zone" : "floor",
       scopeId: s.zoneId || s.floorId,
@@ -52757,6 +52863,7 @@ defineActions({
     });
     closeModal(true);
     render();
+    msg(`已恢复为${s.zoneId ? "楼层设置" : "参考默认"}，配置等待实际下发`);
   },
   clearOpsConfig: async () => {
     const s = formState;
@@ -52831,10 +52938,24 @@ defineActions({
     if (!fs.length) throw Error("请选择适用楼层");
     let values = { floorIds: fs };
     // 室内环境设置只保存适用楼层与采集位置、代表性；参考范围在配置参数中（2026-10-09 用户确认，ABB 对比 BP85）
+    // 保存时合并：未改动楼层的登记保留，只有确实取消勾选的楼层上的登记移除，且先列出、再点一次确认（总览核查第 46 条（2026-10-12 用户确认）：
+    // 原先只留所选楼层的登记，取消勾选某层即清空该层的登记）
     if (s.appKind === "室内环境") {
-      const aq = envSensorsRead(s.aq),
-        here = new Set(data().points.filter((p) => p.type === "aq" && fs.includes(p.floorId)).map((p) => p.id)),
-        sensors = Object.fromEntries(Object.entries(aq).filter(([id]) => here.has(id)));
+      const regs = opsFloorRemovedRegs(fs),
+        key = regs.map(([p]) => p.id).join(",");
+      if (regs.length && s.removeAck !== key) {
+        s.removeAck = key;
+        $("#formError").innerHTML = wsNotice(
+          `取消勾选的楼层上有 ${regs.length} 台 AQ20 的采集位置登记，保存后一并移除：${esc(regs.map(([p, r]) => `${p.name}（${[AQ_POS[r.pos] || "位置未登记", AQ_REP[r.rep] || "代表性未登记"].join(" · ")}）`).join("、"))}。确认移除请再点“移除登记并保存”；要保留，重新勾选该楼层。`,
+          "warning",
+        );
+        const b = $('#dlg [data-act="saveOpsConfig"]');
+        if (b) b.textContent = "移除登记并保存";
+        $("#formError").scrollIntoView({ block: "nearest" });
+        return;
+      }
+      const gone = new Set(regs.map(([p]) => p.id)),
+        sensors = Object.fromEntries(Object.entries(envSensorsRead(s.aq)).filter(([id]) => !gone.has(id)));
       if (Object.keys(sensors).length) values.sensors = sensors;
     } else values = { ...values, ...(s.notes ? { notes: s.notes } : {}) };
     const saved = await transaction((db) => {
@@ -54981,16 +55102,56 @@ function v13LightLimits(db, floorId, zoneId) {
   const R = v13LightRules(db, M.projectOfFloor(db, floorId)),
     own = new Set(db.lightingConfigs.filter((c) => c.scope === "zone" && c.values).map((c) => c.scopeId)),
     zs = zoneId ? db.zones.filter((z) => z.id === zoneId) : db.zones.filter((z) => z.floorId === floorId && !own.has(z.id)),
-    types = [...new Set(zs.map((z) => z.spaceType).filter(Boolean))],
-    lux = types.map((t) => v13Span(v13TplOf(`L-S-${v13TypeCode(t)}-1`)?.range, "lx")).filter(Boolean),
+    // 按空间类型分列（总览核查第 39 条（2026-10-12 用户确认），改 BP81：原先楼层默认取各类型范围的最低与最高值作为一个范围，
+    // 本层各类型的范围没有交集）：楼层默认逐类填写、按该类自己的范围校验；本区覆盖按本区的类型。开关型回路不参与恒照度
+    swZone = (z) => {
+      const lcs = db.points.filter((p) => p.type === "lc" && p.zoneId === z.id);
+      return lcs.length > 0 && lcs.every(lcSwitch);
+    },
+    byType = new Map(),
     refresh = Math.max(0, ...db.networks.filter((n) => n.floorIds.includes(floorId)).map((n) => F.templates(n).report.occupancy || 0));
+  zs.forEach((z) => byType.set(v13TypeCode(z.spaceType) ? z.spaceType : "", [...(byType.get(v13TypeCode(z.spaceType) ? z.spaceType : "") || []), z]));
+  const luxTypes = [...byType]
+      .map(([type, list]) => ({
+        type,
+        code: v13TypeCode(type) || "X",
+        range: (type && v13Span(v13TplOf(`L-S-${v13TypeCode(type)}-1`)?.range, "lx")) || [50, 1500],
+        def: type ? v13TypeLux(db, floorId, type) : null,
+        zones: list,
+        sw: list.every(swZone),
+      }))
+      .sort((a, b) => (a.type ? V13_SPACE_TYPES.findIndex((x) => x[0] === a.type) : 99) - (b.type ? V13_SPACE_TYPES.findIndex((x) => x[0] === b.type) : 99)),
+    lux = luxTypes.filter((t) => !t.sw).map((t) => t.range);
   return {
     ...R,
     lux: lux.length ? [Math.min(...lux.map((x) => x[0])), Math.max(...lux.map((x) => x[1]))] : [50, 1500],
+    luxTypes,
+    // 本区覆盖：本区的回路都是开关型时不参与恒照度
+    sw: !!zoneId && !!zs[0] && swZone(zs[0]),
+    floorId,
     refresh,
     // 占用刷新不超过延时时间的 1/5：延时时间不短于占用刷新的 5 倍
     offMin: Math.max(R.off[0], Math.ceil((refresh * 5) / 60)),
   };
+}
+// 空间类型的目标照度（配置参数 L-S-{类型}-1 的取值，按项目的照度档次；改过的按改后的值），楼层默认没有登记该类型时按它（总览核查第 39 条）。
+// 照明控制参数逐个功能区取值，按工作区（db）与配置参数登记缓存
+const v13TypeLuxCache = new WeakMap();
+function v13TypeLux(db, floorId, type) {
+  const code = v13TypeCode(type),
+    pid = code && M.projectOfFloor(db, floorId);
+  if (!pid) return null;
+  let c = v13TypeLuxCache.get(db);
+  if (!c || c.reg !== db.paramRegistry || c.n !== (db.paramRegistry || []).length) v13TypeLuxCache.set(db, (c = { reg: db.paramRegistry, n: (db.paramRegistry || []).length, m: new Map() }));
+  const k = pid + "|" + code;
+  if (!c.m.has(k)) {
+    // 只用登记的照度档次与模板版本（v13Profile 要读当前资料，建示例工作区时还没有）
+    const reg = db.paramRegistry || [],
+      r = reg.find((x) => x.kind === "param" && x.projectId === pid && x.level === "project" && x.code === `L-S-${code}-1`) || { code: `L-S-${code}-1` },
+      n = Number(/(\d+(?:\.\d+)?)/.exec(String(v13Value(r, reg.find((x) => x.kind === "profile" && x.projectId === pid) || {}) ?? ""))?.[1]);
+    c.m.set(k, Number.isFinite(n) ? n : null);
+  }
+  return c.m.get(k);
 }
 function v13LightHints(L) {
   return {
@@ -55000,6 +55161,136 @@ function v13LightHints(L) {
     hold: `可调 ${L.hold[0]}–${L.hold[1]} 分钟${L.total ? `；与延时时间合计不超过 ${L.total} 分钟` : ""}`,
     lux: `0 表示关闭；可调 ${v13N(L.lux[0])}–${v13N(L.lux[1])} lx；每个回路组只用一个照度源（★）`,
   };
+}
+/* 照明控制参数的数值框（总览核查第 39–41、44 条（2026-10-12 用户确认））：有运行数据（op…）与没有运行数据（light…）两个弹窗共用。
+   ids：各值的字段 id；luxType 为楼层默认按空间类型的字段 id 前缀。数值框写明 min、max、step（校验不只依赖浏览器，见 v13LightIssues）。 */
+const V13_LIGHT_IDS = {
+  ops: { offMinutes: "opOff", standbyBrightness: "opStandby", standbyMinutes: "opHold", occupiedBrightness: "opOcc", luxTarget: "opLux", resumeMinutes: "opResume", resumeOffMinutes: "opResumeOff", luxType: "opLux-" },
+  plain: { offMinutes: "lightOff", standbyBrightness: "lightStandby", standbyMinutes: "lightHold", occupiedBrightness: "lightOccupied", luxTarget: "lightLux", resumeMinutes: "lightResume", resumeOffMinutes: "lightResumeOff", luxType: "lightLux-" },
+};
+const v13NumIn = (id, val, unit, min, max) => `<div class="ops-unit-in">${input(id, val, "", "number").replace('type="number"', `type="number" min="${min}" max="${max}" step="1" inputmode="numeric"`)}<span>${unit}</span></div>`;
+// 恒照度目标：本区覆盖一个框（本区都是开关型时写明不参与）；楼层默认按本层沿用楼层默认的功能区的空间类型逐类一个框，范围用该类自己的上下限
+function v13LuxHtml(L, v, ids, floor) {
+  if (!floor)
+    return L.sw
+      ? `<div class="field ops-lux-na"><span class="ops-lux-l">恒照度目标</span><p class="ops-lux-v">不适用</p><small class="muted">本区为开关型回路，不参与恒照度</small></div>`
+      : fld("恒照度目标", ids.luxTarget, v13NumIn(ids.luxTarget, v.luxTarget, "lx", 0, L.lux[1]), v13LightHints(L).lux);
+  const live = L.luxTypes.filter((t) => !t.sw),
+    sw = L.luxTypes.filter((t) => t.sw),
+    db = data(),
+    own = db.zones.filter((z) => z.floorId === L.floorId && db.lightingConfigs.some((c) => c.scope === "zone" && c.scopeId === z.id && c.values));
+  return `<fieldset class="ops-lux-types"><legend>恒照度目标 · 按空间类型</legend><div class="ops-lux-grid">${live
+    .map((t) =>
+      fld(
+        t.type || "未登记空间类型",
+        ids.luxType + t.code,
+        v13NumIn(ids.luxType + t.code, t.type ? (v.luxByType?.[t.type] ?? t.def ?? v.luxTarget) : v.luxTarget, "lx", 0, t.range[1]),
+        // 说明只在“ · ”处换行
+        auSegs([`可调 ${v13N(t.range[0])}–${v13N(t.range[1])} lx`, t.def != null ? `默认 ${v13N(t.def)} lx` : "", `${t.zones.length} 个功能区`]),
+      ),
+    )
+    .join("")}</div><p class="ops-foot">0 表示关闭；每类按该类自己的可调范围，默认值取配置参数中该类的目标照度；每个回路组只用一个照度源（★）。${
+    sw.length ? `${zhSub(esc(sw.map((t) => t.zones.map((z) => z.name).join("、")).join("、")), "r")}为开关型回路，不参与恒照度。` : ""
+  }${own.length ? `${zhSub(esc(own.map((z) => z.name).join("、")), "r")}有本区覆盖，不受楼层默认影响。` : ""}</p></fieldset>`;
+}
+// 照明控制参数的字段（两个弹窗共用）：占用三段（延时时间、待机亮度、待机时间）一行，有人亮度与恒照度目标一行，手动后恢复自动的工作时间、
+// 非工作时间一行。屏宽 600 以下排成两列（总览核查第 44 条（2026-10-12 用户确认），样式见 [B3-LIGHT]）：占用三段保持顺序，有人亮度单独，
+// 恒照度目标独占一行，“手动后恢复自动”作为分组名写在上面，字段名只写“工作时间”“非工作时间”（宽屏照旧写全名）。holdPre：待机时间说明的前缀
+const V13_RESUME_OPTS = [[15, "15 分钟"], [30, "30 分钟"], [60, "1 小时"], [90, "1 小时 30 分钟"], [120, "2 小时"]];
+function v13LightFormHtml(L, v, ids, floor, holdPre = "") {
+  const hint = v13LightHints(L),
+    rs = (label, id, val, aria, h) => fld(`<span class="ops-rs-p">手动后恢复自动 · </span>${label}`, id, select(id, V13_RESUME_OPTS, val, aria), h);
+  return `<div class="ws-form-row occ3">${fld("延时时间", ids.offMinutes, v13NumIn(ids.offMinutes, v.offMinutes, "分钟", L.off[0], L.off[1]), hint.off)}${fld("待机亮度", ids.standbyBrightness, v13NumIn(ids.standbyBrightness, v.standbyBrightness, "%", 0, L.standby[1]), hint.standby)}${fld(
+    "待机时间",
+    ids.standbyMinutes,
+    v13NumIn(ids.standbyMinutes, v.standbyMinutes, "分钟", L.hold[0], L.hold[1]),
+    holdPre + hint.hold,
+  )}</div><div class="ws-form-row ops-occ-lux">${fld("有人亮度", ids.occupiedBrightness, v13NumIn(ids.occupiedBrightness, v.occupiedBrightness, "%", L.floorPct, 100), hint.occ)}${floor ? "" : v13LuxHtml(L, v, ids, false)}</div>${
+    floor ? v13LuxHtml(L, v, ids, true) : ""
+  }<p class="ops-rs-h" aria-hidden="true">手动后恢复自动</p><div class="ws-form-row aligned ops-rs-row">${rs("工作时间", ids.resumeMinutes, Math.min(120, v.resumeMinutes ?? 120), "工作时间手动后恢复自动", "默认 2 小时")}${rs(
+    "非工作时间",
+    ids.resumeOffMinutes,
+    Math.min(120, v.resumeOffMinutes ?? 30),
+    "非工作时间手动后恢复自动",
+    "默认 30 分钟",
+  )}</div>`;
+}
+// “继续编辑”时把已填的值填回（含楼层默认按空间类型的恒照度目标）
+function v13LightFill(ids, L, v, floor) {
+  const put = (id, x) => {
+    const el = document.getElementById(id);
+    if (el && x !== undefined) el.value = x;
+  };
+  for (const k of ["offMinutes", "standbyBrightness", "standbyMinutes", "occupiedBrightness", "resumeMinutes", "resumeOffMinutes"]) put(ids[k], v[k]);
+  if (!floor) put(ids.luxTarget, v.luxTarget);
+  else (L?.luxTypes || []).forEach((t) => put(ids.luxType + t.code, t.type ? v.luxByType?.[t.type] : v.luxTarget));
+}
+/* 恢复楼层默认（没有运行数据时还有楼层的“恢复参考默认”）前先确认（总览核查第 43 条（2026-10-12 用户确认）：原先点了立即恢复并下发）：
+   逐项列出有变化的“当前值 → 恢复后的值”、受影响的功能区与设备数量；按钮“取消”“恢复并下发”。功能区面板、参数弹窗与没有运行数据的弹窗共用。
+   o：{ scope, scopeId, floorId, act（确认后调用的动作，带 confirmed）, args } */
+function lightResetModal(o) {
+  const db = data(),
+    after = { ...db, lightingConfigs: db.lightingConfigs.filter((c) => !(c.scope === o.scope && c.scopeId === o.scopeId)) },
+    zone = o.scope === "zone",
+    zs = zone ? db.zones.filter((z) => z.id === o.scopeId) : db.zones.filter((z) => z.floorId === o.floorId && !db.lightingConfigs.some((c) => c.scope === "zone" && c.scopeId === z.id && c.values)),
+    lcs = db.points.filter((p) => p.type === "lc" && zs.some((z) => z.id === p.zoneId)),
+    fv = db.lightingConfigs.find((c) => c.scope === "floor" && c.scopeId === o.floorId && c.values)?.version,
+    target = zone && fv ? `楼层默认 v${fv}` : "参考默认",
+    fmt = (k, x) => (x == null ? "—" : k === "luxTarget" ? (x ? `${v13N(x)} lx` : "关闭") : /^resume/.test(k) ? durText(x) : `${x}${/Brightness/.test(k) ? "%" : " 分钟"}`),
+    keys = [["offMinutes", "延时时间"], ["standbyBrightness", "待机亮度"], ["standbyMinutes", "待机时间"], ["occupiedBrightness", "有人亮度"], ["resumeMinutes", "手动后恢复自动 · 工作时间"], ["resumeOffMinutes", "手动后恢复自动 · 非工作时间"]],
+    at = (d, z) => F.lightingFor(d, { zoneId: z?.id ?? null, floorId: o.floorId }).values,
+    a0 = at(db, zone ? zs[0] : null),
+    b0 = at(after, zone ? zs[0] : null),
+    rows = keys.filter(([k]) => a0[k] !== b0[k]).map(([k, l]) => [l, a0[k], b0[k], k]);
+  // 恒照度目标逐个功能区比较（按空间类型），开关型回路不参与
+  const lux = new Map();
+  zs.filter((z) => !(lcs.some((p) => p.zoneId === z.id) && lcs.filter((p) => p.zoneId === z.id).every(lcSwitch))).forEach((z) => {
+    const a = at(db, z).luxTarget,
+      b = at(after, z).luxTarget;
+    if (a !== b) lux.set(`${a}|${b}`, { a, b, ns: [...(lux.get(`${a}|${b}`)?.ns || []), zone ? "" : z.spaceType || z.name] });
+  });
+  lux.forEach((x) => rows.push([`恒照度目标${zone ? "" : ` · ${[...new Set(x.ns)].join("、")}`}`, x.a, x.b, "luxTarget"]));
+  const on = Demo.on() ? lcs.filter((p) => !Demo.offline(p)).length : null,
+    name = zone ? zs[0]?.name : floorLabel(o.floorId);
+  modal(
+    `${zone ? "恢复楼层默认" : "恢复参考默认"} · ${name}`,
+    `<p class="ops-modal-sub">${zone ? `删除${zhSub(esc(name), "r")}的本区覆盖，改为沿用${target}。` : `删除${zhSub(esc(name))}的楼层默认，未覆盖的功能区改为沿用参考默认（按空间类型）。`}</p><dl class="ops-kv ops-reset-kv">${
+      rows.length ? rows.map(([l, a, b, k]) => `<dt>${esc(l)}</dt><dd><span class="ops-num">${esc(fmt(k, a))}</span> → <span class="ops-num">${esc(fmt(k, b))}</span></dd>`).join("") : `<dt>变化</dt><dd>当前值与${zhSub(target, "r")}相同，恢复后数值不变</dd>`
+    }<dt>受影响</dt><dd>${esc(zone ? name : `${zs.length} 个功能区`)} · ${lcs.length} 台 LC20${on != null && on < lcs.length ? `（${on} 台在线，${lcs.length - on} 台离线待同步）` : ""}</dd></dl><p class="ops-foot">只列有变化的项。恢复后形成照明控制参数的新版本，经网关下发到上述设备${on != null ? "，离线设备恢复在线后补发" : "；没有运行数据时配置等待实际下发"}。</p>`,
+    btn("取消", "close") + btn("恢复并下发", o.act, { ...(o.args || {}), confirmed: "1" }, "primary"),
+    false,
+  );
+}
+// 读出照明控制参数（总览核查第 40 条（2026-10-12 用户确认）：先看是否填写再转数字，空值写“请填写…”，只有明确输入 0 才按 0 的含义；
+// 原先 Number("") 为 0，清空“恒照度目标”保存即关闭恒照度）。base 为当前值：没有对应字段的项（开关型回路的恒照度目标等）沿用。返回 { v, errs }
+function v13LightRead(ids, L, base, floor) {
+  const errs = [],
+    v = { ...base },
+    num = (id, label) => {
+      const el = document.getElementById(id);
+      if (!el) return undefined;
+      const raw = String(el.value ?? "").trim();
+      if (raw === "") return void errs.push([id, `请填写${label}`]);
+      const n = Number(raw);
+      if (!Number.isFinite(n)) return void errs.push([id, `${label}请填写数字`]);
+      return n;
+    };
+  for (const [k, label] of [["offMinutes", "延时时间"], ["standbyBrightness", "待机亮度"], ["standbyMinutes", "待机时间"], ["occupiedBrightness", "有人亮度"]]) v[k] = num(ids[k], label);
+  if (!floor && document.getElementById(ids.luxTarget)) v.luxTarget = num(ids.luxTarget, "恒照度目标");
+  // 本区覆盖只存本区的值（当前值取自楼层默认时带有按空间类型的目标）
+  if (!floor) delete v.luxByType;
+  if (floor) {
+    const by = { ...(base.luxByType || {}) };
+    for (const t of L.luxTypes.filter((t) => !t.sw)) {
+      const n = num(ids.luxType + t.code, `${t.type || "未登记空间类型"}的恒照度目标`);
+      if (t.type) by[t.type] = n;
+      else v.luxTarget = n;
+    }
+    v.luxByType = by;
+  }
+  v.resumeMinutes = Number(value(ids.resumeMinutes));
+  v.resumeOffMinutes = Number(value(ids.resumeOffMinutes));
+  return { v, errs };
 }
 // 需要缩短占用刷新时缩短到的秒数（L-10 的条件：占用刷新不超过延时时间的五分之一，最低 10 秒；2026-10-09 用户确认，ABB 对比 BP63），不需要时为 null
 function v13LightRefreshTo(L, minutes) {
@@ -55014,15 +55305,29 @@ function v13LightRefreshText(L, minutes) {
     return `延时时间短于 ${L.offMin} 分钟需要把占用刷新缩短到 ${to} 秒（当前 ${L.refresh} 秒），属于网络变更，由配置人员或机构管理员确认保存规划后保存。`;
   return `可调范围由机构管理员在配置参数中批准，范围内的修改保存即下发，不需重新交付。${L.refresh ? `占用刷新为 ${L.refresh} 秒，延时时间不短于 ${L.offMin} 分钟；` : ""}需要缩短占用刷新的修改属于网络变更，由配置人员或机构管理员保存。`;
 }
-function v13LightIssue(v, L) {
-  const pct = Math.max(L.standby[0], L.floorPct);
-  if (!(v.offMinutes >= L.off[0] && v.offMinutes <= L.off[1])) return `延时时间需在 ${L.off[0]}–${L.off[1]} 分钟之间`;
-  if (!(v.occupiedBrightness >= L.floorPct && v.occupiedBrightness <= 100)) return `有人亮度需在 ${L.floorPct}–100% 之间（不低于驱动下限）`;
-  if (!(v.standbyBrightness === 0 || (v.standbyBrightness >= pct && v.standbyBrightness <= L.standby[1]))) return `待机亮度为 0 或 ${pct}–${L.standby[1]}%`;
-  if (!(v.standbyMinutes >= L.hold[0] && v.standbyMinutes <= L.hold[1])) return `待机时间为 ${L.hold[0]}–${L.hold[1]} 分钟`;
-  if (L.total && v.offMinutes + v.standbyMinutes > L.total) return `延时时间与待机时间合计不超过 ${L.total} 分钟（ASHRAE 90.1-2022）`;
-  if (!(v.luxTarget === 0 || (v.luxTarget >= L.lux[0] && v.luxTarget <= L.lux[1]))) return `恒照度目标为 0（关闭）或 ${v13N(L.lux[0])}–${v13N(L.lux[1])} lx`;
-  return null;
+// 照明控制参数的校验（总览核查第 40、41 条（2026-10-12 用户确认）：原先只返回第一条问题、写在底部，范围只看大小，步长靠浏览器）：
+// 返回 [字段 id, 说明] 列表，由 fieldErrs 写在对应字段下方；范围与说明一致，都是整数；两个字段合计受限时两处写同一说明。
+// 延时时间按说明“可调 5–30 分钟”报错；短于 5 分钟（不短于 1 分钟）需缩短占用刷新，属于网络变更，由 v13LightSave 另行处理，这里不报“1–30”。
+// 楼层默认逐类核对恒照度目标（各功能区实际生效的值），开关型回路不参与。没有读出的项（未填）跳过
+function v13LightIssues(v, L, ids, floor) {
+  const pct = Math.max(L.standby[0], L.floorPct),
+    out = [],
+    ok = (x) => x !== undefined,
+    int = (x) => Number.isInteger(x),
+    // 说明写“名称 + 规则”；不是整数时写“名称请填写整数（规则）”
+    chk = (id, x, good, name, rule) => ok(x) && !(int(x) && good(x)) && out.push([id, int(x) ? name + rule : `${name}请填写整数（${rule.replace(/^(为|可调)\s*/, "")}）`]);
+  chk(ids.offMinutes, v.offMinutes, (x) => x >= L.off[0] && x <= L.off[1], "延时时间", `可调 ${L.offMin}–${L.off[1]} 分钟`);
+  chk(ids.standbyBrightness, v.standbyBrightness, (x) => x === 0 || (x >= pct && x <= L.standby[1]), "待机亮度", `为 0 或 ${pct}–${L.standby[1]}%`);
+  chk(ids.standbyMinutes, v.standbyMinutes, (x) => x >= L.hold[0] && x <= L.hold[1], "待机时间", `可调 ${L.hold[0]}–${L.hold[1]} 分钟`);
+  chk(ids.occupiedBrightness, v.occupiedBrightness, (x) => x >= L.floorPct && x <= 100, "有人亮度", `可调 ${L.floorPct}–100%（不低于驱动下限）`);
+  if (L.total && ok(v.offMinutes) && ok(v.standbyMinutes) && !out.some(([id]) => [ids.offMinutes, ids.standbyMinutes].includes(id)) && v.offMinutes + v.standbyMinutes > L.total) {
+    const t = `延时时间与待机时间合计不超过 ${L.total} 分钟（ASHRAE 90.1-2022），现为 ${v.offMinutes + v.standbyMinutes} 分钟`;
+    out.push([ids.offMinutes, t], [ids.standbyMinutes, t]);
+  }
+  const lux = (id, x, r, name = "") => chk(id, x, (y) => y === 0 || (y >= r[0] && y <= r[1]), `${name}恒照度目标`, `为 0（关闭）或 ${v13N(r[0])}–${v13N(r[1])} lx`);
+  if (floor) L.luxTypes.filter((t) => !t.sw).forEach((t) => lux(ids.luxType + t.code, t.type ? v.luxByType?.[t.type] : v.luxTarget, t.range, t.type ? `${t.type}的` : ""));
+  else if (!L.sw && document.getElementById(ids.luxTarget)) lux(ids.luxTarget, v.luxTarget, L.lux);
+  return out;
 }
 // 保存照明控制参数（有运行数据与没有运行数据时同一流程；2026-10-09 用户确认，ABB 对比 BP63、BP64 方案一）：
 // 范围内、不需缩短占用刷新的修改是运营调整，只形成照明控制参数的新版本，照常下发，不改变点位期望配置的版本，不使功能验证失效，不需重新交付；
@@ -55118,12 +55423,16 @@ function v13OpsAdjust(db, pid, s) {
   for (const z of zones) if (own.has(z.id)) out.push([`${fname(z.floorId)} · ${z.name} · 本区覆盖 v${own.get(z.id).version}`, own.get(z.id)]);
   const dur = (x) => (x % 60 ? (x > 60 ? `${Math.floor(x / 60)} h ${x % 60} min` : `${x} min`) : `${x / 60} h`);
   return out.map(([label, c]) => {
-    const v = c.values;
+    const v = c.values,
+      // 楼层默认的恒照度目标按空间类型（总览核查第 39 条）：登记了该类型的写登记值，没有的按本行的目标照度
+      lux = c.scope === "floor" ? v.luxByType?.[s.t.spaceType] : v.luxTarget;
     const text =
       m[2] === "1"
-        ? v.luxTarget
-          ? `恒照度 ${v13N(v.luxTarget)} lx`
-          : "恒照度关闭"
+        ? lux == null
+          ? "恒照度按本行的目标照度"
+          : lux
+            ? `恒照度 ${v13N(lux)} lx`
+            : "恒照度关闭"
         : m[2] === "3"
           ? v.standbyBrightness && v.standbyMinutes
             ? `${v.offMinutes} min → ${v.standbyBrightness} % / ${v.standbyMinutes} min → 关`
@@ -56160,16 +56469,20 @@ function v13OpsAdjustRows(db, n) {
       f = M.get(db, "floors", z ? z.floorId : x.scopeId),
       place = [M.get(db, "buildings", f?.buildingId)?.name, f?.name].filter(Boolean).join(" ") + (z ? " · " + z.name : ""),
       a = x.planned,
-      b = x.values;
+      b = x.values,
+      // 楼层默认按空间类型的恒照度目标逐类比较，没有登记的类型按配置参数中的目标照度（总览核查第 39 条）
+      luxT = (o, t) => o.luxByType?.[t] ?? v13TypeLux(db, f?.id, t),
+      types = z || !a || !b ? [] : [...new Set([...Object.keys(a.luxByType || {}), ...Object.keys(b.luxByType || {})])].filter((t) => luxT(a, t) !== luxT(b, t));
     return [
       `${place} · ${z ? (b ? `本区覆盖 v${x.version}` : "恢复楼层默认") : `楼层默认 v${x.version}`}`,
       !a
         ? "交付后新增本区覆盖"
         : !b
           ? "交付时为本区覆盖，现沿用楼层默认"
-          : V13_LIGHT_KEYS.filter(([k]) => a[k] !== b[k])
-              .map(([k, l, u]) => `${l} ${v13N(a[k] ?? "—")} → ${v13N(b[k] ?? "—")}${u}`)
-              .join("；") || "值与交付时相同",
+          : [
+              ...V13_LIGHT_KEYS.filter(([k]) => a[k] !== b[k]).map(([k, l, u]) => `${l} ${v13N(a[k] ?? "—")} → ${v13N(b[k] ?? "—")}${u}`),
+              ...types.map((t) => `恒照度目标 · ${t} ${luxT(a, t) == null ? "—" : v13N(luxT(a, t))} → ${luxT(b, t) == null ? "—" : v13N(luxT(b, t))} lx`),
+            ].join("；") || "值与交付时相同",
     ];
   });
 }
@@ -59514,8 +59827,33 @@ function memberCtlWhy(ids) {
 }
 // 控制请求的权限：按钮不可用的原因之外，普通成员只能在功能区面板控制自己的功能区或其中的单台设备，
 // 多联机改运行模式会改变整套系统，系统涉及的功能区都要授权；不符合时不下发，写“只能控制授权给你的功能区”。
+// 照明能力（总览核查第 37 条（2026-10-12 用户确认）：由场景的规则 sceneGroupProblems 抽成共用）：开关控制的回路只能开到 100% 或关灯，
+// 不能调光。单台弹层、功能区亮度滑块、框选组控制条、整层菜单、控制确认、下发前核对（ctlRefuse）与回执都按它判断；
+// 原先只有场景核对，单台开关型（电梯厅 E-7F-LC20-05、卫生间 E-7F-LC20-08）也给“调光”，说明一律写“继电器 + 0–10 V”。
+function lcSwitch(p) {
+  return p?.type === "lc" && p.ctrl === "switch";
+}
+const lcCapText = (p) => (lcSwitch(p) ? "开关型（继电器通断，只开 / 关）" : "调光型（继电器 + 0–10 V）");
+const lcNames = (ps) => ps.slice(0, 6).map((p) => p.name).join("、") + (ps.length > 6 ? " 等" : "");
+// 调光动作中的开关型回路：level 为场景的亮度（开到 100% 不算调光），不给时为人工调光（数值可在确认中改，开关型一律不参与）；
+// one 为单台的写法。没有问题时为空
+function lightCapIssue(ps, dimming, level = null, one = ps.length === 1) {
+  const sw = ps.filter(lcSwitch);
+  if (!dimming || !sw.length || (level != null && level >= 100)) return "";
+  return one ? `${sw[0].name} 为开关型回路，只能开灯、关灯或恢复自动，不能调光` : `${sw.length} 台 LC20 为开关控制，只能开到 100% 或关灯：${lcNames(sw)}`;
+}
+const lightCapRefuse = (req) => (req.type === "light" ? lightCapIssue(ctlPts(req), req.cmd === "level", req.scope === "scene" ? req.level : null) : "");
+// 整层、框选、功能区的“调光”排除开关型：目标只留调光型，排除的记在 swEx（确认中列出，回执写明）；全是开关型时不打开确认
+function lightCapSplit(req) {
+  if (req.type !== "light" || req.cmd !== "level" || ["single", "scene"].includes(req.scope)) return;
+  const sw = ctlPts(req).filter(lcSwitch);
+  if (!sw.length) return;
+  if (sw.length === req.ids.length) throw Error(`${req.ids.length > 1 ? `所选 ${req.ids.length} 台都是` : `${sw[0].name} 为`}开关型回路，只能开灯、关灯或恢复自动，不能调光`);
+  req.swEx = [...(req.swEx || []), ...sw.map((p) => p.id)];
+  req.ids = req.ids.filter((id) => !req.swEx.includes(id));
+}
 function ctlRefuse(req) {
-  const why = controlReason(req.ids);
+  const why = controlReason(req.ids) || lightCapRefuse(req);
   if (U.role !== "member" || !Demo.on() || Demo.ctl.gwOffline) return why;
   const mine = memberZoneIds(),
     odu = req.type === "fc" && req.mode ? hvOduChange(req) : [],
@@ -59631,7 +59969,8 @@ function lightApply(on, level, mode = "manual", meta = {}) {
   return (pid) => {
     if (mode === "auto") return void (Demo.ctl.dev[pid] = { auto: true });
     const man = mode === "manual" || (mode === "keep" && !!Demo.device(g("points", pid))?.manual);
-    Demo.ctl.dev[pid] = { on, level: on ? level : 0, manual: man, ...(man ? { at: opsNow(), by: meta.by || OPS_WHO(), ...(meta.scene ? { scene: meta.scene } : {}) } : {}) };
+    // 开关型回路开灯即 100%（总览核查第 37 条）
+    Demo.ctl.dev[pid] = { on, level: on ? (lcSwitch(g("points", pid)) ? 100 : level) : 0, manual: man, ...(man ? { at: opsNow(), by: meta.by || OPS_WHO(), ...(meta.scene ? { scene: meta.scene } : {}) } : {}) };
   };
 }
 const ROLE_BY = () => ({ admin: "机构管理员", config: "配置人员", ops: "运营人员", member: "普通成员" })[U.role] || "平台";
@@ -59735,7 +60074,28 @@ function ctlAction(req) {
     return { sp: "设定温度", on: "开启", off: "关闭", auto: "恢复自动" }[hvCmd(req)] + (m ? `，模式改为${m}` : "");
   }
   // 照明（含场景）（2026-10-09 用户确认，ABB 对比 BP75）：调光写目标亮度（dimText），确认中改目标亮度时随之更新；场景另有空调动作时写在后面（BP76）
-  return ({ on: "开灯（保持自动）", off: "关灯（保持自动）", auto: "恢复自动" }[req.cmd] || dimText(req.level)) + (req.hv ? "；" + scHvText(req.hv.hvac) : "");
+  // 开 / 关的目标中有手动对象时写明：手动的保持手动、重新计时到何时，其余保持自动（总览核查第 38 条（2026-10-12 用户确认）：
+  // 原先一律写“开灯（保持自动）”；按钮名不改）
+  const km = ["on", "off"].includes(req.cmd) ? ctlKeepManual(req) : null,
+    base = km?.text ? `${req.cmd === "on" ? "开灯" : "关灯"}：${km.text}${km.rest ? `；其余${km.unit}保持自动` : ""}` : null;
+  return (base || { on: "开灯（保持自动）", off: "关灯（保持自动）", auto: "恢复自动" }[req.cmd] || dimText(req.level)) + (req.hv ? "；" + scHvText(req.hv.hvac) : "");
+}
+// 开 / 关灯时目标中已在手动的对象（功能区，单台与框选按设备）：保持手动、从现在重新计时，恢复时间按各自的“手动后恢复自动”时长或先到的定时；
+// 返回 { text：“办公室 703 保持手动，13:05 恢复自动”，rest：是否还有自动的对象，unit：功能区 / 设备 }，没有手动对象时 text 为空
+function ctlKeepManual(req) {
+  const now = opsNow(),
+    zone = !["single", "box"].includes(req.scope),
+    all = zone ? ctlZones(req).map((zid) => Demo.zoneState(zid)) : ctlPts(req).filter((p) => Demo.device(p).online),
+    man = zone
+      ? all.filter((s) => s.light.manual).map((s) => [s.z.name, Demo.resumeAt(s.cfg, now, s.z.id)])
+      : all.filter((p) => Demo.device(p).manual).map((p) => [req.scope === "single" ? "这台设备" : p.name, Demo.resumeAt(Demo.lighting(p.zoneId).values, now, p.zoneId)]),
+    by = new Map();
+  man.forEach(([n, t]) => by.set(t, [...(by.get(t) || []), n]));
+  return {
+    text: [...by].map(([t, ns]) => `${zhSub(ns.join("、"), "r")}保持手动，${ctlWhen(t)} 恢复自动`).join("；"),
+    rest: man.length < all.length,
+    unit: zone ? "功能区" : "设备",
+  };
 }
 // 照明：开 / 关不退出自动控制，调光进入手动、按功能区的“手动后恢复自动”时长恢复；目标中已在手动的功能区（单台与框选按设备）写明原定恢复时间
 function ctlLightRows(req) {
@@ -59768,14 +60128,19 @@ function ctlLightRows(req) {
     ]);
   else if (req.cmd === "auto")
     rows.push(["自动控制", busy ? `结束手动：${who}立即回到自动控制。` : req.scope === "single" ? "这台设备当前为自动控制，下发后保持自动。" : "目标当前都为自动控制，下发后保持自动。"]);
-  else
+  else {
+    // 有手动对象时分开写：自动的保持自动，手动的保持手动、重新计时到何时（总览核查第 38 条（2026-10-12 用户确认）：
+    // 原先只写“开灯不退出自动控制”，手动对象另在“影响”中写“重新计时”，不写恢复时间）
+    const km = ctlKeepManual(req),
+      tail = req.cmd === "on" ? `无人超过 ${offs.length === 1 ? offs[0] + " 分钟" : "各功能区的“延时时间”"}后按感应序列关灯` : "功能区出现一次“无人”后才会再次感应开灯";
     rows.push([
       "自动控制",
-      req.cmd === "on"
-        ? `开灯不退出自动控制：无人超过 ${offs.length === 1 ? offs[0] + " 分钟" : "各功能区的“延时时间”"}后按感应序列关灯。`
-        : "关灯不退出自动控制：功能区出现一次“无人”后才会再次感应开灯。",
+      km.text
+        ? `${km.rest ? `其余${km.unit}保持自动：${tail}。` : ""}${km.text}（开 / 关仍属手动操作，从现在重新计时）。`
+        : `${req.cmd === "on" ? "开灯" : "关灯"}不退出自动控制：${tail}。`,
     ]);
-  if (busy && req.cmd !== "auto") rows.push(["影响", `${req.scope === "scene" ? "执行场景会覆盖手动状态：" : ""}${who}正处于手动控制，${req.cmd === "level" ? "按本次的亮度重新计时" : "开 / 关仍属手动操作，重新计时"}。`]);
+  }
+  if (busy && req.cmd === "level") rows.push(["影响", `${req.scope === "scene" ? "执行场景会覆盖手动状态：" : ""}${who}正处于手动控制，${req.cmd === "level" ? "按本次的亮度重新计时" : "开 / 关仍属手动操作，重新计时"}。`]);
   return rows;
 }
 // 空调（OPS03、CTRL02；2026-10-09 暖通空调方案评估）：可写数据点（按设备与可调范围）、有效期（H-06、H-28）、控制关系（X-01）、
@@ -59903,7 +60268,9 @@ function ctlRestRows(req) {
     old = req.retry ? Demo.ctl.cmds[req.retry] : null,
     fcN = ps.filter((p) => p.type === "fc").length,
     iduN = ps.filter((p) => p.type === "idu").length,
-    kind = req.type !== "fc" ? `${ps.length} 台 LC20` : [fcN && `${fcN} 台 FC20`, iduN && `${iduN} 台多联机内机`].filter(Boolean).join("、"),
+    // 调光排除开关型时写“可调光 N 台”，排除的另起一行列出（总览核查第 37 条）
+    kind = req.type !== "fc" ? `${req.swEx?.length ? "可调光 " : ""}${ps.length} 台 LC20` : [fcN && `${fcN} 台 FC20`, iduN && `${iduN} 台多联机内机`].filter(Boolean).join("、"),
+    swEx = (req.swEx || []).map((id) => g("points", id)).filter(Boolean),
     all =
       ps.length < 2
         ? ""
@@ -59912,6 +60279,7 @@ function ctlRestRows(req) {
           .join("")}</ul></details>`;
   return [
     ["范围", `${kind} · ${ps.length - off.length} 台在线${off.length ? ` · <span class="${offCls(off)}">${off.length} 台离线</span>` : ""}${zids.length > 1 ? ` · ${zids.length} 个功能区` : ""}${all}`],
+    ...(swEx.length ? [["排除（开关型）", esc(`${swEx.length} 台：${swEx.map((p) => `${p.name}（${zoneNm(p.zoneId)}）`).join("、")}。开关型回路只能开灯或关灯，不参与调光。`)]] : []),
     ...(off.length
       ? [["当前离线", esc(`${off.map((p) => `${p.name}（${zoneNm(p.zoneId)} · 离线 ${durText(Demo.device(p).offlineMin)}）`).join("、")}：${one ? "命令会发出，但设备离线时不会执行，5 秒内收不到确认时显示“未确认”。" : "不会执行，回报中计为未回报。"}`)]]
       : []),
@@ -59926,6 +60294,7 @@ function ctlRestRows(req) {
   ];
 }
 function ctlConfirm(req) {
+  lightCapSplit(req);
   const refuse = ctlRefuse(req);
   if (refuse) throw Error(refuse);
   const ps = ctlPts(req);
@@ -60013,11 +60382,12 @@ function ctlSend(req) {
   const { cmd, level, pid } = req;
   if (req.type === "fc") return hvSend(req);
   const mode = cmd === "auto" ? "auto" : cmd === "level" ? "manual" : "keep",
-    label = lightLabel(cmd, level);
+    // 回执与操作记录写明调光排除的开关型台数（总览核查第 37 条）
+    label = lightLabel(cmd, level) + (req.swEx?.length ? ` · 不含开关型 ${req.swEx.length} 台` : "");
   if (req.scope === "single") return ((Demo.ctl.devCmd ||= {})[pid] = sendSingle(pid, label, () => lightApply(cmd !== "off", level, mode)(pid), req));
   if (req.scope === "box") return (Demo.ctl.selCmd = sendGroup(req.ids, label, lightApply(cmd !== "off", level, mode), "框选"));
-  if (req.scope === "zone") return ((Demo.ctl.zoneCmd ||= {})[req.zid] = lightCommand({ zoneIds: [req.zid], label: zoneNm(req.zid) }, req.ids, cmd, level));
-  if (req.scope === "floor") return (Demo.ctl.floorCmd = lightCommand({ zoneIds: ctlZones(req), label: "E栋 7F" }, req.ids, cmd, level));
+  if (req.scope === "zone") return ((Demo.ctl.zoneCmd ||= {})[req.zid] = lightCommand({ zoneIds: [req.zid], label: zoneNm(req.zid), title: label }, req.ids, cmd, level));
+  if (req.scope === "floor") return (Demo.ctl.floorCmd = lightCommand({ zoneIds: ctlZones(req), label: "E栋 7F", title: label }, req.ids, cmd, level));
   const s = g("scenes", req.sid),
     // 场景的空调动作（BP76）先下发，回执另列一行；照明的回执与执行记录照旧
     hvId = ((Demo.ctl.sceneHvCmd ||= {})[s.id] = req.hv?.ids.length ? hvSend({ ...req.hv, title: `执行“${s.name}”` }) : null),
@@ -60210,7 +60580,12 @@ function zonePanel(zid, mode = "inline") {
   const light = `<section class="ops-zp-sec"><h4>${ico("bulb", "ic16")}照明<span class="sp"></span>${s.gwUnknown ? `${lastTag}<span class="ops-dim">${s.light.onCount ? `亮度 ${s.light.level}%` : "关"}</span>` : ""}${s.light.manual ? badge("手动", "warn") : badge("自动", "info")}</h4>
     <p class="ops-zp-sub">${s.light.count} 个照明控制器 · 亮 ${s.light.onCount}${s.light.offline ? ` · <span class="${offCls(z.lcs.filter(Demo.offline))}">离线 ${s.light.offline}</span>` : ""}${s.gwUnknown ? " · 状态未知" : ""}</p>
     ${rt && s.gwUnknown ? `<div class="ops-lastrec-w">${lastTag}${rt}</div>` : rt}
-    <div class="ops-ctl-row">${ctlBtn("开灯", "opsZoneLight", { id: z.id, cmd: "on" }, "sm", lcIds)}${ctlBtn("关灯", "opsZoneLight", { id: z.id, cmd: "off" }, "sm", lcIds)}<label class="ops-slider ${canControl(lcIds) ? "" : "dis"}" data-tip="${esc(canControl(lcIds) ? "调光即进入手动，按“手动后恢复自动”的时长恢复自动；开 / 关灯不退出自动" : controlReason(lcIds))}"><input type="range" min="10" max="100" step="5" value="${s.light.on ? s.light.level || 10 : 10}" data-zone-level="${z.id}" data-out="${s.light.on ? s.light.level + "%" : "关"}" style="--p:${(((s.light.on ? s.light.level || 10 : 10) - 10) / 90) * 100}%" ${canControl(lcIds) ? "" : "disabled"} aria-label="亮度（进入手动）"><output>${s.light.on ? s.light.level + "%" : "关"}</output></label></div>
+    <div class="ops-ctl-row">${ctlBtn("开灯", "opsZoneLight", { id: z.id, cmd: "on" }, "sm", lcIds)}${ctlBtn("关灯", "opsZoneLight", { id: z.id, cmd: "off" }, "sm", lcIds)}${
+      // 本区都是开关型回路时没有亮度滑块；有部分开关型时调光只作用于调光型（总览核查第 37 条（2026-10-12 用户确认）：原先都给滑块）
+      z.lcs.every(lcSwitch)
+        ? `<span class="ops-dim ops-sw-note">开关型回路，只能开灯、关灯</span>`
+        : `<label class="ops-slider ${canControl(lcIds) ? "" : "dis"}" data-tip="${esc(canControl(lcIds) ? `调光即进入手动，按“手动后恢复自动”的时长恢复自动；开 / 关灯不退出自动${z.lcs.some(lcSwitch) ? `；开关型 ${z.lcs.filter(lcSwitch).length} 台不参与调光` : ""}` : controlReason(lcIds))}"><input type="range" min="10" max="100" step="5" value="${s.light.on ? s.light.level || 10 : 10}" data-zone-level="${z.id}" data-out="${s.light.on ? s.light.level + "%" : "关"}" style="--p:${(((s.light.on ? s.light.level || 10 : 10) - 10) / 90) * 100}%" ${canControl(lcIds) ? "" : "disabled"} aria-label="亮度（进入手动）"><output>${s.light.on ? s.light.level + "%" : "关"}</output></label>`
+    }</div>
     ${ctlWhy("p", lcIds)}${last ? rcpt(last) : ""}
     <div class="ops-circuits ${s.gwUnknown ? "ops-stale" : ""}">${s.circuits
       .map(
@@ -60244,7 +60619,7 @@ function zonePanel(zid, mode = "inline") {
     s.gwUnknown ? `<p class="ops-zp-sub">状态未知：网关离线，暂无最新数据。</p>` : !s.ms.count && !s.aqDev.count ? `<p class="ops-zp-sub">无传感器覆盖</p>` : msBody + aqBody
   }</section>`;
   // 普通成员的面板只有照明、暖通空调、室内环境三节，不显示“本区照明控制参数”（2026-10-09 用户确认，角色权限方案第 4 条）
-  const params = U.role === "member" ? "" : `<section class="ops-zp-sec"><h4>${ico("edit", "ic16")}本区照明控制参数<span class="sp"></span>${cfgRow ? badge("本区覆盖 · v" + cfgRow.version, "info") : `<span class="ops-dim">沿用楼层默认</span>`}</h4><dl class="ops-kv"><dt>延时时间</dt><dd>${v.offMinutes} 分钟</dd><dt>待机亮度</dt><dd>${v.standbyBrightness}%</dd><dt>待机时间</dt><dd>${v.standbyMinutes} 分钟</dd><dt>有人亮度</dt><dd>${v.occupiedBrightness}%</dd><dt>恒照度目标</dt><dd>${v.luxTarget ? v.luxTarget + " lx" : "关闭"}</dd><dt>手动后恢复自动</dt><dd>${
+  const params = U.role === "member" ? "" : `<section class="ops-zp-sec"><h4>${ico("edit", "ic16")}本区照明控制参数<span class="sp"></span>${cfgRow ? badge("本区覆盖 · v" + cfgRow.version, "info") : `<span class="ops-dim">沿用楼层默认</span>`}</h4><dl class="ops-kv"><dt>延时时间</dt><dd>${v.offMinutes} 分钟</dd><dt>待机亮度</dt><dd>${v.standbyBrightness}%</dd><dt>待机时间</dt><dd>${v.standbyMinutes} 分钟</dd><dt>有人亮度</dt><dd>${v.occupiedBrightness}%</dd><dt>恒照度目标</dt><dd>${z.lcs.length && z.lcs.every(lcSwitch) ? "不适用（开关型回路）" : v.luxTarget ? v.luxTarget + " lx" : "关闭"}</dd><dt>手动后恢复自动</dt><dd>${
     // 只在“ · ”处换行：放不下时“工作时间 2 小时 ·”一行、“非工作时间 30 分钟”下一行（全面设计核查第 93 条，2026-10-12 用户确认：
     // 原先在 380 宽的面板里折成“非工作时 / 间”）
     auSegs([`工作时间 ${hrsTxt(Demo.resumeCfg(v).work)}`, `非工作时间 ${hrsTxt(Demo.resumeCfg(v).off)}`])
@@ -60287,22 +60662,29 @@ function hvFoot(z, s) {
   );
 }
 // 空调的控制按钮：只监测的设备、没有手动控制时的“恢复自动”不可用，原因写在按钮提示中
-function hvBtn(label, p, d, op, cls) {
-  const why = controlReason([p.id]) ? "" : hvMonitorWhy(d.range) || (op === "auto" && !d.manual ? `当前没有手动控制：按时间表${p.type === "fc" ? "与占用" : ""}运行` : "");
-  return why ? disBtn(label, "opsFc", { id: p.id, op }, cls, why) : ctlBtn(label, "opsFc", { id: p.id, op }, cls, [p.id]);
+// name：读屏名称（含设备名），desc：说明的元素 id（总览核查第 45 条）
+function hvBtn(label, p, d, op, cls, name = "", desc = "") {
+  const why = controlReason([p.id]) ? "" : hvMonitorWhy(d.range) || (op === "auto" && !d.manual ? `当前没有手动控制：按时间表${p.type === "fc" ? "与占用" : ""}运行` : ""),
+    h = why ? disBtn(label, "opsFc", { id: p.id, op }, cls, why) : ctlBtn(label, "opsFc", { id: p.id, op }, cls, [p.id]);
+  return name || desc ? h.replace("<button ", `<button ${name ? `aria-label="${esc(name)}" ` : ""}${desc ? `aria-describedby="${esc(desc)}" ` : ""}`) : h;
 }
 // 设定调节：风机盘管改舒适设定（待机、节能时设备按偏移后的设定运行，标明“舒适设定”），多联机改写入的目标
-function hvStep(p, d, idle) {
+// “−”“+”外观不变，读屏名称为“降低 / 提高 {设备名} 的舒适设定温度”（风机盘管）或“…的设定温度”（多联机内机），说明为当前值、范围与步长
+// （总览核查第 45 条（2026-10-12 用户确认）：原先只读“−”“+”）。ctx 区分功能区面板与单台弹层，说明的 id 不重复
+function hvStep(p, d, idle, ctx = "zp") {
   const r = d.range,
-    tip = r.monitor ? hvMonitorWhy(r) : `可调 ${hvRangeText(r)}，每档 ${hvcT(r.step)} ℃`;
-  return `${idle ? `<span class="ops-dim ops-step-l">舒适设定</span>` : ""}<span class="ops-step" data-tip="${esc(tip)}">${hvBtn("−", p, d, "down", "sm")}<b class="ops-num">${hvSpText(p, p.type === "idu" ? d.target : d.comfort)}</b>${hvBtn("+", p, d, "up", "sm")}</span>`;
+    tip = r.monitor ? hvMonitorWhy(r) : `可调 ${hvRangeText(r)}，每档 ${hvcT(r.step)} ℃`,
+    what = p.type === "idu" ? "设定温度" : "舒适设定温度",
+    cur = hvSpText(p, p.type === "idu" ? d.target : d.comfort),
+    did = `hvsp-${ctx}-${p.id}`;
+  return `${idle ? `<span class="ops-dim ops-step-l">舒适设定</span>` : ""}<span class="ops-step" data-tip="${esc(tip)}">${hvBtn("−", p, d, "down", "sm", `降低 ${p.name} 的${what}`, did)}<b class="ops-num">${cur}</b>${hvBtn("+", p, d, "up", "sm", `提高 ${p.name} 的${what}`, did)}<span class="sr-only" id="${esc(did)}">当前${what} ${cur}；${esc(tip)}</span></span>`;
 }
 // 空调“关闭”在单台弹层、组控制条、功能区面板三处都用浅色按钮（Lovable 核查第 241 条，2026-10-11 用户确认）
 function hvRow(p, s) {
   const d = Demo.device(p),
     r = Demo.ctl.devCmd?.[p.id],
     fc = p.type === "fc";
-  return `<div class="ops-fc"><div class="ops-fc-h"><b>${esc(p.name)}</b><span class="ops-dim">${fc ? "风机盘管 · FC20 本地温控" : "多联机内机 · 经空调网关 VG2x"}</span></div>${fc ? fcLines(p, d) : iduLines(p, d)}<div class="ops-ctl-row">${hvStep(p, d, fc && hvcIdle(s) && !s.gwUnknown)}<span class="sp"></span>${hvBtn(d.on ? "关闭" : "开启", p, d, "power", "sm")}${hvBtn("恢复自动", p, d, "auto", "sm ghost")}</div>${r ? rcpt(r) : ""}</div>`;
+  return `<div class="ops-fc"><div class="ops-fc-h"><b>${esc(p.name)}</b><span class="ops-dim">${fc ? "风机盘管 · FC20 本地温控" : "多联机内机 · 经空调网关 VG2x"}</span></div>${fc ? fcLines(p, d) : iduLines(p, d)}<div class="ops-ctl-row">${hvStep(p, d, fc && hvcIdle(s) && !s.gwUnknown)}<span class="sp"></span>${hvBtn(d.on ? "关闭" : "开启", p, d, "power", "sm", `${d.on ? "关闭" : "开启"} ${p.name}`)}${hvBtn("恢复自动", p, d, "auto", "sm ghost", `恢复自动 ${p.name}`)}</div>${r ? rcpt(r) : ""}</div>`;
 }
 // 设定与回读：单台调温等待确认时写目标与“等待设备确认”；多联机写入的目标与内机回读不同时分别写出
 function hvSetSegs(p, d) {
@@ -60345,9 +60727,24 @@ function aqPlace(z) {
   if (reg?.pos || reg?.rep) return `<p class="ops-zp-sub">采集位置：${esc([AQ_POS[reg.pos] || "位置未登记", AQ_REP[reg.rep] || "代表性未登记"].join(" · "))}</p>`;
   return `<p class="ops-zp-sub">采集位置与代表性未登记${canEdit() ? ` · <button class="ops-link" data-act="applicationSettings" data-kind="室内环境" data-project="${OPS_SCOPE.project}" data-floor="${OPS_SCOPE.floor}">在室内环境设置中登记</button>` : ""}</p>`;
 }
+// 同步状态（总览核查第 42 条）：已保存、等待下发 → 设备逐台确认（n / 全部目标）→ 全部确认为“已同步”；有离线的写“已同步 a/N 台，b 台离线待同步”，
+// 全部离线时不写“已同步”。分母始终为实际目标设备数
 function syncChip(zid) {
-  const s = Demo.ctl.sync[zid];
-  return `<div class="ops-sync" data-zbit="sync" data-id="${zid}">${s.done >= s.total ? ico("check", "ic16") + "已同步 v" + s.version : `<span class="ops-spin"></span>正在同步 ${s.done} / ${s.total}`}<small>${s.done >= s.total ? "配置已写入本区全部 LC20" : "网关正在下发配置"}</small></div>`;
+  const s = Demo.ctl.sync[zid],
+    on = s.online ?? s.total,
+    off = s.total - on,
+    end = s.done >= on,
+    ver = s.label ?? `v${s.version}`,
+    where = s.where || "本区",
+    ex = s.note ? `（${s.note}）` : "",
+    [cls, icon, head, sub] = !end
+      ? ["", '<span class="ops-spin"></span>', s.done ? `正在同步 ${s.done} / ${s.total} 台` : `${ver} 已保存，等待下发`, `网关正在下发到${where} ${s.total} 台 LC20${ex}${off ? `；${off} 台离线，恢复在线后补发` : ""}`]
+      : !off
+        ? ["", ico("check", "ic16"), `已同步 ${ver}`, `设备已确认 ${s.total} / ${s.total} 台 · 配置已写入${where}全部 LC20${ex}`]
+        : on
+          ? [" warn", ico("alert", "ic16"), `参数已保存；已同步 ${on}/${s.total} 台，${off} 台离线待同步`, `${ver} · 离线设备恢复在线后由网关补发`]
+          : [" warn", ico("alert", "ic16"), `参数已保存；${off} 台离线，尚未同步`, `${ver} · 设备恢复在线后由网关下发`];
+  return `<div class="ops-sync${cls}" data-zbit="sync" data-id="${zid}">${icon}<span class="ops-sync-b">${esc(head)}</span><small>${esc(sub)}</small></div>`;
 }
 ZBITS.sync = (id) => (Demo.ctl.sync?.[id] ? syncChip(id) : "");
 
@@ -60357,13 +60754,16 @@ function devicePop(el, pid) {
     r = Demo.ctl.devCmd?.[pid];
   // 弹层 role=dialog，名称取设备名（Lovable 核查第 238 条，2026-10-11 用户确认）
   let body = `<div class="ops-devpop" role="dialog" aria-labelledby="opsDevPopH"><div class="ops-devpop-h"><b id="opsDevPopH">${esc(p.name)}</b><span class="ops-dim">${esc(Demo.zoneOf(p.zoneId)?.name || "")} · ${d.unknown ? "状态未知" : d.online ? "在线" : d.offlineMin == null ? "离线" : `离线 ${durText(d.offlineMin)}`}</span></div>`;
-  if (p.type === "lc")
-    body += `<p class="ops-zp-sub">${!d.online ? `最后上报：${d.on ? `亮 ${d.level}%` : "关"} · ${Demo.hm(Date.parse(p.telemetry.offlineSince) - Demo.offAfter(p) * Demo.MIN)}` : `${d.on ? `亮 ${d.level}%` : "关"}${d.manual ? " · 手动" : " · 自动"}`} · ${p.drivers} 台驱动 · 单回路（继电器 + 0–10 V）</p><div class="ops-ctl-row">${ctlBtn("开灯", "opsDevLight", { id: pid, cmd: "on" }, "sm", [pid])}${ctlBtn("关灯", "opsDevLight", { id: pid, cmd: "off" }, "sm", [pid])}${ctlBtn("调光", "opsDevLight", { id: pid, cmd: "level" }, "sm", [pid])}${ctlBtn("恢复自动", "opsDevLight", { id: pid, cmd: "auto" }, "sm ghost", [pid])}</div><p class="ops-foot">开 / 关灯不退出自动控制；调光即进入手动。</p>`;
+  // 开关型只给开灯、关灯、恢复自动，说明写实际类型（总览核查第 37 条（2026-10-12 用户确认）：原先都有“调光”，一律写“继电器 + 0–10 V”）
+  if (p.type === "lc") {
+    const sw = lcSwitch(p);
+    body += `<p class="ops-zp-sub">${!d.online ? `最后上报：${d.on ? `亮 ${d.level}%` : "关"} · ${Demo.hm(Date.parse(p.telemetry.offlineSince) - Demo.offAfter(p) * Demo.MIN)}` : `${d.on ? `亮 ${d.level}%` : "关"}${d.manual ? " · 手动" : " · 自动"}`} · ${p.drivers} 台驱动 · 单回路 · ${lcCapText(p)}</p><div class="ops-ctl-row">${ctlBtn("开灯", "opsDevLight", { id: pid, cmd: "on" }, "sm", [pid])}${ctlBtn("关灯", "opsDevLight", { id: pid, cmd: "off" }, "sm", [pid])}${sw ? "" : ctlBtn("调光", "opsDevLight", { id: pid, cmd: "level" }, "sm", [pid])}${ctlBtn("恢复自动", "opsDevLight", { id: pid, cmd: "auto" }, "sm ghost", [pid])}</div><p class="ops-foot">${sw ? "开 / 关灯不退出自动控制；开关型回路不能调光。" : "开 / 关灯不退出自动控制；调光即进入手动。"}</p>`;
+  }
   // 空调单台：与功能区面板相同的读数、设定调节、开关与恢复自动；多联机写明写入次数
   if (isHv(p)) {
     const s = Demo.zoneState(p.zoneId),
       mon = hvMonitorWhy(d.range);
-    body += `${p.type === "fc" ? fcLines(p, d) : iduLines(p, d)}<div class="ops-ctl-row">${hvStep(p, d, p.type === "fc" && hvcIdle(s) && !s.gwUnknown)}${hvBtn(d.on ? "关闭" : "开启", p, d, "power", "sm")}${hvBtn("恢复自动", p, d, "auto", "sm ghost")}</div>${mon && canControl([pid]) ? `<p class="ops-dis-why">${ico("info", "ic16")}<span>${esc(mon)}</span></p>` : ""}${p.type === "idu" ? `<p class="ops-foot">多联机每次调整计入写入次数（每点每天 ≤ ${hvacVrfSpec(hvacOdu(data(), p)).writeLimit || HVAC_WRITE.perDay} 次）。温控开 / 温控关为原厂 Thermo ON/OFF，表示温控需求，不等于压缩机在运行。</p>` : ""}`;
+    body += `${p.type === "fc" ? fcLines(p, d) : iduLines(p, d)}<div class="ops-ctl-row">${hvStep(p, d, p.type === "fc" && hvcIdle(s) && !s.gwUnknown, "pop")}${hvBtn(d.on ? "关闭" : "开启", p, d, "power", "sm", `${d.on ? "关闭" : "开启"} ${p.name}`)}${hvBtn("恢复自动", p, d, "auto", "sm ghost", `恢复自动 ${p.name}`)}</div>${mon && canControl([pid]) ? `<p class="ops-dis-why">${ico("info", "ic16")}<span>${esc(mon)}</span></p>` : ""}${p.type === "idu" ? `<p class="ops-foot">多联机每次调整计入写入次数（每点每天 ≤ ${hvacVrfSpec(hvacOdu(data(), p)).writeLimit || HVAC_WRITE.perDay} 次）。温控开 / 温控关为原厂 Thermo ON/OFF，表示温控需求，不等于压缩机在运行。</p>` : ""}`;
   }
   if (hvacSplit(p)) body += splitLines(p, d);
   if (p.type === "ms") body += `<p class="ops-zp-sub">${d.occupied ? "有人" : "无人"} · ${nf(d.temp, 1)} ℃ · ${d.rh}%${d.lux != null ? ` · 照度源 ${nf(d.lux)} lx` : ""} · ${agoText(d.age)}</p>`;
@@ -60397,7 +60797,13 @@ function groupBar(tab) {
   }
   const what = `已选 ${ps.length} 台 · ${lc ? "照明控制器" : hvKindName(ps)}`;
   return `${groupLive(esc(what))}<div class="ops-groupbar" role="region" aria-label="组控制"><span><b>${esc(what)}</b><small>组控制 · 回报 10–30 秒</small></span>${
-    lc ? ctlBtn("开灯", "opsSelLight", { cmd: "on" }, "sm", ids) + ctlBtn("关灯", "opsSelLight", { cmd: "off" }, "sm", ids) + ctlBtn("调光", "opsSelLight", { cmd: "level" }, "sm", ids) + ctlBtn("恢复自动", "opsSelLight", { cmd: "auto" }, "sm ghost", ids) : hv
+    // 所选都是开关型时“调光”不可用并写明原因；有部分开关型时确认中排除（总览核查第 37 条）
+    lc
+      ? ctlBtn("开灯", "opsSelLight", { cmd: "on" }, "sm", ids) +
+        ctlBtn("关灯", "opsSelLight", { cmd: "off" }, "sm", ids) +
+        (ps.every(lcSwitch) && canControl(ids) ? disBtn("调光", "opsSelLight", { cmd: "level" }, "sm", "所选都是开关型回路，只能开灯、关灯或恢复自动") : ctlBtn("调光", "opsSelLight", { cmd: "level" }, "sm", ids)) +
+        ctlBtn("恢复自动", "opsSelLight", { cmd: "auto" }, "sm ghost", ids)
+      : hv
   }${ctlWhy("span", ids)}${r ? rcpt(r) : ""}<span class="sp"></span>${btn("取消选择", "opsSelClear", {}, "ghost sm")}</div>`;
 }
 
@@ -60824,7 +61230,10 @@ function ovSpace(tab) {
   // 控制不可用的原因常显在状态条下（V7）；网关离线时横幅已写明
   const why = tab !== "environment" && !Demo.ctl.gwOffline ? ctlWhy() : "";
   // 整层控制的回执放在状态条下面，通栏（Lovable 核查第 249 条，2026-10-11 用户确认：原先在楼层图卡片底部，1440×900 时一半在屏外）
-  const floorRcpt = Demo.ctl.floorCmd ? `<div class="ops-floor-rcpt">${rcpt(Demo.ctl.floorCmd)}</div>` : "";
+  const floorRcpt =
+    (Demo.ctl.floorCmd ? `<div class="ops-floor-rcpt">${rcpt(Demo.ctl.floorCmd)}</div>` : "") +
+    // 楼层默认照明控制参数保存后的整层回执（总览核查第 42 条）
+    (tab === "lighting" && Demo.ctl.sync?.[OPS_SCOPE.floor] ? `<div class="ops-floor-rcpt ops-floor-sync">${syncChip(OPS_SCOPE.floor)}</div>` : "");
   return `${stripRow}${floorRcpt}${sys}${why}<div class="ops-split ${U.opsZone ? "open" : ""}"><div class="ops-split-main">${plan}${list}</div>${U.opsZone ? zonePanel(U.opsZone) : ""}</div>`;
 }
 function zoneTable(tab, zs) {
@@ -63954,10 +64363,11 @@ function capOverText(over, scenesOf, lim) {
 function sceneGroupProblems(group, action, level) {
   const ps = group.pointIds.map((id) => g("points", id)).filter(Boolean),
     other = ps.filter((p) => p.type !== "lc"),
-    sw = ps.filter((p) => p.type === "lc" && p.ctrl === "switch");
+    // 开关型回路的判断与控制共用 lightCapIssue（总览核查第 37 条（2026-10-12 用户确认）；原为本函数内单独判断）
+    cap = action === "开启" ? lightCapIssue(ps, true, level, false) : "";
   if (!ps.some((p) => p.type === "lc")) return `“${group.name}”中没有照明控制器（LC20），照明场景不能执行`;
   if (other.length) return `“${group.name}”中有 ${other.length} 台不是照明控制器（LC20）：${other.slice(0, 6).map((p) => p.name).join("、")}${other.length > 6 ? " 等" : ""}；照明场景只能使用只含 LC20 的分组`;
-  if (action === "开启" && level < 100 && sw.length) return `${sw.length} 台 LC20 为开关控制，只能开到 100% 或关灯：${sw.slice(0, 6).map((p) => p.name).join("、")}${sw.length > 6 ? " 等" : ""}；请把亮度设为 100% 或缩小分组`;
+  if (cap) return `${cap}；请把亮度设为 100% 或缩小分组`;
   return "";
 }
 async function opsSceneSave() {
@@ -64198,27 +64608,35 @@ function paramsModal(zoneId, floorId) {
     cur = z ? Demo.lighting(z.id) : F.lightingFor(data(), { floorId, zoneId: null }),
     v = cur.values,
     own = data().lightingConfigs.find((c) => c.scope === (z ? "zone" : "floor") && c.scopeId === scopeId && c.values),
-    // 按配置参数中批准的可调范围（BP81 方案一）
-    L = v13LightLimits(data(), OPS_SCOPE.floor, z ? z.id : null),
-    hint = v13LightHints(L);
-  formState = { kind: "opsParams", scope: z ? "zone" : "floor", scopeId, floorId: OPS_SCOPE.floor, limits: L };
-  const lcs = z ? z.lcs.length : data().points.filter((p) => p.floorId === OPS_SCOPE.floor && p.type === "lc").length;
+    // 按配置参数中批准的可调范围（BP81 方案一）；楼层默认的恒照度目标按空间类型（总览核查第 39 条）
+    L = v13LightLimits(data(), OPS_SCOPE.floor, z ? z.id : null);
+  formState = { kind: "opsParams", scope: z ? "zone" : "floor", scopeId, floorId: OPS_SCOPE.floor, limits: L, base: v };
+  // 楼层默认下发到沿用楼层默认的功能区，不含有本区覆盖的（总览核查第 42 条（2026-10-12 用户确认）：原先写本层全部 28 台）
+  const tg = z ? null : floorDefaultTargets(OPS_SCOPE.floor),
+    lcs = z ? z.lcs.length : tg.ids.length;
   modal(
     // 楼层默认的标题写实际楼层（2026-10-09 用户确认，ABB 对比 BP73、BP75）
     z ? `${z.name} · 照明控制参数` : `${floorLabel(floorId || OPS_SCOPE.floor)} · 楼层默认照明控制参数`,
-    `<p class="ops-modal-sub">${z ? (own ? `本区覆盖 v${own.version}，其余功能区沿用楼层默认。` : "当前沿用楼层默认；保存后成为本区覆盖。") : `楼层默认 v${own?.version || 0}，作用于未覆盖的功能区。`}保存后形成照明控制参数的新版本，经网关下发到 ${lcs} 台 LC20。</p>
-    <div class="ws-form-row occ3">${fld("延时时间", "opOff", `<div class="ops-unit-in">${input("opOff", v.offMinutes, "", "number")}<span>分钟</span></div>`, hint.off)}${fld("待机亮度", "opStandby", `<div class="ops-unit-in">${input("opStandby", v.standbyBrightness, "", "number")}<span>%</span></div>`, hint.standby)}${fld("待机时间", "opHold", `<div class="ops-unit-in">${input("opHold", v.standbyMinutes, "", "number")}<span>分钟</span></div>`, hint.hold)}</div>
-    <div class="ws-form-row">${fld("有人亮度", "opOcc", `<div class="ops-unit-in">${input("opOcc", v.occupiedBrightness, "", "number")}<span>%</span></div>`, hint.occ)}${fld("恒照度目标", "opLux", `<div class="ops-unit-in">${input("opLux", v.luxTarget, "", "number")}<span>lx</span></div>`, hint.lux)}</div>
-    <div class="ws-form-row aligned">${fld("手动后恢复自动 · 工作时间", "opResume", select("opResume", [[15, "15 分钟"], [30, "30 分钟"], [60, "1 小时"], [90, "1 小时 30 分钟"], [120, "2 小时"]], Demo.resumeCfg(v).work, "工作时间手动后恢复自动"), "默认 2 小时")}${fld("手动后恢复自动 · 非工作时间", "opResumeOff", select("opResumeOff", [[15, "15 分钟"], [30, "30 分钟"], [60, "1 小时"], [90, "1 小时 30 分钟"], [120, "2 小时"]], Demo.resumeCfg(v).off, "非工作时间手动后恢复自动"), "默认 30 分钟")}</div>
+    `<p class="ops-modal-sub">${z ? (own ? `本区覆盖 v${own.version}，其余功能区沿用楼层默认。` : "当前沿用楼层默认；保存后成为本区覆盖。") : `楼层默认 v${own?.version || 0}，作用于未覆盖的功能区。`}保存后形成照明控制参数的新版本，经网关下发到 ${lcs} 台 LC20${tg?.own.length ? `（不含有本区覆盖的${tg.own.map((x) => x.name).join("、")}）` : ""}。</p>
+    ${v13LightFormHtml(L, v, V13_LIGHT_IDS.ops, !z)}
     <p class="ops-foot">手动后恢复自动：开 / 关灯不退出自动；调光或执行动作为调光的场景后进入手动，到时长或下一次定时执行时恢复自动，以先到者为准。工作时间与非工作时间按项目工作时间（工作日 ${esc(workHoursText(OPS_SCOPE.project))}）由网关下发，断网时 LC20 按最后下发的工作时间计时。恒照度目标为 0（关闭）时，回路组的控制方式为“固定亮度”。</p>
     <p class="ops-foot" id="opRefresh">${v13LightRefreshText(L, v.offMinutes)}</p>`,
     (own && z ? btn("恢复楼层默认", "opsParamsReset", { zone: z.id }, "ghost") + '<span class="sp"></span>' : "") + btn("取消", "close") + btn("保存", "opsParamsSave", {}, "primary"),
     false,
   );
 }
-function startSync(zid, n, version) {
+// 楼层默认的下发对象：本层沿用楼层默认的功能区内的 LC20（有本区覆盖的功能区不受影响）
+function floorDefaultTargets(floorId) {
+  const db = data(),
+    own = db.zones.filter((z) => z.floorId === floorId && db.lightingConfigs.some((c) => c.scope === "zone" && c.scopeId === z.id && c.values));
+  return { own, ids: db.points.filter((p) => p.floorId === floorId && p.type === "lc" && !own.some((z) => z.id === p.zoneId)).map((p) => p.id) };
+}
+// 参数同步（总览核查第 42 条（2026-10-12 用户确认）：原先只按在线台数计，全部离线时立即写“已同步”，恢复楼层默认写成“v楼层默认”）：
+// 以实际目标设备为分母，离线的记为待同步；label 为版本的写法（“本区覆盖 v2”“楼层默认 v3”），where 为范围，note 为范围的补充说明
+function startSync(zid, ids, label, where = "本区", note = "") {
   Demo.ctl.sync = Demo.ctl.sync || {};
-  const s = (Demo.ctl.sync[zid] = { total: n, done: 0, version });
+  const n = ids.filter((id) => !Demo.offline(g("points", id))).length,
+    s = (Demo.ctl.sync[zid] = { total: ids.length, online: n, done: 0, label, where, note });
   for (let i = 0; i < n; i++)
     setTimeout(
       () => {
@@ -64358,7 +64776,8 @@ defineActions({
       `<div class="ops-floorpop" role="menu" aria-labelledby="opsFloorMenuH"><div class="ops-menu-h" id="opsFloorMenuH"><b>整层控制 · E栋 7F</b><small>${floorLCs().length} 台 LC20 · 组控制，约 10–30 秒回报</small></div>${[
         ["on", "全部开灯（保持自动）"],
         ["off", "全部关灯（保持自动）"],
-        ["level", "全部调光"],
+        // 整层调光排除开关型回路，菜单写明台数（总览核查第 37 条）
+        ["level", floorLCs().some((id) => lcSwitch(g("points", id))) ? `全部调光（排除开关型 ${floorLCs().filter((id) => lcSwitch(g("points", id))).length} 台）` : "全部调光"],
         ["auto", "全部恢复自动"],
       ]
         .map(([c, l]) => `<button class="popitem" role="menuitem" data-act="opsFloorCmd" data-cmd="${c}">${l}</button>`)
@@ -64431,23 +64850,18 @@ defineActions({
   opsParamsSave: async (a = {}) => {
     const keep = a.confirmed && U.lightPending?.act === "opsParamsSave" ? U.lightPending : null,
       s = keep ? keep.form : formState,
-      v = keep
-        ? keep.values
-        : {
-            offMinutes: Number(value("opOff")),
-            standbyBrightness: Number(value("opStandby")),
-            standbyMinutes: Number(value("opHold")),
-            luxTarget: Number(value("opLux")),
-            occupiedBrightness: Number(value("opOcc")),
-            resumeMinutes: Number(value("opResume")),
-            resumeOffMinutes: Number(value("opResumeOff")),
-          };
-    // 按配置参数中批准的可调范围、驱动下限（L-11）与 L-30 校验（BP81 方案一）
+      ids = V13_LIGHT_IDS.ops,
+      floor = s.scope !== "zone";
+    let v = keep?.values;
+    // 先看是否填写，再按配置参数中批准的可调范围、驱动下限（L-11）与 L-30 校验（BP81 方案一）；问题写在各字段下方（总览核查第 40、41 条）。
+    // 楼层默认逐类核对各功能区实际生效的恒照度目标（第 39 条）
     if (!keep) {
-      const bad = v13LightIssue(v, v13LightLimits(data(), s.floorId, s.scope === "zone" ? s.scopeId : null));
-      if (bad) throw Error(bad);
+      const L = v13LightLimits(data(), s.floorId, floor ? null : s.scopeId),
+        r = v13LightRead(ids, L, s.base, floor),
+        errs = [...r.errs, ...v13LightIssues(r.v, L, ids, floor)];
+      if (errs.length) throw fieldErrs(errs);
+      v = r.v;
     }
-    const fill = { opOff: v.offMinutes, opStandby: v.standbyBrightness, opHold: v.standbyMinutes, opLux: v.luxTarget, opOcc: v.occupiedBrightness, opResume: v.resumeMinutes, opResumeOff: v.resumeOffMinutes };
     const r = await v13LightSave(
       {
         scope: s.scope,
@@ -64460,7 +64874,7 @@ defineActions({
         record: (db, cfg, old) => M.record(db, "修改照明控制参数", s.scopeId, (s.scope === "zone" ? "本区覆盖 v" : "楼层默认 v") + cfg.version, old || null),
         reopen: () => {
           paramsModal(s.scope === "zone" ? s.scopeId : null, s.scope === "zone" ? null : s.scopeId);
-          for (const [id, x] of Object.entries(fill)) if ($("#" + id)) $("#" + id).value = x;
+          v13LightFill(ids, formState.limits, v, floor);
           $("#opRefresh") && ($("#opRefresh").textContent = v13LightRefreshText(formState.limits, v.offMinutes));
         },
       },
@@ -64469,14 +64883,19 @@ defineActions({
     if (!r) return;
     const version = r.cfg.version;
     closeModal(true);
-    const z = s.scope === "zone" ? Demo.zoneOf(s.scopeId) : null;
-    if (z) startSync(z.id, z.lcs.filter((p) => !Demo.offline(p)).length, version);
+    const z = s.scope === "zone" ? Demo.zoneOf(s.scopeId) : null,
+      // 楼层默认保存后给整层回执，目标为沿用楼层默认的功能区（总览核查第 42 条）
+      tg = z ? null : floorDefaultTargets(s.floorId);
+    if (z) startSync(z.id, zoneLcIds(z.id), `本区覆盖 v${version}`);
+    else startSync(s.floorId, tg.ids, `楼层默认 v${version}`, "沿用楼层默认的功能区", tg.own.length ? `不含有本区覆盖的${tg.own.map((x) => x.name).join("、")}` : "");
     render();
-    msg((z ? `已保存本区覆盖 v${version}，正在同步` : `已保存楼层默认 v${version}`) + (r.to ? `；占用刷新已缩短到 ${r.to} 秒` : ""));
+    msg((z ? `已保存本区覆盖 v${version}，正在同步` : `已保存楼层默认 v${version}，正在下发到 ${tg.ids.length} 台 LC20`) + (r.to ? `；占用刷新已缩短到 ${r.to} 秒` : ""));
   },
+  // 恢复楼层默认先确认（总览核查第 43 条（2026-10-12 用户确认）：原先点了立即恢复并下发）；确认后按第 42 条同步
   opsParamsReset: async (a) => {
     if (!canOperate()) throw Error(U.role === "member" ? "普通成员不能修改照明控制参数" : "查看人员不能修改照明控制参数");
     const z = Demo.zoneOf(a.zone);
+    if (!a.confirmed) return lightResetModal({ scope: "zone", scopeId: z.id, floorId: z.floorId || OPS_SCOPE.floor, act: "opsParamsReset", args: { zone: z.id } });
     await v13LightSave({
       scope: "zone",
       scopeId: a.zone,
@@ -64486,9 +64905,10 @@ defineActions({
       record: (db, cfg, old) => M.record(db, "恢复照明控制默认设置", a.zone, "沿用楼层默认", old || null),
     });
     closeModal(true);
-    startSync(z.id, z.lcs.filter((p) => !Demo.offline(p)).length, "楼层默认");
+    const fv = data().lightingConfigs.find((c) => c.scope === "floor" && c.scopeId === (z.floorId || OPS_SCOPE.floor) && c.values)?.version;
+    startSync(z.id, zoneLcIds(z.id), fv ? `楼层默认 v${fv}` : "参考默认");
     render();
-    msg("已恢复为楼层默认，正在同步");
+    msg(`已恢复为${fv ? `楼层默认 v${fv}` : "参考默认"}，正在同步`);
   },
   opsRange: (a) => {
     U.opsRange = a.value;
