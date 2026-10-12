@@ -65476,8 +65476,10 @@ if (typeof module !== "undefined" && module.exports) module.exports = PACOM_PASS
     const v = identifier(value);
     if (v.length > 254 || /\s/.test(v) || v.split('@').length !== 2) return false;
     const [local, domain] = v.split('@');
-    // Supported account syntax, not proof of mailbox ownership or delivery.
-    return !!local && local.length <= 64 && !/^\.|\.$|\.\./.test(local) && domain.includes('.') &&
+    // Supported account syntax, not proof of mailbox ownership or delivery. The local part is a dot-atom (RFC 5322 atext, plus letters
+    // and digits of any script): separators such as “,” “;” “<>” “()” “[]” and quotes are rejected, “+” and the other legal characters
+    // are kept (账户核查第 25 条：原先 a,b@example.com 能通过). The same check serves sign-in, reset, application and invitations.
+    return !!local && local.length <= 64 && /^[\p{L}\p{N}!#$%&'*+/=?^_`{|}~-]+(?:\.[\p{L}\p{N}!#$%&'*+/=?^_`{|}~-]+)*$/u.test(local) && domain.includes('.') &&
       domain.split('.').every(label => /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i.test(label));
   }
   function idKind(value) {
@@ -66707,7 +66709,7 @@ BARE.apply = () => {
     // A public applicant has no account yet, so the page ends here; a signed-in applicant returns to where they came from.
     const back = a.mode === "new-org" ? ["", "返回工作区"] : a.mode === "account" ? ["orgs", "返回选择机构"] : null;
     return auApplyShell(
-      `<h1 class="au-h1">${a.updated ? "申请已更新" : "申请已提交"}</h1><p class="au-lead">${a.mode === "public" ? `审核结果和开通邀请将发送至 <b>${esc(a.mail)}</b>。` : auApplyAccountSent(a.mail)}</p>${back ? `<button type="button" class="au-primary" ${back[0] ? `data-act="auGo" data-page="${back[0]}"` : `data-act="auApplyBack"`}>${back[1]}</button>` : ""}<p class="au-done-more">填写有误？<button type="button" class="au-textbtn" data-act="auEditApply">修改申请</button></p>`,
+      `<h1 class="au-h1">${a.updated ? "申请已更新" : "申请已提交"}</h1><p class="au-lead">${a.mode === "public" ? `审核结果将发送至 <b>${esc(a.mail)}</b>。审核通过后，您会收到开通邀请。` : auApplyAccountSent(a.mail)}</p>${back ? `<button type="button" class="au-primary" ${back[0] ? `data-act="auGo" data-page="${back[0]}"` : `data-act="auApplyBack"`}>${back[1]}</button>` : ""}<p class="au-done-more">填写有误？<button type="button" class="au-textbtn" data-act="auEditApply">修改申请</button></p>`,
     );
   }
   const me = auApplyPerson();
@@ -66721,7 +66723,7 @@ BARE.apply = () => {
     ? `为另一家单位申请开通机构。新机构与${zhSub(esc(auOrg().name))}的数据独立。`
     : `填写${me ? "机构" : "机构和联系人"}信息，提交后由 PACOM 审核。若所在单位已使用 PACOM，请联系机构管理员邀请您加入。`;
   return auApplyShell(
-    `<h1 class="au-h1">${AUX.applyEditing ? "修改申请" : mode === "new-org" ? "申请开通新机构" : "申请访问"}</h1><p class="au-lead">${AUX.applyEditing ? "修改下方信息，提交后将更新原申请。" : lead}</p><form data-form="apply" novalidate><fieldset>${auField({ name: "ap_org", label: "公司或机构名称", auto: "organization", count: true })}${me ? auApplyContact(me) : `${auField({ name: "ap_name", label: "联系人姓名", auto: "name", count: true })}${auField({ name: "ap_mail", label: "电子邮箱", auto: "email", inputmode: "email", hint: "审核结果和开通邀请将发送至此邮箱。" })}`}${auField({ name: "ap_tel", label: "手机号码", auto: "tel", inputmode: "tel", hint: "用于审核时联系您。" })}<div class="au-field au-apply-overview" data-f="ap_need"><div class="au-lab"><label for="au-ap_need">项目概况<span>（选填）</span></label></div><div class="au-textarea-shell"><textarea id="au-ap_need" name="ap_need" class="au-in au-ta" rows="3" aria-describedby="au-ap_need-err au-ap_need-count" placeholder="例如项目位置、楼宇规模或计划使用的功能">${esc(AUX.v.ap_need || "")}</textarea><button type="button" class="au-resize" data-resize="au-ap_need" aria-label="调整项目概况输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-ap_need-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-ap_need-count" ${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need)}</p></div><label class="au-check" data-f="ap_ok"><input type="checkbox" name="ap_ok" class="au-v" required aria-required="true" aria-describedby="au-ap_ok-err" ${AUX.v.ap_ok ? "checked" : ""}><span>我已阅读<button type="button" class="au-inline" data-act="auLegal" data-doc="privacy">隐私政策</button>，同意 PACOM 为审核申请、联系及发送邀请处理以上信息。</span></label><p class="au-err au-check-err" id="au-ap_ok-err"></p><p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}</fieldset></form>${AUX.applyEditing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit" ${PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? "disabled" : ""}>取消修改</button></div>` : auBackLinks(mode)}${mode === "new-org" ? `<p class="au-foot-note">同一机构的其他园区或楼宇，请在当前机构中创建项目。</p>` : ""}`,
+    `<h1 class="au-h1">${AUX.applyEditing ? "修改申请" : mode === "new-org" ? "申请开通新机构" : "申请访问"}</h1><p class="au-lead">${AUX.applyEditing ? "修改下方信息，提交后将更新原申请。" : lead}</p><form data-form="apply" novalidate><fieldset>${auField({ name: "ap_org", label: "公司或机构名称", auto: "organization", count: true })}${me ? auApplyContact(me) : `${auField({ name: "ap_name", label: "联系人姓名", auto: "name", count: true })}${auField({ name: "ap_mail", label: "电子邮箱", auto: "email", inputmode: "email", hint: "用于接收审核结果及通过后的开通邀请。" })}`}${auField({ name: "ap_tel", label: "手机号码", auto: "tel", inputmode: "tel", hint: "用于审核时联系您。" })}<div class="au-field au-apply-overview" data-f="ap_need"><div class="au-lab"><label for="au-ap_need">项目概况<span>（选填）</span></label></div><div class="au-textarea-shell"><textarea id="au-ap_need" name="ap_need" class="au-in au-ta" rows="3" aria-describedby="au-ap_need-err au-ap_need-count" placeholder="例如项目位置、楼宇规模或计划使用的功能">${esc(AUX.v.ap_need || "")}</textarea><button type="button" class="au-resize" data-resize="au-ap_need" aria-label="调整项目概况输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-ap_need-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-ap_need-count" ${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need)}</p></div><label class="au-check" data-f="ap_ok"><input type="checkbox" name="ap_ok" class="au-v" required aria-required="true" aria-describedby="au-ap_ok-err" ${AUX.v.ap_ok ? "checked" : ""}><span>我已阅读<button type="button" class="au-inline" data-act="auLegal" data-doc="privacy">隐私政策</button>，同意 PACOM 为${me ? "审核申请及与我联系" : "审核申请、联系及发送邀请"}处理以上信息。</span></label><p class="au-err au-check-err" id="au-ap_ok-err"></p><p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}</fieldset></form>${AUX.applyEditing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit" ${PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? "disabled" : ""}>取消修改</button><span class="au-dot" aria-hidden="true"></span>${auBackAction(mode)}</div>` : auBackLinks(mode)}${mode === "new-org" ? `<p class="au-foot-note">同一机构的其他园区或楼宇，请在当前机构中创建项目。</p>` : ""}`,
   );
 };
 BARE_AFTER.apply = () => {
@@ -67559,7 +67561,7 @@ const AU_LEGAL = {
     [
       "处理者：广州天环智能技术有限公司。",
       "我们处理账户信息（姓名、电子邮箱及已绑定的手机号码）、机构成员关系和操作记录，用于身份验证、授权、审计和服务通知。",
-      "申请访问时，我们处理机构名称、联系人姓名、电子邮箱、联系手机号码及您选填的项目概况，用于审核申请、联系申请人和向审核通过的申请人发送开通邀请。",
+      "申请访问时，我们处理机构名称、联系人姓名、电子邮箱、联系手机号码及您选填的项目概况，用于审核申请、联系申请人和向审核通过的申请人发送开通邀请；已登录的账户申请开通新机构时，联系人即本账户，资料只用于审核申请及与您联系，审核通过后新机构直接加到本账户，不另发邀请。",
       "楼宇运行数据归属于所在机构；占用数据默认只到功能区级，不识别个人。",
       // AI 服务部署在中国境内，提问与运行数据不出境、不用于训练（2026-10-09 用户确认，ABB 对比 BP5）
       "使用 AI 提问时，提问和所涉运行数据只在中国境内处理，不用于训练模型；对话按机构的数据保存期限保存。",
@@ -68037,7 +68039,9 @@ Object.assign(actions, {
     auRoute("login");
   },
   auCancelEdit: () => {
-    // “取消修改” is unavailable while the edit is sending or unresolved.
+    // “取消修改” is unavailable while the edit is sending or unresolved. Leaving is not: the link beside it (“返回登录”“返回工作区”
+    // “返回选择机构”) stays available; the request and what was typed are kept, and coming back still only checks that request,
+    // never sends it again (账户核查第 26 条：原先待确认时只能留在修改页).
     if (PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest)) return;
     auCancelEditState();
     auRoute("apply", "done");
@@ -71435,6 +71439,8 @@ document.addEventListener('click', e => {
   const control = e.target.closest?.('[aria-disabled="true"],form[data-frozen="1"] label.au-check');
   // 危险操作的最后一步没输对名称、没勾“已了解影响”时（data-gated）只是看起来不可用，点它照常校验并提示（参考组件核查第 330、411 条）
   if (control?.dataset?.gated === "1" && !control.closest('[data-busy="1"]')) return;
+  // 申请待确认时只冻结已提交的字段和同意勾选，同意文字里的“隐私政策”仍可打开阅读；阅读不改变已发送的同意（账户核查第 24 条：原先点了没有反应）
+  if (control?.matches('label.au-check') && e.target.closest('[data-act="auLegal"]')) return;
   if (control) { e.preventDefault(); e.stopImmediatePropagation(); }
 }, true);
 document.addEventListener('keydown', e => {
