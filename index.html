@@ -65147,6 +65147,9 @@ function orgButton() {
   const o = auOrg();
   return `<button class="orgbtn au-orgbtn" data-act="orgMenu" aria-haspopup="menu" aria-expanded="false" aria-label="机构与账户：${esc(o.name)}" data-tip="${esc(o.name)}"><span class="ws-org-logo">${auMark(o, 24)}</span><span class="au-orgbtn-name">${esc(o.name)}</span></button>`;
 }
+// 机构菜单里各机构的角色。演示中切换了角色时，当前机构一行写切换后的角色并标“演示”，如“运营人员 · 演示”，
+// 同成员表本人一行（DEMO05；全面设计核查第 16 条，2026-10-12 用户确认：原先页面已按运营人员显示，菜单仍写“机构管理员”）。
+const auMenuRole = (o) => (o.id === AUTH.org && U.role && U.role !== o.role ? auSegs([auRole(U.role), "演示"]) : auRole(o.role));
 function auMenuHtml() {
   const me = auMe(),
     orgs = auMyOrgs();
@@ -65161,7 +65164,7 @@ function auMenuHtml() {
       (o) =>
         // 已暂停的机构名称后加“已暂停”徽章，本人是机构管理员时角色行写“机构管理员 · 查看原因”（同选择机构页；2026-10-11 用户确认，Lovable 核查第 109 条）
         `<button class="popitem au-orgrow ${o.id === AUTH.org ? "on" : ""}" role="menuitemradio" aria-checked="${o.id === AUTH.org}" data-act="auSwitchOrg" data-org="${o.id}"><span class="au-orgrow-mk">${auMark(o, 24)}</span><span class="au-mi-l">${
-          AUTH.orgs[o.id]?.suspended ? `<b class="au-mi-n"><span>${esc(o.name)}</span><span class="chip au-ml">已暂停</span></b><small>${auSegs([auRole(o.role), o.role === "admin" ? "查看原因" : ""])}</small>` : `<b>${esc(o.name)}</b><small>${auRole(o.role)}</small>`
+          AUTH.orgs[o.id]?.suspended ? `<b class="au-mi-n"><span>${esc(o.name)}</span><span class="chip au-ml">已暂停</span></b><small>${auSegs([auRole(o.role), o.role === "admin" ? "查看原因" : ""])}</small>` : `<b>${esc(o.name)}</b><small>${auMenuRole(o)}</small>`
         }</span>${o.id === AUTH.org ? ico("check", "ic16") : ""}</button>`,
     )
     .join(
@@ -65173,7 +65176,10 @@ function auMenuHtml() {
     // 菜单分两组：“机构”组为各机构、机构设置、已删除、开通新机构；个人组为头像姓名、我的账户、通知偏好；最后帮助与退出登录（2026-10-09 用户确认，ABB 对比 BP7）。
     // 普通成员没有机构设置与“已删除”（角色权限方案第 4 条）
     U.role === "member" ? "" : item("au-cog", "机构设置", "auPage", { page: "org", tab: "info" }) + item("clock", "已删除", "trash")
-  }${item("au-plus", "开通新机构", "auNewOrg")}<hr><div class="au-me">${auAvatar(me.name, 32)}<span><b>${esc(me.name)}</b><small>${esc(auMask(me.email || me.phone))}</small></span></div>${item("au-user", "我的账户", "auPage", { page: "account", tab: "profile" })}${item("au-bell", "通知偏好", "auPage", { page: "account", tab: "notify" })}<hr>${item("au-help", "帮助", "auHelp")}${item("au-logout", "退出登录", "auSignOut")}</div>`;
+  }${
+    // 普通成员（租户或部门负责人）不开通机构，菜单不列“开通新机构”；我的账户 › 我的机构里的同一入口一起去掉（全面设计核查第 14 条，2026-10-12 用户确认，改 GLOBAL04）
+    U.role === "member" ? "" : item("au-plus", "开通新机构", "auNewOrg")
+  }<hr><div class="au-me">${auAvatar(me.name, 32)}<span><b>${esc(me.name)}</b><small>${esc(auMask(me.email || me.phone))}</small></span></div>${item("au-user", "我的账户", "auPage", { page: "account", tab: "profile" })}${item("au-bell", "通知偏好", "auPage", { page: "account", tab: "notify" })}<hr>${item("au-help", "帮助", "auHelp")}${item("au-logout", "退出登录", "auSignOut")}</div>`;
 }
 function auPlaceMenu(anchor) {
   const p = $("#pop");
@@ -65251,6 +65257,8 @@ function auLegalBody() {
 }
 
 /* ---------- 软件版本、更新说明与术语（GLOBAL05） ---------- */
+// 使用指南（正式文档）的地址；上线前为空，帮助里不显示“使用指南”一行（全面设计核查第 18 条）。
+const AU_GUIDE_URL = "";
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
@@ -65776,7 +65784,10 @@ Object.assign(actions, {
     if (canCreateProject()) setTimeout(() => actions.spaceForm({ kind: "projects" }), 60);
   },
   // 快捷键按设备写（GLOBAL05，2026-10-08）：苹果设备为 ⌘K，其他设备为 Ctrl+K，与侧栏“搜索”的按键提示相同；只用于非触屏设备。
-  // 触屏且侧栏收进菜单时（宽度≤850px）与侧栏一样不写快捷键，写打开菜单点“搜索”（2026-10-08 Account 核查 D3）。“联系我们”一行的“联系支持”打开联系支持。
+  // 触屏且侧栏收进菜单时（宽度≤850px）与侧栏一样不写快捷键，写打开菜单点“搜索”（2026-10-08 Account 核查 D3）。“联系支持”一行的“联系支持”打开联系支持
+  // （行名与按钮、弹窗同名，全面设计核查第 17 条，2026-10-12 用户确认，改 GLOBAL05：原行名“联系我们”；登录页的“联系我们”是另一个弹窗，不变）。
+  // “使用指南”一行在正式文档上线前不显示（全面设计核查第 18 条，2026-10-12 用户确认：原先只写“正式文档准备中”，没有能点的东西）；
+  // 上线后在 AU_GUIDE_URL 填上地址，这一行带“打开”按钮回到“搜索或提问”之后。
   // 触屏且侧栏显示时（宽于850px，如横放的平板，接了键盘的也算）同样不写快捷键，写点侧栏的“搜索”（2026-10-09 用户确认，Account 核查 K11）。
   // “术语”一行的“查看术语”打开术语（BP16）；“软件版本”写实际发布的版本与日期，行末“更新说明”打开更新说明（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
   // “AI 模型”写所用模型，现写“PACOM”，只是文字，演示版与正式版相同；上线前补所用已备案模型的名称和备案号（2026-10-10 用户确认，规范 GLOBAL05、GAP13）。
@@ -65787,9 +65798,9 @@ Object.assign(actions, {
       // 各行不加框，行与行之间一条细线（Lovable 核查第 151 条，2026-10-11 用户确认：原先六行放在白框里）
       `<div class="au-box au-help-rows">${[
         ["搜索或提问", `${COARSE_MQ?.matches ? (isMobile() ? "打开菜单，点“搜索”" : "点侧栏的“搜索”") : `在任意页面按 ${IS_APPLE ? "⌘K" : "Ctrl+K"}`}；AI 只给建议，由您确认后执行。`],
-        ["使用指南", "正式文档准备中"],
+        ...(AU_GUIDE_URL ? [["使用指南", "按页面说明各项功能的用法。", `<a class="btn sm" href="${esc(AU_GUIDE_URL)}" target="_blank" rel="noopener">打开</a>`]] : []),
         ["术语", "按拼音列出常用名词，并写明在哪个页面出现。", btn("查看术语", "auTerms", {}, "sm")],
-        ["联系我们", "说明问题，并由您选择是否附带当前对象、截图或日志；附带前去掉个人信息与密钥。", btn("联系支持", "auSupport", {}, "sm")],
+        ["联系支持", "说明问题，并由您选择是否附带当前对象、截图或日志；附带前去掉个人信息与密钥。", btn("联系支持", "auSupport", {}, "sm")],
         ["软件版本", AU_RELEASE_TEXT, btn("更新说明", "auReleaseNotes", {}, "sm")],
         ["AI 模型", "PACOM"],
       ]
@@ -68204,7 +68215,8 @@ const AU_ACC_PAGES = {
     return auSec(
       "我的机构",
       "同一个账户可以加入多个机构；机构之间数据完全隔离，角色分别授予。",
-      btn(ico("au-plus", "ic16") + "开通新机构", "auNewOrg", {}, "sm"),
+      // 普通成员没有“开通新机构”（全面设计核查第 14 条）
+      U.role === "member" ? "" : btn(ico("au-plus", "ic16") + "开通新机构", "auNewOrg", {}, "sm"),
       `<div class="au-box">${orgs
         .map((o) => {
           const cur = o.id === AUTH.org;
