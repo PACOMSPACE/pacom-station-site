@@ -4920,7 +4920,11 @@ details[open] > summary::before {
  .ws-location-group {
    --views: 140px;
  }
- .btn, .btn.sm, .ws-location, .input, .ws-select > button {
+ .btn, .btn.sm, .ws-location {
+   height: 40px;
+   min-height: 40px;
+ }
+ .input, .ws-select > button {
    height: 44px;
    min-height: 44px;
  }
@@ -4950,14 +4954,15 @@ details[open] > summary::before {
  .ws-zoom {
    padding: 1px;
  }
- .ws-zoom .iconbtn,
- .ws-zoom .btn {
+ .ws-zoom .iconbtn {
    width: 44px;
    height: 44px;
    min-height: 44px;
  }
  .ws-zoom .btn {
    width: auto;
+   height: 40px;
+   min-height: 40px;
  }
 }
 @media (max-width: 639px) {
@@ -5205,9 +5210,37 @@ fieldset > .ws-field-err, .v13-space > .ws-field-err { color:#b42318; font-size:
  /* 关闭按钮 44、距上右 8，同账户弹窗与项目弹窗（Lovable 核查第 149 条，2026-10-11 用户确认：原先距上右 12）；标题右侧让出 56。 */
  #dlg:not(.au-account-scrim) .dh .iconbtn { width:44px; height:44px; top:8px; right:8px; }
  #dlg:not(.au-account-scrim) .dh { padding-right:56px; }
- :is(#app[data-page=projects], #app[data-page=console]) .main .seg { min-height:44px; }
- :is(#app[data-page=projects], #app[data-page=console]) .main .seg > button { min-height:44px; }
- #app[data-page=console] .main .seg > .seg-thumb { top:4px; bottom:auto; margin:0; }
+ #app[data-page=projects] .main .seg { min-height:48px; }
+ #app[data-page=projects] .main .seg > button { min-height:40px; }
+ #app[data-page=console] .main .seg.sm { min-height:44px; }
+ #app[data-page=console] .main .seg.sm > button { min-height:44px; }
+ /* 零边线滚动盒44px，按钮32px及上下各6px命中完整留在盒内；40px轨道由零净宽的sticky层绘制。 */
+ #app[data-page=console] .main .seg:not(.sm) {
+   height:44px;
+   min-height:44px;
+   border:0;
+   padding:6px 4px;
+   background:none;
+   box-shadow:none;
+ }
+ #app[data-page=console] .main .seg:not(.sm)::before {
+   content:"";
+   position:sticky;
+   left:0;
+   flex:none;
+   width:calc(100% + 8px);
+   height:40px;
+   margin-left:-4px;
+   margin-right:calc(-100% - 4px);
+   z-index:-1;
+   border-radius:inherit;
+   background:var(--seg-track);
+   box-shadow:inset 0 2px 2px -1px #0000000a, inset 0 4px 4px -2px #0000000a, inset 0 0 0 1px #0000001f;
+   pointer-events:none;
+ }
+ #app[data-page=console] .main .seg:not(.sm) > button { height:32px; min-height:32px; }
+ #app[data-page=console] .main .seg:not(.sm) > button::after { content:""; position:absolute; inset:-6px 0; }
+ #app[data-page=console] .main .seg:not(.sm) > .seg-thumb { height:32px; top:6px; bottom:auto; margin:0; }
  #app[data-page=console] .main .seg.sm > .seg-thumb { top:3px; }
  #dlg .ws-checks label, #dlg label.row:has(input[type=checkbox]), #dlg label.row:has(input[type=radio]) { min-height:44px; }
 }
@@ -5389,7 +5422,8 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 /* 触屏平板（宽于 850px）上，设备页与配置进度页的弹窗同项目页弹窗：输入、选择与按钮点击区 44px（2026-10-05 核查合并细节第 12 条：
    复制设备、准备现场绑定、部署包、交付与现场安装资料原先为 32px，复制功能区与上传楼层图为 44px；宽度 ≤850px 时各页原本都是 44px）。 */
 @media (pointer: coarse) {
- :is(#dlg[data-page=devices],#dlg[data-page=deployment]) :is(.input:not(textarea),.ws-select > button,.btn,.iconbtn) { min-height:44px; }
+ :is(#dlg[data-page=devices],#dlg[data-page=deployment]) :is(.input:not(textarea),.ws-select > button,.iconbtn) { min-height:44px; }
+ :is(#dlg[data-page=devices],#dlg[data-page=deployment]) .btn:not(.popitem) { height:40px; min-height:40px; }
 }
 @media (pointer: coarse), (max-width: 850px) {
  .dialog .df .ws-err-sum { min-height:44px; }
@@ -5453,6 +5487,22 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 #dlg .conn-map-paste { margin: 4px 0 0; }
 #dlg .conn-map-paste textarea { margin: 8px 0; }
 #dlg .db > p[data-protocols][hidden] + .field { margin-top: 0; }
+/* 可见40px胶囊与触屏44px命中分开；不改变矩形输入、圆形按钮、菜单行或已定页签材质。 */
+@media (max-width:850px), (pointer:coarse) {
+  :where(.btn, .ws-location) { position:relative; }
+  .btn:where(:not(.popitem, .ws-inventory-tools > .btn.ghost, .ops-ack-c .btn.ghost))::after,
+  .ws-location::after,
+  .ws-inventory-tools > .btn.ghost::before {
+    content:"";
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:max(100%, 44px);
+    height:max(100%, 44px);
+    transform:translate(-50%, -50%);
+    border-radius:inherit;
+  }
+}
 
 }
 /* 配置 › 项目模块样式（2026-10-03 D3 按组件整理，取代 workspace.css 中按日期追加的批次）。
@@ -6230,7 +6280,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 }
 .ws-project-picker { display:flex; flex:1; min-width:0; align-items:center; justify-content:space-between; gap:8px; text-align:left; }
 @media (max-width:850px), (pointer:coarse) {
- .ws-project-picker { min-height:44px; }
+ .ws-project-picker { height:40px; min-height:40px; }
 }
 /* 配置进度、配置参数的项目选择器与第一张卡片同宽（全面设计核查第 27 条，2026-10-12 用户确认，补做第 390 条）：与其他页面的位置选择器同一宽度档——
    三列卡片的第一列（1920 宽时 520），1023 及以下两列的第一列，639 及以下占满一行；原先按工具栏剩余宽度伸展，1920 宽时 812 / 731 / 739。 */
@@ -6611,7 +6661,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
  /* 横屏手机等矮视口：工作区不高于视口，页面滚动与拖动图纸不互相干扰。 */
  .ws-space-page > .ws-building-stage, .ws-space-page > .ws-workbench { min-height:200px; }
 }
-/* D3：宽度 ≤540px 或高度 ≤500px 时，楼层页和楼宇页的轨道都收成左下角 44px 的选层按钮（楼层页“当前层 ▾”，楼宇页“选择楼层 ▾”），图纸与楼宇图片占满宽度；窄屏提示缩成单行（2026-10-03 用户确认）。 */
+/* D3：宽度 ≤540px 或高度 ≤500px 时，楼层页和楼宇页的轨道收成左下角选层胶囊；可见高40px，触屏命中44px。 */
 .ws-floor-pick { display:none; }
 .ws-floor-pick > svg { flex:none; }
 .ws-building-bottom { display:contents; }
@@ -6625,7 +6675,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
  .ws-space-page > .ws-building-stage > .spatial-building-top { right:8px; }
  /* 窄屏说明写全、居中，放不下时换成两行，不截断（Lovable 核查第 332 条，2026-10-11 用户确认：原为单行省略，全文在提示中） */
  .ws-space-page .ws-building-note, .ws-space-page .sp-bench .ws-canvas-top > .sp-mobile-note { white-space:normal; text-align:center; max-width:100%; border-radius:12px; }
- .ws-space-page .ws-floor-pick { display:inline-flex; align-items:center; gap:4px; height:44px; min-height:44px; padding:0 12px 0 16px; pointer-events:auto; flex:none; }
+ .ws-space-page .ws-floor-pick { display:inline-flex; align-items:center; gap:4px; height:40px; min-height:40px; padding:0 12px 0 16px; pointer-events:auto; flex:none; }
  .ws-space-page > .ws-workbench.no-plan > .ws-floor-pick { position:absolute; left:8px; bottom:8px; z-index:10; }
  .ws-space-page .sp-bench .ws-canvas-col { padding-left:8px; }
  .ws-space-page .sp-bench .ws-canvas-top { left:8px; }
@@ -6642,7 +6692,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
  .mk-bench .ws-canvas-top > .sp { display:none; }
  .mk-bench .ws-canvas-top > .seg { max-width:none; overflow:visible; }
  .mk-bench .ws-canvas-bottom { gap:8px; }
- .mk-bench .ws-floor-pick { display:inline-flex; align-items:center; gap:4px; height:44px; min-height:44px; padding:0 12px 0 16px; flex:none; }
+ .mk-bench .ws-floor-pick { display:inline-flex; align-items:center; gap:4px; height:40px; min-height:40px; padding:0 12px 0 16px; flex:none; }
  .mk-bench.no-plan > .ws-floor-pick { position:absolute; left:8px; bottom:8px; z-index:10; }
 }
 /* 逐层核对（B1）：楼层页上方的进度条与操作。 */
@@ -6947,8 +6997,8 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .sp-zform textarea.input { height:80px; min-height:80px; border-radius:8px; padding:8px 12px; }
 .sp-body .input[readonly] { color:var(--text2); }
 @media (max-width:850px), (pointer:coarse) {
- .sp-panel .seg { min-height:44px; }
- .sp-panel .seg > button { min-height:44px; }
+ .sp-panel .seg { min-height:48px; }
+ .sp-panel .seg > button { min-height:40px; }
 }
 .sp-panel { position:relative; }
 .sp-panel > .iconbtn { position:absolute; top:12px; right:8px; }
@@ -6960,7 +7010,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .sp-type-filters .btn.on { box-shadow:inset 0 0 0 1px var(--accent); }
 .sp-plan.hide-names .ws-zone:not(.on):not(.draft) > span, .sp-plan.hide-names .sp-zone-label:not(.on):not(.draft) { visibility:hidden; }
 @media (max-width:850px), (pointer:coarse) {
- .sp-body .btn.sm { min-height:44px; }
+ .sp-body .btn.sm { height:40px; min-height:40px; }
  .sp-panel > .iconbtn { top:8px; right:8px; }
  .sp-tabs { max-width:calc(100% - 64px); }
  .sp-mobile-note { max-width:100%; }
@@ -7003,7 +7053,9 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .mk-draw-pop .popitem > .spatial-glyph { color:var(--text3); }
 #app[data-page=projects] .sp-actions > .btn.sm { height:32px; }
 @media(max-width:850px),(pointer:coarse) {
- :is(#app[data-page=projects],#dlg[data-page=projects],#discard[data-page=projects]) :is(.input:not(textarea),.ws-select > button,.btn,.iconbtn,.sp-tabs button) { min-height:44px; }
+ :is(#app[data-page=projects],#dlg[data-page=projects],#discard[data-page=projects]) :is(.input:not(textarea),.ws-select > button,.iconbtn) { min-height:44px; }
+ :is(#app[data-page=projects],#dlg[data-page=projects],#discard[data-page=projects]) :is(.btn:not(.popitem),.sp-tabs button) { height:40px; min-height:40px; }
+ .spatial-split-pick .ws-select > button { height:40px; min-height:40px; }
  .mk-draw-pop .popitem { min-height:44px; height:44px; }
 }
 /* 面板并排时，画布工具与缩放以画布列为准，贴右 12px（原 332px 按整个工作台计算）。 */
@@ -7079,7 +7131,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .sp-zone-list.multi > .sp-zone-check > small.warn { color:#8a5a00; }
 @media (max-width:850px), (pointer:coarse) {
  .sp-zone-list.multi > .sp-zone-check { min-height:44px; }
- .sp-multi-bar .btn, .sp-multi-acts .btn { min-height:44px; }
+ .sp-multi-bar .btn, .sp-multi-acts .btn { height:40px; min-height:40px; }
 }
 #dlg .sp-rename-h { margin:12px 0 6px; font-size:14px; line-height:20px; font-weight:500; }
 #dlg .sp-rename { width:100%; border-collapse:collapse; font-size:13px; line-height:20px; }
@@ -7107,9 +7159,10 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .sp-sheet-line { flex:1; min-width:0; margin:0; font-size:14px; line-height:20px; color:var(--text2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .sp-sheet-line > b { font-weight:500; color:var(--text); }
 .sp-sheet-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
-.sp-sheet .btn, .sp-sheet .iconbtn { min-height:44px; }
+.sp-sheet .btn { height:40px; min-height:40px; }
+.sp-sheet .iconbtn { min-height:44px; }
 .sp-sheet .iconbtn { width:44px; height:44px; flex:none; }
-#app[data-page=projects] .sp-sheet .btn.sm { height:44px; }
+#app[data-page=projects] .sp-sheet .btn.sm { height:40px; }
 .sp-sheet-body { flex:1; min-height:0; overflow:auto; touch-action:pan-y; padding:4px 4px 0; }
 .sp-sheet-body > .mk-back { display:none; }
 
@@ -7130,7 +7183,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
  .sp-verify-actions { justify-content:flex-start; }
 }
 @media (max-width:850px), (pointer:coarse) {
- .sp-verify-actions > .btn { min-height:44px; }
+ .sp-verify-actions > .btn { height:40px; min-height:40px; }
 }
 
 .sp-src-overlay > * { fill:none; stroke:#7a3ec8; stroke-width:1.5; stroke-dasharray:6 4; vector-effect:non-scaling-stroke; }
@@ -7786,7 +7839,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 #dlg .ws-struct-list > li.del:not(.warn) > span { color:var(--crit); }
 #dlg .ws-struct-list > li > .btn { flex:none; }
 @media (max-width:850px), (pointer:coarse) {
- #dlg .ws-struct-list > li > .btn { min-height:44px; }
+ #dlg .ws-struct-list > li > .btn { height:40px; min-height:40px; }
 }
 
 /* 触屏与 ≤850px 的点击区不小于 44px（核查 R19）：文字链接向上下扩展点击区，不移动可见文字；勾选、按钮与折叠标题撑到 44px。 */
@@ -7800,7 +7853,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
  #dlg .bu-opt-in .iconbtn { width:44px; height:44px; flex:none; }
  #dlg :is(.zc-unavailable, .ex-more) > summary { min-height:44px; display:flex; align-items:center; }
  #dlg .ex-opt { min-height:44px; display:inline-flex; align-items:center; gap:8px; }
- #dlg .pi-opts .seg button { min-height:44px; min-width:44px; }
+ #dlg .pi-opts .seg button { min-height:40px; min-width:44px; }
  /* 第 8 步 F6：上传每行“裁剪”勾选标签与单张上传的“裁去四周空白”整块可点，不小于 44×44。 */
  #dlg .bu-rowtrim, #dlg .pi-opts > label.row { min-height:44px; min-width:44px; cursor:pointer; }
 }
@@ -7863,13 +7916,13 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 #app[data-page=projects] input[type=checkbox], #dlg[data-page=projects] input[type=checkbox] { width:16px; height:16px; min-width:16px; padding:0; margin:0; }
 @media(max-width:850px),(pointer:coarse) {
  #dlg[data-page=projects] .dh .iconbtn { width:44px; height:44px; top:8px; right:8px; }
- :is(#app[data-page=projects],#dlg[data-page=projects]) .seg { height:52px; }
- :is(#app[data-page=projects],#dlg[data-page=projects]) .seg > .seg-thumb { height:44px; }
+ :is(#app[data-page=projects],#dlg[data-page=projects]) .seg { height:48px; min-height:48px; }
+ :is(#app[data-page=projects],#dlg[data-page=projects]) .seg > .seg-thumb { height:40px; }
 }
 @media (max-width:850px), (pointer:coarse) {
  /* 触屏与窄屏 44px 点击区（第 14 章 §4）：选择器与下拉选项、“全部功能区”、功能区列表行、信息面板可展开行、范围弹窗楼宇批选框、方向页签。 */
  #pop[data-page=projects] .popitem { min-height:44px; }
- #dlg[data-page=projects] .seg button { height:44px; }
+ :is(#app[data-page=projects],#dlg[data-page=projects]) .seg button { height:40px; min-height:40px; }
 }
 /* 项目类别单选与复选同一组件：16px，外观与选中色见 workspace.css“全站勾选框与单选框”（PACOM 标志色 #202A44，Lovable 核查第 23、92 条）。 */
 :is(#app,#dlg)[data-page=projects] input[type=checkbox]:not([hidden]) { display:inline-grid; place-items:center; flex:none; }
@@ -7880,6 +7933,24 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 #dlg[data-page=projects] .ws-addr-row > .btn { flex:none; }
 /* 面板说明文字 #636363（对比度 ≥ 4.5）。 */
 #app[data-page=projects] .kv dt { color:var(--text3); }
+/* 可见40px选中胶囊在48px轨道内；透明命中上下各扩2px，仍在轨道内，不裁掉也不覆盖材质。 */
+@media (max-width:850px), (pointer:coarse) {
+  /* 返回按钮在触屏上为44px圆形，不属于本轮长胶囊；它们虽然复用.btn类，仍保留既定圆形尺寸。 */
+  :is(#app, #dlg)[data-page] .btn.ws-parent-back { width:44px; height:44px; min-height:44px; padding:0; }
+  :is(#app[data-page=projects], #dlg[data-page=projects]) .seg > button::after,
+  .spatial-split-pick .ws-select > button::after {
+    content:"";
+    position:absolute;
+    inset:-2px 0;
+    border-radius:inherit;
+  }
+  .spatial-split-pick .ws-select > button { position:relative; }
+  /* 横向滚动工具条保留44px内部命中空间；40px按钮居中，不由overflow裁掉上下2px。 */
+  .mk-bench .ws-canvas-top { min-height:44px; }
+}
+@media (max-width:850px) {
+  :is(#app, #dlg)[data-page] .btn.ws-source-back { width:44px; height:44px; min-height:44px; padding:0; }
+}
 }
 
 @layer base {
@@ -15798,7 +15869,7 @@ p.ops-work .ops-link {
 }
 .au-lead {
   color: var(--text3);
-  font-size: 16px;
+  font-size: 14px;
   line-height: 24px;
   margin: -20px 0 24px;
 }
@@ -15873,11 +15944,11 @@ p.ops-work .ops-link {
   display: flex;
   align-items: center;
 }
-/* 350×44 pill, 16/24; subtle top-down gradient, inset shadow and 1px hairline (lovable input) */
+/* 350×40 pill, 16/24; subtle top-down gradient, inset shadow and 1px hairline (lovable input) */
 .au-in {
   width: 100%;
-  height: 44px;
-  padding: 10px 16px;
+  height: 40px;
+  padding: 8px 16px;
   border: 0;
   border-radius: 999px;
   background: linear-gradient(#00000005, #0000), #ffffff99;
@@ -16034,14 +16105,14 @@ p.ops-work .ops-link {
 }
 
 /* ---------- 按钮与链接 ---------- */
-/* 350×44 pill primary; same black gradient as .btn.primary (UI_RULES §3) */
+/* 350×40 pill primary; same black gradient as .btn.primary (UI_RULES §3) */
 .au-primary {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   width: 100%;
-  height: 44px;
+  height: 40px;
   margin-top: 0;
   border: 0;
   border-radius: 999px;
@@ -19025,9 +19096,9 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 @media (max-width:850px), (pointer:coarse) {
   .au-filing > :is(button, a) { min-height: 44px; }
 }
-/* 第 1 条：登录、重置、邀请、绑定与各结果页的输入框和主按钮所有宽度都 44 高（宽 400 不变）；眼睛按钮与“获取验证码”仍 32、距右 6。
+/* 登录、重置、邀请、绑定与各结果页的胶囊输入框和主按钮所有宽度都 40 高（宽 400 不变）；电脑眼睛按钮与“获取验证码”仍 32、距右 6。
    申请表（32 高、圆角 8）与开通引导的控件不变，由其后更具体的规则保持。 */
-.au .au-in:not(.au-ta), .au .au-primary { height: 44px; min-height: 44px; }
+.au .au-in:not(.au-ta), .au .au-primary { height: 40px; min-height: 40px; }
 /* 第 17 条：账户页输入框默认边线普通屏 1px #727270 16%，2 倍屏 0.5px #727270 40%（与原来相同）；悬停不变。
    第 2 条：出错 1px 红，出错又获得焦点 2px 红，离开回 1px；红色普通屏 #FD504A 40%，2 倍屏不透明。 */
 .au, .au-account-dlg {
@@ -19227,6 +19298,39 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 }
 /* 第 143 条：未订阅、许可即将到期与待付款的提示条统一 44 高：条内按钮仍 28 高，上下各 -2 外边距，不再撑高提示条（原为 48）。 */
 .net-bar.au-licbar > .btn, .au-licnote > .btn { margin-block: -2px; }
+
+/* 2026-10-13 用户确认：40px可见胶囊，触屏命中至少44px；矩形申请表、开通表及弹窗输入保持既有32/44规格。 */
+.au-input-hit { display:none; }
+@media (max-width:850px), (pointer:coarse) {
+  .au :is(.au-eye, .au-getcode) { height:40px; min-height:40px; }
+  .au .au-eye { width:40px; }
+  .au :is(.au-primary, .au-eye, .au-getcode) { position:relative; }
+  .au :is(.au-eye, .au-getcode) { position:absolute; z-index:2; }
+  .au :is(.au-primary, .au-eye, .au-getcode)::after {
+    content:""; position:absolute; left:50%; top:50%;
+    width:max(100%, 44px); height:max(100%, 44px); transform:translate(-50%, -50%);
+    border-radius:inherit;
+  }
+  .au:not(.bare-apply .au) .au-ctl:not(.au-step .au-ctl) > .au-input-hit,
+  .au .au-orgsearch > .au-input-hit {
+    display:block; position:absolute; inset:-2px 0; z-index:0; cursor:text;
+  }
+  .au:not(.bare-apply .au) .au-ctl:not(.au-step .au-ctl) > .au-in,
+  .au .au-orgsearch > .au-in { position:relative; z-index:1; }
+  .au .au-orgsearch > .ic { z-index:2; }
+  .au-account-dlg.au-reset-dlg .df .btn { height:40px !important; min-height:40px; }
+}
+/* 手机和短屏单栏按内容自然排布；完整辅助入口点击区与页脚至少间隔32px。 */
+@media (max-width:600px) {
+  :is(.bare-login,.bare-apply,.bare-reset,.bare-invite) .au-center { flex:0 0 auto; padding-top:48px; }
+  :is(.bare-login,.bare-apply,.bare-reset,.bare-invite) .au-center:has(> .au-group > :is(.au-links,.au-done-more,.au-login-actions):last-child .au-textbtn) { padding-bottom:40px; }
+}
+@media (max-width:1023.98px) and (max-height:500px) {
+  :is(.bare-login,.bare-apply,.bare-reset,.bare-invite) .au-center { flex:0 0 auto; padding-top:24px; }
+}
+@media (max-width:850px) and (max-height:500px), (max-width:1023.98px) and (max-height:500px) and (pointer:coarse) {
+  :is(.bare-login,.bare-apply,.bare-reset,.bare-invite) .au-center:has(> .au-group > :is(.au-links,.au-done-more,.au-login-actions):last-child .au-textbtn) { padding-bottom:40px; }
+}
 
 }
 @layer base {
@@ -20633,7 +20737,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  height: 44px;
+  height: 40px;
   padding: 0 12px 0 4px;
   color: var(--text);
   font-size: 16px;
@@ -20803,7 +20907,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 
 /* 按钮 */
 .app-btn {
-  height: 44px;
+  height: 40px;
   padding: 0 16px;
   border-radius: 999px;
   display: inline-flex;
@@ -21155,8 +21259,8 @@ button.app-row:active {
 .app-in {
   width: 100%;
   min-width: 0;
-  height: 44px;
-  padding: 10px 16px;
+  height: 40px;
+  padding: 8px 16px;
   border: 0;
   border-radius: 999px;
   background: linear-gradient(rgba(0, 0, 0, 0.02), transparent), #fff;
@@ -22637,7 +22741,7 @@ button.app-row:active {
 }
 /* 窄屏：只显示手机屏幕 */
 @media (max-width: 760px) {
-  /* 上下排列：断网提示条在演示条（距顶 16px、高 44px）下方，App 画面占其余高度（K1） */
+  /* 上下排列：断网提示条在演示条（距顶16px、可见高40px）下方，App画面占其余高度。 */
   .app-stage {
     display: flex;
     flex-direction: column;
@@ -22752,7 +22856,7 @@ button.app-row:active {
 }
 
 /* 触控目标不小于 44 px：视觉尺寸不变，纵向扩展点按区域 */
-.app-btn.sm,
+.app-btn,
 .app-screen .seg.sm button,
 .app-zoom button,
 .app-step button,
@@ -22760,7 +22864,8 @@ button.app-row:active {
 .app-navbtn {
   position: relative;
 }
-.app-btn.sm::after,
+.app-btn::after,
+.app-navbtn::after,
 .app-screen .seg.sm button::after,
 .app-zoom button::after,
 .app-step button::after,
@@ -22773,6 +22878,18 @@ button.app-row:active {
   height: 44px;
   transform: translateY(-50%);
 }
+/* 输入保留40px可见外框；原生label只在上下各2px补透明命中，不覆盖光标或文字选择区域。 */
+.app-field:has(> .app-in) { position:relative; }
+.app-field:has(> .app-in)::before,
+.app-field:has(> .app-in)::after {
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  height:2px;
+}
+.app-field:has(> .app-in)::before { bottom:40px; }
+.app-field:has(> .app-in)::after { bottom:-2px; }
 
 }
 @layer base {
@@ -24250,8 +24367,7 @@ button.app-row:active {
   display: block;
   overflow: auto;
 }
-/* Staff sign-in: public account-entry measurements (lovable login, live 2026-09-25) —
-   350 column, logo → 24 → h1 30/45 → lead 16/24, 44px pill controls, 16/24 labels. */
+/* Staff sign-in: 350px column; 40px visible pill inputs and buttons, with 44px touch targets. */
 .adm-login {
   min-height: 100%;
   display: flex;
@@ -24347,8 +24463,8 @@ button.app-row:active {
 }
 .adm-login-in {
   width: 100%;
-  height: 44px;
-  padding: 10px 16px;
+  height: 40px;
+  padding: 8px 16px;
   border: 0;
   border-radius: 999px;
   background: linear-gradient(#00000005, #0000), #ffffff99;
@@ -24393,7 +24509,7 @@ button.app-row:active {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 44px;
+  height: 40px;
   border: 0;
   border-radius: 999px;
   background: linear-gradient(#282828, #080808);
@@ -24466,6 +24582,26 @@ button.app-row:active {
 }
 /* 运营后台弹窗开头的说明与第一个字段之间留出间距（代为下单、登记合同付款、协议价等） */
 body:has(#app.bare-console) #dlg .db > .note:first-child { margin: 0 0 16px; }
+/* 动态码输入可见40px；原生label的透明上下条保留44px命中，输入本身仍可放置光标。 */
+.adm-login-field .adm-login-hit { position:relative; display:block; margin:0; }
+@media (max-width:850px), (pointer:coarse) {
+  .adm-login-hit::before,
+  .adm-login-hit::after {
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    height:2px;
+  }
+  .adm-login-hit::before { top:-2px; }
+  .adm-login-hit::after { bottom:-2px; }
+  .adm-login-btn { position:relative; }
+  .adm-login-btn::after {
+    content:"";
+    position:absolute;
+    inset:-2px 0;
+  }
+}
 
 }
 @layer base {
@@ -24538,7 +24674,7 @@ body:has(.demo-cap) > #ai-pal > .ai-pal {
   }
 }
 /* 整页页面的断网提示条：页面滚动后固定在演示条下方，不被它盖住（Account 核查 K1、K2）。演示条距顶 16px，
-   电脑上高 32px（双栏外框时在右侧画面内，不在左栏上方），触屏与窄屏高 44px */
+   电脑上高32px（双栏外框时在右侧画面内），触屏与窄屏可见40px、命中44px。 */
 @media (min-width: 851px) {
   body:has(> #demoFixed:not(.demo-on-art)) .net-bar {
     top: 56px;
@@ -24796,12 +24932,12 @@ body:has(.demo-cap) > #ai-pal > .ai-pal {
     padding: 0 6px;
   }
 }
-/* 触屏与窄屏（宽度≤850px 或触屏）：“上一个”“下一个”至少 44×44px，名称与序号框与“演示”胶囊同为 44px 高（2026-10-08 Account 核查 D1）。 */
+/* 触屏与窄屏：演示胶囊与名称序号框可见40px高；上一个、下一个的透明命中仍至少44×44px。 */
 @media (max-width: 850px), (pointer: coarse) {
   .demo-cap.btn,
   .demo-step-b.btn {
-    height: 44px;
-    min-height: 44px;
+    height: 40px;
+    min-height: 40px;
   }
   .demo-step-b.btn {
     min-width: 44px;
@@ -24809,9 +24945,9 @@ body:has(.demo-cap) > #ai-pal > .ai-pal {
   }
   .demo-step-n,
   .demo-fixed .demo-step-n {
-    height: 44px;
+    height: 40px;
     align-items: center;
-    border-radius: 22px;
+    border-radius: 20px;
   }
 }
 /* 大屏（OPS07）：画面右上是时钟，胶囊放在距视口左下角 16px 处（2026-10-09 用户确认，大屏显示方案 DP1） */
@@ -24842,11 +24978,12 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
   .brand > .ws-side-toggle { position: relative; }
   .brand > .ws-side-toggle::after { content: ""; position: absolute; inset: -6px; border-radius: 8px; }
 }
-/* 第 7 条：触屏时各页页头工具栏一律 44 高，和项目页相同：位置选择、“操作记录”“修改记录”“大屏”等按钮与圆形图标按钮。
+/* 页头触屏：长胶囊可见40px、透明命中44px；矩形选择框与圆形图标按钮仍44px。
    胶囊页签按第 184 条保持 40/32 的外观，只给每个页签加看不见的上下外扩，点按范围 44 高；
    页签行在平板上放得下，不再需要横向滚动，轨道不裁掉外扩（手机上页签行仍可横向滚动，点按范围为轨道的 40）。 */
 @media (pointer: coarse) {
-  .pbody > .ws-toolbar :is(.btn, .ws-location, .ws-select > button) { height: 44px; min-height: 44px; }
+  .pbody > .ws-toolbar :is(.btn:not(.popitem), .ws-location) { height: 40px; min-height: 40px; }
+  .pbody > .ws-toolbar .ws-select > button { height: 44px; min-height: 44px; }
   .pbody > .ws-toolbar .iconbtn.round { width: 44px; height: 44px; }
   .pbody > .seg[role="tablist"] > [role="tab"]::after { content: ""; position: absolute; inset: -6px 0; }
 }
@@ -25409,10 +25546,11 @@ aside.v13-drawer .v13-dg dd > .v13-link {
     display: block;
   }
 }
-/* 第 110 条：抽屉里的按钮 32 高、触屏 44（原为 28）；第 150 条：工单抽屉的“完成工单”（及同一行的“追加记录”、返工的“需返工”）同样 32 高、触屏 44 */
+/* 告警、工单抽屉文字按钮：桌面32px，触屏可见40px、透明命中44px。 */
 @media (max-width: 850px), (pointer: coarse) {
   .ops-drawer :is(.ops-drawer-state, .ops-ctl-row) .btn {
-    height: 44px;
+    height: 40px;
+    min-height: 40px;
   }
 }
 /* 第 145 条（2026-10-12 用户确认）：告警与工单抽屉的分节标题（数据证据、受影响位置、时间线、来源告警、排查记录等）14/24 字重 480 黑字（原为 13/21 字重 500 #2E2E2E） */
@@ -25482,7 +25620,8 @@ aside.v13-drawer .v13-dg dd > .v13-link {
     width: 44px;
   }
   .ops-bulk-in .btn {
-    height: 44px;
+    height: 40px;
+    min-height: 40px;
   }
   /* 行尾“确认”外观不变，点按范围用看不见的外扩做到 44 高 */
   #app[data-page=alarms] .ops-alarms .ops-ack-c .btn.ghost::after {
@@ -25759,14 +25898,18 @@ body:has(> #app[data-page=alarms]) #dlg :is(.ops-modal-sub, .field > small.muted
   font-size: 14px;
   line-height: 21px;
 }
-/* 画布按钮（“编辑功能区”“取消校准”）32 高、14 号字，触屏 44，同项目楼层画布上的按钮（第 33 条；原为 28 高）。 */
+/* 画布按钮（编辑功能区、取消校准）：桌面32px，触屏可见40px、命中44px，文字仍14px。 */
 .mk-bench .ws-canvas-top > .btn {
   height: 32px;
   padding-inline: 16px;
   font-size: 14px;
 }
 @media (pointer: coarse) {
-  .mk-bench .ws-canvas-top > :is(.btn, .iconbtn) {
+  .mk-bench .ws-canvas-top > .btn {
+    height: 40px;
+    min-height: 40px;
+  }
+  .mk-bench .ws-canvas-top > .iconbtn {
     min-height: 44px;
   }
   .mk-bench .ws-canvas-top > .iconbtn {
@@ -25922,8 +26065,12 @@ body:has(> #app[data-page=alarms]) #dlg :is(.ops-modal-sub, .field > small.muted
     height: max(100%, 44px);
     transform: translate(-50%, -50%);
   }
-  .mk-bench .ws-zoom :is(.iconbtn, .btn) {
+  .mk-bench .ws-zoom .iconbtn {
     min-height: 44px;
+  }
+  .mk-bench .ws-zoom .btn {
+    height: 40px;
+    min-height: 40px;
   }
 }
 /* 项目、设备与配置进度的弹窗里的小文字按钮（复制到其他楼层的“全选 / 全不选”、新建分组的“选择显示的点位”、新建系统连接的“添加数据点 / 添加计算点”等）
@@ -26056,9 +26203,13 @@ body:has(> #app[data-page=alarms]) #dlg :is(.ops-modal-sub, .field > small.muted
   }
 }
 @media (max-width: 850px), (pointer: coarse) {
-  .au-wecom > :is(.btn, .input) {
+  .au-wecom > .input {
     height: 44px;
     min-height: 44px;
+  }
+  .au-wecom > .btn {
+    height: 40px;
+    min-height: 40px;
   }
 }
 /* 第 57 条：机构设置、我的账户和它们的弹窗里的字段名（含单选组的组名）字重 480，字号不变（原为 500） */
@@ -26089,8 +26240,8 @@ body:has(> #app[data-page=alarms]) #dlg :is(.ops-modal-sub, .field > small.muted
 }
 @media (max-width: 850px), (pointer: coarse) {
   .au-set-body .au-sec-act .btn {
-    height: 44px;
-    min-height: 44px;
+    height: 40px;
+    min-height: 40px;
   }
 }
 /* 第 62 条：开票信息两列；只读值旁的说明小字（如“由 PACOM 分配”）放不下时整句换到值的下一行，不把值和说明挤成两窄列 */
@@ -26130,8 +26281,8 @@ body:has(> #app[data-page=alarms]) #dlg :is(.ops-modal-sub, .field > small.muted
 }
 @media (max-width: 850px), (pointer: coarse) {
   .t td .btn.ghost.au-tact.au-docbtn {
-    height: 44px;
-    min-height: 44px;
+    height: 40px;
+    min-height: 40px;
   }
 }
 
@@ -67319,7 +67470,7 @@ function auField(o) {
   const val = AUX.v[name] ?? o.value ?? "";
   // A counted field is never cut at its limit: the count appears from 80% and a longer value is reported as an error.
   const counter = count ? PACOM_AUTH_FLOW.charCount(name, val) : "";
-  return `<div class="au-field ${rightAfter ? "au-field-right-after" : ""}" data-f="${name}"><div class="au-lab"><label for="au-${name}">${label}</label>${rightAfter ? "" : right}</div><div class="au-ctl"><input id="au-${name}" name="${name}" class="au-in ${suffix ? "has-suffix" : ""}" type="${type}" value="${esc(val)}" ${auto ? `autocomplete="${auto}"` : ""} ${inputmode ? `inputmode="${inputmode}"` : ""} ${ph ? `placeholder="${esc(ph)}"` : ""} ${maxlength ? `maxlength="${maxlength}"` : ""} ${required ? 'required aria-required="true"' : ""} aria-describedby="au-${name}-err au-${name}-hint${count ? ` au-${name}-count` : ""}" spellcheck="false" ${type === "password" || ["email", "tel", "username", "one-time-code"].includes(auto) ? 'autocapitalize="none" autocorrect="off"' : ""}>${suffix}</div>${rightAfter ? `<div class="au-field-right">${right}</div>` : ""}<p class="au-err" id="au-${name}-err" aria-live="polite"></p><p class="au-hint" id="au-${name}-hint" ${hintRole ? `role="${hintRole}" aria-live="polite"` : ""}>${hint}</p>${count ? `<p class="au-hint au-char-count" id="au-${name}-count" ${counter ? "" : "hidden"}>${counter}</p>` : ""}</div>`;
+  return `<div class="au-field ${rightAfter ? "au-field-right-after" : ""}" data-f="${name}"><div class="au-lab"><label for="au-${name}">${label}</label>${rightAfter ? "" : right}</div><div class="au-ctl"><input id="au-${name}" name="${name}" class="au-in ${suffix ? "has-suffix" : ""}" type="${type}" value="${esc(val)}" ${auto ? `autocomplete="${auto}"` : ""} ${inputmode ? `inputmode="${inputmode}"` : ""} ${ph ? `placeholder="${esc(ph)}"` : ""} ${maxlength ? `maxlength="${maxlength}"` : ""} ${required ? 'required aria-required="true"' : ""} aria-describedby="au-${name}-err au-${name}-hint${count ? ` au-${name}-count` : ""}" spellcheck="false" ${type === "password" || ["email", "tel", "username", "one-time-code"].includes(auto) ? 'autocapitalize="none" autocorrect="off"' : ""}><label class="au-input-hit" for="au-${name}" aria-hidden="true"></label>${suffix}</div>${rightAfter ? `<div class="au-field-right">${right}</div>` : ""}<p class="au-err" id="au-${name}-err" aria-live="polite"></p><p class="au-hint" id="au-${name}-hint" ${hintRole ? `role="${hintRole}" aria-live="polite"` : ""}>${hint}</p>${count ? `<p class="au-hint au-char-count" id="au-${name}-count" ${counter ? "" : "hidden"}>${counter}</p>` : ""}</div>`;
 }
 // 显示密码按钮按所在字段命名并关联输入框：“显示新密码”“显示确认新密码”，切换后为“隐藏……”（账户核查第 15 条：原先都叫“显示密码”）。
 const AU_EYE_NAME = { np1: "新密码", np2: "确认新密码", iv_pwd2: "确认密码" };
@@ -67659,7 +67810,7 @@ BARE.orgs = () => {
   return auStatusShell(
     `<h1 class="au-h1">选择机构</h1><p class="au-lead">${esc(me.email || me.phone)}</p>${
       // 搜索框左侧 16 的搜索图标，不显示浏览器自带的清除按钮（Lovable 核查第 84 条）
-      search ? `<div class="au-orgsearch">${ico("search", "ic16")}<input type="search" id="au-orgq" name="orgq" class="au-in" placeholder="搜索机构" aria-label="搜索机构" aria-controls="au-orglist" autocomplete="off" value="${esc(AUX.orgQ || "")}"></div>` : ""
+      search ? `<div class="au-orgsearch">${ico("search", "ic16")}<input type="search" id="au-orgq" name="orgq" class="au-in" placeholder="搜索机构" aria-label="搜索机构" aria-controls="au-orglist" autocomplete="off" value="${esc(AUX.orgQ || "")}"><label class="au-input-hit" for="au-orgq" aria-hidden="true"></label></div>` : ""
     }<div class="au-orglist" id="au-orglist">${orgs
       .map(
         // A suspended institution says so on its row; choosing it opens 机构已暂停使用 (AUTH15). Only its 机构管理员 see the reason, so only they
@@ -68653,7 +68804,7 @@ function orgButton() {
 }
 // 机构菜单里各机构的角色。演示中切换了角色时，当前机构一行写切换后的角色并标“演示”，如“运营人员 · 演示”，
 // 同成员表本人一行（DEMO05；全面设计核查第 16 条，2026-10-12 用户确认：原先页面已按运营人员显示，菜单仍写“机构管理员”）。
-const auMenuRole = (o) => (o.id === AUTH.org && U.role && U.role !== o.role ? auSegs([auRole(U.role), "演示"]) : auRole(o.role));
+const auMenuRole = (o) => typeof auDemoMenuRole === "function" ? auDemoMenuRole(o) : auRole(o.role);
 function auMenuHtml() {
   const me = auMe(),
     orgs = auMyOrgs();
@@ -68769,6 +68920,14 @@ const AU_GUIDE_URL = "";
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
   {
+    version: "1.81",
+    date: "2026-10-14",
+    notes: [
+      "全站：原 44px 胶囊输入框和按钮统一为 40px，触屏点击范围仍至少 44px；矩形输入框、独立圆形按钮和既有紧凑控件保持原规格。",
+      "登录、申请访问、重置密码及账户状态页：标题下说明统一为 14/24；手机页顶留白改为 48px，短屏单栏改为 24px；页脚随内容排列，底部辅助入口与页脚的完整点击范围至少相隔 32px。",
+    ],
+  },
+  {
     version: "1.80",
     date: "2026-10-12",
     notes: [
@@ -68818,14 +68977,14 @@ const AU_RELEASES = [
       "触屏：侧栏菜单行、机构入口，各页页头的位置选择、按钮与页签，楼层轨道和缩放按钮的点按范围都不小于 44。",
       "手机：页头的“操作记录”“大屏”“修改记录”收进位置选择右边的“更多”，“数据截至…”写在位置选择下面；“搜索或提问”面板几乎占满屏幕；输入框改为 16 号字，点进去不再放大整页。",
       "搜索或提问：结果按项目、楼宇、楼层、功能区、设备、设备网络、场景、未恢复告警排列，名称完全相同的排在最前；侧栏告警数量的提示写“N 条重要及以上待确认”。",
-      "机构菜单与帮助：从手机抽屉打开时不超出抽屉；普通成员不显示“开通新机构”；演示中切换角色后写切换后的角色；没有标识的机构首字改为灰色；帮助里“联系我们”改名“联系支持”，“使用指南”在正式文档上线前不显示。",
+      "机构菜单与帮助：从手机抽屉打开时不超出抽屉；普通成员不显示“开通新机构”；切换角色后写切换后的角色；没有标识的机构首字改为灰色；帮助里“联系我们”改名“联系支持”，“使用指南”在正式文档上线前不显示。",
       "全站：输入框与选择框统一为“创建项目”弹窗的样式；勾选和单选后的文字统一为 14 号黑字；AI 卡片、报告正文和时间线改为 14 号字；浅灰底和边线颜色收成少数几种；侧面板统一为 400 宽、从工具栏下方开始；卡片间距统一为 20。",
       "总览：“需要处理”先列告警，灯光手动控制排在后面；网关离线时今日要点先说明离线和影响，不再给出控制建议；“未恢复告警”卡按级别写条数；能源页签的设置按钮移到页签行右端，“本月用电”与上月同期比较，“能耗强度”加数据质量一行。",
       "总览：室内环境图层中优、良的填色变浅，超标的更醒目；“离线”用告警的级别色；能点的指标卡带浅阴影；表格和指标卡名称改为 14 号字；“操作记录”“修改记录”弹窗改为 1200 宽；设置弹窗的保存按钮都写“保存”。",
       "数据分析：时间范围新增“上月”“近 12 个月”，选近 12 个月时按月显示；没有可比数据时三张对比卡合成一行提示；数据表日期不换行、数字靠右；报告的“导出 PDF / 编辑草稿 / 发布”移到标题行右侧；新建报告的错误写在字段下方，期间默认为上一个完整月。",
       "数据分析 › 设备健康：点“离线”“被现场复位”打开告警时只列设备与网络告警，可一键清除筛选。",
       "告警：1440 宽及以上打开告警详情时列表让到左边并排；详情顶部显示工单状态，待确认的告警可直接创建工单并同时确认；当前告警可多选批量确认；工单可改派，超过计划时间未完成的标“逾期”并可筛选；告警规则四张卡列宽对齐。",
-      "场景：定时日历写“时刻 定时名”；示例定时改名“定时下班”；执行记录可按期间筛选、按日期分组并加载更多；新建定时先填日期和时刻再选执行的场景；还没有场景、定时或联动时显示空状态和新建按钮。",
+      "场景：定时日历写“时刻 定时名”；定时改名“定时下班”；执行记录可按期间筛选、按日期分组并加载更多；新建定时先填日期和时刻再选执行的场景；还没有场景、定时或联动时显示空状态和新建按钮。",
       "设备标记：右侧面板改为 320 宽，画布不够宽时浮在图上、可收起；看全图时设备点画成按大类着色的小点；查看人员和运营人员默认“查看”；手机上“编辑功能区”“检查”收进“⋯”。",
       "设备：表格改为 14 号字、行下小字加深；正常状态写普通文字，只有需要处理的状态用标签；还没有设备网络时显示空状态；网络详情的返回改为圆形按钮“返回设备网络”。",
       "配置进度：标题下新增“下一步”，只给当前该做的一件事；分组按空间资料、设备、设备网络、系统接入、应用配置、验证与交付排列；规划检查没有问题时只显示一行通过提示；配置参数的目标值完整显示。",
@@ -74281,7 +74440,7 @@ defineActions({
           `<button class="${String(cur) === String(v) ? "on" : ""}" aria-pressed="${String(cur) === String(v)}" ${op(o, { ...extra, v })}>${l}</button>`,
       )
       .join("")}</div>`;
-  // 表单字段：标签在上，44 px 输入框（与公开页登录一致）
+  // 表单字段：标签在上，输入胶囊可见40px，原生标签保留44px触屏命中。
   const field = (label, ctl) => `<label class="app-field"><span>${label}</span>${ctl}</label>`;
   // 回路组成员：同组的 LC20（单台回路即本身）
   const members = (lc) => SIM.lcs.filter((l) => grpOf(l) === grpOf(lc));
@@ -77512,7 +77671,7 @@ const admCloseDrawer = () => {
 
 /* ---------- shell ---------- */
 // Staff sign-in: separate from Station accounts (a Station customer account cannot sign in here), SSO + authenticator code.
-// Staff sign-in uses the public account-entry measurements (lovable login: 350 column, 30/45 title, 44px pill controls).
+// Staff sign-in uses 40px visible pill controls with 44px native touch targets.
 function admLoginPage() {
   const who = ADM_STAFF.who;
   return `<div class="adm-login"><main class="adm-login-col"><div class="adm-login-logo">${A.logo}</div><h1>PACOM 运营后台</h1><p class="adm-login-lead">仅限 PACOM 员工。使用企业账户单点登录，并完成验证器二次验证；Station 客户账户不能登录本后台。</p><form data-adm-login novalidate><fieldset class="adm-login-who"><legend>企业账户<small> · 单点登录</small></legend><div class="adm-staff-pick" role="radiogroup" aria-label="企业账户">${Object.entries(
@@ -77524,7 +77683,7 @@ function admLoginPage() {
     )
     .join(
       "",
-    )}</div></fieldset><div class="adm-login-field"><label for="admLoginOtp">验证器动态码</label><input id="admLoginOtp" class="adm-login-in" inputmode="numeric" maxlength="6" autocomplete="one-time-code" aria-describedby="admLoginErr admLoginHint" spellcheck="false"><p class="adm-login-err" id="admLoginErr" role="alert"></p><p class="adm-login-hint" id="admLoginHint">输入验证器 App 中的 6 位动态码。</p></div><button type="submit" class="adm-login-btn">登录</button></form><ul class="adm-login-notes"><li>正式环境只能从公司网络或 VPN 访问；30 分钟无操作自动退出。</li><li>每次登录与操作写入运营后台审计，留存 12 个月。</li><li>运营后台不进入机构的空间、楼层图与运行数据，也不显示任何密钥或认证码。</li></ul><div class="adm-login-links"><button type="button" class="adm-login-link" data-act="admExit">返回 Station</button></div></main></div>`;
+    )}</div></fieldset><div class="adm-login-field"><label for="admLoginOtp">验证器动态码</label><label class="adm-login-hit" for="admLoginOtp"><input id="admLoginOtp" class="adm-login-in" inputmode="numeric" maxlength="6" autocomplete="one-time-code" aria-describedby="admLoginErr admLoginHint" spellcheck="false"></label><p class="adm-login-err" id="admLoginErr" role="alert"></p><p class="adm-login-hint" id="admLoginHint">输入验证器 App 中的 6 位动态码。</p></div><button type="submit" class="adm-login-btn">登录</button></form><ul class="adm-login-notes"><li>正式环境只能从公司网络或 VPN 访问；30 分钟无操作自动退出。</li><li>每次登录与操作写入运营后台审计，留存 12 个月。</li><li>运营后台不进入机构的空间、楼层图与运行数据，也不显示任何密钥或认证码。</li></ul><div class="adm-login-links"><button type="button" class="adm-login-link" data-act="admExit">返回 Station</button></div></main></div>`;
 }
 BARE.console = () => {
   if (!ADM_STAFF.signed) return admLoginPage();
@@ -79804,6 +79963,8 @@ window.addEventListener("popstate", () => {
 /* ---------- 演示数据的导出标注（实际页面导出不含任何标注） ---------- */
 F.setSampleMark({ source: "演示数据", tag: "演示", note: "演示数据，不代表现场实际情况" });
 const DEMO_EXPORT_MARK = { tag: "演示" };
+// 仅在演示层标示当前模拟角色，正式机构菜单仍取真实成员角色。
+function auDemoMenuRole(o) { return o.id === AUTH.org && U.role && U.role !== o.role ? auSegs([auRole(U.role), "演示"]) : auRole(o.role); }
 
 /* ---------- 演示状态 ---------- */
 const DEMO = { stateOn: false, running: false, offline: false, cur: "", catQ: "", link: "" };

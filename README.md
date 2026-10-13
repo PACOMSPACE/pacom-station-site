@@ -1,5 +1,19 @@
-# PACOM Station 交互页面
+# PACOM Station 1.81 · public release
 
-本仓库是 https://pacom.cc.cd 的发布目录，只放构建好的静态页面（index.html 及其使用的字体、图片和第三方库），由 PACOM Station 项目的原型构建后推送。请勿在这里手工修改页面。
+- Website: https://pacom.cc.cd/
+- Release date: 2026-10-14
+- Page program fingerprint: `d69cb98b3ae329db`
+- index.html SHA-256: `32846a908451bd0d6b4fc2dd46f92e260083d96ad6ce64f044fb08441ad83ac3`
 
-当前版本：页面设计与交互规范 1.80（2026年10月12日）。
+This repository contains the public static build for GitHub Pages: `index.html`,
+runtime files in `fonts/`, `media/` and `vendor/`, and this generated release note.
+The engineering source, tests, private design specifications, workspace backups
+and `release/` are not published here. Browser JavaScript is necessarily part of
+the public HTML; this repository is not the editable engineering source.
+
+Changes are made in the separate PACOM Station source project. Its
+`scripts/sync_site_release.py` builds the active source, verifies a second build
+byte-for-byte, validates this repository's origin, and synchronizes public files.
+The version and date above come from the first `AU_RELEASES` entry. Do not edit
+this generated note by hand. Existing `CNAME`, `.nojekyll`, Pages configuration
+and unrelated files are preserved. The script never stages, commits or pushes.
