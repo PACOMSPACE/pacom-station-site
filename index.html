@@ -67261,6 +67261,9 @@ const AU_OTP = 'inputmode="numeric" autocomplete="one-time-code" maxlength="6" a
   AU_CUR_PWD = 'autocomplete="current-password"',
   AU_NEW_PWD = 'autocomplete="new-password"';
 const auInAttrs = (html, attrs) => html.replace("<input ", `<input ${attrs} `);
+// Pure email/telephone inputs share keyboard and autofill semantics; mixed account identifiers keep text/username.
+const AU_EMAIL_INPUT = 'inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false"';
+const AU_TEL_INPUT = 'inputmode="tel" autocomplete="tel" autocapitalize="none" autocorrect="off" spellcheck="false"';
 /* 弹窗里的验证码（更换电子邮箱、更换手机号码、绑定手机号码；Lovable 核查第 451、455 条，2026-10-11 用户确认），同登录页（AUTH01）：
    发送后 60 秒内“N 秒后重发”并禁用，之后“重新获取”；发送状态按地址记下，改了地址按新地址的状态，旧地址的状态不用于新地址；
    验证码下方写“验证码已发送至 n•••@example.test”（号码写“139 •••• 0199”）。原先每秒刷新按钮时按登录页的键处理，
@@ -67768,6 +67771,7 @@ BARE.login = () => {
       ? auField({
         name: "sphone",
         label: "手机号码",
+        type: "tel",
         auto: "tel",
         inputmode: "tel",
         suffix: auCodeBtn("login", "sphone"),
@@ -68043,7 +68047,7 @@ BARE.apply = () => {
     ? `为另一家单位申请开通机构。新机构与${zhSub(esc(auOrg().name))}的数据独立。`
     : `填写${me ? "机构" : "机构和联系人"}信息，提交后由 PACOM 审核。若所在单位已使用 PACOM，请联系机构管理员邀请您加入。`;
   return auApplyShell(
-    `<h1 class="au-h1">${AUX.applyEditing ? "修改申请" : mode === "new-org" ? "申请开通新机构" : "申请访问"}</h1><p class="au-lead">${AUX.applyEditing ? "修改下方信息，提交后将更新原申请。" : lead}</p><form data-form="apply" novalidate><fieldset>${auField({ name: "ap_org", label: "公司或机构名称", auto: "organization", count: true })}${me ? auApplyContact(me) : `${auField({ name: "ap_name", label: "联系人姓名", auto: "name", count: true })}${auField({ name: "ap_mail", label: "电子邮箱", auto: "email", inputmode: "email", hint: "用于接收审核结果及通过后的开通邀请。" })}`}${auField({ name: "ap_tel", label: "手机号码", auto: "tel", inputmode: "tel", hint: "用于审核时联系您。" })}<div class="au-field au-apply-overview" data-f="ap_need"><div class="au-lab"><label for="au-ap_need">项目概况<span>（选填）</span></label></div><div class="au-textarea-shell"><textarea id="au-ap_need" name="ap_need" class="au-in au-ta" rows="3" aria-describedby="au-ap_need-err au-ap_need-count" placeholder="例如项目位置、楼宇规模或计划使用的功能">${esc(AUX.v.ap_need || "")}</textarea><button type="button" class="au-resize" data-resize="au-ap_need" aria-label="调整项目概况输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-ap_need-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-ap_need-count" ${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need)}</p></div><label class="au-check" data-f="ap_ok"><input type="checkbox" name="ap_ok" class="au-v" required aria-required="true" aria-describedby="au-ap_ok-err" ${AUX.v.ap_ok ? "checked" : ""}><span>我已阅读<button type="button" class="au-inline" data-act="auLegal" data-doc="privacy">隐私政策</button>，同意 PACOM 为${me ? "审核申请及与我联系" : "审核申请、联系及发送邀请"}处理以上信息。</span></label><p class="au-err au-check-err" id="au-ap_ok-err"></p><p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}</fieldset></form>${AUX.applyEditing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit" ${PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? "disabled" : ""}>取消修改</button><span class="au-dot" aria-hidden="true"></span>${auBackAction(mode)}</div>` : auBackLinks(mode)}${mode === "new-org" ? `<p class="au-foot-note">同一机构的其他园区或楼宇，请在当前机构中创建项目。</p>` : ""}`,
+    `<h1 class="au-h1">${AUX.applyEditing ? "修改申请" : mode === "new-org" ? "申请开通新机构" : "申请访问"}</h1><p class="au-lead">${AUX.applyEditing ? "修改下方信息，提交后将更新原申请。" : lead}</p><form data-form="apply" novalidate><fieldset>${auField({ name: "ap_org", label: "公司或机构名称", auto: "organization", count: true })}${me ? auApplyContact(me) : `${auField({ name: "ap_name", label: "联系人姓名", auto: "name", count: true })}${auField({ name: "ap_mail", label: "电子邮箱", type: "email", auto: "email", inputmode: "email", hint: "用于接收审核结果及通过后的开通邀请。" })}`}${auField({ name: "ap_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", hint: "用于审核时联系您。" })}<div class="au-field au-apply-overview" data-f="ap_need"><div class="au-lab"><label for="au-ap_need">项目概况<span>（选填）</span></label></div><div class="au-textarea-shell"><textarea id="au-ap_need" name="ap_need" class="au-in au-ta" rows="3" aria-describedby="au-ap_need-err au-ap_need-count" placeholder="例如项目位置、楼宇规模或计划使用的功能">${esc(AUX.v.ap_need || "")}</textarea><button type="button" class="au-resize" data-resize="au-ap_need" aria-label="调整项目概况输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-ap_need-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-ap_need-count" ${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need)}</p></div><label class="au-check" data-f="ap_ok"><input type="checkbox" name="ap_ok" class="au-v" required aria-required="true" aria-describedby="au-ap_ok-err" ${AUX.v.ap_ok ? "checked" : ""}><span>我已阅读<button type="button" class="au-inline" data-act="auLegal" data-doc="privacy">隐私政策</button>，同意 PACOM 为${me ? "审核申请及与我联系" : "审核申请、联系及发送邀请"}处理以上信息。</span></label><p class="au-err au-check-err" id="au-ap_ok-err"></p><p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}</fieldset></form>${AUX.applyEditing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit" ${PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? "disabled" : ""}>取消修改</button><span class="au-dot" aria-hidden="true"></span>${auBackAction(mode)}</div>` : auBackLinks(mode)}${mode === "new-org" ? `<p class="au-foot-note">同一机构的其他园区或楼宇，请在当前机构中创建项目。</p>` : ""}`,
   );
 };
 BARE_AFTER.apply = () => {
@@ -68130,7 +68134,7 @@ function auBindPhoneStep() {
   const sent =
     AUX.bindCodeTo && auPhoneIdentity(AUX.bindCodeTo) === auPhoneIdentity(AUX.v.bd_phone) ? `已发送至 ${esc(auSmsDestination(AUX.bindCodeTo))}` : "";
   return auAuthShell(
-    `<h1 class="au-h1">绑定手机号码</h1><p class="au-lead">账户已创建。绑定后可以用手机号码登录和重置密码；也可以跳过，之后在“我的账户 › 登录与安全”中绑定。</p><form data-form="bindPhone" novalidate><fieldset>${auField({ name: "bd_phone", label: "手机号码", auto: "tel", inputmode: "tel", suffix: auCodeBtn("bind", "bd_phone"), hint: sent, hintRole: "status" })}${auField({ name: "bd_code", label: "短信验证码", auto: "one-time-code", inputmode: "numeric", maxlength: 6 })}<p class="au-ferr" role="alert" hidden></p>${auPrimary("绑定并继续")}</fieldset></form><div class="au-links"><button type="button" class="au-textbtn" data-act="auBindSkip">跳过</button></div>`,
+    `<h1 class="au-h1">绑定手机号码</h1><p class="au-lead">账户已创建。绑定后可以用手机号码登录和重置密码；也可以跳过，之后在“我的账户 › 登录与安全”中绑定。</p><form data-form="bindPhone" novalidate><fieldset>${auField({ name: "bd_phone", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", suffix: auCodeBtn("bind", "bd_phone"), hint: sent, hintRole: "status" })}${auField({ name: "bd_code", label: "短信验证码", auto: "one-time-code", inputmode: "numeric", maxlength: 6 })}<p class="au-ferr" role="alert" hidden></p>${auPrimary("绑定并继续")}</fieldset></form><div class="au-links"><button type="button" class="au-textbtn" data-act="auBindSkip">跳过</button></div>`,
   );
 }
 // Leaves the optional binding step: the owner continues to institution setup, a member enters the workspace.
@@ -68187,7 +68191,7 @@ function auWelcomeRow(r, i, projects) {
     : r.role === "admin"
       ? `<p class="au-hint">机构管理员可访问全部项目。</p>`
       : `<div class="au-lab"><span class="au-lab-t" id="au-w_scope${i}-label">项目授权范围</span></div><div class="au-scope-choices au-scope-stack" role="radiogroup" aria-labelledby="au-w_scope${i}-label"><label><input type="radio" name="w_scope${i}" value="all" ${r.scope === "all" ? "checked" : ""}>全部项目</label><label><input type="radio" name="w_scope${i}" value="some" ${Array.isArray(r.scope) ? "checked" : ""}>指定项目</label><div class="au-scope-choices au-scope-projects" ${Array.isArray(r.scope) ? "" : "hidden"} id="au-wprojects${i}">${projects.map(p => `<label><input type="checkbox" name="w_project${i}" value="${esc(p.id)}" ${Array.isArray(r.scope) && r.scope.includes(p.id) ? "checked" : ""}>${esc(p.name)}</label>`).join("")}</div></div>`;
-  return `<div class="au-wrow" data-row="${i}"><div class="au-field" data-f="w_acct${i}"><div class="au-ctl"><input class="au-in" name="w_acct${i}" id="au-w_acct${i}" value="${esc(AUX.v["w_acct" + i] ?? r.acct)}" placeholder="电子邮箱" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="第 ${i + 1} 位成员的电子邮箱" aria-describedby="au-w_acct${i}-err" ${sent ? "readonly" : ""}></div><p class="au-err" id="au-w_acct${i}-err" aria-live="polite"></p></div><div class="au-wrole">${auRoleSelect("auWRole" + i, AU_WELCOME_ROLES, r.role, `第 ${i + 1} 位成员的角色`)}<p class="au-err" id="au-w_role${i}-err" aria-live="polite"></p></div><button type="button" class="au-wrow-remove" data-act="auWRemoveRow" data-row="${i}" aria-label="移除第 ${i + 1} 位成员">${ico("x", "ic16")}</button>${sent || scope ? `<div class="au-wscope">${sent ? '<p class="au-hint" role="status">邀请已发送</p>' : scope}<p class="au-err" id="au-w_scope${i}-err" aria-live="polite"></p></div>` : ""}</div>`;
+  return `<div class="au-wrow" data-row="${i}"><div class="au-field" data-f="w_acct${i}"><div class="au-ctl"><input type="email" class="au-in" name="w_acct${i}" id="au-w_acct${i}" value="${esc(AUX.v["w_acct" + i] ?? r.acct)}" placeholder="电子邮箱" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="第 ${i + 1} 位成员的电子邮箱" aria-describedby="au-w_acct${i}-err" ${sent ? "readonly" : ""}></div><p class="au-err" id="au-w_acct${i}-err" aria-live="polite"></p></div><div class="au-wrole">${auRoleSelect("auWRole" + i, AU_WELCOME_ROLES, r.role, `第 ${i + 1} 位成员的角色`)}<p class="au-err" id="au-w_role${i}-err" aria-live="polite"></p></div><button type="button" class="au-wrow-remove" data-act="auWRemoveRow" data-row="${i}" aria-label="移除第 ${i + 1} 位成员">${ico("x", "ic16")}</button>${sent || scope ? `<div class="au-wscope">${sent ? '<p class="au-hint" role="status">邀请已发送</p>' : scope}<p class="au-err" id="au-w_scope${i}-err" aria-live="polite"></p></div>` : ""}</div>`;
 }
 // 开通引导只对该机构的机构管理员显示（AUTH19）；该机构的其他成员打开引导地址时直接进入该机构总览（见 readRoute 与 auOpenWelcome）；
 // 已登录、不属于该机构的账户看到AUTH24，“返回”进入本账户的当前机构（Account 核查 C1、C5）。
@@ -68919,6 +68923,13 @@ const AU_GUIDE_URL = "";
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "1.82",
+    date: "2026-10-14",
+    notes: [
+      "账户与机构表单：电子邮箱和电话输入框补齐输入类型、键盘与自动填充语义；原有校验和外观保持不变，登录及重置密码的混合账户输入框不变。",
+    ],
+  },
   {
     version: "1.81",
     date: "2026-10-14",
@@ -70113,7 +70124,7 @@ Object.assign(actions, {
         bind ? "手机号码" : phone ? "新手机号码" : "新电子邮箱",
         "auNewId",
         // 手机号码按电话号码类型：手机上弹出数字键盘、可自动填入本机号码，外观不变（全面设计核查第 71 条，2026-10-12 用户确认：原为普通文本框）
-        phone ? auInAttrs(input("auNewId", "", "例如 139 0000 0199", "tel"), 'inputmode="tel" autocomplete="tel"') : input("auNewId", "", "name@example.com"),
+        phone ? auInAttrs(input("auNewId", "", "例如 139 0000 0199", "tel"), 'inputmode="tel" autocomplete="tel"') : auInAttrs(input("auNewId", "", "name@example.com", "email"), AU_EMAIL_INPUT),
       )}<div class="field"><label for="auNewCode">验证码</label><div class="au-inrow">${auInAttrs(input("auNewCode", "", "6 位数字"), AU_OTP)}${btn("获取验证码", "auDlgCode", { kind: a.kind }, "au-dlgcode")}</div><small class="muted" id="auNewCode-hint" aria-live="polite" hidden></small></div>`,
       btn("取消", "close") + btn(bind ? "绑定" : "确认更换", "auChangeIdSave", { kind: a.kind }, "primary"),
     );
@@ -70485,7 +70496,7 @@ function auInviteDialog() {
   if (!auCanManage()) return;
   auDialog(
     "邀请成员",
-    `${fld("电子邮箱", "auInvAcct", input("auInvAcct", "", "name@example.com"), "邀请链接发送到此邮箱；已有 PACOM 账户的人登录后直接接受。")}${fld("姓名（选填）", "auInvName", input("auInvName", "", "显示在成员列表和邀请中"))}${fld("角色", "auInvRole", auRoleSelect("auInvRole", AU_ROLE_OPTS, "", "角色"), `<span id="invRoleHint"></span>`)}<div class="field" id="invScopeField"><label>项目授权范围</label>${auScopeCtl("inv", [])}<small class="muted" id="invScopeNote"></small></div>${auZoneField("inv")}${note("邀请链接 7 天内有效，只能使用一次；普通邀请只加入本机构，不会创建新机构。")}`,
+    `${fld("电子邮箱", "auInvAcct", auInAttrs(input("auInvAcct", "", "name@example.com", "email"), AU_EMAIL_INPUT), "邀请链接发送到此邮箱；已有 PACOM 账户的人登录后直接接受。")}${fld("姓名（选填）", "auInvName", input("auInvName", "", "显示在成员列表和邀请中"))}${fld("角色", "auInvRole", auRoleSelect("auInvRole", AU_ROLE_OPTS, "", "角色"), `<span id="invRoleHint"></span>`)}<div class="field" id="invScopeField"><label>项目授权范围</label>${auScopeCtl("inv", [])}<small class="muted" id="invScopeNote"></small></div>${auZoneField("inv")}${note("邀请链接 7 天内有效，只能使用一次；普通邀请只加入本机构，不会创建新机构。")}`,
     btn("取消", "close") + btn(ico("au-send", "ic16") + "发送邀请", "auInviteSend", {}, "primary"),
     "wide-form",
   );
@@ -70715,9 +70726,9 @@ const AU_ORG_PAGES = {
     const contact = `${fld("联系人姓名", "auOrgContact", val("auOrgContact", o.contact))}${fld(
       "联系邮箱",
       "auOrgContactMail",
-      edit ? input("auOrgContactMail", o.contactEmail || "", "", "email") : ro(auMask(o.contactEmail || "")),
+      edit ? auInAttrs(input("auOrgContactMail", o.contactEmail || "", "", "email"), AU_EMAIL_INPUT) : ro(auMask(o.contactEmail || "")),
       "接收 PACOM 服务通知和许可到期提醒",
-    )}${fld(edit ? "联系电话（选填）" : "联系电话", "auOrgContactTel", edit ? input("auOrgContactTel", o.contactPhone || "", "", "tel") : ro(auMask(o.contactPhone || "")))}`;
+    )}${fld(edit ? "联系电话（选填）" : "联系电话", "auOrgContactTel", edit ? auInAttrs(input("auOrgContactTel", o.contactPhone || "", "", "tel"), AU_TEL_INPUT) : ro(auMask(o.contactPhone || "")))}`;
     // 非机构管理员看到的机构信息用名称—值卡片，同下面的“服务信息”；只读提示放在卡片上面，与内容区同宽（全面设计核查第 61、62 条，2026-10-12 用户确认：
     // 原先仍是表单的排法，只读提示在 640 宽的表单里）。联系邮箱与联系电话照旧打码。
     const roVal = (v) => (v ? esc(v) : `<span class="muted">—</span>`);
@@ -71561,7 +71572,7 @@ AU_ORG_PAGES.orders = () => {
         b.type,
         "发票类型",
       ),
-    )}${fld("收票邮箱", "auBillMail", input("auBillMail", b.email, "", "email"))}${fld("地址电话（选填）", "auBillAddr", input("auBillAddr", b.addr))}${fld("开户银行及账号（选填）", "auBillBank", input("auBillBank", b.bank))}</div><div class="au-actions">${btn("保存", "auBillSave", {}, "primary")}</div></div>`,
+    )}${fld("收票邮箱", "auBillMail", auInAttrs(input("auBillMail", b.email, "", "email"), AU_EMAIL_INPUT))}${fld("地址电话（选填）", "auBillAddr", input("auBillAddr", b.addr))}${fld("开户银行及账号（选填）", "auBillBank", input("auBillBank", b.bank))}</div><div class="au-actions">${btn("保存", "auBillSave", {}, "primary")}</div></div>`,
   );
   const acc = l.account;
   const account = auSec(
