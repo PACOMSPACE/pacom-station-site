@@ -16252,23 +16252,73 @@ fieldset:disabled .au-primary {
 .au-more[open] summary {
   margin-bottom: 16px;
 }
+/* 2026-10-14 用户确认：账户页脚四个文字入口与真实备案号共用一行，按左栏可用宽度自然换行；
+   13/20、可见间距16（各项左右4px填充加8px盒间隔），不画胶囊，不改变业务区到页脚的32px间距。 */
 .au-foot {
   display: flex;
   flex-wrap: wrap;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  gap: 4px 24px;
-  color: var(--text3);
-  font-size: 13px;
-  line-height: 20px;
+  align-self: stretch;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  gap: 8px;
+  color: #636363;
+  font: 400 13px/20px var(--ff);
+  text-align: center;
 }
-.au-foot button {
-  color: var(--text3);
-  font-size: 13px !important;
+.au-foot > :is(button, a) {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 28px;
+  padding: 4px;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
 }
-.au-foot button:hover {
+.au-foot > a {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  border-radius: 2px;
+}
+.au-foot > :is(button, a):hover {
   color: var(--text);
+}
+.au-foot > :is(button, a):focus-visible {
+  outline: 2px solid #00AEEF;
+  outline-offset: 2px;
+}
+/* 左栏原底部填充16px，页脚再留8px使桌面与手机同为24px；单栏旧外框不重复增加。 */
+.au-left > .au-foot {
+  margin-bottom: 8px;
+}
+@media (max-width: 850px), (pointer: coarse) {
+  .au-foot > :is(button, a) {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  /* 末项40px主按钮的44px透明点按区向下外扩2px，完整点按区到页脚仍留32px。 */
+  .au-center:has(> .au-group > .au-primary:last-child) {
+    padding-bottom: 34px;
+  }
+}
+@media (max-width: 600px) {
+  .au-left > .au-foot {
+    margin-bottom: 0;
+  }
 }
 .au-foot-note {
   margin: 24px 0 0;
@@ -17825,15 +17875,7 @@ fieldset:disabled .au-primary {
     align-items: flex-start;
     padding-top: 96px;
   }
-  .au-foot {
-    gap: 4px 20px;
-  }
-  .au-foot span {
-    flex-basis: 100%;
-    text-align: center;
-  }
   .au-textbtn,
-  .au-foot button,
   .au-lab .au-textbtn {
     min-height: 44px;
   }
@@ -18039,7 +18081,6 @@ fieldset:disabled .au-primary {
     margin-bottom: 4px;
   }
   :is(.bare-login, .bare-apply, .bare-reset, .bare-invite) :is(.au-login-actions, .au-links) .au-textbtn,
-  :is(.bare-login, .bare-apply, .bare-reset, .bare-invite) .au-foot button,
   :is(.bare-login, .bare-invite) .au-field-right .au-textbtn {
     min-height: 44px;
   }
@@ -18580,7 +18621,7 @@ fieldset:disabled .au-primary {
 .au-orgpick .au-suspended-hint { color: var(--au-muted); }
 @media (max-width:850px), (pointer:coarse) {
   .au .au-in, .au .au-primary, .au .au-step .au-in, .au .au-step .au-primary, .au .au-step .ws-select > button, .au .au-step .au-upload { height: 44px; min-height: 44px; }
-  .au .au-textbtn, .au .au-inline, .au .au-help summary, .au .au-foot button, .au .au-scope-choices label { min-height: 44px; }
+  .au .au-textbtn, .au .au-inline, .au .au-help summary, .au .au-scope-choices label { min-height: 44px; }
   .au .au-eye { width: 44px; height: 44px; right: 0; }
   .au .au-getcode { min-height: 44px; height: 44px; right: 0; }
   .au .au-resize { width: 44px; height: 44px; }
@@ -18681,13 +18722,6 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
 /* 2026-10-02 · 第三轮核查修正 */
 /* A new attempt hides the previous message without giving up its space; the result replaces or clears it. */
 .au .au-ferr[data-held="1"], .au-account-dlg .au-ferr[data-held="1"] { visibility: hidden; }
-/* Footer links share the 2px keyboard ring and 4px text inset; the gap shrinks by the inset so the visible spacing stays 24px (20px ≤600px). */
-.au .au-foot { column-gap: 16px; }
-.au .au-foot > :is(span, button) { padding-inline: 4px; }
-.au .au-foot button:focus-visible { outline: 2px solid #00AEEF; outline-offset: 2px; }
-@media (max-width: 600px) {
-  .au .au-foot { column-gap: 12px; }
-}
 @media (max-width:850px), (pointer:coarse) {
   /* Login entries below the button: the 44px hit area extends up and down without moving the text. */
   .bare-login .au-login-actions > .au-textbtn { margin-block: -8px; }
@@ -18712,9 +18746,6 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
 /* A resend limit on the same number keeps “已发送至…” 4px below the field, with the yellow notice 8px below it. */
 .au .au-limit-hint.au-sent-limit > .au-sent-to { display: block; }
 .au .au-limit-hint.au-sent-limit > .au-notice { margin-top: 8px; }
-/* A footer that does not fit on one line (marked by script) puts the copyright on its own first line, as on a phone. */
-.au .au-foot.au-foot-stack > span { flex-basis: 100%; text-align: center; }
-
 /* 2026-10-02 · 第四轮核查修正（重置密码与申请访问） */
 /* The direct reset page's help summary uses the same 2px rounded keyboard ring as the dialog's. */
 .au-tech > summary:focus-visible, .bare-reset .au-help summary:focus-visible { outline: 2px solid #00AEEF; outline-offset: 2px; border-radius: 4px; }
@@ -18751,9 +18782,6 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
 }
 
 /* 2026-10-08 · Account 核查第二批（HONG 确认） */
-/* C8：页脚一行时与 400px 输入框同宽。页脚盒宽 408px、居中（各项左右 4px 内边距不变），首项文字左端与末项文字右端对齐输入框两端，
-   四项之间平均分配；相邻两项的空白不足 8px 即放不下一行，由脚本加 .au-foot-stack，排法与原来相同（第二行三项居中，可见间距 24px，≤600px 为 20px）。 */
-.au .au-foot:not(.au-foot-stack) { box-sizing: border-box; width: 408px; max-width: 100%; align-self: center; justify-content: space-between; column-gap: 0; }
 /* C9：右侧画面到视口右边缘 16px；#app 预留的滚动条空间（--au-gutter，由脚本量出）计在这 16px 之内，四边都是 16px。 */
 :is(.bare-login, .bare-apply, .bare-reset, .bare-invite) .au-art { padding-right: max(0px, calc(16px - var(--au-gutter, 0px))); }
 /* C2：触屏与宽度≤850px 时勾选框仍有 44×44px 点击区，但不撑高同意条款的文字行（与政策入口的点击区相同，不参与行盒高度）：
@@ -19070,17 +19098,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .tw > .au-table.fold > tbody > tr > td :is(.au-sub, small) { display: block; }
 .tw > .au-table.fold > tbody > tr > td[data-label] > :is(.au-sub, small) { display: inline; margin-left: 8px; }
 .tw > .au-table.fold > tbody > tr.au-nohit > td { text-align: center; }
-/* 登录页底部的第二行：营业执照信息、ICP 备案号、公安备案号，字号、颜色、内边距与焦点环同页脚，可见间距 24px（≤600px 为 20px）。 */
-.au-filing { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 16px; margin-top: 4px; color: var(--text3); font-size: 13px; line-height: 20px; }
-.au-filing > :is(button, a) { display: inline-flex; align-items: center; gap: 4px; padding: 0 4px; border: 0; background: none; color: var(--text3); font: inherit; font-size: 13px; text-decoration: none; cursor: pointer; }
-.au-filing > :is(button, a):hover { color: var(--text); }
-.au-filing > :is(button, a):focus-visible { outline: 2px solid #00AEEF; outline-offset: 2px; border-radius: 2px; }
-.au-filing .ic { width: 14px; height: 14px; }
-.au-single .au-filing { align-self: stretch; }
-/* 左右分栏的登录页：与第一行同宽（408px），放不下时在本栏内换行 */
-.au-left .au-filing { box-sizing: border-box; width: 100%; max-width: 408px; align-self: center; }
 @media (max-width: 600px) {
-  .au-filing { column-gap: 12px; }
   .au-plan.au-plan4, .au-meters { grid-template-columns: minmax(0, 1fr); }
   .au-radios.au-pay-ways { grid-template-columns: minmax(0, 1fr); }
   .au-pay-h { flex-direction: column; gap: 4px; }
@@ -19088,14 +19106,6 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
   .au-price td.num { white-space: normal; }
 }
 /* 2026-10-10 Lovable 核查（账户页，HONG 确认），第 1–96 条中账户页的改动。 */
-/* 第 15、56、6 条：页脚与下一行（营业执照信息、ICP 备案号）12/18，颜色、间距、对齐不变；触屏上备案行的点击区也是 44。 */
-.au-foot { font-size: 12px; line-height: 18px; }
-.au-foot button { font-size: 12px !important; line-height: 18px; }
-.au-filing { font-size: 12px; line-height: 18px; }
-.au-filing > :is(button, a) { font-size: 12px; line-height: 18px; }
-@media (max-width:850px), (pointer:coarse) {
-  .au-filing > :is(button, a) { min-height: 44px; }
-}
 /* 登录、重置、邀请、绑定与各结果页的胶囊输入框和主按钮所有宽度都 40 高（宽 400 不变）；电脑眼睛按钮与“获取验证码”仍 32、距右 6。
    申请表（32 高、圆角 8）与开通引导的控件不变，由其后更具体的规则保持。 */
 .au .au-in:not(.au-ta), .au .au-primary { height: 40px; min-height: 40px; }
@@ -19263,15 +19273,6 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 }
 /* 第 130 条：暂停结束后的“现在可以再次登录。再错 1 次……”不是错误，用说明灰 #636363，位置、字号与读屏不变；下次提交失败再换回红字。 */
 .au form[data-form="login"] .au-ferr[data-lock="2"]:not(.au-notice) { color: #636363; }
-/* 第 133 条：手机宽度（≤600px）去掉版权一行，页脚两行“隐私政策 · 服务条款 · 联系我们”“营业执照信息 · ICP 备案号”居中，
-   两行都是 44 高的点击区，可见间距 20；桌面不变。 */
-@media (max-width: 600px) {
-  .au .au-foot > span { display: none; }
-  .au .au-foot:not(.au-foot-stack) { width: auto; justify-content: center; column-gap: 12px; }
-  .au .au-foot button { min-height: 44px; }
-  .au .au-foot + .au-filing { margin-top: 0; }
-  .au .au-filing > :is(button, a) { min-height: 44px; }
-}
 /* 第 134、135 条：重置密码（弹窗与直接打开的页面）。填的是电子邮箱时“短信验证码”和“获取验证码”隐藏；
    字段之间 16，文字错误距字段 4，提示条距字段 16；页面上“无法使用…？”在字段下 12，主按钮在它下面 24，“返回登录”再下 16。 */
 :is(#au-reset-form, #au-reset-dlg-form) :is(.au-field, .au-getcode)[hidden] { display: none; }
@@ -66893,7 +66894,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = PACOM_PASS
       ap_name: !String(values.ap_name || '').trim() ? '请输入联系人姓名' : fieldLength('ap_name', values.ap_name) > LIMITS.ap_name ? `联系人姓名不超过 ${LIMITS.ap_name} 个字` : '',
       ap_mail: !String(values.ap_mail || '').trim() ? '请输入电子邮箱' : !email(values.ap_mail) ? '请输入有效的电子邮箱' : '',
       ap_tel: !String(values.ap_tel || '').trim() ? '请输入手机号码' : !phone(values.ap_tel) ? '请输入有效的手机号码' : '',
-      ap_ok: values.ap_ok ? '' : '请阅读并同意隐私政策',
+      ap_ok: values.ap_ok ? '' : '请阅读隐私政策并同意上述信息处理。',
       ap_need: fieldLength('ap_need', values.ap_need) > LIMITS.ap_need ? `项目概况不超过 ${LIMITS.ap_need} 个字` : '',
     };
   }
@@ -67530,7 +67531,7 @@ const auUserHint = (v) =>
   `<input type="email" class="au-user-hint" name="username" autocomplete="username" value="${esc(v || "")}" readonly tabindex="-1" aria-hidden="true" aria-label="账户">`;
 const auPrimary = (label) => `<button type="submit" class="au-primary">${label}</button>`;
 function auFooter(center = false) {
-  return `<footer class="au-foot ${center ? "center" : ""}"><span>© ${PACOM_AUTH_FLOW.cstYear(auNow())} 广州天环智能技术有限公司</span><button type="button" data-act="auLegal" data-doc="privacy">隐私政策</button><button type="button" data-act="auLegal" data-doc="terms">服务条款</button><button type="button" data-act="auContact">联系我们</button></footer>${typeof auFiling === "function" ? auFiling() : ""}`;
+  return `<footer class="au-foot ${center ? "center" : ""}" aria-label="法律、企业与联系信息"><button type="button" data-act="auLegal" data-doc="privacy">隐私政策</button><button type="button" data-act="auLegal" data-doc="terms">服务条款</button><button type="button" data-act="auContact">联系我们</button>${typeof auFiling === "function" ? auFiling() : ""}</footer>`;
 }
 const auLogo = () => `<div class="au-logo">${A.logo}</div>`;
 const auAuthShell = (inner) =>
@@ -68018,8 +68019,8 @@ const auBackLinks = (mode) =>
 // 只读一行“联系人 王敏 · 邮箱”，写法同邀请页锁定的邮箱。审核通过后新机构直接加到本账户（本人为机构管理员）并进入开通引导，不发开通邀请
 // （全面设计核查第 136 条，2026-10-12 用户确认：原先联系人姓名、电子邮箱由账户带入但可以改，通过后发开通邀请）。
 const auApplyContact = (me) =>
-  `<div class="au-field au-locked au-apply-contact" role="group" aria-labelledby="au-ap-contact-label"><div class="au-lab"><span class="au-lab-t" id="au-ap-contact-label">联系人</span></div><p class="au-static">${esc(me.name)} · ${esc(me.email || me.phone || "")}</p><p class="au-hint">审核结果将发送至此邮箱；通过后，新机构直接出现在您的机构列表中。</p></div>`;
-const auApplyAccountSent = (mail) => `审核结果将发送至 <b>${esc(mail)}</b>；通过后，新机构直接出现在您的机构列表中。`;
+  `<div class="au-field au-locked au-apply-contact" role="group" aria-labelledby="au-ap-contact-label"><div class="au-lab"><span class="au-lab-t" id="au-ap-contact-label">联系人</span></div><p class="au-static">${esc(me.name)} · ${esc(me.email || me.phone || "")}</p><p class="au-hint">审核结果将发送至此邮箱；审核通过后，新机构将显示在您的机构列表中。</p></div>`;
+const auApplyAccountSent = (mail) => `审核结果将发送至 <b>${esc(mail)}</b>；审核通过后，新机构将显示在您的机构列表中。`;
 BARE.apply = () => {
   const mode = auApplyMode();
   // An application still sending or unresolved always shows its own form, whichever step the address names.
@@ -68044,10 +68045,12 @@ BARE.apply = () => {
     AUX.v.ap_tel ??= me.phone || "";
   }
   const lead = mode === "new-org"
-    ? `为另一家单位申请开通机构。新机构与${zhSub(esc(auOrg().name))}的数据独立。`
-    : `填写${me ? "机构" : "机构和联系人"}信息，提交后由 PACOM 审核。若所在单位已使用 PACOM，请联系机构管理员邀请您加入。`;
+    ? "为另一机构申请开通，由 PACOM 审核。新机构与当前机构的数据相互独立。"
+    : mode === "account"
+      ? "为所在机构申请开通，由 PACOM 审核。若机构已开通，请联系机构管理员邀请您加入。"
+      : "申请由 PACOM 审核。若所在机构已开通，请联系机构管理员邀请您加入。";
   return auApplyShell(
-    `<h1 class="au-h1">${AUX.applyEditing ? "修改申请" : mode === "new-org" ? "申请开通新机构" : "申请访问"}</h1><p class="au-lead">${AUX.applyEditing ? "修改下方信息，提交后将更新原申请。" : lead}</p><form data-form="apply" novalidate><fieldset>${auField({ name: "ap_org", label: "公司或机构名称", auto: "organization", count: true })}${me ? auApplyContact(me) : `${auField({ name: "ap_name", label: "联系人姓名", auto: "name", count: true })}${auField({ name: "ap_mail", label: "电子邮箱", type: "email", auto: "email", inputmode: "email", hint: "用于接收审核结果及通过后的开通邀请。" })}`}${auField({ name: "ap_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", hint: "用于审核时联系您。" })}<div class="au-field au-apply-overview" data-f="ap_need"><div class="au-lab"><label for="au-ap_need">项目概况<span>（选填）</span></label></div><div class="au-textarea-shell"><textarea id="au-ap_need" name="ap_need" class="au-in au-ta" rows="3" aria-describedby="au-ap_need-err au-ap_need-count" placeholder="例如项目位置、楼宇规模或计划使用的功能">${esc(AUX.v.ap_need || "")}</textarea><button type="button" class="au-resize" data-resize="au-ap_need" aria-label="调整项目概况输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-ap_need-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-ap_need-count" ${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need)}</p></div><label class="au-check" data-f="ap_ok"><input type="checkbox" name="ap_ok" class="au-v" required aria-required="true" aria-describedby="au-ap_ok-err" ${AUX.v.ap_ok ? "checked" : ""}><span>我已阅读<button type="button" class="au-inline" data-act="auLegal" data-doc="privacy">隐私政策</button>，同意 PACOM 为${me ? "审核申请及与我联系" : "审核申请、联系及发送邀请"}处理以上信息。</span></label><p class="au-err au-check-err" id="au-ap_ok-err"></p><p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}</fieldset></form>${AUX.applyEditing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit" ${PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? "disabled" : ""}>取消修改</button><span class="au-dot" aria-hidden="true"></span>${auBackAction(mode)}</div>` : auBackLinks(mode)}${mode === "new-org" ? `<p class="au-foot-note">同一机构的其他园区或楼宇，请在当前机构中创建项目。</p>` : ""}`,
+    `<h1 class="au-h1">${AUX.applyEditing ? "修改申请" : mode === "new-org" ? "申请开通新机构" : "申请访问"}</h1><p class="au-lead">${AUX.applyEditing ? "修改下方信息，提交后将更新原申请。" : lead}</p><form data-form="apply" novalidate><fieldset>${auField({ name: "ap_org", label: "公司或机构名称", auto: "organization", count: true })}${me ? auApplyContact(me) : `${auField({ name: "ap_name", label: "联系人姓名", auto: "name", count: true })}${auField({ name: "ap_mail", label: "电子邮箱", type: "email", auto: "email", inputmode: "email", hint: "用于接收审核结果及审核通过后的开通邀请。" })}`}${auField({ name: "ap_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", hint: "用于审核时联系您。" })}<div class="au-field au-apply-overview" data-f="ap_need"><div class="au-lab"><label for="au-ap_need">项目概况<span>（选填）</span></label></div><div class="au-textarea-shell"><textarea id="au-ap_need" name="ap_need" class="au-in au-ta" rows="3" aria-describedby="au-ap_need-err au-ap_need-count" placeholder="例如项目位置、楼宇规模或计划使用的功能">${esc(AUX.v.ap_need || "")}</textarea><button type="button" class="au-resize" data-resize="au-ap_need" aria-label="调整项目概况输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-ap_need-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-ap_need-count" ${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need)}</p></div><label class="au-check" data-f="ap_ok"><input type="checkbox" name="ap_ok" class="au-v" required aria-required="true" aria-describedby="au-ap_ok-err" ${AUX.v.ap_ok ? "checked" : ""}><span>我已阅读<button type="button" class="au-inline" data-act="auLegal" data-doc="privacy">隐私政策</button>，同意 PACOM 处理以上信息，用于${me ? "审核申请及与我联系" : "审核申请、联系我及发送开通邀请"}。</span></label><p class="au-err au-check-err" id="au-ap_ok-err"></p><p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}</fieldset></form>${AUX.applyEditing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit" ${PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? "disabled" : ""}>取消修改</button><span class="au-dot" aria-hidden="true"></span>${auBackAction(mode)}</div>` : auBackLinks(mode)}${mode === "new-org" ? `<p class="au-foot-note">同一机构的其他园区或楼宇，请在当前机构中创建项目。</p>` : ""}`,
   );
 };
 BARE_AFTER.apply = () => {
@@ -68895,7 +68898,7 @@ const AU_LEGAL = {
     [
       "处理者：广州天环智能技术有限公司。",
       "我们处理账户信息（姓名、电子邮箱及已绑定的手机号码）、机构成员关系和操作记录，用于身份验证、授权、审计和服务通知。",
-      "申请访问时，我们处理机构名称、联系人姓名、电子邮箱、联系手机号码及您选填的项目概况，用于审核申请、联系申请人和向审核通过的申请人发送开通邀请；已登录的账户申请开通新机构时，联系人即本账户，资料只用于审核申请及与您联系，审核通过后新机构直接加到本账户，不另发邀请。",
+      "公开申请访问时，我们处理机构名称、联系人姓名、电子邮箱、手机号码及您选填的项目概况，用于审核申请、与您联系及在审核通过后发送开通邀请；以当前账户申请开通机构时，联系人为本账户，资料用于审核申请及与您联系，审核通过后新机构直接加入本账户，不另发邀请。",
       "楼宇运行数据归属于所在机构；占用数据默认只到功能区级，不识别个人。",
       // AI 服务部署在中国境内，提问与运行数据不出境、不用于训练（2026-10-09 用户确认，ABB 对比 BP5）
       "使用 AI 提问时，提问和所涉运行数据只在中国境内处理，不用于训练模型；对话按机构的数据保存期限保存。",
@@ -68923,6 +68926,14 @@ const AU_GUIDE_URL = "";
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "1.83",
+    date: "2026-10-14",
+    notes: [
+      "申请访问：按公开申请、当前账户申请和新机构申请分别说明，信息处理同意文字明确区分开通邀请，邮箱说明、回执与错误提示同步统一。",
+      "账户页脚：统一为 13/20，电脑优先一行、空间不足自然换行；移除版权行及虚构备案号，保留法律、联系与营业执照入口，已配置的真实备案号完整展示。",
+    ],
+  },
   {
     version: "1.82",
     date: "2026-10-14",
@@ -71075,7 +71086,7 @@ const AU_ORG_PAGES = {
 // 价目表（含税，元）：年费 = 基础费 12,000 + 第 1 至 1,000 台每台 36 + 第 1,001 至 5,000 台每台 24 + 第 5,001 台起每台 18；增值税 6%。
 // 在线订购 100 至 10,000 台，以 100 台为单位；AI 用量包两种规格（万词元）的含税价由价目表另列，不打折。
 const AU_PRICE = { base: 12000, tiers: [[1000, 36], [5000, 24], [Infinity, 18]], vat: 0.06, packs: [[1000, 159], [10000, 1590]], min: 100, max: 10000, step: 100 };
-// 登录页底部的营业执照信息与备案号（AUTH20）：只按正式资料填写，不杜撰（GAP13）；未取得时只写“ICP 备案号”，统一社会信用代码写“—”。
+// 账户页脚的企业与备案资料（AUTH20）：只显示已配置的真实备案号；缺资料在企业信息中说明，信用代码未取得时写“—”（GAP13）。
 // 公安备案号不显示（Lovable 核查第 15、56 条，2026-10-10 用户确认）：公安联网备案审核通过后再按真实编号加回。
 const AU_FILING = { company: "广州天环智能技术有限公司", uscc: "", icp: "" };
 // 付款弹窗的二维码由支付服务生成；页脚另加的按钮由接入层提供（正式版没有）。
@@ -71603,9 +71614,11 @@ const auAccRows = (acc) =>
     ["开户银行", acc ? esc(acc.bank) : `<span class="muted">未取得</span>`],
     ["账号", acc ? `<span class="num">${esc(acc.no)}</span>` : `<span class="muted">未取得</span>`],
   ]);
-// 登录页底部的第二行（AUTH20）：营业执照信息与 ICP 备案号，备案号新标签页打开备案系统（公安备案号见 AU_FILING 的说明）。
-const auFiling = () =>
-  `<div class="au-filing"><button type="button" data-act="auBizLicense">营业执照信息</button><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">${esc(AU_FILING.icp || "ICP 备案号")}</a></div>`;
+// Account footer qualifications share the legal/contact row; never invent a filing number.
+const auFiling = () => {
+  const icp = String(AU_FILING.icp || "").trim();
+  return `<button type="button" data-act="auBizLicense">营业执照信息</button>${icp ? `<a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">${esc(icp)}</a>` : ""}`;
+};
 defineActions({
   auBizLicense: () => {
     auDialog(
@@ -71613,7 +71626,8 @@ defineActions({
       auRows([
         ["名称", esc(AU_FILING.company)],
         ["统一社会信用代码", `<span class="num">${esc(AU_FILING.uscc || "—")}</span>`],
-      ]),
+        ...(String(AU_FILING.icp || "").trim() ? [["ICP备案号", esc(AU_FILING.icp.trim())]] : []),
+      ]) + (String(AU_FILING.icp || "").trim() ? "" : `<p class="au-hint">备案资料尚未配置。</p>`),
       btn("关闭", "close"),
       "nodirty au-account-dlg",
     );
@@ -72284,22 +72298,12 @@ function auEnhance(root = document) {
     input.setAttribute('aria-describedby', 'au-' + input.name + '-err');
   });
   for (const [name, text] of Object.entries(AUX.errors)) if (text) auErr(name, text);
-  auMeasureCodePadding(); auFitFooter(); auMeasureGutter();
+  auMeasureCodePadding(); auMeasureGutter();
   if (U.page === 'login') { auSendHint('login'); auLockUI(); }
   if (U.page === 'invite' && U.tab === 'phone') auSendHint('bind');
   root.querySelectorAll('.au-wrow').forEach(row => {
     const i = Number(row.dataset.row), r = AUX.welcome?.rows[i];
     if (r?.status === 'sent') row.querySelectorAll('input,button').forEach(el => el.disabled = true);
-  });
-}
-// A footer that does not fit on one line puts the copyright on its own first line and the three entries on the second (as on a phone).
-function auFitFooter() {
-  document.querySelectorAll('.au-foot').forEach(foot => {
-    const items = [...foot.children];
-    if (!items.length) return;
-    foot.classList.remove('au-foot-stack');
-    const first = items[0].getBoundingClientRect();
-    if (first.height && items.some(item => item.getBoundingClientRect().top >= first.bottom)) foot.classList.add('au-foot-stack');
   });
 }
 // The right-hand picture ends 16px from the viewport edge: the scrollbar space #app keeps is counted inside those 16px (Account review C9).
@@ -72641,9 +72645,7 @@ closeModal = function (force = false) {
   setTimeout(() => { if (document.getElementById('dlg') === scrim) { scrim.dataset.auClosing = 'complete'; auCloseModalOriginal(true); } }, 200);
 };
 window.addEventListener('resize', auMeasureCodePadding);
-window.addEventListener('resize', auFitFooter);
 window.addEventListener('resize', auMeasureGutter);
-document.fonts?.ready?.then(auFitFooter);
 // A route change (browser back or forward, an edited address) closes an open account dialog as “关闭” does, at once and without
 // its own return to the invitation: the new page takes focus, and a request still sending from it only keeps its result.
 function auRouteDialogClose() {
@@ -80185,8 +80187,8 @@ function demoOrgs() {
   demoLicSeed();
 }
 /* ---------- 订阅、订单与 AI 用量（DEMO04；2026-10-09 用户确认，商业许可方案第 9 条） ---------- */
-// 登录页底部的 ICP 备案号、营业执照信息的统一社会信用代码为标明“演示”的占位（正式版只写“ICP 备案号”与“—”；公安备案号不显示）。
-Object.assign(AU_FILING, { uscc: "91440101MA00000000（演示）", icp: "粤ICP备00000000号（演示）" });
+// 营业执照信息的信用代码是明确标示的演示资料；不生成虚构ICP备案号，也不覆盖已配置的真实备案资料。
+Object.assign(AU_FILING, { uscc: "91440101MA00000000（演示）" });
 // 付款弹窗：二维码为演示图样；“模拟到账”代替实际到账。
 Object.assign(AU_LIC_HOOK, {
   qr: () => `${auFakeQr()}<span class="au-sample">演示</span>`,
