@@ -16252,8 +16252,8 @@ fieldset:disabled .au-primary {
 .au-more[open] summary {
   margin-bottom: 16px;
 }
-/* 2026-10-14 用户确认：账户页脚四个文字入口与真实备案号共用一行，按左栏可用宽度自然换行；
-   13/20、可见间距16（各项左右4px填充加8px盒间隔），不画胶囊，不改变业务区到页脚的32px间距。 */
+/* 2026-10-14 用户确认：版权与公司全称、隐私和法律链接、联系我们；可用宽度内优先一行，不足时成组换行。
+   13/20、可见间距14（各项左右4px填充加6px盒间隔），不画胶囊，不改变业务区到页脚的32px间距。 */
 .au-foot {
   display: flex;
   flex-wrap: wrap;
@@ -16265,12 +16265,22 @@ fieldset:disabled .au-primary {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  gap: 8px;
+  gap: 8px 6px;
   color: #636363;
   font: 400 13px/20px var(--ff);
   text-align: center;
 }
-.au-foot > :is(button, a) {
+.au-foot-links {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  min-width: 0;
+  gap: 8px 6px;
+}
+.au-foot-links > :is(button, a) {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -16289,15 +16299,23 @@ fieldset:disabled .au-primary {
   white-space: nowrap;
   cursor: pointer;
 }
-.au-foot > a {
+.au-foot > .au-copyright {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  padding: 4px;
+  overflow-wrap: anywhere;
+}
+.au-foot-links > a {
   white-space: normal;
   overflow-wrap: anywhere;
   border-radius: 2px;
 }
-.au-foot > :is(button, a):hover {
+.au-foot-links > :is(button, a):hover {
   color: var(--text);
 }
-.au-foot > :is(button, a):focus-visible {
+.au-foot-links > :is(button, a):focus-visible {
   outline: 2px solid #00AEEF;
   outline-offset: 2px;
 }
@@ -16306,7 +16324,7 @@ fieldset:disabled .au-primary {
   margin-bottom: 8px;
 }
 @media (max-width: 850px), (pointer: coarse) {
-  .au-foot > :is(button, a) {
+  .au-foot-links > :is(button, a) {
     min-width: 44px;
     min-height: 44px;
   }
@@ -16326,6 +16344,55 @@ fieldset:disabled .au-primary {
   font-size: 13px;
   line-height: 20px;
   text-align: center;
+}
+
+/* 独立法律文档使用同一正文源，不复制或改写表单里的阅读条款。 */
+#app.bare-legal {
+  display: block;
+  height: 100%;
+  overflow: auto;
+  background: oklch(.9699 0 107);
+}
+.au-legal-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 80px 24px 24px;
+  gap: 32px;
+}
+.au-legal-main {
+  width: 720px;
+  max-width: 100%;
+}
+.au-legal-page .au-h1 { font-weight: 480; margin-bottom: 16px; }
+.au-legal-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 24px;
+}
+.au-legal-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 4px;
+  color: #636363;
+  font: 400 14px/24px var(--ff);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  border-radius: 4px;
+}
+.au-legal-nav a[aria-current="page"] { color: #030303; font-weight: 480; }
+.au-legal-nav a:hover { color: #030303; }
+.au-legal-nav a:focus-visible { outline: 2px solid #00AEEF; outline-offset: 2px; }
+.au-legal-content h2 { margin: 0 0 16px; font: 480 18px/24px var(--ff); }
+.au-legal-content .au-legal { font: 400 14px/24px var(--ff); text-wrap: pretty; }
+.au-legal-content .au-legal li + li { margin-top: 8px; }
+.au-legal-page > .au-foot { max-width: 720px; }
+@media (max-width: 600px) {
+  .au-legal-page { padding-top: 48px; }
 }
 
 /* 选择机构、邀请信息 */
@@ -18548,7 +18615,7 @@ fieldset:disabled .au-primary {
   animation: au-scrim-in 200ms cubic-bezier(.4,0,.2,1) both;
 }
 .au-account-scrim.au-closing { animation: au-scrim-out 200ms cubic-bezier(.4,0,.2,1) both; }
-/* 页脚弹窗（隐私政策、服务条款、联系我们、营业执照信息）与重置密码弹窗宽 512、标题 18/24 字重 480（Lovable 核查第 4 条，2026-10-10 用户确认）。 */
+/* 页脚弹窗（隐私政策、服务条款、联系我们）与重置密码弹窗宽 512、标题 18/24 字重 480（Lovable 核查第 4 条，2026-10-10 用户确认）。 */
 .au-account-dlg {
   width: 512px;
   max-width: calc(100vw - 16px);
@@ -18864,7 +18931,7 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
   .au-row:has(> .au-orgline) > .au-row-a { margin-left: auto; }
 }
 /* 2026-10-09 商业许可方案第 1–9 条（订阅与订购），ABB 对比 BP6、BP33–BP35、BP39：许可与用量的订阅、用量与 AI 用量，订单与发票，
-   下单与付款弹窗，工作区的许可提示条，机构菜单的“AI 用量”卡，登录页底部的营业执照信息与备案号。 */
+   下单与付款弹窗，工作区的许可提示条，机构菜单的“AI 用量”卡，账户页脚的版权与真实备案号。 */
 .au-plan.au-plan4 > div { min-width: 0; }
 .au-plan b.au-plan-none { color: var(--text2); font: 400 14px/24px var(--ff); }
 .au-meters.au-meters1 { grid-template-columns: minmax(0, 1fr); }
@@ -34138,6 +34205,11 @@ function syncRoute(replace = false) {
   history[replace ? "replaceState" : "pushState"]({ source: U.source || null }, "", "#" + U.page + (q.size ? "?" + q : ""));
 }
 function readRoute() {
+  // A standalone document has no workspace loaded; entering the app starts its normal boot.
+  if (publicLegalOnly && location.hash.slice(1).split("?")[0] !== "legal") {
+    location.reload();
+    return;
+  }
   const [page, query] = location.hash.slice(1).split("?"),
     q = new URLSearchParams(query || "");
   U.page = TITLES[page] || BARE[page] || page === "deployment" ? page : page ? "notfound" : "projects";
@@ -38952,7 +39024,18 @@ function startLasso(e, cv, first) {
     { once: true },
   );
 }
+let publicLegalOnly = false;
 async function boot() {
+  // Public legal documents remain readable when local workspace storage is unavailable.
+  if (location.hash.slice(1).split("?")[0] === "legal") {
+    publicLegalOnly = true;
+    queueMicrotask(() => {
+      U.page = "legal";
+      U.tab = new URLSearchParams(location.hash.split("?")[1] || "").get("tab");
+      render();
+    });
+    return;
+  }
   try {
     U.dataMode = typeof DEMO_DATA_MODE === "function" ? DEMO_DATA_MODE() : "current";
     U.demo = U.dataMode === "demo";
@@ -67530,8 +67613,8 @@ function auCodeBtn(key, forName, hidden = false) {
 const auUserHint = (v) =>
   `<input type="email" class="au-user-hint" name="username" autocomplete="username" value="${esc(v || "")}" readonly tabindex="-1" aria-hidden="true" aria-label="账户">`;
 const auPrimary = (label) => `<button type="submit" class="au-primary">${label}</button>`;
-function auFooter(center = false) {
-  return `<footer class="au-foot ${center ? "center" : ""}" aria-label="法律、企业与联系信息"><button type="button" data-act="auLegal" data-doc="privacy">隐私政策</button><button type="button" data-act="auLegal" data-doc="terms">服务条款</button><button type="button" data-act="auContact">联系我们</button>${typeof auFiling === "function" ? auFiling() : ""}</footer>`;
+function auFooter(center = false, legalLink = true) {
+  return `<footer class="au-foot ${center ? "center" : ""}" aria-label="版权、法律与联系信息"><span class="au-copyright">© ${PACOM_AUTH_FLOW.cstYear(auNow())} ${esc(AU_FILING.company)}</span><div class="au-foot-links">${legalLink ? `<a href="${esc(location.pathname)}#legal" target="_blank" rel="noopener" aria-label="隐私和法律（新标签页打开）">隐私和法律</a>` : ""}<button type="button" data-act="auContact">联系我们</button>${typeof auFiling === "function" ? auFiling() : ""}</div></footer>`;
 }
 const auLogo = () => `<div class="au-logo">${A.logo}</div>`;
 const auAuthShell = (inner) =>
@@ -68247,7 +68330,7 @@ const auRoute = (page, tab = "") => {
 };
 // Station pages that must not be shown without a session. Full-screen public pages stay reachable.
 // 展示链接打开的大屏不用账户（ORG10、OPS07，2026-10-09 用户确认，大屏显示方案 DP2）
-const AU_PUBLIC = ["login", "reset", "invite", "apply", "app", "console", "maintenance", "unavailable", "display"];
+const AU_PUBLIC = ["login", "reset", "invite", "apply", "legal", "app", "console", "maintenance", "unavailable", "display"];
 // The application entry for this session: the current institution's workspace, the institution list, or 登录.
 const auEntryHash = () => PACOM_AUTH_FLOW.entryHash(AUTH.session === "in", !!auMe().orgs?.[AUTH.org] && !AUTH.orgs[AUTH.org]?.suspended);
 function auCompleteLogin(uid) {
@@ -68915,10 +68998,20 @@ const AU_LEGAL = {
     ],
   ],
 };
-function auLegalBody() {
-  const [, items] = AU_LEGAL[AUX.legal];
+function auLegalBody(doc = AUX.legal) {
+  const [, items] = AU_LEGAL[doc];
   return `<ul class="au-legal">${items.map((x) => `<li>${x}</li>`).join("")}</ul>${AU_LEGAL_DATE ? `<p class="note">生效日期：${esc(AU_LEGAL_DATE)}</p>` : ""}`;
 }
+// Public document route: no sign-in, agreement submission, or inherited account/demo query.
+BARE.legal = () => {
+  const doc = U.tab === "terms" ? "terms" : "privacy";
+  return `<div class="au au-legal-page"><main class="au-legal-main">${auLogo()}<h1 class="au-h1" tabindex="-1">隐私和法律</h1><nav class="au-legal-nav" aria-label="法律文件">${Object.entries(AU_LEGAL).map(([key, [title]]) => `<a href="#legal?tab=${key}" ${key === doc ? 'aria-current="page"' : ""}>${title}</a>`).join("")}</nav><article class="au-legal-content" aria-labelledby="au-legal-title"><h2 id="au-legal-title">${AU_LEGAL[doc][0]}</h2>${auLegalBody(doc)}</article></main>${auFooter(true, false)}</div>`;
+};
+BARE_AFTER.legal = () => {
+  document.title = "隐私和法律 · PACOM Station";
+  document.querySelector(".au-legal-content h2")?.setAttribute("tabindex", "-1");
+  document.querySelector(".au-legal-content h2")?.focus({ preventScroll: true });
+};
 
 /* ---------- 软件版本、更新说明与术语（GLOBAL05） ---------- */
 // 使用指南（正式文档）的地址；上线前为空，帮助里不显示“使用指南”一行（全面设计核查第 18 条）。
@@ -68926,6 +69019,13 @@ const AU_GUIDE_URL = "";
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "1.84",
+    date: "2026-10-14",
+    notes: [
+      "账户页脚：恢复版权年份与公司全称，移除营业执照信息入口；隐私和法律改为独立页面链接，两份文件分别阅读。保持 13/20，文字间距收紧，电脑优先一行、空间不足成组换行。",
+    ],
+  },
   {
     version: "1.83",
     date: "2026-10-14",
@@ -71086,9 +71186,9 @@ const AU_ORG_PAGES = {
 // 价目表（含税，元）：年费 = 基础费 12,000 + 第 1 至 1,000 台每台 36 + 第 1,001 至 5,000 台每台 24 + 第 5,001 台起每台 18；增值税 6%。
 // 在线订购 100 至 10,000 台，以 100 台为单位；AI 用量包两种规格（万词元）的含税价由价目表另列，不打折。
 const AU_PRICE = { base: 12000, tiers: [[1000, 36], [5000, 24], [Infinity, 18]], vat: 0.06, packs: [[1000, 159], [10000, 1590]], min: 100, max: 10000, step: 100 };
-// 账户页脚的企业与备案资料（AUTH20）：只显示已配置的真实备案号；缺资料在企业信息中说明，信用代码未取得时写“—”（GAP13）。
+// 账户页脚的公司与备案资料（AUTH20）：版权使用公司全称，只显示已配置的真实备案号，不生成占位资料（GAP13）。
 // 公安备案号不显示（Lovable 核查第 15、56 条，2026-10-10 用户确认）：公安联网备案审核通过后再按真实编号加回。
-const AU_FILING = { company: "广州天环智能技术有限公司", uscc: "", icp: "" };
+const AU_FILING = { company: "广州天环智能技术有限公司", icp: "" };
 // 付款弹窗的二维码由支付服务生成；页脚另加的按钮由接入层提供（正式版没有）。
 const AU_LIC_HOOK = { qr: (od) => od.qr || "", payFoot: () => "" };
 XI["au-receipt"] = '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6"/><path d="M9 12h6"/><path d="M9 16h3"/>';
@@ -71614,24 +71714,12 @@ const auAccRows = (acc) =>
     ["开户银行", acc ? esc(acc.bank) : `<span class="muted">未取得</span>`],
     ["账号", acc ? `<span class="num">${esc(acc.no)}</span>` : `<span class="muted">未取得</span>`],
   ]);
-// Account footer qualifications share the legal/contact row; never invent a filing number.
+// Real filing details share the copyright/legal/contact row; never invent a filing number.
 const auFiling = () => {
   const icp = String(AU_FILING.icp || "").trim();
-  return `<button type="button" data-act="auBizLicense">营业执照信息</button>${icp ? `<a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">${esc(icp)}</a>` : ""}`;
+  return icp ? `<a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">${esc(icp)}</a>` : "";
 };
 defineActions({
-  auBizLicense: () => {
-    auDialog(
-      "营业执照信息",
-      auRows([
-        ["名称", esc(AU_FILING.company)],
-        ["统一社会信用代码", `<span class="num">${esc(AU_FILING.uscc || "—")}</span>`],
-        ...(String(AU_FILING.icp || "").trim() ? [["ICP备案号", esc(AU_FILING.icp.trim())]] : []),
-      ]) + (String(AU_FILING.icp || "").trim() ? "" : `<p class="au-hint">备案资料尚未配置。</p>`),
-      btn("关闭", "close"),
-      "nodirty au-account-dlg",
-    );
-  },
   auOrderKind: (a) => {
     AUX.orderKind = a.value;
     render();
@@ -80187,8 +80275,6 @@ function demoOrgs() {
   demoLicSeed();
 }
 /* ---------- 订阅、订单与 AI 用量（DEMO04；2026-10-09 用户确认，商业许可方案第 9 条） ---------- */
-// 营业执照信息的信用代码是明确标示的演示资料；不生成虚构ICP备案号，也不覆盖已配置的真实备案资料。
-Object.assign(AU_FILING, { uscc: "91440101MA00000000（演示）" });
 // 付款弹窗：二维码为演示图样；“模拟到账”代替实际到账。
 Object.assign(AU_LIC_HOOK, {
   qr: () => `${auFakeQr()}<span class="au-sample">演示</span>`,
