@@ -18652,8 +18652,17 @@ fieldset:disabled .au-primary {
 .au-account-dlg .dh > .iconbtn { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 999px; padding: 0; }
 .au-account-dlg .dh > .iconbtn svg { width: 16px; height: 16px; }
 .au-account-dlg .db { padding: 16px 24px 0; min-height: 0; overflow-y: auto; }
-.au-account-dlg .df { flex-shrink: 0; padding: 24px; border: 0; }
-.au-account-dlg:not(.au-reset-dlg) .df .btn { height: 32px; min-height: 32px; border-radius: 8px; padding: 0 12px; background: linear-gradient(transparent,#00000005); box-shadow: inset 0 0 0 .5px #00000040, inset 0 .5px 0 #fff; font: 400 14px/24px var(--ff); transition: background-color var(--au-exit); }
+.au-account-dlg .df { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap-reverse; gap: 12px 8px; flex-shrink: 0; padding: 24px; border: 0; }
+/* 账户标准弹窗操作使用同一几何；材质和主次颜色仍由各自按钮样式决定。放不下时反向换行，主操作在上。 */
+.au-account-dlg .df .btn { height: 32px; min-height: 32px; min-width: 44px; border-radius: 8px; padding: 0 12px; font: 400 14px/24px var(--ff); }
+/* 重置操作以同格隐藏文案预留正常与忙碌所需宽度；改变文案不挤动取消按钮，也不增加行高。 */
+.au-account-dlg .df .btn.au-reset-submit { display: inline-grid; grid-template-columns: max-content; align-items: center; justify-items: center; gap: 0; }
+.au-reset-submit > :is(.au-button-content, .au-button-reserve) { grid-area: 1 / 1; }
+.au-reset-submit > .au-button-content, .au-reset-submit .au-button-busy-reserve { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.au-reset-submit > .au-button-reserve { display: grid; visibility: hidden; pointer-events: none; }
+.au-reset-submit > .au-button-reserve > span { grid-area: 1 / 1; white-space: nowrap; }
+.au-reset-submit .au-spin { flex: 0 0 16px; }
+.au-account-dlg:not(.au-reset-dlg) .df .btn { background: linear-gradient(transparent,#00000005); box-shadow: inset 0 0 0 .5px #00000040, inset 0 .5px 0 #fff; transition: background-color var(--au-exit); }
 .au-account-dlg:not(.au-reset-dlg) .df .btn:hover { background-color: #00000014; transition-duration: 0s; }
 .au-account-dlg:not(.au-reset-dlg) .df .btn:active { background-color: #0000001a; transition-duration: 0s; }
 .au-account-dlg .au-legal { font: 400 14px/24px var(--ff); text-wrap: pretty; }
@@ -18670,7 +18679,7 @@ fieldset:disabled .au-primary {
 .au-account-dlg .au-support-address a:focus-visible { outline: 2px solid #00AEEF; outline-offset: 2px; }
 .au-account-dlg.au-reset-dlg .db { padding: 8px 24px 0; }
 .au-account-dlg.au-reset-dlg .db > .au-dlead { margin: 0 0 16px; }
-/* 重置弹窗底部右侧“取消”“发送重置链接”，样式同工作区弹窗底部（32 高，触屏 44，手机上也横排）；内容到按钮 16（Lovable 核查第 5、62 条）。 */
+/* 重置弹窗底部右侧“取消”“发送重置链接”：32px圆角8px、14/24，触屏只扩命中；内容到按钮16。 */
 .au-account-dlg.au-reset-dlg .df { padding: 16px 24px 24px; }
 /* 第 5 条：“无法使用…？”在输入框（或其下的提示、错误）下方 12。 */
 .au-account-dlg.au-reset-dlg form fieldset > .au-field:last-of-type { margin-bottom: 0; }
@@ -18719,7 +18728,10 @@ fieldset:disabled .au-primary {
   .au .au-check-err { margin-left: 26px; }
   .au .au-static { min-height: 44px; }
   .au-account-dlg .dh > .iconbtn { width: 44px; height: 44px; top: 8px; right: 8px; }
-  .au-account-dlg .au-in, .au-account-dlg .au-primary, .au-account-dlg .df .btn { height: 44px !important; min-height: 44px; }
+  .au-account-dlg .au-in, .au-account-dlg .au-primary { height: 44px !important; min-height: 44px; }
+  /* 所有底部文字按钮宽度至少44px，只上下各外扩6px，不占用相邻按钮的点击范围。 */
+  .au-account-dlg .df .btn { position: relative; }
+  .au-account-dlg .df .btn::after { content: ""; position: absolute; inset: -6px 0; width: auto; height: auto; transform: none; border-radius: inherit; }
   .au-account-dlg .au-help summary { min-height: 44px; }
   .au-copy { width: 44px; height: 44px; }
   .au .au-wrow { grid-template-columns: minmax(0,1fr) 44px; }
@@ -19186,7 +19198,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
   .au-price td.num { white-space: normal; }
 }
 /* 2026-10-10 Lovable 核查（账户页，HONG 确认），第 1–96 条中账户页的改动。 */
-/* 登录与重置请求保留 40px 胶囊；本轮确认的设密、邀请、绑定与状态页由精准类名采用 36px，不连带改开通引导。 */
+/* 账户短表单与全宽主按钮使用精准类名统一36px；机构搜索与开通引导保持各自规格。 */
 .au .au-in:not(.au-ta), .au .au-primary { height: 40px; min-height: 40px; }
 .au .au-compact-form .au-in:not(.au-ta) { height: 36px; min-height: 36px; padding-block: 6px; }
 .au .au-primary.au-compact-primary { height: 36px; min-height: 36px; border-radius: 999px; font: 480 16px/24px var(--ff) !important; }
@@ -19396,7 +19408,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 /* 第 143 条：未订阅、许可即将到期与待付款的提示条统一 44 高：条内按钮仍 28 高，上下各 -2 外边距，不再撑高提示条（原为 48）。 */
 .net-bar.au-licbar > .btn, .au-licnote > .btn { margin-block: -2px; }
 
-/* 2026-10-13 用户确认：40px可见胶囊，触屏命中至少44px；矩形申请表、开通表及弹窗输入保持既有32/44规格。 */
+/* 账户36px胶囊的触屏命中至少44px；机构搜索默认40px、矩形申请与弹窗输入保持既定可见高度。 */
 .au-input-hit { display:none; }
 @media (max-width:850px), (pointer:coarse) {
   .au :is(.au-eye, .au-getcode) { height:40px; min-height:40px; }
@@ -19415,7 +19427,6 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
   .au:not(.bare-apply .au) .au-ctl:not(.au-step .au-ctl) > .au-in,
   .au .au-orgsearch > .au-in { position:relative; z-index:1; }
   .au .au-orgsearch > .ic { z-index:2; }
-  .au-account-dlg.au-reset-dlg .df .btn { height:40px !important; min-height:40px; }
 }
 /* 手机和短屏单栏按内容自然排布；完整辅助入口点击区与页脚至少间隔32px。 */
 @media (max-width:600px) {
@@ -25175,8 +25186,6 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
 /* 交互核查第 13 条：截图文件类型不对时的错误写在截图一行下面 */
 #dlg #supShotErr { display: block; margin-top: 4px; }
 #dlg #supShotErr[hidden] { display: none; }
-/* 账户核查第 16 条：重置密码弹窗底部的“取消”“发送重置链接”“下一步”文字 14/24，同账户页其他按钮；高度仍为电脑 32、窄屏与触屏 44（原为 14/20）。 */
-#dlg .au-account-dlg.au-reset-dlg .df .btn { line-height: 24px; }
 /* ==== 2026-10-12 全面设计核查第二部分 · 总览（第 19、74、81–95 条）
    [OVERVIEW] 本区的样式改动写在这一段注释之后、下一段注释之前。
    ==== */
@@ -68025,7 +68034,7 @@ BARE.login = () => {
         right: `<button type="button" class="au-textbtn au-login-forgot" data-act="auForgot"><span>忘记密码？</span></button>`,
         suffix: auEye("pwd"),
       });
-  return auAuthShell(`<h1 class="au-h1">登录</h1>${auExpiredNotice()}${auResetNotice()}<form data-form="login" novalidate><fieldset>${idField}${secret}<p class="au-ferr" id="au-login-ferr" role="alert" hidden></p>${auPrimary("登录")}</fieldset></form><div class="au-login-actions"><button type="button" class="au-textbtn" data-act="auSmsMode">${sms ? "使用密码登录" : "使用短信验证码登录"}</button><div class="au-login-divider" aria-hidden="true"></div><p class="au-done-more">没有账户？<button type="button" class="au-textbtn" data-act="auGo" data-page="apply" data-mode="public">申请访问</button></p></div>`);
+  return auAuthShell(`<h1 class="au-h1">登录</h1>${auExpiredNotice()}${auResetNotice()}<form class="au-compact-form" data-form="login" novalidate><fieldset>${idField}${secret}<p class="au-ferr" id="au-login-ferr" role="alert" hidden></p>${auPrimary("登录", true)}</fieldset></form><div class="au-login-actions"><button type="button" class="au-textbtn" data-act="auSmsMode">${sms ? "使用密码登录" : "使用短信验证码登录"}</button><div class="au-login-divider" aria-hidden="true"></div><p class="au-done-more">没有账户？<button type="button" class="au-textbtn" data-act="auGo" data-page="apply" data-mode="public">申请访问</button></p></div>`);
 };
 BARE_AFTER.login = () => {
   document.title = "登录 · PACOM Station";
@@ -68158,7 +68167,7 @@ const auResetLabel = () => (auResetPhone() ? "下一步" : "发送重置链接")
 const auResetForm = (inDialog = false) => {
   const phone = auResetPhone(), sentTo = esc(auSmsSentText("reset"));
   const code = auField({ name: "rcode", label: "短信验证码", auto: "one-time-code", inputmode: "numeric", maxlength: 6 }).replace('<div class="au-field ', `<div ${phone ? "" : "hidden "}class="au-field au-reset-code `);
-  return `<form id="${inDialog ? "au-reset-dlg-form" : "au-reset-form"}" data-form="${inDialog ? "resetDialog" : "reset"}" novalidate><fieldset>${auField({ name: "rid", label: "电子邮箱或手机号码", auto: "username", suffix: auCodeBtn("reset", "rid", !phone), hint: sentTo, hintRole: "status" })}${code}<p class="au-ferr" role="alert" hidden></p></fieldset></form><details class="au-help"><summary tabindex="0">无法使用绑定的电子邮箱或手机号码？</summary><p>如果绑定的电子邮箱或手机号码已停用，请联系 PACOM 支持，完成身份核验后恢复账户访问。</p></details>${inDialog ? "" : `<button type="submit" class="au-primary" form="au-reset-form">${auResetLabel()}</button>`}`;
+  return `<form id="${inDialog ? "au-reset-dlg-form" : "au-reset-form"}" data-form="${inDialog ? "resetDialog" : "reset"}"${inDialog ? "" : ' class="au-compact-form"'} novalidate><fieldset>${auField({ name: "rid", label: "电子邮箱或手机号码", auto: "username", suffix: auCodeBtn("reset", "rid", !phone), hint: sentTo, hintRole: "status" })}${code}<p class="au-ferr" role="alert" hidden></p></fieldset></form><details class="au-help"><summary tabindex="0">无法使用绑定的电子邮箱或手机号码？</summary><p>如果绑定的电子邮箱或手机号码已停用，请联系 PACOM 支持，完成身份核验后恢复账户访问。</p></details>${inDialog ? "" : `<button type="submit" class="au-primary au-compact-primary" form="au-reset-form">${auResetLabel()}</button>`}`;
 };
 // 地址在电子邮箱与手机号码之间改变时：显示或收起“获取验证码”和“短信验证码”，主按钮随之为“下一步”或“发送重置链接”。
 function auResetSync() {
@@ -69170,6 +69179,15 @@ const AU_GUIDE_URL = "";
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
   {
+    version: "1.87",
+    date: "2026-10-14",
+    notes: [
+      "登录与重置密码：整页输入框及主按钮统一为 36px 胶囊，与设置新密码、邀请及绑定页面一致；手机保留至少 44px 的点击范围。",
+      "账户弹窗：底部操作按钮统一为 32px、8px 圆角和 14/24px 文字，取消在左、主要操作在右；提交中保持按钮尺寸。",
+      "手机与触屏：弹窗底部按钮保持 32px 外观，以透明区域保证至少 44px 点按；空间不足时纵向排列，主操作在上。",
+    ],
+  },
+  {
     version: "1.86",
     date: "2026-10-14",
     notes: [
@@ -69755,7 +69773,7 @@ Object.assign(actions, {
     auDialog(
       "重置密码",
       `<p class="au-dlead">${AU_RESET_LEAD}</p>${auResetForm(true)}`,
-      `<button type="button" class="btn" data-act="close">取消</button><button type="submit" class="btn primary" form="au-reset-dlg-form">${auResetLabel()}</button>`,
+      `<button type="button" class="btn" data-act="close">取消</button><button type="submit" class="btn primary au-reset-submit" form="au-reset-dlg-form"><span class="au-button-content">${auResetLabel()}</span><span class="au-button-reserve" aria-hidden="true"><span>发送重置链接</span><span class="au-button-busy-reserve"><span class="au-spin" aria-hidden="true"></span>正在发送…</span><span class="au-button-busy-reserve"><span class="au-spin" aria-hidden="true"></span>正在验证…</span></span></button>`,
       "nodirty au-reset-dlg",
     );
     auResetSync();
