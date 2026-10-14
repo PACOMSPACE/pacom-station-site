@@ -15939,6 +15939,21 @@ p.ops-work .ops-link {
 .au-lab-t {
   font: 500 16px/24px var(--ff);
 }
+/* 说明标志紧跟字段名称，不能移到输入框内；打开方式为点击，弹层不占表单间距。 */
+.au .au-label-row { align-items: center; justify-content: flex-start; gap: 6px; }
+.au-field-info-wrap { position: relative; display: inline-flex; align-items: center; flex: 0 0 16px; width: 16px; height: 24px; }
+.au .au-field-info-trigger { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 16px; height: 16px; min-height: 0; padding: 0; border: 0; border-radius: 4px; background: transparent; box-shadow: none; color: #636363; cursor: pointer; }
+.au-field-info-trigger > .ic { display: block; width: 16px; height: 16px; }
+.au-field-info-trigger::before { content: ""; position: absolute; inset: -6px; }
+.au .au-field-info-trigger:hover, .au .au-field-info-trigger:active { background: transparent; color: #636363; }
+.au .au-field-info-trigger:focus-visible { outline: 2px solid #00AEEF; outline-offset: 2px; }
+.au-field-info-popover { position: fixed; z-index: 150; width: max-content; max-width: min(45ch, calc(100vw - 16px)); padding: 4px 6px; border-radius: 6px; background: #fff; box-shadow: 0 0 0 1px rgb(0 0 0 / .08), 0 2px 8px rgb(0 0 0 / .12); color: #030303; font: 400 12px/16px var(--ff); text-align: left; overflow-wrap: break-word; }
+.au-field-info-popover[hidden] { display: none; }
+.au .au-lab .au-login-forgot { margin-left: auto; color: #636363; }
+.au .au-login-forgot > span { display: inline-block; text-decoration: underline; text-underline-offset: 3px; }
+.au .au-login-forgot:hover { color: #636363; }
+.au .au-login-forgot:focus-visible { outline: none; }
+.au .au-login-forgot:focus-visible > span { outline: 2px solid #00AEEF; outline-offset: 2px; border-radius: 2px; }
 .au-ctl {
   position: relative;
   display: flex;
@@ -18484,9 +18499,9 @@ fieldset:disabled .au-primary {
   color: var(--text);
   font: 400 14px/24px var(--ff);
 }
-:is(.au,.au-account-dlg) .au-notice-icon { flex: 0 0 16px; margin-top: 4px; line-height: 0; }
+:is(.au,.au-account-dlg) .au-notice-icon { display: flex; align-items: center; flex: 0 0 16px; height: 24px; margin: 0; line-height: 0; }
 :is(.au,.au-account-dlg) .au-notice-icon .ic { display: block; width: 16px; height: 16px; }
-:is(.au,.au-account-dlg) .au-notice-text { min-width: 0; overflow-wrap: anywhere; }
+:is(.au,.au-account-dlg) .au-notice-text { display: block; min-width: 0; overflow-wrap: anywhere; }
 :is(.au,.au-account-dlg) .au-notice[data-tone="warning"] { background: var(--warnbg); color: var(--warn); box-shadow: none; }
 :is(.au,.au-account-dlg) .au-notice[data-tone="error"] { background: var(--critbg); color: var(--crit); box-shadow: none; }
 :is(.au,.au-account-dlg) .au-notice[data-tone="success"] {
@@ -18559,14 +18574,14 @@ fieldset:disabled .au-primary {
   height: 1px;
   background: linear-gradient(transparent 0 25%, oklch(.55 .002 107 / .4) 25% 75%, transparent 75%);
 }
-.bare-apply .au-in, .bare-apply form[data-form="apply"] .au-primary { border-radius: 8px; }
-/* Apply uses the Skills form input, not the larger personal-account pill. */
+.bare-apply .au-in { border-radius: 8px; }
+/* 申请类单行输入使用 36px 圆角框；手机与触屏保持 44px。 */
 .bare-apply .au .au-in {
   transition: box-shadow 150ms ease;
 }
 .bare-apply .au .au-in:not(.au-ta) {
-  height: 32px;
-  min-height: 32px;
+  height: 36px;
+  min-height: 36px;
   padding: 0 12px;
   font: 400 14px/24px var(--ff);
 }
@@ -18867,8 +18882,8 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
 .au-notice-text .au-keep { white-space: nowrap; }
 /* 第 14 点：同意条款文字用正文颜色（申请、修改申请、申请开通新机构三处一致），不用卡片。 */
 .bare-apply .au form[data-form="apply"] .au-check > span { color: var(--text); }
-/* 第 17 点：申请类主按钮在电脑上 32px 高、文字 14/24px，与本页输入框一致（宽度<768px 或触屏时同输入框 16/24px，见本节末）；触屏仍 44px。登录页主按钮不变。 */
-.bare-apply .au form[data-form="apply"] .au-primary { height: 32px; min-height: 32px; font: 400 14px/24px var(--ff) !important; }
+/* 2026-10-14 用户确认：申请与修改申请主按钮 36px 胶囊、16/24px、字重 480；触屏只扩展命中范围。 */
+.bare-apply .au form[data-form="apply"] .au-primary { height: 36px; min-height: 36px; border-radius: 999px; font: 480 16px/24px var(--ff) !important; }
 /* 第 19 点：结果待确认时主按钮就是黑色的“核查提交结果”，冻结的表单中仍有悬停与按下反馈；核查中为黑色转圈（aria-disabled）。 */
 .au form[data-form="apply"][data-frozen="1"] .au-primary[data-act="auApplyCheck"]:not([aria-disabled="true"]) { cursor: pointer; }
 @media (hover: hover) {
@@ -18899,13 +18914,11 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
 #app.bare-welcome .au-step-actions .au-textbtn { align-self: center; }
 #app.bare-welcome .au-wrow-remove { height: 32px; }
 @media (max-width: 850px), (pointer: coarse) {
-  .bare-apply .au form[data-form="apply"] .au-primary { height: 44px; min-height: 44px; }
   #app.bare-welcome .au-step :is(.au-in, .ws-select > button, .au-upload, .au-primary) { height: 44px; min-height: 44px; }
   #app.bare-welcome .au-wrow-remove { height: 44px; }
 }
-/* 按钮文字与本页输入框一致：宽度<768px 或触屏时 16/24px。 */
+/* 开通引导按钮文字：宽度<768px 或触屏时 16/24px。 */
 @media (max-width: 767px), (pointer: coarse) {
-  .bare-apply .au form[data-form="apply"] .au-primary { font-size: 16px !important; }
   #app.bare-welcome .au-step :is(.au-in, .ws-select > button) { font-size: 16px; }
   #app.bare-welcome .au-step .au-primary { font-size: 16px !important; }
 }
@@ -19173,9 +19186,23 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
   .au-price td.num { white-space: normal; }
 }
 /* 2026-10-10 Lovable 核查（账户页，HONG 确认），第 1–96 条中账户页的改动。 */
-/* 登录、重置、邀请、绑定与各结果页的胶囊输入框和主按钮所有宽度都 40 高（宽 400 不变）；电脑眼睛按钮与“获取验证码”仍 32、距右 6。
-   申请表（32 高、圆角 8）与开通引导的控件不变，由其后更具体的规则保持。 */
+/* 登录与重置请求保留 40px 胶囊；本轮确认的设密、邀请、绑定与状态页由精准类名采用 36px，不连带改开通引导。 */
 .au .au-in:not(.au-ta), .au .au-primary { height: 40px; min-height: 40px; }
+.au .au-compact-form .au-in:not(.au-ta) { height: 36px; min-height: 36px; padding-block: 6px; }
+.au .au-primary.au-compact-primary { height: 36px; min-height: 36px; border-radius: 999px; font: 480 16px/24px var(--ff) !important; }
+@media (max-width: 850px), (pointer: coarse) {
+  /* 44px 透明命中边界与前后输入框相接、不覆盖；标签到框的可见间距仍为 4px。 */
+  .au-field-info-trigger::before { top: -20px; bottom: -8px; left: -14px; right: -14px; }
+  .au .au-compact-form .au-label-row { min-height: 32px; align-items: flex-end; }
+  .au .au-compact-form .au-field-info-wrap { height: 24px; }
+  .au .au-compact-form .au-field-info-trigger::before { top: -24px; bottom: -4px; }
+  .au .au-compact-form .au-eye, .au .au-compact-form .au-getcode { height: 36px; min-height: 36px; }
+  .au .au-compact-form .au-eye { width: 36px; }
+  .au .au-compact-form { --au-input-hit-extension: 4px; }
+  .au .au-lab:has(> .au-login-forgot) { min-height: 32px; align-items: flex-end; }
+  .au .au-lab .au-login-forgot { position: relative; min-height: 24px; }
+  .au .au-login-forgot::before { content: ""; position: absolute; inset: -20px 0 0; }
+}
 /* 第 17 条：账户页输入框默认边线普通屏 1px #727270 16%，2 倍屏 0.5px #727270 40%（与原来相同）；悬停不变。
    第 2 条：出错 1px 红，出错又获得焦点 2px 红，离开回 1px；红色普通屏 #FD504A 40%，2 倍屏不透明。 */
 .au, .au-account-dlg {
@@ -19383,7 +19410,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
   }
   .au:not(.bare-apply .au) .au-ctl:not(.au-step .au-ctl) > .au-input-hit,
   .au .au-orgsearch > .au-input-hit {
-    display:block; position:absolute; inset:-2px 0; z-index:0; cursor:text;
+    display:block; position:absolute; inset:calc(-1 * var(--au-input-hit-extension, 2px)) 0; z-index:0; cursor:text;
   }
   .au:not(.bare-apply .au) .au-ctl:not(.au-step .au-ctl) > .au-in,
   .au .au-orgsearch > .au-in { position:relative; z-index:1; }
@@ -39090,7 +39117,7 @@ function bootError(e) {
     document.title = "无法加载 · PACOM Station";
     $("#app").className = "bare bare-login bare-booterror";
     $("#app").innerHTML =
-      `<div class="au au-split"><section class="au-left"><div class="au-center"><main class="au-group" role="alert"><div class="au-logo">${A.logo}</div><h1 class="au-h1">无法加载 PACOM Station</h1><p class="au-lead">浏览器没有允许本站点读取或保存数据，或数据读取失败。请检查浏览器的站点数据设置，然后重新加载。</p><button type="button" class="au-primary" onclick="location.reload()">重新加载</button><details class="au-tech"><summary>技术信息</summary><code>${esc(e?.message || String(e))}</code></details></main></div>${typeof auFooter === "function" ? auFooter() : ""}</section><aside class="au-art" aria-hidden="true"><img src="${A.img_auth}" alt="" onerror="this.hidden = true"></aside></div>`;
+      `<div class="au au-split"><section class="au-left"><div class="au-center"><main class="au-group" role="alert"><div class="au-logo">${A.logo}</div><h1 class="au-h1">无法加载 PACOM Station</h1><p class="au-lead">浏览器没有允许本站点读取或保存数据，或数据读取失败。请检查浏览器的站点数据设置，然后重新加载。</p><button type="button" class="au-primary au-compact-primary" onclick="location.reload()">重新加载</button><details class="au-tech"><summary>技术信息</summary><code>${esc(e?.message || String(e))}</code></details></main></div>${typeof auFooter === "function" ? auFooter() : ""}</section><aside class="au-art" aria-hidden="true"><img src="${A.img_auth}" alt="" onerror="this.hidden = true"></aside></div>`;
     // 与账户页相同的按钮质感、页脚排法与右侧留白（auth-ui.js；只含部分模块的测试构建没有）
     if (typeof auEnhance === "function") auEnhance($("#app"));
     netBanner();
@@ -67615,12 +67642,56 @@ const auNormPhone = (v) => {
 };
 
 /* ---------- 入口页通用：字段、按钮、校验 ---------- */
+const auFieldInfo = (name, label, text) =>
+  `<span class="au-field-info-wrap"><button type="button" class="au-field-info-trigger" data-act="auFieldInfo" aria-label="${esc(label)}说明" aria-haspopup="dialog" aria-expanded="false" aria-controls="au-${name}-info">${ico("au-info", "ic16")}</button><span id="au-${name}-info" class="au-field-info-popover" role="dialog" aria-label="${esc(label)}说明" hidden>${esc(text)}</span></span>`;
+let auFieldInfoOpen = null;
+function auCloseFieldInfo(restoreFocus = false) {
+  const trigger = auFieldInfoOpen;
+  auFieldInfoOpen = null;
+  if (!trigger) return;
+  trigger.setAttribute("aria-expanded", "false");
+  trigger.removeAttribute("aria-describedby");
+  const popup = document.getElementById(trigger.getAttribute("aria-controls"));
+  if (popup) popup.hidden = true;
+  if (restoreFocus && trigger.isConnected) trigger.focus({ preventScroll: true });
+}
+function auPlaceFieldInfo() {
+  const trigger = auFieldInfoOpen;
+  if (!trigger?.isConnected) return auCloseFieldInfo();
+  const popup = document.getElementById(trigger.getAttribute("aria-controls"));
+  if (!popup || popup.hidden) return;
+  const viewport = window.visualViewport;
+  const left = viewport?.offsetLeft || 0, top = viewport?.offsetTop || 0;
+  const width = viewport?.width || document.documentElement.clientWidth;
+  const height = viewport?.height || document.documentElement.clientHeight;
+  popup.style.maxWidth = `min(45ch, ${Math.max(1, width - 16)}px)`;
+  const anchor = trigger.getBoundingClientRect(), box = popup.getBoundingClientRect();
+  popup.style.left = Math.max(left + 8, Math.min(anchor.left + anchor.width / 2 - box.width / 2, left + width - box.width - 8)) + "px";
+  const above = anchor.top - box.height - 4;
+  popup.style.top = Math.max(top + 8, Math.min(above >= top + 8 ? above : anchor.bottom + 4, top + height - box.height - 8)) + "px";
+}
+// Field explanations open on click or keyboard activation, so they remain available on touch screens.
+document.addEventListener("pointerdown", (e) => {
+  if (auFieldInfoOpen && !e.target.closest?.(".au-field-info-wrap")) auCloseFieldInfo();
+}, true);
+document.addEventListener("focusin", (e) => {
+  if (auFieldInfoOpen && !e.target.closest?.(".au-field-info-wrap")) auCloseFieldInfo();
+}, true);
+if (typeof defineLayer === "function") defineLayer({
+  name: "accountFieldInfo", level: 95, prevent: true,
+  open: () => !!auFieldInfoOpen?.isConnected && !!document.getElementById(auFieldInfoOpen.getAttribute("aria-controls")) && !document.getElementById(auFieldInfoOpen.getAttribute("aria-controls")).hidden,
+  close: () => auCloseFieldInfo(true),
+});
+window.addEventListener("resize", () => { if (auFieldInfoOpen) auPlaceFieldInfo(); });
+window.addEventListener("scroll", () => { if (auFieldInfoOpen) auPlaceFieldInfo(); }, true);
+window.visualViewport?.addEventListener("resize", () => { if (auFieldInfoOpen) auPlaceFieldInfo(); });
+window.addEventListener("hashchange", () => auCloseFieldInfo());
 function auField(o) {
-  const { name, label, type = "text", auto = "", hint = "", hintRole = "", right = "", rightAfter = false, suffix = "", inputmode = "", ph = "", maxlength = "", required = true, count = false } = o;
+  const { name, label, type = "text", auto = "", hint = "", info = "", hintRole = "", right = "", rightAfter = false, suffix = "", inputmode = "", ph = "", maxlength = "", required = true, count = false } = o;
   const val = AUX.v[name] ?? o.value ?? "";
   // A counted field is never cut at its limit: the count appears from 80% and a longer value is reported as an error.
   const counter = count ? PACOM_AUTH_FLOW.charCount(name, val) : "";
-  return `<div class="au-field ${rightAfter ? "au-field-right-after" : ""}" data-f="${name}"><div class="au-lab"><label for="au-${name}">${label}</label>${rightAfter ? "" : right}</div><div class="au-ctl"><input id="au-${name}" name="${name}" class="au-in ${suffix ? "has-suffix" : ""}" type="${type}" value="${esc(val)}" ${auto ? `autocomplete="${auto}"` : ""} ${inputmode ? `inputmode="${inputmode}"` : ""} ${ph ? `placeholder="${esc(ph)}"` : ""} ${maxlength ? `maxlength="${maxlength}"` : ""} ${required ? 'required aria-required="true"' : ""} aria-describedby="au-${name}-err au-${name}-hint${count ? ` au-${name}-count` : ""}" spellcheck="false" ${type === "password" || ["email", "tel", "username", "one-time-code"].includes(auto) ? 'autocapitalize="none" autocorrect="off"' : ""}><label class="au-input-hit" for="au-${name}" aria-hidden="true"></label>${suffix}</div>${rightAfter ? `<div class="au-field-right">${right}</div>` : ""}<p class="au-err" id="au-${name}-err" aria-live="polite"></p><p class="au-hint" id="au-${name}-hint" ${hintRole ? `role="${hintRole}" aria-live="polite"` : ""}>${hint}</p>${count ? `<p class="au-hint au-char-count" id="au-${name}-count" ${counter ? "" : "hidden"}>${counter}</p>` : ""}</div>`;
+  return `<div class="au-field ${rightAfter ? "au-field-right-after" : ""}" data-f="${name}"><div class="au-lab${info ? " au-label-row" : ""}"><label for="au-${name}">${label}</label>${info ? auFieldInfo(name, label, info) : ""}${rightAfter ? "" : right}</div><div class="au-ctl"><input id="au-${name}" name="${name}" class="au-in ${suffix ? "has-suffix" : ""}" type="${type}" value="${esc(val)}" ${auto ? `autocomplete="${auto}"` : ""} ${inputmode ? `inputmode="${inputmode}"` : ""} ${ph ? `placeholder="${esc(ph)}"` : ""} ${maxlength ? `maxlength="${maxlength}"` : ""} ${required ? 'required aria-required="true"' : ""} aria-describedby="au-${name}-err au-${name}-hint${info ? ` au-${name}-info` : ""}${count ? ` au-${name}-count` : ""}" spellcheck="false" ${type === "password" || ["email", "tel", "username", "one-time-code"].includes(auto) ? 'autocapitalize="none" autocorrect="off"' : ""}><label class="au-input-hit" for="au-${name}" aria-hidden="true"></label>${suffix}</div>${rightAfter ? `<div class="au-field-right">${right}</div>` : ""}<p class="au-err" id="au-${name}-err" aria-live="polite"></p><p class="au-hint" id="au-${name}-hint" ${hintRole ? `role="${hintRole}" aria-live="polite"` : ""}>${hint}</p>${count ? `<p class="au-hint au-char-count" id="au-${name}-count" ${counter ? "" : "hidden"}>${counter}</p>` : ""}</div>`;
 }
 // 显示密码按钮按所在字段命名并关联输入框：“显示新密码”“显示确认新密码”，切换后为“隐藏……”（账户核查第 15 条：原先都叫“显示密码”）。
 const AU_EYE_NAME = { np1: "新密码", np2: "确认新密码", iv_pwd2: "确认密码" };
@@ -67675,7 +67746,8 @@ function auCodeBtn(key, forName, hidden = false) {
 // Hidden, read-only username so password managers file the new or entered password under the right account.
 const auUserHint = (v) =>
   `<input type="email" class="au-user-hint" name="username" autocomplete="username" value="${esc(v || "")}" readonly tabindex="-1" aria-hidden="true" aria-label="账户">`;
-const auPrimary = (label) => `<button type="submit" class="au-primary">${label}</button>`;
+const auPrimary = (label, compact = false) => `<button type="submit" class="au-primary${compact ? " au-compact-primary" : ""}">${label}</button>`;
+const auConsentLegalLink = (doc) => `<a class="au-inline au-legal-link" href="${esc(location.pathname)}#legal?tab=${doc}" target="_blank" rel="noopener" aria-label="${doc === "terms" ? "服务条款" : "隐私政策"}（新标签页打开）">${doc === "terms" ? "服务条款" : "隐私政策"}</a>`;
 function auFooter(center = false, legalLink = true) {
   return `<footer class="au-foot ${center ? "center" : ""}" aria-label="版权、法律与联系信息"><span class="au-copyright">© ${PACOM_AUTH_FLOW.cstYear(auNow())} ${esc(AU_FILING.company)}</span><div class="au-foot-links">${legalLink ? `<a href="${esc(location.pathname)}#legal" target="_blank" rel="noopener" aria-label="隐私和法律（新标签页打开）">隐私和法律</a>` : ""}<button type="button" data-act="auContact">联系我们</button>${typeof auFiling === "function" ? auFiling() : ""}</div></footer>`;
 }
@@ -67950,8 +68022,7 @@ BARE.login = () => {
         label: "密码",
         type: "password",
         auto: "current-password",
-        right: `<button type="button" class="au-textbtn" data-act="auForgot"><span>忘记密码？</span></button>`,
-        rightAfter: true,
+        right: `<button type="button" class="au-textbtn au-login-forgot" data-act="auForgot"><span>忘记密码？</span></button>`,
         suffix: auEye("pwd"),
       });
   return auAuthShell(`<h1 class="au-h1">登录</h1>${auExpiredNotice()}${auResetNotice()}<form data-form="login" novalidate><fieldset>${idField}${secret}<p class="au-ferr" id="au-login-ferr" role="alert" hidden></p>${auPrimary("登录")}</fieldset></form><div class="au-login-actions"><button type="button" class="au-textbtn" data-act="auSmsMode">${sms ? "使用密码登录" : "使用短信验证码登录"}</button><div class="au-login-divider" aria-hidden="true"></div><p class="au-done-more">没有账户？<button type="button" class="au-textbtn" data-act="auGo" data-page="apply" data-mode="public">申请访问</button></p></div>`);
@@ -67971,7 +68042,7 @@ BARE.orgs = () => {
   // The account is shown in full: the person needs to see which of their accounts this is (Account 核查第 30、31 点).
   if (!orgs.length)
     return auStatusShell(
-      `<h1 class="au-h1">尚未加入机构</h1><p class="au-lead">账户 ${esc(me.email || me.phone)} 目前没有可访问的机构。请联系机构管理员发送邀请，或为您的机构申请访问。</p><button type="button" class="au-primary" data-act="auGo" data-page="apply" data-mode="account">申请访问</button><div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button></div>`,
+      `<h1 class="au-h1">尚未加入机构</h1><p class="au-lead">账户 ${esc(me.email || me.phone)} 目前没有可访问的机构。请联系机构管理员发送邀请，或为您的机构申请访问。</p><button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="apply" data-mode="account">申请访问</button><div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button></div>`,
     );
   const search = orgs.length >= AU_ORG_SEARCH_FROM, q = search ? String(AUX.orgQ || "").trim().toLowerCase() : "";
   const shown = orgs.filter((o) => auOrgMatch(o, q));
@@ -68031,11 +68102,11 @@ BARE.suspended = () => {
     ? `<div class="au-notice au-susp-notice" data-tone="warning">${auNoticeContent("warning", `最晚请在 ${auDate(auLicLastRenewDay(auLic(id)))}（含当天）完成续期，逾期将删除本机构全部数据。`)}</div>`
     : "";
   const primary = renew
-    ? `<button type="button" class="au-primary" data-act="auRenewEnter" data-org="${id}">续期</button>`
+    ? `<button type="button" class="au-primary au-compact-primary" data-act="auRenewEnter" data-org="${id}">续期</button>`
     : others
-      ? `<button type="button" class="au-primary" data-act="auGo" data-page="orgs">选择其他机构</button>`
+      ? `<button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="orgs">选择其他机构</button>`
       : admin
-        ? `<button type="button" class="au-primary" data-act="auContact">联系支持</button>`
+        ? `<button type="button" class="au-primary au-compact-primary" data-act="auContact">联系支持</button>`
         : "";
   const dot = `<span class="au-dot" aria-hidden="true"></span>`;
   const links = renew
@@ -68053,7 +68124,7 @@ BARE.removed = () => {
   return auStatusShell(
     `<h1 class="au-h1">您已不在该机构中</h1><p class="au-lead">您的账户已被移出<b>${zhSub(esc(o.name), "l")}</b>，不能再访问该机构的项目。如有疑问，请联系该机构的机构管理员。</p>${
       others.length
-        ? `<button type="button" class="au-primary" data-act="auGo" data-page="orgs">选择其他机构</button>`
+        ? `<button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="orgs">选择其他机构</button>`
         : `<p class="au-lead">如需恢复访问，请联系该机构管理员重新邀请您。</p>`
     }<div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button></div>`,
   );
@@ -68064,13 +68135,13 @@ BARE_AFTER.removed = () => (document.title = "您已不在该机构中 · PACOM 
 // The page itself offers “联系支持” below the retry status line (AUTH17).
 BARE.unavailable = () =>
   auStatusShell(
-    `<h1 class="au-h1">服务暂时不可用</h1><p class="au-lead">PACOM Station 暂时无法响应，请稍后重试。现场网关和设备正常时，已下发的本地控制可继续运行；平台远程功能暂不可用。</p><button type="button" class="au-primary" data-act="auRetry">重试</button><p class="au-hint" id="au-retry-status" role="status"></p><div class="au-links"><button type="button" class="au-textbtn" data-act="auContact">联系支持</button></div>`,
+    `<h1 class="au-h1">服务暂时不可用</h1><p class="au-lead">PACOM Station 暂时无法响应，请稍后重试。现场网关和设备正常时，已下发的本地控制可继续运行；平台远程功能暂不可用。</p><button type="button" class="au-primary au-compact-primary" data-act="auRetry">重试</button><p class="au-hint" id="au-retry-status" role="status"></p><div class="au-links"><button type="button" class="au-textbtn" data-act="auContact">联系支持</button></div>`,
   );
 BARE_AFTER.unavailable = () => (document.title = "服务暂时不可用 · PACOM Station");
 BARE.maintenance = () => {
   const until = AUX.maintUntil ? auFmt(AUX.maintUntil) : "";
   return auStatusShell(
-    `<h1 class="au-h1">系统维护中</h1><p class="au-lead">PACOM Station 正在进行计划维护${until ? `，预计 <b>${until}</b> 恢复` : ""}。现场网关和设备正常时，已下发的本地控制可继续运行；平台远程功能暂不可用。</p><button type="button" class="au-primary" data-act="auRetry">刷新</button><p class="au-hint" id="au-retry-status" role="status"></p>`,
+    `<h1 class="au-h1">系统维护中</h1><p class="au-lead">PACOM Station 正在进行计划维护${until ? `，预计 <b>${until}</b> 恢复` : ""}。现场网关和设备正常时，已下发的本地控制可继续运行；平台远程功能暂不可用。</p><button type="button" class="au-primary au-compact-primary" data-act="auRetry">刷新</button><p class="au-hint" id="au-retry-status" role="status"></p>`,
   );
 };
 BARE_AFTER.maintenance = () => (document.title = "系统维护中 · PACOM Station");
@@ -68112,7 +68183,7 @@ BARE.reset = () => {
     if (AUX.resetUsed) return AUX.newPasswordResult?.pendingView ? auResetDone() : auResetExpired();
     const who = r?.id || auMask(auMe().phone);
     return auAuthShell(
-      `<h1 class="au-h1">设置新密码</h1><p class="au-lead">账户：<b>${esc(who)}</b></p><form data-form="newpwd" data-link="${esc(String(r?.link || ""))}" data-channel="${r?.channel === "sms" ? "sms" : "mail"}" data-account="${esc(r?.channel === "sms" ? r.id : "")}" novalidate><fieldset>${auUserHint(r?.id || auMe().email)}${auField({ name: "np1", label: "新密码", type: "password", auto: "new-password", suffix: auEye("np1"), hint: PACOM_PASSWORD_POLICY.hint })}${auField({ name: "np2", label: "确认新密码", type: "password", auto: "new-password", suffix: auEye("np2") })}<p class="au-ferr" role="alert" hidden></p>${auPrimary("保存新密码")}</fieldset></form><div class="au-links"><button type="button" class="au-textbtn" data-act="auGo" data-page="login">登录</button></div>`,
+      `<h1 class="au-h1">设置新密码</h1><p class="au-lead">账户：<b>${esc(who)}</b></p><form class="au-compact-form" data-form="newpwd" data-link="${esc(String(r?.link || ""))}" data-channel="${r?.channel === "sms" ? "sms" : "mail"}" data-account="${esc(r?.channel === "sms" ? r.id : "")}" novalidate><fieldset>${auUserHint(r?.id || auMe().email)}${auField({ name: "np1", label: "新密码", type: "password", auto: "new-password", suffix: auEye("np1"), info: PACOM_PASSWORD_POLICY.hint })}${auField({ name: "np2", label: "确认新密码", type: "password", auto: "new-password", suffix: auEye("np2") })}<p class="au-ferr" role="alert" hidden></p>${auPrimary("保存新密码", true)}</fieldset></form><div class="au-links"><button type="button" class="au-textbtn" data-act="auGo" data-page="login">登录</button></div>`,
     );
   }
   if (step === "done" && !AUX.resetUsed) return auResetExpired();
@@ -68126,7 +68197,7 @@ const auResetInviteBack = () => {
   const back = AUX.resetInviteReturn;
   return back && PACOM_AUTH_FLOW.loginIdentity(back.email) === PACOM_AUTH_FLOW.loginIdentity(AUX.reset?.id) ? back : null;
 };
-const auResetDone = () => auAuthShell(`<h1 class="au-h1">密码已重置</h1><p class="au-lead">请使用新密码登录。${AUX.resetRevokedSessions ? "其他设备上的登录已退出。" : ""}</p><button type="button" class="au-primary" data-act="auResetLogin">${auResetInviteBack() ? "返回接受邀请" : "登录"}</button>`);
+const auResetDone = () => auAuthShell(`<h1 class="au-h1">密码已重置</h1><p class="au-lead">请使用新密码登录。${AUX.resetRevokedSessions ? "其他设备上的登录已退出。" : ""}</p><button type="button" class="au-primary au-compact-primary" data-act="auResetLogin">${auResetInviteBack() ? "返回接受邀请" : "登录"}</button>`);
 // 过期页按来源区分（账户核查第 27 条）：电子邮箱仍是“重置链接已过期”“重新获取链接”；手机号码是验证短信验证码后直接设置新密码，
 // 没有收到链接，写“验证已过期”“请重新验证手机号码后重置密码。”，按钮“重新验证手机号码”并带入号码。不恢复已删除的“重置链接已使用／已失效”。
 const auResetExpiredSms = () => (AUX.resetExpiredChannel || AUX.reset?.channel) === "sms";
@@ -68134,8 +68205,8 @@ const auResetExpired = () => {
   const sms = auResetExpiredSms(), phone = sms ? AUX.resetExpiredAccount || AUX.reset?.id || "" : "";
   return auAuthShell(
     sms
-      ? `<h1 class="au-h1">验证已过期</h1><p class="au-lead">请重新验证手机号码后重置密码。</p><button type="button" class="au-primary" data-act="auReopenReset" data-account="${esc(phone)}">重新验证手机号码</button><div class="au-links"><button type="button" class="au-textbtn" data-act="auGo" data-page="login">登录</button></div>`
-      : `<h1 class="au-h1">重置链接已过期</h1><p class="au-lead">请重新获取重置链接，并使用最新收到的链接。</p><button type="button" class="au-primary" data-act="auReopenReset">重新获取链接</button><div class="au-links"><button type="button" class="au-textbtn" data-act="auGo" data-page="login">登录</button></div>`,
+      ? `<h1 class="au-h1">验证已过期</h1><p class="au-lead">请重新验证手机号码后重置密码。</p><button type="button" class="au-primary au-compact-primary" data-act="auReopenReset" data-account="${esc(phone)}">重新验证手机号码</button><div class="au-links"><button type="button" class="au-textbtn" data-act="auGo" data-page="login">登录</button></div>`
+      : `<h1 class="au-h1">重置链接已过期</h1><p class="au-lead">请重新获取重置链接，并使用最新收到的链接。</p><button type="button" class="au-primary au-compact-primary" data-act="auReopenReset">重新获取链接</button><div class="au-links"><button type="button" class="au-textbtn" data-act="auGo" data-page="login">登录</button></div>`,
   );
 };
 
@@ -68182,7 +68253,7 @@ const auBackLinks = (mode) =>
 // 只读一行“联系人 王敏 · 邮箱”，写法同邀请页锁定的邮箱。审核通过后新机构直接加到本账户（本人为机构管理员）并进入开通引导，不发开通邀请
 // （全面设计核查第 136 条，2026-10-12 用户确认：原先联系人姓名、电子邮箱由账户带入但可以改，通过后发开通邀请）。
 const auApplyContact = (me) =>
-  `<div class="au-field au-locked au-apply-contact" role="group" aria-labelledby="au-ap-contact-label"><div class="au-lab"><span class="au-lab-t" id="au-ap-contact-label">联系人</span></div><p class="au-static">${esc(me.name)} · ${esc(me.email || me.phone || "")}</p><p class="au-hint">审核结果将发送至此邮箱；审核通过后，新机构将显示在您的机构列表中。</p></div>`;
+  `<div class="au-field au-locked au-apply-contact" role="group" aria-labelledby="au-ap-contact-label" aria-describedby="au-ap-contact-info"><div class="au-lab au-label-row"><span class="au-lab-t" id="au-ap-contact-label">联系人</span>${auFieldInfo("ap-contact", "联系人", "审核结果将发送至此邮箱；审核通过后，新机构将显示在您的机构列表中。")}</div><p class="au-static">${esc(me.name)} · ${esc(me.email || me.phone || "")}</p></div>`;
 const auApplyAccountSent = (mail) => `审核结果将发送至 <b>${esc(mail)}</b>；审核通过后，新机构将显示在您的机构列表中。`;
 BARE.apply = () => {
   const mode = auApplyMode();
@@ -68191,13 +68262,13 @@ BARE.apply = () => {
   if (AUX.applied && !AUX.applyEditing && U.tab !== "done") { U.tab = "done"; history.replaceState(null, "", PACOM_AUTH_FLOW.applyHash(mode, "done")); }
   if (U.tab === "done" && !AUX.applied)
     // The way back is the full-width primary button, with “联系支持” centred below it (Account 核查第 20 点).
-    return auApplyShell(`<h1 class="au-h1">暂时无法查看申请结果</h1><p class="au-lead">当前页面没有可核对的申请记录。如果您已提交申请，请留意电子邮箱；如需确认，请联系 PACOM 支持，避免重复提交。</p>${auBackAction(mode, "au-primary")}<div class="au-links"><button type="button" class="au-textbtn" data-act="auContact">联系支持</button></div>`);
+    return auApplyShell(`<h1 class="au-h1">暂时无法查看申请结果</h1><p class="au-lead">当前页面没有可核对的申请记录。如果您已提交申请，请留意电子邮箱；如需确认，请联系 PACOM 支持，避免重复提交。</p>${auBackAction(mode, "au-primary au-compact-primary")}<div class="au-links"><button type="button" class="au-textbtn" data-act="auContact">联系支持</button></div>`);
   if (U.tab === "done" && AUX.applied) {
     const a = AUX.applied;
     // A public applicant has no account yet, so the page ends here; a signed-in applicant returns to where they came from.
     const back = a.mode === "new-org" ? ["", "返回工作区"] : a.mode === "account" ? ["orgs", "返回选择机构"] : null;
     return auApplyShell(
-      `<h1 class="au-h1">${a.updated ? "申请已更新" : "申请已提交"}</h1><p class="au-lead">${a.mode === "public" ? `审核结果将发送至 <b>${esc(a.mail)}</b>。审核通过后，您会收到开通邀请。` : auApplyAccountSent(a.mail)}</p>${back ? `<button type="button" class="au-primary" ${back[0] ? `data-act="auGo" data-page="${back[0]}"` : `data-act="auApplyBack"`}>${back[1]}</button>` : ""}<p class="au-done-more">填写有误？<button type="button" class="au-textbtn" data-act="auEditApply">修改申请</button></p>`,
+      `<h1 class="au-h1">${a.updated ? "申请已更新" : "申请已提交"}</h1><p class="au-lead">${a.mode === "public" ? `审核结果将发送至 <b>${esc(a.mail)}</b>。审核通过后，您会收到开通邀请。` : auApplyAccountSent(a.mail)}</p>${back ? `<button type="button" class="au-primary au-compact-primary" ${back[0] ? `data-act="auGo" data-page="${back[0]}"` : `data-act="auApplyBack"`}>${back[1]}</button>` : ""}<p class="au-done-more">填写有误？<button type="button" class="au-textbtn" data-act="auEditApply">修改申请</button></p>`,
     );
   }
   const me = auApplyPerson();
@@ -68213,7 +68284,7 @@ BARE.apply = () => {
       ? "为所在机构申请开通，由 PACOM 审核。若机构已开通，请联系机构管理员邀请您加入。"
       : "申请由 PACOM 审核。若所在机构已开通，请联系机构管理员邀请您加入。";
   return auApplyShell(
-    `<h1 class="au-h1">${AUX.applyEditing ? "修改申请" : mode === "new-org" ? "申请开通新机构" : "申请访问"}</h1><p class="au-lead">${AUX.applyEditing ? "修改下方信息，提交后将更新原申请。" : lead}</p><form data-form="apply" novalidate><fieldset>${auField({ name: "ap_org", label: "公司或机构名称", auto: "organization", count: true })}${me ? auApplyContact(me) : `${auField({ name: "ap_name", label: "联系人姓名", auto: "name", count: true })}${auField({ name: "ap_mail", label: "电子邮箱", type: "email", auto: "email", inputmode: "email", hint: "用于接收审核结果及审核通过后的开通邀请。" })}`}${auField({ name: "ap_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", hint: "用于审核时联系您。" })}<div class="au-field au-apply-overview" data-f="ap_need"><div class="au-lab"><label for="au-ap_need">项目概况<span>（选填）</span></label></div><div class="au-textarea-shell"><textarea id="au-ap_need" name="ap_need" class="au-in au-ta" rows="3" aria-describedby="au-ap_need-err au-ap_need-count" placeholder="例如项目位置、楼宇规模或计划使用的功能">${esc(AUX.v.ap_need || "")}</textarea><button type="button" class="au-resize" data-resize="au-ap_need" aria-label="调整项目概况输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-ap_need-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-ap_need-count" ${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need)}</p></div><label class="au-check" data-f="ap_ok"><input type="checkbox" name="ap_ok" class="au-v" required aria-required="true" aria-describedby="au-ap_ok-err" ${AUX.v.ap_ok ? "checked" : ""}><span>我已阅读<button type="button" class="au-inline" data-act="auLegal" data-doc="privacy">隐私政策</button>，同意 PACOM 处理以上信息，用于${me ? "审核申请及与我联系" : "审核申请、联系我及发送开通邀请"}。</span></label><p class="au-err au-check-err" id="au-ap_ok-err"></p><p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}</fieldset></form>${AUX.applyEditing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit" ${PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? "disabled" : ""}>取消修改</button><span class="au-dot" aria-hidden="true"></span>${auBackAction(mode)}</div>` : auBackLinks(mode)}${mode === "new-org" ? `<p class="au-foot-note">同一机构的其他园区或楼宇，请在当前机构中创建项目。</p>` : ""}`,
+    `<h1 class="au-h1">${AUX.applyEditing ? "修改申请" : mode === "new-org" ? "申请开通新机构" : "申请访问"}</h1><p class="au-lead">${AUX.applyEditing ? "修改下方信息，提交后将更新原申请。" : lead}</p><form data-form="apply" novalidate><fieldset>${auField({ name: "ap_org", label: "公司或机构名称", auto: "organization", count: true })}${me ? auApplyContact(me) : `${auField({ name: "ap_name", label: "联系人姓名", auto: "name", count: true })}${auField({ name: "ap_mail", label: "电子邮箱", type: "email", auto: "email", inputmode: "email", info: "用于接收审核结果及审核通过后的开通邀请。" })}`}${auField({ name: "ap_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", info: "用于审核时联系您。" })}<div class="au-field au-apply-overview" data-f="ap_need"><div class="au-lab"><label for="au-ap_need">项目概况 <span>选填</span></label></div><div class="au-textarea-shell"><textarea id="au-ap_need" name="ap_need" class="au-in au-ta" rows="3" aria-describedby="au-ap_need-err au-ap_need-count" placeholder="例如项目位置、楼宇规模或计划使用的功能">${esc(AUX.v.ap_need || "")}</textarea><button type="button" class="au-resize" data-resize="au-ap_need" aria-label="调整项目概况输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-ap_need-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-ap_need-count" ${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need)}</p></div><label class="au-check" data-f="ap_ok"><input type="checkbox" name="ap_ok" class="au-v" required aria-required="true" aria-describedby="au-ap_ok-err" ${AUX.v.ap_ok ? "checked" : ""}><span>我已阅读${auConsentLegalLink("privacy")}，同意 PACOM 处理以上信息，用于${me ? "审核申请及与我联系" : "审核申请、联系我及发送开通邀请"}。</span></label><p class="au-err au-check-err" id="au-ap_ok-err"></p><p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}</fieldset></form>${AUX.applyEditing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit" ${PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? "disabled" : ""}>取消修改</button><span class="au-dot" aria-hidden="true"></span>${auBackAction(mode)}</div>` : auBackLinks(mode)}`,
   );
 };
 BARE_AFTER.apply = () => {
@@ -68242,7 +68313,7 @@ BARE.invite = () => {
     );
   if (kind === "used")
     return auAuthShell(
-      `<h1 class="au-h1">邀请已被接受</h1><p class="au-lead">如果是您本人接受的，请直接登录；如果不是，请联系邀请人。</p><button type="button" class="au-primary" data-act="auGo" data-page="login">登录</button>`,
+      `<h1 class="au-h1">邀请已被接受</h1><p class="au-lead">如果是您本人接受的，请直接登录；如果不是，请联系邀请人。</p><button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="login">登录</button>`,
     );
   if (kind === "revoked")
     return auAuthShell(
@@ -68253,7 +68324,7 @@ BARE.invite = () => {
   const meNow = AUTH.session === "in" ? auMe() : null;
   if (meNow?.email && inv?.email && meNow.email.toLowerCase() !== inv.email.toLowerCase())
     return auAuthShell(
-      `<h1 class="au-h1">此邀请发给其他账户</h1><p class="au-lead">邀请发送至 <b>${esc(auMask(inv.email))}</b>，当前登录的是 <b>${esc(auMask(meNow.email))}</b>。请退出后使用受邀账户接受邀请。</p><button type="button" class="au-primary" data-act="auInviteSwitch">退出并继续</button><div class="au-links"><button type="button" class="au-textbtn" data-act="auApplyBack">返回工作区</button></div>`,
+      `<h1 class="au-h1">此邀请发给其他账户</h1><p class="au-lead">邀请发送至 <b>${esc(auMask(inv.email))}</b>，当前登录的是 <b>${esc(auMask(meNow.email))}</b>。请退出后使用受邀账户接受邀请。</p><button type="button" class="au-primary au-compact-primary" data-act="auInviteSwitch">退出并继续</button><div class="au-links"><button type="button" class="au-textbtn" data-act="auApplyBack">返回工作区</button></div>`,
     );
   if (kind === "owner" && AUTH.ownerInvite === "accepted") {
     U.tab = "used";
@@ -68278,8 +68349,8 @@ BARE.invite = () => {
   // 4px below at 16/24 #2E2E2E, long addresses wrapping; screen readers read “电子邮箱” and the address (Lovable 核查第 26 条，2026-10-10 用户确认).
   const email = `<div class="au-field au-locked" role="group" aria-labelledby="au-invite-email-label"><div class="au-lab"><span class="au-lab-t" id="au-invite-email-label">电子邮箱</span></div><p class="au-static">${esc(inv.email)}</p></div>`;
   const body = existing
-    ? `<form data-form="inviteExisting" novalidate><fieldset>${auUserHint(inv.email)}${email}${auField({ name: "ie_pwd", label: "密码", type: "password", auto: "current-password", right: `<button type="button" class="au-textbtn" data-act="auInviteForgot" data-kind="${kind}"><span>忘记密码？</span></button>`, rightAfter: true, suffix: auEye("ie_pwd") })}<p class="au-ferr" role="alert" hidden></p>${auPrimary("接受邀请")}</fieldset></form><p class="au-done-more">没有账户？<button type="button" class="au-textbtn" data-act="auInvMode" data-mode="new">创建账户</button></p>`
-    : `<form data-form="invite" data-kind="${kind}" novalidate><fieldset>${auUserHint(inv.email)}${email}${auField({ name: "iv_name", label: "姓名", auto: "name", value: inv.name })}${auField({ name: "iv_pwd", label: "设置密码", type: "password", auto: "new-password", suffix: auEye("iv_pwd"), hint: PACOM_PASSWORD_POLICY.hint })}${auField({ name: "iv_pwd2", label: "确认密码", type: "password", auto: "new-password", suffix: auEye("iv_pwd2") })}<label class="au-check" data-f="iv_ok"><input type="checkbox" name="iv_ok" class="au-v" aria-describedby="au-iv_ok-err" ${AUX.v.iv_ok ? "checked" : ""}><span>我已阅读并同意<button type="button" class="au-inline" data-act="auLegal" data-doc="privacy">隐私政策</button>和<button type="button" class="au-inline" data-act="auLegal" data-doc="terms">服务条款</button></span></label><p class="au-err au-check-err" id="au-iv_ok-err"></p><p class="au-ferr" role="alert" hidden></p>${auPrimary(kind === "owner" ? "创建账户" : "创建账户并加入")}</fieldset></form><p class="au-done-more">已有账户？<button type="button" class="au-textbtn" data-act="auInvMode" data-mode="existing">登录后接受邀请</button></p>`;
+    ? `<form class="au-compact-form" data-form="inviteExisting" novalidate><fieldset>${auUserHint(inv.email)}${email}${auField({ name: "ie_pwd", label: "密码", type: "password", auto: "current-password", right: `<button type="button" class="au-textbtn" data-act="auInviteForgot" data-kind="${kind}"><span>忘记密码？</span></button>`, rightAfter: true, suffix: auEye("ie_pwd") })}<p class="au-ferr" role="alert" hidden></p>${auPrimary("接受邀请", true)}</fieldset></form><p class="au-done-more">没有账户？<button type="button" class="au-textbtn" data-act="auInvMode" data-mode="new">创建账户</button></p>`
+    : `<form class="au-compact-form" data-form="invite" data-kind="${kind}" novalidate><fieldset>${auUserHint(inv.email)}${email}${auField({ name: "iv_name", label: "姓名", auto: "name", value: inv.name })}${auField({ name: "iv_pwd", label: "设置密码", type: "password", auto: "new-password", suffix: auEye("iv_pwd"), info: PACOM_PASSWORD_POLICY.hint })}${auField({ name: "iv_pwd2", label: "确认密码", type: "password", auto: "new-password", suffix: auEye("iv_pwd2") })}<label class="au-check" data-f="iv_ok"><input type="checkbox" name="iv_ok" class="au-v" aria-describedby="au-iv_ok-err" ${AUX.v.iv_ok ? "checked" : ""}><span>我已阅读并同意${auConsentLegalLink("privacy")}和${auConsentLegalLink("terms")}</span></label><p class="au-err au-check-err" id="au-iv_ok-err"></p><p class="au-ferr" role="alert" hidden></p>${auPrimary(kind === "owner" ? "创建账户" : "创建账户并加入", true)}</fieldset></form><p class="au-done-more">已有账户？<button type="button" class="au-textbtn" data-act="auInvMode" data-mode="existing">登录后接受邀请</button></p>`;
   return auAuthShell(head + body);
 };
 BARE_AFTER.invite = () => {
@@ -68294,12 +68365,12 @@ function auBindPhoneStep() {
   const b = AUX.bindPhone;
   if (!b)
     return auAuthShell(
-      `<h1 class="au-h1">账户状态</h1><p class="au-lead">当前没有待完成的手机号码绑定。请登录后在“我的账户 › 登录与安全”中查看或修改。</p><button type="button" class="au-primary" data-act="auGo" data-page="login">登录</button>`,
+      `<h1 class="au-h1">账户状态</h1><p class="au-lead">当前没有待完成的手机号码绑定。请登录后在“我的账户 › 登录与安全”中查看或修改。</p><button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="login">登录</button>`,
     );
   AUX.v.bd_phone ??= b.phone || "";
   const sent = esc(auSmsSentText("bind"));
   return auAuthShell(
-    `<h1 class="au-h1">绑定手机号码</h1><p class="au-lead">账户已创建。绑定后可以用手机号码登录和重置密码；也可以跳过，之后在“我的账户 › 登录与安全”中绑定。</p><form data-form="bindPhone" novalidate><fieldset>${auField({ name: "bd_phone", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", suffix: auCodeBtn("bind", "bd_phone"), hint: sent, hintRole: "status" })}${auField({ name: "bd_code", label: "短信验证码", auto: "one-time-code", inputmode: "numeric", maxlength: 6 })}<p class="au-ferr" role="alert" hidden></p>${auPrimary("绑定并继续")}</fieldset></form><div class="au-links"><button type="button" class="au-textbtn" data-act="auBindSkip">跳过</button></div>`,
+    `<h1 class="au-h1">绑定手机号码</h1><p class="au-lead">账户已创建。绑定后可以用手机号码登录和重置密码；也可以跳过，之后在“我的账户 › 登录与安全”中绑定。</p><form class="au-compact-form" data-form="bindPhone" novalidate><fieldset>${auField({ name: "bd_phone", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", suffix: auCodeBtn("bind", "bd_phone"), hint: sent, hintRole: "status" })}${auField({ name: "bd_code", label: "短信验证码", auto: "one-time-code", inputmode: "numeric", maxlength: 6 })}<p class="au-ferr" role="alert" hidden></p>${auPrimary("绑定并继续", true)}</fieldset></form><div class="au-links"><button type="button" class="au-textbtn" data-act="auBindSkip">跳过</button></div>`,
   );
 }
 // Leaves the optional binding step: the owner continues to institution setup, a member enters the workspace.
@@ -68366,7 +68437,7 @@ function auWelcomeRow(r, i, projects) {
 // 原第 1 步“机构资料”已去掉（全面设计核查第 139 条）：机构名称用申请资料，标识和地区以后在机构设置 › 机构信息补。
 // 主按钮按去处写（全面设计核查第 142 条，2026-10-12 用户确认：原为“返回”）：有可进入的机构时“返回工作区”，没有时“返回选择机构”，规则同邀请状态页。
 BARE.welcome = () => {
-  if (AUTH.session !== "in" || AUX.welcomeOutside || auMe().orgs?.[AUTH.org] !== "admin") return auStatusShell(`<h1 class="au-h1">尚未加入该机构</h1><p class="au-lead">请通过有效的机构开通邀请进入。</p><button type="button" class="au-primary" data-act="auWelcomeBack">${AUTH.session !== "in" ? "返回登录" : auWelcomeBackTarget() ? "返回工作区" : "返回选择机构"}</button>${AUTH.session === "in" ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auWelcomeSwitch">使用其他账户登录</button></div>` : ""}`);
+  if (AUTH.session !== "in" || AUX.welcomeOutside || auMe().orgs?.[AUTH.org] !== "admin") return auStatusShell(`<h1 class="au-h1">尚未加入该机构</h1><p class="au-lead">请通过有效的机构开通邀请进入。</p><button type="button" class="au-primary au-compact-primary" data-act="auWelcomeBack">${AUTH.session !== "in" ? "返回登录" : auWelcomeBackTarget() ? "返回工作区" : "返回选择机构"}</button>${AUTH.session === "in" ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auWelcomeSwitch">使用其他账户登录</button></div>` : ""}`);
   const w = auWelcomeState(), org = auOrg();
   const step = (n, title, summary, body) => {
     const cur = w.step === n, done = w.done[n];
@@ -69099,6 +69170,15 @@ const AU_GUIDE_URL = "";
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
   {
+    version: "1.86",
+    date: "2026-10-14",
+    notes: [
+      "申请访问与修改申请：单行输入调整为 36px 圆角框，提交及结果页主按钮统一为 36px 胶囊。字段说明移到名称右侧的信息按钮，项目概况的选填标记与新机构申请说明简化；保留按身份返回和防重复提交保护。",
+      "登录与账户入口：忘记密码移到密码框右上方；设置新密码、邀请与绑定的输入及主按钮、账户与机构状态页的主按钮统一为 36px。密码规则可从字段名称右侧查看，提示图标与首行文字对齐。",
+      "申请与邀请：同意文字中的隐私政策、服务条款改为对应法律文件的新标签页链接，阅读时保留表单内容和同意状态。",
+    ],
+  },
+  {
     version: "1.85",
     date: "2026-10-14",
     notes: [
@@ -69476,6 +69556,17 @@ function auTermsOpen(fromHelp = false) {
 
 /* ---------- 动作 ---------- */
 Object.assign(actions, {
+  auFieldInfo: (a, el) => {
+    if (auFieldInfoOpen === el) return auCloseFieldInfo();
+    auCloseFieldInfo();
+    const popup = document.getElementById(el.getAttribute("aria-controls"));
+    if (!popup) return;
+    auFieldInfoOpen = el;
+    el.setAttribute("aria-expanded", "true");
+    el.setAttribute("aria-describedby", popup.id);
+    popup.hidden = false;
+    auPlaceFieldInfo();
+  },
   orgMenu: (a, el) => {
     if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
     pop(el, auMenuHtml());
@@ -73015,7 +73106,7 @@ document.addEventListener('click', e => {
   // 危险操作的最后一步没输对名称、没勾“已了解影响”时（data-gated）只是看起来不可用，点它照常校验并提示（参考组件核查第 330、411 条）
   if (control?.dataset?.gated === "1" && !control.closest('[data-busy="1"]')) return;
   // 申请待确认时只冻结已提交的字段和同意勾选，同意文字里的“隐私政策”仍可打开阅读；阅读不改变已发送的同意（账户核查第 24 条：原先点了没有反应）
-  if (control?.matches('label.au-check') && e.target.closest('[data-act="auLegal"]')) return;
+  if (control?.matches('label.au-check') && e.target.closest('.au-legal-link,[data-act="auLegal"]')) return;
   if (control) { e.preventDefault(); e.stopImmediatePropagation(); }
 }, true);
 document.addEventListener('keydown', e => {
@@ -80930,8 +81021,8 @@ const DEMO_ITEMS = [
   ],
   // 手机号码重置改为短信验证码（全面设计核查第 134 条，取代原“重置请求已提交（短信）”）：重置弹窗里获取验证码。演示号码同登录页（第 132 条）。
   ["登录", "login-forgot-sms", "忘记密码：短信验证码已发送", "手机号码在重置弹窗里获取验证码", () => (demoOut(), (AUX.v.id = "139 0000 0101"), demoShow("login"), demoAfter(() => (actions.auForgot(), demoClick("#dlg .au-getcode"))))],
-  ["登录", "legal-privacy", "隐私政策", "", () => (demoOut(), demoShow("login"), demoAfter(() => actions.auLegal({ doc: "privacy" })))],
-  ["登录", "legal-terms", "服务条款", "", () => (demoOut(), demoShow("login"), demoAfter(() => actions.auLegal({ doc: "terms" })))],
+  ["登录", "legal-privacy", "隐私政策", "独立法律页", () => (demoOut(), demoShow("legal", "privacy"))],
+  ["登录", "legal-terms", "服务条款", "独立法律页", () => (demoOut(), demoShow("legal", "terms"))],
   ["登录", "contact", "联系我们", "", () => (demoOut(), demoShow("login"), demoAfter(() => actions.auContact()))],
 
   ["重置密码", "reset", "重置密码", "独立页面", () => (demoOut(), demoShow("reset"))],
