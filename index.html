@@ -18923,19 +18923,20 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
 #app.bare-welcome .au-step-b { padding: 16px 0 0; }
 #app.bare-welcome .au-step .au-lab label, #app.bare-welcome .au-step .au-lab-t { font: 480 14px/24px var(--ff); }
 #app.bare-welcome .au-step :is(.au-in, .ws-select > button, .au-upload) { height: 32px; min-height: 32px; padding: 0 12px; border-radius: 8px; font: 400 14px/24px var(--ff); }
-#app.bare-welcome .au-step .au-primary { width: 100%; height: 32px; min-height: 32px; padding: 0 12px; margin: 0; border-radius: 8px; font: 400 14px/24px var(--ff) !important; }
+#app.bare-welcome :is(.au-step, .au-wfinish) .au-primary { width: 100%; height: 32px; min-height: 32px; padding: 0 12px; margin: 0; border-radius: 8px; font: 400 14px/24px var(--ff) !important; }
 #app.bare-welcome .au-step fieldset > .au-primary { margin-top: 8px; }
 #app.bare-welcome .au-step-actions { flex-direction: column; align-items: stretch; gap: 16px; margin-top: 24px; }
 #app.bare-welcome .au-step-actions .au-textbtn { align-self: center; }
 #app.bare-welcome .au-wrow-remove { height: 32px; }
 @media (max-width: 850px), (pointer: coarse) {
-  #app.bare-welcome .au-step :is(.au-in, .ws-select > button, .au-upload, .au-primary) { height: 44px; min-height: 44px; }
+  #app.bare-welcome .au-step :is(.au-in, .ws-select > button, .au-upload, .au-primary),
+  #app.bare-welcome .au-wfinish .au-primary { height: 44px; min-height: 44px; }
   #app.bare-welcome .au-wrow-remove { height: 44px; }
 }
 /* 开通引导按钮文字：宽度<768px 或触屏时 16/24px。 */
 @media (max-width: 767px), (pointer: coarse) {
   #app.bare-welcome .au-step :is(.au-in, .ws-select > button) { font-size: 16px; }
-  #app.bare-welcome .au-step .au-primary { font-size: 16px !important; }
+  #app.bare-welcome :is(.au-step, .au-wfinish) .au-primary { font-size: 16px !important; }
 }
 /* 2026-10-09 ABB 对比 BP13、BP15、BP16、BP26：帮助中的“更新说明”“术语”，开通引导邀请行“全部项目”下的灰字；
    手机宽度时“我的机构”一行放不下按钮（“切换到此机构”“退出机构”）就把按钮换到下一行靠右，机构名称不被压成窄列。 */
@@ -19391,6 +19392,19 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 #au-reset-form .au-ferr.au-notice { margin: 16px 0 0; }
 .bare-reset #au-reset-form + .au-help { margin-top: 12px; }
 .bare-reset .au-help + .au-primary { margin-top: var(--au-space-action); }
+.au-code-deadline { white-space: nowrap; }
+.au .au-primary.au-no-changes { opacity: .5; cursor: default; }
+.au-ferr .au-notice-text > .au-textbtn { position: relative; min-height: 24px; padding: 0; font: inherit; color: inherit; text-decoration: underline; text-underline-offset: 3px; vertical-align: baseline; }
+.au-apply-reference { margin: 16px 0; overflow-wrap: anywhere; }
+.au-apply-reference p { margin: 4px 0; font: 400 12px/18px var(--ff); color: var(--text3); }
+@media (max-width:850px), (pointer:coarse) {
+  .au-ferr .au-notice-text > .au-textbtn::after { content: ''; position: absolute; inset: -10px 0; }
+}
+.au-account-scrim.au-short-reset { padding: 8px; align-items: start; }
+.au-account-scrim.au-short-reset .au-reset-dlg { max-height: calc(var(--au-reset-visible-height, 100dvh) - 16px); }
+@media (max-height: 500px) {
+  .au-account-scrim:has(.au-reset-dlg) { padding: 8px; align-items: start; }
+}
 /* 弹窗里的输入框 32 高：“获取验证码”28 高、距右 2，触屏随输入框 44 高、距右 0。 */
 .au-account-dlg.au-reset-dlg .au-getcode { height: 28px; min-height: 28px; right: 2px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; font: 400 14px/24px var(--ff) !important; }
 .au-account-dlg.au-reset-dlg .au-getcode:hover:not(:disabled):not([aria-disabled="true"]) { background: #0000000a; }
@@ -24770,6 +24784,9 @@ body:has(> :is(#dlg, #ai-pal)) .phead .v13-head:has(.demo-cap) {
 body:has(.demo-cap) > #dlg {
   padding-top: 80px;
 }
+/* The walkthrough toolbar must not reserve 80px or cover the account dialog in a short window. */
+body:has(.demo-cap) > #dlg.au-short-reset { padding-top: 8px; }
+body:has(#dlg.au-short-reset) :is(.demo-cap, .demo-step) { visibility: hidden; pointer-events: none; }
 body:has(.demo-cap) > #dlg > .dialog {
   max-height: calc(100dvh - 104px);
 }
@@ -37012,6 +37029,7 @@ async function saveSpaceForm() {
   if (!s.id && s.kind === "projects" && AUX.welcome?.creating === AUTH.org) {
     Object.assign(AUX.welcome, { creating: "", step: 2, projects: [{ id: saved.id, name: saved.name }] });
     AUX.welcome.done[1] = true;
+    if (AUX.welcome.skipped) delete AUX.welcome.skipped[1];
     auRoute("welcome");
     requestAnimationFrame(() => auFocusWelcome());
     return msg(`已创建项目“${v.name}”`);
@@ -66854,7 +66872,7 @@ document.addEventListener("click", (e) => {
 const PACOM_PASSWORD_POLICY = (() => {
   const MIN_LENGTH = 8;
   const MAX_LENGTH = 64;
-  const hint = "至少 8 个字符，包含字母、数字和符号。";
+  const hint = "8–64 个字符，包含英文字母、数字和符号。空格可用，但不计为符号。";
   const blockedMessage = "该密码过于常见或曾出现在泄露记录中，请更换。";
   // Length counts Unicode characters; nothing beyond 64 is cut off, the message asks for a shorter one.
   const length = (password) => Array.from(String(password || "")).length;
@@ -66930,6 +66948,15 @@ if (typeof module !== "undefined" && module.exports) module.exports = PACOM_PASS
     return 'phone';
   }
   function phone(value) { return ['phone', 'cn'].includes(idKind(value)); }
+  function phoneError(value) {
+    const v = identifier(value);
+    if (!v) return '请输入手机号码';
+    if (phone(v)) return '';
+    const digits = v.replace(/[\s\-()]/g, '');
+    return /^\d{8,10}$/.test(digits)
+      ? '非中国大陆号码请包含国家或地区区号，如 +852 9123 4567。'
+      : '请输入有效的手机号码';
+  }
   function loginIdentity(value) {
     const v = identifier(value);
     if (!phone(v)) return v.toLowerCase();
@@ -66977,8 +67004,9 @@ if (typeof module !== "undefined" && module.exports) module.exports = PACOM_PASS
   }
   function pendingRecord(request) {
     if (!applicationPending(request) || !request.id) return null;
-    const { id, mode, context, fields, updated, receiptId, original } = request;
-    return { id, mode, context, fields: { ...fields }, updated: !!updated, receiptId: receiptId || null, original: updated ? receiptSnapshot(original) : null };
+    const { id, mode, context, fields, updated, receiptId, original, consentRecord } = request;
+    return { id, mode, context, fields: { ...fields }, updated: !!updated, receiptId: receiptId || null, original: updated ? receiptSnapshot(original) : null,
+      ...(consentRecord ? { consentRecord: { documents: { ...consentRecord.documents }, acceptedAt: consentRecord.acceptedAt } } : {}) };
   }
   function rememberPending(store, request) {
     const record = pendingRecord(request), next = { ...(store || {}) };
@@ -66993,7 +67021,9 @@ if (typeof module !== "undefined" && module.exports) module.exports = PACOM_PASS
   // A restored request is unresolved: whatever was in flight before can only be confirmed by checking the same identifier.
   function restoredRequest(record, epoch) {
     if (!record?.id || !record.context) return null;
-    return { id: record.id, status: 'unknown', fields: { ...record.fields }, mode: record.mode, context: record.context, epoch, updated: !!record.updated, receiptId: record.receiptId || record.original?.receiptId || null, original: record.updated ? receiptSnapshot(record.original) : null, response: { status: 'unknown' }, queryResult: false, autoChecked: true, restored: true };
+    return { id: record.id, status: 'unknown', fields: { ...record.fields }, mode: record.mode, context: record.context, epoch, updated: !!record.updated, receiptId: record.receiptId || record.original?.receiptId || null, original: record.updated ? receiptSnapshot(record.original) : null,
+      ...(record.consentRecord ? { consentRecord: { documents: { ...record.consentRecord.documents }, acceptedAt: record.consentRecord.acceptedAt } } : {}),
+      response: { status: 'unknown' }, queryResult: false, autoChecked: true, restored: true };
   }
   function switchMode(state) {
     const v = state.v;
@@ -67017,7 +67047,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = PACOM_PASS
       ap_org: !String(values.ap_org || '').trim() ? '请输入公司或机构名称' : fieldLength('ap_org', values.ap_org) > LIMITS.ap_org ? `公司或机构名称不超过 ${LIMITS.ap_org} 个字` : '',
       ap_name: !String(values.ap_name || '').trim() ? '请输入联系人姓名' : fieldLength('ap_name', values.ap_name) > LIMITS.ap_name ? `联系人姓名不超过 ${LIMITS.ap_name} 个字` : '',
       ap_mail: !String(values.ap_mail || '').trim() ? '请输入电子邮箱' : !email(values.ap_mail) ? '请输入有效的电子邮箱' : '',
-      ap_tel: !String(values.ap_tel || '').trim() ? '请输入手机号码' : !phone(values.ap_tel) ? '请输入有效的手机号码' : '',
+      ap_tel: phoneError(values.ap_tel),
       ap_ok: values.ap_ok ? '' : '请阅读隐私政策并同意上述信息处理。',
       ap_need: fieldLength('ap_need', values.ap_need) > LIMITS.ap_need ? `项目概况不超过 ${LIMITS.ap_need} 个字` : '',
     };
@@ -67025,8 +67055,16 @@ if (typeof module !== "undefined" && module.exports) module.exports = PACOM_PASS
   function errorCount(errors) { return Object.values(errors).filter(Boolean).length; }
   function draftDirty(values, receipt) {
     const keys = ['ap_org', 'ap_name', 'ap_mail', 'ap_tel', 'ap_need'];
-    if (receipt) return keys.some(k => String(values[k] || '') !== String(receipt.fields?.[k] || '')) || !values.ap_ok;
+    if (receipt) return applicationChanges(values, receipt) || !values.ap_ok;
     return keys.some(k => String(values[k] || '').trim()) || !!values.ap_ok;
+  }
+  function applicationChanges(values, receipt) {
+    if (!receipt?.fields) return true;
+    const same = (key, clean) => clean(values[key]) === clean(receipt.fields[key]);
+    const trimmed = v => String(v ?? '').trim();
+    return !same('ap_org', trimmed) || !same('ap_name', trimmed) ||
+      !same('ap_mail', v => identifier(v).toLowerCase()) || !same('ap_tel', loginIdentity) ||
+      !same('ap_need', v => String(v ?? ''));
   }
   function invitationErrors(rows, members = [], pending = []) {
     const seen = new Set();
@@ -67063,7 +67101,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = PACOM_PASS
     const value = String(hash || '');
     return /^#[a-z][\w-]*(?:\?[^#]*)?$/.test(value) && authorizedPages.includes(value.slice(1).split('?')[0]) ? value : fallback;
   }
-  const api = Object.freeze({ LIMITS, charCount, orgNameError, identifier, email, idKind, phone, loginIdentity, clearAccountRestriction, loginNextFailure, applicationPending, switchMode, resetDraft, applyErrors, errorCount, draftDirty, invitationErrors, applyResult, applicationHolds, applyFailureText, smsCodeReady, cstYear, entryHash, workspaceReturn, applyRouteMode, applyHash, receiptSnapshot, pendingRecord, rememberPending, forgetPending, restoredRequest });
+  const api = Object.freeze({ LIMITS, charCount, orgNameError, identifier, email, idKind, phone, phoneError, loginIdentity, clearAccountRestriction, loginNextFailure, applicationPending, switchMode, resetDraft, applyErrors, errorCount, draftDirty, applicationChanges, invitationErrors, applyResult, applicationHolds, applyFailureText, smsCodeReady, cstYear, entryHash, workspaceReturn, applyRouteMode, applyHash, receiptSnapshot, pendingRecord, rememberPending, forgetPending, restoredRequest });
   root.PACOM_AUTH_FLOW = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
@@ -67655,7 +67693,7 @@ const auNormPhone = (v) => {
 
 /* ---------- 入口页通用：字段、按钮、校验 ---------- */
 const auFieldInfo = (name, label, text) =>
-  `<span class="au-field-info-wrap"><button type="button" class="au-field-info-trigger" data-act="auFieldInfo" aria-label="${esc(label)}说明" aria-haspopup="dialog" aria-expanded="false" aria-controls="au-${name}-info">${ico("au-info", "ic16")}</button><span id="au-${name}-info" class="au-field-info-popover" role="dialog" aria-label="${esc(label)}说明" hidden>${esc(text)}</span></span>`;
+  `<span class="au-field-info-wrap"><button type="button" class="au-field-info-trigger" data-act="auFieldInfo" aria-label="${esc(label)}说明" aria-expanded="false" aria-controls="au-${name}-info">${ico("au-info", "ic16")}</button><span id="au-${name}-info" class="au-field-info-popover" role="tooltip" hidden>${esc(text)}</span></span>`;
 let auFieldInfoOpen = null;
 function auCloseFieldInfo(restoreFocus = false) {
   const trigger = auFieldInfoOpen;
@@ -67896,7 +67934,7 @@ function auEntryFocus(selector) {
 const auVal = (name) => String(AUX.v[name] ?? document.querySelector(`[name="${name}"]`)?.value ?? "");
 const auReq = (msg) => (v) => (String(v).trim() ? "" : msg);
 const auIdCheck = (v) => (!String(v).trim() ? "请输入电子邮箱或手机号码" : auIdKind(v) === "bad" ? "请输入有效的电子邮箱或手机号码" : "");
-const auPhoneCheck = (v) => (!String(v).trim() ? "请输入手机号码" : !auPhoneKind(v) ? "请输入有效的手机号码" : "");
+const auPhoneCheck = (v) => PACOM_AUTH_FLOW.phoneError(v);
 const auCodeCheck = (key) => (v) =>
   !PACOM_AUTH_FLOW.smsCodeReady(auSmsState(key)) ? "请先获取短信验证码" : !String(v).trim() ? "请输入短信验证码" : !/^\d{6}$/.test(String(v).trim()) ? "短信验证码为 6 位数字" : "";
 const auPwdCheck = (v) => (!v ? "请输入新密码" : PACOM_PASSWORD_POLICY.validate(v));
@@ -67921,6 +67959,11 @@ function auSmsSentText(key) {
   const destination = AUX[AU_SMS_KEYS[key][2]], phone = AUX.v[AU_SMS_KEYS[key][0]];
   return destination && auPhoneIdentity(destination) === auPhoneIdentity(phone)
     ? auCodeSentText(destination, auSmsState(key, destination).expiresAt) : '';
+}
+// The receipt remains plain text for service/state comparisons; only the deadline fragment is kept together visually.
+function auCodeReceiptHtml(text) {
+  const parts = String(text || "").match(/^(.* · )(.* 前有效)$/);
+  return parts ? `${esc(parts[1])}<span class="au-code-deadline">${esc(parts[2])}</span>` : esc(text || "");
 }
 // A code is accepted for the number it was sent to, or for a number whose send result is unknown (it may have been sent).
 const auSmsCodeTo = (key, phone) => {
@@ -68023,7 +68066,7 @@ BARE.login = () => {
         auto: "tel",
         inputmode: "tel",
         suffix: auCodeBtn("login", "sphone"),
-        hint: esc(auSmsSentText("login")),
+        hint: auCodeReceiptHtml(auSmsSentText("login")),
         hintRole: "status",
       })
     : auField({ name: "id", label: "电子邮箱或手机号码", auto: "username" });
@@ -68035,6 +68078,7 @@ BARE.login = () => {
         type: "password",
         auto: "current-password",
         right: `<button type="button" class="au-textbtn au-login-forgot" data-act="auForgot"><span>忘记密码？</span></button>`,
+        rightAfter: true,
         suffix: auEye("pwd"),
       });
   return auAuthShell(`<h1 class="au-h1">登录</h1>${auExpiredNotice()}${auResetNotice()}<form class="au-compact-form" data-form="login" novalidate><fieldset>${idField}${secret}<p class="au-ferr" id="au-login-ferr" role="alert" hidden></p>${auPrimary("登录", true)}</fieldset></form><div class="au-login-actions"><button type="button" class="au-textbtn" data-act="auSmsMode">${sms ? "使用密码登录" : "使用短信验证码登录"}</button><div class="au-login-divider" aria-hidden="true"></div><p class="au-done-more">没有账户？<button type="button" class="au-textbtn" data-act="auGo" data-page="apply" data-mode="public">申请访问</button></p></div>`);
@@ -68134,11 +68178,15 @@ BARE.removed = () => {
   const id = AUX.removedOrg || AUTH.org,
     o = auOrg(id),
     others = auOtherOrgs(id);
+  const name = `<b>${zhSub(esc(o.name), "l")}</b>`;
+  const lead = others.length
+    ? `您的账户已被移出${name}，不能再访问该机构的项目。如有疑问，请联系该机构的机构管理员。`
+    : `您的账户已被移出${name}，无法再访问。请联系机构管理员重新邀请您加入。`;
   return auStatusShell(
-    `<h1 class="au-h1">您已不在该机构中</h1><p class="au-lead">您的账户已被移出<b>${zhSub(esc(o.name), "l")}</b>，不能再访问该机构的项目。如有疑问，请联系该机构的机构管理员。</p>${
+    `<h1 class="au-h1">您已不在该机构中</h1><p class="au-lead">${lead}</p>${
       others.length
         ? `<button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="orgs">选择其他机构</button>`
-        : `<p class="au-lead">如需恢复访问，请联系该机构管理员重新邀请您。</p>`
+        : ""
     }<div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button></div>`,
   );
 };
@@ -68169,9 +68217,9 @@ const AU_RESET_LEAD = "输入账户邮箱或已验证的手机号码，验证后
 const auResetPhone = () => auPhoneKind(PACOM_AUTH_FLOW.identifier(AUX.v.rid || ""));
 const auResetLabel = () => (auResetPhone() ? "下一步" : "发送重置链接");
 const auResetForm = (inDialog = false) => {
-  const phone = auResetPhone(), sentTo = esc(auSmsSentText("reset"));
+  const phone = auResetPhone(), sentTo = auCodeReceiptHtml(auSmsSentText("reset"));
   const code = auField({ name: "rcode", label: "短信验证码", auto: "one-time-code", inputmode: "numeric", maxlength: 6 }).replace('<div class="au-field ', `<div ${phone ? "" : "hidden "}class="au-field au-reset-code `);
-  return `<form id="${inDialog ? "au-reset-dlg-form" : "au-reset-form"}" data-form="${inDialog ? "resetDialog" : "reset"}"${inDialog ? "" : ' class="au-compact-form"'} novalidate><fieldset>${auField({ name: "rid", label: "电子邮箱或手机号码", auto: "username", suffix: auCodeBtn("reset", "rid", !phone), hint: sentTo, hintRole: "status" })}${code}<p class="au-ferr" role="alert" hidden></p></fieldset></form><details class="au-help"><summary tabindex="0">无法使用绑定的电子邮箱或手机号码？</summary><p>如果绑定的电子邮箱或手机号码已停用，请联系 PACOM 支持，完成身份核验后恢复账户访问。</p></details>${inDialog ? "" : `<button type="submit" class="au-primary au-compact-primary" form="au-reset-form">${auResetLabel()}</button>`}`;
+  return `<form id="${inDialog ? "au-reset-dlg-form" : "au-reset-form"}" data-form="${inDialog ? "resetDialog" : "reset"}"${inDialog ? "" : ' class="au-compact-form"'} novalidate><fieldset>${auField({ name: "rid", label: "电子邮箱或手机号码", auto: "username", suffix: auCodeBtn("reset", "rid", !phone), hint: sentTo, hintRole: "status" })}${code}<p class="au-ferr" role="alert" hidden></p></fieldset></form><details class="au-help"><summary tabindex="0">无法使用绑定的电子邮箱或手机号码？</summary><p>可使用其他已绑定的邮箱或手机号码。均无法使用时，请<button type="button" class="au-inline" data-act="auResetSupport">联系 PACOM 支持</button>核验身份。</p></details>${inDialog ? "" : `<button type="submit" class="au-primary au-compact-primary" form="au-reset-form">${auResetLabel()}</button>`}`;
 };
 // 地址在电子邮箱与手机号码之间改变时：显示或收起“获取验证码”和“短信验证码”，主按钮随之为“下一步”或“发送重置链接”。
 function auResetSync() {
@@ -68185,6 +68233,98 @@ function auResetSync() {
   // 提交中按钮写“正在发送…”，不改。
   if (content && submit.getAttribute("aria-disabled") !== "true" && content.textContent !== auResetLabel()) content.textContent = auResetLabel();
   auSendHint("reset"); auMeasureCodePadding();
+}
+function auFitResetDialog() {
+  const scrim = document.querySelector('#dlg.au-reset-scrim');
+  if (!scrim) return;
+  const height = window.visualViewport?.height || window.innerHeight;
+  scrim.classList.toggle('au-short-reset', height <= 500);
+  scrim.style.setProperty('--au-reset-visible-height', height + 'px');
+}
+window.visualViewport?.addEventListener('resize', auFitResetDialog);
+window.addEventListener('resize', auFitResetDialog);
+function auOpenResetDialog(returnFromSupport = false) {
+  auDialog(
+    '重置密码', `<p class="au-dlead">${AU_RESET_LEAD}</p>${auResetForm(true)}`,
+    `<button type="button" class="btn" data-act="close">取消</button><button type="submit" class="btn primary au-reset-submit" form="au-reset-dlg-form"><span class="au-button-content">${auResetLabel()}</span><span class="au-button-reserve" aria-hidden="true"><span>发送重置链接</span><span class="au-button-busy-reserve"><span class="au-spin" aria-hidden="true"></span>正在发送…</span><span class="au-button-busy-reserve"><span class="au-spin" aria-hidden="true"></span>正在验证…</span></span></button>`,
+    'nodirty au-reset-dlg',
+  );
+  auResetSync(); auFitResetDialog();
+  if (returnFromSupport) {
+    const details = document.querySelector('#dlg .au-help'); if (details) details.open = true;
+    document.querySelector('#dlg [data-act="auResetSupport"]')?.focus({ preventScroll: true });
+  } else auEntryFocus('#au-rid');
+}
+// A save request never retains a password. Unknown outcomes can only query the same request, not post a second save.
+function auCurrentPasswordForm(reset) {
+  const form = document.querySelector('form[data-form="newpwd"]');
+  return AUX.reset === reset && AUX.resetLink === reset && form && (form.dataset.link || '') === String(reset.link || '') ? form : null;
+}
+function auPasswordSaveUI(form = document.querySelector('form[data-form="newpwd"]'), reset = AUX.reset) {
+  if (!form || !reset) return;
+  const request = reset.saveRequest, pending = request && ['submitting', 'unknown', 'querying'].includes(request.status);
+  auFreezeForm(form, !!pending);
+  const button = form.querySelector('.au-primary');
+  if (!button || !request) return;
+  const content = button.querySelector('.au-button-content') || button;
+  if (pending) {
+    const saving = request.status === 'submitting';
+    button.type = saving ? 'submit' : 'button';
+    if (saving) delete button.dataset.act; else button.dataset.act = 'auCheckPasswordSave';
+    const busy = saving || request.status === 'querying';
+    if (busy) { button.setAttribute('aria-disabled', 'true'); form.setAttribute('aria-busy', 'true'); }
+    else { button.removeAttribute('aria-disabled'); form.removeAttribute('aria-busy'); }
+    content.innerHTML = saving ? '<span class="au-spin" aria-hidden="true"></span>正在保存…' : busy ? '<span class="au-spin" aria-hidden="true"></span>正在核查…' : '核查保存结果';
+    if (saving) return;
+    const querying = request.queryUnavailable ? '仍无法确认密码是否已重置，请稍后核查，勿重复保存。' : '暂时无法确认密码是否已重置，请先核查结果，勿重复保存。';
+    auFormErr(form, querying, 'keep', 'warning');
+    const notice = form.querySelector('.au-ferr');
+    if (notice) { notice.id = 'au-password-save-result'; button.setAttribute('aria-describedby', notice.id); }
+  } else {
+    button.type = 'submit'; delete button.dataset.act; button.removeAttribute('aria-disabled');
+    button.removeAttribute('aria-describedby'); form.removeAttribute('aria-busy'); content.textContent = '保存新密码';
+  }
+}
+function auPasswordSaveDone(reset, response, context) {
+  if (context.epoch !== AUX.accountEpoch) return;
+  const current = AUX.reset === reset;
+  const payload = { account: reset.id };
+  // Record the completed save first: the account's pause ends even when a newer request has replaced this link's page.
+  PACOM_AUTH_FLOW.clearAccountRestriction(AUX, payload.account, response.verifiedAliases || []);
+  if (response.uid && AUTH.people[response.uid]) AUTH.people[response.uid].pwdAt = auCstYmd();
+  auSave();
+  if (!current) return;
+  AUX.resetRevokedSessions = !!response.sessionsRevoked; AUX.resetUsed = true; AUX.resetNotice = null;
+  const activeView = auAsyncCurrent(context) || !!auCurrentPasswordForm(reset);
+  AUX.newPasswordResult = { response, pendingView: !activeView };
+  // Saved in the background: a “重置请求已提交…” notice still on the page goes too (focus on it moves to the page heading).
+  const notice = document.getElementById("au-reset-notice");
+  if (notice && AUX.newPasswordResult.pendingView) {
+    const focused = document.activeElement === notice;
+    notice.remove();
+    const heading = focused && document.querySelector(".au-h1");
+    if (heading) { heading.setAttribute("tabindex", "-1"); heading.focus({ preventScroll: true }); }
+  }
+  delete AUX.v.np1; delete AUX.v.np2;
+  if (activeView) auRoute("reset", "done");
+
+}
+async function auCheckPasswordSave(form) {
+  const reset = AUX.reset, request = reset?.saveRequest;
+  if (!form || !request || request.status !== 'unknown') return;
+  if (AUX.resetLink !== reset || (form.dataset.link || '') !== String(reset.link || '')) return;
+  const context = auAsyncContext(form);
+  request.status = 'querying'; auPasswordSaveUI(form, reset);
+  const response = await auRequest('queryNewPassword', { requestId: request.id, token: reset.token });
+  if (context.epoch !== AUX.accountEpoch) return;
+  if (response.status === 'ok') { request.status = 'ok'; return auPasswordSaveDone(reset, response, context); }
+  // Expiry alone cannot tell whether the earlier save succeeded and consumed this token.
+  const failed = ['not-received', 'failed', 'rejected'].includes(response.status);
+  request.status = failed ? 'failed' : 'unknown'; request.queryUnavailable = !failed;
+  const currentForm = auCurrentPasswordForm(reset);
+  if (!currentForm) return;
+  auPasswordSaveUI(currentForm, reset);
+  if (failed) auFormErr(currentForm, response.message || '已核实本次保存未完成，请重新保存。', true, 'error');
 }
 BARE.reset = () => {
   const r = AUX.reset,
@@ -68240,6 +68380,18 @@ BARE_AFTER.reset = () => {
 const auApplyMode = () => AUX.applyMode || (AUTH.session === "in" ? "new-org" : "public");
 const auApplyPerson = () => auApplyMode() !== "public" && AUTH.session === "in" ? auMe() : null;
 const auPhoneIdentity = (v) => PACOM_AUTH_FLOW.loginIdentity(v);
+function auApplySupportReference() {
+  const request = AUX.applyRequest;
+  if (U.page !== 'apply' || !PACOM_AUTH_FLOW.applicationPending(request) || !request.id ||
+      request.context && request.context !== auApplyContextKey(auApplyMode())) return '';
+  const mail = request.fields?.ap_mail || (AUTH.session === 'in' ? auMe().email : '');
+  return [
+    `申请参考编号：${request.id}`,
+    `最近核查：${request.checkedAt ? auCheckedTime(request.checkedAt) : '尚未核查'}`,
+    mail ? `申请邮箱：${auMask(mail)}` : '',
+    `提交状态：${request.status === 'submitting' ? '正在提交' : '结果待确认'}`,
+  ].filter(Boolean).join('\n');
+}
 function auClearApply() {
   for (const key of Object.keys(AUX.v)) if (key.startsWith("ap_")) delete AUX.v[key];
   AUX.attempted.apply = false;
@@ -68297,7 +68449,7 @@ BARE.apply = () => {
       ? "为所在机构申请开通，由 PACOM 审核。若机构已开通，请联系机构管理员邀请您加入。"
       : "申请由 PACOM 审核。若所在机构已开通，请联系机构管理员邀请您加入。";
   return auApplyShell(
-    `<h1 class="au-h1">${AUX.applyEditing ? "修改申请" : mode === "new-org" ? "申请开通新机构" : "申请访问"}</h1><p class="au-lead">${AUX.applyEditing ? "修改下方信息，提交后将更新原申请。" : lead}</p><form data-form="apply" novalidate><fieldset>${auField({ name: "ap_org", label: "公司或机构名称", auto: "organization", count: true })}${me ? auApplyContact(me) : `${auField({ name: "ap_name", label: "联系人姓名", auto: "name", count: true })}${auField({ name: "ap_mail", label: "电子邮箱", type: "email", auto: "email", inputmode: "email", info: "用于接收审核结果及审核通过后的开通邀请。" })}`}${auField({ name: "ap_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", info: "用于审核时联系您。" })}<div class="au-field au-apply-overview" data-f="ap_need"><div class="au-lab"><label for="au-ap_need">项目概况 <span>选填</span></label></div><div class="au-textarea-shell"><textarea id="au-ap_need" name="ap_need" class="au-in au-ta" rows="3" aria-describedby="au-ap_need-err au-ap_need-count" placeholder="例如项目位置、楼宇规模或计划使用的功能">${esc(AUX.v.ap_need || "")}</textarea><button type="button" class="au-resize" data-resize="au-ap_need" aria-label="调整项目概况输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-ap_need-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-ap_need-count" ${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need)}</p></div><label class="au-check" data-f="ap_ok"><input type="checkbox" name="ap_ok" class="au-v" required aria-required="true" aria-describedby="au-ap_ok-err" ${AUX.v.ap_ok ? "checked" : ""}><span>我已阅读${auConsentLegalLink("privacy")}，同意 PACOM 处理以上信息，用于${me ? "审核申请及与我联系" : "审核申请、联系我及发送开通邀请"}。</span></label><p class="au-err au-check-err" id="au-ap_ok-err"></p><p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}</fieldset></form>${AUX.applyEditing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit" ${PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? "disabled" : ""}>取消修改</button><span class="au-dot" aria-hidden="true"></span>${auBackAction(mode)}</div>` : auBackLinks(mode)}`,
+    `<h1 class="au-h1">${AUX.applyEditing ? "修改申请" : mode === "new-org" ? "申请开通新机构" : "申请访问"}</h1><p class="au-lead">${AUX.applyEditing ? "修改下方信息，提交后将更新原申请。" : lead}</p><form data-form="apply" novalidate><fieldset>${auField({ name: "ap_org", label: "公司或机构名称", auto: "organization", count: true })}${me ? auApplyContact(me) : `${auField({ name: "ap_name", label: "联系人姓名", auto: "name", count: true })}${auField({ name: "ap_mail", label: "电子邮箱", type: "email", auto: "email", inputmode: "email", info: "用于接收审核结果及审核通过后的开通邀请。" })}`}${auField({ name: "ap_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", info: "用于审核时联系您。非中国大陆号码请包含国家或地区区号，如 +852 9123 4567。" })}<div class="au-field au-apply-overview" data-f="ap_need"><div class="au-lab"><label for="au-ap_need">项目概况 <span>选填</span></label></div><div class="au-textarea-shell"><textarea id="au-ap_need" name="ap_need" class="au-in au-ta" rows="3" aria-describedby="au-ap_need-err au-ap_need-count" placeholder="例如项目位置、楼宇规模或计划使用的功能">${esc(AUX.v.ap_need || "")}</textarea><button type="button" class="au-resize" data-resize="au-ap_need" aria-label="调整项目概况输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-ap_need-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-ap_need-count" ${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need)}</p></div><label class="au-check" data-f="ap_ok"><input type="checkbox" name="ap_ok" class="au-v" required aria-required="true" aria-describedby="au-ap_ok-err" ${AUX.v.ap_ok ? "checked" : ""}><span>我已阅读${auConsentLegalLink("privacy")}，同意 PACOM 处理以上信息，用于${me ? "审核申请及与我联系" : "审核申请、联系我及发送开通邀请"}。</span></label><p class="au-err au-check-err" id="au-ap_ok-err"></p><span class="au-sr" id="au-apply-nochanges" hidden></span><p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}</fieldset></form>${AUX.applyEditing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit" ${PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? "disabled" : ""}>取消修改</button><span class="au-dot" aria-hidden="true"></span>${auBackAction(mode)}</div>` : auBackLinks(mode)}`,
   );
 };
 BARE_AFTER.apply = () => {
@@ -68313,44 +68465,89 @@ const auInviteWayBack = () =>
   AUTH.session !== "in"
     ? `<p class="au-done-more">已有账户？<button type="button" class="au-textbtn" data-act="auGo" data-page="login">登录</button></p>`
     : `<p class="au-done-more au-done-solo">${auMyOrgs().length ? `<button type="button" class="au-textbtn" data-act="auApplyBack">返回工作区</button>` : `<button type="button" class="au-textbtn" data-act="auGo" data-page="orgs">返回选择机构</button>`}</p>`;
+const auInviteReference = (inv) => inv ? JSON.stringify([inv.org, inv.inviteId || inv.id || '', inv.expiresAt || '']) : '';
+function auInviteContext(kind) {
+  const inv = AU_INV[kind], org = AUTH.orgs?.[inv?.org];
+  if (!inv || !org) return null;
+  const src = kind === 'member' ? auInvites(inv.org).find(i => i.id === inv.inviteId) : null;
+  if (src && (!Number.isFinite(src.sent) || src.sent <= 0)) return null;
+  const expiresAt = src ? src.sent + 7 * auDay : inv.expiresAt;
+  let state = kind === 'owner' && AUTH.ownerInvite === 'accepted' ? 'accepted' : src ? auInviteState(src) : inv.status;
+  if (!state && kind === 'owner' && Number.isFinite(expiresAt) && expiresAt > 0) state = 'pending';
+  if (state === 'pending' && Number.isFinite(expiresAt) && auNow() > expiresAt) state = 'expired';
+  if (!['pending', 'accepted', 'revoked', 'expired'].includes(state)) return null;
+  return { kind, inv, org, src, state, expiresAt };
+}
+function auRememberInviteContext(context) {
+  if (typeof history === 'undefined' || !history.replaceState) return;
+  history.replaceState({ ...history.state, accountInvite: { kind: context.kind, reference: auInviteReference(context.inv) } }, '', location.hash);
+}
+function auInviteSubmissionReady(kind) {
+  const context = auInviteContext(kind);
+  if (!context || context.state !== 'pending' || AUTH.session === 'in' && auMe().email &&
+      auMe().email.toLowerCase() !== context.inv.email?.toLowerCase()) {
+    if (context) auRememberInviteContext(context);
+    render();
+    return false;
+  }
+  return true;
+}
+function auInviteServiceState(response, kind, reference) {
+  const inv = AU_INV[kind];
+  if (!inv || reference !== auInviteReference(inv)) return false;
+  if (['unknown', 'unavailable'].includes(response.status)) return false;
+  if (response.status === 'invalid-invitation') {
+    AU_INV[kind] = null;
+    render();
+    return true;
+  }
+  const state = response.invitationState || {
+    'invitation-expired': 'expired', 'invitation-revoked': 'revoked', 'invitation-accepted': 'accepted',
+  }[response.status];
+  if (!['expired', 'revoked', 'accepted'].includes(state) || state === 'accepted' && response.status === 'ok') return false;
+  const context = auInviteContext(kind);
+  if (context?.src) context.src.status = state;
+  else inv.status = state;
+  if (kind === 'owner' && state === 'accepted') AUTH.ownerInvite = 'accepted';
+  U.tab = { expired: 'expired', revoked: 'revoked', accepted: 'used' }[state];
+  const known = auInviteContext(kind);
+  if (known) auRememberInviteContext(known);
+  render();
+  return true;
+}
 BARE.invite = () => {
   if (U.tab === "phone") return auBindPhoneStep();
-  const kind = U.tab === "owner" ? "owner" : U.tab || "member";
   const none = () => auAuthShell(`<h1 class="au-h1">暂时无法查看邀请</h1><p class="au-lead">当前没有可核对的邀请信息。请重新打开收到的邀请链接，或联系邀请人。</p>${auInviteWayBack()}`);
-  // Without an invitation from the service no page may say that an invitation expired, was accepted or was revoked: AUTH23 instead (AUTH10).
-  if (["expired", "used", "revoked"].includes(kind) && !AU_INV.member && !AU_INV.owner) return none();
+  if (U.tab && !['member', 'owner', 'expired', 'used', 'revoked'].includes(U.tab)) return none();
+  const stateStep = ['expired', 'used', 'revoked'].includes(U.tab);
+  const reference = typeof history === 'undefined' ? null : history.state?.accountInvite;
+  if (stateStep && reference && reference.reference !== auInviteReference(AU_INV[reference.kind])) return none();
+  const kind = stateStep ? reference?.kind || 'member' : U.tab === 'owner' ? 'owner' : 'member';
+  const context = auInviteContext(kind);
+  if (!context) return none();
+  const stateTab = { accepted: 'used', revoked: 'revoked', expired: 'expired' }[context.state];
+  if (stateStep && !stateTab) return none();
+  if (stateTab) U.tab = stateTab;
+  auRememberInviteContext(context);
   // Invitation state titles (2026-10-08 用户确认，Account 核查第 25 点): 邀请已失效, 邀请已撤销, 邀请已被接受.
-  if (kind === "expired")
+  if (U.tab === "expired")
     return auAuthShell(
       `<h1 class="au-h1">邀请已失效</h1><p class="au-lead">此邀请已失效。请联系邀请人或该机构的机构管理员重新发送邀请。</p>${auInviteWayBack()}`,
     );
-  if (kind === "used")
+  if (U.tab === "used")
     return auAuthShell(
       `<h1 class="au-h1">邀请已被接受</h1><p class="au-lead">如果是您本人接受的，请直接登录；如果不是，请联系邀请人。</p><button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="login">登录</button>`,
     );
-  if (kind === "revoked")
+  if (U.tab === "revoked")
     return auAuthShell(
       `<h1 class="au-h1">邀请已撤销</h1><p class="au-lead">邀请人已撤销此邀请。如仍需加入，请联系该机构的机构管理员。</p>${auInviteWayBack()}`,
     );
-  const inv = AU_INV[kind];
-  if (!inv) return none();
+  const { inv, org, expiresAt: expires } = context;
   const meNow = AUTH.session === "in" ? auMe() : null;
   if (meNow?.email && inv?.email && meNow.email.toLowerCase() !== inv.email.toLowerCase())
     return auAuthShell(
       `<h1 class="au-h1">此邀请发给其他账户</h1><p class="au-lead">邀请发送至 <b>${esc(auMask(inv.email))}</b>，当前登录的是 <b>${esc(auMask(meNow.email))}</b>。请退出后使用受邀账户接受邀请。</p><button type="button" class="au-primary au-compact-primary" data-act="auInviteSwitch">退出并继续</button><div class="au-links"><button type="button" class="au-textbtn" data-act="auApplyBack">返回工作区</button></div>`,
     );
-  if (kind === "owner" && AUTH.ownerInvite === "accepted") {
-    U.tab = "used";
-    return BARE.invite();
-  }
-  const org = auOrg(inv.org);
-  const src = kind === "member" ? auInvites("gzlab").find((i) => i.id === inv.inviteId) : null;
-  const srcState = src ? auInviteState(src) : "pending";
-  if (srcState !== "pending") {
-    U.tab = { accepted: "used", revoked: "revoked", expired: "expired" }[srcState] || "expired";
-    return BARE.invite();
-  }
-  const expires = src ? src.sent + 7 * auDay : inv.expiresAt;
   const existing = AUX.invMode === "existing";
   const orgName = `<b>${esc(org.name)}</b>`;
   const why =
@@ -68363,7 +68560,7 @@ BARE.invite = () => {
   const email = `<div class="au-field au-locked" role="group" aria-labelledby="au-invite-email-label"><div class="au-lab"><span class="au-lab-t" id="au-invite-email-label">电子邮箱</span></div><p class="au-static">${esc(inv.email)}</p></div>`;
   const body = existing
     ? `<form class="au-compact-form" data-form="inviteExisting" novalidate><fieldset>${auUserHint(inv.email)}${email}${auField({ name: "ie_pwd", label: "密码", type: "password", auto: "current-password", right: `<button type="button" class="au-textbtn" data-act="auInviteForgot" data-kind="${kind}"><span>忘记密码？</span></button>`, rightAfter: true, suffix: auEye("ie_pwd") })}<p class="au-ferr" role="alert" hidden></p>${auPrimary("接受邀请", true)}</fieldset></form><p class="au-done-more">没有账户？<button type="button" class="au-textbtn" data-act="auInvMode" data-mode="new">创建账户</button></p>`
-    : `<form class="au-compact-form" data-form="invite" data-kind="${kind}" novalidate><fieldset>${auUserHint(inv.email)}${email}${auField({ name: "iv_name", label: "姓名", auto: "name", value: inv.name })}${auField({ name: "iv_pwd", label: "设置密码", type: "password", auto: "new-password", suffix: auEye("iv_pwd"), info: PACOM_PASSWORD_POLICY.hint })}${auField({ name: "iv_pwd2", label: "确认密码", type: "password", auto: "new-password", suffix: auEye("iv_pwd2") })}<label class="au-check" data-f="iv_ok"><input type="checkbox" name="iv_ok" class="au-v" aria-describedby="au-iv_ok-err" ${AUX.v.iv_ok ? "checked" : ""}><span>我已阅读并同意${auConsentLegalLink("privacy")}和${auConsentLegalLink("terms")}</span></label><p class="au-err au-check-err" id="au-iv_ok-err"></p><p class="au-ferr" role="alert" hidden></p>${auPrimary(kind === "owner" ? "创建账户" : "创建账户并加入", true)}</fieldset></form><p class="au-done-more">已有账户？<button type="button" class="au-textbtn" data-act="auInvMode" data-mode="existing">登录后接受邀请</button></p>`;
+    : `<form class="au-compact-form" data-form="invite" data-kind="${kind}" novalidate><fieldset>${auUserHint(inv.email)}${email}${auField({ name: "iv_name", label: "姓名", auto: "name", value: inv.name })}${auField({ name: "iv_pwd", label: "设置密码", type: "password", auto: "new-password", suffix: auEye("iv_pwd"), info: PACOM_PASSWORD_POLICY.hint })}${auField({ name: "iv_pwd2", label: "确认密码", type: "password", auto: "new-password", suffix: auEye("iv_pwd2") })}<label class="au-check" data-f="iv_ok"><input type="checkbox" name="iv_ok" class="au-v" required aria-required="true" aria-describedby="au-iv_ok-err" ${AUX.v.iv_ok ? "checked" : ""}><span>我已阅读并同意${auConsentLegalLink("privacy")}和${auConsentLegalLink("terms")}</span></label><p class="au-err au-check-err" id="au-iv_ok-err" aria-live="polite"></p><p class="au-ferr" role="alert" hidden></p>${auPrimary(kind === "owner" ? "创建账户" : "创建账户并加入", true)}</fieldset></form><p class="au-done-more">已有账户？<button type="button" class="au-textbtn" data-act="auInvMode" data-mode="existing">登录后接受邀请</button></p>`;
   return auAuthShell(head + body);
 };
 BARE_AFTER.invite = () => {
@@ -68381,7 +68578,7 @@ function auBindPhoneStep() {
       `<h1 class="au-h1">账户状态</h1><p class="au-lead">当前没有待完成的手机号码绑定。请登录后在“我的账户 › 登录与安全”中查看或修改。</p><button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="login">登录</button>`,
     );
   AUX.v.bd_phone ??= b.phone || "";
-  const sent = esc(auSmsSentText("bind"));
+  const sent = auCodeReceiptHtml(auSmsSentText("bind"));
   return auAuthShell(
     `<h1 class="au-h1">绑定手机号码</h1><p class="au-lead">账户已创建。绑定后可以用手机号码登录和重置密码；也可以跳过，之后在“我的账户 › 登录与安全”中绑定。</p><form class="au-compact-form" data-form="bindPhone" novalidate><fieldset>${auField({ name: "bd_phone", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", suffix: auCodeBtn("bind", "bd_phone"), hint: sent, hintRole: "status" })}${auField({ name: "bd_code", label: "短信验证码", auto: "one-time-code", inputmode: "numeric", maxlength: 6 })}<p class="au-ferr" role="alert" hidden></p>${auPrimary("绑定并继续", true)}</fieldset></form><div class="au-links"><button type="button" class="au-textbtn" data-act="auBindSkip">跳过</button></div>`,
   );
@@ -68410,7 +68607,9 @@ function auBindDone(note = "") {
 
 /* ---------- 机构开通后的引导 ---------- */
 function auWelcomeState() {
-  return (AUX.welcome ||= { step: 1, done: {}, rows: [{ acct: "", role: "", scope: "" }], projects: [] });
+  const w = (AUX.welcome ||= { step: 1, done: {}, skipped: {}, rows: [{ acct: "", role: "", scope: "" }], projects: [] });
+  w.skipped ||= {};
+  return w;
 }
 function auReadWelcomeRows() {
   auWelcomeState().rows.forEach((r, i) => {
@@ -68453,16 +68652,18 @@ BARE.welcome = () => {
   if (AUTH.session !== "in" || AUX.welcomeOutside || auMe().orgs?.[AUTH.org] !== "admin") return auStatusShell(`<h1 class="au-h1">尚未加入该机构</h1><p class="au-lead">请通过有效的机构开通邀请进入。</p><button type="button" class="au-primary au-compact-primary" data-act="auWelcomeBack">${AUTH.session !== "in" ? "返回登录" : auWelcomeBackTarget() ? "返回工作区" : "返回选择机构"}</button>${AUTH.session === "in" ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auWelcomeSwitch">使用其他账户登录</button></div>` : ""}`);
   const w = auWelcomeState(), org = auOrg();
   const step = (n, title, summary, body) => {
-    const cur = w.step === n, done = w.done[n];
-    // 已完成的步骤：浅绿底绿勾，另有只给读屏的“已完成”；“修改”读作“修改邀请成员”（Lovable 核查第 29 条，2026-10-10 用户确认）。
-    return `<section class="au-step ${cur ? "cur" : ""} ${done ? "done" : ""}"><header><span class="au-step-n">${done ? `${ico("check", "ic16")}<span class="au-sr">已完成</span>` : n}</span><div><h2 tabindex="-1">${title}</h2>${!cur && summary ? `<p>${auSegs(summary.split(" · "))}</p>` : ""}</div>${!cur && (done || n < w.step) ? `<button type="button" class="au-textbtn" data-act="auWStep" data-step="${n}" aria-label="修改${title}">修改</button>` : ""}</header>${cur ? `<div class="au-step-b">${body}</div>` : ""}</section>`;
+    const cur = w.step === n, done = !!w.done[n], skipped = !done && !!w.skipped[n];
+    // 完成才显示绿色勾；跳过保留中性序号，并明确写出“已跳过”，不假称已创建或已发送。
+    const sent = n === 2 ? w.rows.filter(r => r.status === "sent").length : 0;
+    const caption = skipped ? `已跳过${sent ? ` · 已发送 ${sent} 位邀请` : ""}` : summary;
+    return `<section class="au-step ${cur ? "cur" : ""} ${done ? "done" : skipped ? "skipped" : ""}"><header><span class="au-step-n">${done ? `${ico("check", "ic16")}<span class="au-sr">已完成</span>` : n}</span><div><h2 tabindex="-1">${title}</h2>${!cur && caption ? `<p>${auSegs(caption.split(" · "))}</p>` : ""}</div>${!cur && (done || skipped || n < w.step) ? `<button type="button" class="au-textbtn" data-act="auWStep" data-step="${n}" aria-label="修改${title}">修改</button>` : ""}</header>${cur ? `<div class="au-step-b">${body}</div>` : ""}</section>`;
   };
   const invited = auInvites().filter(i => auInviteState(i) === "pending");
   const s2 = `<form data-form="wInvite" novalidate><fieldset><p class="au-lead sm">邀请 7 天内有效。您可以按需邀请机构管理员、配置人员、运营人员或查看人员，也可以稍后再邀请。</p><div class="au-wrows">${w.rows.map((r, i) => auWelcomeRow(r, i, w.projects || [])).join("")}</div>${(w.projects || []).length ? "" : `<p class="au-hint au-wnote">受邀成员可访问全部项目。如需按项目授权，可在创建项目后到机构设置中邀请。</p>`}<button type="button" class="btn au-wbtn au-wadd" data-act="auWAddRow">${ico("au-plus", "ic16")}添加</button><p class="au-ferr" role="alert" hidden></p><div class="au-step-actions">${auPrimary("发送邀请")}<button type="button" class="au-textbtn" data-act="auWSkip">稍后再邀请</button></div></fieldset></form>`;
-  const s3 = `<p class="au-lead sm">项目用于管理园区、楼宇、楼层和功能区。创建后可上传楼层图、规划功能区，再通过“设备 › 设备标记”进入同一楼层完成设备规划。保存项目后回到这里邀请成员。</p><div class="au-step-actions"><button type="button" class="au-primary" data-act="auWProject">创建第一个项目</button><button type="button" class="au-textbtn" data-act="auWSkipProject">暂不创建，下一步</button></div>`;
+  const s3 = `<p class="au-lead sm">项目用于管理园区、楼宇、楼层和功能区。创建后继续邀请成员。</p><div class="au-step-actions"><button type="button" class="au-primary" data-act="auWProject">创建第一个项目</button><button type="button" class="au-textbtn" data-act="auWSkipProject">暂不创建，下一步</button></div>`;
   // 两步都完成或跳过后，引导下方只有“进入工作区”
   const fin = w.step > 2 ? `<div class="au-step-actions au-wfinish"><button type="button" class="au-primary" data-act="auWEnter">进入工作区</button></div>` : "";
-  return auStatusShell(`<h1 class="au-h1">机构已开通</h1><p class="au-lead">您是<b>${zhSub(esc(org.name))}</b>的机构管理员。</p>${auLic().state === "none" ? `<div class="au-notice au-welcome-lic" data-tone="warning">${auNoticeContent("warning", `本机构尚未订阅。为保证正常使用，请在 ${auDate(auLicDeleteAt(auLic()))}前到机构设置 › 许可与用量完成订阅。`)}</div>` : ""}<div class="au-steps">${step(1, "创建第一个项目", w.done[1] ? ((w.projects || []).length ? w.projects.map(p => p.name).join("、") : "稍后再创建") : "", s3)}${step(2, "邀请成员", w.done[2] ? invited.length ? `已邀请 ${invited.length} 位成员` : "稍后再邀请" : "", s2)}</div>${fin}`);
+  return auStatusShell(`<h1 class="au-h1">机构已开通</h1><p class="au-lead">您是<b>${zhSub(esc(org.name))}</b>的机构管理员。</p>${auLic().state === "none" ? `<div class="au-notice au-welcome-lic" data-tone="warning">${auNoticeContent("warning", auLicUnsubscribedText(auLic()))}</div>` : ""}<div class="au-steps">${step(1, "创建第一个项目", w.done[1] ? ((w.projects || []).length ? w.projects.map(p => p.name).join("、") : "稍后再创建") : "", s3)}${step(2, "邀请成员", w.done[2] ? invited.length ? `已邀请 ${invited.length} 位成员` : "稍后再邀请" : "", s2)}</div>${fin}`);
 };
 BARE_AFTER.welcome = () => {
   const heading = document.querySelector('.au-h1');
@@ -68489,7 +68690,7 @@ const auRoute = (page, tab = "") => {
   // A new-password page keeps the key of the link it was opened from, so going back to an older link shows AUTH05.
   const link = page === "reset" && tab === "link" && AUX.resetLink === AUX.reset && AUX.reset?.link ? "&link=" + AUX.reset.link : "";
   // An application's address carries its type, so back and forward return to that type's own content.
-  if (U.page === page) history.replaceState(null, "", page === "apply" ? PACOM_AUTH_FLOW.applyHash(auApplyMode(), tab) : "#" + page + (tab ? "?tab=" + tab : "") + link);
+  if (U.page === page) history.replaceState(page === 'invite' ? history.state : null, "", page === "apply" ? PACOM_AUTH_FLOW.applyHash(auApplyMode(), tab) : "#" + page + (tab ? "?tab=" + tab : "") + link);
 };
 // Station pages that must not be shown without a session. Full-screen public pages stay reachable.
 // 展示链接打开的大屏不用账户（ORG10、OPS07，2026-10-09 用户确认，大屏显示方案 DP2）
@@ -68634,77 +68835,81 @@ const AU_SUBMIT = {
       AUX.resetExpiredChannel = f.dataset.channel || "mail"; AUX.resetExpiredAccount = f.dataset.account || "";
       return auRoute("reset", "expired");
     }
+    if (['submitting', 'querying'].includes(AUX.reset.saveRequest?.status)) return;
+    if (AUX.reset.saveRequest?.status === 'unknown') return auCheckPasswordSave(f);
     if (!auValidate(f, [["np1", auPwdCheck], ["np2", v => !v ? "请再次输入新密码" : v !== auVal("np1") ? "两次输入的密码不一致" : ""]])) return;
     const context = auAsyncContext(f), reset = AUX.reset;
-    const payload = { account: reset?.id, password: auVal("np1"), token: reset?.token };
+    const request = reset.saveRequest = { id: crypto.randomUUID(), status: "submitting" };
+    const payload = { requestId: request.id, account: reset?.id, password: auVal("np1"), token: reset?.token };
     const done = auBusy(f, "正在保存…");
     const response = await auRequest("newPassword", payload);
     await done();
+    request.status = response.status === "ok" ? "ok" : response.status === "unknown" ? "unknown" : "failed";
     if (context.epoch !== AUX.accountEpoch) return;
     // A newer reset request replaces the page, but a completed save of this link is still recorded below.
     const current = AUX.reset === reset;
     if (response.status !== "ok") {
-      if (!current || !auAsyncCurrent(context)) return;
+      const currentForm = auCurrentPasswordForm(reset);
+      if (!current || !currentForm) return;
+      if (response.status === "unknown") return auPasswordSaveUI(currentForm, reset);
+      auPasswordSaveUI(currentForm, reset);
       // The service checks the same rule as the page (Account 核查第 11 点) and refuses common or breached passwords.
       if (["blocked-password", "invalid-password"].includes(response.status)) {
         auHeldErr("np1", response.status === "blocked-password" ? PACOM_PASSWORD_POLICY.blockedMessage : response.message || PACOM_PASSWORD_POLICY.validate(payload.password), payload.password); $("#au-np1")?.focus(); $("#au-np1")?.select(); return;
       }
-      auServiceError(f, response); return;
+      auServiceError(currentForm, response); return;
     }
-    // Record the completed save first: the account's pause ends even when a newer request has replaced this link's page.
-    PACOM_AUTH_FLOW.clearAccountRestriction(AUX, payload.account, response.verifiedAliases || []);
-    if (response.uid && AUTH.people[response.uid]) AUTH.people[response.uid].pwdAt = auCstYmd();
-    auSave();
-    if (!current) return;
-    AUX.resetRevokedSessions = !!response.sessionsRevoked; AUX.resetUsed = true; AUX.resetNotice = null;
-    AUX.newPasswordResult = { response, pendingView: !auAsyncCurrent(context) };
-    // Saved in the background: a “重置请求已提交…” notice still on the page goes too (focus on it moves to the page heading).
-    const notice = document.getElementById("au-reset-notice");
-    if (notice && AUX.newPasswordResult.pendingView) {
-      const focused = document.activeElement === notice;
-      notice.remove();
-      const heading = focused && document.querySelector(".au-h1");
-      if (heading) { heading.setAttribute("tabindex", "-1"); heading.focus({ preventScroll: true }); }
-    }
-    delete AUX.v.np1; delete AUX.v.np2;
-    if (auAsyncCurrent(context)) auRoute("reset", "done");
+    auPasswordSaveDone(reset, response, context);
   },
   async apply(f) {
     if (f.getAttribute("aria-busy") === "true" || PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest)) return;
+    if (AUX.applyEditing && !PACOM_AUTH_FLOW.applicationChanges(AUX.v, AUX.applied)) {
+      auApplyChangeState(f);
+      return;
+    }
     const errors = PACOM_AUTH_FLOW.applyErrors(AUX.v);
     const checks = Object.keys(errors).map(name => [name, v => PACOM_AUTH_FLOW.applyErrors({ ...AUX.v, [name]: v })[name]]);
     // Focus goes to the first field in error, which reads out its message; there is no count of the remaining errors (Account 核查第 18 点).
     if (!auValidate(f, checks)) return;
     const fields = Object.fromEntries(["ap_org", "ap_name", "ap_mail", "ap_tel", "ap_need"].map(k => [k, ["ap_mail", "ap_tel"].includes(k) ? PACOM_AUTH_FLOW.identifier(auVal(k)) : auVal(k)]));
     const previous = AUX.applyRequest;
-    const request = { id: previous?.status === "failed" && JSON.stringify(previous.fields) === JSON.stringify(fields) ? previous.id : crypto.randomUUID(), status: "submitting", fields, mode: auApplyMode(), context: auApplyContextKey(auApplyMode()), epoch: AUX.accountEpoch, updated: !!AUX.applyEditing, receiptId: AUX.applyEditing ? AUX.applied?.receiptId || previous?.receiptId || null : null,
+    const reuse = previous?.status === "failed" && JSON.stringify(previous.fields) === JSON.stringify(fields);
+    const consentRecord = reuse && previous.consentRecord || auConsentRecord(['privacy']);
+    const request = { id: reuse ? previous.id : crypto.randomUUID(), consentRecord, status: "submitting", fields, mode: auApplyMode(), context: auApplyContextKey(auApplyMode()), epoch: AUX.accountEpoch, updated: !!AUX.applyEditing, receiptId: AUX.applyEditing ? AUX.applied?.receiptId || previous?.receiptId || null : null,
       // An edit keeps the receipt it replaces, so a tab reload can still resubmit under the same number and “取消修改” can return to it.
       original: AUX.applyEditing ? PACOM_AUTH_FLOW.receiptSnapshot(AUX.applied) || previous?.original || null : null };
     AUX.applyRequest = request; AUX.applyContext = request.context; auSaveApplyContext(); auRememberApplyPending(request);
     const done = auBusy(f, "正在提交…");
-    const response = await auRequest("apply", { id: request.id, fields: { ...fields }, mode: request.mode, updated: request.updated, receiptId: request.receiptId });
+    const response = await auRequest("apply", { id: request.id, fields: { ...fields }, mode: request.mode, updated: request.updated, receiptId: request.receiptId, consentRecord: request.consentRecord });
     await done();
     auApplyResponse(f, response, request);
   },
   async invite(f) {
     const kind = f.dataset.kind;
+    if (!auInviteSubmissionReady(kind)) return;
     const ok = auValidate(f, [
       ["iv_name", auReq("请输入姓名")],
       ["iv_pwd", (v) => (!v ? "请设置密码" : auPwdCheck(v))],
       // 确认密码：规则和提示同设置新密码（Lovable 核查第 27 条，2026-10-10 用户确认）。
       ["iv_pwd2", (v) => (!v ? "请再次输入密码" : v !== auVal("iv_pwd") ? "两次输入的密码不一致" : "")],
+      ["iv_ok", (v) => v ? "" : "请阅读并同意隐私政策和服务条款"],
     ]);
     const agreed = !!AUX.v.iv_ok;
-    $("#au-iv_ok-err").textContent = agreed ? "" : "请阅读并同意隐私政策和服务条款";
-    $('[data-f="iv_ok"]').classList.toggle("bad", !agreed);
-    if (!ok || !agreed) { auClearFormErr(f); return; }
+    if (!ok) { auClearFormErr(f); return; }
     const context = auAsyncContext(f);
+    const invitationReference = auInviteReference(AU_INV[kind]);
     const done = auBusy(f, "正在创建账户…", 800);
-    const response = await auRequest("createAccount", { invitation: AU_INV[kind], name: auVal("iv_name"), password: auVal("iv_pwd"), consent: agreed });
+    const response = await auRequest("createAccount", { invitation: AU_INV[kind], name: auVal("iv_name"), password: auVal("iv_pwd"), consent: agreed, consentRecord: auConsentRecord(['privacy', 'terms']) });
     await done();
     if (!auAsyncCurrent(context)) return;
-    if (response.status === "blocked-password") return auHeldErr("iv_pwd", PACOM_PASSWORD_POLICY.blockedMessage);
-    if (response.status === "invalid-password") return auErr("iv_pwd", response.message || PACOM_PASSWORD_POLICY.validate(auVal("iv_pwd")));
+    if (auInviteServiceState(response, kind, invitationReference)) return;
+    if (["blocked-password", "invalid-password"].includes(response.status)) {
+      const field = f.querySelector('[name="iv_pwd"]');
+      const mayFocus = f.contains(document.activeElement) || document.activeElement === document.body;
+      auHeldErr("iv_pwd", response.status === "blocked-password" ? PACOM_PASSWORD_POLICY.blockedMessage : response.message || PACOM_PASSWORD_POLICY.validate(auVal("iv_pwd")) || "请设置符合要求的密码。");
+      if (mayFocus) { field?.focus({ preventScroll: true }); field?.scrollIntoView?.({ block: "nearest" }); }
+      return;
+    }
     if (auServiceError(f, response)) return;
     const inv = AU_INV[kind];
     const name = (auVal("iv_name") || inv.name).trim();
@@ -68760,12 +68965,16 @@ const AU_SUBMIT = {
     auBindDone("手机号码已绑定");
   },
   async inviteExisting(f) {
+    const invitationKind = U.tab === 'owner' ? 'owner' : 'member';
+    if (!auInviteSubmissionReady(invitationKind)) return;
     if (!auValidate(f, [["ie_pwd", auReq("请输入密码")]])) return;
     const context = auAsyncContext(f);
+    const invitationReference = auInviteReference(AU_INV[invitationKind]);
     const done = auBusy(f, "正在验证…");
     const response = await auRequest("acceptInvitation", { invitation: AU_INV[U.tab === "owner" ? "owner" : "member"], password: auVal("ie_pwd") });
     await done();
     if (!auAsyncCurrent(context)) return;
+    if (auInviteServiceState(response, invitationKind, invitationReference)) return;
     // 邮箱已由邀请锁定，只填密码：密码错写“密码不正确”，密码框按字段错误变红、读屏标出错，仍选中密码；离开密码框时保留，改了密码才清除（同第 64、81 条）；
     // 受邀邮箱还没有账户时写明，请创建账户（Lovable 核查第 77 条，2026-10-10 用户确认）。
     if (response.status === "invalid-credentials") { auHeldErr("ie_pwd", "密码不正确"); $("#au-ie_pwd")?.focus(); $("#au-ie_pwd")?.select(); return; }
@@ -68831,7 +69040,7 @@ const AU_SUBMIT = {
       } else auErr("w_acct" + r.i, result?.message || "未能发送，请重试此行。");
     }
     auSave();
-    if (w.rows.filter(r => r.acct).every(r => r.status === "sent")) { w.done[2] = true; w.step = 3; render(); auFocusWelcomeFinish(); }
+    if (w.rows.filter(r => r.acct).every(r => r.status === "sent")) { w.done[2] = true; delete w.skipped[2]; w.step = 3; render(); auFocusWelcomeFinish(); }
     else { render(); requestAnimationFrame(() => { const current = document.querySelector('form[data-form="wInvite"]'); auFormErr(current, "部分邀请未发送。已发送的邀请不会重复发送，请处理有提示的行。"); current.querySelector('.au-field.bad input')?.focus(); }); }
   },
 };
@@ -68917,12 +69126,15 @@ document.addEventListener("submit", async (e) => {
 document.addEventListener("input", (e) => {
   const t = e.target;
   if (t.matches?.(".au-in, .au-v")) {
+    const previousValue = AUX.v[t.name];
     AUX.v[t.name] = t.type === "checkbox" ? t.checked : t.value;
     const codeFor = Object.entries(AU_SMS_KEYS).map(([key, [phone, code]]) => [key, code, phone]).find((x) => x[2] === t.name);
     if (codeFor) {
-      delete AUX.v[codeFor[1]];
-      const code = $(`#au-${codeFor[1]}`); if (code) code.value = "";
-      if (AUX.errors[codeFor[1]]) auErr(codeFor[1], "");
+      if (auPhoneIdentity(previousValue) !== auPhoneIdentity(AUX.v[t.name])) {
+        delete AUX.v[codeFor[1]];
+        const code = $(`#au-${codeFor[1]}`); if (code) code.value = "";
+        if (AUX.errors[codeFor[1]]) auErr(codeFor[1], "");
+      }
       auRestoreSmsNumber(codeFor[0]); auSendHint(codeFor[0]); auUpdateCodeButtons();
     }
     if (t.name === "rid") auResetSync();
@@ -69009,7 +69221,7 @@ document.addEventListener("change", (e) => {
   }
 });
 setInterval(() => {
-  auUpdateCodeButtons(); auMeasureCodePadding(); auLockUI(); auDlgCodeSync();
+  auUpdateCodeButtons(); auMeasureCodePadding(); auFitResetDialog(); auLockUI(); auDlgCodeSync();
 }, 1000);
 // 改了“姓名”还没保存：切换页签、离开本页、切换机构或退出登录前先问“是否放弃修改？”（guard，Lovable 核查第 453 条，2026-10-11 用户确认）；
 // 改了弹窗里的新地址：验证码按钮与“已发送至”跟着新地址（第 451 条）。
@@ -69138,6 +69350,11 @@ function auDialog(title, body, foot = "", cls = "") {
 }
 // 生效日期：正式文本发布时填写；未填写时不显示。
 const AU_LEGAL_DATE = "";
+// This identifies the currently displayed summary, not an approved production legal document.
+const AU_LEGAL_VERSION = 'summary-2026-10-15';
+function auConsentRecord(documents) {
+  return { documents: Object.fromEntries(documents.map(name => [name, AU_LEGAL_VERSION])), acceptedAt: auNow() };
+}
 const AU_LEGAL = {
   privacy: [
     "隐私政策",
@@ -69182,6 +69399,17 @@ const AU_GUIDE_URL = "";
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "1.89",
+    date: "2026-10-15",
+    notes: [
+      "登录与重置密码：优化键盘顺序、验证码输入和短窗口弹窗，补齐密码说明及联系支持入口。",
+      "申请访问：无资料变更时不重复提交，统一修改申请的前进后退行为，待确认结果可复制脱敏参考信息。",
+      "邀请与创建账户：修正跨机构邀请状态核验、同意框及密码错误的焦点处理。",
+      "机构开通：区分完成和跳过状态，统一引导按钮，并明确未订阅的截止时间及影响。",
+      "设置新密码：保存结果未知时保留原请求，改为核查该次结果，避免重复保存。",
+    ],
+  },
   {
     version: "1.88",
     date: "2026-10-14",
@@ -69742,6 +69970,7 @@ Object.assign(actions, {
     delete AUX.v.pwd;
     auRoute("login");
   },
+  auCheckPasswordSave: () => auCheckPasswordSave(document.querySelector('form[data-form="newpwd"]')),
   auCancelEdit: () => {
     // “取消修改” is unavailable while the edit is sending or unresolved. Leaving is not: the link beside it (“返回登录”“返回工作区”
     // “返回选择机构”) stays available; the request and what was typed are kept, and coming back still only checks that request,
@@ -69760,7 +69989,7 @@ Object.assign(actions, {
     AUX.applyMode = a.mode;
     AUX.applyEditing = true;
     AUX.attempted.apply = false;
-    auRoute("apply");
+    auRoute("apply", "edit");
   },
   // Forgot password while accepting an invitation: the reset dialog opens on the login page for the invited email.
   auInviteForgot: (a) => {
@@ -69775,6 +70004,15 @@ Object.assign(actions, {
   // Each opening records its own origin: only a dialog opened from the invitation page returns there when closed.
   // 短信登录受限时的“重置密码”：用验证码重置，带入当前手机号码（账户核查第 19 条）
   auForgotPhone: () => actions.auForgot({ account: AUX.v.sphone || "" }),
+  auResetSupport: () => {
+    const dialog = !!document.querySelector('#dlg .au-reset-dlg');
+    if (dialog) {
+      AUX.resetSupportReturn = { epoch: AUX.accountEpoch, hash: location.hash, invite: AUX.resetDialogInvite };
+      auCloseModalOriginal(true);
+    }
+    actions.auContact();
+    if (dialog) document.getElementById('dlg').dataset.auResetSupport = '1';
+  },
   auForgot: (a = {}) => {
     AUX.resetExpiredChannel = AUX.resetExpiredAccount = "";
     AUX.resetDialogInvite = a.fromInvite === true ? AUX.resetInviteOrigin || null : null;
@@ -69784,14 +70022,7 @@ Object.assign(actions, {
     AUX.resetDialogSubmission = false;
     delete AUX.errors.rid; delete AUX.errors.rcode; delete AUX.v.rcode;
     AUX.attempted.resetDialog = false;
-    auDialog(
-      "重置密码",
-      `<p class="au-dlead">${AU_RESET_LEAD}</p>${auResetForm(true)}`,
-      `<button type="button" class="btn" data-act="close">取消</button><button type="submit" class="btn primary au-reset-submit" form="au-reset-dlg-form"><span class="au-button-content">${auResetLabel()}</span><span class="au-button-reserve" aria-hidden="true"><span>发送重置链接</span><span class="au-button-busy-reserve"><span class="au-spin" aria-hidden="true"></span>正在发送…</span><span class="au-button-busy-reserve"><span class="au-spin" aria-hidden="true"></span>正在验证…</span></span></button>`,
-      "nodirty au-reset-dlg",
-    );
-    auResetSync();
-    auEntryFocus("#au-rid");
+    auOpenResetDialog();
   },
   auInvMode: (a) => {
     AUX.invMode = a.mode;
@@ -69806,13 +70037,15 @@ Object.assign(actions, {
     }
     auDialog(AUX.legal === "terms" ? "服务条款" : "隐私政策", auLegalBody(), btn("关闭", "close"), "nodirty au-account-dlg");
   },
-  auContact: () =>
+  auContact: () => {
+    const reference = auApplySupportReference();
     auDialog(
       "联系我们",
-      `<p class="au-dlead">账户、机构开通或使用问题，请联系 PACOM 支持。</p><div class="au-support-address"><a href="mailto:support@pacom.cn">support@pacom.cn</a><button type="button" class="au-copy" data-act="auCopySupport" aria-label="复制支持电子邮箱">${ico("copy", "ic16")}</button><span class="au-sr au-copy-done" role="status"></span></div><p class="au-copy-status" role="status"></p><p class="au-support-note">请勿在邮件中发送密码或短信验证码。</p>`,
+      `<p class="au-dlead">账户、机构开通或使用问题，请联系 PACOM 支持。</p><div class="au-support-address"><a href="mailto:support@pacom.cn">support@pacom.cn</a><button type="button" class="au-copy" data-act="auCopySupport" aria-label="复制支持电子邮箱">${ico("copy", "ic16")}</button><span class="au-sr au-copy-done" role="status"></span></div><p class="au-copy-status" role="status"></p><p class="au-support-note">请勿在邮件中发送密码或短信验证码。</p>${reference ? `<p class="au-support-note au-apply-reference" id="au-apply-support-reference">${esc(reference).replace(/\n/g, '<br>')}</p><button type="button" class="au-textbtn" data-act="auCopyApplyReference" aria-describedby="au-apply-support-reference">复制申请参考信息</button><p class="au-copy-status" id="au-copy-apply-status" role="status"></p>` : ''}`,
       btn("关闭", "close"),
       "nodirty au-account-dlg",
-    ),
+    );
+  },
   auSignOut: () =>
     guard(() => {
       closePop();
@@ -69964,7 +70197,7 @@ Object.assign(actions, {
   auWSkip: () => {
     const w = auWelcomeState();
     auReadWelcomeRows();
-    w.done[2] = true;
+    w.skipped[2] = !w.done[2];
     w.step = 3;
     render();
     auFocusWelcomeFinish();
@@ -69972,7 +70205,7 @@ Object.assign(actions, {
   // 第 1 步“暂不创建，下一步”：进入邀请成员，邀请按全部项目发出
   auWSkipProject: () => {
     const w = auWelcomeState();
-    w.done[1] = true;
+    w.skipped[1] = !w.done[1];
     w.step = 2;
     render();
     auFocusWelcome();
@@ -71466,6 +71699,19 @@ function auLic(id = AUTH.org) {
   return all[id];
 }
 const auLicDeleteAt = (l) => (l.state === "none" ? auYmdAdd(l.opened, 14) : auYmdAdd(l.end, 90));
+// 首次订阅截止取许可服务；时间戳按中国标准时间显示，不自行补“含当天”或23:59。
+// 尚未接入服务时仅沿用开通日期+14天的静态日期，不改变许可到期后的90天续期规则。
+function auLicSubscriptionDeadline(l) {
+  if (typeof l.subscriptionDeadlineAt === "number" && l.subscriptionDeadlineAt > 0 && Number.isFinite(new Date(l.subscriptionDeadlineAt + 8 * 36e5).getTime()))
+    return auFmtY(l.subscriptionDeadlineAt);
+  if (typeof l.subscriptionDeadline === "string" && /^\d{4}-\d{2}-\d{2}$/.test(l.subscriptionDeadline)) {
+    const date = new Date(l.subscriptionDeadline + "T00:00:00Z");
+    if (Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === l.subscriptionDeadline)
+      return auDate(l.subscriptionDeadline);
+  }
+  return auDate(auYmdAdd(l.opened, 14));
+}
+const auLicUnsubscribedText = (l) => `本机构尚未订阅。请在 ${auLicSubscriptionDeadline(l)}前完成订阅；逾期将删除本机构及其数据。`;
 // 最后续期日（全面设计核查第 141 条第 1 处）：许可服务给出的最后一天能续期的日期，即有效期最后一天后第 90 天，次日 0:00 删除；
 // 暂停页、续期时机构设置页头的提示条与提醒邮件用同一个值。
 const auLicLastRenewDay = (l) => auYmdAdd(l.end, 90);
@@ -71576,8 +71822,8 @@ function auLicBarText() {
     admin = auCanManage();
   // 续期时的提示条带最后续期日（全面设计核查第 141 条第 6 处）
   if (o.suspended) return auRenewOnly() ? { text: `${zhSub(esc(o.name), "r")}已暂停使用：许可到期。最晚请在 ${auDate(auLicLastRenewDay(l))}（含当天）完成续期，续期付款到账后自动恢复。` } : null;
-  // 未订阅（只给机构管理员）：订阅截止日期为开通后第 14 天，不写删除（Lovable 核查第 88 条，2026-10-11 用户确认）。
-  if (l.state === "none") return admin ? { text: `本机构尚未订阅。为保证正常使用，请在 ${auDate(auLicDeleteAt(l))}前完成订阅。`, act: btn("订阅", "auLicBuy", { kind: "sub" }, "sm") } : null;
+  // 未订阅只向机构管理员提示首次订阅截止及删除影响，期限由许可服务给出。
+  if (l.state === "none") return admin ? { text: auLicUnsubscribedText(l), act: btn("订阅", "auLicBuy", { kind: "sub" }, "sm") } : null;
   const left = auYmdDiff(auCstYmd(), l.end);
   if (left < 0 || left >= 30) return null;
   const t = `许可有效期至 ${auDate(l.end)}，${auDate(auYmdAdd(l.end, 1))}起暂停使用。`;
@@ -71763,7 +72009,7 @@ AU_ORG_PAGES.license = () => {
   let body;
   if (l.state === "none")
     body = admin
-      ? `<div class="au-licnote">${ico("au-info", "ic16")}<span>本机构尚未订阅。为保证正常使用，请在 ${auDate(auLicDeleteAt(l))}前完成订阅。</span>${btn("订阅", "auLicBuy", { kind: "sub" }, "primary sm")}</div>`
+      ? `<div class="au-licnote">${ico("au-info", "ic16")}<span>${esc(auLicUnsubscribedText(l))}</span>${btn("订阅", "auLicBuy", { kind: "sub" }, "primary sm")}</div>`
       : `<div class="au-licnote">${ico("au-info", "ic16")}<span>本机构尚未订阅。绑定设备和使用 AI 前，须由机构管理员订阅。</span></div>`;
   else {
     const left = auYmdDiff(today, l.end) + 1;
@@ -72296,7 +72542,7 @@ const AU_ACC_PAGES = {
           // 写“上次修改 8 月 12 日”，不是当年时加年份（ACCOUNT02，Account A14）
           `<span class="muted">上次修改 ${auDate(me.pwdAt)}</span>`,
           btn("修改密码", "auChangePwd", {}, "sm"),
-          "至少 8 个字符，包含字母、数字和符号",
+          PACOM_PASSWORD_POLICY.hint,
         ],
       ]),
     )}${auSec(
@@ -72541,7 +72787,7 @@ function auSupportOpen(fromHelp = false) {
 // Only an explicit sign-out sends a bare start URL to 登录; other collaborators' deep links keep working.
 const auReadRouteBase = readRoute;
 readRoute = function () {
-  const editing = U.page === "apply" && !U.tab && AUX.applyEditing ? auApplyMode() : "";
+  const editing = U.page === "apply" && (!U.tab || U.tab === "edit") && AUX.applyEditing ? auApplyMode() : "";
   auReadRouteBase();
   // 开通引导（AUTH19、AUTH24，Account 核查 C1、C5）：未登录时先登录，登录后回到引导；已登录时该机构的其他成员直接进入该机构总览，不显示引导。
   if (U.page !== "welcome") AUX.welcomeOutside = "";
@@ -72602,6 +72848,7 @@ function auEnhance(root = document) {
   auMeasureCodePadding(); auMeasureGutter();
   if (U.page === 'login') { auSendHint('login'); auLockUI(); }
   if (U.page === 'invite' && U.tab === 'phone') auSendHint('bind');
+  if (U.page === 'reset' && U.tab === 'link') auPasswordSaveUI();
   root.querySelectorAll('.au-wrow').forEach(row => {
     const i = Number(row.dataset.row), r = AUX.welcome?.rows[i];
     if (r?.status === 'sent') row.querySelectorAll('input,button').forEach(el => el.disabled = true);
@@ -72617,7 +72864,11 @@ function auMeasureCodePadding() {
     const input = button.parentElement.querySelector('.au-in');
     if (!input) return;
     // 重置密码填的是电子邮箱时“获取验证码”隐藏，输入框不留它的位置（全面设计核查第 134 条）。
-    if (button.hidden) { if (input.style.paddingRight) input.style.paddingRight = ''; return; }
+    if (button.hidden) {
+      const padding = input.closest('.au-reset-dlg') ? '12px' : '16px';
+      if (input.style.paddingRight !== padding) input.style.paddingRight = padding;
+      return;
+    }
     const right = Number.parseFloat(getComputedStyle(button).right) || 0;
     const padding = Math.ceil(button.getBoundingClientRect().width + right + 8) + 'px';
     if (input.style.paddingRight !== padding) input.style.paddingRight = padding;
@@ -72633,7 +72884,7 @@ function auSendHint(key) {
     const tone = limit.tone || 'warning';
     // A failed, limited or unknown resend to the same number keeps “已发送至…” in place, with the notice below it: the code already sent still works.
     const keep = !!sentTo;
-    const html = keep ? `<span class="au-sent-to">${esc(sentTo)}</span><span class="au-notice" data-tone="${tone}">${auNoticeContent(tone, limit.message)}</span>` : auNoticeContent(tone, limit.message);
+    const html = keep ? `<span class="au-sent-to">${auCodeReceiptHtml(sentTo)}</span><span class="au-notice" data-tone="${tone}">${auNoticeContent(tone, limit.message)}</span>` : auNoticeContent(tone, limit.message);
     // Keep identical live-region content stable when the send state is checked again.
     if (el.dataset.auNoticeContent !== html) {
       el.innerHTML = html;
@@ -72654,7 +72905,8 @@ function auSendHint(key) {
     if ('auNoticeContent' in el.dataset) delete el.dataset.auNoticeContent;
     if (el.getAttribute('role') !== 'status') el.setAttribute('role', 'status');
     if (el.hasAttribute('aria-atomic')) el.removeAttribute('aria-atomic');
-    if (el.textContent !== sentTo) el.textContent = sentTo;
+    const html = auCodeReceiptHtml(sentTo);
+    if (el.innerHTML !== html) el.innerHTML = html;
   }
 }
 const auLoginIdentity = v => PACOM_AUTH_FLOW.loginIdentity(v);
@@ -72729,6 +72981,32 @@ function auApplyWaiting(form) {
   const button = form.querySelector('.au-primary'); button.disabled = false; button.setAttribute('aria-disabled', 'true');
   (button.querySelector('.au-button-content') || button).innerHTML = '<span class="au-spin" aria-hidden="true"></span>正在提交…';
 }
+function auApplyChangeState(form) {
+  if (!form) return;
+  const pending = PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest);
+  const unchanged = !pending && !!AUX.applyEditing && !PACOM_AUTH_FLOW.applicationChanges(AUX.v, AUX.applied);
+  const explanation = form.querySelector('#au-apply-nochanges');
+  if (explanation) {
+    explanation.textContent = unchanged ? '未修改申请内容。' : '';
+    explanation.hidden = !unchanged;
+  }
+  const button = form.querySelector('.au-primary');
+  if (!button) return;
+  if (pending) {
+    if (button.getAttribute('aria-describedby') === 'au-apply-nochanges') button.removeAttribute('aria-describedby');
+    return;
+  }
+  button.classList.toggle('au-no-changes', unchanged);
+  if (unchanged) {
+    button.setAttribute('aria-disabled', 'true');
+    button.setAttribute('aria-describedby', 'au-apply-nochanges');
+    button.dataset.tip = '未修改申请内容';
+  } else {
+    button.removeAttribute('aria-disabled');
+    if (button.getAttribute('aria-describedby') === 'au-apply-nochanges') button.removeAttribute('aria-describedby');
+    delete button.dataset.tip;
+  }
+}
 function auApplyResponse(form, response, request = AUX.applyRequest, query = false, autoCheck = true) {
   if (!request || request.epoch != null && request.epoch !== AUX.accountEpoch) return;
   const key = request.context || AUX.applyContext || auApplyContextKey(request.mode || auApplyMode());
@@ -72764,7 +73042,10 @@ function auApplyResponse(form, response, request = AUX.applyRequest, query = fal
       if (!active || active === document.body) button.focus({ preventScroll: true });
     } else {
       // After a check that still cannot confirm the result, the notice says when it was checked (Account 核查第 19 点).
-      auFormErr(form, request.checkedAt ? `仍无法确认提交结果（${auCheckedTime(request.checkedAt)} 已核查），请勿重复提交。可稍后再核查或联系 PACOM 支持。` : '暂时无法确认提交结果，请勿重复提交。可稍后继续核查或联系 PACOM 支持。', true, 'warning');
+      auFormErr(form, request.checkedAt ? `仍无法确认提交结果（${auCheckedTime(request.checkedAt)} 已核查），请勿重复提交。可稍后再核查。` : '暂时无法确认提交结果，请勿重复提交。可稍后继续核查。', true, 'warning');
+      const noticeText = form.querySelector('.au-ferr .au-notice-text');
+      if (noticeText && !noticeText.querySelector('[data-act="auContact"]'))
+        noticeText.insertAdjacentHTML('beforeend', ' <button type="button" class="au-textbtn" data-act="auContact">联系支持</button>');
       // The submission's own first unknown result: with focus still on this form (or lost), “核查提交结果” is brought just into view.
       const active = document.activeElement;
       if (autoCheck && !request.autoChecked && (!active || active === document.body || form.contains(active))) requestAnimationFrame(() => { if (button.isConnected) button.scrollIntoView?.({ block: 'nearest' }); });
@@ -72861,6 +73142,17 @@ Object.assign(actions, {
     try { tip = auCopiedTip(button); } catch { tip = null; }
     auCopySupportTimer = setTimeout(() => { if (button) button.innerHTML = ico('copy', 'ic16'); if (done) done.textContent = ''; if (tip?.isConnected) tip.remove(); }, 2000);
   },
+  auCopyApplyReference: async () => {
+    const reference = document.getElementById('au-apply-support-reference');
+    const status = document.getElementById('au-copy-apply-status');
+    if (!reference?.isConnected) return;
+    try {
+      await navigator.clipboard.writeText(reference.innerText || reference.textContent);
+      if (status?.isConnected) status.textContent = '申请参考信息已复制。';
+    } catch {
+      if (status?.isConnected) status.textContent = '无法复制，请选中申请参考信息复制。';
+    }
+  },
   auApplyCheck: async (a, el) => {
     const request = AUX.applyRequest;
     if (!request || request.querying || request.status !== 'unknown') return;
@@ -72896,6 +73188,7 @@ for (const page of ['login','reset','apply','invite','orgs','suspended','removed
       if (form && AUX.attempted.apply) for (const [name, error] of Object.entries(AUX.errors)) if (name.startsWith("ap_")) auErr(name, error);
       if (request?.status === 'submitting') auApplyWaiting(form);
       else if (['unknown', 'failed'].includes(request?.status)) auApplyResponse(form, request.response || { status: 'unknown' }, request, !!request.queryResult, false);
+      auApplyChangeState(form);
       // Re-entering an unresolved application: a mouse device focuses “核查提交结果” (the busy button while it is still sending); touch focuses the heading below.
       if (form && PACOM_AUTH_FLOW.applicationPending(request) && !matchMedia('(pointer:coarse)').matches)
         pendingFocus = form.querySelector('[data-act="auApplyCheck"]') || form.querySelector('.au-primary');
@@ -72928,6 +73221,13 @@ document.addEventListener('keydown', e => {
 const auCloseModalOriginal = closeModal;
 closeModal = function (force = false) {
   const scrim = document.querySelector('#dlg.au-account-scrim');
+  if (scrim?.dataset.auResetSupport) {
+    const back = AUX.resetSupportReturn; AUX.resetSupportReturn = null;
+    if (!force && back?.epoch === AUX.accountEpoch && back.hash === location.hash) {
+      auCloseModalOriginal(true); AUX.resetDialogInvite = back.invite;
+      auOpenResetDialog(true); return;
+    }
+  }
   // Only a dialog opened from the invitation page and closed without an accepted or pending request (edited, failed or limited)
   // returns to the invitation, focus on “忘记密码？”. Closing any reset dialog ends its origin.
   const resetDialog = !!scrim?.querySelector('.au-reset-dlg'), fromInvite = resetDialog && !force ? AUX.resetDialogInvite : null;
@@ -72949,6 +73249,7 @@ window.addEventListener('resize', auMeasureGutter);
 // A route change (browser back or forward, an edited address) closes an open account dialog as “关闭” does, at once and without
 // its own return to the invitation: the new page takes focus, and a request still sending from it only keeps its result.
 function auRouteDialogClose() {
+  AUX.resetSupportReturn = null;
   // “开通新机构”用工作区外框，同样立即关闭（Lovable 核查第 147 条）
   const scrim = document.querySelector('#dlg.au-account-scrim') || document.querySelector('#dlg.au-route-close');
   if (!scrim) return;
@@ -73075,9 +73376,17 @@ function auShowApplyLock() {
 }
 // The application named by the address (#apply?mode=…&tab=done); a pending application elsewhere still holds the page.
 function auApplyFromRoute() {
+  const edit = U.tab === 'edit';
   const param = new URLSearchParams(location.hash.split('?')[1] || '').get('mode');
   auSwitchApplyDraft(PACOM_AUTH_FLOW.applyRouteMode(param, AUTH.session === 'in', auApplyMode()), true);
-  U.tab = U.tab === 'done' && !PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? 'done' : '';
+  const pending = PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest);
+  if (edit && AUX.applied && !pending && !AUX.applyEditing) {
+    Object.assign(AUX.v, AUX.applied.fields, { ap_ok: true });
+    for (const key of Object.keys(AUX.errors)) if (key.startsWith('ap_')) delete AUX.errors[key];
+    AUX.applyEditing = true;
+    AUX.attempted.apply = false;
+  }
+  U.tab = pending ? '' : edit ? AUX.applied ? 'edit' : 'done' : U.tab === 'done' ? 'done' : '';
   const hash = PACOM_AUTH_FLOW.applyHash(auApplyMode(), U.tab);
   if (location.hash !== hash) history.replaceState(null, '', hash);
 }
@@ -73085,7 +73394,7 @@ function auApplyFromRoute() {
 // With nothing in flight, leaving still counts as “取消修改”.
 function auLeaveEditByHistory(mode) {
   const q = new URLSearchParams(location.hash.split('?')[1] || '');
-  if (U.page === 'apply' && !q.get('tab') && (q.get('mode') || mode) === mode) return;
+  if (U.page === 'apply' && (!q.get('tab') || q.get('tab') === 'edit') && (q.get('mode') || mode) === mode) return;
   if (PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest)) {
     auSaveApplyContext();
     auRememberApplyPending(AUX.applyRequest);
@@ -73153,6 +73462,14 @@ document.addEventListener('input', e => {
   const check = name === 'w_name' ? PACOM_AUTH_FLOW.orgNameError : v => PACOM_AUTH_FLOW.applyErrors({ [name]: v })[name];
   const error = check(e.target.value), over = /不超过/.test(error);
   if (over && AUX.errors[name] !== error) auErr(name, error);
+});
+document.addEventListener('input', e => {
+  const form = e.target.closest?.('form[data-form="apply"]');
+  if (form) auApplyChangeState(form);
+});
+document.addEventListener('change', e => {
+  const form = e.target.closest?.('form[data-form="apply"]');
+  if (form) auApplyChangeState(form);
 });
 
 /* screen-ui.js — 大屏（规范 OPS07）与展示链接（规范 ORG10）。
@@ -80317,6 +80634,7 @@ const demoLoginPause = (count) => (count < 10 ? 0 : Math.min(30, 2 ** (count - 1
 const demoNextFailure = (count) => (count + 1 >= 100 ? { nextResetRequired: true } : { nextPause: demoLoginPause(count + 1) });
 const demoNextDay = () => (Math.floor((auNow() + 8 * 36e5) / auDay) + 1) * auDay - 8 * 36e5;
 const DEMO_APPLICATION_REQUESTS = new Map();
+const DEMO_PASSWORD_REQUESTS = new Map();
 const DEMO_APPLICATION_RESOLVERS = new Map();
 Object.assign(AU_SVC, {
   connected: true,
@@ -80366,6 +80684,11 @@ Object.assign(AU_SVC, {
       }
       DEMO_LOGIN_FAILURES.delete(key); DEMO_LOGIN_LOCKS.delete(key); return { status: "ok", uid: found[0] };
     }
+    if (operation === 'queryNewPassword') {
+      const request = DEMO_PASSWORD_REQUESTS.get(payload.requestId);
+      if (!request || request.token !== payload.token) return { status: 'unavailable' };
+      return request.response;
+    }
     // 设密与页面同一规则，服务端同样检查（Account 核查第 11 点）。
     if (["newPassword", "createAccount"].includes(operation)) {
       const passwordError = PACOM_PASSWORD_POLICY.validate(payload.password);
@@ -80384,7 +80707,11 @@ Object.assign(AU_SVC, {
       if (!found) return { status: "rejected", message: "暂时无法核验此重置请求，请重新获取链接。" };
       if (!DEMO_FAIL.blockedPassword) {
         DEMO_LOGIN_FAILURES.delete("account:" + found[0]); DEMO_LOGIN_LOCKS.delete("account:" + found[0]);
-        return { status: "ok", uid: found[0], verifiedAliases: [found[1].email, found[1].phone].filter(Boolean), sessionsRevoked: true };
+        const success = { status: "ok", uid: found[0], verifiedAliases: [found[1].email, found[1].phone].filter(Boolean), sessionsRevoked: true };
+        const outcome = DEMO_FAIL.passwordOutcome || '';
+        DEMO_FAIL.passwordOutcome = '';
+        if (payload.requestId) DEMO_PASSWORD_REQUESTS.set(payload.requestId, { token: payload.token, response: outcome === 'unknown' ? { status: 'pending' } : outcome === 'not-received' ? { status: 'not-received' } : success });
+        return outcome ? { status: 'unknown' } : success;
       }
     }
     if (operation === "apply") {
@@ -80923,12 +81250,23 @@ function demoWelcome(step) {
   U.role = "admin";
   AUX.welcome = {
     step,
-    done: { 1: step > 1 },
+    done: {},
+    skipped: { 1: step > 1 },
     rows: [{ acct: "", role: "", scope: "" }],
     projects: [],
   };
   demoOpeningBlank();
   auSave();
+}
+function demoInvitationState(state) {
+  demoOut(); demoInvite('member', 'new');
+  const inv = AU_INV.member, source = auInvites(inv.org).find(row => row.id === inv.inviteId);
+  if (source) {
+    source.status = state === 'used' ? 'accepted' : state === 'revoked' ? 'revoked' : 'pending';
+    if (state === 'expired') source.sent = auNow() - 8 * auDay;
+  }
+  history.replaceState({ ...(history.state || {}), accountInvite: { kind: 'member', reference: auInviteReference(inv) } }, '', location.hash);
+  demoShow('invite', state);
 }
 function demoOpeningBlank() {
   // The opening preset has its own empty planning context; it never deletes
@@ -81070,6 +81408,8 @@ const DEMO_ITEMS = [
   ["重置密码", "reset-limited", "重置请求频率受限", "服务返回的等待时间", () => { demoOut(); AUX.v.id = "wang.min@example.test"; DEMO_FAIL.resetLimit = true; demoShow("login"); demoAfter(() => { actions.auForgot(); demoSubmit("resetDialog"); }); }],
   ["重置密码", "reset-password-blocked", "新密码被服务拒绝", "常见或已泄露的密码", () => (demoOut(), (AUX.reset = AUX.resetLink = { id: "wang.min@example.test", channel: "mail" }), Object.assign(AUX.v, { np1: "synthetic-pass-2026", np2: "synthetic-pass-2026" }), (DEMO_FAIL.blockedPassword = true), demoShow("reset", "link"), demoSubmit("newpwd"))],
   ["重置密码", "reset-save-failed", "保存新密码服务失败", "不冒充密码重置成功", () => (demoOut(), (AUX.reset = AUX.resetLink = { id: "wang.min@example.test", channel: "mail" }), Object.assign(AUX.v, { np1: "synthetic-pass-2026", np2: "synthetic-pass-2026" }), (DEMO_FAIL.operation = "newPassword"), demoShow("reset", "link"), demoSubmit("newpwd"))],
+  ["重置密码", "reset-save-unknown", "保存新密码结果待确认", "核查同一次保存，不重复提交", () => (demoOut(), (AUX.reset = AUX.resetLink = { id: "wang.min@example.test", channel: "mail" }), Object.assign(AUX.v, { np1: "synthetic-pass-2026", np2: "synthetic-pass-2026" }), (DEMO_FAIL.passwordOutcome = "unknown"), demoShow("reset", "link"), demoSubmit("newpwd"))],
+  ["重置密码", "reset-save-confirmed", "保存结果待确认 · 核查成功", "核查后才确认密码已重置", () => (demoOut(), (AUX.reset = AUX.resetLink = { id: "wang.min@example.test", channel: "mail" }), Object.assign(AUX.v, { np1: "synthetic-pass-2026", np2: "synthetic-pass-2026" }), (DEMO_FAIL.passwordOutcome = "unknown-saved"), demoShow("reset", "link"), demoSubmit("newpwd"))],
   ["重置密码", "reset-done", "密码已重置", "", () => (demoOut(), (AUX.reset = { id: "wang.min@example.test", channel: "mail" }), (AUX.resetUsed = true), demoShow("reset", "done"))],
   ["重置密码", "reset-expired", "重置链接已过期", "", () => (demoOut(), demoShow("reset", "expired"))],
   ["重置密码", "reset-expired-sms", "验证已过期（手机号码）", "重新验证手机号码", () => (demoOut(), (AUX.resetExpiredChannel = "sms"), (AUX.resetExpiredAccount = "+86 139 0000 0101"), demoShow("reset", "expired"))],
@@ -81093,9 +81433,9 @@ const DEMO_ITEMS = [
     () => (demoInvite("member", "existing"), (AUX.v.ie_pwd = "password"), (DEMO_FAIL.password = 1), demoShow("invite", "member"), demoSubmit("inviteExisting")),
   ],
   ["邀请与注册", "inv-other", "邀请发给其他账户", "已登录其他账户时打开邀请", () => (demoInvite("member", "new"), demoIn(), demoShow("invite", "member"))],
-  ["邀请与注册", "inv-expired", "邀请已失效", "", () => (demoOut(), demoShow("invite", "expired"))],
-  ["邀请与注册", "inv-used", "邀请已被接受", "", () => (demoOut(), demoShow("invite", "used"))],
-  ["邀请与注册", "inv-revoked", "邀请已撤销", "", () => (demoOut(), demoShow("invite", "revoked"))],
+  ["邀请与注册", "inv-expired", "邀请已失效", "", () => demoInvitationState('expired')],
+  ["邀请与注册", "inv-used", "邀请已被接受", "", () => demoInvitationState('used')],
+  ["邀请与注册", "inv-revoked", "邀请已撤销", "", () => demoInvitationState('revoked')],
   ["邀请与注册", "inv-none", "暂时无法查看邀请", "打开邀请地址但没有可核对的邀请", () => (demoOut(), demoShow("invite", "none"))],
   ["邀请与注册", "inv-owner", "开通邀请：创建账户", "申请审核通过后的邀请", () => (demoInvite("owner", "new"), demoShow("invite", "owner"))],
   ["邀请与注册", "bind", "绑定手机号码", "创建账户后的第二步，可跳过", () => (demoBind(), demoShow("invite", "phone"))],
