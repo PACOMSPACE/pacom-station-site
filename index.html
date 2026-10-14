@@ -19359,6 +19359,8 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .au-account-dlg.au-reset-dlg .au-hint:empty { display: none; }
 .au-account-dlg.au-reset-dlg .au-hint[tabindex="-1"]:focus { outline: none; }
 .au-account-dlg.au-reset-dlg .au-limit-hint.au-notice { margin-top: 8px; }
+.au-account-dlg #auNewCode-hint.au-sent-limit > .au-sent-to { display: block; }
+.au-account-dlg #auNewCode-hint.au-sent-limit > .au-notice { margin-top: 8px; }
 .au-account-dlg.au-reset-dlg .au-limit-hint.au-sent-limit > .au-sent-to { display: block; }
 .au-account-dlg.au-reset-dlg .au-limit-hint.au-sent-limit > .au-notice { margin-top: 8px; }
 @media (max-width:850px), (pointer:coarse) {
@@ -67350,7 +67352,8 @@ const AU_EMAIL_INPUT = 'inputmode="email" autocomplete="email" autocapitalize="n
 const AU_TEL_INPUT = 'inputmode="tel" autocomplete="tel" autocapitalize="none" autocorrect="off" spellcheck="false"';
 /* 弹窗里的验证码（更换电子邮箱、更换手机号码、绑定手机号码；Lovable 核查第 451、455 条，2026-10-11 用户确认），同登录页（AUTH01）：
    发送后 60 秒内“N 秒后重发”并禁用，之后“重新获取”；发送状态按地址记下，改了地址按新地址的状态，旧地址的状态不用于新地址；
-   验证码下方写“验证码已发送至 n•••@example.test”（号码写“139 •••• 0199”）。原先每秒刷新按钮时按登录页的键处理，
+   邮箱验证码下方写“验证码已发送至 n•••@example.test”；短信提示仅使用成功服务回执中的截止时间。
+   原先每秒刷新按钮时按登录页的键处理，
    把这里的倒计时和已发送的状态清掉，提交时提示“请先获取验证码”。 */
 const auDlgCodeId = (kind, v) => (kind === "phone" ? auPhoneIdentity(v) : String(v || "").trim().toLowerCase());
 const auDlgCodeOf = (kind, v) => (AUX.dlgCode || {})[auDlgCodeId(kind, v)] || null;
@@ -67362,16 +67365,76 @@ function auDlgCodeSync() {
   const b = $('#dlg [data-act="auDlgCode"]');
   if (!b) return;
   const kind = b.dataset.kind,
+    identity = auDlgCodeId(kind, value("auNewId").trim()),
     st = auDlgCodeOf(kind, value("auNewId").trim()),
     s = auDlgCodeLabel(st),
     hint = $("#auNewCode-hint"),
-    text = st ? `验证码已发送至 ${kind === "phone" ? auSmsDestination(st.to) : auMask(st.to)}` : "";
-  if (b.disabled !== s.disabled) b.disabled = s.disabled;
-  if (b.textContent !== s.label) b.textContent = s.label;
+    pending = kind === 'phone' && AUX.dlgSending?.[identity],
+    limit = kind === 'phone' && AUX.dlgSendLimits?.[identity],
+    activeLimit = limit && (!limit.retryAt || limit.retryAt > auNow()),
+    disabled = s.disabled || !!(activeLimit && limit.retryAt > auNow()),
+    label = pending ? '正在发送…' : activeLimit ? st ? '重新获取' : '获取验证码' : s.label,
+    text = st ? kind === 'phone' ? auCodeSentText(st.to, st.expiresAt) : `验证码已发送至 ${auMask(st.to)}` : "";
+  if (b.disabled !== disabled) b.disabled = disabled;
+  if (pending) { if (b.getAttribute('aria-disabled') !== 'true') b.setAttribute('aria-disabled', 'true'); }
+  else if (b.hasAttribute('aria-disabled')) b.removeAttribute('aria-disabled');
+  if (b.textContent !== label) b.textContent = label;
+  if (hint && activeLimit) {
+    const keep = !!text, html = keep ? `<span class="au-sent-to">${esc(text)}</span><span class="au-notice" data-tone="${limit.tone}">${auNoticeContent(limit.tone, limit.message)}</span>` : auNoticeContent(limit.tone, limit.message);
+    if (hint.dataset.auNoticeContent !== html) { hint.innerHTML = html; hint.dataset.auNoticeContent = html; }
+    if (hint.classList.contains('au-notice') === keep) hint.classList.toggle('au-notice', !keep);
+    if (hint.classList.contains('au-sent-limit') !== keep) hint.classList.toggle('au-sent-limit', keep);
+    if (!hint.classList.contains('au-limit-hint')) hint.classList.add('au-limit-hint');
+    if (keep) { if ('tone' in hint.dataset) delete hint.dataset.tone; }
+    else if (hint.dataset.tone !== limit.tone) hint.dataset.tone = limit.tone;
+    const role = limit.tone === 'error' ? 'alert' : 'status';
+    if (hint.getAttribute('role') !== role) hint.setAttribute('role', role);
+    if (hint.hidden) hint.hidden = false;
+    return;
+  }
+  if (hint && kind === 'phone') {
+    if (['au-notice', 'au-sent-limit', 'au-limit-hint'].some(name => hint.classList.contains(name))) hint.classList.remove('au-notice', 'au-sent-limit', 'au-limit-hint');
+    if ('auNoticeContent' in hint.dataset) delete hint.dataset.auNoticeContent;
+    if ('tone' in hint.dataset) delete hint.dataset.tone;
+    if (hint.getAttribute('role') !== 'status') hint.setAttribute('role', 'status');
+  }
   if (hint && hint.textContent !== text) {
     hint.textContent = text;
     hint.hidden = !text;
   }
+}
+// Phone-change/binding dialogs use the same service send contract as login/reset, while email verification is unchanged.
+async function auDlgSmsSend(phone, el) {
+  const identity = auDlgCodeId('phone', phone), receipts = (AUX.dlgCode ||= {}), sending = (AUX.dlgSending ||= {}), limits = (AUX.dlgSendLimits ||= {});
+  if (sending[identity] || auDlgCodeLabel(receipts[identity]).disabled || limits[identity]?.retryAt > auNow()) return;
+  const request = { epoch: AUX.accountEpoch, phone };
+  sending[identity] = request; delete limits[identity]; auDlgCodeSync();
+  const response = await auSendCode('changePhone', phone);
+  if (AUX.dlgCode !== receipts || AUX.dlgSending !== sending || sending[identity] !== request || AUX.accountEpoch !== request.epoch) return;
+  delete sending[identity];
+  const status = typeof response === 'string' ? response : response?.status;
+  if (status === 'ok') {
+    receipts[identity] = { to: phone, until: Math.min(response.retryAt || auNow() + 60e3, auNow() + 60e3),
+      expiresAt: typeof response.expiresAt === 'number' && Number.isFinite(response.expiresAt) && response.expiresAt > 0 ? response.expiresAt : null };
+    delete limits[identity];
+  } else {
+    const limited = ['limit', 'frequent', 'rate-limited'].includes(status);
+    limits[identity] = { retryAt: response?.retryAt || 0, tone: limited || status === 'unknown' ? 'warning' : 'error',
+      message: response?.message || (limited ? '获取验证码受到限制，请稍后再试。' : status === 'unknown' ? '暂时无法确认短信发送结果，请稍后再试。' : '暂时无法发送短信验证码，请稍后再试。') };
+  }
+  const button = $('#dlg [data-act="auDlgCode"]'), same = button === el && el?.isConnected && auDlgCodeId('phone', value('auNewId').trim()) === identity;
+  if (status === 'ok' && same) {
+    if ($('#formError')) $('#formError').innerHTML = '';
+    clearFieldErr($('#auNewCode')?.closest('.field'));
+    if (response?.replacesPrevious && $('#auNewCode')) $('#auNewCode').value = '';
+  }
+  const focused = same && document.activeElement === el;
+  auDlgCodeSync();
+  if (!focused) return;
+  if (status === 'ok') {
+    if (!matchMedia('(pointer:coarse)').matches) $('#auNewCode')?.focus();
+    else { const hint = $('#auNewCode-hint'); if (hint) { hint.tabIndex = -1; hint.focus({ preventScroll: true }); hint.scrollIntoView({ block: 'nearest' }); } }
+  } else if (el.disabled) $('#auNewId')?.focus();
 }
 // Account dates are always China Standard Time (UTC+08:00, no daylight saving), whatever the browser's time zone.
 // Non-breaking spaces keep a date and time on one line, e.g. "10 月 3 日 00:00".
@@ -67758,6 +67821,23 @@ const auSmsDestination = (phone) => {
   if (digits.length === 13 && digits.startsWith("86")) digits = digits.slice(2);
   return digits.length === 11 ? `${digits.slice(0, 3)} •••• ${digits.slice(-4)}` : auMask(phone);
 };
+// A deadline is shown only from a successful service receipt (Unix milliseconds); the resend interval never supplies it.
+// Times use China Standard Time regardless of the browser zone. A different day includes its date, and a different year its year.
+function auCodeSentText(phone, expiresAt, now = auNow()) {
+  const sent = `已发送至 ${auSmsDestination(phone)}`;
+  if (typeof expiresAt !== 'number' || !Number.isFinite(expiresAt) || expiresAt <= 0) return sent;
+  const date = new Date(expiresAt + 8 * 36e5), today = new Date(now + 8 * 36e5);
+  if (!Number.isFinite(date.getTime())) return sent;
+  const sameDay = date.getUTCFullYear() === today.getUTCFullYear() && date.getUTCMonth() === today.getUTCMonth() && date.getUTCDate() === today.getUTCDate();
+  const clock = `${auPad(date.getUTCHours())}:${auPad(date.getUTCMinutes())}`;
+  const deadline = sameDay ? clock : `${date.getUTCFullYear() !== today.getUTCFullYear() ? `${date.getUTCFullYear()} 年 ` : ''}${date.getUTCMonth() + 1} 月 ${date.getUTCDate()} 日 ${clock}`;
+  return `${sent} · ${deadline} 前有效`;
+}
+function auSmsSentText(key) {
+  const destination = AUX[AU_SMS_KEYS[key][2]], phone = AUX.v[AU_SMS_KEYS[key][0]];
+  return destination && auPhoneIdentity(destination) === auPhoneIdentity(phone)
+    ? auCodeSentText(destination, auSmsState(key, destination).expiresAt) : '';
+}
 // A code is accepted for the number it was sent to, or for a number whose send result is unknown (it may have been sent).
 const auSmsCodeTo = (key, phone) => {
   const to = AUX[AU_SMS_KEYS[key][2]];
@@ -67859,7 +67939,7 @@ BARE.login = () => {
         auto: "tel",
         inputmode: "tel",
         suffix: auCodeBtn("login", "sphone"),
-        hint: AUX.loginCodeTo && auPhoneIdentity(AUX.loginCodeTo) === auPhoneIdentity(AUX.v.sphone) ? `已发送至 ${esc(auSmsDestination(AUX.loginCodeTo))}` : "",
+        hint: esc(auSmsSentText("login")),
         hintRole: "status",
       })
     : auField({ name: "id", label: "电子邮箱或手机号码", auto: "username" });
@@ -68005,7 +68085,7 @@ const AU_RESET_LEAD = "输入账户邮箱或已验证的手机号码，验证后
 const auResetPhone = () => auPhoneKind(PACOM_AUTH_FLOW.identifier(AUX.v.rid || ""));
 const auResetLabel = () => (auResetPhone() ? "下一步" : "发送重置链接");
 const auResetForm = (inDialog = false) => {
-  const phone = auResetPhone(), sentTo = AUX.resetCodeTo && auPhoneIdentity(AUX.resetCodeTo) === auPhoneIdentity(AUX.v.rid) ? `已发送至 ${esc(auSmsDestination(AUX.resetCodeTo))}` : "";
+  const phone = auResetPhone(), sentTo = esc(auSmsSentText("reset"));
   const code = auField({ name: "rcode", label: "短信验证码", auto: "one-time-code", inputmode: "numeric", maxlength: 6 }).replace('<div class="au-field ', `<div ${phone ? "" : "hidden "}class="au-field au-reset-code `);
   return `<form id="${inDialog ? "au-reset-dlg-form" : "au-reset-form"}" data-form="${inDialog ? "resetDialog" : "reset"}" novalidate><fieldset>${auField({ name: "rid", label: "电子邮箱或手机号码", auto: "username", suffix: auCodeBtn("reset", "rid", !phone), hint: sentTo, hintRole: "status" })}${code}<p class="au-ferr" role="alert" hidden></p></fieldset></form><details class="au-help"><summary tabindex="0">无法使用绑定的电子邮箱或手机号码？</summary><p>如果绑定的电子邮箱或手机号码已停用，请联系 PACOM 支持，完成身份核验后恢复账户访问。</p></details>${inDialog ? "" : `<button type="submit" class="au-primary" form="au-reset-form">${auResetLabel()}</button>`}`;
 };
@@ -68217,8 +68297,7 @@ function auBindPhoneStep() {
       `<h1 class="au-h1">账户状态</h1><p class="au-lead">当前没有待完成的手机号码绑定。请登录后在“我的账户 › 登录与安全”中查看或修改。</p><button type="button" class="au-primary" data-act="auGo" data-page="login">登录</button>`,
     );
   AUX.v.bd_phone ??= b.phone || "";
-  const sent =
-    AUX.bindCodeTo && auPhoneIdentity(AUX.bindCodeTo) === auPhoneIdentity(AUX.v.bd_phone) ? `已发送至 ${esc(auSmsDestination(AUX.bindCodeTo))}` : "";
+  const sent = esc(auSmsSentText("bind"));
   return auAuthShell(
     `<h1 class="au-h1">绑定手机号码</h1><p class="au-lead">账户已创建。绑定后可以用手机号码登录和重置密码；也可以跳过，之后在“我的账户 › 登录与安全”中绑定。</p><form data-form="bindPhone" novalidate><fieldset>${auField({ name: "bd_phone", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", suffix: auCodeBtn("bind", "bd_phone"), hint: sent, hintRole: "status" })}${auField({ name: "bd_code", label: "短信验证码", auto: "one-time-code", inputmode: "numeric", maxlength: 6 })}<p class="au-ferr" role="alert" hidden></p>${auPrimary("绑定并继续")}</fieldset></form><div class="au-links"><button type="button" class="au-textbtn" data-act="auBindSkip">跳过</button></div>`,
   );
@@ -69020,6 +69099,14 @@ const AU_GUIDE_URL = "";
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
   {
+    version: "1.85",
+    date: "2026-10-14",
+    notes: [
+      "短信验证码：发送成功提示统一为“已发送至 139 •••• 0101 · 14:35 前有效”，截止时间取发送服务回执；跨日显示日期，重发间隔与发送限制保持不变。",
+      "申请访问：修改申请提交中或结果待确认时，浏览器返回与页面返回均可正常离开；保留原请求供再次进入后核查，避免重复提交。",
+    ],
+  },
+  {
     version: "1.84",
     date: "2026-10-14",
     notes: [
@@ -69458,6 +69545,8 @@ Object.assign(actions, {
     const status = typeof response === 'string' ? response : response?.status;
     if (status === 'ok') {
       state.sent = true; state.phone = phone; state.cooldown = Math.min(response.retryAt || auNow() + 60000, auNow() + 60000); delete state.limit;
+      // Replace only on an accepted send: a failed/unknown resend must preserve the earlier receipt and any code still usable.
+      state.expiresAt = typeof response.expiresAt === 'number' && Number.isFinite(response.expiresAt) && response.expiresAt > 0 ? response.expiresAt : null;
     } else {
       const limited = ['limit', 'frequent', 'rate-limited'].includes(status);
       // An unknown result may still have delivered a code: the number accepts a code (the service judges it) without “已发送至”;
@@ -70228,7 +70317,7 @@ Object.assign(actions, {
     const phone = a.kind === "phone",
       bind = phone && !auMe().phone;
     // 每次打开弹窗，验证码的发送状态重新开始（第 451 条）
-    AUX.dlgCode = {};
+    AUX.dlgCode = {}; AUX.dlgSending = {}; AUX.dlgSendLimits = {};
     auDialog(
       bind ? "绑定手机号码" : phone ? "更换手机号码" : "更换电子邮箱",
       `<p class="au-dlead">${bind ? "验证后，可使用此号码和账户密码登录，也可以通过短信验证码重置密码。" : phone ? "验证后，可使用新号码和账户密码登录，也可以通过短信验证码重置密码；原号码不再用于登录和重置密码。" : "验证后，新电子邮箱用于登录、接收邀请和重置邮件；原邮箱不再可用。"}</p>${fld("当前密码", "auCurPwd", auInAttrs(input("auCurPwd", "", "", "password"), AU_CUR_PWD), "用于确认是您本人操作")}${fld(
@@ -70240,10 +70329,11 @@ Object.assign(actions, {
       btn("取消", "close") + btn(bind ? "绑定" : "确认更换", "auChangeIdSave", { kind: a.kind }, "primary"),
     );
   },
-  auDlgCode: (a) => {
+  auDlgCode: (a, el) => {
     const v = value("auNewId").trim();
     if (a.kind === "phone" ? !auPhoneKind(v) : !AU_EMAIL.test(v))
       return auFieldErr("auNewId", a.kind === "phone" ? "请输入有效的手机号码" : "请输入有效的电子邮箱");
+    if (a.kind === 'phone') return auDlgSmsSend(v, el);
     if (auDlgCodeLabel(auDlgCodeOf(a.kind, v)).disabled) return;
     (AUX.dlgCode ||= {})[auDlgCodeId(a.kind, v)] = { to: v, until: auNow() + 60e3 };
     // 不再用 formError 传空字符串清空：那样会写出一条只有图标、没有字的红色提示条（第 452 条）；只清掉弹窗底部原有的提示和“请先获取验证码”
@@ -72415,8 +72505,7 @@ function auSendHint(key) {
   const el = document.getElementById('au-' + name + '-hint');
   if (!el) return;
   const limit = AUX.sendLimits[key];
-  const destination = AUX[AU_SMS_KEYS[key][2]];
-  const sentTo = destination && auPhoneIdentity(destination) === auPhoneIdentity(AUX.v[name]) ? '已发送至 ' + auSmsDestination(destination) : '';
+  const sentTo = auSmsSentText(key);
   if (limit && (!limit.retryAt || limit.retryAt > auNow())) {
     const tone = limit.tone || 'warning';
     // A failed, limited or unknown resend to the same number keeps “已发送至…” in place, with the notice below it: the code already sent still works.
@@ -72767,7 +72856,8 @@ document.addEventListener('click', e => {
   if (auHeldPress(e, scrim) || (backdrop && e.detail > 1)) { e.preventDefault(); e.stopImmediatePropagation(); }
 }, true);
 window.addEventListener('beforeunload', e => {
-  const dirty = AUX.applyEditing ? PACOM_AUTH_FLOW.draftDirty(AUX.v, AUX.applied) : !AUX.applied && PACOM_AUTH_FLOW.draftDirty(AUX.v);
+  // A submitted snapshot is retained for result lookup, rather than an unsaved draft.
+  const dirty = !PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) && (AUX.applyEditing ? PACOM_AUTH_FLOW.draftDirty(AUX.v, AUX.applied) : !AUX.applied && PACOM_AUTH_FLOW.draftDirty(AUX.v));
   if (dirty) { e.preventDefault(); e.returnValue = ''; }
 });
 // A press on a form's submit button leaves the field checks to the submission: a message added on blur would push the button from under the pointer.
@@ -72868,13 +72958,14 @@ function auApplyFromRoute() {
   const hash = PACOM_AUTH_FLOW.applyHash(auApplyMode(), U.tab);
   if (location.hash !== hash) history.replaceState(null, '', hash);
 }
-// Back or forward from “修改申请”: an edit still sending or unresolved keeps its form; with nothing in flight, leaving counts as “取消修改”.
+// Browser navigation, like the page's return link, may leave an edit in flight. Keep its own request for lookup on return.
+// With nothing in flight, leaving still counts as “取消修改”.
 function auLeaveEditByHistory(mode) {
   const q = new URLSearchParams(location.hash.split('?')[1] || '');
   if (U.page === 'apply' && !q.get('tab') && (q.get('mode') || mode) === mode) return;
   if (PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest)) {
-    history.pushState(null, '', PACOM_AUTH_FLOW.applyHash(mode));
-    U.page = 'apply'; U.tab = '';
+    auSaveApplyContext();
+    auRememberApplyPending(AUX.applyRequest);
     return;
   }
   auCancelEditState();
@@ -80111,12 +80202,14 @@ Object.assign(AU_SVC, {
   send: (key) => {
     const s = DEMO_FAIL.send;
     DEMO_FAIL.send = "";
-    // 演示服务：每次成功发送的新码替代之前的码（replacesPrevious），与正式服务约定的返回字段相同。
-    if (!s) return { status: "ok", retryAt: auNow() + 60e3, replacesPrevious: true };
+    // 演示服务用 5 分钟期限返回真实回执字段；正式短信有效期须由接入的服务端签发与校验，不由页面推算。
+    // 每次成功发送的新码替代之前的码（replacesPrevious），重发间隔与验证码有效期分别返回。
+    if (!s) { const issuedAt = auNow(); return { status: "ok", retryAt: issuedAt + 60e3, expiresAt: issuedAt + 5 * 60e3, replacesPrevious: true }; }
     if (s === "failed") return { status: "unavailable", message: "暂时无法发送短信验证码，请稍后再试。" };
     const retryAt = s === "limit" ? demoNextDay() : auNow() + 36e5;
     // 全面设计核查第 131 条：替代方式接在同一句末（“，或使用密码登录。”“，或先跳过此步骤。”），每日上限写“请明天再试”（截止为次日 0 点）。
-    return { status: s, retryAt, message: `${s === "limit" ? "今日获取验证码次数已达上限，请明天再试" : `获取验证码过于频繁，请于 ${auFmt(retryAt)} 后再试`}，${AU_SMS_ALT[key] || AU_SMS_ALT.login}。` };
+    const alternative = key === 'changePhone' ? '' : `，${AU_SMS_ALT[key] || AU_SMS_ALT.login}`;
+    return { status: s, retryAt, message: `${s === "limit" ? "今日获取验证码次数已达上限，请明天再试" : `获取验证码过于频繁，请于 ${auFmt(retryAt)} 后再试`}${alternative}。` };
   },
   request: async (operation, payload) => {
     if (DEMO_FAIL.operation === operation) { DEMO_FAIL.operation = ""; return { status: "unavailable" }; }
