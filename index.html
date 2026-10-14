@@ -15845,10 +15845,12 @@ p.ops-work .ops-link {
 }
 /* 无法加载（GLOBAL02；2026-10-08 Account 核查第 37 点）：沿用登录页外框（#app 带 bare-login），英文原文收进可展开的“技术信息” */
 .au-tech {
-  margin-top: 24px;
+  margin: 16px 0 0;
   color: var(--text3);
   font: 400 14px/24px var(--ff);
 }
+#app.bare-booterror .au-group > .au-lead { margin-bottom: 16px; }
+#app.bare-booterror .au-tech + .au-primary { margin-top: 24px; }
 /* 浏览器原文用代码块：#F0F0F0 底、1px 16% 灰边、圆角 6、#030303、内边距 8/12、等宽 12/18（Lovable 核查第 178 条，2026-10-11 用户确认：原为 12/18 #636363，没有底和边） */
 .au-tech > code {
   display: block;
@@ -16414,7 +16416,7 @@ fieldset:disabled .au-primary {
 .au-orglist {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
 }
 .au-orgpick {
   display: flex;
@@ -18806,6 +18808,7 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
 .au .au-char-count { text-align: right; }
 .au .au-notice-text { overflow-wrap: break-word; text-wrap: pretty; }
 #au-retry-status { display: block; min-height: 24px; margin-top: 4px; }
+#au-retry-status:empty { min-height: 0; margin-top: 0; }
 @media (max-width:850px), (pointer:coarse) {
   .au .au-links { min-height: 28px; }
   .au .au-links > .au-textbtn { margin-block: -8px; }
@@ -19273,6 +19276,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
   }
 }
 .au .au-orgpick > .ic { color: var(--text3); }
+.au .au-orgpick > .au-org-enter-chevron { transform: rotate(-90deg); }
 @media (hover: hover) {
   .au .au-orgpick:hover { background: #fafafa; box-shadow: var(--au-card-ring), var(--au-card-xs), var(--au-card-sm); }
   .au .au-orgpick:hover > .ic { color: var(--text); }
@@ -19299,15 +19303,14 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 /* 第 88 条：未订阅的提醒是说明下方单独一条提示条：说明下 16、到第一步 24（提示条本身的颜色与尺寸随全站提示条）。 */
 #app.bare-welcome .au-lead:has(+ .au-welcome-lic) { margin-bottom: 16px; }
 #app.bare-welcome .au-notice.au-welcome-lic { margin: 0 0 24px; }
-/* 全面设计核查第 141 条：机构已暂停使用。标题→说明 12，说明 14/24 #636363，说明→提示条 16（没有提示条时到主按钮 24），提示条→主按钮 24，
-   主按钮→辅助入口 16，辅助入口→折叠 24；折叠用重置密码页的帮助折叠（左对齐，电脑 28 高、触屏 44 高），内容 14/24 #636363，标题下 8、段间 8；
-   折叠到页脚至少 32。提示条颜色、内边距与图标对齐首行随全站提示条。 */
+/* 机构已暂停使用：说明／期限提示→16→默认收起的说明→24→主按钮→16→辅助入口。
+   无主按钮时说明到辅助入口24；折叠电脑28高、触屏44高，内容14/24，段间8。 */
 #app.bare-suspended .au-lead { color: var(--au-muted); font: 400 14px/24px var(--ff); }
-#app.bare-suspended .au-lead:has(+ .au-susp-notice) { margin-bottom: 16px; }
+#app.bare-suspended .au-group > .au-lead { margin-bottom: 16px; }
 #app.bare-suspended .au-notice.au-susp-notice { margin: 0; }
 #app.bare-suspended .au-group > .au-primary { margin-top: 24px; }
-#app.bare-suspended .au-group > .au-lead + .au-links { margin-top: 24px; }
-#app.bare-suspended .au-susp-more { margin: 24px 0 32px; color: var(--au-muted); font: 400 14px/24px var(--ff); }
+#app.bare-suspended .au-group > .au-susp-more + .au-links { margin-top: 24px; }
+#app.bare-suspended .au-susp-more { margin: 16px 0 0; color: var(--au-muted); font: 400 14px/24px var(--ff); }
 #app.bare-suspended .au-susp-more summary { min-height: 28px; }
 #app.bare-suspended .au-susp-more summary:focus-visible { outline: 2px solid #00AEEF; outline-offset: 2px; border-radius: 4px; }
 #app.bare-suspended .au-susp-more p { margin: 8px 0 0; font: 400 14px/24px var(--ff); }
@@ -39118,15 +39121,15 @@ async function boot() {
 }
 // 无法加载：浏览器不允许读取或保存站点数据，或数据读取失败（GLOBAL02）。
 // 与登录页同一外框和尺寸（2026-10-08 Account 核查第 37 点）：Logo 110×25 在左上、标题 30px 左对齐、全宽主按钮“重新加载”、同样的背景与页脚，
-// 右侧画面加载不到时只显示底色；中文说明不变，英文原文收进可展开的“技术信息”；浏览器标签为“无法加载 · PACOM Station”。
+// 右侧画面加载不到时只显示底色；中文说明不变，英文原文收进主按钮上方默认收起的“技术信息”。
 // 启动时同步出错（脚本仍在加载）时等全部脚本就绪后再绘制：页脚在 auth-ui.js 中（只含部分模块的测试构建没有页脚）。
 function bootError(e) {
   const paint = () => {
     closePop();
-    document.title = "无法加载 · PACOM Station";
+    document.title = "页面加载失败 · PACOM Station";
     $("#app").className = "bare bare-login bare-booterror";
     $("#app").innerHTML =
-      `<div class="au au-split"><section class="au-left"><div class="au-center"><main class="au-group" role="alert"><div class="au-logo">${A.logo}</div><h1 class="au-h1">无法加载 PACOM Station</h1><p class="au-lead">浏览器没有允许本站点读取或保存数据，或数据读取失败。请检查浏览器的站点数据设置，然后重新加载。</p><button type="button" class="au-primary au-compact-primary" onclick="location.reload()">重新加载</button><details class="au-tech"><summary>技术信息</summary><code>${esc(e?.message || String(e))}</code></details></main></div>${typeof auFooter === "function" ? auFooter() : ""}</section><aside class="au-art" aria-hidden="true"><img src="${A.img_auth}" alt="" onerror="this.hidden = true"></aside></div>`;
+      `<div class="au au-split"><section class="au-left"><div class="au-center"><main class="au-group" role="alert"><div class="au-logo">${A.logo}</div><h1 class="au-h1">页面加载失败</h1><p class="au-lead">浏览器没有允许本站点读取或保存数据，或数据读取失败。请检查浏览器的站点数据设置，然后重新加载。</p><details class="au-tech"><summary>技术信息</summary><code>${esc(e?.message || String(e))}</code></details><button type="button" class="au-primary au-compact-primary" onclick="location.reload()">重新加载</button></main></div>${typeof auFooter === "function" ? auFooter() : ""}</section><aside class="au-art" aria-hidden="true"><img src="${A.img_auth}" alt="" onerror="this.hidden = true"></aside></div>`;
     // 与账户页相同的按钮质感、页脚排法与右侧留白（auth-ui.js；只含部分模块的测试构建没有）
     if (typeof auEnhance === "function") auEnhance($("#app"));
     netBanner();
@@ -68065,7 +68068,7 @@ BARE.orgs = () => {
         // read “查看原因”（2026-10-09 用户确认，ABB 对比 BP34）. 名称后用工作区的中性状态徽章“已暂停”，角色行只写角色，
         // 机构管理员写“机构管理员 · 查看原因”；标识 40（Lovable 核查第 82、85 条，2026-10-10 用户确认）。
         (o) =>
-          `<button type="button" class="au-orgpick" data-act="auEnter" data-org="${o.id}" ${shown.includes(o) ? "" : "hidden"}>${auMark(o, 40)}<span class="au-orgpick-t"><span class="au-orgpick-n"><b>${esc(o.name)}</b>${AUTH.orgs[o.id]?.suspended ? `<span class="chip">已暂停</span>` : ""}</span><small>${auSegs([auRole(o.role), AUTH.orgs[o.id]?.suspended && o.role === "admin" ? `<span class="au-suspended-hint">查看原因</span>` : ""])}</small></span>${ico("au-arrow", "ic16")}</button>`,
+          `<button type="button" class="au-orgpick" data-act="auEnter" data-org="${o.id}" ${shown.includes(o) ? "" : "hidden"}>${auMark(o, 40)}<span class="au-orgpick-t"><span class="au-orgpick-n"><b>${esc(o.name)}</b>${AUTH.orgs[o.id]?.suspended ? `<span class="chip">已暂停</span>` : ""}</span><small>${auSegs([auRole(o.role), AUTH.orgs[o.id]?.suspended && o.role === "admin" ? `<span class="au-suspended-hint">查看原因</span>` : ""])}</small></span>${ico("chevron", "ic16 au-org-enter-chevron")}</button>`,
       )
       .join("")}</div>${search ? `<p class="au-hint au-orgsearch-empty" role="status">${shown.length ? "" : "没有找到匹配的机构"}</p>` : ""}<div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">使用其他账户登录</button></div>`,
   );
@@ -68092,6 +68095,7 @@ const auOtherOrgs = (except) => auMyOrgs().filter((o) => o.id !== except && !AUT
 // 账户核查第 29 条：原为“请于 {日期}前完成续期”，容易读成不含当天），
 // 主按钮“续期”（仍进入机构设置 › 许可与用量），下方居中“选择其他机构 · 联系支持 · 退出登录”（没有其他可用机构时不写前一项和圆点）。
 // 其余说明收进默认收起的“暂停期间的功能与数据说明”，所有角色都有（第 4 处），只有机构管理员看到导出那句（第 3、4 处）。
+// 2026-10-14 用户确认：折叠说明放在说明／期限提示之后、原主按钮与辅助入口之前；原文、角色与去处不变。
 // 非机构管理员不写原因和日期，有其他机构时主按钮“选择其他机构”，没有时只有“退出登录”（第 5 处）；机构管理员其他原因写原因、指向 PACOM 支持，
 // 不承诺自动恢复，不提删除，主按钮“选择其他机构”或“联系支持”。机构名称取数据，不加粗。
 BARE.suspended = () => {
@@ -68123,7 +68127,7 @@ BARE.suspended = () => {
     : `<button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button>`;
   const data = (expiry ? (admin ? "删除前运行数据继续保存。" : "运行数据继续保存。") : "运行数据继续保存，不会删除。") + (admin ? "如需导出，请联系 PACOM 支持。" : "");
   const more = `<details class="au-help au-susp-more"><summary tabindex="0">暂停期间的功能与数据说明</summary><p>暂停期间，平台远程功能暂不可用。</p><p>现场网关和设备正常时，已下发的本地控制可继续运行。</p><p>${data}</p></details>`;
-  return auStatusShell(`<h1 class="au-h1">机构已暂停使用</h1><p class="au-lead">${lead}</p>${notice}${primary}<div class="au-links">${links}</div>${more}`);
+  return auStatusShell(`<h1 class="au-h1">机构已暂停使用</h1><p class="au-lead">${lead}</p>${notice}${more}${primary}<div class="au-links">${links}</div>`);
 };
 BARE_AFTER.suspended = () => (document.title = "机构已暂停使用 · PACOM Station");
 BARE.removed = () => {
@@ -69178,6 +69182,16 @@ const AU_GUIDE_URL = "";
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "1.88",
+    date: "2026-10-14",
+    notes: [
+      "选择机构：机构卡片间距调整为 16px，右侧改用统一的进入箭头。",
+      "机构已暂停使用：暂停期间的功能与数据说明移至主按钮上方，默认收起；各角色原有说明和操作保持不变。",
+      "服务状态页：没有检查结果时不预留空白，联系支持按既定间距显示。",
+      "页面加载失败：原加载异常页标题调整为“页面加载失败”，技术信息移至主按钮上方，默认收起。",
+    ],
+  },
   {
     version: "1.87",
     date: "2026-10-14",
@@ -81281,7 +81295,7 @@ const DEMO_ITEMS = [
   [
     "工作区",
     "booterror",
-    "无法加载",
+    "页面加载失败",
     "浏览器不允许读取或保存站点数据",
     () => {
       DEMO.stateOn = true;
