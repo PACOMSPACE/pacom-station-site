@@ -15005,7 +15005,8 @@ p.ops-work .ops-link {
 .ops-overview-tabs::-webkit-scrollbar { display: none; }
 .ops-overview-tabs > .seg {
   --overview-tab-border: color-mix(in srgb, var(--accent) 80%, #000);
-  --overview-tab-fill: color-mix(in srgb, var(--accent) 10%, #fff);
+  --overview-tab-fill: color-mix(in srgb, var(--accent) 16%, #fff);
+  --overview-tab-foreground: color-mix(in srgb, var(--accent) 55%, #000);
   display: flex;
   width: max-content;
   max-width: none;
@@ -15013,9 +15014,14 @@ p.ops-work .ops-link {
   height: 32px;
   padding: 0;
   background: #f0f0f0;
-  box-shadow: inset 0 0 0 1px #dedede;
+  box-shadow: inset 0 0 0 1px #dedede, inset 0 2px 2px -1px #00000005, inset 0 4px 4px -2px #00000005, 0 1px 1px #ffffffcc;
 }
 .ops-overview-tabs > .seg > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-inline: 16px;
+  white-space: nowrap;
   height: 32px;
   min-height: 32px;
   font-size: 14px;
@@ -15026,10 +15032,21 @@ p.ops-work .ops-link {
   background: #0000000a;
   color: var(--text2);
 }
-.ops-overview-tabs > .seg > button.on { color: var(--text); }
+.ops-overview-tabs > .seg > button.on { color: var(--overview-tab-foreground); }
+.ops-overview-tabs > .seg > button:not(:first-of-type)::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 1px;
+  height: 12px;
+  background: #dedede;
+  transition: opacity 80ms;
+}
+.ops-overview-tabs > .seg > :is(button.on, button.on + button)::before { opacity: 0; }
 .ops-overview-tabs > .seg > :is(button.on, .seg-thumb) {
-  background: var(--overview-tab-fill);
-  box-shadow: inset 0 0 0 1px var(--overview-tab-border);
+  background: linear-gradient(to bottom, transparent, #0000000a), var(--overview-tab-fill);
+  box-shadow: inset 0 0 0 1px var(--overview-tab-border), inset 0 1px 0 #ffffff7a, inset 0 -1px 0 #ffffff29, 0 2px 2px -1px color-mix(in srgb, var(--accent) 8%, transparent), 0 4px 4px -2px color-mix(in srgb, var(--accent) 8%, transparent);
 }
 .ops-overview-tabs > .seg > .seg-thumb {
   top: 0;
@@ -15040,6 +15057,9 @@ p.ops-work .ops-link {
 .ops-overview-tabs > .seg.has-thumb > button.on {
   background: none;
   box-shadow: none;
+}
+.ops-overview-tabs > .seg.anim > .seg-thumb {
+  transition: transform 150ms ease-out, width 150ms ease-out;
 }
 .ops-overview-tabs > .seg > button:active { background: #0000000f; }
 .ops-overview-meta {
@@ -15095,11 +15115,29 @@ p.ops-work .ops-link {
   .ops-overview-location > .ws-page-more { display: grid; flex: none; width: 44px; height: 44px; }
   .ops-overview-tabs { flex-basis: 100%; }
   .ops-overview-tabs > .seg { margin-inline: auto; }
+  .ops-overview-tabs > .seg > button {
+    transition: gap 340ms cubic-bezier(.32,.72,0,1), color 150ms ease-out;
+  }
+  .ops-overview-tabs > .seg > button > .ops-overview-tab-label {
+    flex: none;
+    width: var(--overview-label-width);
+    overflow: hidden;
+    opacity: 1;
+    transition: width 340ms cubic-bezier(.32,.72,0,1), opacity 150ms ease-out;
+  }
+  .ops-overview-tabs > .seg > button:not(.on) { gap: 0; }
+  .ops-overview-tabs > .seg > button:not(.on) > .ops-overview-tab-label { width: 0; opacity: 0; }
   .ops-overview-meta > .ops-live { flex: 1 1 180px; }
   .ops-statistics-basis .kv { grid-template-columns: 1fr; gap: 4px; }
   .ops-statistics-basis .kv dd + dt { margin-top: 8px; }
 }
-/* 更窄的手机仅放宽页签行可用空间，保留五个名称、字号和按钮横向留白。 */
+@media (prefers-reduced-motion: reduce) {
+  .ops-overview-tabs > .seg > button,
+  .ops-overview-tabs > .seg > button::before,
+  .ops-overview-tabs > .seg > button > .ops-overview-tab-label,
+  .ops-overview-tabs > .seg.anim > .seg-thumb { transition: none; }
+}
+/* 更窄的手机仅放宽页签行可用空间，保留图标、选中名称、字号和横向留白。 */
 @media (max-width: 359.98px) {
   .ops-overview-tabs {
     flex-basis: calc(100% + 48px);
@@ -34623,7 +34661,9 @@ function overviewPageActions() {
 }
 function overviewHeader(tab, live = "") {
   const more = menuTrigger(iconBtn("更多", "more", "pageMore", { pageactions: "overviewTitleActions" })).replace('class="iconbtn round"', 'class="iconbtn round ws-page-more"');
-  return `<div class="ops-overview-nav"><div class="ops-overview-location">${scopeControl()}${more}</div><div class="ops-overview-tabs">${segSm(overviewTabs, tab, "tab", "wsPagePanel", "总览页签")}</div></div>${live || tab === "energy" ? `<div class="ops-overview-meta">${live}${tab === "energy" ? btn("统计口径", "overviewBasis") : ""}</div>` : ""}`;
+  const icons = { general: "dir-grid", lighting: "bulb", hvac: "ac", environment: "aq", energy: "meter" };
+  const items = overviewTabs.map(([id, label]) => [id, `<span class="sr-only">${esc(label)}</span>${ico(icons[id], "ic16")}<span class="ops-overview-tab-label" aria-hidden="true" style="--overview-label-width:${label.length}em">${esc(label)}</span>`]);
+  return `<div class="ops-overview-nav"><div class="ops-overview-location">${scopeControl()}${more}</div><div class="ops-overview-tabs">${segSm(items, tab, "tab", "wsPagePanel", "总览页签")}</div></div>${live || tab === "energy" ? `<div class="ops-overview-meta">${live}${tab === "energy" ? btn("统计口径", "overviewBasis") : ""}</div>` : ""}`;
 }
 // 视图切换是一组按钮，名称“视图”（Lovable 核查第 344 条，2026-10-11 用户确认）
 const views = () =>
@@ -39526,6 +39566,8 @@ document.addEventListener("transitionend", (e) => {
       Renders replace the DOM, so the last position is remembered per option set and animated from there.
    2) Dialog: header / footer rules only appear when the body is scrolled (lovable dialogs have no fixed rules). */
 const SEG_POS = new Map();
+const OVERVIEW_TAB_VIEW = new WeakMap();
+const OVERVIEW_TAB_RESIZE = new WeakMap();
 function syncSegs() {
   document.querySelectorAll(".seg").forEach((seg) => {
     const on = seg.querySelector(":scope > button.on, :scope > button[aria-selected=true]");
@@ -39538,6 +39580,23 @@ function syncSegs() {
     const w = on.offsetWidth,
       x = on.offsetLeft;
     if (!w) return;
+    // Only reveal a newly selected overview category or respond to a width change;
+    // ordinary redraws must not undo a user's manual horizontal browsing.
+    const view = seg.closest(".ops-overview-tabs");
+    if (view) {
+      if (typeof ResizeObserver === "function" && !OVERVIEW_TAB_RESIZE.has(seg)) {
+        const observer = new ResizeObserver(scheduleSegs);
+        seg.querySelectorAll(":scope > button").forEach((button) => observer.observe(button));
+        OVERVIEW_TAB_RESIZE.set(seg, observer);
+      }
+      const state = `${on.dataset.value}|${view.clientWidth}|${w}|${x}`;
+      if (OVERVIEW_TAB_VIEW.get(view) !== state) {
+        const box = view.getBoundingClientRect(), item = on.getBoundingClientRect();
+        if (item.left < box.left) view.scrollLeft -= box.left - item.left;
+        else if (item.right > box.right) view.scrollLeft += item.right - box.right;
+        OVERVIEW_TAB_VIEW.set(view, state);
+      }
+    }
     if (!th) {
       th = document.createElement("span");
       th.className = "seg-thumb";
@@ -69581,6 +69640,13 @@ const AU_GUIDE_URL = "";
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "1.92",
+    date: "2026-10-15",
+    notes: [
+      "总览：类别页签增加统一图标和两侧留白，保持32px高度；手机仅展开选中类别的名称，其他类别保留图标，切换时胶囊与文字同步过渡。",
+    ],
+  },
   {
     version: "1.91",
     date: "2026-10-15",
