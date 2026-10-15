@@ -14963,7 +14963,7 @@ p.ops-work .ops-link {
   text-align: left;
 }
 
-/* 总览主导航与统计口径（2026-10-15）：复用既有32/26紧凑页签和32次按钮。 */
+/* 总览主导航与统计口径（2026-10-15）：总览独立32/32页签和32次按钮。 */
 .phead > .ws-overview-title-actions {
   display: flex;
   align-items: center;
@@ -15004,12 +15004,44 @@ p.ops-work .ops-link {
 }
 .ops-overview-tabs::-webkit-scrollbar { display: none; }
 .ops-overview-tabs > .seg {
+  --overview-tab-border: color-mix(in srgb, var(--accent) 80%, #000);
+  --overview-tab-fill: color-mix(in srgb, var(--accent) 10%, #fff);
   display: flex;
   width: max-content;
   max-width: none;
   overflow: visible;
+  height: 32px;
+  padding: 0;
+  background: #f0f0f0;
+  box-shadow: inset 0 0 0 1px #dedede;
 }
-.ops-overview-tabs > .seg > button { line-height: 24px; }
+.ops-overview-tabs > .seg > button {
+  height: 32px;
+  min-height: 32px;
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--text3);
+}
+.ops-overview-tabs > .seg > button:not(.on):hover {
+  background: #0000000a;
+  color: var(--text2);
+}
+.ops-overview-tabs > .seg > button.on { color: var(--text); }
+.ops-overview-tabs > .seg > :is(button.on, .seg-thumb) {
+  background: var(--overview-tab-fill);
+  box-shadow: inset 0 0 0 1px var(--overview-tab-border);
+}
+.ops-overview-tabs > .seg > .seg-thumb {
+  top: 0;
+  bottom: auto;
+  height: 32px;
+  margin: 0;
+}
+.ops-overview-tabs > .seg.has-thumb > button.on {
+  background: none;
+  box-shadow: none;
+}
+.ops-overview-tabs > .seg > button:active { background: #0000000f; }
 .ops-overview-meta {
   display: flex;
   flex-wrap: wrap;
@@ -15053,7 +15085,7 @@ p.ops-work .ops-link {
   .ws-overview-title-actions > .btn::after,
   .ops-overview-location > .ws-location::after { content: ""; position: absolute; inset: -6px 0; }
   .ws-overview-title-actions > .btn::after { inset-block: -6px; }
-  .ops-overview-tabs > .seg > button::after { content: ""; position: absolute; inset: -9px 0; }
+  .ops-overview-tabs > .seg > button::after { content: ""; position: absolute; inset: -6px 0; }
   .ops-statistics-project > summary { min-height: 44px; display: flex; align-items: center; }
 }
 @media (max-width: 599.98px) {
@@ -15066,6 +15098,14 @@ p.ops-work .ops-link {
   .ops-overview-meta > .ops-live { flex: 1 1 180px; }
   .ops-statistics-basis .kv { grid-template-columns: 1fr; gap: 4px; }
   .ops-statistics-basis .kv dd + dt { margin-top: 8px; }
+}
+/* 更窄的手机仅放宽页签行可用空间，保留五个名称、字号和按钮横向留白。 */
+@media (max-width: 359.98px) {
+  .ops-overview-tabs {
+    flex-basis: calc(100% + 48px);
+    max-width: calc(100% + 48px);
+    margin-inline: -24px;
+  }
 }
 
 }
@@ -69541,6 +69581,13 @@ const AU_GUIDE_URL = "";
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "1.91",
+    date: "2026-10-15",
+    notes: [
+      "总览：类别页签采用平齐的32px轨道与选中胶囊，五个名称常显，文字14/24；以浅蓝底和蓝色轮廓标识选中，保留键盘切换及触屏点击范围。",
+    ],
+  },
   {
     version: "1.90",
     date: "2026-10-15",
