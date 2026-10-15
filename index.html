@@ -5159,6 +5159,18 @@ details[open] > summary::before {
   padding: 6px 8px;
   margin: 0;
 }
+.ws-location-empty {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  font-size: 14px;
+  line-height: 21px;
+  color: #636363;
+}
+.ws-location-empty[hidden] { display: none; }
+@media (max-width: 850px), (pointer: coarse) {
+  .ws-location-empty { min-height: 44px; }
+}
 #pop.ws-todo-popbox {
   width: min(480px, calc(100vw - 16px));
 }
@@ -5560,6 +5572,18 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   color: #636363;
 }
 
+
+/* 页头更多操作与正式工作区共用，按原断点呈现。 */
+.ws-page-acts { display: contents; }
+.ws-toolbar > .ops-live + .ws-page-acts > .btn:first-child { margin-left: 8px; }
+.ws-toolbar > .ws-page-more { display: none; }
+@media (max-width: 599.98px) {
+  .pbody > .ws-toolbar > .sp,
+  .pbody > .ws-toolbar > .ws-page-acts { display: none; }
+  .pbody > .ws-toolbar:has(> .ws-page-more) > .ws-location-group { width: calc(100% - 52px); }
+  .pbody > .ws-toolbar > .ws-page-more { display: grid; order: 1; }
+  .pbody > .ws-toolbar > .ops-live { order: 2; width: 100%; margin-top: -4px; }
+}
 
 }
 /* 配置 › 项目模块样式（2026-10-03 D3 按组件整理，取代 workspace.css 中按日期追加的批次）。
@@ -15744,6 +15768,19 @@ p.ops-work .ops-link {
   flex-direction: column;
   overflow: hidden;
 }
+/* 手机面板属于正式共用样式；演示条的额外避让仅在演示层覆盖。 */
+@media (max-width: 599.98px) {
+  #ai-pal {
+    inset: auto;
+    top: var(--ai-viewport-top, 0px);
+    left: var(--ai-viewport-left, 0px);
+    width: var(--ai-viewport-width, 100vw);
+    height: var(--ai-viewport-height, 100dvh);
+    padding: 8px;
+  }
+  #ai-pal > .ai-pal { height: calc(var(--ai-viewport-height, 100dvh) - 16px); max-height: none; }
+  #ai-pal > .ai-pal > .ai-pal-body { flex: 1; min-height: 0; }
+}
 @keyframes aiIn {
   from {
     opacity: 0;
@@ -16269,6 +16306,15 @@ p.ops-work .ops-link {
 .ops-legend i.ai-al.rec {
   background: #fff;
   box-shadow: inset 0 0 0 1.5px var(--c);
+}
+
+/* 手机与触屏搜索关闭入口属于正式共用组件。 */
+.ai-pal-x { display: none; }
+@media (max-width: 850px), (pointer: coarse) {
+  .ai-pal-in { padding-right: 6px; }
+  .ai-pal-x { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 8px; background: none; box-shadow: none; color: var(--text3); }
+  .ai-pal-x:hover { background: var(--hover); color: var(--text); }
+  .ai-pal-x:active { background: var(--sel); color: var(--text); }
 }
 
 }
@@ -16973,8 +17019,8 @@ fieldset:disabled .au-primary {
   display: inline-grid;
   place-items: center;
   flex: none;
-  background: #e6eef7;
-  color: #1c5cab;
+  background: rgb(119 119 113 / 0.16);
+  color: #2e2e2e;
   font-weight: 600;
   line-height: 1;
 }
@@ -19745,7 +19791,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .au .au-locked .au-static { display: block; height: auto; min-height: 0; margin: 0; padding: 0; border-radius: 0; background: none; box-shadow: none; color: var(--text2); font: 400 16px/24px var(--ff); overflow-wrap: anywhere; }
 /* 第 78 条：只有一个文字入口时（“返回工作区”“返回选择机构”），文字与说明左端对齐。 */
 .au .au-done-more.au-done-solo > .au-textbtn { margin-left: -4px; }
-/* 第 82、83 条：上传的机构标识放进同尺寸的白色底块（1px 黑 6% 内描边，四周留 4）；没上传时首字的浅蓝底蓝字保持，字重 480。 */
+/* 第 82、83 条：上传的机构标识放进同尺寸的白色底块（1px 黑 6% 内描边，四周留 4）；没上传时首字的中性灰底灰字保持，字重 480。 */
 .au-mark-box { display: inline-grid; place-items: center; flex: none; box-sizing: border-box; background: #fff; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .06); }
 .au-mark-box > .au-mark-img { display: block; margin: 0; }
 .au-mark-box > .au-mark-img.orig { object-fit: contain; }
@@ -20107,6 +20153,16 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 @media (pointer: coarse) {
   .au-subnav button { height:44px; min-height:44px; }
 }
+/* 抽屉机构菜单的宽度约束同时适用于正式工作区。 */
+#pop.au-menu-drawer { width: 264px; max-width: calc(100vw - 16px); }
+#pop.au-menu-drawer .au-menu { width: auto; }
+
+/* 机构入口与窄菜单的正式共用状态，演示层不重复定义。 */
+.collapsed .orgbtn .ws-org-logo > :is(.au-mark, .au-mark-box) { display: inline-grid; }
+.au-orgbtn.on { background: var(--sel); color: var(--text); }
+.au-orgbtn.on:hover { background: linear-gradient(var(--hover), var(--hover)), var(--sel); }
+.au-aicard-h { flex-wrap: wrap; row-gap: 0; }
+.au-aicard-h > :is(b, small) { white-space: nowrap; }
 
 }
 @layer base {
@@ -25787,25 +25843,11 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
 }
 /* 第 9 条（方案 A）：页头的整页按钮（pageActs）。宽屏照旧排在工具栏右端；屏宽 600 以下收进位置选择右边 44 宽的“更多”（间隔 8），
    “数据截至…”是位置选择下面的一行 12/18 小字（距位置选择 8），工具栏约 70 高（原先总览三行 156 高、设备两行 100 高）。 */
-.ws-page-acts { display: contents; }
-.ws-toolbar > .ops-live + .ws-page-acts > .btn:first-child { margin-left: 8px; }
-.ws-toolbar > .ws-page-more { display: none; }
-@media (max-width: 599.98px) {
-  .pbody > .ws-toolbar > .sp,
-  .pbody > .ws-toolbar > .ws-page-acts { display: none; }
-  .pbody > .ws-toolbar:has(> .ws-page-more) > .ws-location-group { width: calc(100% - 52px); }
-  .pbody > .ws-toolbar > .ws-page-more { display: grid; order: 1; }
-  .pbody > .ws-toolbar > .ops-live { order: 2; width: 100%; margin-top: -4px; }
-}
 /* 第 13 条：手机上（屏宽 600 以下）“搜索或提问”面板距屏幕四边 8，高度为屏高减 16（390×844 时 374×828），回答区可见高度约为原来的 2.5 倍；
    电脑和平板仍是 768 宽、最高 480（第 136 条）。显示演示层时与弹窗一样从距顶 80 开始（演示条在遮罩之上，G-9），高度为屏高减 88。 */
 @media (max-width: 599.98px) {
-  #ai-pal,
-  body:has(.demo-cap) > #ai-pal { padding: 8px; }
-  #ai-pal > .ai-pal { height: calc(100dvh - 16px); max-height: none; }
   body:has(.demo-cap) > #ai-pal { padding-top: 80px; }
-  body:has(.demo-cap) > #ai-pal > .ai-pal { height: calc(100dvh - 88px); max-height: none; }
-  #ai-pal > .ai-pal > .ai-pal-body { flex: 1; min-height: 0; }
+  body:has(.demo-cap) > #ai-pal > .ai-pal { height: calc(var(--ai-viewport-height, 100dvh) - 88px); max-height: none; }
 }
 /* 第 23 条：弹层里的无结果行统一为 14/21 #636363，行高和同一弹层的其他行相同（位置选择与切换 32、“搜索或提问”36，触屏和窄屏 44），
    文字左边和行文字对齐。原先位置选择的“没有匹配的位置”12/18、左边没有缩进；切换项目的“没有找到匹配的项目或空间”行高 22.4、上下留白 6；
@@ -25830,30 +25872,15 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
 .pbody > :is(.seg, .ops-tabs-row) + .ws-tabpanel > :is(.ops-scope-note, .flow-filter-sum):first-child { margin-top: 20px; }
 /* 侧栏收起成图标栏时，机构入口仍显示机构标识（上传的标识或首字）。原先“收起时隐藏机构入口里的文字”的规则也藏掉了标识本身，
    图标栏左下角是空的；851–1199 宽默认收起后（第 5 条）每台平板都会看到，一并改正。 */
-.collapsed .orgbtn .ws-org-logo > :is(.au-mark, .au-mark-box) { display: inline-grid; }
 /* 第 15 条：没有上传标识的机构，首字标识用和个人头像相同的配色（第 442 条：浅灰底 #777771 16%、#2E2E2E 字），圆角不变；
    机构菜单、我的账户 › 我的机构、选择机构页与侧栏左下角的机构入口共用（原为浅蓝底、#1C5CAB 蓝字，蓝色只表示选中和聚焦）。 */
-.au-mark { background: rgb(119 119 113 / 0.16); color: #2e2e2e; }
 /* 第 72 条：在机构设置、我的账户各页时，左下角的机构入口用侧栏菜单行的选中样式：8% 灰底、文字 #030303；再悬停时 8% 上叠 4%（同 .navitem.on）。 */
-.au-orgbtn.on { background: var(--sel); color: var(--text); }
-.au-orgbtn.on:hover { background: linear-gradient(var(--hover), var(--hover)), var(--sel); }
 /* 第 8 条：从窄屏抽屉里打开机构菜单时，菜单（含弹层内边距 8）宽 264 = 抽屉 280 − 16，左右各留 8（auPlaceMenu）。 */
-#pop.au-menu-drawer { width: 264px; max-width: calc(100vw - 16px); }
-#pop.au-menu-drawer .au-menu { width: auto; }
 /* 菜单变窄时“AI 用量 · 已用 34%”与重置时间各自整体换行，不在“34%”“重置”中间断开。 */
-.au-aicard-h { flex-wrap: wrap; row-gap: 0; }
-.au-aicard-h > :is(b, small) { white-space: nowrap; }
 
 /* ---- 2026-10-12 搜索与提问、帮助的补充核查（交互核查第 1–13 条）---- */
 /* 第 4 条：窄屏（≤850）与触屏上“搜索或提问”输入框右侧有“关闭”，点按范围 44×44，透明按钮、16 图标 #636363；
    电脑上仍只显示“esc”键帽。原先窄屏与触屏既没有关闭按钮，也不显示“esc”，只能点遮罩，手机上面板几乎铺满，遮罩点不到。 */
-.ai-pal-x { display: none; }
-@media (max-width: 850px), (pointer: coarse) {
-  .ai-pal-in { padding-right: 6px; }
-  .ai-pal-x { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 8px; background: none; box-shadow: none; color: var(--text3); }
-  .ai-pal-x:hover { background: var(--hover); color: var(--text); }
-  .ai-pal-x:active { background: var(--sel); color: var(--text); }
-}
 /* 第 5 条：触屏上“回答范围”按钮外观仍 24 高，所在一行撑到 44，按钮上下各外扩 10，点按范围 44 高且不压到上面的问题和下面的正文；
    范围菜单的选项行 44 高。 */
 @media (max-width: 850px), (pointer: coarse) {
@@ -34596,8 +34623,25 @@ function pop(anchor, html, wide = false, options = {}) {
   };
   p.place();
   anchor.setAttribute("aria-expanded", "true");
-  if (!options.passive) p.querySelector("input,button")?.focus();
+  if (!options.passive) wsFocusables(p)[0]?.focus();
   Promise.resolve().then(() => wsPopIn(p));
+}
+// 手机“更多”的触发按钮跨断点消失时，焦点跟随同一个实际操作，不落到 body。
+function wsCloseHiddenPageMore(panel) {
+  if (!panel?.pageMore) return false;
+  const focused = document.activeElement, ownedFocus = panel.contains(focused) || focused === panel.anchor;
+  const values = panel.contains(focused) ? { ...focused.closest("button")?.dataset } : null;
+  const original = panel.pageMore.group, groupId = original?.id;
+  closePop();
+  if (ownedFocus) requestAnimationFrame(() => {
+    const current = document.activeElement;
+    if (current && current !== document.body && current.isConnected && current !== focused && current !== panel.anchor) return;
+    const group = groupId ? document.getElementById(groupId) : original?.isConnected ? original : null;
+    const buttons = group ? wsFocusables(group) : [];
+    const target = values?.act ? buttons.find(b => Object.entries(values).every(([key, value]) => b.dataset[key] === value)) : buttons[0];
+    (target || buttons[0] || $(".ws-location"))?.focus({ preventScroll: true });
+  });
+  return true;
 }
 let modalFocus = null,
   modalDirty = false,
@@ -34886,6 +34930,7 @@ function snapshot() {
     q: U.q,
     zone: U.zone,
     buildingZoom: U.buildingZoom,
+    ...Object.fromEntries(["opsRange", "opsFrom", "opsTo", "opsGran", "opsMeter", "opsHealthAlarm"].filter(k => U[k] != null).map(k => [k, U[k]])),
     scroll: $("#pbody")?.scrollTop || 0,
   };
 }
@@ -34893,6 +34938,12 @@ function snapshot() {
 // （全面设计核查第 34 条（2026-10-12 用户确认）；原先设备标记对所有角色都默认“标记”，他们却不能编辑）。
 function floorDefaultMode(page) {
   return ["projects", "deployment"].includes(page) || !canEdit() ? "view" : "mark";
+}
+function normalizeDeviceMode(page = U.page, mode = U.mode) {
+  if (page !== "devices") return mode;
+  if (mode === "zones") mode = "mark";
+  if (!["view", "mark", "relations", "roles", "health"].includes(mode)) return floorDefaultMode(page);
+  return !canEdit() && ["mark", "relations"].includes(mode) ? "view" : mode;
 }
 function route(page, scope = {}, opts = {}) {
   guard(() => {
@@ -34949,10 +35000,17 @@ function route(page, scope = {}, opts = {}) {
         badPath: "",
         alarmDevice: null,
         alarmZone: null,
+        opsHealthAlarm: null,
       },
       scope,
     );
     if (opts.restore && U.memory[page]) Object.assign(U, U.memory[page]);
+    // 普通侧栏返回只恢复本页偏好，不把一次来源下钻重新带入；显式来源返回仍按scope恢复。
+    if (opts.restore && U.opsHealthAlarm && !("opsHealthAlarm" in scope)) {
+      U.opsHealthAlarm = null;
+      U.opsAlType = "all";
+    }
+    U.mode = normalizeDeviceMode(page, U.mode);
     if (page === "devices" && !U.tab) U.tab = deviceDefaultTab();
     if (page === "deployment") Object.assign(U, { b: null, f: null, zone: null, net: null, view: "cards", mode: "view", tab: U.tab === "params" ? "params" : "status" });
     // 来源返回：从配置进度、配置参数、设备、总览进入项目空间时记住来源；回到来源、离开项目、换项目或上行到全部项目时清除。
@@ -34973,6 +35031,7 @@ function route(page, scope = {}, opts = {}) {
   });
 }
 function syncRoute(replace = false) {
+  U.mode = normalizeDeviceMode(U.page, U.mode);
   const q = new URLSearchParams();
   if (BARE[U.page]) {
     const bq = new URLSearchParams();
@@ -35014,7 +35073,6 @@ function readRoute() {
     U.mode = "mark";
   }
   if (U.page === "projects") U.mode = "view";
-  if (U.page === "devices" && U.mode === "zones") U.mode = "mark";
   // 功能区地址：只有 z 时直接进入其所在楼层；z 不属于当前楼层时忽略，不跳到别的楼层。
   U.zone = q.get("z") || null;
   const routeZone = U.zone ? g("zones", U.zone) : null;
@@ -35034,7 +35092,9 @@ function readRoute() {
     U.net = null;
     if (U.tab === "network") U.tab = "status";
   }
-  let fixed = false;
+  const normalizedMode = normalizeDeviceMode(U.page, U.mode);
+  let fixed = normalizedMode !== U.mode;
+  U.mode = normalizedMode;
   if (U.page === "projects" && ["status", "params"].includes(U.tab)) {
     U.page = "deployment";
     U.mode = "view";
@@ -35417,6 +35477,8 @@ function memberGuard() {
   syncRoute(true);
 }
 function render() {
+  const normalizedMode = normalizeDeviceMode();
+  if (normalizedMode !== U.mode) { U.mode = normalizedMode; syncRoute(true); }
   // 无效主类地址统一回当前页默认项；碳明细是能源的合法深链，不被主类归一化移除。
   const categoryItems = pageCategoryItems(U.page);
   if (categoryItems.length && U.tab && !(U.page === "analysis" && U.tab === "carbon") && !categoryItems.some(([id]) => id === U.tab)) {
@@ -35505,13 +35567,20 @@ const MOBILE_MQ = typeof matchMedia === "function" ? matchMedia("(max-width: 850
 const isMobile = () => !!MOBILE_MQ?.matches;
 const shellClass = () => (U.collapsed && !isMobile() ? "collapsed" : "");
 // 侧栏默认收起与否按宽度分两档（全面设计核查第 5 条，2026-10-12 用户确认：原先所有宽度默认展开，1024 平板横放时内容区只剩 703）：
-// 851–1199 默认收起成 56 宽的图标栏，1200 及以上默认展开。两档各记住用户自己点“展开侧栏”“收起侧栏”的选择，宽度跨档时换成新档的选择或默认值。
+// 851–1199 默认收起成 56 宽的图标栏，1200 及以上默认展开；手动选择跨宽度保留，手机抽屉独立。
 const SIDE_MID_MQ = typeof matchMedia === "function" ? matchMedia("(min-width: 851px) and (max-width: 1199.98px)") : null;
-const sideCollapseKey = () => (SIDE_MID_MQ?.matches ? "pacom-next-collapse-mid" : "pacom-next-collapse");
+const sideCollapseKey = () => "pacom-next-collapse-preference";
 function sideCollapsedPref() {
-  let v = null;
-  try { v = localStorage.getItem(sideCollapseKey()); } catch {}
-  return v === null ? !!SIDE_MID_MQ?.matches : v === "true";
+  try {
+    let value = localStorage.getItem(sideCollapseKey());
+    if (!["true", "false"].includes(value)) {
+      const keys = SIDE_MID_MQ?.matches ? ["pacom-next-collapse-mid", "pacom-next-collapse"] : ["pacom-next-collapse", "pacom-next-collapse-mid"];
+      value = keys.map(k => localStorage.getItem(k)).find(v => ["true", "false"].includes(v));
+      if (value != null) { try { localStorage.setItem(sideCollapseKey(), value); } catch {} }
+    }
+    if (["true", "false"].includes(value)) return value === "true";
+  } catch {}
+  return !!SIDE_MID_MQ?.matches;
 }
 // 窄屏（≤850px）不能绘制与标记时的说明（D14，2026-10-04 用户确认“电脑窗口写“加宽窗口后…””；2026-10-09 用户确认，待决定事项 B-4f）：
 // 非触屏设备（电脑窗口，pointer:coarse 不成立）一律写“加宽窗口后…”；触屏设备的屏幕长边也不超过 850px 时（多数手机，横过来也不能绘制）
@@ -35539,7 +35608,7 @@ MOBILE_MQ?.addEventListener?.("change", () => {
   }
   if (U.page === "projects" && U.f && !BARE[U.page] && !$("#dlg")?.classList.contains("show")) render();
 });
-// 宽度进出 851–1199 时侧栏换成该档记住的选择或默认值（全面设计核查第 5 条）；≤850 是抽屉，不受影响。
+// 跨宽度仅在没有手动偏好时采用新宽度默认值；≤850 的抽屉不受影响。
 SIDE_MID_MQ?.addEventListener?.("change", () => {
   const next = sideCollapsedPref();
   if (next === U.collapsed) return;
@@ -35961,7 +36030,7 @@ function floorPage() {
   const pts = M.points(data(), f.id).filter((p) => p.positionAttached !== false);
   return (
     body +
-    `<div class="ws-workbench mk-bench ${viewing ? "viewing" : "editing"}${overlay ? " mk-overlay" : ""}${panelOpen ? " with-panel" : ""}">${floorRail()}<div class="ws-canvas-col">${canvasTop}${!viewing ? canvasOverlay(checks) : ""}<div class="ws-canvas-viewport" id="canvasViewport"${viewing ? "" : ` role="tabpanel" aria-labelledby="mode-${esc(U.mode)}"`}><div class="ws-plan ${U.joinFrom ? "picking" : ""}${ptDots(($("#canvasViewport")?.clientWidth || mkBenchWidth() - mkPlanInset() - (panelOpen && !overlay && !mkStacked() ? MK_PANEL_W : 0)) * U.zoom) ? " pt-dots" : ""}" id="floorCanvas" style="width:${U.zoom * 100}%" tabindex="0" aria-label="${esc(b.name + " " + f.name)}${planWord(f.buildingId)}${viewing ? "" : "；选择设备类型后点击或拖放"}"><img src="${esc(f.image)}" alt="${zhSub(esc(b.name + " " + f.name), "r")}楼层图" draggable="false">${renderZones()}${renderGroupHulls()}${renderRelations()}${renderRoleCoverage(net)}${pts.map(renderPoint).join("")}</div></div>${canvasBottom}</div>${viewing || !panelOpen ? "" : planningPanel(net)}</div>${markLegend()}` +
+    `<div class="ws-workbench mk-bench ${viewing ? "viewing" : "editing"}${overlay ? " mk-overlay" : ""}${panelOpen ? " with-panel" : ""}">${floorRail()}<div class="ws-canvas-col">${canvasTop}${!viewing ? canvasOverlay(checks) : ""}<div class="ws-canvas-viewport" id="canvasViewport"${viewing ? "" : ` role="tabpanel" aria-labelledby="mode-${esc(U.mode)}"`}><div class="ws-plan ${U.joinFrom ? "picking" : ""}${ptDots(($("#canvasViewport")?.clientWidth || mkBenchWidth() - mkPlanInset() - (panelOpen && !overlay && !mkStacked() ? MK_PANEL_W : 0)) * U.zoom) ? " pt-dots" : ""}" id="floorCanvas" style="width:${U.zoom * 100}%" tabindex="0" aria-label="${esc(b.name + " " + f.name)}${planWord(f.buildingId)}${U.page === "devices" && U.mode === "mark" && canEdit() ? "；选择设备类型后点击或拖放" : ""}"><img src="${esc(f.image)}" alt="${zhSub(esc(b.name + " " + f.name), "r")}楼层图" draggable="false">${renderZones()}${renderGroupHulls()}${renderRelations()}${renderRoleCoverage(net)}${pts.map(renderPoint).join("")}</div></div>${canvasBottom}</div>${viewing || !panelOpen ? "" : planningPanel(net)}</div>${markLegend()}` +
     // “查看”模式（含从项目“在设备中查看”进入）只查看：没有未保存的修改时不显示保存条与“准备现场绑定”（2026-10-05 核查合并细节第 8 条）。
     (!viewing && canEdit() && !(U.mode === "view" && !U.dirty && !U.attrsDirty)
       ? `<div class="ws-savebar">${btn("撤销", "undo", { disabled: !U.undo.length }, "ghost")}${btn("重做", "redo", { disabled: !U.redo.length }, "ghost")}<span role="status" class="mk-save-state">${saveState()}</span><span class="sp"></span>${planSaveBtn("取消修改", "cancelPlan", "ghost")}${planSaveBtn("保存规划", "savePlan", "primary")}${btn("准备现场绑定" + (checks.blocks.length ? `<b class="mk-count">${checks.blocks.length}</b>` : ""), "prepareApp", {}, checks.blocks.length ? "mk-gated" : "")}</div>`
@@ -38080,7 +38149,7 @@ defineActions({
     wsHideTip(true);
     if ($("#pop")?.anchor?.closest("#side")) closePop({ restoreFocus: true });
     U.collapsed = !U.collapsed;
-    // 记在当前宽度档（全面设计核查第 5 条）
+    // 手动偏好跨桌面和平板宽度保留。
     try { localStorage.setItem(sideCollapseKey(), String(U.collapsed)); } catch {}
     $("#app").classList.toggle("collapsed", U.collapsed);
     wsSyncSidebarState();
@@ -38105,7 +38174,11 @@ defineActions({
       if (!c.textContent.trim()) c.insertAdjacentHTML("beforeend", `<span>${esc(b.getAttribute("aria-label") || b.dataset.tip || "")}</span>`);
       return c.outerHTML;
     });
-    if (items.length) popRight(el, menuBox("更多", items.join("")));
+    if (items.length) {
+      popRight(el, menuBox("更多", items.join("")));
+      const panel = $("#pop");
+      if (panel) panel.pageMore = { group };
+    }
   },
   nav: (a) => route(a.page, {}, a.page === "projects" ? { root: true, source: null } : { restore: true, source: null }),
   location: (a, el) => openLocation(el),
@@ -44725,7 +44798,7 @@ function popReplace() {
     a = p?.anchor;
   if (!p || !a) return;
   const r = a.isConnected ? a.getBoundingClientRect() : null;
-  if (!r || !r.width || !r.height || a.closest("[inert]") || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) return closePop();
+  if (!r || !r.width || !r.height || a.closest("[inert]") || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) return typeof wsCloseHiddenPageMore === "function" && wsCloseHiddenPageMore(p) || closePop();
   p.place?.();
 }
 addEventListener("resize", () => {
@@ -44796,10 +44869,11 @@ const scopeFloors = () => F.scopedFloors(data(), U);
 // 选中的“全部项目”或项目只在右侧打勾，不加底色（2026-10-11 用户确认，Lovable 核查第 97 条：原先只有“全部项目”打勾，项目靠灰底表示）。
 function showLocationPicker(anchor, intent) {
   U.pickIntent = intent || null;
-  let body = `<div class="ws-search">${ico("search", "ic16")}<input id="locQuery" placeholder="搜索项目、楼宇或楼层" aria-label="搜索位置"></div><div class="ws-locations" id="locationRows"><button class="location-row ${!U.p ? "on" : ""}" data-act="chooseLocation"${!U.p ? ' aria-current="true"' : ""}>全部项目${!U.p ? ico("check", "ic16") : ""}</button>`;
-  for (const p of [...data().projects].sort(M.byName)) {
+  const db = data(), projects = db.projects.filter((p) => mayViewProject(p.id, db)).sort(M.byName);
+  let body = `<div class="ws-search">${ico("search", "ic16")}<input id="locQuery" placeholder="搜索项目、楼宇或楼层" aria-label="搜索位置"></div><div class="ws-locations" id="locationRows">${projects.length ? `<button class="location-row ${!U.p ? "on" : ""}" data-act="chooseLocation"${!U.p ? ' aria-current="true"' : ""}>全部项目${!U.p ? ico("check", "ic16") : ""}</button>` : ""}`;
+  for (const p of projects) {
     body += `<section class="flow-location-project" data-project-name="${esc(p.name)}"><button class="location-row ${U.p === p.id && !U.b ? "on" : ""}" data-act="chooseLocation" data-p="${p.id}"${U.p === p.id && !U.b ? ' aria-current="true"' : ""}>${esc(p.name)}${U.p === p.id && !U.b ? ico("check", "ic16") : ""}</button>`;
-    for (const b of data()
+    for (const b of db
       .buildings.filter((b) => b.projectId === p.id)
       .sort(M.byName)) {
       // 当前范围是这栋楼宇时（没有选到楼层），和项目一样在右侧打勾并标为当前项，“进入”不再出现；选到楼层时楼宇只展开、不标选中（交互核查第 2 条）
@@ -44815,7 +44889,7 @@ function showLocationPicker(anchor, intent) {
     }
     body += "</section>";
   }
-  body += '</div><p id="locationEmpty" class="small muted" hidden>没有匹配的位置</p>';
+  body += `</div><p id="locationEmpty" class="ws-location-empty ws-pop-empty muted" role="status"${projects.length ? " hidden" : ""}>${projects.length ? "没有匹配的位置" : "当前没有可访问的位置"}</p>`;
   pop(anchor, body, true);
   $("#pop").setAttribute("role", "dialog");
   $("#pop").setAttribute("aria-label", "选择位置");
@@ -44841,7 +44915,9 @@ function filterLocation(query) {
     section.hidden = !visible;
     if (visible) count++;
   });
-  $("#locationEmpty").hidden = count > 0;
+  const emptyRow = $("#locationEmpty"), db = data(), available = db.projects.some((p) => mayViewProject(p.id, db));
+  emptyRow.textContent = available ? "没有匹配的位置" : "当前没有可访问的位置";
+  emptyRow.hidden = available && count > 0;
 }
 // 设备台账的筛选条件（2026-10-05 核查 D6）：型号、楼层、服务功能区（按名称），以及设备网络与网络角色；换位置时清除。
 const devFilter = () => ({ types: U.devTypes || [], floors: U.devFloors || [], zone: U.devZone || "" });
@@ -45105,12 +45181,18 @@ function devCommCell(db, p) {
   return stateBadge(c) + `<small class="flow-sub">${t ? "最近通信 " + esc(shortDate(t, objectProjectId(p.id, db))) : "尚无上报"}</small>` + mt;
 }
 function renderNetworkList() {
-  const ns = F.scopedNetworks(data(), U);
-  const db = data();
-  const bar = `<div class="ws-section-toolbar"><p class="muted">一个网关对应一个设备网络，服务范围可以跨楼层。</p>${canEdit() ? btn("规划网络", "networkForm", {}, "primary") : ""}</div>`;
-  // 全面设计核查第 22 条（2026-10-12 用户确认）：还没有设备网络时不画表头，用全站空状态；不另放按钮（工具栏已有“规划网络”）。
-  // 原为 11 列表头下一行灰字“尚未规划设备网络；可在标记网关时就地规划。”。本页签没有筛选，列表为空即整体为空。
-  if (!ns.length) return bar + empty("尚未规划设备网络", canEdit() ? "可在标记网关时就地规划。" : "", "", "network");
+  const db = data(), projects = db.projects.filter((p) => mayViewProject(p.id, db)), allowed = new Set(projects.map((p) => p.id)),
+    all = F.scopedNetworks(db).filter((n) => allowed.has(n.projectId)),
+    ns = F.scopedNetworks(db, U).filter((n) => allowed.has(n.projectId)),
+    hasFloors = db.buildings.some((b) => allowed.has(b.projectId) && (!U.p || b.projectId === U.p) && db.floors.some((f) => f.buildingId === b.id)),
+    bar = `<div class="ws-section-toolbar"><p class="muted">一个网关对应一个设备网络，服务范围可以跨楼层。</p>${canEdit() && projects.length && hasFloors ? btn("规划网络", "networkForm", {}, "primary") : ""}</div>`;
+  // 整体为空、当前位置范围为空与无授权项目分别说明；入口只能指向当前可执行的步骤。
+  if (!projects.length) return bar + (canCreateProject()
+    ? empty("尚未创建项目", "先创建项目，再规划设备网络。", btn("创建项目", "spaceForm", { kind: "projects" }, "primary"), "building-2")
+    : empty("当前没有可访问的项目", "请联系机构管理员。", "", "building-2"));
+  if (!ns.length && all.length) return bar + empty("当前范围没有设备网络", "可切换位置查看其他范围。", btn("查看全部设备网络", "chooseLocation"), "network");
+  if (!hasFloors) return bar + empty("尚未创建楼宇或楼层", canEdit() ? "先在项目中创建楼宇和楼层，再规划设备网络。" : "当前没有可用于规划设备网络的楼层。", canEdit() ? btn("查看项目", "spaceOpen", { kind: "projects", id: projects.find((p) => p.id === U.p)?.id || projects[0].id }) : "", "building-2");
+  if (!ns.length) return bar + empty(canEdit() ? "尚未规划设备网络" : "可访问的项目中尚未规划设备网络", canEdit() ? "可在标记网关时就地规划。" : "", "", "network");
   return `${bar}${table(
     ["设备网络", "服务楼层", "网关联网 / 设备网络", "#节点", "#估算负载", "#中继", "最近全网体检", "网络版本", "最近交付", "状态", "需处理"],
     ns.map((n) => {
@@ -45855,7 +45937,7 @@ function showDeviceInformation(id, tab = "runtime") {
             ms: () =>
               `${demo.occupied ? "有人" : "无人"} · ${demo.temp} ℃ · ${demo.rh}%RH${demo.lux != null ? ` · ${fmt(demo.lux)} lx（照度源）` : ""}`,
             fc: () => `${demo.on ? demo.mode + " · 设定 " + demo.setpoint + " ℃" : "关"} · 室温 ${demo.temp} ℃ · 风速 ${demo.fan}`,
-            // 空气质量分（配置参数 Q-07）只在 AQ20 的设备数据中显示（2026-10-09 用户确认，ABB 对比 BP87）；
+            // 空气质量分为 Q-07 的辅助评分，设备信息保留输入说明；其它显示位置以现行室内环境规范为准。
             // CO₂ 与照度加千位分隔（规范 2 6，2026-10-09 用户确认，ABB 对比 BP17：原先写“CO₂ 1086 ppm”）
             aq: () => `CO₂ ${fmt(demo.co2)} ppm · PM2.5 ${demo.pm25} μg/m³ · 空气质量分 ${demo.iaqs}（按 CO₂ 与 PM2.5 计算）`,
           }[p.type]?.()
@@ -55692,8 +55774,8 @@ const V13_TPL = [
     "室内环境",
     "§13.2",
     "空气质量分",
-    "五档，按 CO₂ 与 PM2.5 计算；只在 AQ20 的设备数据中显示",
-    "任一输入缺测时结果无效",
+    "0–100，越高越好；按同台同分钟有效 CO₂ 与 PM2.5 计算，作为辅助评分",
+    "任一输入缺测时结果无效；不替代单项浓度与参考范围判断",
     "",
     "设备本地",
     {},
@@ -58437,39 +58519,46 @@ function v13DeliveriesModal(pid = U.p) {
   );
 }
 function v13ChecksModal(kind) {
-  const db = data(),
-    nets = F.scopedNetworks(db, { p: U.p }),
-    ix = F.index(db),
-    rows = [];
-  for (const n of nets) {
-    const r = F.planChecks(db, { networkId: n.id }, ix);
-    r.blocks.forEach((x) => rows.push(["阻止", n.name, x.text, n.id, x.id]));
-    r.hints.forEach((x) => rows.push(["提示", n.name, x.text, n.id, x.id]));
+  const filter = ["blocks", "hints"].includes(kind) ? kind : "all",
+    // 这里只解释现有检查族；阈值、适用条件和绑定／交付门禁仍由模型决定。
+    rules = `<details class="ws-details v13-check-rules"><summary>检查哪些项目</summary><p>阻止：驱动型号与台数缺失或驱动不兼容；调光驱动台数、功率或开灯冲击超限；MS20 供电台数超限；订阅分组超限；照度源不是本回路组供电已确认的 MS20；照度分组存在多个发布者。</p><p>提示：回路缺少 MS20 或供电尚待确认；MS20 无供电 LC20 或供电为系统建议；回路组跨功能区、设备未划入功能区；FC20 缺少 MS20 占用来源；独立办公、开放办公或会议室的多联机内机缺少 MS20 占用来源；内机未登记所属外机；中继与代理同台、中继未优先选 MS20；设备网络缺少网关、中继或代理；比例尺未设置、点位位置待核对。</p><p>具体阻止、提示与适用条件以检查结果为准。摘要不改变检查结果，也不表示现场验证或交付通过。</p></details>`;
+  let body, foot = btn("关闭", "close");
+  try {
+    const db = data(), nets = F.scopedNetworks(db, { p: U.p }), rows = [];
+    if (!Array.isArray(nets) || nets.some((n) => !n || typeof n.id !== "string" || !n.id.trim())) throw Error("检查范围不完整");
+    const networkIds = new Set(nets.map((n) => n.id));
+    if (!nets.length) body = wsNotice("尚无设备网络，未执行规划检查。", "info");
+    else if (!db.points.some((p) => networkIds.has(p.networkId))) body = wsNotice("尚无规划设备，未执行规划检查。", "info");
+    else {
+      const ix = F.index(db), validIssue = (x) => x && typeof x.id === "string" && x.id.trim() && typeof x.text === "string" && x.text.trim();
+      for (const n of nets) {
+        const r = F.planChecks(db, { networkId: n.id }, ix);
+        if (!r || !Array.isArray(r.blocks) || !Array.isArray(r.hints) || !r.blocks.every(validIssue) || !r.hints.every(validIssue)) throw Error("检查结果不完整");
+        r.blocks.forEach((x) => rows.push(["阻止", n.name, x.text, n.id, x.id]));
+        r.hints.forEach((x) => rows.push(["提示", n.name, x.text, n.id, x.id]));
+      }
+      const seen = new Set(),
+        shown = rows.filter((r) => {
+          const key = [r[0], r[3], r[4], r[2]].join("|");
+          return (filter === "blocks" ? r[0] === "阻止" : filter === "hints" ? r[0] === "提示" : true) && (seen.has(key) ? false : seen.add(key));
+        }),
+        // 总计与项目进度共用同一口径，不受当前筛选影响；明细仍保留发生的网络。
+        count = (k) => new Set(rows.filter((r) => r[0] === k).map((r) => r[4])).size,
+        blocks = count("阻止"), hints = count("提示"),
+        totals = `${v13N(blocks)} 项阻止 · ${v13N(hints)} 项提示`;
+      body = wsNotice(`${blocks ? "规划检查未通过" : hints ? "规划检查有提示" : "规划检查通过"} · ${totals}`, blocks || hints ? "warning" : "success");
+      if (shown.length) body += (filter !== "all" ? `<p class="note">${filter === "blocks" ? "仅显示阻止项" : "仅显示提示项"}</p>` : "") + table(
+        ["类别", "设备网络", "内容"],
+        shown.map(([k, n, t]) => [badge(k, k === "阻止" ? "crit" : "warn"), esc(n), esc(t)]),
+      );
+      else if (blocks || hints) body += wsNotice(filter === "blocks" ? `没有阻止项，另有 ${v13N(hints)} 项提示。` : `没有提示项，另有 ${v13N(blocks)} 项阻止。`, "info");
+    }
+  } catch (_) {
+    // 任一网络检查失败或返回不完整时不沿用已经收集到的局部结果，也不把未知补成0。
+    body = wsNotice("暂时无法取得完整检查结果，请重试。", "error");
+    foot += btn("重试", "v13Checks", { kind: filter }, "primary");
   }
-  const seen = new Set(),
-    shown = rows.filter((r) => {
-      const key = [r[0], r[3], r[4], r[2]].join("|");
-      return (kind === "blocks" ? r[0] === "阻止" : kind === "hints" ? r[0] === "提示" : true) && (seen.has(key) ? false : seen.add(key));
-    }),
-    // 计数与配置进度“设备”组相同：同一项检查跨网络只计一次
-    count = (k) => new Set(rows.filter((r) => r[0] === k).map((r) => r[4])).size,
-    blocks = count("阻止"),
-    hints = count("提示");
-  // 全面设计核查第 28 条（2026-10-12 用户确认）：没有问题时不画表格，只写一行成功提示“规划检查通过 · 0 阻止 · 0 提示”；
-  // 只看“提示”而有阻止项时写“没有提示项 · N 阻止”。规则说明收进可展开的“检查哪些项”。原先总是画带表头的空表、开头两行规则说明总是显示。
-  const rules = `<details class="ws-details v13-check-rules"><summary>检查哪些项</summary><p>阻止：驱动超限或不在兼容清单、传感器超过规划上限、订阅超过 32 个、一个照度分组多个发布者。</p><p>提示：回路无 MS20、MS20 无供电 LC20、回路组跨功能区。</p></details>`;
-  modal(
-    "规划检查",
-    (shown.length
-      ? table(
-          ["类别", "设备网络", "内容"],
-          shown.map(([k, n, t]) => [badge(k, k === "阻止" ? "crit" : "warn"), esc(n), esc(t)]),
-        )
-      : blocks
-        ? wsNotice(`没有提示项 · ${v13N(blocks)} 阻止`, "info")
-        : wsNotice(`规划检查通过 · 0 阻止 · ${v13N(hints)} 提示`, "success")) + rules,
-    btn("关闭", "close"),
-  );
+  modal("规划检查", body + rules, foot);
 }
 /* ---------- 路由与动作 ---------- */
 pages.deployment = () => {
@@ -60727,7 +60816,7 @@ function liveLine() {
 // 弹层、弹窗、框选中或正在输入时不绘制，关闭后的下一次核对再更新。指针停在楼层图或图表上显示的提示不挡更新（不然指针一直停在楼层图上就不再更新）：
 // 提示随绘制收起，指针仍停在（或键盘焦点仍在）原来的控件上时按新数据重新显示；图表的数值提示在指针再移动时按新数据显示。
 const opsLiveBusy = () =>
-  !!($("#pop") || $("#dlg") || $("#discard") || $("#ai-pal") || $(".ops-rect:not([hidden])") || document.hidden || document.activeElement?.matches?.("input,textarea,select,[contenteditable]"));
+  !!($("#app.navopen") || $("#pop") || $("#dlg") || $("#discard") || $("#ai-pal") || $(".ops-rect:not([hidden])") || document.hidden || document.activeElement?.matches?.("input,textarea,select,[contenteditable]"));
 setInterval(() => {
   if (typeof U === "undefined" || !OPS_LIVE_PAGES.includes(U.page) || !Demo.on() || !$(".ops-live")) return;
   const L = opsLive();
@@ -62931,6 +63020,17 @@ function energyBasis() {
 // 折标煤（2026-10-09 用户确认，ABB 对比 BP121 方案A）：按能耗设置的折标系数（当量值或等价值），在用电处显示，不依赖碳排放
 const coalNow = () => coalOf(latestConfig("能耗", OPS_SCOPE.project)?.values);
 const coalTce = (kwh) => (kwh * coalNow().factor) / 1000;
+// 实际折标值与本次电量同范围、同期间；未登记设置不暗用默认值，不能冒充碳排放。
+function opsCoalInfo(kwh, period) {
+  const c = latestConfig("能耗", OPS_SCOPE.project);
+  if (!c) return esc(`${period}：未登记能耗设置，折标煤未计算。`);
+  if (!Number.isFinite(kwh)) return esc(`${period}：电量未取得，折标煤未计算。`);
+  if (c.values?.coal?.basis === "equiv" && !(Number.isFinite(Number(c.values.coal.factor)) && Number(c.values.coal.factor) > 0)) return esc(`${period}：等价值系数未有效登记，折标煤未计算。`);
+  const coal = coalOf(c.values),
+    source = coal.basis === "等价值" ? "来源：能耗设置登记的省份系数" : "来源：能耗设置采用电力当量折标系数";
+  return esc(`${period}：${nf(kwh, 2)} kWh，折标煤 ${nf(kwh * coal.factor / 1000, 4)} tce；${coal.basis} ${coal.factor} kgce/kWh。${source}，能耗设置 v${c.version}。仅折算已取得电量，不补缺数；折标煤不等于碳排放。`);
+}
+
 // 能耗强度对标（2026-10-09 用户确认，ABB 对比 BP119 方案A）：建筑类型、气候区已登记（适用规范登记）且有滚动 12 个月数据时才与
 // GB/T 51161 的引导值、约束值比较；条件不全时写“暂不对标：（缺什么）”，不写高于或低于。只收录有依据的组合
 const BENCH_STD = { "夏热冬暖·办公建筑 A 类": { guide: 65, constraint: 80 } };
@@ -63017,8 +63117,8 @@ function ovEnergy() {
     mq = Demo.days().filter(d=>d.t>=mrg.from).flatMap(d=>d.quality), mvp = monthVsPrev(mrg,m.total),
     monthCompare = mvp == null ? "上月同期计量数据不全，不比较" : mvp.pct == null ? mvp.why : `比上月同期 ${pctTxt(mvp.pct)}`,
     kp = kpiRow([
-      kpi("今日用电"+opsInfo("今日用电","按已验证计量数据计算，与上周同日同时段比较。点卡片进入今日按小时分析。"),nf(t.kwh)+"<small>kWh</small>",`截至 ${liveHm()} · ${pctTxt(t.vsLastWeek)}`,"opsGo",{page:"analysis",tab:"energy",range:"today"},todayQuality()),
-      kpi("本月用电"+opsInfo("本月用电","从本月1日至当前时刻，同口径比较上月同期；同期数据不足时不比较，不补造计量数据。"),nf(m.total)+"<small>kWh</small>",`${Demo.md(mrg.from)}–${Demo.md(Demo.NOW)} · ${esc(monthCompare)}`,"opsGo",{page:"analysis",tab:"energy",range:"month"},gradeDq(energyGrade(mq),true)),
+      kpi("今日用电"+opsInfo("今日用电",esc("按已验证计量数据计算，与上周同日同时段比较。点卡片进入今日按小时分析。")+"<br>"+opsCoalInfo(t.kwh,"今日截至 "+liveHm())),nf(t.kwh)+"<small>kWh</small>",`截至 ${liveHm()} · ${pctTxt(t.vsLastWeek)}`,"opsGo",{page:"analysis",tab:"energy",range:"today"},todayQuality()),
+      kpi("本月用电"+opsInfo("本月用电",esc("从本月1日至当前时刻，同口径比较上月同期；同期数据不足时不比较，不补造计量数据。")+"<br>"+opsCoalInfo(m.total,mrg.span)),nf(m.total)+"<small>kWh</small>",`${Demo.md(mrg.from)}–${Demo.md(Demo.NOW)} · ${esc(monthCompare)}`,"opsGo",{page:"analysis",tab:"energy",range:"month"},gradeDq(energyGrade(mq),true)),
       kpi("本月用电碳排放"+opsInfo("本月用电碳排放","仅核算当前计量边界内的购入电力。按各日适用的因子版本分段计算；CO₂与CO₂e口径不合计。完整核算依据在碳排放明细查看。"),carbonKpiV(ce),ce.mixed ? esc(carbonGasText(ce))+"，不合计" : ce.configs.length>1 ? `按 ${ce.configs.length} 个版本分段计算` : "购入电力", "opsGo",{page:"analysis",tab:"carbon",range:"month"},carbonQuality(ce,true)),
     ],opsLive().stale),
     split = `<section class="ops-card"><header class="ops-card-h"><div><h3>今日用电分项${opsInfo("今日用电分项",`照明插座含实验设备与插座；空调仅为空调末端，不含冷热源分摊。${esc(costText(costIn(mrg),"本月"))}`)}</h3><p class="ops-meta">截至 ${liveHm()} · kWh</p></div></header><div class="ops-split-bars">${[["照明插座",t.light,S1],["空调末端",t.hvac,SAC]].map(([n,v,c])=>`<div class="ops-sb"><div class="ops-sb-h"><span><i style="--c:${c}"></i>${n}</span><b class="ops-num">${nf(v,1)} kWh</b></div><div class="ops-sb-bar" role="meter" aria-label="${n}今日用电占比" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${t.kwh>0 ? Math.round(v/t.kwh*100) : 0}"><i style="width:${t.kwh>0 ? v/t.kwh*100 : 0}%;background:${c}"></i></div></div>`).join("")}</div><p class="ops-stat-status">冷热源未计量</p><div class="ops-ctl-row">${btn("查看历史分析","opsGo",{page:"analysis",tab:"energy"},"sm")}${btn("碳排放明细","opsGo",{page:"analysis",tab:"carbon",range:"month"},"ghost sm")}</div></section>`,
@@ -63228,7 +63328,7 @@ function anMonthlyBars(ms, unit = "kWh", height = 260) {
    每周之间留细缝；缺数的格画斜线写“未取得”，不插值；进行中的小时为虚线框，未到的小时留空。点日期弹出当天的功率曲线，
    与工作日平均（灰色虚线）对比，手机上为底部弹出。数据表不变，每行一小时。 */
 const anHourKW = (r, m) => {
-  const v = m === "light" ? r.light : m === "hvac" ? r.hvac : r.hvac == null ? null : r.light + r.hvac;
+  const v = m === "light" ? r.light : m === "hvac" ? r.hvac : r.light == null || r.hvac == null ? null : r.light + r.hvac;
   // 进行中的小时按已过去的部分折算平均功率
   return v == null || !r.partial ? v : v / Math.max(1 / 60, Math.min(1, (Demo.NOW - r.t) / Demo.H));
 };
@@ -63307,8 +63407,9 @@ function anLoadCard(rg, m, full, hrs, meterName) {
       "hourly",
       one ? ["时间", meterName.split(" ")[0] + " kW"] : ["时间", "照明插座 kW", "空调末端 kW"],
       rs.map((r) => {
-        const v = m === "light" ? r.light : r.hvac;
-        return one ? [Demo.md(r.t) + " " + Demo.hm(r.t), v == null ? "未取得" : nf(v, 2)] : [Demo.md(r.t) + " " + Demo.hm(r.t), nf(r.light, 2), r.hvac == null ? "未取得" : nf(r.hvac, 2)];
+        const value = (meter) => { const v = anHourKW(r, meter); return v == null ? "未取得" : nf(v, 2); },
+          at = Demo.md(r.t) + " " + Demo.hm(r.t);
+        return one ? [at, value(m)] : [at, value("light"), value("hvac")];
       }),
     ),
     body: grid + legend,
@@ -63394,7 +63495,7 @@ function anEnergy() {
     meterName = METER_OPTS.find((x) => x[0] === m)[1];
   // 日均按期间内完整的天计算，不含进行中的今天，与总览 › 能源相同（2026-10-08 Vision 核查 V32：原先含今天到当前时刻，两处差 1 kWh）
   const kp = kpiRow([
-    kpi("用电量" + opsInfo("用电量", esc("按所选计量点及期间汇总；日均仅计算完整日，折标煤使用能耗设置中的系数。")), nf(e.total) + "<small>kWh</small>", onlyIn(`${rg.label} · 日均 ${full.length ? nf(avgOf(full)) : "—"} kWh${m === "all" ? "" : " · " + meterName}`), "opsNoop"),
+    kpi("用电量" + opsInfo("用电量", esc("按所选计量点及期间汇总；日均仅计算完整日。") + "<br>" + opsCoalInfo(e.total,rg.span + (m === "all" ? " · 全部计量点" : " · " + meterName))), nf(e.total) + "<small>kWh</small>", onlyIn(`${rg.label} · 日均 ${full.length ? nf(avgOf(full)) : "—"} kWh${m === "all" ? "" : " · " + meterName}`), "opsNoop"),
     I.why ? kpi("单位面积用电", "—", onlyIn(I.why + "，不计算"), "opsNoop") : kpi("单位面积用电" + opsInfo("单位面积用电", esc("所选期间实际用电量除以同一计量边界的登记面积，不将短期数据折年。")), nf(I.period, 2) + "<small>kWh/m²</small>", onlyIn(`${rg.label} · ${nf(I.area)} m²`), "opsNoop"),
     // 夜间及非工作日用电占比（2026-10-09 用户确认，能耗方案 EN4，BP109：原先为“非工作时间占比”，工作日 08:00–19:00 以外）：先合计电量再求比例，有缺数的天不计入
     kpi("夜间及非工作日用电占比" + opsInfo("夜间及非工作日用电占比", esc("22:00–06:00及非工作日的用电除以全部用电；非工作日按项目节假日表，先合计电量再求比例，有缺数的日期不计入。")), e.offShare == null ? "—" : nf(e.offShare, 1) + "<small>%</small>", onlyIn(`${rg.label} · ${m === "all" ? "全部计量点" : meterName}`), "opsNoop", {}, e.offDays ? dq(e.offGapDays ? "warn" : "ok", `按 ${e.offDays} 天完整数据${e.offGapDays ? `；${e.offGapDays} 天有缺数，未计入` : ""}`) : dq("unk", "期间内没有完整的天")),
@@ -63872,30 +63973,48 @@ defineActions({
   opsLoadDay: (a, el) => anChartPop(el, anLoadDayHtml(Number(a.t))),
   opsPopClose: () => closePop({ restoreFocus: true }),
 });
+// 健康统计沿用服务实际覆盖的楼层；网络与记录分别标版本，不把当前版本回填历史。
+function opsHealthNetworks() {
+  return data().networks.filter(n => n.projectId === OPS_SCOPE.project && mayViewProject(n.projectId) &&
+    data().points.some(p => p.networkId === n.id && p.floorId === OPS_SCOPE.floor && ["mesh","gateway"].includes(M.access(p))));
+}
+function opsHealthReach(r, nets = opsHealthNetworks()) {
+  const matches = (data().healthRecords || []).filter(x => (!r.networkId || x.networkId === r.networkId) &&
+      (r.recordId ? x.id === r.recordId : opsRecAt(x.at) === r.t)),
+    record = matches.length === 1 ? matches[0] : null,
+    nid = r.networkId || record?.networkId || (nets.length === 1 ? nets[0].id : null),
+    net = nets.find(n => n.id === nid),
+    version = r.networkVersion ?? record?.networkVersion,
+    validVersion = Number.isInteger(version) && version > 0,
+    versionText = validVersion ? `体检 v${version}${net && version !== net.version ? ` · 与当前 v${net.version} 不同` : ""}` : "体检版本未记录";
+  return { ...r, networkId: nid, networkName: net?.name || "设备网络未记录", versionText };
+}
 function anHealth() {
   const h = Demo.health(), rg = anRange(),
-    inR = (t) => t >= rg.from && t < rg.to,
-    reach = h.reach.filter((r) => inR(r.t)),
-    resets = h.resets.filter((p) => inR(Date.parse(p.fieldResetAt))),
-    net = data().networks.find((n) => n.id === OPS_SCOPE.network),
+    inR = t => t >= rg.from && t < rg.to,
+    nets = opsHealthNetworks(),
+    reach = h.reach.filter(r => inR(r.t)).map(r => opsHealthReach(r, nets)).sort((a,b) => a.t-b.t),
+    resets = h.resets.filter(p => inR(Date.parse(p.fieldResetAt))),
     at = `${opsDay(Demo.NOW)} ${Demo.hm(Demo.NOW)}`,
-    current = `<section class="ops-health-current"><header class="ops-health-section-head"><h3>当前状态${opsInfo("当前状态",esc("在线率、离线和状态未知是统计时刻的状态，不随历史期间变化。网关离线后其下设备标为状态未知，不全部判为离线。"))}</h3><span class="ops-meta">${esc(at)}</span></header>` + kpiRow([
+    netText = nets.length ? nets.map(n => `${n.name} · 当前 ${Number.isInteger(n.version) && n.version > 0 ? "v"+n.version : "版本未记录"}`).join("；") : "本次统计未关联设备网络",
+    latest = reach.at(-1),
+    current = `<section class="ops-health-current"><header class="ops-health-section-head"><h3>当前状态${opsInfo("当前状态",esc("在线率、离线和状态未知是统计时刻的状态，不随历史期间变化。网关离线后其下设备标为状态未知，不全部判为离线。"))}</h3><span class="ops-meta">${esc(at)}</span></header><p class="ops-stat-status">${esc(netText)}</p>` + kpiRow([
       h.rate == null ? kpi("在线率","—",onlyIn(`网关离线 · ${h.unknown.length} 台状态未知`),"opsNoop") : kpi("在线率",nf(h.rate,1)+"<small>%</small>",onlyIn(`${h.online} / ${h.total} 台（含网关）`),"opsNoop"),
-      kpi("离线",h.off.length+"<small>台</small>",onlyIn(h.off.length ? "查看设备与网络告警" : "当前无离线设备"),h.off.length ? "opsGo" : "opsNoop",{page:"alarms",altype:"设备与网络"}),
+      kpi("离线",h.off.length+"<small>台</small>",onlyIn(h.off.length ? "查看这些设备的未恢复告警" : "当前无离线设备"),h.off.length ? "opsHealthAlarms" : "opsNoop",{kind:"offline"}),
       kpi("状态未知",h.unknown.length+"<small>台</small>",onlyIn(h.gwOff ? "网关恢复后按设备回报核对" : "当前统计时刻"),"opsNoop"),
     ]) + "</section>",
     period = `<section class="ops-health-period"><header class="ops-health-section-head"><h3>期间分析${opsInfo("期间分析",esc("体检与被现场复位按所选期间统计。最近一次体检结果不等于整个期间在线率；本页不以当前状态推算历史可用率或故障时长。"))}</h3><span class="ops-meta">${rg.span}</span></header><div class="ops-row r11">` +
-      (reach.length ? kpi("最近体检到达率",nf(reach.at(-1).v,1)+"<small>%</small>",`${opsDay(reach.at(-1).t)} · 通过标准 ≥ 99%`,"opsNoop") : kpi("最近体检到达率","—","所选期间没有体检记录","opsNoop")) +
-      kpi("被现场复位",resets.length+"<small>次</small>",resets.length ? resets.map((p) => esc(p.name)).join("、") : "所选期间没有记录","opsNoop") + "</div></section>",
+      (latest ? kpi("最近体检到达率",nf(latest.v,1)+"<small>%</small>",`${opsDay(latest.t)} ${Demo.hm(latest.t)} · ${esc(latest.networkName)} · ${esc(latest.versionText)} · 通过标准 ≥ 99%`,"opsNoop") : kpi("最近体检到达率","—","所选期间没有体检记录","opsNoop")) +
+      kpi("被现场复位",resets.length+"<small>次</small>",resets.length ? resets.map(p => esc(p.name)).join("、") : "所选期间没有记录",resets.length ? "opsHealthAlarms" : "opsNoop",{kind:"reset"}) + "</div></section>",
     reachCard = chartCard({
-      title: "体检到达率趋势" + opsInfo("体检到达率趋势",esc("仅列所选期间的全网体检与夜间复测。通过标准为99%；体检对应的网络版本必须与判断用途一致，旧版本结果不能代替当前交付验证。")),
-      meta: `${rg.span} · ${esc(net?.name || "设备网络未建立")} · %`,
-      table: regTable("reach",["时间","类型","到达率 %"],reach.map((r) => [Demo.md(r.t)+" "+Demo.hm(r.t),r.label,r.v])),
-      body: reach.length ? chartSlot({
-        type:"lines",height:280,xs:reach.map((r) => r.t),xLabel:(t) => Demo.md(t),
-        tipTitle:(t,i) => Demo.md(t)+" · "+reach[i].label,yMin:98.5,unit:"%",unitShort:"%",
-        refs:[{v:99,label:"通过标准 99%"}],series:[{name:"到达率",color:S1,vals:reach.map((r) => r.v),dots:true}],
-      }) : `<p class="ops-empty-note">所选期间没有全网体检或夜间复测记录。</p>`,
+      title: "体检到达率趋势" + opsInfo("体检到达率趋势",esc("仅列所选期间的全网体检与夜间复测。通过标准为99%；体检对应的网络版本必须与判断用途一致，旧版本结果不能代替当前交付验证。缺失版本明确未记录，不用当前版本补填。")),
+      meta: `${rg.span} · %`,
+      table: regTable("reach",["时间","设备网络","体检版本","类型","到达率 %"],reach.map(r => [Demo.md(r.t)+" "+Demo.hm(r.t),r.networkName,r.versionText,r.label,r.v])),
+      body: (reach.length ? chartSlot({
+        type:"lines",height:280,xs:reach.map(r => r.t),xLabel:t => Demo.md(t),
+        tipTitle:(t,i) => Demo.md(t)+" · "+reach[i].networkName+" · "+reach[i].versionText+" · "+reach[i].label,yMin:98.5,unit:"%",unitShort:"%",
+        refs:[{v:99,label:"通过标准 99%"}],series:[{name:"到达率",color:S1,vals:reach.map(r => r.v),dots:true}],
+      }) + `<ul class="ops-meta">${reach.map(r => `<li>${esc(Demo.md(r.t)+" "+Demo.hm(r.t)+" · "+r.networkName+" · "+r.versionText)}</li>`).join("")}</ul>` : `<p class="ops-empty-note">所选期间没有全网体检或夜间复测记录。</p>`),
     }),
     gw = h.gwOff ? `<div class="ops-banner">${ico("alert","ic16")}<span>网关离线，其下 ${h.unknown.length} 台设备状态未知，不计为离线、不计算在线率。</span></div>` : "";
   return filterRow({right:btn("设备网络","opsGo",{page:"devices",tab:"networks"})+btn("固件任务","opsGo",{page:"devices",tab:"firmware"})}) + gw + current + period + reachCard;
@@ -64130,6 +64249,35 @@ document.addEventListener("input", (e) => {
     f.textContent = alFootText({ ...f.dataset, shown });
   });
 });
+// 来源下钻使用真实对象集合；设备台数与合并后的根因告警条数不必相等。
+function opsHealthAlarmContext() {
+  const c = U.opsHealthAlarm;
+  return c && [c.pointIds,c.networkIds,c.gatewayNetworkIds].every(Array.isArray) && c.projectId === OPS_SCOPE.project && mayViewProject(c.projectId) &&
+    ["offline","reset"].includes(c.kind) ? c : null;
+}
+function opsHealthAlarmMatch(a) {
+  const c = opsHealthAlarmContext();
+  if (!c) return !U.opsHealthAlarm; // 授权或对象范围失效时不回退到全量。
+  if (a.projectId !== c.projectId || alarmType(a) !== "设备与网络") return false;
+  const pointIds = c.pointIds.filter(id => { const p = g("points",id); return p && objectProjectId(id) === c.projectId && (!p.networkId || c.networkIds.includes(p.networkId)); }),
+    ids = [a.pointId,...(a.relatedIds || [])],
+    direct = ids.some(id => pointIds.includes(id)),
+    // 无点位的网关根因仅归入本次确已离线的网关网络，不把同网任意告警带进来。
+    root = !a.pointId && !ids.some(Boolean) && a.kind === "offline" && c.gatewayNetworkIds.includes(a.networkId);
+  if (!direct && !root) return false;
+  return c.kind !== "reset" || (a.kind === "device" && /复位/.test(a.name || "") && opsRecAt(a.at) >= c.from && opsRecAt(a.at) < c.to);
+}
+function opsHealthTaskMatch(t) {
+  const c = opsHealthAlarmContext();
+  return !U.opsHealthAlarm || !!c && t.projectId === c.projectId &&
+    (taskAlarms(t).some(opsHealthAlarmMatch) || c.kind === "offline" && (t.pointIds || []).some(id => c.pointIds.includes(id)));
+}
+function opsHealthAlarmBar() {
+  if (!U.opsHealthAlarm) return "";
+  const c = opsHealthAlarmContext(), text = c ?
+    `设备健康 · ${c.kind === "reset" ? "被现场复位" : "当前离线"} · ${c.pointIds.filter(id => g("points",id)).length} 台${c.kind === "reset" ? " · "+c.span : ""}` : "来源范围已失效，请返回设备健康重新选择";
+  return `<div class="flow-filter-sum">已筛选：${esc(text)}${btn("清除筛选","opsHealthAlarmClear",{},"ghost sm")}</div>`;
+}
 function renderOpsAlarms() {
   if (!Demo.on()) return renderAlarms();
   opsReset();
@@ -64139,7 +64287,7 @@ function renderOpsAlarms() {
   const body = { current: alCurrent, tasks: alTasks, history: alHistory, rules: alRules }[tab]();
   const dr = U.opsDrawer && U.opsDrawer.page === "alarms" ? (U.opsDrawer.kind === "alarm" ? alarmDrawer(U.opsDrawer.id) : taskDrawer(U.opsDrawer.id)) : "";
   // 按功能区或设备筛选时（ABB 对比 IA1），当前告警与工单页签在页签下写筛选条；告警记录的筛选条在筛选行之下
-  return head + (["current", "tasks"].includes(tab) ? alarmDeviceBar() : "") + body + dr;
+  return head + opsHealthAlarmBar() + (["current", "tasks"].includes(tab) ? alarmDeviceBar() : "") + body + dr;
 }
 function alCurrent() {
   const lv = U.opsLevel || "all",
@@ -64147,7 +64295,7 @@ function alCurrent() {
     st = U.opsAlState || "all",
     // 未恢复的告警，与已恢复而没有确认的紧急告警（排在未恢复之后，BP94）
     as = F.alarmGroups(data())
-      .filter((a) => alarmOpen(a) && a.projectId === OPS_SCOPE.project)
+      .filter((a) => alarmOpen(a) && a.projectId === OPS_SCOPE.project && opsHealthAlarmMatch(a))
       .sort((a, b) => (a.state === "recovered") - (b.state === "recovered") || lvlRank(a.level) - lvlRank(b.level) || Date.parse(b.at) - Date.parse(a.at)),
     rows = as.filter((a) => (lv === "all" || LV(a.level) === lv) && (ty === "all" || alarmType(a) === ty) && (st === "all" || (a.acknowledged ? "已确认" : "待确认") === st) && alarmForDevice(a) && alarmForZone(a));
   const n = (f) => as.filter(f).length,
@@ -64394,7 +64542,7 @@ function opsAckIn(db, id) {
 }
 function alTasks() {
   const st = U.opsTaskState || "all",
-    all = data().investigationTasks.filter((t) => t.projectId === OPS_SCOPE.project),
+    all = data().investigationTasks.filter((t) => t.projectId === OPS_SCOPE.project && opsHealthTaskMatch(t)),
     // 按本功能区或本设备筛选（ABB 对比 IA1）；状态筛选另有“逾期”（全面设计核查第 112 条，2026-10-12 用户确认）
     ts = all.filter((t) => (st === "all" || (st === "逾期" ? taskOverdue(t) : taskState(t) === st)) && (!U.alarmDevice || taskForDevice(t, U.alarmDevice)) && (!U.alarmZone || taskForZone(t, U.alarmZone))),
     // “来源”列（2026-10-09 用户确认，ABB 对比 BP108 方案A）：告警（下写来源告警，可点击）、报修或定期检查（下写配置参数编号）；原为“来源告警”
@@ -64539,15 +64687,15 @@ const durKpi = (m) => {
 function alHistory() {
   const per = alHistRange(),
     inPer = (a) => Date.parse(a.at) >= per.from && Date.parse(a.at) < per.end,
-    raw = [...data().alerts, ...(Demo.ctl.gwAlarms || [])].filter((a) => a.projectId === OPS_SCOPE.project && inPer(a)),
-    all = F.alarmGroups(data()).filter((a) => a.projectId === OPS_SCOPE.project && inPer(a)),
+    raw = [...data().alerts, ...(Demo.ctl.gwAlarms || [])].filter((a) => a.projectId === OPS_SCOPE.project && inPer(a) && opsHealthAlarmMatch(a)),
+    all = F.alarmGroups(data()).filter((a) => a.projectId === OPS_SCOPE.project && inPer(a) && opsHealthAlarmMatch(a)),
     // 检修中的告警照常列出，不计入统计（BP92）
     st = all.filter((a) => !alarmMaint(a)),
     mt = all.length - st.length,
     rec = st.filter((a) => a.state === "recovered"),
     // 平均恢复时长为已恢复告警“持续”的平均，与“持续”列同一口径（G-7）
     mttr = rec.reduce((s, a) => s + alMins(a), 0) / Math.max(1, rec.length),
-    tasks = data().investigationTasks.filter((t) => t.projectId === OPS_SCOPE.project && opsRecAt(t.at) >= per.from && opsRecAt(t.at) < per.end);
+    tasks = data().investigationTasks.filter((t) => t.projectId === OPS_SCOPE.project && opsRecAt(t.at) >= per.from && opsRecAt(t.at) < per.end && opsHealthTaskMatch(t));
   const kp = kpiRow([
     kpi(`${per.key === "custom" ? "所选期间" : per.label}告警`, st.length + "<small>条</small>", `由 ${raw.length} 条设备事件合并 · 一个根因一条${mt ? ` · 另有检修中 ${mt} 条不计入` : ""}`, "opsNoop"),
     kpi("已恢复", rec.length + "<small>条</small>", "由设备数据恢复判定", "opsNoop"),
@@ -65897,6 +66045,25 @@ defineActions({
     U.opsEnvironmentView = a.value === "list" ? "list" : "plan";
     render();
   },
+  opsHealthAlarms: (a) => {
+    if (!Demo.on() || !Demo.inScope() || !mayViewProject(OPS_SCOPE.project)) return;
+    const kind = a.kind === "reset" ? "reset" : "offline", h = Demo.health(), rg = anRange(),
+      ps = (kind === "reset" ? h.resets.filter(p => opsRecAt(p.fieldResetAt) >= rg.from && opsRecAt(p.fieldResetAt) < rg.to) : h.off)
+        .filter(p => g("points",p.id) && objectProjectId(p.id) === OPS_SCOPE.project),
+      pointIds = [...new Set(ps.map(p => p.id))],
+      networkIds = [...new Set(ps.map(p => p.networkId).filter(Boolean))],
+      gatewayNetworkIds = [...new Set(ps.filter(p => p.type === "gw").map(p => p.networkId).filter(Boolean))],
+      context = {kind,projectId:OPS_SCOPE.project,pointIds,networkIds,gatewayNetworkIds,from:rg.from,to:rg.to,span:rg.span},
+      source = {...snapshot(),label:"数据分析",opsRange:U.opsRange,opsFrom:U.opsFrom,opsTo:U.opsTo,opsMeter:U.opsMeter,opsGran:U.opsGran};
+    Object.assign(U,{opsAlType:"设备与网络",alTypeJump:null,opsLevel:"all",opsAlState:"all",opsHistRes:"all",opsHistObj:"all"});
+    OPS_Q.alarms = ""; OPS_Q.history = "";
+    if (kind === "reset") Object.assign(U,{opsHistPer:"custom",opsHistFrom:ymdOf(rg.from),opsHistTo:ymdOf(Math.max(rg.from,rg.to-1)),opsHistFromDraft:undefined,opsHistToDraft:undefined,opsHistErr:""});
+    route("alarms",{p:U.p,b:U.b,f:U.f,tab:kind === "reset" ? "history" : "current",opsHealthAlarm:context},{remember:true,source});
+  },
+  opsHealthAlarmClear: () => {
+    Object.assign(U,{opsHealthAlarm:null,opsAlType:"all",alTypeJump:null,opsLevel:"all",opsAlState:"all",opsHistRes:"all",opsHistObj:"all"});
+    render();
+  },
   opsGo: (a) => {
     closeModal(true);
     U.opsDrawer = null;
@@ -67225,6 +67392,7 @@ function aiPalette(q = "", mode = "search") {
     .map(([v, l]) => `<button role="tab" aria-selected="${mode === v}" tabindex="${mode === v ? 0 : -1}" class="${mode === v ? "on" : ""}" data-act="aiMode" data-value="${v}" id="aiMode-${v}" aria-controls="aiPalBody">${l}</button>`)
     .join("")}</div><span class="sp"></span><small>${(typeof auAiPalNote === "function" && auAiPalNote()) || (aiDemo() ? "基于运行数据回答 · 附依据" : "尚未取得运行数据 · 可以搜索空间、设备和场景")}</small></div><div class="ai-pal-body" id="aiPalBody" role="tabpanel" aria-labelledby="aiMode-${mode}"><div id="aiList" role="listbox" aria-label="搜索结果"><div id="aiAsk"></div><div id="aiExtra"></div><div id="globalResults"></div></div><div id="aiAnswer" role="region" aria-label="回答" aria-live="polite"></div></div></section>`;
   document.body.append(el);
+  aiTrackViewport(el);
   AIP.mode = mode;
   const inp = $("#globalQuery");
   inp.focus();
@@ -67233,6 +67401,33 @@ function aiPalette(q = "", mode = "search") {
   if (mode === "ask" && q) aiAnswer(q);
 }
 const AIP = { mode: "search" };
+// 手机面板跟随可见视口；监听仅在面板打开期间存在，不改变平板与电脑规格。
+function aiTrackViewport(el) {
+  AIP.viewportCleanup?.();
+  const viewport = window.visualViewport,
+    names = ["height", "width", "top", "left"].map(k => "--ai-viewport-" + k),
+    clear = () => names.forEach(name => el.style.removeProperty(name)),
+    positive = (value, fallback) => Number.isFinite(value) && value > 0 ? value : fallback,
+    sync = () => {
+      if (innerWidth >= 600) return clear();
+      // 正常缩放保留原100vw宽度，避免桌面窄窗口的滚动条改变既定左右8px；放大时才随可见宽度收缩。
+      const width = viewport?.scale > 1 ? positive(viewport.width, innerWidth) : innerWidth,
+        values = [positive(viewport?.height, innerHeight), width, Math.max(0, Number(viewport?.offsetTop) || 0), Math.max(0, Number(viewport?.offsetLeft) || 0)];
+      values.forEach((value, i) => el.style.setProperty(names[i], value + "px"));
+    },
+    cleanup = (preserveGeometry = false) => {
+      window.removeEventListener?.("resize", sync);
+      viewport?.removeEventListener?.("resize", sync);
+      viewport?.removeEventListener?.("scroll", sync);
+      if (!preserveGeometry) clear();
+      if (AIP.viewportCleanup === cleanup) AIP.viewportCleanup = null;
+    };
+  window.addEventListener?.("resize", sync);
+  viewport?.addEventListener?.("resize", sync);
+  viewport?.addEventListener?.("scroll", sync);
+  AIP.viewportCleanup = cleanup;
+  sync();
+}
 /* 模式切换用 .seg.sm 的滑块：同时更新 class 与 aria-selected，syncSegs 据此滑动 */
 const aiSetMode = (v) => {
   document.querySelectorAll(".ai-pal-modes .seg button").forEach((b) => {
@@ -67312,6 +67507,7 @@ function aiClose() {
   const back = AIP.back,
     el = $("#ai-pal");
   AIP.back = null;
+  AIP.viewportCleanup?.(true);
   // 关闭时只做 50ms 淡出（Lovable 核查第 134 条，2026-10-11 用户确认：原先直接消失）：先去掉编号，面板即视为已关闭，淡出后移除；减少动态效果时直接移除
   if (el?.classList && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
     [el, ...el.querySelectorAll("[id]")].forEach((x) => x.removeAttribute("id"));
@@ -67954,6 +68150,23 @@ if (typeof module !== "undefined" && module.exports) module.exports = PACOM_PASS
     return 'phone';
   }
   function phone(value) { return ['phone', 'cn'].includes(idKind(value)); }
+  // Display only: never return an unrecognised telephone number unchanged.
+  function maskContact(value = '') {
+    const v = identifier(value);
+    if (!v) return '';
+    if (v.includes('@')) return email(v) ? v.replace(/^([^@])[^@]*(@.+)$/, '$1•••$2') : '••••';
+    const d = v.replace(/[\s\-()]/g, '');
+    const cn = /^(?:(\+86|0086))?(1\d{10})$/.exec(d);
+    if (cn) return `${cn[1] ? '+86 ' : ''}${cn[2].slice(0, 3)} •••• ${cn[2].slice(-4)}`;
+    if (idKind(v) !== 'phone') return '••••';
+    const known = [['+1', 10], ...PHONE_DIGITS].find(([code]) => d.startsWith(code));
+    if (known) {
+      const local = d.slice(known[0].length), long = local.length >= 10;
+      return `${known[0]} ${local.slice(0, long ? 3 : 2)} •••• ${local.slice(long ? -4 : -2)}`;
+    }
+    // Without a known country-code boundary, show the last four digits only.
+    return `+••• •••• ${d.slice(-4)}`;
+  }
   function phoneError(value) {
     const v = identifier(value);
     if (!v) return '请输入手机号码';
@@ -68107,7 +68320,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = PACOM_PASS
     const value = String(hash || '');
     return /^#[a-z][\w-]*(?:\?[^#]*)?$/.test(value) && authorizedPages.includes(value.slice(1).split('?')[0]) ? value : fallback;
   }
-  const api = Object.freeze({ LIMITS, charCount, orgNameError, identifier, email, idKind, phone, phoneError, loginIdentity, clearAccountRestriction, loginNextFailure, applicationPending, switchMode, resetDraft, applyErrors, errorCount, draftDirty, applicationChanges, invitationErrors, applyResult, applicationHolds, applyFailureText, smsCodeReady, cstYear, entryHash, workspaceReturn, applyRouteMode, applyHash, receiptSnapshot, pendingRecord, rememberPending, forgetPending, restoredRequest });
+  const api = Object.freeze({ LIMITS, charCount, orgNameError, identifier, email, idKind, phone, maskContact, phoneError, loginIdentity, clearAccountRestriction, loginNextFailure, applicationPending, switchMode, resetDraft, applyErrors, errorCount, draftDirty, applicationChanges, invitationErrors, applyResult, applicationHolds, applyFailureText, smsCodeReady, cstYear, entryHash, workspaceReturn, applyRouteMode, applyHash, receiptSnapshot, pendingRecord, rememberPending, forgetPending, restoredRequest });
   root.PACOM_AUTH_FLOW = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
@@ -68421,8 +68634,7 @@ const auProjects = () =>
     .projects.slice()
     .sort(M.byName)
     .map((p) => p.name);
-const auMask = (a = "") =>
-  a.includes("@") ? a.replace(/^([^@])[^@]*(@.+)$/, "$1•••$2") : a.replace(/(\+\d+\s\d{3})\s\d{4}\s(\d{4})/, "$1 •••• $2");
+const auMask = (a = "") => PACOM_AUTH_FLOW.maskContact(a);
 const auPad = (n) => String(n).padStart(2, "0");
 // 我的账户弹窗里的验证码与密码输入框（Lovable 核查第 456 条，2026-10-11 用户确认）：验证码弹数字键盘、可一键填入短信验证码、最多 6 位；
 // 密码框分别标明当前密码、新密码，供浏览器的密码管理器识别。只加属性，外观不变。
@@ -70406,6 +70618,15 @@ const AU_GUIDE_URL = "";
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
   {
+    version: "1.99",
+    date: "2026-10-16",
+    notes: [
+      "数据分析：修正小时功率表与导出，设备健康可定位对应告警与复位记录，并显示实际体检版本。",
+      "配置：规划检查区分未执行、检查结果和失败，补齐设备网络与位置空状态。",
+      "工作区：修复联系资料脱敏、侧栏偏好、手机菜单刷新和更多操作的焦点衔接，补齐正式共用样式。",
+    ],
+  },
+  {
     version: "1.98",
     date: "2026-10-15",
     notes: [
@@ -70824,8 +71045,8 @@ const AU_TERMS = [
   ["回执", "设备、网关或部署 App 执行后返回的确认。“已绑定”“已应用”“已生效”都以回执为准，没有回执不算完成。", "总览（控制结果）、设备、配置进度"],
   ["计量边界", "能耗设置中写明用电统计包括的范围，如“E栋全楼，含空调”；必须填写，能耗分析按它说明统计口径。", "数据分析 → 能耗（能耗设置）"],
   ["计入方式", "能耗设置中每个计量点的用法：“计入总量”“仅作分项（已含在总表内）”或“不使用”，避免总表和分表重复计算。", "数据分析 → 能耗（能耗设置）"],
-  ["空气质量", "取 CO₂ 与 PM2.5 中较差的一档，写作“差（CO₂）”这样，括号中是较差的一项。", "总览 → 室内环境（图层、功能区表、功能区面板与状态条）"],
-  ["空气质量分", "按 CO₂ 与 PM2.5 计算的空气质量评分（Ruuvi 算法），只在 AQ20 的设备数据中显示。", "设备信息（AQ20 的运行数据）"],
+  ["空气质量", "室内空气中各项污染物的状态，分别查看 CO₂、PM2.5 等指标及其统计时段；不以综合档名代替单项读数或检测结论。", "总览与数据分析的室内环境"],
+  ["空气质量分", "按同台同分钟有效 CO₂ 与 PM2.5 计算的 0–100 辅助评分，越高越好；不替代单项浓度、参考范围或检测结论。", "设备信息、总览与数据分析的室内环境"],
   ["楼层图", "楼层的平面图，上传后在上面规划功能区、标记设备，总览在上面显示设备状态和告警。", "项目 → 楼层，设备 → 设备标记，总览"],
   ["内部标识", "平台给每个点位的内部编号，改名或更换设备都不变；只在联系技术支持时提供，平时用点位名称。", "设备信息 → 高级信息，现场安装资料"],
   ["配置参数", "项目的参数表，列出照明、暖通空调、室内环境与能耗各项的取值和依据；配置人员修改，机构管理员批准后生效。", "配置进度 → 应用配置"],
@@ -79010,7 +79231,7 @@ const ADM = {
         ["Q-03", "PM2.5 分档", "15 / 35 / 50 μg/m³", "参考阈值为 24 h 均值", "云端", "原", "GB/T 18883；WHO 2021", "目标"],
         ["Q-05", "VOC 指数", "> 150", "以指数显示，不换算 mg/m³", "云端", "荐", "Sensirion 参考", "目标"],
         ["Q-06", "NOx 指数", "> 20 持续 30 分钟", "< 10 持续 30 分钟解除；阈值待现场标定", "云端", "", "—", "待验证"],
-        ["Q-07", "空气质量分", "90 / 80 / 50 / 10 五档", "按 CO₂ 与 PM2.5 计算，只在 AQ20 的设备数据中显示", "云端", "原", "Ruuvi 算法", "目标"],
+        ["Q-07", "空气质量分", "90 / 80 / 50 / 10 五档", "0–100，越高越好；按同台同分钟有效 CO₂ 与 PM2.5 计算，作为辅助评分", "云端", "原", "Ruuvi 算法", "目标"],
         ["Q-08", "CO₂ → 新风", "≥ 800 ppm 加风 · < 700 ppm 持续 5 分钟退出", "—", "网关", "", "—", "目标"],
         ["Q-09", "PM2.5 → 净化 / 新风", "> 35 启动 · < 25 持续 15 分钟停", "—", "网关", "", "—", "目标"],
         ["Q-12", "上报周期", "60 s · 变化触发（CO₂ ≥ 50 ppm 或 PM2.5 ≥ 5 μg/m³）", "最短间隔 10 s", "设备本地", "", "—", "目标"],
