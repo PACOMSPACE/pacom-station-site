@@ -15003,65 +15003,124 @@ p.ops-work .ops-link {
   margin-block: -6px;
 }
 .ops-overview-tabs::-webkit-scrollbar { display: none; }
-.ops-overview-tabs > .seg {
+.ops-category-switch {
   --overview-tab-border: color-mix(in srgb, var(--accent) 80%, #000);
   --overview-tab-fill: color-mix(in srgb, var(--accent) 16%, #fff);
   --overview-tab-foreground: color-mix(in srgb, var(--accent) 55%, #000);
-  display: flex;
-  width: max-content;
+  position: relative;
+  isolation: isolate;
+  flex: none;
+  width: var(--track-w);
   max-width: none;
+  height: 32px;
   overflow: visible;
+  transition: width 340ms cubic-bezier(.32,.72,0,1);
+}
+.ops-category-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--item-gap, 0px);
+  width: var(--track-w);
   height: 32px;
   padding: 0;
+  border-radius: 9999px;
+  /* Keep the hit areas outside this layer; each content span clips its label. */
+  overflow: visible;
   background: #f0f0f0;
   box-shadow: inset 0 0 0 1px #dedede, inset 0 2px 2px -1px #00000005, inset 0 4px 4px -2px #00000005, 0 1px 1px #ffffffcc;
+  transition: width 340ms cubic-bezier(.32,.72,0,1);
 }
-.ops-overview-tabs > .seg > button {
+.ops-category-tab {
+  position: relative;
+  z-index: 3;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding-inline: 12px;
+  justify-content: flex-start;
+  flex: none;
+  width: var(--tab-width);
+  min-width: 0;
+  padding: 0 12px;
+  border-radius: 9999px;
+  overflow: visible;
   white-space: nowrap;
   height: 32px;
   min-height: 32px;
   font-size: 14px;
   line-height: 24px;
+  font-weight: 400;
   color: var(--text3);
+  background: transparent;
+  transition: width 340ms cubic-bezier(.32,.72,0,1), padding-left 340ms cubic-bezier(.32,.72,0,1), padding-right 340ms cubic-bezier(.32,.72,0,1), color 150ms ease-out, transform 120ms ease-out;
 }
-.ops-overview-tabs > .seg > button:not(.on):hover {
-  background: #0000000a;
-  color: var(--text2);
+.ops-category-content {
+  display: flex;
+  align-items: center;
+  flex: none;
+  width: 100%;
+  height: 32px;
+  overflow: hidden;
+  pointer-events: none;
 }
-.ops-overview-tabs > .seg > button.on { color: var(--overview-tab-foreground); }
-.ops-overview-tabs > .seg > button:not(:first-of-type)::before {
-  content: "";
+.ops-category-content > .ic {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.ops-category-label {
+  display: inline-block;
+  flex: none;
+  width: max-content;
+  margin-left: 6px;
+  white-space: nowrap;
+  opacity: 1;
+}
+.ops-category-tab:not(.on):hover { color: var(--text); }
+.ops-category-tab.on { color: var(--overview-tab-foreground); cursor: default; }
+.ops-category-tab:not(.on):active { color: var(--text); transform: scale(.97); }
+.ops-category-separator {
   position: absolute;
-  left: 0;
+  z-index: 2;
+  left: var(--separator-x);
   top: 10px;
   width: 1px;
   height: 12px;
   background: #dedede;
-  transition: opacity 80ms;
+  opacity: var(--separator-opacity, 1);
+  pointer-events: none;
+  transition: left 340ms cubic-bezier(.32,.72,0,1), opacity 80ms ease-out;
 }
-.ops-overview-tabs > .seg > :is(button.on, button.on + button)::before { opacity: 0; }
-.ops-overview-tabs > .seg > :is(button.on, .seg-thumb) {
+.ops-category-pill {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: var(--pill-x);
+  width: var(--pill-w);
+  height: 32px;
+  border-radius: 9999px;
+  pointer-events: none;
   background: linear-gradient(to bottom, transparent, #0000000a), var(--overview-tab-fill);
   box-shadow: inset 0 0 0 1px var(--overview-tab-border), inset 0 1px 0 #ffffff7a, inset 0 -1px 0 #ffffff29, 0 2px 2px -1px color-mix(in srgb, var(--accent) 8%, transparent), 0 4px 4px -2px color-mix(in srgb, var(--accent) 8%, transparent);
+  transition: left 150ms ease-out, width 150ms ease-out;
 }
-.ops-overview-tabs > .seg > .seg-thumb {
+.ops-category-measure {
+  position: absolute;
+  left: 0;
   top: 0;
-  bottom: auto;
-  height: 32px;
-  margin: 0;
+  display: flex;
+  width: max-content;
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 400;
+  white-space: nowrap;
+  pointer-events: none;
+  visibility: hidden;
 }
-.ops-overview-tabs > .seg.has-thumb > button.on {
-  background: none;
-  box-shadow: none;
+.ops-category-measure > span { flex: none; }
+.ops-category-switch:not(.is-ready),
+.ops-category-switch:not(.is-ready) :is(.ops-category-track, .ops-category-tab, .ops-category-label, .ops-category-separator, .ops-category-pill) {
+  transition: none;
 }
-.ops-overview-tabs > .seg.anim > .seg-thumb {
-  transition: transform 150ms ease-out, width 150ms ease-out;
-}
-.ops-overview-tabs > .seg > button:active { background: #0000000f; }
 .ops-overview-meta {
   display: flex;
   flex-wrap: wrap;
@@ -15105,7 +15164,7 @@ p.ops-work .ops-link {
   .ws-overview-title-actions > .btn::after,
   .ops-overview-location > .ws-location::after { content: ""; position: absolute; inset: -6px 0; }
   .ws-overview-title-actions > .btn::after { inset-block: -6px; }
-  .ops-overview-tabs > .seg > button::after { content: ""; position: absolute; inset: -6px 0; }
+  .ops-category-tab::after { content: ""; position: absolute; inset: -6px 0; }
   .ops-statistics-project > summary { min-height: 44px; display: flex; align-items: center; }
 }
 @media (max-width: 599.98px) {
@@ -15114,33 +15173,22 @@ p.ops-work .ops-link {
   .ops-overview-location > .ws-location { flex: 1; width: auto; }
   .ops-overview-location > .ws-page-more { display: grid; flex: none; width: 44px; height: 44px; }
   .ops-overview-tabs { flex-basis: 100%; }
-  .ops-overview-tabs > .seg { margin-inline: auto; }
-  .ops-overview-tabs > .seg { gap: 4px; }
-  .ops-overview-tabs > .seg > button {
-    transition: gap 340ms cubic-bezier(.32,.72,0,1), color 150ms ease-out;
-  }
-  .ops-overview-tabs > .seg > button:not(:first-of-type)::before { left: -2px; }
-  .ops-overview-tabs > .seg > button > .ops-overview-tab-label {
-    flex: none;
-    width: var(--overview-label-width);
-    overflow: hidden;
-    opacity: 1;
-    transition: width 340ms cubic-bezier(.32,.72,0,1), opacity 150ms ease-out;
-  }
-  .ops-overview-tabs > .seg > button:not(.on) { gap: 0; }
-  .ops-overview-tabs > .seg > button:not(.on) > .ops-overview-tab-label { width: 0; opacity: 0; }
+  .ops-category-switch { margin-inline: auto; }
+  .ops-category-tab:not(.on) .ops-category-label { opacity: 0; }
   .ops-overview-meta > .ops-live { flex: 1 1 180px; }
   .ops-statistics-basis .kv { grid-template-columns: 1fr; gap: 4px; }
   .ops-statistics-basis .kv dd + dt { margin-top: 8px; }
 }
 @media (max-width: 599.98px) and (pointer: coarse) {
-  .ops-overview-tabs > .seg > button::after { inset-inline: -2px; }
+  .ops-category-tab::after { inset-inline: -2px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ops-overview-tabs > .seg > button,
-  .ops-overview-tabs > .seg > button::before,
-  .ops-overview-tabs > .seg > button > .ops-overview-tab-label,
-  .ops-overview-tabs > .seg.anim > .seg-thumb { transition: none; }
+  .ops-category-switch,
+  .ops-category-track,
+  .ops-category-tab,
+  .ops-category-label,
+  .ops-category-separator,
+  .ops-category-pill { transition: none; }
 }
 /* 更窄的手机仅放宽页签行可用空间，保留图标、选中名称、字号和横向留白。 */
 @media (max-width: 359.98px) {
@@ -34664,11 +34712,15 @@ function overviewPageActions() {
   if (typeof Demo !== "undefined" && Demo.on()) return btn("操作记录", "opsRecords") + btn("大屏", "opsScreen");
   return btn("操作记录", "operationRecords") + (U.p ? btn("配置进度", "deployList", { p: U.p, b: U.b }) : "");
 }
+// 总览类别切换器独立维护终点几何。按钮、轨道和分隔线向明确终点过渡；
+// 胶囊不订阅按钮过渡中的尺寸，不把每一帧再当作新的目标。
+function overviewCategorySwitch(active) {
+  const icons = { general: "dir-grid", lighting: "bulb", hvac: "ac", environment: "aq", energy: "meter" };
+  return `<div class="ops-category-switch" data-morph-keep="overview-categories-v2"><span class="ops-category-pill" aria-hidden="true"></span><div class="ops-category-track" role="tablist" aria-label="总览页签"><div class="ops-category-measure" aria-hidden="true">${overviewTabs.map(([id, label]) => `<span class="ops-category-size" data-value="${id}">${esc(label)}</span>`).join("")}</div>${overviewTabs.map(([id, label]) => `<button role="tab" aria-selected="${id === active}" class="ops-category-tab${id === active ? " on" : ""}" data-act="tab" data-value="${id}" data-key="tab:${id}" tabindex="${id === active ? 0 : -1}" id="tab-${id}" aria-controls="wsPagePanel" aria-label="${esc(label)}"><span class="ops-category-content" aria-hidden="true">${ico(icons[id], "ic16")}<span class="ops-category-label">${esc(label)}</span></span></button>`).join("")}${overviewTabs.slice(1).map((_, i) => `<span class="ops-category-separator" data-boundary="${i}" aria-hidden="true"></span>`).join("")}</div></div>`;
+}
 function overviewHeader(tab, live = "") {
   const more = menuTrigger(iconBtn("更多", "more", "pageMore", { pageactions: "overviewTitleActions" })).replace('class="iconbtn round"', 'class="iconbtn round ws-page-more"');
-  const icons = { general: "dir-grid", lighting: "bulb", hvac: "ac", environment: "aq", energy: "meter" };
-  const items = overviewTabs.map(([id, label]) => [id, `<span class="sr-only">${esc(label)}</span>${ico(icons[id], "ic16")}<span class="ops-overview-tab-label" aria-hidden="true" style="--overview-label-width:${label.length}em">${esc(label)}</span>`]);
-  return `<div class="ops-overview-nav"><div class="ops-overview-location">${scopeControl()}${more}</div><div class="ops-overview-tabs">${segSm(items, tab, "tab", "wsPagePanel", "总览页签")}</div></div>${live || tab === "energy" ? `<div class="ops-overview-meta">${live}${tab === "energy" ? btn("统计口径", "overviewBasis") : ""}</div>` : ""}`;
+  return `<div class="ops-overview-nav"><div class="ops-overview-location">${scopeControl()}${more}</div><div class="ops-overview-tabs">${overviewCategorySwitch(tab)}</div></div>${live || tab === "energy" ? `<div class="ops-overview-meta">${live}${tab === "energy" ? btn("统计口径", "overviewBasis") : ""}</div>` : ""}`;
 }
 // 视图切换是一组按钮，名称“视图”（Lovable 核查第 344 条，2026-10-11 用户确认）
 const views = () =>
@@ -34806,6 +34858,11 @@ function memberGuard() {
   syncRoute(true);
 }
 function render() {
+  // 不合法的总览类别不能让导航与内容各自采用不同兜底。
+  if (U.page === "overview" && U.tab && !overviewTabs.some(([id]) => id === U.tab)) {
+    U.tab = "general";
+    syncRoute(true);
+  }
   memberGuard();
   $("#app").dataset.page=U.page;
   // 绘制引擎画布在无关更新时保留（D4）：仍是同一次绘制或调整、范围未在引擎之外改变时不卸载重挂。
@@ -34866,6 +34923,7 @@ function render() {
   }
   $("#side").wsHtml = side;
   $("#app > .main .phead").wsHtml = head;
+  syncOverviewCategories();
   wsSyncSidebarState();
   netBanner();
   wsResultEnter(body);
@@ -39570,9 +39628,71 @@ document.addEventListener("transitionend", (e) => {
    1) Segmented control: one neutral thumb slides between options (360 ms), as on lovable.dev.
       Renders replace the DOM, so the last position is remembered per option set and animated from there.
    2) Dialog: header / footer rules only appear when the body is scrolled (lovable dialogs have no fixed rules). */
+const OVERVIEW_CATEGORY_STATE = new WeakMap();
+function revealOverviewCategory(host) {
+  const view = host.closest(".ops-overview-tabs"), on = host.querySelector(".ops-category-tab.on");
+  if (!view || !on) return;
+  const box = view.getBoundingClientRect(), item = on.getBoundingClientRect();
+  if (item.left < box.left) view.scrollLeft -= box.left - item.left;
+  else if (item.right > box.right) view.scrollLeft += item.right - box.right;
+}
+function syncOverviewCategories(remeasure = false, layout = false) {
+  const host = document.querySelector(".ops-category-switch");
+  if (!host) return;
+  const active = overviewTabs.some(([id]) => id === U.tab) ? U.tab : "general";
+  const mobile = matchMedia("(max-width: 599.98px)").matches;
+  let state = OVERVIEW_CATEGORY_STATE.get(host);
+  if (!state || remeasure) {
+    const widths = new Map([...host.querySelectorAll(".ops-category-size")].map(el => [el.dataset.value, el.getBoundingClientRect().width]));
+    state = { widths, active: null, mobile: null };
+    OVERVIEW_CATEGORY_STATE.set(host, state);
+    if (!host.dataset.revealBound) {
+      // 只在本次选中项宽度过渡结束时补一次可见性，不逐帧滚动或追读。
+      host.addEventListener("transitionend", event => {
+        if (event.propertyName === "width" && event.target.matches(".ops-category-tab.on")) revealOverviewCategory(host);
+      });
+      host.dataset.revealBound = "1";
+    }
+  }
+  if (state.active === active && state.mobile === mobile) {
+    if (layout) revealOverviewCategory(host);
+    return;
+  }
+  // 字体就绪和响应断点变化属于排版更新，不播放类别切换动画。
+  const layoutChange = remeasure || state.mobile !== null && state.mobile !== mobile;
+  if (layoutChange) host.classList.remove("is-ready");
+  const buttons = [...host.querySelectorAll(".ops-category-tab")], selected = buttons.findIndex(b => b.dataset.value === active), gap = mobile ? 4 : 0;
+  let x = 0;
+  const geometry = buttons.map((button, index) => {
+    const on = index === selected, width = 40 + (!mobile || on ? 6 + state.widths.get(button.dataset.value) : 0);
+    button.style.setProperty("--tab-width", width + "px");
+    button.classList.toggle("on", on);
+    button.setAttribute("aria-selected", String(on));
+    button.tabIndex = on ? 0 : -1;
+    const item = { x, width };
+    x += width + (index < buttons.length - 1 ? gap : 0);
+    return item;
+  });
+  host.style.setProperty("--item-gap", gap + "px");
+  host.style.setProperty("--track-w", x + "px");
+  host.style.setProperty("--pill-x", geometry[selected].x + "px");
+  host.style.setProperty("--pill-w", geometry[selected].width + "px");
+  host.querySelectorAll(".ops-category-separator").forEach((separator, index) => {
+    separator.style.setProperty("--separator-x", (geometry[index].x + geometry[index].width + gap / 2) + "px");
+    separator.style.setProperty("--separator-opacity", selected === index || selected === index + 1 ? "0" : "1");
+  });
+  state.active = active;
+  state.mobile = mobile;
+  if (!host.classList.contains("is-ready")) {
+    // 首次绘制直接落位；之后只写终点，不撤掉过渡，不重置起点。
+    void host.offsetWidth;
+    host.classList.add("is-ready");
+  }
+  revealOverviewCategory(host);
+}
+window.addEventListener("resize", () => syncOverviewCategories(false, true));
+if (document.fonts?.ready) document.fonts.ready.then(() => syncOverviewCategories(true));
 const SEG_POS = new Map();
-const OVERVIEW_TAB_VIEW = new WeakMap();
-const OVERVIEW_TAB_RESIZE = new WeakMap();
 function syncSegs() {
   document.querySelectorAll(".seg").forEach((seg) => {
     const on = seg.querySelector(":scope > button.on, :scope > button[aria-selected=true]");
@@ -39585,23 +39705,6 @@ function syncSegs() {
     const w = on.offsetWidth,
       x = on.offsetLeft;
     if (!w) return;
-    // Only reveal a newly selected overview category or respond to a width change;
-    // ordinary redraws must not undo a user's manual horizontal browsing.
-    const view = seg.closest(".ops-overview-tabs");
-    if (view) {
-      if (typeof ResizeObserver === "function" && !OVERVIEW_TAB_RESIZE.has(seg)) {
-        const observer = new ResizeObserver(scheduleSegs);
-        seg.querySelectorAll(":scope > button").forEach((button) => observer.observe(button));
-        OVERVIEW_TAB_RESIZE.set(seg, observer);
-      }
-      const state = `${on.dataset.value}|${view.clientWidth}|${w}|${x}`;
-      if (OVERVIEW_TAB_VIEW.get(view) !== state) {
-        const box = view.getBoundingClientRect(), item = on.getBoundingClientRect();
-        if (item.left < box.left) view.scrollLeft -= box.left - item.left;
-        else if (item.right > box.right) view.scrollLeft += item.right - box.right;
-        OVERVIEW_TAB_VIEW.set(view, state);
-      }
-    }
     if (!th) {
       th = document.createElement("span");
       th.className = "seg-thumb";
@@ -39617,19 +39720,6 @@ function syncSegs() {
         th.style.transform = `translateX(${px}px)`;
         th.style.width = pw + "px";
       };
-    if (view) {
-      // Keep the existing CSS transition alive across page morphs. A new target
-      // then continues from its current visual position, including rapid clicks.
-      seg.setAttribute("data-morph-classes", "has-thumb anim");
-      seg.classList.add("has-thumb");
-      if (th.dataset.x == x && th.dataset.w == w) return;
-      if (th.dataset.x == null) seg.classList.remove("anim");
-      else seg.classList.add("anim");
-      place(x, w);
-      th.dataset.x = x;
-      th.dataset.w = w;
-      return;
-    }
     seg.classList.add("has-thumb");
     if (th.dataset.x == x && th.dataset.w == w) return;
     const now = performance.now();
@@ -69658,6 +69748,13 @@ const AU_GUIDE_URL = "";
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "1.94",
+    date: "2026-10-15",
+    notes: [
+      "总览：重新实现类别页签的连续滑动，修正快速切换、反向切换及手机名称展开；保留32px高度和每项左右12px留白。",
+    ],
+  },
   {
     version: "1.93",
     date: "2026-10-15",
