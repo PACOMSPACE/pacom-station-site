@@ -32751,7 +32751,10 @@ const StationFlowModel = ((M) => {
   }
   // cx：页面逐网络检查时可共用同一索引（index），数据有改动须重新建立。
   function planChecks(db, scope = {}, cx = indexOf(db)) {
-    const inScope = (p) => (!scope.floorId || p.floorId === scope.floorId) && (!scope.networkId || p.networkId === scope.networkId);
+    // systemOnly 只补查指定项目／楼宇／楼层内不属于网络的系统点；整网检查由调用方另行合并。
+    // 未传 systemOnly 时保留既有 floorId/networkId 及所有阈值语义。
+    const inScope = (p) => (!scope.floorId || p.floorId === scope.floorId) && (!scope.networkId || p.networkId === scope.networkId) &&
+      (!scope.systemOnly || (M.access(p) === "system" && !p.networkId && floorIn(db, p.floorId, scope)));
     const ps = db.points.filter(inScope),
       inPs = new Set(ps.map((p) => p.id)),
       touches = (g) => g.controllerIds.some((id) => inPs.has(id)),
@@ -32834,7 +32837,7 @@ const StationFlowModel = ((M) => {
     }
     for (const p of ps.filter((p) => p.type === "idu" && !p.oduId)) hints.push({ id: "nodu-" + p.id, text: `${zhSub(p.name, "r")}没有登记所属外机`, ids: [p.id] });
     // Marking order is free; the gateway is only needed first for field binding.
-    const nets = scope.networkId ? [cx.networks.get(scope.networkId)].filter(Boolean) : scope.floorId ? M.networks(db, scope.floorId) : db.networks;
+    const nets = scope.systemOnly ? [] : scope.networkId ? [cx.networks.get(scope.networkId)].filter(Boolean) : scope.floorId ? M.networks(db, scope.floorId) : db.networks;
     for (const n of nets) {
       const np = cx.byNetwork.get(n.id) || [],
         gw = np.find((p) => p.type === "gw"),
@@ -34930,7 +34933,7 @@ function snapshot() {
     q: U.q,
     zone: U.zone,
     buildingZoom: U.buildingZoom,
-    ...Object.fromEntries(["opsRange", "opsFrom", "opsTo", "opsGran", "opsMeter", "opsHealthAlarm"].filter(k => U[k] != null).map(k => [k, U[k]])),
+    ...(typeof opsRouteFields === "function" ? opsRouteFields() : {}),
     scroll: $("#pbody")?.scrollTop || 0,
   };
 }
@@ -34948,6 +34951,7 @@ function normalizeDeviceMode(page = U.page, mode = U.mode) {
 function route(page, scope = {}, opts = {}) {
   guard(() => {
     closePop();
+    if (typeof opsHistoryReplace === "function") opsHistoryReplace();
     const from = snapshot(),
       fromLabel = sourceLabel(),
       // 来源返回同时恢复原本打开的信息面板（2026-10-05 核查 S12：原先从项目信息进入配置进度，返回后面板没有恢复）。
@@ -34955,6 +34959,7 @@ function route(page, scope = {}, opts = {}) {
     saveLevel();
     if (opts.remember) U.history.push(from);
     U.memory[U.page] = snapshot();
+    if (typeof opsRouteLeaving === "function") opsRouteLeaving(page, scope);
     if (U.f) U.floorViewport[U.f] = { zoom: U.zoom, x: U.canvasScrollX || 0, y: U.canvasScrollY || 0 };
     Object.assign(
       U,
@@ -35007,8 +35012,8 @@ function route(page, scope = {}, opts = {}) {
     if (opts.restore && U.memory[page]) Object.assign(U, U.memory[page]);
     // 普通侧栏返回只恢复本页偏好，不把一次来源下钻重新带入；显式来源返回仍按scope恢复。
     if (opts.restore && U.opsHealthAlarm && !("opsHealthAlarm" in scope)) {
-      U.opsHealthAlarm = null;
-      U.opsAlType = "all";
+      if (typeof opsClearHealthTransient === "function") opsClearHealthTransient();
+      else { U.opsHealthAlarm = null; U.opsAlType = "all"; }
     }
     U.mode = normalizeDeviceMode(page, U.mode);
     if (page === "devices" && !U.tab) U.tab = deviceDefaultTab();
@@ -35045,7 +35050,9 @@ function syncRoute(replace = false) {
   if (["projects", "devices"].includes(U.page) && U.f && U.zone) q.set("z", U.zone);
   if (U.view !== "cards") q.set("view", U.view);
   if (U.mode !== floorDefaultMode(U.page)) q.set("mode", U.mode);
-  history[replace ? "replaceState" : "pushState"]({ source: U.source || null }, "", "#" + U.page + (q.size ? "?" + q : ""));
+  const state = { source: U.source || null }, ops = typeof opsRouteState === "function" ? opsRouteState() : null;
+  if (ops) state.ops = ops;
+  history[replace ? "replaceState" : "pushState"](state, "", "#" + U.page + (q.size ? "?" + q : ""));
 }
 function readRoute() {
   // A standalone document has no workspace loaded; entering the app starts its normal boot.
@@ -35110,8 +35117,10 @@ function readRoute() {
   }
   if (page === "deployment" || fixed) syncRoute(true);
 }
-async function persist(next) {
+async function persist(next, { networkProject } = {}) {
   if (writing) throw Error("正在保存，请稍候");
+  if (networkProject) assertNetworkProjectAccess(networkProject, next);
+  assertNetworkDraftAccess(next, W);
   writing = true;
   try {
     if (next.revision !== W.revision) throw Error("资料已更新，当前草稿尚未覆盖新资料；请先导出规划，再刷新核对");
@@ -35128,6 +35137,10 @@ async function persist(next) {
           t.abort();
           return;
         }
+        try {
+          if (networkProject) assertNetworkProjectAccess(networkProject, next);
+          assertNetworkDraftAccess(next, W);
+        } catch (e) { t.abort(); rej(e); return; }
         s.put(next, storeKey());
       };
       t.oncomplete = res;
@@ -35244,6 +35257,11 @@ function mutate(fn, { quiet = false } = {}) {
 // a.confirmed：已在“确认保存规划”中确认影响；a.then === "prepare"：确认后保存，接着准备现场绑定。
 // 返回 false 表示先列出影响、尚未保存（2026-10-05 核查 H5）。
 async function savePlan(a = {}) {
+  // 权限可能在表单／草稿打开后变化；拒绝前不应用字段、不改原草稿。
+  if ((U.dirty || U.attrsDirty) && !writing) {
+    assertNetworkProjectAccess(M.projectOfFloor(data(), U.f));
+    assertNetworkDraftAccess(D || W, W);
+  }
   if (U.attrsDirty) applyPoint();
   // 保存中再次触发直接忽略（2026-10-05 核查 D14）。
   if (!U.dirty || writing) return;
@@ -35270,7 +35288,7 @@ async function savePlan(a = {}) {
   if (bar) wsSetBusy(bar, true);
   if (status) status.textContent = "正在保存…";
   try {
-    await persist(next);
+    await persist(next, { networkProject: M.projectOfFloor(data(), U.f) });
   } catch (e) {
     if (status?.isConnected) status.textContent = "保存未完成，修改仍保留";
     throw e;
@@ -36200,8 +36218,8 @@ pages.devices = () => {
             "building-2",
           )
         : empty(
-            "选择楼层，开始标记设备",
-            "设备标记与项目楼层图共用同一份点位和规划；选择后即可操作。",
+            canEdit() ? "选择楼层，开始标记设备" : "选择楼层，查看设备",
+            canEdit() ? "设备标记与项目楼层图共用同一份点位和规划；选择后即可操作。" : "查看该楼层的设备位置、状态和资料。",
             btn("选择楼层", "pickFloor", {}, "primary"),
           ))
     );
@@ -36419,20 +36437,58 @@ function spaceInfo(kind, id) {
     !isF,
   );
 }
-function networkForm(fid, id) {
+const NETWORK_PROJECT_DENY = "当前项目不可配置，请重新选择。";
+function assertNetworkProjectAccess(pid, db = data()) {
+  if (!canEdit()) throw Error("当前角色只有查看权限");
+  const saved = M.get(W, "projects", pid), authority = saved ? W : db;
+  if (!pid || !M.get(db, "projects", pid) || (!saved && !canCreateProject()) || !mayViewProject(pid, authority)) throw Error(NETWORK_PROJECT_DENY);
+}
+function assertNetworkFormScope(pid, ids, id, db = data()) {
+  assertNetworkProjectAccess(pid, db);
+  const n = id && M.get(db, "networks", id);
+  if (id && (!n || n.projectId !== pid)) throw Error(NETWORK_PROJECT_DENY);
+  if (ids.some((fid) => !M.floor(db, fid) || M.projectOfFloor(db, fid) !== pid)) throw Error("服务楼层不属于当前项目，请重新选择。");
+}
+// 整份工作区保存时，只核本次变更网络及其原／新归属，未变更的其他项目不受影响。
+function assertNetworkDraftAccess(next, before) {
+  const old = new Map((before?.networks || []).map((n) => [n.id, n])),
+    current = new Map((next?.networks || []).map((n) => [n.id, n]));
+  for (const id of new Set([...old.keys(), ...current.keys()])) {
+    const a = old.get(id), b = current.get(id);
+    if (JSON.stringify(a) === JSON.stringify(b)) continue;
+    if (a) assertNetworkFormScope(a.projectId, a.floorIds, id, before);
+    if (b) {
+      if (a && a.projectId !== b.projectId) throw Error("设备网络不能改到其他项目。");
+      assertNetworkFormScope(b.projectId, b.floorIds, "", next);
+    }
+  }
+}
+function networkForm(fid, id, selectedProject) {
+  if (!canEdit()) throw Error("当前角色只有查看权限");
   const n = g("networks", id),
     f = g("floors", fid || U.f),
-    pid = n?.projectId || M.projectOfFloor(data(), f?.id) || U.p;
+    pid = n?.projectId || M.projectOfFloor(data(), f?.id) || selectedProject || U.p;
+  if ((id && !n) || (fid && !f)) throw Error(NETWORK_PROJECT_DENY);
   if (!pid) {
+    const projects = data().projects.filter((p) => {
+      try { assertNetworkProjectAccess(p.id); return true; } catch (_) { return false; }
+    }).sort(M.byName),
+      ready = projects.filter((p) => F.scopedFloors(data(), { p: p.id }).length),
+      unready = projects.filter((p) => !ready.includes(p)),
+      pending = unready.length ? `<div class="ws-checks">${unready.map((p) => `<div class="v13-line"><span>${esc(p.name)} · 尚无楼层</span>${btn("查看项目", "spaceOpen", { kind: "projects", id: p.id })}</div>`).join("")}</div>` : "";
     return modal(
       "规划设备网络",
-      fld("项目", "networkProject", projectSelect("networkProject", U.p)),
-      btn("取消", "close") + btn("继续", "networkProjectNext", {}, "primary"),
+      (ready.length ? fld("项目", "networkProject", select("networkProject", [["", "请选择项目"], ...ready.map((p) => [p.id, p.name])], "", "项目")) : wsNotice(projects.length ? "尚未创建楼宇或楼层，请先补充项目空间。" : "当前没有可配置的项目。")) + pending,
+      btn("取消", "close") + (ready.length ? btn("继续", "networkProjectNext", {}, "primary") : ""),
     );
   }
+  assertNetworkFormScope(pid, n?.floorIds || (f ? [f.id] : []), id);
+  if (f && M.projectOfFloor(data(), f.id) !== pid) throw Error("服务楼层不属于当前项目，请重新选择。");
+  if (id) assertNetworkFormScope(pid, [], id, W);
   const fs = F.scopedFloors(data(), { p: pid }), fsOut = fs.some((x) => isOutdoor(x.buildingId)),
     // 从设备标记打开时网络进入规划草稿，随“保存规划”一起保存；从“设备网络”页签打开时直接保存（与 saveNetworkForm 同一判断，2026-10-08 用户确认，Editor 核查 E2）。
     draft = isFloorWorkspace() && U.f && !id;
+  if (!fs.length) return modal("规划设备网络", wsNotice("尚未创建楼宇或楼层，请先补充项目空间。") + btn("查看项目", "spaceOpen", { kind: "projects", id: pid }), btn("取消", "close"));
   modal(
     id ? "编辑服务范围" : "规划设备网络",
     `${fld("网络名称", "networkName", input("networkName", n?.name || (f ? g("buildings", f.buildingId).name + " · " + f.name : ""), "例如：E栋 · 7F"))}${id ? "" : networkTemplateField(pid)}<fieldset class="ws-checks ws-floor-checks"><legend>${fsOut ? "服务楼层与总平面" : "服务楼层"}</legend>${fs.map((x) => `<label><input type="checkbox" name="networkFloors" value="${x.id}" ${(n?.floorIds || [f?.id]).includes(x.id) ? "checked" : ""}>${esc(g("buildings", x.buildingId).name + " · " + x.name)}</label>`).join("")}</fieldset>${note(`默认${f && isOutdoor(f.buildingId) ? "当前总平面" : "本层"}，可选择同一项目多个楼层${fsOut ? "或总平面" : ""}。${draft ? "网络随“保存规划”一起保存" : "此时只保存规划"}，不生成密钥；设备可按任意顺序标记，无需先标记或绑定网关；现场绑定时再由 PACOM App 从网关开始。`)}`,
@@ -36442,7 +36498,10 @@ function networkForm(fid, id) {
 // 创建设备网络时选择网络模板（规范 DEVICE04，2026-10-09 用户确认，ABB 对比 BP10）：PACOM 网络模板，或沿用本项目某个已调整过参数的网络（偏离与依据一并带入）。
 function networkTemplateField(pid) {
   const others = data()
-    .networks.filter((o) => o.projectId === pid && F.parameterDiffs(o).length)
+    .networks.filter((o) => {
+      if (o.projectId !== pid) return false;
+      try { return !!networkTemplateSource(data(), pid, "network:" + o.id); } catch (_) { return false; }
+    })
     .sort(M.byName);
   return fld(
     "网络模板",
@@ -36459,8 +36518,19 @@ function networkTemplateField(pid) {
 function floorGapError(gaps) {
   return `服务楼层要相邻：${gaps.map((x) => `${x.building?.name || ""} ${x.missing.map((f) => f.name).join("、")}`.trim()).join("；")} 没有选择。跨楼层网络靠楼梯间、竖井附近的中继逐层连通，隔开的楼层没有设备转发；请加入这些楼层，或分成两个网络。`;
 }
+function networkTemplateSource(db, pid, choice) {
+  assertNetworkProjectAccess(pid, db);
+  if (choice === "reference") return null;
+  const id = typeof choice === "string" && choice.startsWith("network:") ? choice.slice(8) : "",
+    src = id && M.get(db, "networks", id);
+  if (!src || src.projectId !== pid || !F.parameterDiffs(src).length) throw Error("请选择当前项目有效的网络模板。");
+  assertNetworkFormScope(pid, src.floorIds, id, db);
+  // 已保存来源仍按原始归属核对，不能借草稿改写来源项目。
+  if (M.get(W, "networks", id)) assertNetworkFormScope(pid, [], id, W);
+  return src;
+}
 function applyNetworkTemplate(db, n, choice) {
-  const src = choice?.startsWith("network:") && M.get(db, "networks", choice.slice(8));
+  const src = networkTemplateSource(db, n.projectId, choice);
   if (!src) return;
   n.parameters = M.copy(src.parameters);
   n.parameterReason = `沿用“${src.name}”的网络参数${src.parameterReason ? "：" + src.parameterReason : ""}`;
@@ -37896,10 +37966,15 @@ async function saveSpaceForm() {
 async function saveNetworkForm(a) {
   const ids = checked("networkFloors"),
     name = value("networkName").trim();
+  assertNetworkFormScope(a.project, ids, a.id);
+  // 草稿与已保存资料均需授权，不能用改写后的草稿隐藏网络原归属。
+  if (a.id) assertNetworkFormScope(a.project, [], a.id, W);
   if (!ids.length) throw nameFieldErr("networkFloors", "至少选择一个服务楼层");
   const gaps = F.floorGaps(data(), ids);
   if (gaps.length) throw Error(floorGapError(gaps));
   const choice = a.id ? "" : value("networkTemplate");
+  // 必须先验证来源，再建立网络／草稿或修改撤销栈。
+  if (!a.id) networkTemplateSource(data(), a.project, choice);
   const wasPlan = isFloorWorkspace() && U.f && !a.id;
   if (wasPlan) {
     if (!D) D = M.copy(W);
@@ -37927,6 +38002,8 @@ async function saveNetworkForm(a) {
   } else {
     let made = "";
     await transaction((db) => {
+      assertNetworkFormScope(a.project, ids, a.id, db);
+      if (!a.id) networkTemplateSource(db, a.project, choice);
       if (a.id) {
         const n = M.get(db, "networks", a.id);
         if (F.networkState(db, n) !== "规划中") throw Error("运行网络的范围变更需由服务校验");
@@ -38195,6 +38272,7 @@ defineActions({
   },
   // 切换页签：告警页同时关闭告警详情侧面板（2026-09-30；2026-10-03 D2 并入原运营模块的包装）。
   tab: (a) => {
+    if (typeof opsHistoryReplace === "function") opsHistoryReplace();
     if (U.page === "alarms") U.opsDrawer = null;
     return guard(() => {
       U.tab = a.value;
@@ -38276,8 +38354,11 @@ defineActions({
     ),
   networkForm: (a) => networkForm(a.floor, a.id),
   networkProjectNext: () => {
-    U.p = value("networkProject") || U.p;
-    if (!U.p) throw Error("请选择项目");
+    const pid = value("networkProject");
+    if (!pid) throw Error("请选择项目");
+    assertNetworkProjectAccess(pid);
+    if (!F.scopedFloors(data(), { p: pid }).length) return networkForm(null, null, pid);
+    U.p = pid;
     networkForm();
   },
   saveNetwork: saveNetworkForm,
@@ -39193,11 +39274,12 @@ function wsPopGo(leaving) {
   if (leaving) wsLeaveLayers();
   // 来源返回跟随所到的历史项（2026-10-05 核查 C1：原先后退后仍显示后来页面的“返回项目”）：用该项进入时记下的来源，在读取地址前恢复，
   // 读取地址时改写的本项同样记下它；没有记下，或来源中的项目、楼宇、楼层已不存在时不显示。后退到全部项目时同样清除来源返回（规范 2 4）。
-  const s = history.state?.source || null;
+  const entry = history.state, s = entry?.source || null;
   U.source = s && (!s.p || g("projects", s.p)) && (!s.b || g("buildings", s.b)) && (!s.f || g("floors", s.f)) ? s : null;
   readRoute();
   if (U.page === "projects" && !U.p) U.source = null;
   restoreListState();
+  if (typeof opsRestoreRouteState === "function") opsRestoreRouteState(entry);
   render();
 }
 
@@ -39991,7 +40073,10 @@ async function boot() {
     M.validate(W);
     netBanner();
     U.collapsed = sideCollapsedPref();
+    const entry = history.state, source = entry?.source;
     readRoute();
+    U.source = source && (!source.p || g("projects", source.p) && mayViewProject(source.p)) && (!source.b || g("buildings", source.b)) && (!source.f || g("floors", source.f)) ? source : null;
+    if (typeof opsRestoreRouteState === "function") opsRestoreRouteState(entry);
     render();
   } catch (e) {
     bootError(e);
@@ -58022,15 +58107,15 @@ function v13StatusPage() {
         btn(canEdit() ? "标记设备" : "查看设备", "v13MarkFloor", { id: f.id }, "sm ghost"),
       ];
     });
-  const planCheck = `<div class="v13-subhead"><b>规划检查</b><span>“阻止”项清零才能现场绑定</span></div><div class="v13-checks"><button class="v13-check ${blocks.length ? "crit" : ""}" data-act="v13Checks" data-kind="blocks"><b>${v13N(blocks.length)}</b><span>阻止</span></button><button class="v13-check ${hints.length ? "warn" : ""}" data-act="v13Checks" data-kind="hints"><b>${v13N(hints.length)}</b><span>提示</span></button></div>${
-    nets.length
+  const planCheck = `<div class="v13-subhead"><b>规划检查</b><span>“阻止”项清零才能现场绑定</span></div><div class="v13-checks"><button class="v13-check ${blocks.length ? "crit" : ""}" data-act="v13Checks" data-kind="blocks"><b>${DS.planCheck.state === "done" ? v13N(blocks.length) : "—"}</b><span>阻止</span></button><button class="v13-check ${hints.length ? "warn" : ""}" data-act="v13Checks" data-kind="hints"><b>${DS.planCheck.state === "done" ? v13N(hints.length) : "—"}</b><span>提示</span></button></div>${
+    DS.planCheck.state === "done"
       ? `<ul class="v13-check-list">${[...blocks.map((x) => ["crit", x.text]), ...hints.map((x) => ["warn", x.text])]
           .slice(0, 4)
           .map(([k, t]) => `<li class="${k}">${esc(t)}</li>`)
           .join(
             "",
           )}${blocks.length + hints.length > 4 ? `<li class="more"><button class="v13-link" data-act="v13Checks" data-kind="all">查看全部 ${v13N(blocks.length + hints.length)} 项</button></li>` : ""}${!blocks.length && !hints.length ? `<li class="ok">当前规划没有阻止或提示项</li>` : ""}</ul>`
-      : `<p class="v13-empty-line">尚无规划点位，规划检查未取得。</p>`
+      : wsNotice(DS.planCheck.message, DS.planCheck.state === "error" ? "error" : "info") + (DS.planCheck.state === "error" ? btn("重试", "v13Checks", { kind: "all" }) : "")
   }`;
   const sec2 = v13Section(
     "设备",
@@ -58219,6 +58304,7 @@ function v13StatusPage() {
       return ["空间资料", { title, act: firstReq.act, args: firstReq.args, who: "config", why: SC.required > 1 ? `待处理 ${SC.required} 项` : "" }];
     }
     if (DS.sec.设备 !== "已具备") {
+      if (DS.planCheck.state === "error") return ["设备", { title: "重试规划检查", act: "v13Checks", args: { kind: "all" }, who: "any", why: "检查结果未取得" }];
       const fid = SC.floorIds[0] || floorsUsed[0]?.id,
         noGw = stages.find(([, s]) => !s.gw);
       if (!meshAll.length) return ["设备", fid ? { title: "标记设备 · " + floorName(fid), act: "v13MarkFloor", args: { id: fid }, who: "config" } : { title: "标记设备", act: "startMark", args: {}, who: "config" }];
@@ -58384,17 +58470,8 @@ function v13DeployState(db, scope, withParams = !scope.b) {
   const states = withParams ? v13Rows(db, pid).map((r) => v13State(r, P, db, pid)).map((s) => ((s.off = !F.appOn(en, F.paramApps(s.r.code, s.t.app))), s)) : [],
     rc = v13Counts(states.filter((s) => !s.off)),
     appSets = withParams ? v13AppSettings(db, pid, en, floorsUsed) : [];
-  // 逐网络检查共用一份索引：全机构的分组与容量只算一次（2026-10-06 A1）。
-  const bm = new Map(),
-    hm = new Map(),
-    ix = F.index(db);
-  for (const n of nets) {
-    const r = F.planChecks(db, { networkId: n.id }, ix);
-    r.blocks.forEach((x) => bm.set(x.id, x));
-    r.hints.forEach((x) => hm.set(x.id, x));
-  }
-  const blocks = [...bm.values()],
-    hints = [...hm.values()];
+  // 与规划检查弹窗共用完整结果，包含不属于网络的系统点；失败不沿用局部计数。
+  const planCheck = v13PlanningChecks(db, scope), { blocks, hints } = planCheck;
   // 按实际流程分组（全面设计核查第 26 条，2026-10-12 用户确认）：设备（标记与规划检查）→ 设备网络（绑定、配置与体检）→ 系统接入 → 应用配置 → 验证与交付。
   // 原为：设备（按网络的绑定与配置，绑定并应用即已具备）→ 系统接入 → 应用配置（含规划检查的阻止项）→ 验证与交付。
   const fids = new Set(floorsUsed.map((f) => f.id)),
@@ -58404,7 +58481,7 @@ function v13DeployState(db, scope, withParams = !scope.b) {
     // 本次没有系统接入（没有启用的连接、多联机，也没有尚未建连接的系统接入设备）时，这一组不算流程中的一步
     sysSkip = !connsOn.length && !vrfOn.length && !(sysMarked && !conns.length);
   const sec = {
-    设备: !nets.length && !meshMarked ? "未开始" : !nets.length || blocks.length || stages.some(([, s]) => !s.gw) ? "待处理" : "已具备",
+    设备: !nets.length && !meshMarked ? "未开始" : planCheck.state === "error" || !nets.length || blocks.length || stages.some(([, s]) => !s.gw) ? "待处理" : "已具备",
     设备网络: !nets.length ? "未开始" : stages.every(([, s]) => s.cur >= 3) ? "已具备" : "待处理",
     系统接入: !connsOn.length && !vrfOn.length ? "未开始" : connsOn.every((x) => v13ConnVerified(x, db)) && vrfOn.every((x) => x.done) ? "已具备" : "待处理",
     ...(withParams ? { 应用配置: rc.pending || appSets.some((x) => x.todo) ? "待处理" : rc.bundled ? "已具备" : "未开始" } : {}),
@@ -58424,7 +58501,7 @@ function v13DeployState(db, scope, withParams = !scope.b) {
   // 没有设备网络、也没有系统接入时部署尚未开始；否则按四组中“待处理”的组数表达，不合成百分比。
   const label =
     !nets.length && !connsOn.length && !vrfOn.length ? "未开始" : pending.length ? `待处理 ${pending.length} 项` : nets.length && delivered === nets.length ? "已交付" : "已具备";
-  return { P, c, nets, floorsUsed, stages, delivered, conns, connOff, en, vrf, vrfOff, states, rc, appSets, blocks, hints, sec, pending, label, sysSkip, spaceDone };
+  return { P, c, nets, floorsUsed, stages, delivered, conns, connOff, en, vrf, vrfOff, states, rc, appSets, blocks, hints, planCheck, sec, pending, label, sysSkip, spaceDone };
 }
 // 部署范围弹窗的影响说明（2026-10-05 核查 P4）：保存前写出与已保存范围相比本次待办增加、减少了多少，以及仍按整个网络的要求。
 // 参数行的适用与状态不随范围变化，同一弹窗内只算一次（cache 由弹窗打开时新建）。
@@ -58518,46 +58595,50 @@ function v13DeliveriesModal(pid = U.p) {
     btn("关闭", "close"),
   );
 }
+// 完整项目检查：每个网络仍检查整网，再补同范围无 network 的系统点；共用索引，不改任何阈值。
+function v13PlanningChecks(db, scope = {}) {
+  const none = (message, state = "not-run") => ({ state, message, blocks: [], hints: [], rows: [] });
+  try {
+    const nets = F.scopedNetworks(db, scope),
+      system = F.scopedPoints(db, scope).filter((p) => M.access(p) === "system" && !p.networkId);
+    if (!Array.isArray(nets) || nets.some((n) => !n || typeof n.id !== "string" || !n.id.trim())) throw Error("检查范围不完整");
+    const networkIds = new Set(nets.map((n) => n.id));
+    if (!nets.length && !system.length) return none("尚无设备网络，未执行规划检查。");
+    if (!system.length && !db.points.some((p) => networkIds.has(p.networkId))) return none("尚无规划设备，未执行规划检查。");
+    const ix = F.index(db), unique = new Map(), validIssue = (x) => x && typeof x.id === "string" && x.id.trim() && typeof x.text === "string" && x.text.trim();
+    const add = (r, name) => {
+      if (!r || !Array.isArray(r.blocks) || !Array.isArray(r.hints) || !r.blocks.every(validIssue) || !r.hints.every(validIssue)) throw Error("检查结果不完整");
+      for (const [key, category] of [["blocks", "阻止"], ["hints", "提示"]]) for (const issue of r[key]) {
+        const id = category + ":" + issue.id, old = unique.get(id);
+        if (old && old.text !== issue.text) throw Error("检查结果不一致");
+        if (old) { if (!old.names.includes(name)) old.names.push(name); old.ids = [...new Set([...old.ids, ...(issue.ids || [])])]; }
+        else unique.set(id, { ...issue, ids: [...(issue.ids || [])], category, names: [name] });
+      }
+    };
+    nets.forEach((n) => add(F.planChecks(db, { networkId: n.id }, ix), n.name));
+    if (system.length) add(F.planChecks(db, { ...scope, systemOnly: true }, ix), "系统接入（不属于设备网络）");
+    const rows = [...unique.values()].map((r) => ({ ...r, network: r.names.join("、") })),
+      blocks = rows.filter((r) => r.category === "阻止"), hints = rows.filter((r) => r.category === "提示"),
+      message = `${blocks.length ? "规划检查未通过" : hints.length ? "规划检查有提示" : "规划检查通过"} · ${v13N(blocks.length)} 项阻止 · ${v13N(hints.length)} 项提示`;
+    return { state: "done", message, blocks, hints, rows };
+  } catch (_) {
+    return none("暂时无法取得完整检查结果，请重试。", "error");
+  }
+}
 function v13ChecksModal(kind) {
   const filter = ["blocks", "hints"].includes(kind) ? kind : "all",
     // 这里只解释现有检查族；阈值、适用条件和绑定／交付门禁仍由模型决定。
     rules = `<details class="ws-details v13-check-rules"><summary>检查哪些项目</summary><p>阻止：驱动型号与台数缺失或驱动不兼容；调光驱动台数、功率或开灯冲击超限；MS20 供电台数超限；订阅分组超限；照度源不是本回路组供电已确认的 MS20；照度分组存在多个发布者。</p><p>提示：回路缺少 MS20 或供电尚待确认；MS20 无供电 LC20 或供电为系统建议；回路组跨功能区、设备未划入功能区；FC20 缺少 MS20 占用来源；独立办公、开放办公或会议室的多联机内机缺少 MS20 占用来源；内机未登记所属外机；中继与代理同台、中继未优先选 MS20；设备网络缺少网关、中继或代理；比例尺未设置、点位位置待核对。</p><p>具体阻止、提示与适用条件以检查结果为准。摘要不改变检查结果，也不表示现场验证或交付通过。</p></details>`;
-  let body, foot = btn("关闭", "close");
-  try {
-    const db = data(), nets = F.scopedNetworks(db, { p: U.p }), rows = [];
-    if (!Array.isArray(nets) || nets.some((n) => !n || typeof n.id !== "string" || !n.id.trim())) throw Error("检查范围不完整");
-    const networkIds = new Set(nets.map((n) => n.id));
-    if (!nets.length) body = wsNotice("尚无设备网络，未执行规划检查。", "info");
-    else if (!db.points.some((p) => networkIds.has(p.networkId))) body = wsNotice("尚无规划设备，未执行规划检查。", "info");
-    else {
-      const ix = F.index(db), validIssue = (x) => x && typeof x.id === "string" && x.id.trim() && typeof x.text === "string" && x.text.trim();
-      for (const n of nets) {
-        const r = F.planChecks(db, { networkId: n.id }, ix);
-        if (!r || !Array.isArray(r.blocks) || !Array.isArray(r.hints) || !r.blocks.every(validIssue) || !r.hints.every(validIssue)) throw Error("检查结果不完整");
-        r.blocks.forEach((x) => rows.push(["阻止", n.name, x.text, n.id, x.id]));
-        r.hints.forEach((x) => rows.push(["提示", n.name, x.text, n.id, x.id]));
-      }
-      const seen = new Set(),
-        shown = rows.filter((r) => {
-          const key = [r[0], r[3], r[4], r[2]].join("|");
-          return (filter === "blocks" ? r[0] === "阻止" : filter === "hints" ? r[0] === "提示" : true) && (seen.has(key) ? false : seen.add(key));
-        }),
-        // 总计与项目进度共用同一口径，不受当前筛选影响；明细仍保留发生的网络。
-        count = (k) => new Set(rows.filter((r) => r[0] === k).map((r) => r[4])).size,
-        blocks = count("阻止"), hints = count("提示"),
-        totals = `${v13N(blocks)} 项阻止 · ${v13N(hints)} 项提示`;
-      body = wsNotice(`${blocks ? "规划检查未通过" : hints ? "规划检查有提示" : "规划检查通过"} · ${totals}`, blocks || hints ? "warning" : "success");
-      if (shown.length) body += (filter !== "all" ? `<p class="note">${filter === "blocks" ? "仅显示阻止项" : "仅显示提示项"}</p>` : "") + table(
-        ["类别", "设备网络", "内容"],
-        shown.map(([k, n, t]) => [badge(k, k === "阻止" ? "crit" : "warn"), esc(n), esc(t)]),
-      );
-      else if (blocks || hints) body += wsNotice(filter === "blocks" ? `没有阻止项，另有 ${v13N(hints)} 项提示。` : `没有提示项，另有 ${v13N(blocks)} 项阻止。`, "info");
-    }
-  } catch (_) {
-    // 任一网络检查失败或返回不完整时不沿用已经收集到的局部结果，也不把未知补成0。
-    body = wsNotice("暂时无法取得完整检查结果，请重试。", "error");
-    foot += btn("重试", "v13Checks", { kind: filter }, "primary");
-  }
+  const r = v13PlanningChecks(data(), { p: U.p }), { blocks, hints } = r,
+    shown = r.rows.filter((x) => filter === "blocks" ? x.category === "阻止" : filter === "hints" ? x.category === "提示" : true);
+  let body = wsNotice(r.message, r.state === "error" ? "error" : r.state !== "done" ? "info" : blocks.length || hints.length ? "warning" : "success"),
+    foot = btn("关闭", "close");
+  if (r.state === "error") foot += btn("重试", "v13Checks", { kind: filter }, "primary");
+  else if (shown.length) body += (filter !== "all" ? `<p class="note">${filter === "blocks" ? "仅显示阻止项" : "仅显示提示项"}</p>` : "") + table(
+    ["类别", "设备网络 / 系统接入", "内容"],
+    shown.map((x) => [badge(x.category, x.category === "阻止" ? "crit" : "warn"), esc(x.network), esc(x.text)]),
+  );
+  else if (r.state === "done" && (blocks.length || hints.length)) body += wsNotice(filter === "blocks" ? `没有阻止项，另有 ${v13N(hints.length)} 项提示。` : `没有提示项，另有 ${v13N(blocks.length)} 项阻止。`, "info");
   modal("规划检查", body + rules, foot);
 }
 /* ---------- 路由与动作 ---------- */
@@ -60040,11 +60121,24 @@ const DemoService = (() => {
   }
 
   /* ---------- 设备健康 ---------- */
+  function healthRecordLabel(r) {
+    const delivered = (data().deliveries || []).some(d => d.serviceReceiptId && d.networkId === r.networkId &&
+      d.snapshot?.healthRecord?.id === r.id && d.snapshot.healthRecord.networkId === r.networkId);
+    return r.name === "全网" ? `全网体检${delivered ? "（交付）" : ""}` : r.name || "全网体检";
+  }
+  // 演示服务保存独立的历史记录身份；不把复测写入实际工作区，也不为未记录的历史版本补当前版本。
+  function healthRecords() {
+    const actual = (data().healthRecords || []).filter(r => r.status === "completed" && r.scope === "all" && r.serviceReceiptId),
+      nights = [
+        ["2026-09-19",99.7], ["2026-09-21",99.5], ["2026-09-23",99.6],
+      ].map(([day,reach]) => ({ id:"demo-night-health-"+day,networkId:DEMO_IDS.network,status:"completed",scope:"all",
+        at:day+"T02:30:00+08:00",name:"夜间复测",networkVersion:null,summary:{reach} }));
+    return [...actual,...nights];
+  }
   function health() {
     const db = data(),
       ps = db.points.filter((p) => p.floorId === DEMO_IDS.floor && ["mesh", "gateway"].includes(M.access(p))),
       off = ps.filter(offline),
-      hr = (db.healthRecords || []).find((h) => h.networkId === DEMO_IDS.network),
       gw = ps.find((p) => p.type === "gw"),
       hopOf = (p) => {
         const d = Math.hypot(((p.x - gw.x) / 100) * 64, ((p.y - gw.y) / 100) * 25.3);
@@ -60058,12 +60152,13 @@ const DemoService = (() => {
       fw[k] = fw[k] || {};
       fw[k][p.firmwareVersion || "—"] = (fw[k][p.firmwareVersion || "—"] || 0) + 1;
     });
-    const reach = [
-      { t: Date.parse("2026-09-17T22:10:00+08:00"), v: 99.8, label: "全网体检（交付）" },
-      { t: Date.parse("2026-09-19T02:30:00+08:00"), v: 99.7, label: "夜间复测" },
-      { t: Date.parse("2026-09-21T02:30:00+08:00"), v: 99.5, label: "夜间复测" },
-      { t: Date.parse("2026-09-23T02:30:00+08:00"), v: 99.6, label: "夜间复测" },
-    ];
+    const networkIds = new Set(ps.map(p => p.networkId).filter(Boolean)),
+      reach = healthRecords().filter(r => networkIds.has(r.networkId)).map(r => {
+        const values = (r.results || []).map(x => x.reach),
+          complete = values.length > 0 && values.every(v => typeof v === "number" && Number.isFinite(v)) && (!r.pointIds?.length || r.pointIds.every(id => r.results.some(x => x.pointId === id))),
+          v = complete ? values.reduce((a,b) => a+b,0)/values.length : typeof r.summary?.reach === "number" && Number.isFinite(r.summary.reach) ? r.summary.reach : null;
+        return {recordId:r.id,networkId:r.networkId,t:Date.parse(r.at),v,label:healthRecordLabel(r)};
+      });
     const load = Array.from({ length: 24 }, (_, i) => {
       const t = dayStart(NOW - DAY) + (loc(NOW).h + 1 + i) * H,
         hh = loc(t).h + 0.5,
@@ -60307,6 +60402,8 @@ const DemoService = (() => {
     envSeries,
     envHistory,
     health,
+    healthRecords,
+    healthRecordLabel,
     GAP,
     QUALITY,
     quality,
@@ -60335,6 +60432,89 @@ const DemoService = (() => {
 // 演示层提供 DemoService 与演示范围；正式版没有运行数据服务：on() 为 false，时间常量取当前时间。
 const OPS_SCOPE = typeof DEMO_IDS !== "undefined" ? DEMO_IDS : { project: null, building: null, floor: null, network: null };
 const Demo = typeof DemoService !== "undefined" ? DemoService : opsNoService();
+// 浏览器历史保存每个运营入口自己的范围与筛选；不把一次健康下钻变成普通告警偏好。
+const OPS_ROUTE_FIELDS = ["opsRange","opsFrom","opsTo","opsGran","opsMeter","opsEnvZone","opsEnvMetric","opsLevel","opsAlType","opsAlState","opsTaskState","opsHistRes","opsHistObj","opsHistPer","opsHistFrom","opsHistTo","alarmDevice","alarmZone","alTypeJump","opsHealthAlarm"];
+const OPS_ALARM_PREFS = ["opsLevel","opsAlType","opsAlState","opsTaskState","opsHistRes","opsHistObj","opsHistPer","opsHistFrom","opsHistTo","alarmDevice","alarmZone","alTypeJump"];
+let OPS_IDENTITY = null, OPS_IDENTITY_LEAVING_PAGE = null, OPS_HISTORY_TIMER = null;
+function opsRouteFields() {
+  return Object.fromEntries(OPS_ROUTE_FIELDS.map(k => [k, U[k] ?? null]));
+}
+const opsHistoryOwner = () => [typeof AUTH === "undefined" ? null : AUTH.uid || null,typeof AUTH === "undefined" ? null : AUTH.org || null,U.dataMode || "current"];
+function opsIdentitySync() {
+  const owner = opsHistoryOwner(), previous = OPS_IDENTITY || history.state?.ops?.owner;
+  OPS_IDENTITY = owner;
+  if (!previous || JSON.stringify(previous) === JSON.stringify(owner)) return false;
+  OPS_IDENTITY_LEAVING_PAGE = U.page;
+  for (const k of OPS_ROUTE_FIELDS) U[k] = null;
+  for (const k of Object.keys(OPS_Q)) delete OPS_Q[k];
+  for (const page of ["overview","analysis","alarms","scenes"]) delete U.memory[page];
+  Object.assign(U,{source:null,opsDrawer:null,p:null,b:null,f:null,zone:null,net:null,
+    opsFromDraft:undefined,opsToDraft:undefined,opsRangeErr:"",opsHistFromDraft:undefined,opsHistToDraft:undefined,opsHistErr:""});
+  return true;
+}
+function opsRouteState() {
+  if (!["overview","analysis","alarms","scenes"].includes(U.page)) return null;
+  if (!OPS_IDENTITY) OPS_IDENTITY = opsHistoryOwner();
+  return { version: 1, owner:opsHistoryOwner(), page: U.page, tab: U.tab || null, p: U.p || null, b: U.b || null, f: U.f || null,
+    fields: structuredClone(opsRouteFields()), queries: Object.fromEntries(["alarms","history","tasks"].map(k => [k, OPS_Q[k] || ""])),
+    scroll: $("#pbody")?.scrollTop || 0 };
+}
+function opsHistoryReplace() {
+  clearTimeout(OPS_HISTORY_TIMER);
+  OPS_HISTORY_TIMER = null;
+  const changed = opsIdentitySync(), savedOwner = history.state?.ops?.owner;
+  if (changed || savedOwner && JSON.stringify(savedOwner) !== JSON.stringify(opsHistoryOwner())) return;
+  const ops = opsRouteState();
+  if (ops) history.replaceState({ ...history.state, source: U.source || null, ops }, "", location.hash);
+}
+function opsHistorySchedule() {
+  clearTimeout(OPS_HISTORY_TIMER);
+  OPS_HISTORY_TIMER = setTimeout(opsHistoryReplace, 200);
+}
+function opsClearHealthTransient() {
+  const c = U.opsHealthAlarm;
+  if (c) {
+    const base = c.baseFilters || {};
+    for (const k of OPS_ALARM_PREFS) U[k] = base[k] ?? (k === "opsAlType" ? "all" : null);
+    for (const k of ["alarms","history","tasks"]) OPS_Q[k] = c.baseQueries?.[k] || "";
+  }
+  U.opsHealthAlarm = null;
+}
+function opsRouteLeaving(page, scope = {}) {
+  // 保存来源已由 route 完成；现在清理离开页面的临时状态。显式目标抽屉由 scope 传入。
+  U.opsDrawer = null;
+  if (OPS_IDENTITY_LEAVING_PAGE) {
+    delete U.memory[OPS_IDENTITY_LEAVING_PAGE];
+    OPS_IDENTITY_LEAVING_PAGE = null;
+  }
+  if (U.opsHealthAlarm && !("opsHealthAlarm" in scope)) opsClearHealthTransient();
+}
+function opsRestoreRouteState(state) {
+  const s = state?.ops;
+  opsIdentitySync();
+  U.opsDrawer = null;
+  if (U.source?.p && !mayViewProject(U.source.p)) U.source = null;
+  if (s && JSON.stringify(s.owner) !== JSON.stringify(opsHistoryOwner())) {
+    opsClearHealthTransient();
+    U.source = null;
+    return false;
+  }
+  if (!s || s.version !== 1 || !["overview","analysis","alarms","scenes"].includes(U.page) ||
+      ["page","tab","p","b","f"].some(k => (s[k] || null) !== (U[k] || null))) {
+    opsClearHealthTransient();
+    // 升级前的健康历史项只有来源，没有目标点位；对象失效造成地址归一化时也不能扩为全部告警。
+    if (U.page === "alarms" && (s?.fields?.opsHealthAlarm || state?.source?.page === "analysis" && state.source.tab === "health"))
+      U.opsHealthAlarm = { invalid:true };
+    return false;
+  }
+  for (const k of OPS_ROUTE_FIELDS) U[k] = structuredClone(s.fields?.[k] ?? null);
+  for (const k of ["alarms","history","tasks"]) OPS_Q[k] = typeof s.queries?.[k] === "string" ? s.queries[k] : "";
+  Object.assign(U,{ opsFromDraft:undefined,opsToDraft:undefined,opsRangeErr:"",opsHistFromDraft:undefined,opsHistToDraft:undefined,opsHistErr:"" });
+  U.nextScroll = Number.isFinite(s.scroll) && s.scroll >= 0 ? s.scroll : 0;
+  return true;
+}
+window.addEventListener("beforeunload", opsHistoryReplace);
+document.addEventListener("scroll", e => { if (e.target?.id === "pbody") opsHistorySchedule(); }, true);
 // 统计期间“上月”“近 12 个月”（全面设计核查第 96 条，2026-10-12 用户确认；原先只有近 7 天、近 30 天、本月与自定义，月报对比上月、能耗强度按滚动 12 个月
 // 都要自己填日期）：上月为上一个完整的自然月；近 12 个月为本月与之前 11 个自然月，本月截至当前时刻，图表按月显示（monthly）。
 // 有运行数据与没有运行数据时共用；期间跨年时起止都写年份，与自定义期间相同
@@ -63979,21 +64159,28 @@ function opsHealthNetworks() {
     data().points.some(p => p.networkId === n.id && p.floorId === OPS_SCOPE.floor && ["mesh","gateway"].includes(M.access(p))));
 }
 function opsHealthReach(r, nets = opsHealthNetworks()) {
-  const matches = (data().healthRecords || []).filter(x => (!r.networkId || x.networkId === r.networkId) &&
-      (r.recordId ? x.id === r.recordId : opsRecAt(x.at) === r.t)),
+  const records = typeof Demo.healthRecords === "function" ? Demo.healthRecords() : data().healthRecords || [],
+    matches = typeof r.recordId === "string" && typeof r.networkId === "string" ? records.filter(x => x.id === r.recordId && x.networkId === r.networkId) : [],
     record = matches.length === 1 ? matches[0] : null,
-    nid = r.networkId || record?.networkId || (nets.length === 1 ? nets[0].id : null),
-    net = nets.find(n => n.id === nid),
-    version = r.networkVersion ?? record?.networkVersion,
-    validVersion = Number.isInteger(version) && version > 0,
-    versionText = validVersion ? `体检 v${version}${net && version !== net.version ? ` · 与当前 v${net.version} 不同` : ""}` : "体检版本未记录";
-  return { ...r, networkId: nid, networkName: net?.name || "设备网络未记录", versionText };
+    net = nets.find(n => n.id === r.networkId && mayViewProject(n.projectId)),
+    valid = record && net && record.status === "completed" && record.scope === "all" && Number.isFinite(opsRecAt(record.at)),
+    values = valid ? (record.results || []).map(x => x.reach) : [],
+    complete = values.length > 0 && values.every(v => typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= 100) &&
+      (!record?.pointIds?.length || record.pointIds.every(id => record.results.some(x => x.pointId === id))),
+    summary = valid && !values.length && typeof record.summary?.reach === "number" && Number.isFinite(record.summary.reach) && record.summary.reach >= 0 && record.summary.reach <= 100 ? record.summary.reach : null,
+    v = complete ? values.reduce((a,b) => a+b,0)/values.length : summary,
+    version = valid ? record.networkVersion : null,
+    versionText = Number.isInteger(version) && version > 0 ? `体检 v${version}${version !== net.version ? ` · 与当前 v${net.version} 不同` : ""}` : "体检版本未记录";
+  return { recordId: r.recordId || null, networkId:valid ? record.networkId : null,
+    t:valid ? opsRecAt(record.at) : Number.isFinite(r.t) ? r.t : null, v,
+    label:valid ? typeof Demo.healthRecordLabel === "function" ? Demo.healthRecordLabel(record) : record.name === "全网" ? "全网体检" : record.name || "全网体检" : "体检来源未核实",
+    networkName:valid ? net.name : "设备网络未记录",versionText,sourceValid:!!valid };
 }
 function anHealth() {
   const h = Demo.health(), rg = anRange(),
     inR = t => t >= rg.from && t < rg.to,
     nets = opsHealthNetworks(),
-    reach = h.reach.filter(r => inR(r.t)).map(r => opsHealthReach(r, nets)).sort((a,b) => a.t-b.t),
+    reach = h.reach.map(r => opsHealthReach(r, nets)).filter(r => Number.isFinite(r.t) && inR(r.t)).sort((a,b) => a.t-b.t),
     resets = h.resets.filter(p => inR(Date.parse(p.fieldResetAt))),
     at = `${opsDay(Demo.NOW)} ${Demo.hm(Demo.NOW)}`,
     netText = nets.length ? nets.map(n => `${n.name} · 当前 ${Number.isInteger(n.version) && n.version > 0 ? "v"+n.version : "版本未记录"}`).join("；") : "本次统计未关联设备网络",
@@ -64004,15 +64191,15 @@ function anHealth() {
       kpi("状态未知",h.unknown.length+"<small>台</small>",onlyIn(h.gwOff ? "网关恢复后按设备回报核对" : "当前统计时刻"),"opsNoop"),
     ]) + "</section>",
     period = `<section class="ops-health-period"><header class="ops-health-section-head"><h3>期间分析${opsInfo("期间分析",esc("体检与被现场复位按所选期间统计。最近一次体检结果不等于整个期间在线率；本页不以当前状态推算历史可用率或故障时长。"))}</h3><span class="ops-meta">${rg.span}</span></header><div class="ops-row r11">` +
-      (latest ? kpi("最近体检到达率",nf(latest.v,1)+"<small>%</small>",`${opsDay(latest.t)} ${Demo.hm(latest.t)} · ${esc(latest.networkName)} · ${esc(latest.versionText)} · 通过标准 ≥ 99%`,"opsNoop") : kpi("最近体检到达率","—","所选期间没有体检记录","opsNoop")) +
+      (latest ? kpi("最近体检到达率",nf(latest.v,1)+"<small>%</small>",`${opsDay(latest.t)} ${Demo.hm(latest.t)} · ${esc(latest.networkName)} · ${esc(latest.versionText)}${latest.v == null ? " · 到达率未取得" : " · 通过标准 ≥ 99%"}`,"opsNoop") : kpi("最近体检到达率","—","所选期间没有体检记录","opsNoop")) +
       kpi("被现场复位",resets.length+"<small>次</small>",resets.length ? resets.map(p => esc(p.name)).join("、") : "所选期间没有记录",resets.length ? "opsHealthAlarms" : "opsNoop",{kind:"reset"}) + "</div></section>",
     reachCard = chartCard({
       title: "体检到达率趋势" + opsInfo("体检到达率趋势",esc("仅列所选期间的全网体检与夜间复测。通过标准为99%；体检对应的网络版本必须与判断用途一致，旧版本结果不能代替当前交付验证。缺失版本明确未记录，不用当前版本补填。")),
       meta: `${rg.span} · %`,
-      table: regTable("reach",["时间","设备网络","体检版本","类型","到达率 %"],reach.map(r => [Demo.md(r.t)+" "+Demo.hm(r.t),r.networkName,r.versionText,r.label,r.v])),
+      table: regTable("reach",["时间","设备网络","体检版本","类型","到达率 %"],reach.map(r => [Demo.md(r.t)+" "+Demo.hm(r.t),r.networkName,r.versionText,r.label,r.v ?? "未取得"])),
       body: (reach.length ? chartSlot({
         type:"lines",height:280,xs:reach.map(r => r.t),xLabel:t => Demo.md(t),
-        tipTitle:(t,i) => Demo.md(t)+" · "+reach[i].networkName+" · "+reach[i].versionText+" · "+reach[i].label,yMin:98.5,unit:"%",unitShort:"%",
+        tipTitle:(t,i) => Demo.md(t)+" · "+reach[i].networkName+" · "+reach[i].versionText+" · "+reach[i].label,yMin:Math.min(98.5,...reach.filter(r => r.v != null).map(r => r.v)),unit:"%",unitShort:"%",
         refs:[{v:99,label:"通过标准 99%"}],series:[{name:"到达率",color:S1,vals:reach.map(r => r.v),dots:true}],
       }) + `<ul class="ops-meta">${reach.map(r => `<li>${esc(Demo.md(r.t)+" "+Demo.hm(r.t)+" · "+r.networkName+" · "+r.versionText)}</li>`).join("")}</ul>` : `<p class="ops-empty-note">所选期间没有全网体检或夜间复测记录。</p>`),
     }),
@@ -64248,12 +64435,16 @@ document.addEventListener("input", (e) => {
     const shown = document.querySelectorAll(`[data-q-scope="${k}"] tr[data-q]:not(.ops-t2):not([hidden])`).length;
     f.textContent = alFootText({ ...f.dataset, shown });
   });
+  opsHistorySchedule();
 });
 // 来源下钻使用真实对象集合；设备台数与合并后的根因告警条数不必相等。
 function opsHealthAlarmContext() {
   const c = U.opsHealthAlarm;
   return c && [c.pointIds,c.networkIds,c.gatewayNetworkIds].every(Array.isArray) && c.projectId === OPS_SCOPE.project && mayViewProject(c.projectId) &&
-    ["offline","reset"].includes(c.kind) ? c : null;
+    ["offline","reset"].includes(c.kind) && c.pointIds.every(id => {
+      const p = g("points",id);
+      return p && objectProjectId(id) === c.projectId && (!p.networkId || c.networkIds.includes(p.networkId));
+    }) && c.networkIds.every(id => g("networks",id)?.projectId === c.projectId) ? c : null;
 }
 function opsHealthAlarmMatch(a) {
   const c = opsHealthAlarmContext();
@@ -64285,7 +64476,15 @@ function renderOpsAlarms() {
     head = pageCategoryHeader("alarms", tab, { live: Demo.inScope() ? liveLine() : "" });
   if (!Demo.inScope()) return head + outOfScope();
   const body = { current: alCurrent, tasks: alTasks, history: alHistory, rules: alRules }[tab]();
-  const dr = U.opsDrawer && U.opsDrawer.page === "alarms" ? (U.opsDrawer.kind === "alarm" ? alarmDrawer(U.opsDrawer.id) : taskDrawer(U.opsDrawer.id)) : "";
+  const drawer = U.opsDrawer;
+  if (drawer?.page === "alarms") {
+    const target = drawer.kind === "alarm" ? F.alarmGroups(data()).find(a => a.id === drawer.id) : g("investigationTasks",drawer.id),
+      allowed = target && mayViewProject(target.projectId) && target.projectId === OPS_SCOPE.project &&
+        ["current","history","tasks"].includes(tab) && (drawer.kind === "alarm" ? opsHealthAlarmMatch(target) && alarmForDevice(target) && alarmForZone(target) :
+          opsHealthTaskMatch(target) && (!U.alarmDevice || taskForDevice(target,U.alarmDevice)) && (!U.alarmZone || taskForZone(target,U.alarmZone)));
+    if (!allowed) U.opsDrawer = null;
+  }
+  const dr = U.opsDrawer?.page === "alarms" ? (U.opsDrawer.kind === "alarm" ? alarmDrawer(U.opsDrawer.id) : taskDrawer(U.opsDrawer.id)) : "";
   // 按功能区或设备筛选时（ABB 对比 IA1），当前告警与工单页签在页签下写筛选条；告警记录的筛选条在筛选行之下
   return head + opsHealthAlarmBar() + (["current", "tasks"].includes(tab) ? alarmDeviceBar() : "") + body + dr;
 }
@@ -64662,6 +64861,7 @@ function alHistSet(f, t) {
 document.addEventListener("change", (e) => {
   if (!["alFrom", "alTo"].includes(e.target.id)) return;
   alHistSet(value("alFrom"), value("alTo"));
+  opsHistoryReplace();
   render();
 });
 // 告警的对象（BP98“告警最多”与对象筛选）：设备类告警为设备，环境与能耗为功能区，其余为楼层
@@ -66053,15 +66253,17 @@ defineActions({
       pointIds = [...new Set(ps.map(p => p.id))],
       networkIds = [...new Set(ps.map(p => p.networkId).filter(Boolean))],
       gatewayNetworkIds = [...new Set(ps.filter(p => p.type === "gw").map(p => p.networkId).filter(Boolean))],
-      context = {kind,projectId:OPS_SCOPE.project,pointIds,networkIds,gatewayNetworkIds,from:rg.from,to:rg.to,span:rg.span},
+      context = {kind,projectId:OPS_SCOPE.project,pointIds,networkIds,gatewayNetworkIds,from:rg.from,to:rg.to,span:rg.span,
+        baseFilters:Object.fromEntries(OPS_ALARM_PREFS.map(k => [k,U[k] ?? null])),baseQueries:Object.fromEntries(["alarms","history","tasks"].map(k => [k,OPS_Q[k] || ""]))},
       source = {...snapshot(),label:"数据分析",opsRange:U.opsRange,opsFrom:U.opsFrom,opsTo:U.opsTo,opsMeter:U.opsMeter,opsGran:U.opsGran};
-    Object.assign(U,{opsAlType:"设备与网络",alTypeJump:null,opsLevel:"all",opsAlState:"all",opsHistRes:"all",opsHistObj:"all"});
+    const filters = {opsAlType:"设备与网络",alTypeJump:null,opsLevel:"all",opsAlState:"all",opsHistRes:"all",opsHistObj:"all"};
     OPS_Q.alarms = ""; OPS_Q.history = "";
-    if (kind === "reset") Object.assign(U,{opsHistPer:"custom",opsHistFrom:ymdOf(rg.from),opsHistTo:ymdOf(Math.max(rg.from,rg.to-1)),opsHistFromDraft:undefined,opsHistToDraft:undefined,opsHistErr:""});
-    route("alarms",{p:U.p,b:U.b,f:U.f,tab:kind === "reset" ? "history" : "current",opsHealthAlarm:context},{remember:true,source});
+    if (kind === "reset") Object.assign(filters,{opsHistPer:"custom",opsHistFrom:ymdOf(rg.from),opsHistTo:ymdOf(Math.max(rg.from,rg.to-1)),opsHistFromDraft:undefined,opsHistToDraft:undefined,opsHistErr:""});
+    route("alarms",{p:U.p,b:U.b,f:U.f,tab:kind === "reset" ? "history" : "current",opsHealthAlarm:context,opsDrawer:null,...filters},{remember:true,source});
   },
   opsHealthAlarmClear: () => {
-    Object.assign(U,{opsHealthAlarm:null,opsAlType:"all",alTypeJump:null,opsLevel:"all",opsAlState:"all",opsHistRes:"all",opsHistObj:"all"});
+    Object.assign(U,{opsHealthAlarm:null,opsAlType:"all",alTypeJump:null,opsLevel:"all",opsAlState:"all",opsHistRes:"all",opsHistObj:"all",opsDrawer:null});
+    opsHistoryReplace();
     render();
   },
   opsGo: (a) => {
@@ -66334,6 +66536,7 @@ defineActions({
   },
   opsGran: (a) => {
     U.opsGran = a.value;
+    opsHistoryReplace();
     render();
   },
   opsHeat: (a) => {
@@ -66418,20 +66621,23 @@ defineActions({
   },
   opsLevel: (a) => {
     U.opsLevel = a.value;
+    opsHistoryReplace();
     render();
   },
   opsAlarm: (a) => {
     if (needTap(a)) return;
     closeModal(true);
-    U.opsDrawer = { page: "alarms", kind: "alarm", id: a.id };
-    if (U.page !== "alarms") return route("alarms", { tab: g("alerts", a.id)?.state === "recovered" ? "history" : "current" }, { remember: true });
+    const drawer = { page: "alarms", kind: "alarm", id: a.id };
+    if (U.page !== "alarms") return route("alarms", { tab: g("alerts", a.id)?.state === "recovered" ? "history" : "current", opsDrawer:drawer }, { remember: true });
+    U.opsDrawer = drawer;
     render();
   },
   opsTask: (a) => {
     // 从设备信息（弹窗）打开时先关闭弹窗（ABB 对比 IA1）
     closeModal(true);
-    U.opsDrawer = { page: "alarms", kind: "task", id: a.id };
-    if (U.page !== "alarms") return route("alarms", { tab: "tasks" }, { remember: true });
+    const drawer = { page: "alarms", kind: "task", id: a.id };
+    if (U.page !== "alarms") return route("alarms", { tab: "tasks", opsDrawer:drawer }, { remember: true });
+    U.opsDrawer = drawer;
     render();
   },
   // 功能区面板、设备信息中的“未恢复告警 N 条”“工单 N 个”有多条时（ABB 对比 IA1）：进入告警页的“当前告警”或工单页签，
@@ -66781,6 +66987,7 @@ function anPeriodSet(f, t) {
 document.addEventListener("change", (e) => {
   if (!["anFrom", "anTo"].includes(e.target.id)) return;
   anPeriodSet(value("anFrom"), value("anTo"));
+  opsHistoryReplace();
   render();
 });
 /* 工具栏筛选下拉（ws-select）：选中后写入状态并重绘 */
@@ -66806,6 +67013,7 @@ document.addEventListener("input", (e) => {
       Object.assign(U, { opsHistFromDraft: undefined, opsHistToDraft: undefined, opsHistErr: "" });
     }
     U[OPS_SELECTS[e.target.id]] = e.target.value;
+    opsHistoryReplace();
     return render();
   }
   if (e.target.matches?.("[data-zone-level]") && e.target.nextElementSibling) e.target.nextElementSibling.textContent = e.target.value + "%";
@@ -68539,6 +68747,7 @@ const AUX = {
   loginResults: {},
   smsByNumber: {},
   returnTo: "",
+  protectedReturn: null,
   // 未登录打开开通引导时记下引导所属的机构，登录后按身份判断（Account 核查 C5）。
   returnOrg: "",
   // 已登录、不属于该机构时打开的开通引导（AUTH24）：引导所属的机构；当前机构仍是本账户自己的机构。
@@ -68601,11 +68810,13 @@ function auFieldErrs(errors) {
   errors.slice(1).forEach(([id, text]) => wsShowFieldErr(id, text));
   return auFieldErr(...errors[0]);
 }
-function auSave() {
+function auSave(state = AUTH) {
   try {
-    localStorage.setItem(AU_KEY, JSON.stringify(AUTH));
+    localStorage.setItem(AU_KEY, JSON.stringify(state));
+    return true;
   } catch {
-    /* storage may be blocked or full; the preview keeps working in memory */
+    // Existing callers keep their behaviour; transactional saves must check this result.
+    return false;
   }
 }
 const auMe = () => AUTH.people[AUTH.uid] || Object.values(AUTH.people)[0];
@@ -68805,9 +69016,9 @@ function memberZoneIds() {
 }
 // 授权了某功能区的普通成员人数（删除功能区的确认中提示重新授权）
 const auZoneMemberCount = (zid, org = AUTH.org) => auMembers(org).filter((m) => m.role === "member" && (m.zones || []).includes(zid)).length;
-function auLog(action, object, kind = "member", result = "成功") {
-  AUTH.audit.unshift({ at: auNow(), actor: auMe().name, action, object, kind, result, org: AUTH.org });
-  AUTH.audit = AUTH.audit.slice(0, 80);
+function auLog(action, object, kind = "member", result = "成功", state = AUTH) {
+  state.audit.unshift({ at: auNow(), actor: auMe().name, action, object, kind, result, org: AUTH.org });
+  state.audit = state.audit.slice(0, 80);
 }
 // The signed-in membership decides the role (the demo layer can switch it afterwards).
 if (AUTH.session === "in") U.role = auMe().orgs?.[AUTH.org] || U.role;
@@ -69244,7 +69455,11 @@ function auIdleWarn(on) {
 function auExpire() {
   if (AUTH.session !== "in") return;
   auIdleWarn(false);
-  if (!BARE[U.page] && location.hash.slice(1)) AUX.returnTo = location.hash;
+  if (!BARE[U.page] && location.hash.slice(1)) {
+    if (typeof opsHistoryReplace === "function") opsHistoryReplace();
+    AUX.returnTo = location.hash;
+    auRememberProtectedReturn(location.hash, history.state);
+  }
   if (U.page === "welcome") { AUX.returnTo = "#welcome"; AUX.returnOrg = AUX.welcomeOutside || AUTH.org; }
   AUTH.session = "out";
   auClearSecrets(); auClearAllApplications();
@@ -69913,9 +70128,25 @@ const auRoute = (page, tab = "") => {
 // Station pages that must not be shown without a session. Full-screen public pages stay reachable.
 // 展示链接打开的大屏不用账户（ORG10、OPS07，2026-10-09 用户确认，大屏显示方案 DP2）
 const AU_PUBLIC = ["login", "reset", "invite", "apply", "legal", "app", "console", "maintenance", "unavailable", "display"];
+// This is presentation context only. It never restores a session and is consumed by one confirmed sign-in.
+function auRememberProtectedReturn(hash, state) {
+  AUX.protectedReturn = null;
+  if (!hash || !state?.ops) return;
+  try { AUX.protectedReturn = { hash, state: structuredClone(state) }; } catch {}
+}
+function auLoginSource(source) {
+  if (!source || typeof source.page !== "string" || !TITLES[source.page] || BARE[source.page]) return null;
+  const p = source.p && g("projects", source.p), b = source.b && g("buildings", source.b), f = source.f && g("floors", source.f);
+  if (source.p && !p || source.b && (!b || p && b.projectId !== p.id) || source.f && (!f || b && f.buildingId !== b.id)) return null;
+  const pid = p?.id || b?.projectId || (f && M.projectOfFloor(data(), f.id));
+  if (pid && (!g("projects", pid) || !mayViewProject(pid)) || f && pid && M.projectOfFloor(data(), f.id) !== pid) return null;
+  return source;
+}
 // The application entry for this session: the current institution's workspace, the institution list, or 登录.
 const auEntryHash = () => PACOM_AUTH_FLOW.entryHash(AUTH.session === "in", !!auMe().orgs?.[AUTH.org] && !AUTH.orgs[AUTH.org]?.suspended);
 function auCompleteLogin(uid) {
+  const protectedReturn = AUX.protectedReturn;
+  AUX.protectedReturn = null;
   AUTH.uid = uid;
   AUTH.session = "in";
   AUTH.loginAt = auNow();
@@ -69929,7 +70160,7 @@ function auCompleteLogin(uid) {
   const orgs = auMyOrgs();
   const back = AUX.returnTo ? { org: AUTH.lastOrg[uid], hash: AUX.returnTo } : AUTH.resume[uid];
   AUX.returnTo = "";
-  if (back?.org && auMe().orgs[back.org]) return auEnter(back.org, "", back.hash);
+  if (back?.org && auMe().orgs[back.org]) return auEnter(back.org, "", back.hash, protectedReturn);
   const last = AUTH.lastOrg[uid];
   if (last && AUTH.orgs[last] && !auMe().orgs[last]) {
     AUX.removedOrg = last;
@@ -69950,10 +70181,12 @@ const AU_SUBMIT = {
     if (!ok) return;
     if (auCurrentLock() > auNow() || AUX.loginReset[auLoginIdentity(auVal(sms ? "sphone" : "id"))]) { auLockUI(); return; }
     const context = auAsyncContext(f);
+    const protectedReturn = AUX.protectedReturn;
     const payload = { account: PACOM_AUTH_FLOW.identifier(auVal(sms ? "sphone" : "id")), password: sms ? "" : auVal("pwd"), code: sms ? auVal("scode").trim() : "" };
     const done = auBusy(f, "正在登录…");
     const response = await auRequest("login", payload);
     await done();
+    if (response.status !== "ok" && AUX.protectedReturn === protectedReturn) AUX.protectedReturn = null;
     if (context.epoch !== AUX.accountEpoch) return;
     const identity = auLoginIdentity(payload.account);
     AUX.loginResults[identity] = { response, sms };
@@ -69977,7 +70210,10 @@ const AU_SUBMIT = {
     }
     if (auServiceError(f, response, payload.account)) return;
     const found = response.uid || Object.entries(AUTH.people).find(([, person]) => [person.email, person.phone].some(value => value && auLoginIdentity(value) === auLoginIdentity(payload.account)))?.[0];
-    if (!found || !AUTH.people[found]) return auFormErr(f, "暂时无法读取账户信息，请稍后重试。", true, "error");
+    if (!found || !AUTH.people[found]) {
+      if (AUX.protectedReturn === protectedReturn) AUX.protectedReturn = null;
+      return auFormErr(f, "暂时无法读取账户信息，请稍后重试。", true, "error");
+    }
     AUX.resetNotice = null; AUX.expired = false; AUX.lastActive = auNow();
     // A successful sign-in clears the failures the service counted for this account.
     PACOM_AUTH_FLOW.clearAccountRestriction(AUX, payload.account, [AUTH.people[found].email, AUTH.people[found].phone].filter(Boolean));
@@ -70299,7 +70535,8 @@ function auOpenWelcome(org) {
   auRoute("welcome");
 }
 // note 为 false 时进入但不显示提示（开通引导AUTH24的“返回”）。
-function auEnter(orgId, note, hash = "") {
+function auEnter(orgId, note, hash = "", protectedReturn = null) {
+  AUX.protectedReturn = null;
   auLicSync(orgId);
   if (AUTH.orgs[orgId]?.suspended) {
     AUX.suspendedOrg = orgId;
@@ -70318,10 +70555,21 @@ function auEnter(orgId, note, hash = "") {
   U.role = auMe().orgs[orgId] || "viewer";
   auSave();
   document.title = "PACOM Station";
+  if (typeof opsIdentitySync === "function") opsIdentitySync();
   const page = (hash || "").replace(/^#/, "").split("?")[0];
   if (page && !BARE[page]) {
-    history.replaceState(null, "", hash);
+    const saved = protectedReturn?.hash === hash && typeof opsHistoryOwner === "function" &&
+      JSON.stringify(protectedReturn.state?.ops?.owner) === JSON.stringify(opsHistoryOwner()) ? protectedReturn.state : null;
+    const entry = saved ? { ops: saved.ops, source: auLoginSource(saved.source) } : null;
+    U.source = null;
+    history.replaceState(entry, "", hash);
     readRoute();
+    const pid = entry?.ops?.p;
+    if (typeof opsRestoreRouteState === "function") {
+      const allowed = !pid || g("projects", pid) && mayViewProject(pid);
+      if (entry && allowed) U.source = entry.source;
+      if (!opsRestoreRouteState(allowed ? entry : null)) U.source = null;
+    }
     render();
   } else route("overview");
   if (note !== false) msg(note || `已登录 · ${auOrg(orgId).name} · ${auRole(U.role)}`);
@@ -70617,6 +70865,15 @@ const AU_GUIDE_URL = "";
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "1.100",
+    date: "2026-10-16",
+    notes: [
+      "设备与配置进度：补齐网络规划的项目授权和楼层检查，统一规划检查结论，纳入未归属设备网络的系统设备。",
+      "数据分析与告警：修复设备健康下钻的历史返回、刷新和旧详情残留，体检趋势与导出按同一记录显示。",
+      "机构信息：保存失败时保留修改并持续显示错误，保存成功后才更新资料和审计。",
+    ],
+  },
   {
     version: "1.99",
     date: "2026-10-16",
@@ -71552,21 +71809,27 @@ Object.assign(actions, {
     else if (!AU_EMAIL.test(mail)) errs.push(["auOrgContactMail", "请输入有效的电子邮箱"]);
     if (errs.length) return auFieldErrs(errs);
     const o = auOrg(),
-      draft = auLogoDraft();
-    Object.assign(o, {
-      name: n,
-      region: value("auOrgRegion").trim(),
-      contact: value("auOrgContact").trim(),
-      contactEmail: mail,
-      contactPhone: value("auOrgContactTel").trim(),
-    });
-    auLog("修改机构信息", n, "account");
+      draft = auLogoDraft(),
+      nextOrg = {
+        ...o,
+        name: n,
+        region: value("auOrgRegion").trim(),
+        contact: value("auOrgContact").trim(),
+        contactEmail: mail,
+        contactPhone: value("auOrgContactTel").trim(),
+      },
+      next = { ...AUTH, orgs: { ...AUTH.orgs, [AUTH.org]: nextOrg }, audit: AUTH.audit.slice() };
+    // Stage changes and their audit together; failed persistence must keep the current data and visible draft intact.
+    auLog("修改机构信息", n, "account", "成功", next);
     if (draft) {
-      o.logo = draft.logo;
-      auLog(draft.logo ? "更换机构标识" : "移除机构标识", n, "account");
-      AUX.logoDraft = null;
+      nextOrg.logo = draft.logo;
+      auLog(draft.logo ? "更换机构标识" : "移除机构标识", n, "account", "成功", next);
     }
-    auSave();
+    if (!auSave(next)) return auOrgSaveNotice("未能保存，请检查浏览器存储权限或空间后重试。");
+    Object.assign(o, nextOrg);
+    AUTH.audit = next.audit;
+    if (draft) AUX.logoDraft = null;
+    auOrgSaveNotice();
     render();
     msg("机构信息已保存");
   },
@@ -72345,6 +72608,16 @@ const auJoined = (m) =>
   m.joined ?? AUTH.audit.find((e) => e.org === AUTH.org && e.action === "接受邀请" && String(e.object).startsWith(m.name + " · "))?.at;
 // 机构标识的预览（ORG01，03 第 2 条）：只属于当前机构，离开“机构信息”即放弃。
 const auLogoDraft = () => (AUX.logoDraft && AUX.logoDraft.org === AUTH.org ? AUX.logoDraft : null);
+// Save failures belong to the form, not a field; keep them visible through redraws until this institution saves successfully.
+function auOrgSaveNotice(text = "") {
+  if (text) AUX.orgSaveError = { org: AUTH.org, text };
+  else if (AUX.orgSaveError?.org === AUTH.org) AUX.orgSaveError = null;
+  const el = $("#auOrgSaveError");
+  if (!el) return text ? formError(text) : undefined;
+  el.innerHTML = text ? wsNotice(esc(text), "error", false) : "";
+  el.hidden = !text;
+  if (text) el.scrollIntoView({ block: "nearest" });
+}
 // 与开通引导的邀请统一（2026-10-09 用户确认，ABB 对比 BP26）：角色不预选，未选时显示“请选择角色”，发送时未选提示“请选择角色”；
 // 字段名“项目授权范围”，与成员表的列名和“修改 （姓名） 的权限”相同。
 function auInviteDialog() {
@@ -72563,7 +72836,8 @@ const AU_ORG_PAGES = {
     const o = auOrg(),
       edit = auCanManage(),
       draft = edit ? auLogoDraft() : null,
-      logo = draft ? draft.logo : o.logo;
+      logo = draft ? draft.logo : o.logo,
+      saveError = AUX.orgSaveError?.org === AUTH.org ? AUX.orgSaveError.text : "";
     // 非机构管理员全部按只读值显示（Account A6）；“行业”只读，没有值时不显示（B6）；默认语言不写说明（B15）
     const ro = (v) => `<div class="au-ro">${v ? esc(v) : `<span class="muted">—</span>`}</div>`;
     const val = (id, v) => (edit ? input(id, v) : ro(v));
@@ -72604,7 +72878,7 @@ const AU_ORG_PAGES = {
       "机构信息",
       "名称显示在机构入口、切换机构和成员邀请中，标识显示在机构入口和切换机构中。修改名称不改变机构编号和成员身份。",
       "",
-      edit ? `<div class="au-form">${mark}<div class="au-grid2">${fld("机构名称", "auOrgName", val("auOrgName", o.name))}${fld("机构编号", "auOrgCode", `<div class="au-ro">${esc(o.code)}<small>由 PACOM 分配</small></div>`)}${o.industry ? fld("行业", "auOrgIndustry", ro(o.industry)) : ""}${fld("所在地区", "auOrgRegion", val("auOrgRegion", o.region))}${contact}${fld("默认语言", "auOrgLang", `<div class="au-ro">简体中文</div>`)}</div><div class="au-actions">${btn("保存", "auOrgSave", {}, "primary")}</div></div>` : roCard(),
+      edit ? `<div class="au-form">${mark}<div class="au-grid2">${fld("机构名称", "auOrgName", val("auOrgName", o.name))}${fld("机构编号", "auOrgCode", `<div class="au-ro">${esc(o.code)}<small>由 PACOM 分配</small></div>`)}${o.industry ? fld("行业", "auOrgIndustry", ro(o.industry)) : ""}${fld("所在地区", "auOrgRegion", val("auOrgRegion", o.region))}${contact}${fld("默认语言", "auOrgLang", `<div class="au-ro">简体中文</div>`)}</div><div id="auOrgSaveError" class="form-error" role="alert"${saveError ? "" : " hidden"}>${saveError ? wsNotice(esc(saveError), "error", false) : ""}</div><div class="au-actions">${btn("保存", "auOrgSave", {}, "primary")}</div></div>` : roCard(),
     )}${auSec(
       "服务信息",
       "由 PACOM 维护，只读。",
@@ -74085,6 +74359,7 @@ function auSupportOpen(fromHelp = false) {
 // Only an explicit sign-out sends a bare start URL to 登录; other collaborators' deep links keep working.
 const auReadRouteBase = readRoute;
 readRoute = function () {
+  const protectedReturn = AUTH.session === "out" ? { hash: location.hash, state: history.state } : null;
   const editing = U.page === "apply" && (!U.tab || U.tab === "edit") && AUX.applyEditing ? auApplyMode() : "";
   auReadRouteBase();
   // 开通引导（AUTH19、AUTH24，Account 核查 C1、C5）：未登录时先登录，登录后回到引导；已登录时该机构的其他成员直接进入该机构总览，不显示引导。
@@ -74117,7 +74392,10 @@ readRoute = function () {
   }
   if (AUTH.session !== "out" || AU_PUBLIC.includes(U.page)) return;
   // Signed out: any Station page (or the bare start URL) goes to 登录, and 登录 returns to the requested page afterwards.
-  if (!BARE[U.page] && location.hash.slice(1)) AUX.returnTo = location.hash;
+  if (!BARE[U.page] && location.hash.slice(1)) {
+    AUX.returnTo = location.hash;
+    auRememberProtectedReturn(protectedReturn?.hash, protectedReturn?.state);
+  }
   U.page = "login";
   U.tab = "";
   history.replaceState(null, "", "#login");
