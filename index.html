@@ -15020,7 +15020,7 @@ p.ops-work .ops-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding-inline: 16px;
+  padding-inline: 12px;
   white-space: nowrap;
   height: 32px;
   min-height: 32px;
@@ -15115,9 +15115,11 @@ p.ops-work .ops-link {
   .ops-overview-location > .ws-page-more { display: grid; flex: none; width: 44px; height: 44px; }
   .ops-overview-tabs { flex-basis: 100%; }
   .ops-overview-tabs > .seg { margin-inline: auto; }
+  .ops-overview-tabs > .seg { gap: 4px; }
   .ops-overview-tabs > .seg > button {
     transition: gap 340ms cubic-bezier(.32,.72,0,1), color 150ms ease-out;
   }
+  .ops-overview-tabs > .seg > button:not(:first-of-type)::before { left: -2px; }
   .ops-overview-tabs > .seg > button > .ops-overview-tab-label {
     flex: none;
     width: var(--overview-label-width);
@@ -15130,6 +15132,9 @@ p.ops-work .ops-link {
   .ops-overview-meta > .ops-live { flex: 1 1 180px; }
   .ops-statistics-basis .kv { grid-template-columns: 1fr; gap: 4px; }
   .ops-statistics-basis .kv dd + dt { margin-top: 8px; }
+}
+@media (max-width: 599.98px) and (pointer: coarse) {
+  .ops-overview-tabs > .seg > button::after { inset-inline: -2px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ops-overview-tabs > .seg > button,
@@ -39612,6 +39617,19 @@ function syncSegs() {
         th.style.transform = `translateX(${px}px)`;
         th.style.width = pw + "px";
       };
+    if (view) {
+      // Keep the existing CSS transition alive across page morphs. A new target
+      // then continues from its current visual position, including rapid clicks.
+      seg.setAttribute("data-morph-classes", "has-thumb anim");
+      seg.classList.add("has-thumb");
+      if (th.dataset.x == x && th.dataset.w == w) return;
+      if (th.dataset.x == null) seg.classList.remove("anim");
+      else seg.classList.add("anim");
+      place(x, w);
+      th.dataset.x = x;
+      th.dataset.w = w;
+      return;
+    }
     seg.classList.add("has-thumb");
     if (th.dataset.x == x && th.dataset.w == w) return;
     const now = performance.now();
@@ -69640,6 +69658,13 @@ const AU_GUIDE_URL = "";
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "1.93",
+    date: "2026-10-15",
+    notes: [
+      "总览：类别页签的左右留白统一为12px，修复快速切换时滑块跳动；手机保留选中名称展开和图标导航。",
+    ],
+  },
   {
     version: "1.92",
     date: "2026-10-15",
