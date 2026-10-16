@@ -15430,23 +15430,39 @@ p.ops-work .ops-link {
 }
 
 /* 1.96：说明入口属于名称，不属于数值；与数据状态、告警和操作按钮分离。 */
-.ops-info-wrap { display:inline-flex; vertical-align:middle; margin-inline-start:4px; flex:none; }
+.ops-info-wrap { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; vertical-align:middle; margin-inline-start:4px; flex:none; }
 .ops-devpop .ops-kv { grid-template-columns:max-content minmax(0,1fr); }
 .ops-devpop .ops-kv dt { display:flex; align-items:flex-start; white-space:nowrap; }
-.ops-info { position:relative; display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; padding:4px; border:0; border-radius:50%; background:transparent; color:#636363; cursor:pointer; vertical-align:middle; flex:none; }
-.ops-info .ic { width:16px; height:16px; }
-.ops-info::after { content:""; position:absolute; inset:-4px; }
-.ops-info:hover { color:#030303; background:rgba(0,0,0,.04); }
+.ops-info { position:relative; display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; min-height:0; padding:0; border:0; border-radius:50%; background:transparent; box-shadow:none; color:#030303; cursor:pointer; vertical-align:middle; flex:none; transition:background 150ms cubic-bezier(.215,.61,.355,1); }
+.ops-info .ic { width:14px; height:14px; }
+.ops-info .ws-info-icon { display:block; fill:currentColor; stroke:none; }
+.ops-info::after { content:""; position:absolute; inset:0; }
+@media (hover:hover) { .ops-info:hover { color:#030303; background:rgb(0 0 0 / .08); transition-duration:0s; } }
+.ops-info:active { color:#030303; background:rgb(0 0 0 / .10); box-shadow:none; transition-duration:0s; }
 .ops-info:focus-visible { outline:2px solid #00aeef; outline-offset:2px; }
-.ops-explain-pop { width:360px; max-width:calc(100vw - 16px); padding:16px; max-height:calc(100dvh - 24px); overflow:auto; }
-.ops-explain-content > header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:8px; }
-.ops-explain-content h4 { margin:4px 0 0; font-size:14px; line-height:24px; font-weight:480; color:#030303; }
-.ops-explain-content > header .iconbtn { flex:none; width:32px; height:32px; }
-.ops-explain-body { font-size:14px; line-height:24px; color:#2e2e2e; overflow-wrap:anywhere; }
-.ops-explain-body p { margin:0 0 8px; }
-.ops-explain-body p:last-child { margin-bottom:0; }
-.ops-explain-part + .ops-explain-part { margin-top:8px; padding-top:8px; border-top:1px solid #ebebeb; }
-.ops-explain-body a { color:inherit; text-decoration:underline; text-underline-offset:3px; }
+.ws-info-popover {
+  --ws-info-ring:2px; --ws-info-ring-alpha:.16;
+  position:fixed; z-index:150; width:288px; max-width:calc(100vw - 16px); padding:16px;
+  border:0; border-radius:12px; background:#fff; color:#636363; font:400 14px/21px var(--ff); text-align:left; outline:0;
+  box-shadow:0 0 0 1px #fff,0 0 0 var(--ws-info-ring) rgb(119 119 113 / var(--ws-info-ring-alpha)),0 0 24px 6px rgb(0 0 0 / .04),0 2px 1px rgb(0 0 0 / .04),0 2px 1px -.5px rgb(0 0 0 / .04),0 4px 3px -1.5px rgb(0 0 0 / .04),0 7px 6px -3px rgb(0 0 0 / .04),0 13px 12px -6px rgb(0 0 0 / .04),0 25px 24px -12px rgb(0 0 0 / .04);
+  overflow:auto; overflow-wrap:anywhere; overscroll-behavior:contain; animation:ws-info-enter 200ms ease both;
+}
+.ws-info-text { display:block; font:inherit; color:inherit; }
+.ws-info-text p { margin:0 0 8px; font:inherit; color:inherit; }
+.ws-info-text :is(h2,h3,h4) { margin:0 0 8px; font:450 14px/19.6px var(--ff); color:#030303; }
+.ws-info-text b, .ws-info-text strong { font-weight:480; color:#030303; }
+.ws-info-text p:last-child { margin-bottom:0; }
+.ws-info-text .ops-explain-part + .ops-explain-part { margin-top:8px; padding-top:8px; border-top:1px solid #ebebeb; }
+.ws-info-text > :is(a[href],button,.btn), .ws-info-text > :is(.row,.ops-ctl-row):has(> :is(a,button)) { margin-top:12px; }
+.ws-info-text > :is(a[href],button,.btn), .ws-info-text :is(.row,.ops-ctl-row) > :is(a,button) { display:flex; align-items:center; justify-content:center; position:relative; width:100%; min-height:32px; padding:6px 10px; border:0; border-radius:8px; background:transparent; box-shadow:none; font:400 14px/21px var(--ff); color:#030303; text-decoration:none; }
+.ws-info-popover.ws-info-exit { pointer-events:none; animation:ws-info-exit 150ms ease both; }
+@keyframes ws-info-enter { from { opacity:0; transform:translateY(2px) scale(.97); } to { opacity:1; transform:none; } }
+@keyframes ws-info-exit { from { opacity:1; transform:none; } to { opacity:0; transform:scale(.97); } }
+.ws-info-popover[data-side=bottom] { animation-name:ws-info-enter-below; }
+.ws-info-popover[data-side=bottom].ws-info-exit { animation-name:ws-info-exit; }
+@keyframes ws-info-enter-below { from { opacity:0; transform:translateY(-2px) scale(.97); } to { opacity:1; transform:none; } }
+@media (min-resolution:1.5dppx) { .ws-info-popover { --ws-info-ring:1px; --ws-info-ring-alpha:.28; } }
+@media (prefers-reduced-motion:reduce) { .ws-info-popover, .ws-info-popover.ws-info-exit { animation:none; transition:none; } }
 .ops-kpi.actionable { position:relative; text-align:left; }
 .ops-kpi-link { position:absolute; z-index:1; inset:0; width:100%; height:100%; border:0; border-radius:inherit; background:transparent; cursor:pointer; }
 .ops-kpi-link:focus-visible { outline:2px solid #00aeef; outline-offset:3px; }
@@ -15468,7 +15484,7 @@ p.ops-work .ops-link {
 .ops-stat-status { margin:8px 0 0; font-size:12px; line-height:18px; color:#636363; }
 .ops-environment-summary .ops-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); width:100%; gap:16px; }
 .ops-environment-summary .ops-strip > div { min-width:0; }
-@media (pointer:coarse) { .ops-info::after { inset:-10px; } }
+@media (max-width:850px), (pointer:coarse) { .ops-info::after { inset:-10px; } .ops-info:hover { background:transparent; } .ops-info:active { opacity:.8; } }
 @media (max-width:850px) {
   .ops-findings li { align-items:flex-start; }
   .ops-environment-summary .ops-strip { grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 12px; }
@@ -16476,15 +16492,25 @@ p.ops-work .ops-link {
   font: 500 16px/24px var(--ff);
 }
 /* 说明标志紧跟字段名称，不能移到输入框内；打开方式为点击，弹层不占表单间距。 */
-.au .au-label-row { align-items: center; justify-content: flex-start; gap: 6px; }
-.au-field-info-wrap { position: relative; display: inline-flex; align-items: center; flex: 0 0 16px; width: 16px; height: 24px; }
-.au .au-field-info-trigger { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 16px; height: 16px; min-height: 0; padding: 0; border: 0; border-radius: 4px; background: transparent; box-shadow: none; color: #636363; cursor: pointer; }
-.au-field-info-trigger > .ic { display: block; width: 16px; height: 16px; }
-.au-field-info-trigger::before { content: ""; position: absolute; inset: -6px; }
-.au .au-field-info-trigger:hover, .au .au-field-info-trigger:active { background: transparent; color: #636363; }
+.au .au-label-row { align-items: center; justify-content: flex-start; gap: 4px; }
+.au-field-info-wrap { position: relative; display: inline-flex; align-items: center; flex: 0 0 24px; width: 24px; height: 24px; }
+.au .au-field-info-trigger { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 24px; height: 24px; min-height: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; box-shadow: none; color: #030303; cursor: pointer; transition:background 150ms cubic-bezier(.215,.61,.355,1); }
+.au .au-field-info-trigger > .ic { display: block; width: 14px; height: 14px; }
+.au .au-field-info-trigger > .ws-info-icon { fill: currentColor; stroke: none; }
+.au-field-info-trigger::before { content: ""; position: absolute; inset: 0; }
+@media (hover:hover) { .au .au-field-info-trigger:hover { background:rgb(0 0 0 / .08); color:#030303; transition-duration:0s; } }
+.au .au-field-info-trigger:active { background:rgb(0 0 0 / .10); color:#030303; transition-duration:0s; }
 .au .au-field-info-trigger:focus-visible { outline: 2px solid #00AEEF; outline-offset: 2px; }
-.au-field-info-popover { position: fixed; z-index: 150; width: max-content; max-width: min(45ch, calc(100vw - 16px)); padding: 4px 6px; border-radius: 6px; background: #fff; box-shadow: 0 0 0 1px rgb(0 0 0 / .08), 0 2px 8px rgb(0 0 0 / .12); color: #030303; font: 400 12px/16px var(--ff); text-align: left; overflow-wrap: break-word; }
+.au-field-info-popover { --ws-info-ring:2px; --ws-info-ring-alpha:.16; position: fixed; z-index: 150; width:288px; max-width:calc(100vw - 16px); padding:16px; border:0; border-radius:12px; background: #fff; box-shadow:0 0 0 1px #fff,0 0 0 var(--ws-info-ring) rgb(119 119 113 / var(--ws-info-ring-alpha)),0 0 24px 6px rgb(0 0 0 / .04),0 2px 1px rgb(0 0 0 / .04),0 2px 1px -.5px rgb(0 0 0 / .04),0 4px 3px -1.5px rgb(0 0 0 / .04),0 7px 6px -3px rgb(0 0 0 / .04),0 13px 12px -6px rgb(0 0 0 / .04),0 25px 24px -12px rgb(0 0 0 / .04); color:#636363; font:400 14px/21px var(--ff); text-align:left; outline:0; overflow:auto; overflow-wrap:anywhere; overscroll-behavior:contain; animation:au-info-enter 200ms ease both; }
 .au-field-info-popover[hidden] { display: none; }
+.au-field-info-popover > .ws-info-text { display:block; font:inherit; color:inherit; }
+@keyframes au-info-enter { from { opacity:0; transform:translateY(2px) scale(.97); } to { opacity:1; transform:none; } }
+.au-field-info-popover[data-side=bottom] { animation-name:au-info-enter-below; }
+@keyframes au-info-enter-below { from { opacity:0; transform:translateY(-2px) scale(.97); } to { opacity:1; transform:none; } }
+.au-field-info-popover.ws-info-exit { pointer-events:none; animation:au-info-exit 150ms ease both; }
+@keyframes au-info-exit { from { opacity:1; transform:none; } to { opacity:0; transform:scale(.97); } }
+@media (min-resolution:1.5dppx) { .au-field-info-popover { --ws-info-ring:1px; --ws-info-ring-alpha:.28; } }
+@media (prefers-reduced-motion:reduce) { .au-field-info-popover, .au-field-info-popover.ws-info-exit { animation:none; transition:none; } }
 .au .au-lab .au-login-forgot { margin-left: auto; color: #636363; }
 .au .au-login-forgot > span { display: inline-block; text-decoration: underline; text-underline-offset: 3px; }
 .au .au-login-forgot:hover { color: #636363; }
@@ -19616,7 +19642,7 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
 .au-audit .au-ev,
 .au-meter-h > span,
 .au-meter-h > b { white-space: nowrap; }
-/* 第 442 条：头像浅灰底（颜色表 #777771 16%）、#2E2E2E 字；“我”用第 311 条的中性标签；“您的角色”和当前角色一列的表头 #030303，当前角色卡片的外框不变 */
+/* 第 442 条：头像浅灰底（颜色表 #777771 16%）、#2E2E2E 字；“我”用第 311 条的中性标签；“你的角色”和当前角色一列的表头 #030303，当前角色卡片的外框不变 */
 .au-av { background: rgb(119 119 113 / 0.16); color: #2e2e2e; }
 .chip.au-me-tag { margin-left: 6px; vertical-align: 1px; padding: 0 6px; border-radius: 4px; background: var(--bar-bg); color: var(--text2); font-size: 12px; line-height: 18px; font-weight: 480; }
 .au-rolecard small,
@@ -19745,10 +19771,12 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .au .au-primary.au-compact-primary { height: 36px; min-height: 36px; border-radius: 999px; font: 480 16px/24px var(--ff) !important; }
 @media (max-width: 850px), (pointer: coarse) {
   /* 44px 透明命中边界与前后输入框相接、不覆盖；标签到框的可见间距仍为 4px。 */
-  .au-field-info-trigger::before { top: -20px; bottom: -8px; left: -14px; right: -14px; }
+  .au-field-info-trigger::before { top: -16px; bottom: -4px; left: -10px; right: -10px; }
   .au .au-compact-form .au-label-row { min-height: 32px; align-items: flex-end; }
   .au .au-compact-form .au-field-info-wrap { height: 24px; }
-  .au .au-compact-form .au-field-info-trigger::before { top: -24px; bottom: -4px; }
+  .au .au-compact-form .au-field-info-trigger::before { top: -16px; bottom: -4px; }
+  .au .au-field-info-trigger:hover { background:transparent; }
+  .au .au-field-info-trigger:active { opacity:.8; }
   .au .au-compact-form .au-eye, .au .au-compact-form .au-getcode { height: 36px; min-height: 36px; }
   .au .au-compact-form .au-eye { width: 36px; }
   .au .au-compact-form { --au-input-hit-extension: 4px; }
@@ -31493,21 +31521,21 @@ const StationFlowModel = ((M) => {
     }
     return out;
   }
-  const XF = { text: 0, head: 1, area: 2, int: 3, pct: 4, wrap: 5, coord: 6, m: 7 };
+  const XF = { text: 0, head: 1, area: 2, int: 3, pct: 4, wrap: 5, coord: 6, m: 7, decimal1: 8 };
   const XML_HEAD = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',
     NS_MAIN = "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
     NS_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
     NS_PKG = "http://schemas.openxmlformats.org/package/2006/relationships";
   const XLSX_STYLES =
     XML_HEAD +
-    `<styleSheet xmlns="${NS_MAIN}"><numFmts count="4"><numFmt numFmtId="164" formatCode="#,##0.0"/><numFmt numFmtId="165" formatCode="0.000"/><numFmt numFmtId="166" formatCode="0.000000"/><numFmt numFmtId="167" formatCode="#,##0.00"/></numFmts>` +
+    `<styleSheet xmlns="${NS_MAIN}"><numFmts count="5"><numFmt numFmtId="164" formatCode="#,##0.0"/><numFmt numFmtId="165" formatCode="0.000"/><numFmt numFmtId="166" formatCode="0.000000"/><numFmt numFmtId="167" formatCode="#,##0.00"/><numFmt numFmtId="168" formatCode="0.0"/></numFmts>` +
     `<fonts count="2"><font><sz val="11"/><name val="等线"/><family val="2"/><charset val="134"/></font><font><b/><sz val="11"/><name val="等线"/><family val="2"/><charset val="134"/></font></fonts>` +
     `<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/><bgColor indexed="64"/></patternFill></fill></fills>` +
     `<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>` +
-    `<cellXfs count="8"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>` +
+    `<cellXfs count="9"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>` +
     `<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="3" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>` +
     `<xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf>` +
-    `<xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="167" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs>` +
+    `<xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="167" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="168" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs>` +
     `<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
   function sheetXml(sh, first) {
     const rows = [sh.cols.map((c) => c.h), ...sh.rows],
@@ -35117,8 +35145,9 @@ function readRoute() {
   }
   if (page === "deployment" || fixed) syncRoute(true);
 }
-async function persist(next, { networkProject } = {}) {
+async function persist(next, { networkProject, assertAccess } = {}) {
   if (writing) throw Error("正在保存，请稍候");
+  assertAccess?.(next);
   if (networkProject) assertNetworkProjectAccess(networkProject, next);
   assertNetworkDraftAccess(next, W);
   writing = true;
@@ -35138,6 +35167,7 @@ async function persist(next, { networkProject } = {}) {
           return;
         }
         try {
+          assertAccess?.(next);
           if (networkProject) assertNetworkProjectAccess(networkProject, next);
           assertNetworkDraftAccess(next, W);
         } catch (e) { t.abort(); rej(e); return; }
@@ -35183,13 +35213,17 @@ function netBanner(e) {
 }
 window.addEventListener("offline", netBanner);
 window.addEventListener("online", netBanner);
-async function transaction(fn, permission = "configure") {
-  if (navigator.onLine === false) throw Error("网络连接已中断，修改尚未保存。请恢复网络后重试。");
-  // 运营写入（告警确认、工单、场景、照明控制参数等）只给运营人员、配置人员与机构管理员；普通成员只能控制自己的功能区，不经这里（角色权限方案第 4 条）
-  if (permission === "operate" ? !["admin", "config", "ops"].includes(U.role) : !canEdit()) throw Error("当前角色只有查看权限");
+async function transaction(fn, permission = "configure", { assertAccess } = {}) {
+  const check = (next) => {
+    if (navigator.onLine === false) throw Error("网络连接已中断，修改尚未保存。请恢复网络后重试。");
+    // 运营写入只给运营、配置与管理员；提交等待期间再次核对，不能只在按钮点击时检查。
+    if (permission === "operate" ? !["admin", "config", "ops"].includes(U.role) : !canEdit()) throw Error("当前角色只有查看权限");
+    assertAccess?.(next);
+  };
+  check(W);
   const n = M.copy(W);
   const result = fn(n);
-  await persist(n);
+  await persist(n, { assertAccess: check });
   return result;
 }
 // 工作区按集合（顶层键）序列化，值为 undefined 的键与 JSON.stringify 一样略去。用于判断草稿与已保存内容是否实际不同
@@ -35504,6 +35538,7 @@ function render() {
     syncRoute(true);
   }
   memberGuard();
+  if (typeof auOrgFormSync === "function") auOrgFormSync();
   $("#app").dataset.page=U.page;
   // 绘制引擎画布在无关更新时保留（D4）：仍是同一次绘制或调整、范围未在引擎之外改变时不卸载重挂。
   if(typeof spatialDispose === "function"){spatialCaptureInputs();if(!spatialKeep())spatialDispose();}
@@ -35680,8 +35715,8 @@ function missingPage() {
     `${noun}不存在或已删除`,
     // 项目只由机构管理员恢复（GLOBAL04）：项目一种单独写（Lovable 核查第 174 条，2026-10-11 用户确认：原为四种对象共用“有配置权限的成员可在“已删除”中恢复已删除的内容。”）
     m.kind === "projects"
-      ? "链接指向的项目已被删除，或您没有访问权限。机构管理员可在“已删除”中恢复已删除的项目。"
-      : `链接指向的${noun}已被删除，或您没有访问权限。有配置权限的成员可在“已删除”中恢复已删除的内容。`,
+      ? "链接指向的项目已被删除，或你没有访问权限。机构管理员可在“已删除”中恢复已删除的项目。"
+      : `链接指向的${noun}已被删除，或你没有访问权限。有配置权限的成员可在“已删除”中恢复已删除的内容。`,
     btn(back[0], "missingBack", back[1], "primary"),
     "search",
   )}</div>`;
@@ -36438,6 +36473,20 @@ function spaceInfo(kind, id) {
   );
 }
 const NETWORK_PROJECT_DENY = "当前项目不可配置，请重新选择。";
+const OPERATE_PROJECT_DENY = "项目访问权限已变更，请重新进入。";
+// 按已保存项目及当前可信成员状态授权，不信任旧按钮、草稿项目名或仅用于展示的角色。
+function assertOperateProjectAccess(pid, db = data()) {
+  if (!["admin", "config", "ops"].includes(U.role)) throw Error("当前角色只有查看权限");
+  if (typeof AUTH !== "undefined") {
+    const member = typeof auMembers === "function" ? auMembers().find(m => m.uid === AUTH.uid) : null,
+      person = AUTH.people?.[AUTH.uid];
+    if (AUTH.session !== "in" || !AUTH.org || !person?.orgs?.[AUTH.org] ||
+        !["admin", "config", "ops"].includes(person.orgs[AUTH.org]) || !member ||
+        !["admin", "config", "ops"].includes(member.role) ||
+        typeof auMemberGate === "function" && auMemberGate()) throw Error(OPERATE_PROJECT_DENY);
+  }
+  if (!pid || !M.get(W, "projects", pid) || !M.get(db, "projects", pid) || !mayViewProject(pid, W)) throw Error(OPERATE_PROJECT_DENY);
+}
 function assertNetworkProjectAccess(pid, db = data()) {
   if (!canEdit()) throw Error("当前角色只有查看权限");
   const saved = M.get(W, "projects", pid), authority = saved ? W : db;
@@ -38349,7 +38398,7 @@ defineActions({
           const on = n.id === U.net;
           return `<button class="btn popitem ${on ? "on" : ""}" role="menuitemradio" aria-checked="${on}" data-act="setNetwork" data-id="${esc(n.id)}"><span>${esc(n.name)}</span>${on ? ico("check", "ic16 pop-check") : ""}</button>`;
         })
-        .join("")}${btn(ico("plus", "ic16") + "规划其他网络", "networkForm", { floor: U.f }, "popitem").replace("<button ", '<button role="menuitem" ')}</div>`,
+        .join("")}${canEdit() && mayViewProject(M.projectOfFloor(data(), U.f), W) ? btn(ico("plus", "ic16") + "规划其他网络", "networkForm", { floor: U.f }, "popitem").replace("<button ", '<button role="menuitem" ') : ""}</div>`,
       true,
     ),
   networkForm: (a) => networkForm(a.floor, a.id),
@@ -39042,6 +39091,7 @@ function wsEscapeReset() {
 }
 defineLayer({ name: "pageState", level: 0, open: () => !BARE[U.page] && !(U.page === "projects" && !U.f), close: wsEscapeReset });
 document.addEventListener("keydown", (e) => {
+  if (e.target.id === "globalQuery" && (e.isComposing || e.keyCode === 229 || (typeof aiComposingInputs !== "undefined" && aiComposingInputs.has(e.target)))) return;
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
     e.preventDefault();
     actions.search();
@@ -39052,6 +39102,8 @@ document.addEventListener("keydown", (e) => {
     closeTopLayer(e);
     return;
   }
+  // 说明层不是模态：可 Tab 到其实际链接，离开时接回触发 i 后面的页面控件。
+  if (e.key === "Tab" && typeof wsInfoTab === "function" && wsInfoTab(e)) return;
   const modal = topModalLayer();
   const optionPop = $("#pop[role=listbox]");
   // 选择框（Lovable 核查第 96 条，2026-10-10 用户确认）：焦点在关着的选择框上时 ↓ 也能打开列表（Enter、空格照旧）；
@@ -44542,6 +44594,8 @@ document.addEventListener('pointerup', e => { if (scrimPointerTarget && document
 document.addEventListener("focusin", e => {
   const top = topModalLayer(), p = $("#pop");
   if (!top || top.contains(e.target) || (p?.contains(e.target) && top.contains(p.anchor))) return;
+  const info = typeof opsExplainTip === "undefined" ? null : opsExplainTip;
+  if (info?.contains(e.target) && (top.contains(info.anchor) || p?.contains(info.anchor) && top.contains(p.anchor))) return;
   const first = wsFocusables(top)[0] || top.querySelector(".dh h2");
   if (first && first !== e.target) first.focus({ preventScroll: true });
 });
@@ -51156,10 +51210,139 @@ const selectedZones = () =>
     .sort((a, b) => M.byHeight(g("floors", a.floorId), g("floors", b.floorId)) || M.byName(a, b));
 const telemetryValue = (p, key, unit = "") => (p?.telemetry?.[key] != null ? esc(p.telemetry[key]) + (unit ? " " + unit : "") : "—");
 // 只接收已转义的说明 HTML；名称留在调用处，i 紧跟名称，关键状态不得藏进说明。
+const wsInfoIcon = () => '<svg class="ic ws-info-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M13 7.5a1 1 0 1 0-2 0 1 1 0 0 0 2 0Z"/><path fill-rule="evenodd" d="M21.75 12a9.75 9.75 0 1 1-19.5 0 9.75 9.75 0 0 1 19.5 0Zm-1.5 0a8.25 8.25 0 1 0-16.5 0 8.25 8.25 0 0 0 16.5 0Zm-9 4.5V11a.75.75 0 0 1 1.5 0v5.5a.75.75 0 0 1-1.5 0Z"/></svg>';
 function opsInfo(label, safeHtmlContent) {
   if (!String(safeHtmlContent || "").trim()) return "";
-  return `<span class="ops-info-wrap"><button type="button" class="ops-info" data-act="opsExplain" data-title="${esc(label)}" data-info="${esc(encodeURIComponent(String(safeHtmlContent || "")))}" aria-label="${esc(label)}说明" aria-expanded="false" aria-haspopup="dialog" aria-controls="pop">${ico("info", "ic16")}</button></span>`;
+  return `<span class="ops-info-wrap"><button type="button" class="ops-info" data-act="opsExplain" data-title="${esc(label)}" data-info="${esc(encodeURIComponent(String(safeHtmlContent || "")))}" aria-label="${esc(label)}说明" aria-expanded="false" aria-haspopup="dialog">${wsInfoIcon()}</button></span>`;
 }
+
+// 说明气泡独立于业务菜单与对话框，打开设备信息内的 i 不替换它的父弹层。
+// 返回纯几何结果，账户字段与工作区说明使用同一套可视视口和碰撞规则。
+function wsInfoGeometry(anchor, box, viewport) {
+  const gap = 4, edge = 8, left = viewport.left || 0, top = viewport.top || 0;
+  const above = Math.max(0, anchor.top - gap - top - edge), below = Math.max(0, top + viewport.height - edge - anchor.bottom - gap);
+  const side = box.height <= below || below >= above ? "bottom" : "top";
+  const height = Math.min(box.height, side === "top" ? above : below);
+  return { side, left: Math.max(left + edge, Math.min(anchor.left, left + viewport.width - box.width - edge)),
+    top: side === "top" ? anchor.top - gap - height : anchor.bottom + gap, maxHeight: Math.max(1, side === "top" ? above : below), height };
+}
+function wsInfoAnchorVisible(anchor, viewport) {
+  const r = anchor.getBoundingClientRect(), right = (viewport.left || 0) + viewport.width, bottom = (viewport.top || 0) + viewport.height;
+  let clip = { left: viewport.left || 0, top: viewport.top || 0, right, bottom };
+  for (let n = anchor.parentElement; n && n !== document.body; n = n.parentElement) {
+    if (typeof getComputedStyle !== "function") break;
+    const s = getComputedStyle(n);
+    if (!/(auto|scroll|hidden|clip)/.test(`${s.overflow} ${s.overflowX} ${s.overflowY}`)) continue;
+    const b = n.getBoundingClientRect();
+    if (/(auto|scroll|hidden|clip)/.test(`${s.overflowX || s.overflow}`)) { clip.left = Math.max(clip.left, b.left); clip.right = Math.min(clip.right, b.right); }
+    if (/(auto|scroll|hidden|clip)/.test(`${s.overflowY || s.overflow}`)) { clip.top = Math.max(clip.top, b.top); clip.bottom = Math.min(clip.bottom, b.bottom); }
+  }
+  return r.right > clip.left && r.left < clip.right && r.bottom > clip.top && r.top < clip.bottom;
+}
+function wsPlaceInfo(anchor, popup) {
+  if (!anchor?.isConnected || !popup?.isConnected) return false;
+  const scrollTop = popup.scrollTop || 0;
+  const v = window.visualViewport, viewport = { left: v?.offsetLeft || 0, top: v?.offsetTop || 0,
+    width: v?.width || document.documentElement.clientWidth, height: v?.height || document.documentElement.clientHeight };
+  if (!wsInfoAnchorVisible(anchor, viewport)) return false;
+  popup.style.maxWidth = Math.max(1, viewport.width - 16) + "px";
+  popup.style.maxHeight = "none";
+  const geometry = wsInfoGeometry(anchor.getBoundingClientRect(), popup.getBoundingClientRect(), viewport);
+  if (geometry.maxHeight < 32) return false;
+  popup.dataset.side = geometry.side;
+  popup.style.maxHeight = geometry.maxHeight + "px";
+  popup.style.left = Math.round(geometry.left) + "px";
+  popup.style.top = Math.round(geometry.top) + "px";
+  const anchorBox = anchor.getBoundingClientRect(), originX = Math.round(Math.max(0, Math.min(anchorBox.left + anchorBox.width / 2 - Math.round(geometry.left), popup.getBoundingClientRect().width)));
+  popup.style.transformOrigin = `${originX}px ${geometry.side === "top" ? "calc(100% + 4px)" : "-4px"}`;
+  if (popup.scrollTop !== scrollTop) popup.scrollTop = scrollTop;
+  return true;
+}
+let opsExplainTip = null;
+function opsExplainCloseTip(restoreFocus = false) {
+  const tip = opsExplainTip;
+  opsExplainTip = null;
+  if (!tip) return;
+  const anchor = tip.anchor;
+  anchor?.setAttribute("aria-expanded", "false");
+  if (tip.restoreControls) anchor?.setAttribute("aria-controls", tip.restoreControls);
+  else anchor?.removeAttribute("aria-controls");
+  anchor?.removeAttribute("aria-describedby");
+  if (typeof matchMedia === "function" && !matchMedia("(prefers-reduced-motion: reduce)").matches && tip.isConnected) {
+    const ghost = tip.cloneNode(true);
+    ghost.removeAttribute("id"); ghost.querySelectorAll("[id]").forEach(n => n.removeAttribute("id"));
+    ghost.classList.add("ws-info-exit"); ghost.inert = true; ghost.setAttribute("aria-hidden", "true");
+    document.body.append(ghost); setTimeout(() => ghost.remove(), 150);
+  }
+  if (tip.accountInfo) {
+    tip.hidden = true;
+    const replacement = document.getElementById(tip.id);
+    if (tip.originalParent?.isConnected && (!replacement || replacement === tip)) tip.originalParent.append(tip); else tip.remove();
+    tip.onInfoClose?.();
+  } else tip.remove();
+  if (restoreFocus && anchor?.isConnected) anchor.focus({ preventScroll: true });
+}
+function opsExplainOpenTip(anchor, content, existing = null) {
+  if (opsExplainTip?.anchor === anchor) return opsExplainCloseTip(true);
+  opsExplainCloseTip();
+  if (typeof auCloseFieldInfo === "function") auCloseFieldInfo();
+  const tip = existing || document.createElement("div");
+  if (existing) {
+    tip.accountInfo = true; tip.originalParent = tip.parentElement; tip.restoreControls = tip.id; tip.hidden = false;
+  } else {
+    tip.id = "ops-explain-tip"; tip.className = "ws-info-popover";
+    tip.innerHTML = `<div class="ws-info-text" id="${tip.id}-body">${content}</div>`;
+  }
+  tip.setAttribute("role", "dialog"); tip.setAttribute("aria-modal", "false"); tip.setAttribute("tabindex", "-1");
+  tip.setAttribute("aria-label", anchor.getAttribute("aria-label") || "信息说明");
+  tip.setAttribute("aria-describedby", tip.id + "-body");
+  tip.anchor = anchor;
+  tip.infoSource = anchor.dataset.info;
+  if (!tip.infoClickGuard) {
+    tip.addEventListener("click", e => { if (!e.target.closest?.("[data-act]")) e.stopPropagation(); });
+    tip.infoClickGuard = true;
+  }
+  document.body.append(tip); opsExplainTip = tip;
+  if (!wsPlaceInfo(anchor, tip)) return opsExplainCloseTip();
+  anchor.setAttribute("aria-expanded", "true"); anchor.setAttribute("aria-controls", tip.id); anchor.removeAttribute("aria-describedby");
+  (wsFocusables(tip)[0] || tip).focus({ preventScroll: true });
+}
+function wsInfoTab(e) {
+  const panel = opsExplainTip, active = document.activeElement;
+  if (!panel || e.key !== "Tab" || !panel.contains(active)) return false;
+  const inner = wsFocusables(panel), i = inner.indexOf(active);
+  if (!e.shiftKey && i < inner.length - 1) {
+    if (i < 0) { e.preventDefault(); inner[0].focus(); return true; }
+    return true; // native Tab between the panel's real links/actions
+  }
+  if (e.shiftKey && i > 0) return true;
+  const anchor = panel.anchor, parent = anchor.closest?.("#pop") || (typeof topModalLayer === "function" && topModalLayer()) || document.body;
+  const choices = wsFocusables(parent).filter(n => !panel.contains(n) && !n.closest?.('[inert], [aria-hidden="true"], .ws-info-exit'));
+  const next = e.shiftKey ? anchor : choices[choices.indexOf(anchor) + 1] || anchor;
+  e.preventDefault(); opsExplainCloseTip();
+  if (next?.isConnected) next.focus({ preventScroll: true });
+  return true;
+}
+document.addEventListener("pointerdown", e => {
+  if (opsExplainTip && !opsExplainTip.contains(e.target) && !opsExplainTip.anchor?.contains(e.target)) opsExplainCloseTip();
+}, true);
+document.addEventListener("focusin", e => {
+  if (opsExplainTip && !opsExplainTip.contains(e.target) && !opsExplainTip.anchor?.contains(e.target)) opsExplainCloseTip();
+}, true);
+const opsExplainReposition = e => {
+  if (opsExplainTip && (e?.target === opsExplainTip || e?.target?.closest?.(".ws-info-popover, .au-field-info-popover") === opsExplainTip)) return;
+  if (opsExplainTip && !wsPlaceInfo(opsExplainTip.anchor, opsExplainTip)) opsExplainCloseTip();
+};
+window.addEventListener("resize", opsExplainReposition);
+window.addEventListener("scroll", opsExplainReposition, true);
+window.visualViewport?.addEventListener("resize", opsExplainReposition);
+window.visualViewport?.addEventListener("scroll", opsExplainReposition);
+window.addEventListener("hashchange", () => opsExplainCloseTip());
+if (typeof MutationObserver === "function" && document.body) new MutationObserver(() => {
+  if (opsExplainTip && (!opsExplainTip.anchor?.isConnected || opsExplainTip.accountInfo && document.getElementById(opsExplainTip.id) !== opsExplainTip || opsExplainTip.infoSource !== opsExplainTip.anchor.dataset.info)) opsExplainCloseTip();
+}).observe(document.body, { childList: true, subtree: true });
+if (typeof defineLayer === "function") defineLayer({ name: "informationPopover", level: 96, prevent: true,
+  open: () => !!opsExplainTip?.isConnected && !opsExplainTip.accountInfo, close: () => opsExplainCloseTip(true) });
 
 /* lovable 组件（LOVABLE_SPEC §3–4）：卡片内与工具栏切换用紧凑分段 .seg.sm（32 / 26，14px）；
    工具栏左侧搜索 320、筛选下拉 144，均高 32、圆角 8；右侧放操作。 */
@@ -60849,8 +61032,8 @@ const qualityFoot = (ds) => {
 };
 const demoTag = () => "";
 const OPS_TABLES = {};
-function regTable(key, headers, rows) {
-  OPS_TABLES[key] = { headers, rows };
+function regTable(key, headers, rows, formats = {}) {
+  OPS_TABLES[key] = { headers, rows, formats };
   return key;
 }
 const opsPlain = (h) =>
@@ -60872,7 +61055,7 @@ function opsTableSheets(t, at, who) {
     p2 = (n) => String(n).padStart(2, "0"),
     when = `${d.getUTCFullYear()} 年 ${d.getUTCMonth() + 1} 月 ${d.getUTCDate()} 日 ${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}`;
   return [
-    { name: "数据表", cols: t.headers.map((h) => ({ h, w: Math.max(12, String(h).length * 2 + 4) })), rows: t.rows.map((r) => r.map(opsCell)), filter: true },
+    { name: "数据表", cols: t.headers.map((h, i) => ({ h, w: Math.max(12, String(h).length * 2 + 4), ...(t.formats?.[i] === "decimal1" ? { t: "decimal1" } : {}) })), rows: t.rows.map((r) => r.map(opsCell)), filter: true },
     {
       name: "说明",
       cols: [
@@ -64196,7 +64379,7 @@ function anHealth() {
     reachCard = chartCard({
       title: "体检到达率趋势" + opsInfo("体检到达率趋势",esc("仅列所选期间的全网体检与夜间复测。通过标准为99%；体检对应的网络版本必须与判断用途一致，旧版本结果不能代替当前交付验证。缺失版本明确未记录，不用当前版本补填。")),
       meta: `${rg.span} · %`,
-      table: regTable("reach",["时间","设备网络","体检版本","类型","到达率 %"],reach.map(r => [Demo.md(r.t)+" "+Demo.hm(r.t),r.networkName,r.versionText,r.label,r.v ?? "未取得"])),
+      table: regTable("reach",["时间","设备网络","体检版本","类型","到达率 %"],reach.map(r => [Demo.md(r.t)+" "+Demo.hm(r.t),r.networkName,r.versionText,r.label,r.v ?? "未取得"]),{4:"decimal1"}),
       body: (reach.length ? chartSlot({
         type:"lines",height:280,xs:reach.map(r => r.t),xLabel:t => Demo.md(t),
         tipTitle:(t,i) => Demo.md(t)+" · "+reach[i].networkName+" · "+reach[i].versionText+" · "+reach[i].label,yMin:Math.min(98.5,...reach.filter(r => r.v != null).map(r => r.v)),unit:"%",unitShort:"%",
@@ -64459,8 +64642,8 @@ function opsHealthAlarmMatch(a) {
   return c.kind !== "reset" || (a.kind === "device" && /复位/.test(a.name || "") && opsRecAt(a.at) >= c.from && opsRecAt(a.at) < c.to);
 }
 function opsHealthTaskMatch(t) {
-  const c = opsHealthAlarmContext();
-  return !U.opsHealthAlarm || !!c && t.projectId === c.projectId &&
+  const c = opsHealthAlarmContext(), per = U.opsHealthAlarm ? alHistRange() : null;
+  return !U.opsHealthAlarm || !!c && t.projectId === c.projectId && opsRecAt(t.at) >= per.from && opsRecAt(t.at) < per.end &&
     (taskAlarms(t).some(opsHealthAlarmMatch) || c.kind === "offline" && (t.pointIds || []).some(id => c.pointIds.includes(id)));
 }
 function opsHealthAlarmBar() {
@@ -64729,13 +64912,42 @@ function alarmPlace(a) {
 // 勾选框本身被点时，点击处理取消了默认动作，浏览器会在事件结束后把它恢复成点之前的状态；事件结束后再按绘制结果（checked 属性）对齐（第 113 条）
 const opsAlCheckSync = () => setTimeout(() => document.querySelectorAll(".ops-alarms .ops-ck-in").forEach((b) => (b.checked = b.defaultChecked)));
 // 确认一条告警（在 transaction 中）：抽屉的“确认告警”、行尾的“确认”、批量确认与创建工单时的自动确认共用（第 111、113 条）。
-// “E栋 7F 网关离线”告警只在本页内存（Demo.ctl.gwAlarms），确认写在原条目上；已确认的不再重复记录。返回是否新确认
-function opsAckIn(db, id) {
-  const al = db.alerts.find((x) => x.id === id) || Demo.ctl.gwAlarms?.find((x) => x.id === id);
+// 目标与身份在动作开始、持久化开始及实际put前再次校验；单条、批量与建单自动确认共用。
+function opsAlarmAccess(ids) {
+  const owner = opsHistoryOwner(), targets = [...new Set(ids)].map(id => {
+    const a = W.alerts.find(x => x.id === id) || Demo.ctl.gwAlarms?.find(x => x.id === id);
+    return { id, projectId:a?.projectId };
+  });
+  return (db) => {
+    if (JSON.stringify(owner) !== JSON.stringify(opsHistoryOwner())) throw Error(OPERATE_PROJECT_DENY);
+    for (const target of targets) {
+      const current = W.alerts.find(x => x.id === target.id) || Demo.ctl.gwAlarms?.find(x => x.id === target.id),
+        draft = db.alerts.find(x => x.id === target.id) || current;
+      if (!current || current.projectId !== target.projectId || draft.projectId !== target.projectId) throw Error(OPERATE_PROJECT_DENY);
+      assertOperateProjectAccess(target.projectId, db);
+    }
+  };
+}
+async function opsAlarmTransaction(ids, fn) {
+  const pending = [];
+  const result = await transaction(db => fn(db, id => opsAckIn(db, id, pending)), "operate", { assertAccess:opsAlarmAccess(ids) });
+  // 演示内存告警也先暂存；持久化失败或等待期间撤权，不能提前改变确认状态。
+  for (const { id, values } of pending) {
+    const a = Demo.ctl.gwAlarms?.find(x => x.id === id);
+    if (a) Object.assign(a, values);
+  }
+  return result;
+}
+// “E栋 7F 网关离线”只在本页内存；提交成功后才写原条目。已确认的不重复记录。
+function opsAckIn(db, id, pending = []) {
+  const saved = db.alerts.find((x) => x.id === id),
+    extra = !saved && Demo.ctl.gwAlarms?.find((x) => x.id === id),
+    al = saved || (extra ? { ...extra } : null);
   if (!al || al.acknowledged) return false;
   al.acknowledged = true;
   al.ackAt = new Date(opsNow()).toISOString();
   al.ackBy = (typeof auMe === "function" ? auMe()?.name : { admin: "王敏", config: "李工", ops: "值班运营", viewer: "—" }[U.role]) || "当前用户";
+  if (extra) pending.push({ id, values:{ acknowledged:true, ackAt:al.ackAt, ackBy:al.ackBy } });
   M.record(db, "确认告警", id, al.name);
   return true;
 }
@@ -64772,7 +64984,7 @@ function alTasks() {
     st,
     "工单状态",
   )}</div>${right ? `<div class="ops-filters-r">${right}</div>` : ""}</div><div class="ops-tw" data-q-scope="tasks"><table class="t ops-t ops-t-fold">${alTh(heads, ["工单", "状态"])}<tbody>${
-    body.join("") || `<tr><td colspan="5" class="flow-no-rows">${all.length ? "此状态没有工单" : "尚无工单；可从告警详情创建，或用“新建工单”登记报修"}</td></tr>`
+    body.join("") || `<tr><td colspan="5" class="flow-no-rows">${all.length ? "此状态没有工单" : U.opsHealthAlarm ? "当前筛选范围没有工单" : "尚无工单；可从告警详情创建，或用“新建工单”登记报修"}</td></tr>`
   }<tr data-q-empty hidden><td colspan="5" class="flow-no-rows">没有匹配的工单；可清除搜索</td></tr></tbody></table></div>${alFoot("tasks", { total: all.length, shown, unit: "个", tail: TASK_FOOT })}${(() => {
     const pt = periodicText(data(), OPS_SCOPE.project);
     return pt ? `<p class="ops-foot">${esc(pt)}。</p>` : "";
@@ -64900,7 +65112,7 @@ function alHistory() {
     kpi(`${per.key === "custom" ? "所选期间" : per.label}告警`, st.length + "<small>条</small>", `由 ${raw.length} 条设备事件合并 · 一个根因一条${mt ? ` · 另有检修中 ${mt} 条不计入` : ""}`, "opsNoop"),
     kpi("已恢复", rec.length + "<small>条</small>", "由设备数据恢复判定", "opsNoop"),
     kpi("平均恢复时长", rec.length ? durKpi(mttr) : "—", "已恢复告警", "opsNoop"),
-    kpi("工单", tasks.length + "<small>个</small>", `${tasks.filter((t) => !t.closedAt).length} 个进行中`, "opsGo", { page: "alarms", tab: "tasks" }),
+    kpi("工单", tasks.length + "<small>个</small>", `${tasks.filter((t) => !t.closedAt).length} 个进行中`, "tab", { value: "tasks" }),
   ]);
   // 告警最多（BP98、BP93）：所选期间告警次数最多的 5 项，按对象与规则统计，每行写“会议室 7-1 · CO₂ 偏高”、次数、累计时长和“调整规则”，
   // 点一行筛出该对象的记录（全面设计核查第 114 条（2026-10-12 用户确认）：原先只按对象统计，看不出是哪条规则太敏感）
@@ -66078,7 +66290,7 @@ function opsZpAfter() {
 }
 document.addEventListener("keydown", (e) => {
   const zp = $(".ops-zp[aria-modal]");
-  if (!zp || $("#dlg") || $("#pop")) return;
+  if (!zp || $("#dlg") || $("#pop") || opsExplainTip?.contains(e.target)) return;
   // Esc 由全站唯一的 Escape 入口按图层栈关闭（图层 opsPanel），这里只让 Tab 在面板内循环
   if (e.key !== "Tab") return;
   const els = wsFocusables(zp),
@@ -66089,49 +66301,12 @@ document.addEventListener("keydown", (e) => {
     (e.shiftKey ? els.at(-1) : els[0]).focus();
   }
 });
-let opsExplainTimer = null;
 function opsExplainOpen(anchor, pinned = false) {
   if (!anchor?.isConnected || !anchor.dataset.info) return;
-  if (!pinned && $("#pop") && !$("#pop").classList.contains("ops-explain-pop")) return;
-  clearTimeout(opsExplainTimer);
   let content;
   try { content = decodeURIComponent(anchor.dataset.info); } catch { return; }
-  const title = anchor.dataset.title || "指标";
-  const parent = anchor.closest("#pop");
-  if (parent && !parent.classList.contains("ops-explain-pop")) {
-    parent.id = "ops-explain-parent";
-    parent.style.visibility = "hidden";
-    parent.inert = true;
-    parent.setAttribute("aria-hidden", "true");
-  }
-  pop(anchor, `<section class="ops-explain-content" role="dialog" aria-label="${esc(title)}说明"><header><h4>${esc(title)}</h4>${iconBtn("关闭说明", "x", "opsExplainClose")}</header><div class="ops-explain-body">${content}</div></section>`, false, { passive: !pinned });
-  const p = $("#pop");
-  if (p) { p.opsParent = parent || null; p.classList.add("ops-explain-pop"); p.dataset.opsPinned = String(pinned); p.place?.(); }
+  opsExplainOpenTip(anchor, content);
 }
-document.addEventListener("pointerover", (e) => {
-  if (e.pointerType === "touch") return;
-  const info = e.target.closest?.(".ops-info");
-  if (info && (!$("#pop") || $("#pop").anchor !== info)) opsExplainOpen(info);
-  if (e.target.closest?.(".ops-explain-pop")) clearTimeout(opsExplainTimer);
-});
-document.addEventListener("focusin", (e) => {
-  const info = e.target.closest?.(".ops-info");
-  if (info && (!$("#pop") || $("#pop").anchor !== info)) opsExplainOpen(info);
-});
-document.addEventListener("focusout", (e) => {
-  if (!e.target.closest?.(".ops-info, .ops-explain-pop")) return;
-  setTimeout(() => {
-    const p = $("#pop");
-    if (p?.classList.contains("ops-explain-pop") && p.dataset.opsPinned !== "true" && p.anchor !== document.activeElement && !p.contains(document.activeElement)) closePop();
-  }, 0);
-});
-document.addEventListener("pointerout", (e) => {
-  if (!e.target.closest?.(".ops-info, .ops-explain-pop")) return;
-  const to = e.relatedTarget;
-  if (to?.closest?.(".ops-info, .ops-explain-pop")) return;
-  clearTimeout(opsExplainTimer);
-  opsExplainTimer = setTimeout(() => { const p = $("#pop"); if (p?.classList.contains("ops-explain-pop") && p.dataset.opsPinned !== "true" && !p.contains(document.activeElement)) closePop(); }, 180);
-});
 // 解释性脚注归到所属名称；当前质量、权限与操作风险不搬走。导出的原始说明仍由 OPS_TABLES 保留。
 const opsNoteState = (text) => /(离线|状态未知|最后(?:读数|记录|上报)|未(?:取得|更新|接入|计量|监测|登记|配置|验证)|缺数|缺测|不足|不完整|不比较|未计入|待(?:验证|设置|批准|接入|处理|同步)|失败|不可(?:用|控制|恢复)|只(?:计量|监测)|样本不足|权限|没有.{0,12}(?:数据|因子|覆盖)|估算|补采|复位|换表|实测|数据有效|数据完整|不会.{0,20}(?:控制|改变)|不向.{0,20}(?:指令|设备)|不能.{0,12}(?:修改|控制)|退出自动|进入手动|写入次数|风险|删除)/.test(text);
 function opsCollectNotes(root = document) {
@@ -66236,11 +66411,9 @@ function startSync(zid, ids, label, where = "本区", note = "") {
 defineActions({
   opsNoop: () => {},
   opsExplain: (a, el) => {
-    const p = $("#pop");
-    if (p?.anchor === el && p.dataset.opsPinned === "true") return closePop({ restoreFocus: true });
     opsExplainOpen(el, true);
   },
-  opsExplainClose: () => closePop({ restoreFocus: true }),
+  opsExplainClose: () => opsExplainCloseTip(true),
   opsEnvironmentView: (a) => {
     U.opsEnvironmentView = a.value === "list" ? "list" : "plan";
     render();
@@ -66558,7 +66731,10 @@ defineActions({
       head +
         `<div class="ops-dtable">${table(
           t.headers.map((h, i) => (num[i] ? "#" + h : h)),
-          t.rows.map((r) => r.map((c, i) => (i && !num[i] && String(c ?? "").length > 12 ? `<span class="ops-dtable-txt">${esc(c)}</span>` : esc(c)))),
+          t.rows.map((r) => r.map((c, i) => {
+            const shown = t.formats?.[i] === "decimal1" && typeof c === "number" ? nf(c, 1) : c;
+            return i && !num[i] && String(shown ?? "").length > 12 ? `<span class="ops-dtable-txt">${esc(shown)}</span>` : esc(shown);
+          })),
         )}</div>` +
         foot,
       // 底部都靠右：“关闭”在左、“导出 Excel”在右，都用白色次要按钮（Lovable 核查第 302 条，2026-10-11 用户确认）
@@ -66662,7 +66838,7 @@ defineActions({
     render();
   },
   opsAck: async (a) => {
-    await transaction((db) => opsAckIn(db, a.id), "operate");
+    await opsAlarmTransaction([a.id], (db, ack) => ack(a.id));
     render();
     // “确认告警”按钮已换成别的按钮：焦点移到面板标题，消息提示（role=status）读出“已确认”（Lovable 核查第 316 条（2026-10-11 用户确认），GLOBAL03）；
     // 从表格行尾的“确认”确认时（第 113 条）焦点回到这一行的名称
@@ -66697,7 +66873,7 @@ defineActions({
   opsAckMany: async () => {
     const ids = [...(U.opsAlSel || [])];
     if (!ids.length) return;
-    await transaction((db) => ids.forEach((id) => opsAckIn(db, id)), "operate");
+    await opsAlarmTransaction(ids, (db, ack) => ids.forEach(ack));
     U.opsAlSel = [];
     render();
     // 全部确认后勾选列随之去掉，焦点回到表格第一行的名称
@@ -66708,6 +66884,7 @@ defineActions({
   // 登记计划时间与位置（第2条）；派工与通知服务未接入，工单只保存在平台中并写明（第3条；2026-10-09 用户确认，ABB 对比 71-23：当时页面不写“工单”；2026-10-10 用户确认 ABB 对比 IA2 后统一叫“工单”）。
   // 待确认的告警创建工单时同时确认（全面设计核查第 111 条（2026-10-12 用户确认），改 ALARM05 与 V44 的“先确认、再创建工单”），时间线记确认与创建工单两条
   opsTaskNew: (a) => {
+    opsAlarmAccess([a.id])(W);
     const al = F.alarmGroups(data()).find((x) => x.id === a.id);
     const t = alarmTitle(al),
       ms = opsMembers(OPS_SCOPE.project),
@@ -66741,14 +66918,14 @@ defineActions({
     const id = M.uid("investigation"),
       al = F.alarmGroups(data()).find((x) => x.id === aid);
     let acked = false;
-    await transaction((db) => {
+    await opsAlarmTransaction([aid], (db, ack) => {
       // 待确认的告警先记确认、再记创建工单（第 111 条）
-      acked = opsAckIn(db, aid);
+      acked = ack(aid);
       const z = db.zones.find((x) => x.id === (al?.zoneId || g("points", al?.pointId)?.zoneId));
       // 说明写在工单上，不算记录：新工单为“待处理”，有第一条记录后为“处理中”（V46）
       db.investigationTasks.unshift({
         id,
-        projectId: OPS_SCOPE.project,
+        projectId: al.projectId,
         name,
         scopeLabel: "E栋 7F" + (z ? " · " + z.name : ""),
         alertIds: [aid],
@@ -66762,7 +66939,7 @@ defineActions({
         notes: [],
       });
       M.record(db, "创建工单", id, name);
-    }, "operate");
+    });
     closeModal(true);
     U.opsDrawer = { page: "alarms", kind: "task", id };
     route("alarms", { tab: "tasks" });
@@ -67071,11 +67248,11 @@ defineLayer({
 // 告警详情侧面板只属于打开它的列表：切换告警页签时关闭（2026-09-30）。由工作区的“切换页签”动作处理（2026-10-03 D2）。
 
 /* ai-ui.js — 平台 AI：⌘K“搜索或提问”、任务内 AI 卡片。
-   AI 只给建议，由您确认后执行，不做无人确认的自动执行（2026-10-09 用户确认，ABB 对比 BP38：去掉“自治等级 L1”）。
+   AI 只给建议，由你确认后执行，不做无人确认的自动执行（2026-10-09 用户确认，ABB 对比 BP38：去掉“自治等级 L1”）。
    回答按模板由运行数据生成（确定性，无网络调用），每条带依据。 */
 const aiDur = durText; // 时长写法全站一致（Editor 核查 E28）
 const aiDemo = () => typeof Demo !== "undefined" && Demo.on();
-const aiBadge = () => `<span class="ai-badge" data-tip="AI 生成 · 只给建议，由您确认后执行">${typeof ico === "function" ? ico("spark", "ic16") : ""}AI 生成</span>`;
+const aiBadge = () => `<span class="ai-badge" data-tip="AI 生成 · 只给建议，由你确认后执行">${typeof ico === "function" ? ico("spark", "ic16") : ""}AI 生成</span>`;
 const aiLink = (label, act, args = {}) =>
   `<button class="ai-ev" data-act="${act}" ${Object.entries(args)
     .map(([k, v]) => `data-${k}="${esc(v)}"`)
@@ -67144,7 +67321,7 @@ const AI_SUGGESTIONS = {
     title: "办公室 703 提前恢复自动",
     what: () => {
       const z = Demo.zoneOf("o703");
-      return `对${zhSub(z.name)}的 ${z.lcs.length} 台 LC20 下发“恢复自动”。由您核对后下发。`;
+      return `对${zhSub(z.name)}的 ${z.lcs.length} 台 LC20 下发“恢复自动”。由你核对后下发。`;
     },
     targets: () => {
       const z = Demo.zoneOf("o703");
@@ -67192,7 +67369,7 @@ function aiAdoptModal(id) {
     facts = ctl ? [...ctlHeadRows(ctl), ...ctlRestRows(ctl)].map(([l, v]) => `<dt>${l}</dt><dd>${v}</dd>`).join("") : row("影响对象", s.targets);
   modal(
     "确认 AI 建议",
-    `<div class="ai-confirm"><div class="ai-confirm-h">${aiBadge()}<b>${esc(s.title)}</b></div><dl class="ops-kv${ctl ? " ops-ctl-kv" : ""}">${row("将要做什么", s.what)}${facts}${row("预计效果", s.effect)}${row("预估依据", s.basis)}${row("如何回退", s.rollback)}${row("注意", s.risk)}</dl><p class="ops-foot">AI 只给建议，由您确认后执行，操作写入审计。${refuse ? esc(refuse) + "。" : ""}</p></div>`,
+    `<div class="ai-confirm"><div class="ai-confirm-h">${aiBadge()}<b>${esc(s.title)}</b></div><dl class="ops-kv${ctl ? " ops-ctl-kv" : ""}">${row("将要做什么", s.what)}${facts}${row("预计效果", s.effect)}${row("预估依据", s.basis)}${row("如何回退", s.rollback)}${row("注意", s.risk)}</dl><p class="ops-foot">AI 只给建议，由你确认后执行，操作写入审计。${refuse ? esc(refuse) + "。" : ""}</p></div>`,
     btn("取消", "close") +
       (s.kind === "config" && !canEdit()
         ? unavailable("需要配置权限")
@@ -68202,6 +68379,14 @@ defineActions({
   },
   noop: () => {},
 });
+// 组合输入的确认键、方向键属于输入法；不能把确认候选词当作搜索或提问操作。
+const aiComposingInputs = new WeakSet();
+document.addEventListener("compositionstart", (e) => {
+  if (e.target.id === "globalQuery") aiComposingInputs.add(e.target);
+});
+document.addEventListener("compositionend", (e) => {
+  if (e.target.id === "globalQuery") aiComposingInputs.delete(e.target);
+});
 document.addEventListener("input", (e) => {
   if (e.target.id === "globalQuery" && $("#ai-pal")) aiRefresh();
 });
@@ -68209,6 +68394,7 @@ window.addEventListener(
   "keydown",
   (e) => {
     const pal = $("#ai-pal");
+    if (pal && e.target.id === "globalQuery" && (e.isComposing || e.keyCode === 229 || aiComposingInputs.has(e.target))) return;
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
       e.preventDefault();
       e.stopPropagation();
@@ -69071,7 +69257,7 @@ const auRows = (rows) =>
     )
     .join("")}</div>`;
 const auReadonlyNote = (what) =>
-  `<div class="au-lock">${ico("au-lock", "ic16")}<span>只有机构管理员可以${what}。您的角色：${auRole(U.role)}。</span></div>`;
+  `<div class="au-lock">${ico("au-lock", "ic16")}<span>只有机构管理员可以${what}。你的角色：${auRole(U.role)}。</span></div>`;
 const AU_EMAIL = { test: v => PACOM_AUTH_FLOW.email(v) };
 // 正式账户入口由服务适配器返回结果；未接入时不产生成功回执。演示实现只在 demo.js 中安装。
 const AU_SVC = {
@@ -69122,39 +69308,27 @@ const auNormPhone = (v) => {
 
 /* ---------- 入口页通用：字段、按钮、校验 ---------- */
 const auFieldInfo = (name, label, text) =>
-  `<span class="au-field-info-wrap"><button type="button" class="au-field-info-trigger" data-act="auFieldInfo" aria-label="${esc(label)}说明" aria-expanded="false" aria-controls="au-${name}-info">${ico("au-info", "ic16")}</button><span id="au-${name}-info" class="au-field-info-popover" role="tooltip" hidden>${esc(text)}</span></span>`;
+  `<span class="au-field-info-wrap"><button type="button" class="au-field-info-trigger" data-act="auFieldInfo" aria-label="${esc(label)}说明" aria-expanded="false" aria-haspopup="dialog" aria-controls="au-${name}-info">${wsInfoIcon()}</button><span id="au-${name}-info" class="au-field-info-popover" role="dialog" aria-modal="false" tabindex="-1" aria-label="${esc(label)}说明" aria-describedby="au-${name}-info-body" hidden><span class="ws-info-text" id="au-${name}-info-body">${esc(text)}</span></span></span>`;
 let auFieldInfoOpen = null;
 function auCloseFieldInfo(restoreFocus = false) {
   const trigger = auFieldInfoOpen;
   auFieldInfoOpen = null;
   if (!trigger) return;
-  trigger.setAttribute("aria-expanded", "false");
-  trigger.removeAttribute("aria-describedby");
-  const popup = document.getElementById(trigger.getAttribute("aria-controls"));
-  if (popup) popup.hidden = true;
-  if (restoreFocus && trigger.isConnected) trigger.focus({ preventScroll: true });
+  if (opsExplainTip?.anchor === trigger) opsExplainCloseTip(restoreFocus);
 }
 function auPlaceFieldInfo() {
   const trigger = auFieldInfoOpen;
   if (!trigger?.isConnected) return auCloseFieldInfo();
   const popup = document.getElementById(trigger.getAttribute("aria-controls"));
   if (!popup || popup.hidden) return;
-  const viewport = window.visualViewport;
-  const left = viewport?.offsetLeft || 0, top = viewport?.offsetTop || 0;
-  const width = viewport?.width || document.documentElement.clientWidth;
-  const height = viewport?.height || document.documentElement.clientHeight;
-  popup.style.maxWidth = `min(45ch, ${Math.max(1, width - 16)}px)`;
-  const anchor = trigger.getBoundingClientRect(), box = popup.getBoundingClientRect();
-  popup.style.left = Math.max(left + 8, Math.min(anchor.left + anchor.width / 2 - box.width / 2, left + width - box.width - 8)) + "px";
-  const above = anchor.top - box.height - 4;
-  popup.style.top = Math.max(top + 8, Math.min(above >= top + 8 ? above : anchor.bottom + 4, top + height - box.height - 8)) + "px";
+  if (!wsPlaceInfo(trigger, popup)) auCloseFieldInfo();
 }
 // Field explanations open on click or keyboard activation, so they remain available on touch screens.
 document.addEventListener("pointerdown", (e) => {
-  if (auFieldInfoOpen && !e.target.closest?.(".au-field-info-wrap")) auCloseFieldInfo();
+  if (auFieldInfoOpen && !opsExplainTip?.contains(e.target) && !auFieldInfoOpen.contains(e.target)) auCloseFieldInfo();
 }, true);
 document.addEventListener("focusin", (e) => {
-  if (auFieldInfoOpen && !e.target.closest?.(".au-field-info-wrap")) auCloseFieldInfo();
+  if (auFieldInfoOpen && !opsExplainTip?.contains(e.target) && !auFieldInfoOpen.contains(e.target)) auCloseFieldInfo();
 }, true);
 if (typeof defineLayer === "function") defineLayer({
   name: "accountFieldInfo", level: 95, prevent: true,
@@ -69162,8 +69336,9 @@ if (typeof defineLayer === "function") defineLayer({
   close: () => auCloseFieldInfo(true),
 });
 window.addEventListener("resize", () => { if (auFieldInfoOpen) auPlaceFieldInfo(); });
-window.addEventListener("scroll", () => { if (auFieldInfoOpen) auPlaceFieldInfo(); }, true);
+window.addEventListener("scroll", e => { if (auFieldInfoOpen && e.target !== opsExplainTip && e.target?.closest?.(".au-field-info-popover") !== opsExplainTip) auPlaceFieldInfo(); }, true);
 window.visualViewport?.addEventListener("resize", () => { if (auFieldInfoOpen) auPlaceFieldInfo(); });
+window.visualViewport?.addEventListener("scroll", () => { if (auFieldInfoOpen) auPlaceFieldInfo(); });
 window.addEventListener("hashchange", () => auCloseFieldInfo());
 function auField(o) {
   const { name, label, type = "text", auto = "", hint = "", info = "", hintRole = "", right = "", rightAfter = false, suffix = "", inputmode = "", ph = "", maxlength = "", required = true, count = false } = o;
@@ -69236,7 +69411,7 @@ const auAuthShell = (inner) =>
 function auSingle(inner, wide = false) {
   return `<div class="au au-single"><main class="au-col ${wide ? "wide" : ""}">${auLogo()}${inner}</main>${auFooter(true)}</div>`;
 }
-// 选择机构、尚未加入机构、机构已暂停使用、您已不在该机构中、服务暂时不可用、系统维护中与机构开通引导用登录页的两栏外框
+// 选择机构、尚未加入机构、机构已暂停使用、你已不在该机构中、服务暂时不可用、系统维护中与机构开通引导用登录页的两栏外框
 // （2026-10-08 用户确认，Account 核查第 29–33、35、36 点）：与“无法加载”页相同，#app 另带 bare-login，尺寸与登录页一致。
 function auStatusShell(inner) {
   document.getElementById("app")?.classList.add("bare-login");
@@ -69403,7 +69578,7 @@ const auLoginCodeCheck = (v) => (!auSmsCodeTo("login", auVal("sphone")) ? "请�
 const auResetNotice = () => {
   if (!AUX.resetNotice) return "";
   // 只有电子邮箱收到重置链接；手机号码改为验证码重置，不再发送带链接的短信（全面设计核查第 134 条）。
-  const text = "重置请求已提交。若该电子邮箱已关联账户，您会收到一封邮件；链接自发送起 30 分钟内有效。未收到请检查垃圾邮件。";
+  const text = "重置请求已提交。若该电子邮箱已关联账户，你会收到一封邮件；链接自发送起 30 分钟内有效。未收到请检查垃圾邮件。";
   return auNotice("success", text, "au-reset-notice", "au-reset-notice");
 };
 // A request accepted after its dialog closed: on the login page the notice appears in place and is announced, focus stays put; elsewhere it is only kept.
@@ -69531,7 +69706,7 @@ BARE.orgs = () => {
   // The account is shown in full: the person needs to see which of their accounts this is (Account 核查第 30、31 点).
   if (!orgs.length)
     return auStatusShell(
-      `<h1 class="au-h1">尚未加入机构</h1><p class="au-lead">账户 ${esc(me.email || me.phone)} 目前没有可访问的机构。请联系机构管理员发送邀请，或为您的机构申请访问。</p><button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="apply" data-mode="account">申请访问</button><div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button></div>`,
+      `<h1 class="au-h1">尚未加入机构</h1><p class="au-lead">账户 ${esc(me.email || me.phone)} 目前没有可访问的机构。请联系机构管理员发送邀请，或为你的机构申请访问。</p><button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="apply" data-mode="account">申请访问</button><div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button></div>`,
     );
   const search = orgs.length >= AU_ORG_SEARCH_FROM, q = search ? String(AUX.orgQ || "").trim().toLowerCase() : "";
   const shown = orgs.filter((o) => auOrgMatch(o, q));
@@ -69613,17 +69788,17 @@ BARE.removed = () => {
     others = auOtherOrgs(id);
   const name = `<b>${zhSub(esc(o.name), "l")}</b>`;
   const lead = others.length
-    ? `您的账户已被移出${name}，不能再访问该机构的项目。如有疑问，请联系该机构的机构管理员。`
-    : `您的账户已被移出${name}，无法再访问。请联系机构管理员重新邀请您加入。`;
+    ? `你的账户已被移出${name}，不能再访问该机构的项目。如有疑问，请联系该机构的机构管理员。`
+    : `你的账户已被移出${name}，无法再访问。请联系机构管理员重新邀请你加入。`;
   return auStatusShell(
-    `<h1 class="au-h1">您已不在该机构中</h1><p class="au-lead">${lead}</p>${
+    `<h1 class="au-h1">你已不在该机构中</h1><p class="au-lead">${lead}</p>${
       others.length
         ? `<button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="orgs">选择其他机构</button>`
         : ""
     }<div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button></div>`,
   );
 };
-BARE_AFTER.removed = () => (document.title = "您已不在该机构中 · PACOM Station");
+BARE_AFTER.removed = () => (document.title = "你已不在该机构中 · PACOM Station");
 
 /* ---------- 服务暂时不可用 / 维护中（公开页面） ---------- */
 // The page itself offers “联系支持” below the retry status line (AUTH17).
@@ -69851,8 +70026,8 @@ const auBackLinks = (mode) =>
 // 只读一行“联系人 王敏 · 邮箱”，写法同邀请页锁定的邮箱。审核通过后新机构直接加到本账户（本人为机构管理员）并进入开通引导，不发开通邀请
 // （全面设计核查第 136 条，2026-10-12 用户确认：原先联系人姓名、电子邮箱由账户带入但可以改，通过后发开通邀请）。
 const auApplyContact = (me) =>
-  `<div class="au-field au-locked au-apply-contact" role="group" aria-labelledby="au-ap-contact-label" aria-describedby="au-ap-contact-info"><div class="au-lab au-label-row"><span class="au-lab-t" id="au-ap-contact-label">联系人</span>${auFieldInfo("ap-contact", "联系人", "审核结果将发送至此邮箱；审核通过后，新机构将显示在您的机构列表中。")}</div><p class="au-static">${esc(me.name)} · ${esc(me.email || me.phone || "")}</p></div>`;
-const auApplyAccountSent = (mail) => `审核结果将发送至 <b>${esc(mail)}</b>；审核通过后，新机构将显示在您的机构列表中。`;
+  `<div class="au-field au-locked au-apply-contact" role="group" aria-labelledby="au-ap-contact-label" aria-describedby="au-ap-contact-info"><div class="au-lab au-label-row"><span class="au-lab-t" id="au-ap-contact-label">联系人</span>${auFieldInfo("ap-contact", "联系人", "审核结果将发送至此邮箱；审核通过后，新机构将显示在你的机构列表中。")}</div><p class="au-static">${esc(me.name)} · ${esc(me.email || me.phone || "")}</p></div>`;
+const auApplyAccountSent = (mail) => `审核结果将发送至 <b>${esc(mail)}</b>；审核通过后，新机构将显示在你的机构列表中。`;
 BARE.apply = () => {
   const mode = auApplyMode();
   // An application still sending or unresolved always shows its own form, whichever step the address names.
@@ -69860,13 +70035,13 @@ BARE.apply = () => {
   if (AUX.applied && !AUX.applyEditing && U.tab !== "done") { U.tab = "done"; history.replaceState(null, "", PACOM_AUTH_FLOW.applyHash(mode, "done")); }
   if (U.tab === "done" && !AUX.applied)
     // The way back is the full-width primary button, with “联系支持” centred below it (Account 核查第 20 点).
-    return auApplyShell(`<h1 class="au-h1">暂时无法查看申请结果</h1><p class="au-lead">当前页面没有可核对的申请记录。如果您已提交申请，请留意电子邮箱；如需确认，请联系 PACOM 支持，避免重复提交。</p>${auBackAction(mode, "au-primary au-compact-primary")}<div class="au-links"><button type="button" class="au-textbtn" data-act="auContact">联系支持</button></div>`);
+    return auApplyShell(`<h1 class="au-h1">暂时无法查看申请结果</h1><p class="au-lead">当前页面没有可核对的申请记录。如果你已提交申请，请留意电子邮箱；如需确认，请联系 PACOM 支持，避免重复提交。</p>${auBackAction(mode, "au-primary au-compact-primary")}<div class="au-links"><button type="button" class="au-textbtn" data-act="auContact">联系支持</button></div>`);
   if (U.tab === "done" && AUX.applied) {
     const a = AUX.applied;
     // A public applicant has no account yet, so the page ends here; a signed-in applicant returns to where they came from.
     const back = a.mode === "new-org" ? ["", "返回工作区"] : a.mode === "account" ? ["orgs", "返回选择机构"] : null;
     return auApplyShell(
-      `<h1 class="au-h1">${a.updated ? "申请已更新" : "申请已提交"}</h1><p class="au-lead">${a.mode === "public" ? `审核结果将发送至 <b>${esc(a.mail)}</b>。审核通过后，您会收到开通邀请。` : auApplyAccountSent(a.mail)}</p>${back ? `<button type="button" class="au-primary au-compact-primary" ${back[0] ? `data-act="auGo" data-page="${back[0]}"` : `data-act="auApplyBack"`}>${back[1]}</button>` : ""}<p class="au-done-more">填写有误？<button type="button" class="au-textbtn" data-act="auEditApply">修改申请</button></p>`,
+      `<h1 class="au-h1">${a.updated ? "申请已更新" : "申请已提交"}</h1><p class="au-lead">${a.mode === "public" ? `审核结果将发送至 <b>${esc(a.mail)}</b>。审核通过后，你会收到开通邀请。` : auApplyAccountSent(a.mail)}</p>${back ? `<button type="button" class="au-primary au-compact-primary" ${back[0] ? `data-act="auGo" data-page="${back[0]}"` : `data-act="auApplyBack"`}>${back[1]}</button>` : ""}<p class="au-done-more">填写有误？<button type="button" class="au-textbtn" data-act="auEditApply">修改申请</button></p>`,
     );
   }
   const me = auApplyPerson();
@@ -69879,10 +70054,10 @@ BARE.apply = () => {
   const lead = mode === "new-org"
     ? "为另一机构申请开通，由 PACOM 审核。新机构与当前机构的数据相互独立。"
     : mode === "account"
-      ? "为所在机构申请开通，由 PACOM 审核。若机构已开通，请联系机构管理员邀请您加入。"
-      : "申请由 PACOM 审核。若所在机构已开通，请联系机构管理员邀请您加入。";
+      ? "为所在机构申请开通，由 PACOM 审核。若机构已开通，请联系机构管理员邀请你加入。"
+      : "申请由 PACOM 审核。若所在机构已开通，请联系机构管理员邀请你加入。";
   return auApplyShell(
-    `<h1 class="au-h1">${AUX.applyEditing ? "修改申请" : mode === "new-org" ? "申请开通新机构" : "申请访问"}</h1><p class="au-lead">${AUX.applyEditing ? "修改下方信息，提交后将更新原申请。" : lead}</p><form data-form="apply" novalidate><fieldset>${auField({ name: "ap_org", label: "公司或机构名称", auto: "organization", count: true })}${me ? auApplyContact(me) : `${auField({ name: "ap_name", label: "联系人姓名", auto: "name", count: true })}${auField({ name: "ap_mail", label: "电子邮箱", type: "email", auto: "email", inputmode: "email", info: "用于接收审核结果及审核通过后的开通邀请。" })}`}${auField({ name: "ap_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", info: "用于审核时联系您。非中国大陆号码请包含国家或地区区号，如 +852 9123 4567。" })}<div class="au-field au-apply-overview" data-f="ap_need"><div class="au-lab"><label for="au-ap_need">项目概况 <span>选填</span></label></div><div class="au-textarea-shell"><textarea id="au-ap_need" name="ap_need" class="au-in au-ta" rows="3" aria-describedby="au-ap_need-err au-ap_need-count" placeholder="例如项目位置、楼宇规模或计划使用的功能">${esc(AUX.v.ap_need || "")}</textarea><button type="button" class="au-resize" data-resize="au-ap_need" aria-label="调整项目概况输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-ap_need-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-ap_need-count" ${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need)}</p></div><label class="au-check" data-f="ap_ok"><input type="checkbox" name="ap_ok" class="au-v" required aria-required="true" aria-describedby="au-ap_ok-err" ${AUX.v.ap_ok ? "checked" : ""}><span>我已阅读${auConsentLegalLink("privacy")}，同意 PACOM 处理以上信息，用于${me ? "审核申请及与我联系" : "审核申请、联系我及发送开通邀请"}。</span></label><p class="au-err au-check-err" id="au-ap_ok-err"></p><span class="au-sr" id="au-apply-nochanges" hidden></span><p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}</fieldset></form>${AUX.applyEditing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit" ${PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? "disabled" : ""}>取消修改</button><span class="au-dot" aria-hidden="true"></span>${auBackAction(mode)}</div>` : auBackLinks(mode)}`,
+    `<h1 class="au-h1">${AUX.applyEditing ? "修改申请" : mode === "new-org" ? "申请开通新机构" : "申请访问"}</h1><p class="au-lead">${AUX.applyEditing ? "修改下方信息，提交后将更新原申请。" : lead}</p><form data-form="apply" novalidate><fieldset>${auField({ name: "ap_org", label: "公司或机构名称", auto: "organization", count: true })}${me ? auApplyContact(me) : `${auField({ name: "ap_name", label: "联系人姓名", auto: "name", count: true })}${auField({ name: "ap_mail", label: "电子邮箱", type: "email", auto: "email", inputmode: "email", info: "用于接收审核结果及审核通过后的开通邀请。" })}`}${auField({ name: "ap_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", info: "用于审核时联系你。非中国大陆号码请包含国家或地区区号，如 +852 9123 4567。" })}<div class="au-field au-apply-overview" data-f="ap_need"><div class="au-lab"><label for="au-ap_need">项目概况 <span>选填</span></label></div><div class="au-textarea-shell"><textarea id="au-ap_need" name="ap_need" class="au-in au-ta" rows="3" aria-describedby="au-ap_need-err au-ap_need-count" placeholder="例如项目位置、楼宇规模或计划使用的功能">${esc(AUX.v.ap_need || "")}</textarea><button type="button" class="au-resize" data-resize="au-ap_need" aria-label="调整项目概况输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-ap_need-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-ap_need-count" ${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need)}</p></div><label class="au-check" data-f="ap_ok"><input type="checkbox" name="ap_ok" class="au-v" required aria-required="true" aria-describedby="au-ap_ok-err" ${AUX.v.ap_ok ? "checked" : ""}><span>我已阅读${auConsentLegalLink("privacy")}，同意 PACOM 处理以上信息，用于${me ? "审核申请及与我联系" : "审核申请、联系我及发送开通邀请"}。</span></label><p class="au-err au-check-err" id="au-ap_ok-err"></p><span class="au-sr" id="au-apply-nochanges" hidden></span><p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}</fieldset></form>${AUX.applyEditing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit" ${PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? "disabled" : ""}>取消修改</button><span class="au-dot" aria-hidden="true"></span>${auBackAction(mode)}</div>` : auBackLinks(mode)}`,
   );
 };
 BARE_AFTER.apply = () => {
@@ -69969,7 +70144,7 @@ BARE.invite = () => {
     );
   if (U.tab === "used")
     return auAuthShell(
-      `<h1 class="au-h1">邀请已被接受</h1><p class="au-lead">如果是您本人接受的，请直接登录；如果不是，请联系邀请人。</p><button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="login">登录</button>`,
+      `<h1 class="au-h1">邀请已被接受</h1><p class="au-lead">如果是你本人接受的，请直接登录；如果不是，请联系邀请人。</p><button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="login">登录</button>`,
     );
   if (U.tab === "revoked")
     return auAuthShell(
@@ -69985,8 +70160,8 @@ BARE.invite = () => {
   const orgName = `<b>${esc(org.name)}</b>`;
   const why =
     kind === "owner"
-      ? `您的开通申请已通过审核。${existing ? "登录" : "创建账户"}后，您将成为${zhSub(orgName)}的机构管理员。`
-      : `<b>${zhSub(esc(inv.by), "r")}</b>邀请您以${zhSub(auRole(inv.role))}身份加入${zhSub(orgName, "l")}。`;
+      ? `你的开通申请已通过审核。${existing ? "登录" : "创建账户"}后，你将成为${zhSub(orgName)}的机构管理员。`
+      : `<b>${zhSub(esc(inv.by), "r")}</b>邀请你以${zhSub(auRole(inv.role))}身份加入${zhSub(orgName, "l")}。`;
   const head = `<h1 class="au-h1">${existing ? "接受邀请" : "创建账户"}</h1><p class="au-lead">${why}${expires ? `邀请 ${auFmt(expires)} 前有效。` : ""}</p>`;
   // The invitation fixes the account's email address in both variants. It is written as text, not a box: label, then the address
   // 4px below at 16/24 #2E2E2E, long addresses wrapping; screen readers read “电子邮箱” and the address (Lovable 核查第 26 条，2026-10-10 用户确认).
@@ -70092,11 +70267,11 @@ BARE.welcome = () => {
     return `<section class="au-step ${cur ? "cur" : ""} ${done ? "done" : skipped ? "skipped" : ""}"><header><span class="au-step-n">${done ? `${ico("check", "ic16")}<span class="au-sr">已完成</span>` : n}</span><div><h2 tabindex="-1">${title}</h2>${!cur && caption ? `<p>${auSegs(caption.split(" · "))}</p>` : ""}</div>${!cur && (done || skipped || n < w.step) ? `<button type="button" class="au-textbtn" data-act="auWStep" data-step="${n}" aria-label="修改${title}">修改</button>` : ""}</header>${cur ? `<div class="au-step-b">${body}</div>` : ""}</section>`;
   };
   const invited = auInvites().filter(i => auInviteState(i) === "pending");
-  const s2 = `<form data-form="wInvite" novalidate><fieldset><p class="au-lead sm">邀请 7 天内有效。您可以按需邀请机构管理员、配置人员、运营人员或查看人员，也可以稍后再邀请。</p><div class="au-wrows">${w.rows.map((r, i) => auWelcomeRow(r, i, w.projects || [])).join("")}</div>${(w.projects || []).length ? "" : `<p class="au-hint au-wnote">受邀成员可访问全部项目。如需按项目授权，可在创建项目后到机构设置中邀请。</p>`}<button type="button" class="btn au-wbtn au-wadd" data-act="auWAddRow">${ico("au-plus", "ic16")}添加</button><p class="au-ferr" role="alert" hidden></p><div class="au-step-actions">${auPrimary("发送邀请")}<button type="button" class="au-textbtn" data-act="auWSkip">稍后再邀请</button></div></fieldset></form>`;
+  const s2 = `<form data-form="wInvite" novalidate><fieldset><p class="au-lead sm">邀请 7 天内有效。你可以按需邀请机构管理员、配置人员、运营人员或查看人员，也可以稍后再邀请。</p><div class="au-wrows">${w.rows.map((r, i) => auWelcomeRow(r, i, w.projects || [])).join("")}</div>${(w.projects || []).length ? "" : `<p class="au-hint au-wnote">受邀成员可访问全部项目。如需按项目授权，可在创建项目后到机构设置中邀请。</p>`}<button type="button" class="btn au-wbtn au-wadd" data-act="auWAddRow">${ico("au-plus", "ic16")}添加</button><p class="au-ferr" role="alert" hidden></p><div class="au-step-actions">${auPrimary("发送邀请")}<button type="button" class="au-textbtn" data-act="auWSkip">稍后再邀请</button></div></fieldset></form>`;
   const s3 = `<p class="au-lead sm">项目用于管理园区、楼宇、楼层和功能区。创建后继续邀请成员。</p><div class="au-step-actions"><button type="button" class="au-primary" data-act="auWProject">创建第一个项目</button><button type="button" class="au-textbtn" data-act="auWSkipProject">暂不创建，下一步</button></div>`;
   // 两步都完成或跳过后，引导下方只有“进入工作区”
   const fin = w.step > 2 ? `<div class="au-step-actions au-wfinish"><button type="button" class="au-primary" data-act="auWEnter">进入工作区</button></div>` : "";
-  return auStatusShell(`<h1 class="au-h1">机构已开通</h1><p class="au-lead">您是<b>${zhSub(esc(org.name))}</b>的机构管理员。</p>${auLic().state === "none" ? `<div class="au-notice au-welcome-lic" data-tone="warning">${auNoticeContent("warning", auLicUnsubscribedText(auLic()))}</div>` : ""}<div class="au-steps">${step(1, "创建第一个项目", w.done[1] ? ((w.projects || []).length ? w.projects.map(p => p.name).join("、") : "稍后再创建") : "", s3)}${step(2, "邀请成员", w.done[2] ? invited.length ? `已邀请 ${invited.length} 位成员` : "稍后再邀请" : "", s2)}</div>${fin}`);
+  return auStatusShell(`<h1 class="au-h1">机构已开通</h1><p class="au-lead">你是<b>${zhSub(esc(org.name))}</b>的机构管理员。</p>${auLic().state === "none" ? `<div class="au-notice au-welcome-lic" data-tone="warning">${auNoticeContent("warning", auLicUnsubscribedText(auLic()))}</div>` : ""}<div class="au-steps">${step(1, "创建第一个项目", w.done[1] ? ((w.projects || []).length ? w.projects.map(p => p.name).join("、") : "稍后再创建") : "", s3)}${step(2, "邀请成员", w.done[2] ? invited.length ? `已邀请 ${invited.length} 位成员` : "稍后再邀请" : "", s2)}</div>${fin}`);
 };
 BARE_AFTER.welcome = () => {
   const heading = document.querySelector('.au-h1');
@@ -70673,17 +70848,25 @@ document.addEventListener("change", (e) => {
   if (e.target.id === "auOrgLogo") {
     const file = e.target.files?.[0];
     e.target.value = "";
-    if (!file || !auCanManage()) return;
+    if (!file || !auOrgFormCapture()) return;
+    auOrgLogoInvalidate();
     if (!/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type)) return auFieldErr("auOrgLogoBtn", "请选择 PNG、JPEG、WebP 或 SVG 图片");
-    const r = new FileReader(),
-      org = AUTH.org;
+    const r = new FileReader(), request = { form: AUX.orgForm, token: AUX.orgLogoSeq, reader: r };
+    AUX.orgLogoRead = request;
     r.onload = () => {
-      if (org !== AUTH.org) return;
-      AUX.logoDraft = { org, logo: r.result };
+      if (!auOrgLogoReadCurrent(request)) return;
+      auOrgFormCapture();
+      AUX.orgLogoRead = null;
+      AUX.logoDraft = { org: AUTH.org, logo: r.result };
       render();
       $("#auOrgLogoBtn")?.focus();
     };
-    r.readAsDataURL(file);
+    r.onerror = () => {
+      if (!auOrgLogoReadCurrent(request)) return;
+      AUX.orgLogoRead = null;
+      auFieldErr("auOrgLogoBtn", "无法读取图片，请重新选择。");
+    };
+    try { r.readAsDataURL(file); } catch { r.onerror(); }
   }
 });
 setInterval(() => {
@@ -70827,12 +71010,12 @@ const AU_LEGAL = {
     [
       "处理者：广州天环智能技术有限公司。",
       "我们处理账户信息（姓名、电子邮箱及已绑定的手机号码）、机构成员关系和操作记录，用于身份验证、授权、审计和服务通知。",
-      "公开申请访问时，我们处理机构名称、联系人姓名、电子邮箱、手机号码及您选填的项目概况，用于审核申请、与您联系及在审核通过后发送开通邀请；以当前账户申请开通机构时，联系人为本账户，资料用于审核申请及与您联系，审核通过后新机构直接加入本账户，不另发邀请。",
+      "公开申请访问时，我们处理机构名称、联系人姓名、电子邮箱、手机号码及你选填的项目概况，用于审核申请、与你联系及在审核通过后发送开通邀请；以当前账户申请开通机构时，联系人为本账户，资料用于审核申请及与你联系，审核通过后新机构直接加入本账户，不另发邀请。",
       "楼宇运行数据归属于所在机构；占用数据默认只到功能区级，不识别个人。",
       // AI 服务部署在中国境内，提问与运行数据不出境、不用于训练（2026-10-09 用户确认，ABB 对比 BP5）
       "使用 AI 提问时，提问和所涉运行数据只在中国境内处理，不用于训练模型；对话按机构的数据保存期限保存。",
       // 本人可在“登录与安全”中注销账户（2026-10-09 用户确认，ABB 对比 BP32）
-      "数据存储于中国境内。您可以在“我的账户”中查看和更正个人信息，也可以在“我的账户 › 登录与安全”中注销账户。",
+      "数据存储于中国境内。你可以在“我的账户”中查看和更正个人信息，也可以在“我的账户 › 登录与安全”中注销账户。",
     ],
   ],
   terms: [
@@ -70865,6 +71048,15 @@ const AU_GUIDE_URL = "";
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "1.101",
+    date: "2026-10-16",
+    notes: [
+      "数据分析与告警：工单跳转保留设备健康筛选，操作前重新核对项目权限，统一体检到达率的显示精度。",
+      "机构信息：更换标识不再清除未保存的资料；离页、撤销及连续选择图片时，草稿和读取结果保持一致。",
+      "全站：统一提示称呼和名称旁的信息说明气泡，修复中文输入法确认选词时误打开搜索结果的问题。",
+    ],
+  },
   {
     version: "1.100",
     date: "2026-10-16",
@@ -71324,7 +71516,7 @@ const AU_TERMS = [
 function auReleaseNotesOpen(fromHelp = false) {
   auDialog(
     "更新说明",
-    `<p class="au-dlead">按版本从新到旧，列出各版本中您能看到的变化。</p>${AU_RELEASES.map(
+    `<p class="au-dlead">按版本从新到旧，列出各版本中你能看到的变化。</p>${AU_RELEASES.map(
       (r, i) =>
         `<section class="au-notes"><h3>${esc(r.version)} · ${esc(auReleaseDate(r))}${i ? "" : `<span class="chip info au-ml">当前版本</span>`}</h3><ul class="au-legal">${r.notes.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></section>`,
     ).join("")}`,
@@ -71372,15 +71564,15 @@ function auTermsOpen(fromHelp = false) {
 /* ---------- 动作 ---------- */
 Object.assign(actions, {
   auFieldInfo: (a, el) => {
-    if (auFieldInfoOpen === el) return auCloseFieldInfo();
+    if (auFieldInfoOpen === el) return auCloseFieldInfo(true);
     auCloseFieldInfo();
     const popup = document.getElementById(el.getAttribute("aria-controls"));
     if (!popup) return;
-    auFieldInfoOpen = el;
-    el.setAttribute("aria-expanded", "true");
-    el.setAttribute("aria-describedby", popup.id);
-    popup.hidden = false;
-    auPlaceFieldInfo();
+    opsExplainOpenTip(el, popup.innerHTML, popup);
+    if (opsExplainTip?.anchor === el) {
+      auFieldInfoOpen = el;
+      popup.onInfoClose = () => { if (auFieldInfoOpen === el) auFieldInfoOpen = null; };
+    }
   },
   orgMenu: (a, el) => {
     if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
@@ -71669,10 +71861,10 @@ Object.assign(actions, {
       // 各行不加框，行与行之间一条细线（Lovable 核查第 151 条，2026-10-11 用户确认：原先六行放在白框里）
       // 帮助按本人角色实际可用的功能显示：普通成员没有搜索与 AI，不列“搜索或提问”“AI 模型”（交互核查第 7 条）。
       `<div class="au-box au-help-rows">${[
-        U.role === "member" ? null : ["搜索或提问", `${COARSE_MQ?.matches ? (isMobile() ? "打开菜单，点“搜索”" : "点侧栏的“搜索”") : `在任意页面按 ${IS_APPLE ? "⌘K" : "Ctrl+K"}`}；AI 只给建议，由您确认后执行。`],
+        U.role === "member" ? null : ["搜索或提问", `${COARSE_MQ?.matches ? (isMobile() ? "打开菜单，点“搜索”" : "点侧栏的“搜索”") : `在任意页面按 ${IS_APPLE ? "⌘K" : "Ctrl+K"}`}；AI 只给建议，由你确认后执行。`],
         ...(AU_GUIDE_URL ? [["使用指南", "按页面说明各项功能的用法。", `<a class="btn sm" href="${esc(AU_GUIDE_URL)}" target="_blank" rel="noopener">打开</a>`]] : []),
         ["术语", "按拼音列出常用名词，并写明在哪个页面出现。", btn("查看术语", "auTerms", { from: "help" }, "sm")],
-        ["联系支持", "说明问题，并由您选择是否附带当前对象、截图或日志；截图请在发送前自行遮盖个人信息。", btn("联系支持", "auSupport", { from: "help" }, "sm")],
+        ["联系支持", "说明问题，并由你选择是否附带当前对象、截图或日志；截图请在发送前自行遮盖个人信息。", btn("联系支持", "auSupport", { from: "help" }, "sm")],
         ["软件版本", AU_RELEASE_TEXT, btn("更新说明", "auReleaseNotes", { from: "help" }, "sm")],
         U.role === "member" ? null : ["AI 模型", "PACOM"],
       ]
@@ -71799,7 +71991,12 @@ Object.assign(actions, {
   /* 机构设置 */
   // “行业”不再编辑，已有值只读显示（ORG01，Account B6）；预览中的标识随保存生效并写入审计日志（03 第 2 条）。
   auOrgSave: () => {
-    if (!auCanManage()) return;
+    if (!auOrgFormCanManage()) {
+      auOrgFormDiscard();
+      return msg("机构管理权限已变更，请重新进入。", "error");
+    }
+    if (!auOrgFormCapture()) return;
+    if (AUX.orgLogoRead) return msg("标识正在读取，请稍后保存");
     // 联系邮箱必填，接收服务通知和许可到期提醒；联系电话选填（2026-10-09 用户确认，ABB 对比 BP24）。几处同时有误时各自提示，焦点在第一处
     const n = value("auOrgName").trim(),
       mail = value("auOrgContactMail").trim();
@@ -71829,19 +72026,24 @@ Object.assign(actions, {
     Object.assign(o, nextOrg);
     AUTH.audit = next.audit;
     if (draft) AUX.logoDraft = null;
+    AUX.orgForm = null;
+    auOrgLogoInvalidate();
     auOrgSaveNotice();
     render();
     msg("机构信息已保存");
   },
   // 选择文件或“移除”后先在标识处预览，点“保存”后生效；“恢复原标识”放弃预览（ORG01，03 第 2 条；Account A7、A8）。
-  auOrgLogoPick: () => $("#auOrgLogo")?.click(),
+  auOrgLogoPick: () => { if (auOrgFormCapture()) $("#auOrgLogo")?.click(); },
   auOrgLogoClear: () => {
-    if (!auCanManage()) return;
+    if (!auOrgFormCapture()) return;
+    auOrgLogoInvalidate();
     AUX.logoDraft = { org: AUTH.org, logo: "" };
     render();
     $("#auOrgLogoBtn")?.focus();
   },
   auOrgLogoUndo: () => {
+    if (!auOrgFormCapture()) return;
+    auOrgLogoInvalidate();
     AUX.logoDraft = null;
     render();
     $("#auOrgLogoBtn")?.focus();
@@ -72059,7 +72261,7 @@ Object.assign(actions, {
     // 在“我的机构”退出非当前机构时标题写机构名称（ACCOUNT04，Account B4）；移除成员时写明其场景、工单与告警规则的去向（规则 7）
     auDialog(
       me ? (a.other ? `退出${zhSub(auOrg().name, "l")}？` : "退出本机构？") : `移除${zhSub(m.name, "l")}？`,
-      `<p class="au-dlead">${me ? "退出后您将无法访问" : `${zhSub(esc(m.name), "r")}将立即失去`}<b>${zhSub(esc(auOrg().name))}</b>的全部项目和数据。个人账户${me ? "" : "及其在其他机构的成员资格"}不受影响，操作记录保留在审计日志中。${me ? "" : "该成员建的场景和定时照常运行；其负责的工单和以其为责任对象的告警规则改为“未指定”。"}</p>`,
+      `<p class="au-dlead">${me ? "退出后你将无法访问" : `${zhSub(esc(m.name), "r")}将立即失去`}<b>${zhSub(esc(auOrg().name))}</b>的全部项目和数据。个人账户${me ? "" : "及其在其他机构的成员资格"}不受影响，操作记录保留在审计日志中。${me ? "" : "该成员建的场景和定时照常运行；其负责的工单和以其为责任对象的告警规则改为“未指定”。"}</p>`,
       btn("取消", "close") + btn(me ? "退出机构" : "移除成员", "auMemRemoveDo", { uid: m.uid }, "danger"),
       "au-alert",
     );
@@ -72133,7 +72335,7 @@ Object.assign(actions, {
     auSave();
     closeModal(true);
     render();
-    msg("申请已提交，PACOM 审核后通知您");
+    msg("申请已提交，PACOM 审核后通知你");
   },
   auReqCancel: (a) => {
     const list = AUTH.requests[AUTH.org] || [],
@@ -72237,7 +72439,7 @@ Object.assign(actions, {
     AUX.dlgCode = {}; AUX.dlgSending = {}; AUX.dlgSendLimits = {};
     auDialog(
       bind ? "绑定手机号码" : phone ? "更换手机号码" : "更换电子邮箱",
-      `<p class="au-dlead">${bind ? "验证后，可使用此号码和账户密码登录，也可以通过短信验证码重置密码。" : phone ? "验证后，可使用新号码和账户密码登录，也可以通过短信验证码重置密码；原号码不再用于登录和重置密码。" : "验证后，新电子邮箱用于登录、接收邀请和重置邮件；原邮箱不再可用。"}</p>${fld("当前密码", "auCurPwd", auInAttrs(input("auCurPwd", "", "", "password"), AU_CUR_PWD), "用于确认是您本人操作")}${fld(
+      `<p class="au-dlead">${bind ? "验证后，可使用此号码和账户密码登录，也可以通过短信验证码重置密码。" : phone ? "验证后，可使用新号码和账户密码登录，也可以通过短信验证码重置密码；原号码不再用于登录和重置密码。" : "验证后，新电子邮箱用于登录、接收邀请和重置邮件；原邮箱不再可用。"}</p>${fld("当前密码", "auCurPwd", auInAttrs(input("auCurPwd", "", "", "password"), AU_CUR_PWD), "用于确认是你本人操作")}${fld(
         bind ? "手机号码" : phone ? "新手机号码" : "新电子邮箱",
         "auNewId",
         // 手机号码按电话号码类型：手机上弹出数字键盘、可自动填入本机号码，外观不变（全面设计核查第 71 条，2026-10-12 用户确认：原为普通文本框）
@@ -72343,12 +72545,12 @@ Object.assign(actions, {
     if (sole.length)
       return auDialog(
         "无法注销账户",
-        `<p class="au-dlead">您是${sole.map((o) => `<b>${zhSub(esc(o.name))}</b>`).join("、")}唯一的机构管理员。请先在该机构把另一位成员设为机构管理员，再注销账户。</p>`,
+        `<p class="au-dlead">你是${sole.map((o) => `<b>${zhSub(esc(o.name))}</b>`).join("、")}唯一的机构管理员。请先在该机构把另一位成员设为机构管理员，再注销账户。</p>`,
         btn("知道了", "close"),
       );
     auDialog(
       "注销账户？",
-      `<p class="au-dlead">注销后，您将退出全部机构（${auMyOrgs().length} 个），姓名、电子邮箱和手机号码随即删除，不能恢复。审计日志保留操作事实，不再显示您的姓名。</p>${fld("当前密码", "auDelPwd", auInAttrs(input("auDelPwd", "", "", "password"), AU_CUR_PWD), "高风险操作，需再次验证身份")}`,
+      `<p class="au-dlead">注销后，你将退出全部机构（${auMyOrgs().length} 个），姓名、电子邮箱和手机号码随即删除，不能恢复。审计日志保留操作事实，不再显示你的姓名。</p>${fld("当前密码", "auDelPwd", auInAttrs(input("auDelPwd", "", "", "password"), AU_CUR_PWD), "高风险操作，需再次验证身份")}`,
       btn("取消", "close") + btn("注销账户", "auDeleteAccountDo", {}, "danger"),
     );
   },
@@ -72356,7 +72558,7 @@ Object.assign(actions, {
     if (!value("auDelPwd")) return auFieldErrs([["auDelPwd", "请输入当前密码"]]);
     if (value("auDelPwd") === "wrong") return auFieldErrs([["auDelPwd", "密码不正确"]]);
     const sole = auSoleAdminOrgs();
-    if (sole.length) throw Error(`您是${zhSub(sole[0].name, "r")}唯一的机构管理员。请先把另一位成员设为机构管理员。`);
+    if (sole.length) throw Error(`你是${zhSub(sole[0].name, "r")}唯一的机构管理员。请先把另一位成员设为机构管理员。`);
     const uid = AUTH.uid,
       me = auMe(),
       name = me.name,
@@ -72515,7 +72717,7 @@ pages.org = () => {
     if (location.hash.startsWith("#org")) history.replaceState(history.state, "", "#org?tab=" + tab);
   }
   // 离开“机构信息”即放弃尚未保存的标识预览（ORG01，03 第 2 条）
-  if (tab !== "info") AUX.logoDraft = null;
+  if (tab !== "info") auOrgFormDiscard();
   return `<div class="au-settings">${auSubnav(list, tab)}${auSetBody(list, tab, AU_ORG_PAGES[tab]())}</div>`;
 };
 TITLES.org = "机构设置";
@@ -72608,6 +72810,64 @@ const auJoined = (m) =>
   m.joined ?? AUTH.audit.find((e) => e.org === AUTH.org && e.action === "接受邀请" && String(e.object).startsWith(m.name + " · "))?.at;
 // 机构标识的预览（ORG01，03 第 2 条）：只属于当前机构，离开“机构信息”即放弃。
 const auLogoDraft = () => (AUX.logoDraft && AUX.logoDraft.org === AUTH.org ? AUX.logoDraft : null);
+// One transient editing session owns all editable institution fields and pending logo reads.
+// This is deliberately not saved in AUTH or workspace storage; leaving the form discards it.
+const AU_ORG_FORM_FIELDS = ["auOrgName", "auOrgRegion", "auOrgContact", "auOrgContactMail", "auOrgContactTel"];
+function auOrgFormCanManage() {
+  const person = AUTH.people?.[AUTH.uid], org = AUTH.orgs?.[AUTH.org],
+    member = AUTH.members?.[AUTH.org]?.find(m => m.uid === AUTH.uid);
+  return AUTH.session === "in" && auCanManage() && !!org && !org.suspended &&
+    person?.orgs?.[AUTH.org] === "admin" && member?.role === "admin";
+}
+function auOrgFormOwner() {
+  return JSON.stringify([AUTH.uid, AUTH.org, AUTH.session, U.role, AUTH.people?.[AUTH.uid]?.orgs?.[AUTH.org] || "",
+    AUTH.members?.[AUTH.org]?.find(m => m.uid === AUTH.uid)?.role || "", AUX.accountEpoch]);
+}
+function auOrgLogoInvalidate() {
+  const pending = AUX.orgLogoRead;
+  AUX.orgLogoRead = null;
+  AUX.orgLogoSeq = (AUX.orgLogoSeq || 0) + 1;
+  try { pending?.reader.abort?.(); } catch {}
+}
+function auOrgFormDiscard() {
+  const org = AUX.orgForm?.org || AUTH.org;
+  auOrgLogoInvalidate();
+  AUX.orgForm = null;
+  if (org && AUX.logoDraft?.org === org) AUX.logoDraft = null;
+}
+function auOrgFormSync() {
+  const active = U.page === "org" && (!U.tab || U.tab === "info") && auOrgFormCanManage();
+  if (!active || AUX.orgForm && AUX.orgForm.owner !== auOrgFormOwner()) auOrgFormDiscard();
+  return active;
+}
+function auOrgFormValues() {
+  if (!auOrgFormSync()) return null;
+  if (!AUX.orgForm) {
+    const o = auOrg();
+    AUX.orgForm = { org: AUTH.org, owner: auOrgFormOwner(), values: {
+      auOrgName: o.name || "", auOrgRegion: o.region || "", auOrgContact: o.contact || "",
+      auOrgContactMail: o.contactEmail || "", auOrgContactTel: o.contactPhone || "",
+    } };
+  }
+  return AUX.orgForm;
+}
+function auOrgFormCapture() {
+  if (AUX.orgForm && AUX.orgForm.owner !== auOrgFormOwner()) { auOrgFormDiscard(); return null; }
+  const form = auOrgFormValues();
+  if (!form) return null;
+  for (const id of AU_ORG_FORM_FIELDS) {
+    const field = $("#" + id);
+    if (field) form.values[id] = field.value;
+  }
+  return form;
+}
+function auOrgLogoReadCurrent(request) {
+  return auOrgFormSync() && AUX.orgLogoRead === request && AUX.orgForm === request.form &&
+    AUX.orgLogoSeq === request.token && request.form.owner === auOrgFormOwner();
+}
+for (const event of ["input", "change"]) document.addEventListener(event, e => {
+  if (AU_ORG_FORM_FIELDS.includes(e.target?.id)) auOrgFormCapture();
+});
 // Save failures belong to the form, not a field; keep them visible through redraws until this institution saves successfully.
 function auOrgSaveNotice(text = "") {
   if (text) AUX.orgSaveError = { org: AUTH.org, text };
@@ -72834,13 +73094,14 @@ const AU_ORG_PAGES = {
   },
   info: () => {
     const o = auOrg(),
-      edit = auCanManage(),
+      edit = auOrgFormCanManage(),
+      form = auOrgFormValues(),
       draft = edit ? auLogoDraft() : null,
       logo = draft ? draft.logo : o.logo,
       saveError = AUX.orgSaveError?.org === AUTH.org ? AUX.orgSaveError.text : "";
     // 非机构管理员全部按只读值显示（Account A6）；“行业”只读，没有值时不显示（B6）；默认语言不写说明（B15）
     const ro = (v) => `<div class="au-ro">${v ? esc(v) : `<span class="muted">—</span>`}</div>`;
-    const val = (id, v) => (edit ? input(id, v) : ro(v));
+    const val = (id, v) => (edit ? input(id, form?.values[id] ?? v) : ro(v));
     // “上传图片”为按钮，键盘可达（A7）；有标识就显示“移除”，含内置标识（A8）；选择文件或“移除”后先预览，点“保存”后生效（03 第 2 条）
     const mark = `<div class="field"><label>机构标识</label><div class="au-logo-row">${auMark({ ...o, logo }, 48)}${
       edit
@@ -72855,9 +73116,9 @@ const AU_ORG_PAGES = {
     const contact = `${fld("联系人姓名", "auOrgContact", val("auOrgContact", o.contact))}${fld(
       "联系邮箱",
       "auOrgContactMail",
-      edit ? auInAttrs(input("auOrgContactMail", o.contactEmail || "", "", "email"), AU_EMAIL_INPUT) : ro(auMask(o.contactEmail || "")),
+      edit ? auInAttrs(input("auOrgContactMail", form?.values.auOrgContactMail ?? o.contactEmail ?? "", "", "email"), AU_EMAIL_INPUT) : ro(auMask(o.contactEmail || "")),
       "接收 PACOM 服务通知和许可到期提醒",
-    )}${fld(edit ? "联系电话（选填）" : "联系电话", "auOrgContactTel", edit ? auInAttrs(input("auOrgContactTel", o.contactPhone || "", "", "tel"), AU_TEL_INPUT) : ro(auMask(o.contactPhone || "")))}`;
+    )}${fld(edit ? "联系电话（选填）" : "联系电话", "auOrgContactTel", edit ? auInAttrs(input("auOrgContactTel", form?.values.auOrgContactTel ?? o.contactPhone ?? "", "", "tel"), AU_TEL_INPUT) : ro(auMask(o.contactPhone || "")))}`;
     // 非机构管理员看到的机构信息用名称—值卡片，同下面的“服务信息”；只读提示放在卡片上面，与内容区同宽（全面设计核查第 61、62 条，2026-10-12 用户确认：
     // 原先仍是表单的排法，只读提示在 640 宽的表单里）。联系邮箱与联系电话照旧打码。
     const roVal = (v) => (v ? esc(v) : `<span class="muted">—</span>`);
@@ -73003,7 +73264,7 @@ const AU_ORG_PAGES = {
       `<div class="au-rolecards">${cols
         .map(
           (r) =>
-            `<div class="au-rolecard ${U.role === r ? "cur" : ""}"><b>${auRole(r)}</b><span>${AU_ROLES[r][1]}</span>${AU_ROLE_FIT[r] ? `<span>${AU_ROLE_FIT[r]}</span>` : ""}${U.role === r ? `<small>您的角色</small>` : ""}</div>`,
+            `<div class="au-rolecard ${U.role === r ? "cur" : ""}"><b>${auRole(r)}</b><span>${AU_ROLES[r][1]}</span>${AU_ROLE_FIT[r] ? `<span>${AU_ROLE_FIT[r]}</span>` : ""}${U.role === r ? `<small>你的角色</small>` : ""}</div>`,
         )
         .join("")}</div>`,
     )}${auSec(
@@ -74077,7 +74338,7 @@ const AU_ACC_PAGES = {
         )}</small></div></div>${fld("姓名", "auMyName", input("auMyName", me.name))}<div class="au-actions">${btn("保存", "auProfileSave", {}, "primary")}</div></div>`,
     )}${auSec(
       "偏好",
-      "只影响您自己的显示，不改变项目时区或机构设置。",
+      "只影响你自己的显示，不改变项目时区或机构设置。",
       "",
       auRows([
         ["显示语言", "简体中文"],
@@ -74130,7 +74391,7 @@ const AU_ACC_PAGES = {
     )}${auSec(
       // 注销账户（2026-10-09 用户确认，ABB 对比 BP32）
       "注销账户",
-      "注销后退出全部机构并删除个人资料，不能恢复；审计日志保留操作事实，不再显示您的姓名。注销前需要输入当前密码；如果您是某个机构唯一的机构管理员，需要先指定另一位。",
+      "注销后退出全部机构并删除个人资料，不能恢复；审计日志保留操作事实，不再显示你的姓名。注销前需要输入当前密码；如果你是某个机构唯一的机构管理员，需要先指定另一位。",
       btn("注销账户", "auDeleteAccount", {}, "sm ghost danger"),
     )}`;
   },
@@ -74185,8 +74446,8 @@ const AU_ACC_PAGES = {
     const reasons = rows.flatMap(([r]) => chs.map(([c]) => why(r, c)));
     const notes = [
       // 告警通知的收件人为项目授权范围内的机构管理员、配置人员和运营人员（BP100；角色权限方案第 4 条）
-      U.role === "member" ? "您在本机构是普通成员：不收告警、交付与部署、工单和报告通知，只收安全事件、邀请与成员变更等账户通知。" : "",
-      viewer ? "您在本机构是查看人员：不收告警短信；告警邮件默认不收，可在此选择。" : "",
+      U.role === "member" ? "你在本机构是普通成员：不收告警、交付与部署、工单和报告通知，只收安全事件、邀请与成员变更等账户通知。" : "",
+      viewer ? "你在本机构是查看人员：不收告警短信；告警邮件默认不收，可在此选择。" : "",
       "前五项与“机构设置 → 通知”的分类相同，安全事件为必需通知、不能在此关闭；工单、邀请与成员变更、报告只在此设置。",
       !org.sms || !org.mail ? "机构已关闭部分渠道，相应选项不可用。" : "",
       reasons.some((x) => x.startsWith("机构未对此事件启用")) ? "灰色的格子：机构未对该事件启用此渠道，可请机构管理员在“机构设置 → 通知”中开启。" : "",
@@ -74194,7 +74455,7 @@ const AU_ACC_PAGES = {
     ];
     return `${auSec(
       "通知偏好",
-      "只影响您自己收到的通知，不改变告警本身或机构的通知策略。企业微信群消息由机构统一配置。",
+      "只影响你自己收到的通知，不改变告警本身或机构的通知策略。企业微信群消息由机构统一配置。",
       "",
       `<div class="tw"><table class="t au-matrix au-notify"><thead><tr><th>通知</th>${chs.map(([, l]) => `<th class="c">${l}</th>`).join("")}</tr></thead><tbody>${rows.map(([r, l]) => `<tr><td><b class="au-ev">${l}</b></td>${chs.map(([c]) => cell(r, c)).join("")}</tr>`).join("")}</tbody></table></div>${notes.filter(Boolean).map(note).join("")}`,
     )}${auSec(
@@ -74219,13 +74480,13 @@ const AU_ACC_PAGES = {
           // 透明红字，同其他危险操作的入口（参考组件核查第 339 条在我的账户补做，见第 29 号记录“四”）
           return `<div class="au-row"><div class="au-row-l au-orgline">${auMark(o, 32)}<span><b>${esc(o.name)}${cur ? `<span class="chip info au-ml">当前</span>` : ""}${o.suspended ? `<span class="chip au-ml">已暂停</span>` : ""}</b><small>${auRole(o.role)} · ${esc(o.code)}</small></span></div><div class="au-row-a">${cur ? "" : btn("切换到此机构", "auSwitchOrg", { org: o.id }, "sm")}${btn("退出机构", "auLeaveOrg", { org: o.id }, "sm ghost danger")}</div></div>`;
         })
-        .join("")}</div>${note("退出机构不会删除个人账户；如果您是该机构唯一的机构管理员，需要先指定另一位。")}`,
+        .join("")}</div>${note("退出机构不会删除个人账户；如果你是该机构唯一的机构管理员，需要先指定另一位。")}`,
     );
   },
 };
 
 /* ---------- 权限与成员状态变化（GLOBAL02，2026-10-08 下一批第 2 轮） ---------- */
-// 成员状态：已被移出当前机构时进入“您已不在该机构中”（AUTH16），机构暂停时进入“机构已暂停使用”（AUTH15），不显示“不存在或已删除”。
+// 成员状态：已被移出当前机构时进入“你已不在该机构中”（AUTH16），机构暂停时进入“机构已暂停使用”（AUTH15），不显示“不存在或已删除”。
 // 在工作区内换页（route）与打开或返回到工作区地址（readRoute）时按账户服务核对。
 // 许可到期暂停后机构管理员点了“续期”（AUTH15）：只能打开机构设置的“许可与用量”和“订单与发票”，其他页面回到许可与用量（"renew"）。
 function auMemberGate(page = U.page) {
@@ -74257,7 +74518,7 @@ function auAccessLostPage(pid) {
   if (can(m.role, m.scope) || !can(m.changed.role, m.changed.scope)) return "";
   return `<div class="ws-syspage">${empty(
     "没有访问权限",
-    `您在${zhSub(esc(auOrg().name))}的角色或项目授权已于 ${auFmt(m.changed.at)} 由${zhSub(esc(m.changed.by))}更改，现为“${auRole(m.role)} · ${esc(auScopeText(m.scope))}”，不再包括“${esc(p.name)}”。如需继续访问，请联系机构管理员。`,
+    `你在${zhSub(esc(auOrg().name))}的角色或项目授权已于 ${auFmt(m.changed.at)} 由${zhSub(esc(m.changed.by))}更改，现为“${auRole(m.role)} · ${esc(auScopeText(m.scope))}”，不再包括“${esc(p.name)}”。如需继续访问，请联系机构管理员。`,
     btn("返回全部项目", "nav", { page: "projects" }, "primary"),
     "lock",
   )}</div>`;
@@ -74308,7 +74569,7 @@ function auSupportShotShow() {
   if (!el) return;
   el.innerHTML = s
     ? `<span>${ico("image", "ic16")}${esc(s.name)} · ${esc(s.size)}</span>${btn("移除", "auSupportShotClear", {}, "sm ghost")}`
-    : `<small>页面不会自动截屏；可选择您保存的截图（PNG 或 JPG）。</small>`;
+    : `<small>页面不会自动截屏；可选择你保存的截图（PNG 或 JPG）。</small>`;
   $("#supShotPick").textContent = s ? "更换截图…" : "选择截图…";
 }
 function auSupportOpen(fromHelp = false) {
@@ -76688,7 +76949,7 @@ defineActions({
     )}${field("密码", `<input class="app-in" type="password" value="station-demo">`)}</div>${note(
       `${I("phone")}<span>本机登记为部署手机：<b>${my.phone}</b>。云端按“账户 + 手机”为本机分配地址，重装 App 后接续使用。</span>`,
     )}</div>`,
-    foot: `${B("登录", "login", {}, "primary")}<p class="app-foot-note">当前角色：${my.roleName} · 只显示您有配置权限的项目</p>`,
+    foot: `${B("登录", "login", {}, "primary")}<p class="app-foot-note">当前角色：${my.roleName} · 只显示你有配置权限的项目</p>`,
     noTabs: true,
   });
   SCR.noPerm = () => ({
@@ -77109,7 +77370,7 @@ defineActions({
             : "",
         ],
         `附近未绑定的 ${p.model}`,
-        `只显示同型号的设备，按信号强度排序。点最近的一台，设备会闪烁 5 秒供您确认。${S.online ? "" : "离线时无法向云端锁定点位，请勿与他人绑定同一区域。"}`,
+        `只显示同型号的设备，按信号强度排序。点最近的一台，设备会闪烁 5 秒供你确认。${S.online ? "" : "离线时无法向云端锁定点位，请勿与他人绑定同一区域。"}`,
       )}`,
     };
   };
@@ -81267,7 +81528,7 @@ defineActions({
           app.dup ? "dup" : "scope",
           "理由",
         ),
-      )}${fld("发送给申请人的说明", "admRejText", `<textarea id="admRejText" class="input" rows="3">${app.dup ? `您的单位已有 PACOM Station 机构（${esc(admOrg(app.dup).name)}），请联系该机构管理员新建项目。` : ""}</textarea>`)}${note("驳回后申请人收到短信与邮件；申请记录保留，可在“已驳回”中查看。")}`,
+      )}${fld("发送给申请人的说明", "admRejText", `<textarea id="admRejText" class="input" rows="3">${app.dup ? `你的单位已有 PACOM Station 机构（${esc(admOrg(app.dup).name)}），请联系该机构管理员新建项目。` : ""}</textarea>`)}${note("驳回后申请人收到短信与邮件；申请记录保留，可在“已驳回”中查看。")}`,
       btn("取消", "close") + btn("驳回申请", "admRejectConfirm", { id: a.id }, "danger"),
       false,
     );
@@ -82060,7 +82321,7 @@ defineActions({
   admExportLog: () =>
     modal(
       "导出审计记录",
-      `<p>文件由审计服务生成并发送到您的企业邮箱，链接 24 小时有效；导出本身写入审计。</p>${admStepUp()}`,
+      `<p>文件由审计服务生成并发送到你的企业邮箱，链接 24 小时有效；导出本身写入审计。</p>${admStepUp()}`,
       btn("取消", "close") + btn("导出", "admExportLogConfirm", {}, "primary"),
       false,
     ),
@@ -82069,7 +82330,7 @@ defineActions({
     admLog(null, "security", "导出审计记录", "运营后台操作记录 · 近 12 个月");
     closeModal(true);
     admRender(true);
-    msg("已提交导出，文件将发送到您的企业邮箱");
+    msg("已提交导出，文件将发送到你的企业邮箱");
   },
   admExportDecide: (a) => {
     const x = ADM.exports.find((y) => y.id === a.id),
@@ -83031,7 +83292,7 @@ const DEMO_ITEMS = [
     // 王敏在该机构是运营人员：不看原因（ABB 对比 BP34）；许可到期由许可服务自动暂停，见“许可已到期”
     () => (demoIn(), (AUTH.orgs[DEMO_PM].suspended = { reason: "客户申请" }), (AUX.suspendedOrg = DEMO_PM), demoShow("suspended")),
   ],
-  ["机构", "removed", "您已不在该机构中", "账户已被移出", () => (demoIn(), delete AUTH.people.wm.orgs[DEMO_PM], (AUX.removedOrg = DEMO_PM), demoShow("removed"))],
+  ["机构", "removed", "你已不在该机构中", "账户已被移出", () => (demoIn(), delete AUTH.people.wm.orgs[DEMO_PM], (AUX.removedOrg = DEMO_PM), demoShow("removed"))],
   // 订阅与订购（DEMO03；2026-10-09 用户确认，商业许可方案第 9 条）
   [
     "机构",
@@ -83342,7 +83603,7 @@ document.addEventListener("input", (e) => {
 });
 
 /* ---------- 演示说明 ---------- */
-const DEMO_HELP = `<div class="demo-help"><h3>账户</h3><ul><li>机构管理员：王敏，wang.min@example.test 或 +86 139 0000 0101，密码任意。</li><li>短信验证码输入任意 6 位数字；000000 视为不正确。</li><li>演示不发送短信或邮件。重置链接、开通邀请等“收到的链接”从演示菜单的“此页面”或“页面与状态”打开。</li></ul><h3>数据</h3><ul><li>示例数据：广实2号园 E栋 7F 完整部署并运行，运行数值由确定性规则生成，不代表现场。</li><li>本地规划：真实空间资料与您在此浏览器保存的规划；没有运行数据时显示“未取得”。</li><li>空白机构：尚未创建任何项目。</li><li>数据只保存在此浏览器，跨浏览器不同步；清理站点数据会删除本地规划，建议定期导出。导出的演示数据文件名带“演示”，内容注明“演示数据”。</li></ul><h3>其他产品</h3><ul><li>部署 App 为手机端，时长已压缩；按首次部署演示现场流程，不写入工作区。</li><li>PACOM 运营后台供 PACOM 员工使用；动态码输入任意 6 位数字，000000 视为不正确。</li></ul><h3>正式版</h3><ul><li>正式版不包含“演示”胶囊、示例数据、部署 App 与运营后台演示；页面、字段和提示与此处一致。</li></ul></div>`;
+const DEMO_HELP = `<div class="demo-help"><h3>账户</h3><ul><li>机构管理员：王敏，wang.min@example.test 或 +86 139 0000 0101，密码任意。</li><li>短信验证码输入任意 6 位数字；000000 视为不正确。</li><li>演示不发送短信或邮件。重置链接、开通邀请等“收到的链接”从演示菜单的“此页面”或“页面与状态”打开。</li></ul><h3>数据</h3><ul><li>示例数据：广实2号园 E栋 7F 完整部署并运行，运行数值由确定性规则生成，不代表现场。</li><li>本地规划：真实空间资料与你在此浏览器保存的规划；没有运行数据时显示“未取得”。</li><li>空白机构：尚未创建任何项目。</li><li>数据只保存在此浏览器，跨浏览器不同步；清理站点数据会删除本地规划，建议定期导出。导出的演示数据文件名带“演示”，内容注明“演示数据”。</li></ul><h3>其他产品</h3><ul><li>部署 App 为手机端，时长已压缩；按首次部署演示现场流程，不写入工作区。</li><li>PACOM 运营后台供 PACOM 员工使用；动态码输入任意 6 位数字，000000 视为不正确。</li></ul><h3>正式版</h3><ul><li>正式版不包含“演示”胶囊、示例数据、部署 App 与运营后台演示；页面、字段和提示与此处一致。</li></ul></div>`;
 
 /* ---------- 动作 ---------- */
 defineActions({
