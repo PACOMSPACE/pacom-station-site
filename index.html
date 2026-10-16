@@ -3717,6 +3717,10 @@ details[open]:where(:not(.ws-scope-building, .au-zt-b, .au-zt-f, .au-help, .au-t
     color: var(--text);
   }
 }
+/* 2.03 账户第 13 条（2026-10-16 用户确认）：文字以全角标点结尾时（“？”“）”等），字形右侧自带约半个字宽的空白，
+   折角向左收 7px，看起来与其他折叠一样离文字 8px。标记为 .sum-fw。 */
+details > summary.sum-fw::after { margin-left: 1px; }
+.au-help summary.sum-fw::after { margin-left: -3px; }
 /* 树（本次部署范围、暖通空调与室内环境设置的楼层选择、位置弹层的楼宇行）：和成员授权的功能区树一样，前面 16 的箭头，收起朝右、展开朝下 */
 :is(.ws-scope-building, .ws-locations details) > summary::before {
   content: "";
@@ -16867,6 +16871,9 @@ fieldset:disabled .au-primary {
 .au-help p {
   margin: 8px 0 0;
 }
+/* 2.03 账户第 14、15、18、20、21 条（2026-10-16 用户确认，规范 2 6 的例外）：只有两三句的短说明，每句一行放得下时每句单独一行，
+   不加段间距；一句比一行长时照常换行。 */
+.au-lines > span { display: block; }
 .au-more {
   margin: 0 0 16px;
 }
@@ -20251,6 +20258,11 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .au-orgbtn.on:hover { background: linear-gradient(var(--hover), var(--hover)), var(--sel); }
 .au-aicard-h { flex-wrap: wrap; row-gap: 0; }
 .au-aicard-h > :is(b, small) { white-space: nowrap; }
+/* 2.03 账户第 17 条第 2 点（2026-10-16 用户确认）：开通引导第 2 步一批邀请——“电子邮箱”（可填多个地址）、“角色”、项目授权范围上下排，字段间 16；
+   格式不对或已是成员的地址在框下逐个写明，每个一行。 */
+.au .au-wbatch { display: grid; gap: 16px; }
+.au .au-wbatch .au-field { margin: 0; }
+.au .au-err-lines, #dlg #auInvAcct-error { white-space: pre-line; }
 
 }
 @layer base {
@@ -34866,6 +34878,9 @@ function wsCloseModal(force) {
   // 从“复制到其他楼层”打开的“上传楼层图”：关闭（完成、取消或放弃）后回到复制弹窗，保留已选内容（2026-10-03 用户确认 C5）。
   const planDialog = $("#dlg")?.dataset.plan === "1", planBack = planDialog ? U.planBack : null, closingDlg = $("#dlg");
   if (planDialog) U.planBack = null;
+  // 从开通引导第 1 步打开的“创建项目”关闭（取消或保存）时清除 creating（2.03 账户第 17 条）：取消后仍在第 1 步，之后在“项目”页新建项目不会被带回引导。
+  const welcomeCreate = closingDlg?.dataset.welcome === "1";
+  if (welcomeCreate && typeof AUX !== "undefined" && AUX.welcome) AUX.welcome.creating = "";
   wsDialogGhost($("#dlg"));
   $("#dlg")?.remove();
   modalDirty = false;
@@ -38116,13 +38131,15 @@ async function saveSpaceForm() {
     if (/同名/.test(e.message)) throw fieldErr("spaceName", `已有同名${noun}，请换一个名称`);
     throw e;
   }
+  const fromWelcome = !s.id && s.kind === "projects" && AUX.welcome?.creating === AUTH.org;
   closeModal(true);
-  // 从开通引导第 1 步来的第一个项目：保存后回到引导第 2 步“邀请成员”，邀请可按这个项目授权（账户核查第 28 条）
-  if (!s.id && s.kind === "projects" && AUX.welcome?.creating === AUTH.org) {
+  // 从开通引导第 1 步来的第一个项目：保存后进入引导第 2 步“邀请成员”，邀请可按这个项目授权（账户核查第 28 条；2.03 起弹窗在引导页上打开）
+  if (fromWelcome) {
     Object.assign(AUX.welcome, { creating: "", step: 2, projects: [{ id: saved.id, name: saved.name }] });
     AUX.welcome.done[1] = true;
     if (AUX.welcome.skipped) delete AUX.welcome.skipped[1];
-    auRoute("welcome");
+    if (U.page === "welcome") render();
+    else auRoute("welcome");
     requestAnimationFrame(() => auFocusWelcome());
     return msg(`已创建项目“${v.name}”`);
   }
@@ -40258,7 +40275,8 @@ async function boot() {
 }
 // 无法加载：浏览器不允许读取或保存站点数据，或数据读取失败（GLOBAL02）。
 // 与登录页同一外框和尺寸（2026-10-08 Account 核查第 37 点）：Logo 110×25 在左上、标题 30px 左对齐、全宽主按钮“重新加载”、同样的背景与页脚，
-// 右侧画面加载不到时只显示底色；中文说明不变，英文原文收进主按钮上方默认收起的“技术信息”。
+// 右侧画面加载不到时只显示底色；英文原文收进主按钮上方默认收起的“技术信息”。
+// 2.03 账户第 21 条（2026-10-16 用户确认）：说明改为两行“浏览器无法读取或保存本站数据。”“请检查浏览器的站点数据设置，然后重新加载。”
 // 启动时同步出错（脚本仍在加载）时等全部脚本就绪后再绘制：页脚在 auth-ui.js 中（只含部分模块的测试构建没有页脚）。
 function bootError(e) {
   const paint = () => {
@@ -40266,7 +40284,7 @@ function bootError(e) {
     document.title = "页面加载失败 · PACOM Station";
     $("#app").className = "bare bare-login bare-booterror";
     $("#app").innerHTML =
-      `<div class="au au-split"><section class="au-left"><div class="au-center"><main class="au-group" role="alert"><div class="au-logo">${A.logo}</div><h1 class="au-h1">页面加载失败</h1><p class="au-lead">浏览器没有允许本站点读取或保存数据，或数据读取失败。请检查浏览器的站点数据设置，然后重新加载。</p><details class="au-tech"><summary>技术信息</summary><code>${esc(e?.message || String(e))}</code></details><button type="button" class="au-primary au-compact-primary" onclick="location.reload()">重新加载</button></main></div>${typeof auFooter === "function" ? auFooter() : ""}</section><aside class="au-art" aria-hidden="true"><img src="${A.img_auth}" alt="" onerror="this.hidden = true"></aside></div>`;
+      `<div class="au au-split"><section class="au-left"><div class="au-center"><main class="au-group" role="alert"><div class="au-logo">${A.logo}</div><h1 class="au-h1">页面加载失败</h1><p class="au-lead au-lines"><span>浏览器无法读取或保存本站数据。</span><span>请检查浏览器的站点数据设置，然后重新加载。</span></p><details class="au-tech"><summary>技术信息</summary><code>${esc(e?.message || String(e))}</code></details><button type="button" class="au-primary au-compact-primary" onclick="location.reload()">重新加载</button></main></div>${typeof auFooter === "function" ? auFooter() : ""}</section><aside class="au-art" aria-hidden="true"><img src="${A.img_auth}" alt="" onerror="this.hidden = true"></aside></div>`;
     // 与账户页相同的按钮质感、页脚排法与右侧留白（auth-ui.js；只含部分模块的测试构建没有）
     if (typeof auEnhance === "function") auEnhance($("#app"));
     netBanner();
@@ -46308,7 +46326,7 @@ function showDeviceInformation(id, tab = "runtime") {
       M.access(p) === "mesh" ? "保存标记后生成期望配置。" : "此型号不走 Mesh 配置流程。",
     )}${
       cfg.length
-        ? `<details class="ws-details"><summary>原始配置（技术支持用）</summary><pre class="flow-json">${esc(JSON.stringify(Object.fromEntries(cfg.map((i) => [i.key, i.value])), null, 2))}</pre></details>`
+        ? `<details class="ws-details"><summary class="sum-fw">原始配置（技术支持用）</summary><pre class="flow-json">${esc(JSON.stringify(Object.fromEntries(cfg.map((i) => [i.key, i.value])), null, 2))}</pre></details>`
         : ""
     }${n ? renderParameterDifferences(n) : ""}${simNote()}`;
   }
@@ -58078,7 +58096,7 @@ function v13SinceDelivery(db, n, d) {
 function v13OpsAdjustDetails(db, n) {
   const rows = v13OpsAdjustRows(db, n);
   return rows.length
-    ? `<details class="v13-since"><summary>运营调整 ${rows.length} 项（不需重新交付）</summary>${v13OpsAdjustList(rows).replace(/^<p>[^<]*<\/p>/, "")}</details>`
+    ? `<details class="v13-since"><summary class="sum-fw">运营调整 ${rows.length} 项（不需重新交付）</summary>${v13OpsAdjustList(rows).replace(/^<p>[^<]*<\/p>/, "")}</details>`
     : "";
 }
 // 适用规范登记的设计室内温度（规范 SPACE06；2026-10-09 暖通空调方案评估 H-02）：温度限制依据为“豁免”而没有设计室内温度时，
@@ -68832,6 +68850,20 @@ if (typeof module !== "undefined" && module.exports) module.exports = PACOM_PASS
       return { account, role, scope };
     });
   }
+  // 2.03 账户第 17 条（2026-10-16 用户确认）：开通引导与机构设置的“邀请成员”用一个电子邮箱框，可填多个地址，
+  // 用逗号、空格或换行分隔；格式不对、本次重复、已是成员或已有待接受邀请的地址逐个写明。
+  function inviteAddresses(text) {
+    return String(text || '').split(/[\s,，;；、]+/).map(s => s.trim()).filter(Boolean);
+  }
+  function inviteAddressErrors(list, members = [], pending = []) {
+    const seen = new Set();
+    return list.map(raw => {
+      const acct = String(raw).toLowerCase();
+      const error = !email(acct) ? '格式不正确' : seen.has(acct) ? '本次已填写' : members.includes(acct) ? '已是本机构成员' : pending.includes(acct) ? '已有待接受的邀请' : '';
+      seen.add(acct);
+      return error ? `${raw}：${error}` : '';
+    }).filter(Boolean);
+  }
   function applyResult(result, query = false) {
     // A timeout is not proof that the request was rejected. Only a receipt confirms success.
     if (result?.status === 'ok' && result.receiptId) return 'confirmed';
@@ -68855,7 +68887,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = PACOM_PASS
     const value = String(hash || '');
     return /^#[a-z][\w-]*(?:\?[^#]*)?$/.test(value) && authorizedPages.includes(value.slice(1).split('?')[0]) ? value : fallback;
   }
-  const api = Object.freeze({ LIMITS, charCount, orgNameError, identifier, email, idKind, phone, maskContact, phoneError, loginIdentity, clearAccountRestriction, loginNextFailure, applicationPending, switchMode, resetDraft, applyErrors, errorCount, draftDirty, applicationChanges, invitationErrors, applyResult, applicationHolds, applyFailureText, smsCodeReady, cstYear, entryHash, workspaceReturn, applyRouteMode, applyHash, receiptSnapshot, pendingRecord, rememberPending, forgetPending, restoredRequest });
+  const api = Object.freeze({ LIMITS, charCount, orgNameError, identifier, email, idKind, phone, maskContact, phoneError, loginIdentity, clearAccountRestriction, loginNextFailure, applicationPending, switchMode, resetDraft, applyErrors, errorCount, draftDirty, applicationChanges, invitationErrors, inviteAddresses, inviteAddressErrors, applyResult, applicationHolds, applyFailureText, smsCodeReady, cstYear, entryHash, workspaceReturn, applyRouteMode, applyHash, receiptSnapshot, pendingRecord, rememberPending, forgetPending, restoredRequest });
   root.PACOM_AUTH_FLOW = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
@@ -69884,8 +69916,8 @@ BARE_AFTER.orgs = () => (document.title = "选择机构 · PACOM Station");
 /* ---------- 机构已暂停 / 已被移出机构 ---------- */
 const auOtherOrgs = (except) => auMyOrgs().filter((o) => o.id !== except && !AUTH.orgs[o.id]?.suspended);
 // 机构已暂停使用（全面设计核查第 141 条，2026-10-12 用户确认：HONG 的方案加 6 处修改，原为一段 7 行的说明）：
-// 说明只写结论与告警通知已停发（第 2 处）；机构管理员、许可到期时，说明下是浅黄提示条“最晚请在 {最后续期日}（含当天）完成续期……”（第 1 处，日期取许可服务；
-// 账户核查第 29 条：原为“请于 {日期}前完成续期”，容易读成不含当天），
+// 说明只写结论与告警通知已停发（第 2 处）；机构管理员、许可到期时，说明下是浅黄提示条“请于 {最后续期日} 24:00 前完成续期……”（第 1 处，日期取许可服务；
+// 账户核查第 29 条曾改为“最晚请在 {日期}（含当天）”，2.03 账户第 19 条改为“请于 {日期} 24:00 前”，既专业又不会读成不含当天），
 // 主按钮“续期”（仍进入机构设置 › 许可与用量），下方居中“选择其他机构 · 联系支持 · 退出登录”（没有其他可用机构时不写前一项和圆点）。
 // 其余说明收进默认收起的“暂停期间的功能与数据说明”，所有角色都有（第 4 处），只有机构管理员看到导出那句（第 3、4 处）。
 // 2026-10-14 用户确认：折叠说明放在说明／期限提示之后、原主按钮与辅助入口之前；原文、角色与去处不变。
@@ -69905,7 +69937,7 @@ BARE.suspended = () => {
       ? `${name}的许可已到期，平台已停止发送告警通知。续期付款到账后将自动恢复使用。`
       : `${name}已暂停使用${o.suspended?.reason ? `：${esc(o.suspended.reason)}` : ""}。平台已停止发送告警通知。如需恢复使用，请联系 PACOM 支持。`;
   const notice = renew
-    ? `<div class="au-notice au-susp-notice" data-tone="warning">${auNoticeContent("warning", `最晚请在 ${auDate(auLicLastRenewDay(auLic(id)))}（含当天）完成续期，逾期将删除本机构全部数据。`)}</div>`
+    ? `<div class="au-notice au-susp-notice" data-tone="warning">${auNoticeContent("warning", `请于 ${auDate(auLicLastRenewDay(auLic(id)))} 24:00 前完成续期，逾期将删除本机构全部数据。`)}</div>`
     : "";
   const primary = renew
     ? `<button type="button" class="au-primary au-compact-primary" data-act="auRenewEnter" data-org="${id}">续期</button>`
@@ -69918,8 +69950,9 @@ BARE.suspended = () => {
   const links = renew
     ? `${others ? `<button type="button" class="au-textbtn" data-act="auGo" data-page="orgs">选择其他机构</button>${dot}` : ""}<button type="button" class="au-textbtn" data-act="auContact">联系支持</button>${dot}<button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button>`
     : `<button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button>`;
-  const data = (expiry ? (admin ? "删除前运行数据继续保存。" : "运行数据继续保存。") : "运行数据继续保存，不会删除。") + (admin ? "如需导出，请联系 PACOM 支持。" : "");
-  const more = `<details class="au-help au-susp-more"><summary tabindex="0">暂停期间的功能与数据说明</summary><p>暂停期间，平台远程功能暂不可用。</p><p>现场网关和设备正常时，已下发的本地控制可继续运行。</p><p>${data}</p></details>`;
+  // 2.03 账户第 18 条（2026-10-16 用户确认）：展开后每句一行，不加段间距；机构管理员的导出一句另起一行。
+  const data = expiry ? (admin ? "删除前运行数据继续保存。" : "运行数据继续保存。") : "运行数据继续保存，不会删除。";
+  const more = `<details class="au-help au-susp-more"><summary tabindex="0">暂停期间的功能与数据说明</summary><p class="au-lines"><span>暂停期间，平台远程功能不可用。</span><span>现场设备按最后下发的配置运行。</span><span>${data}</span>${admin ? "<span>如需导出，请联系 PACOM 支持。</span>" : ""}</p></details>`;
   return auStatusShell(`<h1 class="au-h1">机构已暂停使用</h1><p class="au-lead">${lead}</p>${notice}${more}${primary}<div class="au-links">${links}</div>`);
 };
 BARE_AFTER.suspended = () => (document.title = "机构已暂停使用 · PACOM Station");
@@ -69943,15 +69976,16 @@ BARE_AFTER.removed = () => (document.title = "你已不在该机构中 · PACOM 
 
 /* ---------- 服务暂时不可用 / 维护中（公开页面） ---------- */
 // The page itself offers “联系支持” below the retry status line (AUTH17).
+// 2.03 账户第 20 条（2026-10-16 用户确认）：正文两行，标题已说明状态，不再重复；现场一句统一为“现场设备按最后下发的配置运行。”
 BARE.unavailable = () =>
   auStatusShell(
-    `<h1 class="au-h1">服务暂时不可用</h1><p class="au-lead">PACOM Station 暂时无法响应，请稍后重试。现场网关和设备正常时，已下发的本地控制可继续运行；平台远程功能暂不可用。</p><button type="button" class="au-primary au-compact-primary" data-act="auRetry">重试</button><p class="au-hint" id="au-retry-status" role="status"></p><div class="au-links"><button type="button" class="au-textbtn" data-act="auContact">联系支持</button></div>`,
+    `<h1 class="au-h1">服务暂时不可用</h1><p class="au-lead au-lines"><span>请稍后重试。</span><span>现场设备按最后下发的配置运行。</span></p><button type="button" class="au-primary au-compact-primary" data-act="auRetry">重试</button><p class="au-hint" id="au-retry-status" role="status"></p><div class="au-links"><button type="button" class="au-textbtn" data-act="auContact">联系支持</button></div>`,
   );
 BARE_AFTER.unavailable = () => (document.title = "服务暂时不可用 · PACOM Station");
 BARE.maintenance = () => {
   const until = AUX.maintUntil ? auFmt(AUX.maintUntil) : "";
   return auStatusShell(
-    `<h1 class="au-h1">系统维护中</h1><p class="au-lead">PACOM Station 正在进行计划维护${until ? `，预计 <b>${until}</b> 恢复` : ""}。现场网关和设备正常时，已下发的本地控制可继续运行；平台远程功能暂不可用。</p><button type="button" class="au-primary au-compact-primary" data-act="auRetry">刷新</button><p class="au-hint" id="au-retry-status" role="status"></p>`,
+    `<h1 class="au-h1">系统维护中</h1><p class="au-lead au-lines">${until ? `<span>预计 <b>${until}</b> 完成。</span>` : ""}<span>维护期间，现场设备按最后下发的配置运行。</span></p><button type="button" class="au-primary au-compact-primary" data-act="auRetry">刷新</button><p class="au-hint" id="au-retry-status" role="status"></p>`,
   );
 };
 BARE_AFTER.maintenance = () => (document.title = "系统维护中 · PACOM Station");
@@ -69968,7 +70002,7 @@ const auResetLabel = () => (auResetPhone() ? "下一步" : "发送重置链接")
 const auResetForm = (inDialog = false) => {
   const phone = auResetPhone(), sentTo = auCodeReceiptHtml(auSmsSentText("reset"));
   const code = auField({ name: "rcode", label: "短信验证码", auto: "one-time-code", inputmode: "numeric", maxlength: 6 }).replace('<div class="au-field ', `<div ${phone ? "" : "hidden "}class="au-field au-reset-code `);
-  return `<form id="${inDialog ? "au-reset-dlg-form" : "au-reset-form"}" data-form="${inDialog ? "resetDialog" : "reset"}"${inDialog ? "" : ' class="au-compact-form"'} novalidate><fieldset>${auField({ name: "rid", label: "电子邮箱或手机号码", auto: "username", suffix: auCodeBtn("reset", "rid", !phone), hint: sentTo, hintRole: "status" })}${code}<p class="au-ferr" role="alert" hidden></p></fieldset></form><details class="au-help"><summary tabindex="0">无法使用绑定的电子邮箱或手机号码？</summary><p>可使用其他已绑定的邮箱或手机号码。均无法使用时，请<button type="button" class="au-inline" data-act="auResetSupport">联系 PACOM 支持</button>核验身份。</p></details>${inDialog ? "" : `<button type="submit" class="au-primary au-compact-primary" form="au-reset-form">${auResetLabel()}</button>`}`;
+  return `<form id="${inDialog ? "au-reset-dlg-form" : "au-reset-form"}" data-form="${inDialog ? "resetDialog" : "reset"}"${inDialog ? "" : ' class="au-compact-form"'} novalidate><fieldset>${auField({ name: "rid", label: "电子邮箱或手机号码", auto: "username", suffix: auCodeBtn("reset", "rid", !phone), hint: sentTo, hintRole: "status" })}${code}<p class="au-ferr" role="alert" hidden></p></fieldset></form><details class="au-help"><summary tabindex="0" class="sum-fw">无法使用绑定的电子邮箱或手机号码？</summary><p class="au-lines"><span>可使用其他已绑定的邮箱或手机号码。</span><span>均无法使用时，请<button type="button" class="au-inline" data-act="auResetSupport">联系 PACOM 支持</button>核验身份。</span></p></details>${inDialog ? "" : `<button type="submit" class="au-primary au-compact-primary" form="au-reset-form">${auResetLabel()}</button>`}`;
 };
 // 地址在电子邮箱与手机号码之间改变时：显示或收起“获取验证码”和“短信验证码”，主按钮随之为“下一步”或“发送重置链接”。
 function auResetSync() {
@@ -70362,45 +70396,47 @@ function auBindDone(note = "") {
 
 /* ---------- 机构开通后的引导 ---------- */
 function auWelcomeState() {
-  const w = (AUX.welcome ||= { step: 1, done: {}, skipped: {}, rows: [{ acct: "", role: "", scope: "" }], projects: [] });
+  const w = (AUX.welcome ||= { step: 1, done: {}, skipped: {}, batch: { accts: "", role: "", scope: "" }, sent: 0, projects: [] });
   w.skipped ||= {};
+  w.batch ||= { accts: "", role: "", scope: "" };
+  w.sent ||= 0;
   return w;
 }
+// 第 2 步一批邀请：一个电子邮箱框（可填多个地址）、一个角色，有项目时加项目授权范围（2.03 账户第 17 条第 2 点）
 function auReadWelcomeRows() {
-  auWelcomeState().rows.forEach((r, i) => {
-    r.acct = AUX.v["w_acct" + i] ?? r.acct;
-    const nextRole = value("auWRole" + i) || r.role;
-    const leftAdmin = r.role === "admin" && nextRole !== "admin";
-    if (leftAdmin) r.scope = "";
-    r.role = nextRole;
-    const choice = document.querySelector(`[name="w_scope${i}"]:checked`)?.value;
-    if (!leftAdmin && choice === "all") r.scope = "all";
-    else if (!leftAdmin && choice === "some") r.scope = [...document.querySelectorAll(`[name="w_project${i}"]:checked`)].map(el => el.value);
-    if (r.role === "admin") r.scope = "all";
-    // 还没有项目时行里不放“项目授权范围”，邀请按全部项目发出（Lovable 核查第 31 条，2026-10-10 用户确认）。
-    if (!(auWelcomeState().projects || []).length) r.scope = "all";
-  });
+  const w = auWelcomeState(), b = w.batch;
+  b.accts = AUX.v.w_accts ?? b.accts;
+  const nextRole = value("auWRole") || b.role;
+  const leftAdmin = b.role === "admin" && nextRole !== "admin";
+  if (leftAdmin) b.scope = "";
+  b.role = nextRole;
+  const choice = document.querySelector('[name="w_scope"]:checked')?.value;
+  if (!leftAdmin && choice === "all") b.scope = "all";
+  else if (!leftAdmin && choice === "some") b.scope = [...document.querySelectorAll('[name="w_project"]:checked')].map(el => el.value);
+  if (b.role === "admin") b.scope = "all";
+  // 还没有项目时不放“项目授权范围”，邀请按全部项目发出（Lovable 核查第 31 条，2026-10-10 用户确认）。
+  if (!(w.projects || []).length) b.scope = "all";
 }
 // 角色未选时“请选择角色”用 #636363，选后黑色（Lovable 核查第 91 条，2026-10-10 用户确认）；开通引导与机构设置“邀请成员”共用。
 const auRoleSelect = (id, options, current, label) => select(id, options, current, label).replace("<span>请选择</span>", '<span class="au-select-ph">请选择角色</span>');
 // 开通引导的邀请仍只列四个既定角色，普通成员只在机构设置的“成员”中邀请（第14章 §15 不改；角色权限方案第 4 条）
 const AU_WELCOME_ROLES = AU_ROLE_OPTS.filter(([v]) => v !== "member");
-function auWelcomeRow(r, i, projects) {
-  const sent = r.status === "sent";
+function auWelcomeBatch(b, projects) {
   // 项目授权范围按方案 A（Lovable 核查第 92、94 条，2026-10-10 用户确认）：标签字重 480；“全部项目”“指定项目”上下排，选项下不带说明；
-  // 项目勾选框缩进 24，只在选了“指定项目”时出现在它下面。“全部项目”仍包括以后新建的项目，页面上不写。还没有项目时行里不放这一项（第 31 条）。
+  // 项目勾选框缩进 24，只在选了“指定项目”时出现在它下面。“全部项目”仍包括以后新建的项目，页面上不写。还没有项目时不放这一项（第 31 条）。
+  // 2.03 账户第 17 条第 2 点（2026-10-16 用户确认）：一个“电子邮箱”框可填多个地址，一个“角色”，对这一批地址一起生效；要邀请不同角色，分批发送。
   const scope = !projects.length
     ? ""
-    : r.role === "admin"
+    : b.role === "admin"
       ? `<p class="au-hint">机构管理员可访问全部项目。</p>`
-      : `<div class="au-lab"><span class="au-lab-t" id="au-w_scope${i}-label">项目授权范围</span></div><div class="au-scope-choices au-scope-stack" role="radiogroup" aria-labelledby="au-w_scope${i}-label"><label><input type="radio" name="w_scope${i}" value="all" ${r.scope === "all" ? "checked" : ""}>全部项目</label><label><input type="radio" name="w_scope${i}" value="some" ${Array.isArray(r.scope) ? "checked" : ""}>指定项目</label><div class="au-scope-choices au-scope-projects" ${Array.isArray(r.scope) ? "" : "hidden"} id="au-wprojects${i}">${projects.map(p => `<label><input type="checkbox" name="w_project${i}" value="${esc(p.id)}" ${Array.isArray(r.scope) && r.scope.includes(p.id) ? "checked" : ""}>${esc(p.name)}</label>`).join("")}</div></div>`;
-  return `<div class="au-wrow" data-row="${i}"><div class="au-field" data-f="w_acct${i}"><div class="au-ctl"><input type="email" class="au-in" name="w_acct${i}" id="au-w_acct${i}" value="${esc(AUX.v["w_acct" + i] ?? r.acct)}" placeholder="电子邮箱" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="第 ${i + 1} 位成员的电子邮箱" aria-describedby="au-w_acct${i}-err" ${sent ? "readonly" : ""}></div><p class="au-err" id="au-w_acct${i}-err" aria-live="polite"></p></div><div class="au-wrole">${auRoleSelect("auWRole" + i, AU_WELCOME_ROLES, r.role, `第 ${i + 1} 位成员的角色`)}<p class="au-err" id="au-w_role${i}-err" aria-live="polite"></p></div><button type="button" class="au-wrow-remove" data-act="auWRemoveRow" data-row="${i}" aria-label="移除第 ${i + 1} 位成员">${ico("x", "ic16")}</button>${sent || scope ? `<div class="au-wscope">${sent ? '<p class="au-hint" role="status">邀请已发送</p>' : scope}<p class="au-err" id="au-w_scope${i}-err" aria-live="polite"></p></div>` : ""}</div>`;
+      : `<div class="au-lab"><span class="au-lab-t" id="au-w_scope-label">项目授权范围</span></div><div class="au-scope-choices au-scope-stack" role="radiogroup" aria-labelledby="au-w_scope-label"><label><input type="radio" name="w_scope" value="all" ${b.scope === "all" ? "checked" : ""}>全部项目</label><label><input type="radio" name="w_scope" value="some" ${Array.isArray(b.scope) ? "checked" : ""}>指定项目</label><div class="au-scope-choices au-scope-projects" ${Array.isArray(b.scope) ? "" : "hidden"} id="au-wprojects">${projects.map(p => `<label><input type="checkbox" name="w_project" value="${esc(p.id)}" ${Array.isArray(b.scope) && b.scope.includes(p.id) ? "checked" : ""}>${esc(p.name)}</label>`).join("")}</div></div>`;
+  return `<div class="au-field" data-f="w_accts"><div class="au-lab"><label for="au-w_accts">电子邮箱</label></div><div class="au-textarea-shell"><textarea id="au-w_accts" name="w_accts" class="au-in au-ta" rows="3" placeholder="name@example.com" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="au-w_accts-hint au-w_accts-err">${esc(AUX.v.w_accts ?? b.accts)}</textarea></div><p class="au-hint" id="au-w_accts-hint">可填多个地址，用逗号、空格或换行分隔。</p><p class="au-err au-err-lines" id="au-w_accts-err" aria-live="polite"></p></div><div class="au-field au-wrole" data-f="w_role"><div class="au-lab"><span class="au-lab-t" id="au-w_role-label">角色</span></div>${auRoleSelect("auWRole", AU_WELCOME_ROLES, b.role, "角色")}<p class="au-err" id="au-w_role-err" aria-live="polite"></p></div>${scope ? `<div class="au-wscope">${scope}<p class="au-err" id="au-w_scope-err" aria-live="polite"></p></div>` : ""}`;
 }
 // 开通引导只对该机构的机构管理员显示（AUTH19）；该机构的其他成员打开引导地址时直接进入该机构总览（见 readRoute 与 auOpenWelcome）；
 // 已登录、不属于该机构的账户看到AUTH24，“返回”进入本账户的当前机构（Account 核查 C1、C5）。
 // AUTH24 标题与浏览器标签“尚未加入该机构”；已登录时“返回”下 16 加“使用其他账户登录”（Lovable 核查第 87 条，2026-10-10 用户确认）。
 // 开通引导两步：1 创建第一个项目、2 邀请成员（账户核查第 28 条，2026-10-12 用户确认方案 ①：原为先邀请、后建项目，首批邀请只能授权全部项目）。
-// 创建项目在工作区的“创建项目”弹窗中完成，保存后回到引导第 2 步，邀请时可按项目授权；两步都可跳过，跳过建项目时邀请仍按全部项目发出并照旧说明。
+// 创建项目在引导页上打开的“创建项目”弹窗中完成（2.03 账户第 17 条），保存后进入引导第 2 步，邀请时可按项目授权；两步都可跳过，跳过建项目时邀请仍按全部项目发出并照旧说明。
 // 原第 1 步“机构资料”已去掉（全面设计核查第 139 条）：机构名称用申请资料，标识和地区以后在机构设置 › 机构信息补。
 // 主按钮按去处写（全面设计核查第 142 条，2026-10-12 用户确认：原为“返回”）：有可进入的机构时“返回工作区”，没有时“返回选择机构”，规则同邀请状态页。
 BARE.welcome = () => {
@@ -70409,16 +70445,16 @@ BARE.welcome = () => {
   const step = (n, title, summary, body) => {
     const cur = w.step === n, done = !!w.done[n], skipped = !done && !!w.skipped[n];
     // 完成才显示绿色勾；跳过保留中性序号，并明确写出“已跳过”，不假称已创建或已发送。
-    const sent = n === 2 ? w.rows.filter(r => r.status === "sent").length : 0;
+    const sent = n === 2 ? w.sent || 0 : 0;
     const caption = skipped ? `已跳过${sent ? ` · 已发送 ${sent} 位邀请` : ""}` : summary;
     return `<section class="au-step ${cur ? "cur" : ""} ${done ? "done" : skipped ? "skipped" : ""}"><header><span class="au-step-n">${done ? `${ico("check", "ic16")}<span class="au-sr">已完成</span>` : n}</span><div><h2 tabindex="-1">${title}</h2>${!cur && caption ? `<p>${auSegs(caption.split(" · "))}</p>` : ""}</div>${!cur && (done || skipped || n < w.step) ? `<button type="button" class="au-textbtn" data-act="auWStep" data-step="${n}" aria-label="修改${title}">修改</button>` : ""}</header>${cur ? `<div class="au-step-b">${body}</div>` : ""}</section>`;
   };
   const invited = auInvites().filter(i => auInviteState(i) === "pending");
-  const s2 = `<form data-form="wInvite" novalidate><fieldset><p class="au-lead sm">邀请 7 天内有效。你可以按需邀请机构管理员、配置人员、运营人员或查看人员，也可以稍后再邀请。</p><div class="au-wrows">${w.rows.map((r, i) => auWelcomeRow(r, i, w.projects || [])).join("")}</div>${(w.projects || []).length ? "" : `<p class="au-hint au-wnote">受邀成员可访问全部项目。如需按项目授权，可在创建项目后到机构设置中邀请。</p>`}<button type="button" class="btn au-wbtn au-wadd" data-act="auWAddRow">${ico("au-plus", "ic16")}添加</button><p class="au-ferr" role="alert" hidden></p><div class="au-step-actions">${auPrimary("发送邀请")}<button type="button" class="au-textbtn" data-act="auWSkip">稍后再邀请</button></div></fieldset></form>`;
+  const s2 = `<form data-form="wInvite" novalidate><fieldset><p class="au-lead sm">邀请 7 天内有效。你可以按需邀请机构管理员、配置人员、运营人员或查看人员，也可以稍后再邀请。</p><div class="au-wbatch">${auWelcomeBatch(w.batch, w.projects || [])}</div>${(w.projects || []).length ? "" : `<p class="au-hint au-wnote">受邀成员可访问全部项目。如需按项目授权，可在创建项目后到机构设置中邀请。</p>`}<p class="au-ferr" role="alert" hidden></p><div class="au-step-actions">${auPrimary("发送邀请")}<button type="button" class="au-textbtn" data-act="auWSkip">稍后再邀请</button></div></fieldset></form>`;
   const s3 = `<p class="au-lead sm">项目用于管理园区、楼宇、楼层和功能区。创建后继续邀请成员。</p><div class="au-step-actions"><button type="button" class="au-primary" data-act="auWProject">创建第一个项目</button><button type="button" class="au-textbtn" data-act="auWSkipProject">暂不创建，下一步</button></div>`;
   // 两步都完成或跳过后，引导下方只有“进入工作区”
   const fin = w.step > 2 ? `<div class="au-step-actions au-wfinish"><button type="button" class="au-primary" data-act="auWEnter">进入工作区</button></div>` : "";
-  return auStatusShell(`<h1 class="au-h1">机构已开通</h1><p class="au-lead">你是<b>${zhSub(esc(org.name))}</b>的机构管理员。</p>${auLic().state === "none" ? `<div class="au-notice au-welcome-lic" data-tone="warning">${auNoticeContent("warning", auLicUnsubscribedText(auLic()))}</div>` : ""}<div class="au-steps">${step(1, "创建第一个项目", w.done[1] ? ((w.projects || []).length ? w.projects.map(p => p.name).join("、") : "稍后再创建") : "", s3)}${step(2, "邀请成员", w.done[2] ? invited.length ? `已邀请 ${invited.length} 位成员` : "稍后再邀请" : "", s2)}</div>${fin}`);
+  return auStatusShell(`<h1 class="au-h1">机构已开通</h1><p class="au-lead">你是<b>${zhSub(esc(org.name))}</b>的机构管理员。</p>${auLic().state === "none" ? `<div class="au-notice au-welcome-lic" data-tone="warning">${auNoticeContent("warning", auLicUnsubscribedText(auLic()))}</div>` : ""}<div class="au-steps">${step(1, "创建第一个项目", w.done[1] ? ((w.projects || []).length ? `已创建 ${w.projects.map(p => p.name).join("、")}` : "稍后再创建") : "", s3)}${step(2, "邀请成员", w.done[2] ? invited.length ? `已邀请 ${invited.length} 位成员` : "稍后再邀请" : "", s2)}</div>${fin}`);
 };
 BARE_AFTER.welcome = () => {
   const heading = document.querySelector('.au-h1');
@@ -70783,43 +70819,44 @@ const AU_SUBMIT = {
   },
   async wInvite(f) {
     auReadWelcomeRows();
-    const w = auWelcomeState();
-    const rows = w.rows.map((r, i) => ({ ...r, acct: r.acct.trim(), i }));
+    const w = auWelcomeState(), b = w.batch;
+    const list = PACOM_AUTH_FLOW.inviteAddresses(b.accts);
     const existing = auMembers().map(m => m.account.toLowerCase());
     const pending = auInvites().filter(i => auInviteState(i) === "pending").map(i => i.account.toLowerCase());
-    const activeRows = rows.filter(r => r.status !== "sent");
-    const activeErrors = PACOM_AUTH_FLOW.invitationErrors(activeRows, existing, pending);
-    const errors = rows.map(r => r.status === "sent" ? {} : activeErrors[activeRows.indexOf(r)]);
-    let first = null;
-    errors.forEach((e, i) => {
-      auErr("w_acct" + i, e.account || "");
-      for (const key of ["role", "scope"]) {
-        const err = f.querySelector(`#au-w_${key}${i}-err`);
-        if (err) err.textContent = e[key] || "";
-        const control = key === "role" ? f.querySelector(`[data-field="auWRole${i}"]`) : f.querySelector(`[name="w_scope${i}"]`);
-        if (control) { control.setAttribute("aria-invalid", String(!!e[key])); control.setAttribute("aria-describedby", `au-w_${key}${i}-err`); }
-      }
-      if (!first && PACOM_AUTH_FLOW.errorCount(e)) first = e.account ? f.querySelector(`[name="w_acct${i}"]`) : e.role ? f.querySelector(`[data-field="auWRole${i}"]`) : f.querySelector(`[name="w_scope${i}"]`);
-    });
+    const errs = {
+      accts: !list.length ? "请填写电子邮箱，或选择“稍后再邀请”。" : PACOM_AUTH_FLOW.inviteAddressErrors(list, existing, pending).join("\n"),
+      role: !["admin", "config", "ops", "viewer"].includes(b.role) ? "请选择角色" : "",
+      scope: b.role !== "admin" && !(b.scope === "all" || Array.isArray(b.scope) && b.scope.length) ? "请选择项目授权范围" : "",
+    };
+    auErr("w_accts", errs.accts);
+    for (const key of ["role", "scope"]) {
+      const err = f.querySelector(`#au-w_${key}-err`);
+      if (err) err.textContent = errs[key];
+      const control = key === "role" ? f.querySelector('[data-field="auWRole"]') : f.querySelector('[name="w_scope"]');
+      if (control) { control.setAttribute("aria-invalid", String(!!errs[key])); control.setAttribute("aria-describedby", `au-w_${key}-err`); }
+    }
+    const first = errs.accts ? f.querySelector('[name="w_accts"]') : errs.role ? f.querySelector('[data-field="auWRole"]') : errs.scope ? f.querySelector('[name="w_scope"]') : null;
     if (first) return first.focus();
-    const filled = rows.filter(r => r.acct && r.status !== "sent");
-    if (!filled.length) return auFormErr(f, "请填写一位成员，或选择“稍后再邀请”。");
+    const rows = list.map(acct => ({ acct, role: b.role, scope: b.role === "admin" ? "all" : b.scope }));
     const context = auAsyncContext(f);
     const done = auBusy(f, "正在发送…");
-    const response = await auRequest("inviteMembers", { org: AUTH.org, rows: filled });
+    const response = await auRequest("inviteMembers", { org: AUTH.org, rows });
     await done();
     if (!auAsyncCurrent(context)) return; if (auServiceError(f, response)) return;
-    const results = response.results || [];
-    for (const r of filled) {
+    const results = response.results || [], failed = [];
+    for (const r of rows) {
       const result = results.find(x => x.account.toLowerCase() === r.acct.toLowerCase());
       if (result?.status === "ok" && result.inviteId) {
-        w.rows[r.i].status = "sent";
-        auInvites().unshift({ id: result.inviteId, account: r.acct, name: "", role: r.role, scope: r.role === "admin" ? "all" : r.scope, by: auMe().name, sent: result.sentAt, status: "pending" });
-      } else auErr("w_acct" + r.i, result?.message || "未能发送，请重试此行。");
+        w.sent += 1;
+        auInvites().unshift({ id: result.inviteId, account: r.acct, name: "", role: r.role, scope: r.scope, by: auMe().name, sent: result.sentAt, status: "pending" });
+      } else failed.push({ acct: r.acct, message: result?.message || "未能发送，请重试。" });
     }
     auSave();
-    if (w.rows.filter(r => r.acct).every(r => r.status === "sent")) { w.done[2] = true; delete w.skipped[2]; w.step = 3; render(); auFocusWelcomeFinish(); }
-    else { render(); requestAnimationFrame(() => { const current = document.querySelector('form[data-form="wInvite"]'); auFormErr(current, "部分邀请未发送。已发送的邀请不会重复发送，请处理有提示的行。"); current.querySelector('.au-field.bad input')?.focus(); }); }
+    // 已发送的地址从框中去掉；未发送的留在框里，逐个写明原因。
+    b.accts = failed.map(x => x.acct).join("\n");
+    AUX.v.w_accts = b.accts;
+    if (!failed.length) { w.done[2] = true; delete w.skipped[2]; w.step = 3; render(); auFocusWelcomeFinish(); }
+    else { render(); requestAnimationFrame(() => { const current = document.querySelector('form[data-form="wInvite"]'); auErr("w_accts", failed.map(x => `${x.acct}：${x.message}`).join("\n")); auFormErr(current, "部分邀请未发送。已发送的邀请不会重复发送，框中只留下未发送的地址。"); current.querySelector('[name="w_accts"]')?.focus(); }); }
   },
 };
 function auAcceptInvite(kind, inv, name, uid = inv.uid) {
@@ -71204,6 +71241,18 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "2.03",
+    date: "2026-10-16",
+    notes: [
+      "登录与重置密码：重置密码的帮助说明分两行；只有两三句的短说明每句单独一行。",
+      "联系我们、隐私政策、服务条款、帮助、更新说明、术语与 AI 用量明细：去掉底部“关闭”，用右上角关闭；从帮助打开的更新说明和术语底部只留“返回帮助”。",
+      "机构开通引导：“创建第一个项目”在引导页上直接打开“创建项目”；“邀请成员”可在一个框里填多个电子邮箱，选一个角色一起发送。",
+      "机构设置 › 成员：“邀请成员”可一次填多个电子邮箱，有问题的地址在框下逐个写明。",
+      "机构暂停使用与许可提示：续期期限写到最后续期日 24:00；暂停期间的功能与数据说明每句一行。",
+      "服务暂时不可用、系统维护中与页面加载失败：说明改为简短的两行。",
+    ],
+  },
   {
     version: "2.02",
     date: "2026-10-16",
@@ -71679,7 +71728,9 @@ const AU_TERMS = [
   ["照明控制参数", "功能区灯光自动运行的参数，如无人后自动关灯、有人亮度、待机亮度与手动后恢复自动；楼层设默认值，功能区可以覆盖。", "总览 → 照明、功能区面板"],
   ["UUID", "设备出厂时的唯一标识（Mesh 设备 UUID），绑定时由部署 App 读取；可以用它搜索设备。", "设备信息 → 高级信息，搜索，设备台账"],
 ];
-// “更新说明”“术语”与“联系支持”一样替换“帮助”弹窗打开，只有“关闭”，关闭后焦点回到机构入口。
+// “更新说明”“术语”与“联系支持”一样替换“帮助”弹窗打开，关闭后焦点回到机构入口。
+// 2.03 账户第 16 条（2026-10-16 用户确认）：只有关闭作用的弹窗（联系我们、隐私政策、服务条款、帮助、更新说明、术语、AI 用量明细）不再有底部“关闭”，
+// 保留右上角关闭与 Esc；从“帮助”打开的更新说明和术语底部只留“返回帮助”。
 function auReleaseNotesOpen(fromHelp = false) {
   auDialog(
     "更新说明",
@@ -71687,7 +71738,7 @@ function auReleaseNotesOpen(fromHelp = false) {
       (r, i) =>
         `<section class="au-notes"><h3>${esc(r.version)} · ${esc(auReleaseDate(r))}${i ? "" : `<span class="chip info au-ml">当前版本</span>`}</h3><ul class="au-legal">${r.notes.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></section>`,
     ).join("")}`,
-    (fromHelp ? btn("返回帮助", "auHelpBack") : "") + btn("关闭", "close"),
+    fromHelp ? btn("返回帮助", "auHelpBack") : "",
     "au-help-dlg",
   );
 }
@@ -71723,7 +71774,7 @@ function auTermsOpen(fromHelp = false) {
     `<p class="au-dlead">按拼音排列，字母开头的词排在最后。设备有几种标识：平时用点位名称；现场核对与报修用序列号；绑定时部署 App 读取 UUID；联系技术支持时提供内部标识。</p><dl class="au-terms">${AU_TERMS.map(
       ([t, d, where]) => `<div><dt>${esc(t)}</dt><dd>${esc(d)}<small>出现在：${esc(where)}</small></dd></div>`,
     ).join("")}</dl>`,
-    (fromHelp ? btn("返回帮助", "auHelpBack") : "") + btn("关闭", "close"),
+    fromHelp ? btn("返回帮助", "auHelpBack") : "",
     "au-help-dlg",
   );
 }
@@ -71964,14 +72015,14 @@ Object.assign(actions, {
       $("#dlg .dh h2").textContent = AUX.legal === "terms" ? "服务条款" : "隐私政策";
       return ($("#dlgBody").innerHTML = auLegalBody() + `<div class="form-error" id="formError" role="alert"></div>`);
     }
-    auDialog(AUX.legal === "terms" ? "服务条款" : "隐私政策", auLegalBody(), btn("关闭", "close"), "nodirty au-account-dlg");
+    auDialog(AUX.legal === "terms" ? "服务条款" : "隐私政策", auLegalBody(), "", "nodirty au-account-dlg");
   },
   auContact: () => {
     const reference = auApplySupportReference();
     auDialog(
       "联系我们",
       `<p class="au-dlead">账户、机构开通或使用问题，请联系 PACOM 支持。</p><div class="au-support-address"><a href="mailto:support@pacom.cn">support@pacom.cn</a><button type="button" class="au-copy" data-act="auCopySupport" aria-label="复制支持电子邮箱">${ico("copy", "ic16")}</button><span class="au-sr au-copy-done" role="status"></span></div><p class="au-copy-status" role="status"></p><p class="au-support-note">请勿在邮件中发送密码或短信验证码。</p>${reference ? `<p class="au-support-note au-apply-reference" id="au-apply-support-reference">${esc(reference).replace(/\n/g, '<br>')}</p><button type="button" class="au-textbtn" data-act="auCopyApplyReference" aria-describedby="au-apply-support-reference">复制申请参考信息</button><p class="au-copy-status" id="au-copy-apply-status" role="status"></p>` : ''}`,
-      btn("关闭", "close"),
+      "",
       "nodirty au-account-dlg",
     );
   },
@@ -72053,7 +72104,7 @@ Object.assign(actions, {
         .filter(Boolean)
         .map(([a, b, act]) => `<div class="au-row"><div class="au-row-l">${a}<small>${b}</small></div>${act ? `<div class="au-row-a">${act}</div>` : ""}</div>`)
         .join("")}</div>`,
-      btn("关闭", "close"),
+      "",
       // 帮助与从帮助打开的术语、更新说明、联系支持用同一套文字规格，不随打开时所在的页面改变（交互核查第 8 条）
       "au-help-dlg",
     );
@@ -72111,17 +72162,6 @@ Object.assign(actions, {
     render();
     auFocusWelcome();
   },
-  auWAddRow: () => {
-    const w = auWelcomeState();
-    w.rows.forEach((r, i) => {
-      r.acct = AUX.v["w_acct" + i] ?? r.acct;
-      r.role = value("auWRole" + i) || r.role;
-    });
-    if (w.rows.length >= 6) return msg("一次最多邀请 6 位，之后可在机构设置中继续邀请");
-    w.rows.push({ acct: "", role: "", scope: "" });
-    render();
-    requestAnimationFrame(() => $(`#au-w_acct${w.rows.length - 1}`)?.focus({ preventScroll: true }));
-  },
   // 第 2 步“稍后再邀请”：引导结束，下方只留“进入工作区”
   auWSkip: () => {
     const w = auWelcomeState();
@@ -72139,17 +72179,14 @@ Object.assign(actions, {
     render();
     auFocusWelcome();
   },
-  // 第 1 步“创建第一个项目”：在工作区的“创建项目”弹窗中填写，保存后回到引导第 2 步（saveSpaceForm）
+  // 第 1 步“创建第一个项目”：在引导页上直接打开同一个“创建项目”弹窗，字段不变（2.03 账户第 17 条第 1 点，2026-10-16 用户确认：原为跳到工作区“项目”页）。
+  // 保存后第 1 步显示“已创建 {项目名称}”，进入第 2 步（saveSpaceForm）；取消后回到第 1 步，并清除 creating，之后在“项目”页新建项目不会被带回引导（wsCloseModal）。
   auWProject: () => {
     if (!auWJoin()) return;
     auWelcomeState().creating = AUTH.org;
-    route("projects", {}, { root: true });
-    requestAnimationFrame(() => {
-      const create = document.querySelector('[data-act="spaceForm"][data-kind="projects"]');
-      create?.focus();
-      actions.spaceForm({ kind: "projects" });
-      $("#spaceName")?.focus();
-    });
+    actions.spaceForm({ kind: "projects" });
+    if ($("#dlg")) $("#dlg").dataset.welcome = "1";
+    $("#spaceName")?.focus();
   },
   auWEnter: () => {
     if (!auWJoin()) return;
@@ -72276,19 +72313,13 @@ Object.assign(actions, {
   },
   auInvite: () => auInviteDialog(),
   // 字段错误写在所属字段下方，一次核对全部字段并聚焦第一个错误（Account A1）。
+  // 2.03 账户第 17 条第 2 点（2026-10-16 用户确认）：一个“电子邮箱”框可填多个地址，角色与项目授权范围（或功能区）对这一批地址一起生效；
+  // 格式不对、已是成员或已有待接受邀请的地址在框下逐个写明，改好后再发送。
   auInviteSend: () => {
-    const acct = value("auInvAcct").trim(),
-      kind = auIdKind(acct);
-    const same = (x) => x.replace(/[\s\-]/g, "").toLowerCase() === acct.replace(/[\s\-]/g, "").toLowerCase();
-    const acctErr = !acct
-      ? "请输入受邀人的电子邮箱"
-      : kind !== "email"
-        ? "请输入有效的电子邮箱"
-        : auMembers().some((m) => same(m.account))
-          ? "该账户已是本机构成员，可在成员列表中修改角色"
-          : auInvites().some((i) => auInviteState(i) === "pending" && same(i.account))
-            ? "已有待接受的邀请，可在“邀请中”重新发送"
-            : "";
+    const list = PACOM_AUTH_FLOW.inviteAddresses(value("auInvAcct"));
+    const members = auMembers().map((m) => m.account.toLowerCase()),
+      pending = auInvites().filter((i) => auInviteState(i) === "pending").map((i) => i.account.toLowerCase());
+    const acctErr = !list.length ? "请输入受邀人的电子邮箱" : PACOM_AUTH_FLOW.inviteAddressErrors(list, members, pending).join("\n");
     const role = value("auInvRole"),
       scopeMode = document.querySelector('input[name="invScope"]:checked')?.value;
     const projects = checked("invProj"),
@@ -72301,24 +72332,26 @@ Object.assign(actions, {
     if (AU_ROLES[role] && role !== "admin" && role !== "member" && scopeMode === "some" && !projects.length) errs.push([auScopeErrId("inv"), "请至少选择一个项目，或选择全部项目"]);
     if (errs.length) return auFieldErrs(errs);
     const scope = role === "admin" || (role !== "member" && scopeMode === "all") ? "all" : role === "member" ? auZoneProjects(zones) : projects;
-    const invite = {
-      id: "inv-" + Math.random().toString(36).slice(2, 8),
-      account: acct,
-      name: value("auInvName").trim(),
-      role,
-      scope,
-      ...(role === "member" ? { zones } : {}),
-      by: auMe().name,
-      sent: auNow(),
-      status: "pending",
-    };
-    auInvites().unshift(invite);
-    auLog("邀请成员", `${acct} · ${auPermText(invite)}`);
+    for (const acct of list) {
+      const invite = {
+        id: "inv-" + Math.random().toString(36).slice(2, 8),
+        account: acct,
+        name: "",
+        role,
+        scope: Array.isArray(scope) ? [...scope] : scope,
+        ...(role === "member" ? { zones: [...zones] } : {}),
+        by: auMe().name,
+        sent: auNow(),
+        status: "pending",
+      };
+      auInvites().unshift(invite);
+      auLog("邀请成员", `${acct} · ${auPermText(invite)}`);
+    }
     auSave();
     closeModal(true);
     AUX.orgTab = "pending";
     render();
-    msg(`邀请已发送至 ${auMask(acct)}，7 天内有效`);
+    msg(list.length === 1 ? `邀请已发送至 ${auMask(list[0])}，7 天内有效` : `已向 ${list.length} 个电子邮箱发送邀请，7 天内有效`);
   },
   auInvResend: (a) => {
     const i = auInvites().find((x) => x.id === a.id);
@@ -73066,7 +73099,7 @@ function auInviteDialog() {
   if (!auCanManage()) return;
   auDialog(
     "邀请成员",
-    `${fld("电子邮箱", "auInvAcct", auInAttrs(input("auInvAcct", "", "name@example.com", "email"), AU_EMAIL_INPUT), "邀请链接发送到此邮箱；已有 PACOM 账户的人登录后直接接受。")}${fld("姓名（选填）", "auInvName", input("auInvName", "", "显示在成员列表和邀请中"))}${fld("角色", "auInvRole", auRoleSelect("auInvRole", AU_ROLE_OPTS, "", "角色"), `<span id="invRoleHint"></span>`)}<div class="field" id="invScopeField"><label>项目授权范围</label>${auScopeCtl("inv", [])}<small class="muted" id="invScopeNote"></small></div>${auZoneField("inv")}${note("邀请链接 7 天内有效，只能使用一次；普通邀请只加入本机构，不会创建新机构。")}`,
+    `${fld("电子邮箱", "auInvAcct", `<textarea id="auInvAcct" class="input" rows="3" placeholder="name@example.com" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false"></textarea>`, "可填多个地址，用逗号、空格或换行分隔。邀请链接发送到各邮箱；已有 PACOM 账户的人登录后直接接受。")}${fld("角色", "auInvRole", auRoleSelect("auInvRole", AU_ROLE_OPTS, "", "角色"), `<span id="invRoleHint"></span>`)}<div class="field" id="invScopeField"><label>项目授权范围</label>${auScopeCtl("inv", [])}<small class="muted" id="invScopeNote"></small></div>${auZoneField("inv")}${note("邀请链接 7 天内有效，只能使用一次；普通邀请只加入本机构，不会创建新机构。")}`,
     btn("取消", "close") + btn(ico("au-send", "ic16") + "发送邀请", "auInviteSend", {}, "primary"),
     "wide-form",
   );
@@ -73726,7 +73759,7 @@ function auLicSubscriptionDeadline(l) {
   }
   return auDate(auYmdAdd(l.opened, 14));
 }
-const auLicUnsubscribedText = (l) => `本机构尚未订阅。请在 ${auLicSubscriptionDeadline(l)}前完成订阅；逾期将删除本机构及其数据。`;
+const auLicUnsubscribedText = (l) => `本机构尚未订阅。请于 ${auLicSubscriptionDeadline(l)} 前完成订阅；逾期将删除本机构及其数据。`;
 // 最后续期日（全面设计核查第 141 条第 1 处）：许可服务给出的最后一天能续期的日期，即有效期最后一天后第 90 天，次日 0:00 删除；
 // 暂停页、续期时机构设置页头的提示条与提醒邮件用同一个值。
 const auLicLastRenewDay = (l) => auYmdAdd(l.end, 90);
@@ -73836,7 +73869,7 @@ function auLicBarText() {
     l = auLic(),
     admin = auCanManage();
   // 续期时的提示条带最后续期日（全面设计核查第 141 条第 6 处）
-  if (o.suspended) return auRenewOnly() ? { text: `${zhSub(esc(o.name), "r")}已暂停使用：许可到期。最晚请在 ${auDate(auLicLastRenewDay(l))}（含当天）完成续期，续期付款到账后自动恢复。` } : null;
+  if (o.suspended) return auRenewOnly() ? { text: `${zhSub(esc(o.name), "r")}已暂停使用：许可到期。请于 ${auDate(auLicLastRenewDay(l))} 24:00 前完成续期，续期付款到账后自动恢复。` } : null;
   // 未订阅只向机构管理员提示首次订阅截止及删除影响，期限由许可服务给出。
   if (l.state === "none") return admin ? { text: auLicUnsubscribedText(l), act: btn("订阅", "auLicBuy", { kind: "sub" }, "sm") } : null;
   const left = auYmdDiff(auCstYmd(), l.end);
@@ -74401,7 +74434,7 @@ defineActions({
     const html = `${tabs(ranges, AUX.aiRange, "auAiRange", "auAiRangePanel", "AI 用量期间")}<div class="ws-tabpanel" ${tabPanelAttrs("auAiRangePanel", "auAiRange", ranges, AUX.aiRange)}><p class="au-ai-sum"><b>${auWan(total)}词元</b></p>${auAiBars(days, "每天的 AI 用量", AUX.aiRange === "last" ? auYmdAdd(auCstYmd(), -day) : auCstYmd())}${tabs(bys, by, "auAiBy", "auAiByPanel", "AI 用量分组")}<div class="tw" ${tabPanelAttrs("auAiByPanel", "auAiBy", bys, by)}><table class="t au-table"><thead><tr><th>${by === "member" ? "成员" : "项目"}</th><th>用量</th><th>占比</th></tr></thead><tbody>${rows
       .map(([n, v]) => `<tr><td>${esc(n)}</td><td class="num">${auWan(v)}词元</td><td class="num">${total ? Math.round((v / total) * 100) : 0}%</td></tr>`)
       .join("")}</tbody></table></div></div>`;
-    if (a.open) auDialog("AI 用量明细", `<div id="auAiDetail">${html}</div>`, btn("关闭", "close", {}, "primary"), "wide-form au-aidetail-dlg");
+    if (a.open) auDialog("AI 用量明细", `<div id="auAiDetail">${html}</div>`, "", "wide-form au-aidetail-dlg");
     else if ($("#auAiDetail")) $("#auAiDetail").innerHTML = html;
   },
   auAiBy: (a) => actions.auAiRange({ value: AUX.aiRange || "month", by: a.value }),
@@ -74868,10 +74901,6 @@ function auEnhance(root = document) {
   if (U.page === 'login') { auSendHint('login'); auLockUI(); }
   if (U.page === 'invite' && U.tab === 'phone') auSendHint('bind');
   if (U.page === 'reset' && U.tab === 'link') auPasswordSaveUI();
-  root.querySelectorAll('.au-wrow').forEach(row => {
-    const i = Number(row.dataset.row), r = AUX.welcome?.rows[i];
-    if (r?.status === 'sent') row.querySelectorAll('input,button').forEach(el => el.disabled = true);
-  });
 }
 // The right-hand picture ends 16px from the viewport edge: the scrollbar space #app keeps is counted inside those 16px (Account review C9).
 function auMeasureGutter() {
@@ -75183,14 +75212,6 @@ Object.assign(actions, {
     if (epoch !== AUX.accountEpoch || AUX.applyRequest !== request || context !== AUX.applyContext) return;
     auApplyResponse(el.closest('form'), response, request, true, false);
   },
-  auWRemoveRow: a => {
-    auReadWelcomeRows();
-    const w = auWelcomeState(); w.rows.splice(Number(a.row), 1);
-    if (!w.rows.length) w.rows.push({ acct: '', role: '', scope: '' });
-    for (const key of Object.keys(AUX.v)) if (key.startsWith('w_acct')) delete AUX.v[key];
-    for (const key of Object.keys(AUX.errors)) if (key.startsWith('w_acct')) delete AUX.errors[key];
-    render(); requestAnimationFrame(() => $('#au-w_acct' + Math.min(Number(a.row), w.rows.length - 1))?.focus());
-  },
 });
 
 // Result screens focus and announce the state actually rendered, not an obsolete URL step.
@@ -75347,15 +75368,14 @@ document.addEventListener('keydown', e => {
 document.addEventListener('input', e => {
   if (e.target.name === 'id') AUX.resetInviteContext = null;
   if (['id','sphone'].includes(e.target.name)) auLockUI();
-  if (/^auWRole\d+$/.test(e.target.id)) {
+  if (e.target.id === 'auWRole') {
     auReadWelcomeRows(); render();
     requestAnimationFrame(() => document.querySelector(`[data-field="${e.target.id}"]`)?.focus());
   }
-  if (/^w_scope\d+$|^w_project\d+$/.test(e.target.name)) {
+  if (['w_scope', 'w_project'].includes(e.target.name)) {
     auReadWelcomeRows();
-    const i = e.target.name.replace(/\D/g, '');
-    const projects = document.getElementById('au-wprojects' + i);
-    if (projects) projects.hidden = !Array.isArray(AUX.welcome.rows[Number(i)].scope);
+    const projects = document.getElementById('au-wprojects');
+    if (projects) projects.hidden = !Array.isArray(AUX.welcome.batch.scope);
   }
 });
 function auApplyContextKey(mode) { return mode === 'public' ? 'public' : `${mode}:${AUTH.session === 'in' ? AUTH.uid : 'signed-out'}`; }
@@ -82763,7 +82783,7 @@ Object.assign(AU_SVC, {
     }
     if (operation === "inviteMembers") {
       const partial = DEMO_FAIL.partialInvite; DEMO_FAIL.partialInvite = false;
-      return { status: "ok", results: payload.rows.map((r, i) => partial && i > 0 ? { account: r.acct, status: "failed", message: "未能发送，请重试此行。" } : { account: r.acct, status: "ok", inviteId: "demo-inv-" + crypto.randomUUID(), sentAt: auNow() }) };
+      return { status: "ok", results: payload.rows.map((r, i) => partial && i > 0 ? { account: r.acct, status: "failed", message: "未能发送，请重试。" } : { account: r.acct, status: "ok", inviteId: "demo-inv-" + crypto.randomUUID(), sentAt: auNow() }) };
     }
     // 接口密钥的演示实现：签发时返回一次性显示的密钥（演示，不能调用接口）。
     if (operation === "issueApiKey") return { status: "ok", key: "psk_demo_" + crypto.randomUUID().replace(/-/g, "").slice(0, 24) };
@@ -83281,7 +83301,8 @@ function demoWelcome(step) {
     step,
     done: {},
     skipped: { 1: step > 1 },
-    rows: [{ acct: "", role: "", scope: "" }],
+    batch: { accts: "", role: "", scope: "" },
+    sent: 0,
     projects: [],
   };
   demoOpeningBlank();
@@ -83985,7 +84006,7 @@ defineActions({
     Object.assign(AUTH, { org: "demo-park" });
     AUTH.lastOrg[uid] = "demo-park";
     U.role = "admin";
-    AUX.welcome = { step: 1, done: {}, rows: [{ acct: "", role: "", scope: "" }], projects: [] };
+    AUX.welcome = { step: 1, done: {}, batch: { accts: "", role: "", scope: "" }, sent: 0, projects: [] };
     auClearApply();
     demoOpeningBlank();
     auSave();
