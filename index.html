@@ -34379,29 +34379,32 @@ const data = () => D || W,
   // 配置写入只给机构管理员与配置人员；运营人员、查看人员与普通成员都不能（角色权限方案第 4 条：按允许的角色列出，新角色不会自动得到权限）
   canEdit = () => U.role === "admin" || U.role === "config";
 // Project pages edit space only. Configuration tasks link to the owning workspace without duplicating data.
-// 设备只有五个列表页签（2026-10-17 用户确认，配置区核查 E81、E121、E122：原先第一个页签为“设备标记”画布，页签“分组”）；
-// 设备标记并入项目 › 楼层的“设备”“照明分区”“网络”模式。
+// 设备页签（2026-10-17 用户确认，配置区核查 E138：设备标记放回设备，做第一个页签；原为 E81 的五个列表页签，设备标记并入项目 › 楼层）；
+// 名称按 E121、E122（原为“设备台账”“分组”）。
 const DEVICE_CATEGORY_ITEMS = [
+  ["mark", "设备标记"],
   ["inventory", "设备列表"],
   ["groups", "设备分组"],
   ["networks", "设备网络"],
   ["connections", "系统接入"],
   ["firmware", "固件"],
 ];
-const deviceTabs = () => pageCategorySwitch("devices", U.tab || "inventory");
-// 设备页的默认页签：地址没有带页签时（如从侧栏进入）一律打开“设备列表”（2026-10-17 用户确认，配置区核查 E81：
-// 原为范围是楼层时打开“设备标记”）；带页签的地址与配置进度等入口照旧按所带的页签。
-const deviceDefaultTab = () => "inventory";
-// 楼层图唯一的工作区（2026-10-17 用户确认，配置区核查 E81、E128）：项目 › 楼层的五个模式“查看 | 功能区 | 设备 | 照明分区 | 网络”。
-// “查看”“功能区”由项目楼层绘制；“设备”“照明分区”“网络”沿用设备标记画布（内部为设备页 mark 页签），侧栏、标题和地址都是项目楼层。
+const deviceTabs = () => pageCategorySwitch("devices", U.tab || deviceDefaultTab());
+// 设备页的默认页签（2026-10-17 用户确认，配置区核查 E138）：地址没有带页签时，范围是楼层打开“设备标记”，范围是项目或楼宇打开“设备列表”；
+// 带页签的地址与配置进度等入口照旧按所带的页签。
+const deviceDefaultTab = () => (U.f ? "mark" : "inventory");
+// 楼层图的模式（2026-10-17 用户确认，配置区核查 E139、E141）：项目 › 楼层为“查看 | 功能区”；设备 › 设备标记为“设备 | 照明分区 | 网络”，
+// 运营人员与查看人员只有“设备”“网络”，只读（原为 E81、E128 的项目楼层五个模式）。图纸、比例尺与功能区只在项目楼层修改。
 // “网络”上半为节点类型规划，下半为网络检测结果（原“角色”“网络检测”两个模式，E111、E128）。
 const devCanvas = () => U.page === "devices" && U.tab === "mark" && !!U.f;
 const FLOOR_DEVICE_MODES = ["mark", "relations", "roles", "health"];
 function floorModeTabs() {
   const edit = canEdit(),
-    items = [["view", "查看"], ...(edit ? [["zones", "功能区"]] : []), [edit ? "mark" : "dview", "设备"], ...(edit ? [["relations", "照明分区"]] : []), ["roles", "网络"]],
-    cur = U.page === "projects" ? (U.mode === "zones" && edit ? "zones" : "view") : U.mode === "health" ? "roles" : U.mode === "view" ? (edit ? "mark" : "dview") : U.mode;
-  return `<div class="seg sm ws-floor-modes" role="tablist" aria-label="${planWord(U.b)}模式">${items
+    space = U.page === "projects",
+    items = space ? (edit ? [["view", "查看"], ["zones", "功能区"]] : []) : [[edit ? "mark" : "dview", "设备"], ...(edit ? [["relations", "照明分区"]] : []), ["roles", "网络"]],
+    cur = space ? (U.mode === "zones" && edit ? "zones" : "view") : U.mode === "health" ? "roles" : U.mode === "view" ? (edit ? "mark" : "dview") : U.mode;
+  if (!items.length) return "";
+  return `<div class="seg sm ws-floor-modes" role="tablist" aria-label="${space ? planWord(U.b) + "模式" : "设备标记模式"}">${items
     .map(([v, l]) => `<button role="tab" class="${v === cur ? "on" : ""}" aria-selected="${v === cur}" data-act="floorMode" data-value="${v}">${l}</button>`)
     .join("")}</div>`;
 }
@@ -35271,13 +35274,13 @@ function syncRoute(replace = false) {
   }
   // 来源返回记在本历史项里（2026-10-05 核查 C1）：浏览器后退、前进回到哪一项，就恢复那一项进入时的来源。
   const canvas = devCanvas();
-  for (const k of ["p", "b", "f", "tab", "net", "ntab"]) if (U[k] && !(k === "ntab" && U[k] === "summary") && !(canvas && k === "tab")) q.set(k, U[k]);
+  for (const k of ["p", "b", "f", "tab", "net", "ntab"]) if (U[k] && !(k === "ntab" && U[k] === "summary")) q.set(k, U[k]);
   if (["projects", "devices"].includes(U.page) && U.f && U.zone) q.set("z", U.zone);
   if (U.view !== "cards") q.set("view", U.view);
   if (canvas || U.mode !== floorDefaultMode(U.page)) q.set("mode", U.mode);
   const state = { source: U.source || null }, ops = typeof opsRouteState === "function" ? opsRouteState() : null;
   if (ops) state.ops = ops;
-  history[replace ? "replaceState" : "pushState"](state, "", "#" + (canvas ? "projects" : U.page) + (q.size ? "?" + q : ""));
+  history[replace ? "replaceState" : "pushState"](state, "", "#" + U.page + (q.size ? "?" + q : ""));
 }
 function readRoute() {
   // A standalone document has no workspace loaded; entering the app starts its normal boot.
@@ -35304,7 +35307,7 @@ function readRoute() {
     U.tab = U.tab === "network" ? "networks" : "mark";
     U.mode = "mark";
   }
-  // 项目楼层的“设备”“照明分区”“网络”模式在设备标记画布中绘制；旧地址 devices?tab=mark 照旧打开。
+  // 2.04 的项目楼层“设备”“照明分区”“网络”模式地址改开设备 › 设备标记（E138）。
   if (U.page === "projects" && U.f && FLOOR_DEVICE_MODES.includes(U.mode)) (U.page = "devices"), (U.tab = "mark");
   else if (U.page === "projects") U.mode = U.mode === "zones" ? "zones" : "view";
   // 功能区地址：只有 z 时直接进入其所在楼层；z 不属于当前楼层时忽略，不跳到别的楼层。
@@ -35564,7 +35567,7 @@ const PAGE_CATEGORY_ICONS = {
   settings: { general: "panel", lighting: "bulb", hvac: "ac", environment: "aq", energy: "meter", carbon: "layers", rules: "bell", approval: "check" },
   scenes: { manual: "play", schedule: "calendar", link: "link", records: "clock" },
   // 设备六个页签（2.01 配置区核查 E41，2026-10-16 用户确认）：图标描述对象，不与“编辑”“规则”“楼层”“联动”“更换网关”“下载”重复
-  devices: { inventory: "dir-list", groups: "blocks", networks: "network", connections: "plug", firmware: "upgrade" },
+  devices: { mark: "map-pin", inventory: "dir-list", groups: "blocks", networks: "network", connections: "plug", firmware: "upgrade" },
 };
 function pageCategoryItems(page) {
   if (page === "overview") return overviewTabs;
@@ -35619,7 +35622,7 @@ const views = () =>
     .join("")}</div>`;
 // leftExtra: a secondary button that belongs to the selector group (楼宇“楼层操作 / 定位楼层”), 8px after the selector (D1, 2026-10-03).
 function toolbar(right = "", showViews = false, leftExtra = "") {
-  const left = U.page === "projects" || devCanvas() ? projectNavigation(showViews)
+  const left = U.page === "projects" ? projectNavigation(showViews)
     : U.page === "deployment" ? dirSearch()
     : `<div class="ws-location-group ${showViews ? "with-views" : ""}">${scopeControl()}${showViews ? views() : ""}</div>`;
   return `<div class="toolbar ws-toolbar">${left}${leftExtra}<span class="sp"></span>${right}</div>`;
@@ -35726,7 +35729,7 @@ function wsNavItem(k, l, i) {
   const al = k === "alarms" ? wsAlarmCount() : null,
     name = al ? `${l} · ${al.n} 条重要及以上待确认` : l;
   // 侧栏图标统一 1.5 线宽（规范第 61 行）：线条图标（XI，默认 1.6）在这里改为 1.5（2.01 配置区核查 E54）
-  const on = devCanvas() ? k === "projects" : U.page === k;
+  const on = U.page === k;
   return `<a href="${esc(wsNavHref(k))}" class="navitem ${on ? "on" : ""}" data-act="nav" data-page="${k}" aria-label="${esc(name)}" ${on ? 'aria-current="page"' : ""} data-tip="${esc(name)}"><span class="ib">${ico(i).replace('stroke-width="1.6"', 'stroke-width="1.5"')}</span><span class="navlabel">${esc(l)}</span>${al ? `<span class="ws-nav-count l${al.lvl}" aria-hidden="true">${al.n > 99 ? "99+" : al.n}</span>` : ""}</a>`;
 }
 function wsSideHtml() {
@@ -35748,7 +35751,7 @@ function render() {
   if (normalizedMode !== U.mode) { U.mode = normalizedMode; syncRoute(true); }
   // 无效主类地址统一回当前页默认项；碳明细是能源的合法深链，不被主类归一化移除。
   const categoryItems = pageCategoryItems(U.page);
-  if (categoryItems.length && U.tab && !(U.page === "analysis" && U.tab === "carbon") && !devCanvas() && !categoryItems.some(([id]) => id === U.tab)) {
+  if (categoryItems.length && U.tab && !(U.page === "analysis" && U.tab === "carbon") && !categoryItems.some(([id]) => id === U.tab)) {
     U.tab = U.page === "devices" ? deviceDefaultTab() : categoryItems[0][0];
     syncRoute(true);
   }
@@ -36263,15 +36266,17 @@ function floorPage() {
     overlay = !!f.image && mkOverlay();
   // 页头右侧的面板按钮同项目楼层（第 31 条）；宽度 ≤850px 时面板排在画布下方，没有这个按钮。
   const panelBtn = f.image && !mkStacked() ? `<button class="iconbtn round sp-panel-btn mk-panel-btn" data-act="mkPanel" aria-pressed="${panelOpen}" aria-label="${panelOpen ? "收起面板" : "展开面板"}" data-tip="${panelOpen ? "收起面板" : "展开面板"}">${ico("collapse", "sp-panel-ic")}</button>` : "";
-  const right = `<div class="ws-tb-actions">${btn(out ? "总平面信息" : "楼层信息", "spaceInfo", { kind: "floors", id: f.id })}${f.image ? menuTrigger(iconBtn("图纸与比例尺", "more", "planMore")) : ""}${panelBtn}</div>`;
-  const body = toolbar(right);
-  // 查看人员与运营人员不给上传指导（第14章；2026-10-05 核查 D16：原先设备页对他们也写“先保存本层图纸…”），说法同项目楼层图（SPACE04）。
+  // 图纸与比例尺只在项目楼层修改（E141），这里没有“图纸与比例尺”菜单。
+  const right = `<div class="ws-tb-actions">${btn(out ? "总平面信息" : "楼层信息", "spaceInfo", { kind: "floors", id: f.id })}${panelBtn}</div>`;
+  // 设备标记是设备页的第一个页签，页头同其他页签（E138）
+  const body = U.page === "devices" ? pageCategoryHeader("devices", "mark", { actions: right }) : toolbar(right);
+  // 没有图纸时指向项目楼层（2026-10-17 用户确认，配置区核查 E141）；查看人员与运营人员不给上传指导（第14章；2026-10-05 核查 D16）。
   if (!f.image)
     return (
       body +
       `<div class="ws-workbench no-plan mk-bench">${floorRail()}${out
-        ? empty(zhSub(f.name, "r") + "尚未上传总平面图", canEdit() ? "先保存总平面图，再划分功能区、标记设备。上传完成后留在本页。" : "尚无总平面图，暂不能查看设备标记。", canEdit() ? btn("上传总平面图", "uploadPlan", {}, "primary") : "")
-        : empty(zhSub(f.name, "r") + "尚未上传楼层图", canEdit() ? "先保存本层图纸，再划分功能区、标记设备。上传完成后留在当前楼层。" : "本层尚无楼层图，暂不能查看设备标记。", canEdit() ? btn("上传楼层图", "uploadPlan", {}, "primary") : "")}${floorPick()}</div>${deviceRailLegend()}`
+        ? empty(zhSub(f.name, "r") + "尚未上传总平面图", canEdit() ? "先在项目中上传总平面图并设置比例尺" : "尚无总平面图，暂不能查看设备标记。", canEdit() ? btn("前往项目总平面", "toSpace", {}, "primary") : "")
+        : empty(zhSub(f.name, "r") + "尚未上传楼层图", canEdit() ? "先在项目中上传楼层图并设置比例尺" : "本层尚无楼层图，暂不能查看设备标记。", canEdit() ? btn("前往项目楼层", "toSpace", {}, "primary") : "")}${floorPick()}</div>${deviceRailLegend()}`
     );
   const net = M.networks(data(), f.id).find((n) => n.id === U.net) || M.networks(data(), f.id)[0];
   U.net = net?.id || null;
@@ -36282,16 +36287,16 @@ function floorPage() {
   // 画布模式页签指向画布（页签面板，Lovable 核查第 321 条，2026-10-11 用户确认）
   const canvasTop = viewing
     ? `<div class="ws-canvas-top ws-view-actions">${canEdit() ? btn(ico("plus", "ic16") + "创建功能区", "startZone") : ""}${canEdit() ? btn(ico("plus", "ic16") + "标记设备", "startMark") : ""}</div>`
-    : `<div class="ws-canvas-top">${floorModeTabs()}<span class="sp"></span>${checkPill(checks)}${U.scalePoints ? btn("取消校准", "scaleCancel", {}, "sm") : ""}</div>`;
+    : `<div class="ws-canvas-top">${floorModeTabs()}<span class="sp"></span>${checkPill(checks)}${btn(U.mkZones === false ? "显示功能区" : "隐藏功能区", "mkZonesLayer", {}, "sm")}${btn(canEdit() ? "编辑功能区" : "在项目中查看", "toSpace", {}, "sm")}${canEdit() && (["mark", "relations", "roles"].includes(U.mode) || U.dirty || U.attrsDirty) ? planSaveBtn("保存规划", "savePlan", "primary") : ""}</div>`;
   // 窄屏（宽度 ≤540px 或高度 ≤500px）时轨道收成左下角的“当前层 ▾”，缩放胶囊在其右侧（Editor 核查 E3，照 SPACE04）。
   const canvasBottom = `<div class="ws-canvas-bottom">${floorPick()}${zoomPill(planWord(f.buildingId), U.zoom, "zoom", "fit")}${!viewing ? `<span class="mk-hint">${canvasHint()}</span>` : ""}</div>`;
   const pts = M.points(data(), f.id).filter((p) => p.positionAttached !== false);
   return (
     body +
-    `<div class="ws-workbench mk-bench ${viewing ? "viewing" : "editing"}${overlay ? " mk-overlay" : ""}${panelOpen ? " with-panel" : ""}">${floorRail()}<div class="ws-canvas-col">${canvasTop}${!viewing ? canvasOverlay(checks) : ""}<div class="ws-canvas-viewport" id="canvasViewport"${viewing ? "" : ` role="tabpanel" aria-labelledby="mode-${esc(U.mode)}"`}><div class="ws-plan ${U.joinFrom ? "picking" : ""}${ptDots(($("#canvasViewport")?.clientWidth || mkBenchWidth() - mkPlanInset() - (panelOpen && !overlay && !mkStacked() ? MK_PANEL_W : 0)) * U.zoom) ? " pt-dots" : ""}" id="floorCanvas" style="width:${U.zoom * 100}%" tabindex="0" aria-label="${esc(b.name + " " + f.name)}${planWord(f.buildingId)}${U.page === "devices" && U.mode === "mark" && canEdit() ? "；选择设备类型后点击或拖放" : ""}"><img src="${esc(f.image)}" alt="${zhSub(esc(b.name + " " + f.name), "r")}楼层图" draggable="false">${renderZones()}${renderGroupHulls()}${renderRelations()}${renderRoleCoverage(net)}${pts.map(renderPoint).join("")}</div></div>${canvasBottom}</div>${viewing || !panelOpen ? "" : planningPanel(net)}</div>${markLegend()}` +
+    `<div class="ws-workbench mk-bench ${viewing ? "viewing" : "editing"}${overlay ? " mk-overlay" : ""}${panelOpen ? " with-panel" : ""}">${floorRail()}<div class="ws-canvas-col">${canvasTop}${!viewing ? canvasOverlay(checks) : ""}<div class="ws-canvas-viewport" id="canvasViewport"${viewing ? "" : ` role="tabpanel" aria-labelledby="mode-${esc(U.mode)}"`}><div class="ws-plan ${U.joinFrom ? "picking" : ""}${ptDots(($("#canvasViewport")?.clientWidth || mkBenchWidth() - mkPlanInset() - (panelOpen && !overlay && !mkStacked() ? MK_PANEL_W : 0)) * U.zoom) ? " pt-dots" : ""}" id="floorCanvas" style="width:${U.zoom * 100}%" tabindex="0" aria-label="${esc(b.name + " " + f.name)}${planWord(f.buildingId)}${U.page === "devices" && U.mode === "mark" && canEdit() ? "；选择设备类型后点击或拖放" : ""}"><img src="${esc(f.image)}" alt="${zhSub(esc(b.name + " " + f.name), "r")}楼层图" draggable="false">${U.mkZones === false ? "" : renderZones()}${renderGroupHulls()}${renderRelations()}${renderRoleCoverage(net)}${pts.map(renderPoint).join("")}</div></div>${canvasBottom}</div>${viewing || !panelOpen ? "" : planningPanel(net)}</div>${markLegend()}` +
     // “查看”模式（含从项目“在设备中查看”进入）只查看：没有未保存的修改时不显示保存条与“现场绑定”（2026-10-05 核查合并细节第 8 条）。
     (!viewing && canEdit() && (["mark", "relations", "roles"].includes(U.mode) || U.dirty || U.attrsDirty)
-      ? `<div class="ws-savebar">${btn("撤销", "undo", { disabled: !U.undo.length }, "ghost")}${btn("重做", "redo", { disabled: !U.redo.length }, "ghost")}<span role="status" class="mk-save-state">${saveState()}</span><span class="sp"></span>${planSaveBtn("取消修改", "cancelPlan", "ghost")}${planSaveBtn("保存规划", "savePlan", "primary")}${btn("现场绑定" + (checks.blocks.length ? `<b class="mk-count">${checks.blocks.length}</b>` : ""), "prepareApp", {}, checks.blocks.length ? "mk-gated" : "")}</div>`
+      ? `<div class="ws-savebar">${btn("撤销", "undo", { disabled: !U.undo.length }, "ghost")}${btn("重做", "redo", { disabled: !U.redo.length }, "ghost")}<span role="status" class="mk-save-state">${saveState()}</span><span class="sp"></span>${planSaveBtn("取消修改", "cancelPlan", "ghost")}${btn("现场绑定" + (checks.blocks.length ? `<b class="mk-count">${checks.blocks.length}</b>` : ""), "prepareApp", {}, checks.blocks.length ? "mk-gated" : "")}</div>`
       : "")
   );
 }
@@ -36304,7 +36309,7 @@ const planSaveBtn = (label, act, cls) => {
   return U.dirty || U.attrsDirty ? b : b.replace('class="btn ', 'class="btn ops-dis-btn ').replace("<button ", `<button aria-disabled="true" aria-description="${PLAN_CLEAN}" data-tip="${PLAN_CLEAN}" `);
 };
 function planSaveSync() {
-  for (const act of ["cancelPlan", "savePlan"]) wsDisBtn($(`.ws-savebar [data-act=${act}]`), U.dirty || U.attrsDirty ? "" : PLAN_CLEAN);
+  for (const act of ["cancelPlan", "savePlan"]) wsDisBtn($(`:is(.ws-savebar, .ws-canvas-top) [data-act=${act}]`), U.dirty || U.attrsDirty ? "" : PLAN_CLEAN);
 }
 function progressBar(n) {
   const ps = n ? F.meshPoints(data(), n.id) : [],
@@ -38806,7 +38811,8 @@ defineActions({
       return;
     }
     const p = g("points", a.id);
-    goFloor(p.floorId, "mark", p.id);
+    // 各处的“在图上查看”都打开设备 › 设备标记的该楼层并选中这台设备（E142）
+    goFloor(p.floorId, "mark", p.id, "devices");
   },
   // 记录类弹窗用 1200 档，与总览的操作记录同宽（全面设计核查第 19 条，2026-10-12 用户确认：原为 720 宽）
   changes: () => modal("修改记录", recordsTable(data().records), btn("关闭", "close"), "xl"),
@@ -40818,7 +40824,7 @@ function sourceBack() {
 }
 // 标题区路径：项目 / 广实2号园 / E栋 / 7F。祖先为链接；当前对象为标题，点按打开同级切换与四级搜索。
 function headTitle() {
-  return `<h1>${memberHome() ? MEMBER_HOME : TITLES[devCanvas() ? "projects" : U.page] || "PACOM Station"}</h1>`;
+  return `<h1>${memberHome() ? MEMBER_HOME : TITLES[U.page] || "PACOM Station"}</h1>`;
 }
 // 室外区域只有一张总平面：选择器在楼宇与室外区域之间切换（2026-10-05 核查 S8：原先展开只有这一张总平面，切不到其他室外区域）。
 const switchKind = () => (U.page === "deployment" ? "projects" : U.f && U.zone && g("zones", U.zone) ? "zones" : U.f && !isOutdoor(U.b) ? "floors" : U.b ? "buildings" : "projects");
@@ -41794,13 +41800,14 @@ function spaceFloorPage() {
     open = spPanelOpen() && !sheetZ,
     over = overlayPanel() ? "sp-overlay" : "",
     drawing = U.drawZone || U.zoneDraft || U.spatialEdit || U.scalePoints;
-  const bar = toolbar(`<div class="ws-tb-actions">${f.image ? menuTrigger(iconBtn("图纸与比例尺", "more", "planMore")) : ""}<button class="iconbtn round sp-panel-btn" data-act="spPanel" aria-pressed="${open}" aria-label="${open ? "收起面板" : "展开面板"}" data-tip="${open ? "收起面板" : "展开面板"}">${ico("collapse", "sp-panel-ic")}</button></div>`);
+  // 与设备标记互跳只用两个按钮：这里的“标记设备”（查看人员为“查看设备”），设备标记里的“编辑功能区”（E141）。
+  const bar = toolbar(`<div class="ws-tb-actions">${btn(ico("cpu", "ic16") + (edit ? "标记设备" : "查看设备"), "toDevices", { disabled: !f.image })}${f.image ? menuTrigger(iconBtn("图纸与比例尺", "more", "planMore")) : ""}<button class="iconbtn round sp-panel-btn" data-act="spPanel" aria-pressed="${open}" aria-label="${open ? "收起面板" : "展开面板"}" data-tip="${open ? "收起面板" : "展开面板"}">${ico("collapse", "sp-panel-ic")}</button></div>`);
   // 没有楼层图时仍有右侧面板：“楼层”页签照常（资料、待补原因、编辑楼层、修改记录），“功能区”页签提示先上传楼层图（SPACE04）。
   if (!f.image)
     return (
       bar +
       verifyBar(f) +
-      `<div class="ws-workbench no-plan sp-bench ${open ? "with-panel" : ""} ${isOutdoor(U.b) ? "no-rail" : ""} ${over}">${floorRail()}${floorPick()}${empty(zhSub(f.name, "r") + "尚未上传" + planWord(U.b), edit ? (isOutdoor(U.b) ? "上传总平面图后划分功能区（停车场、道路、广场等）。设备标记在“设备”中进行，与本图共用同一份图纸。" : "上传本层图纸后划分功能区；同一套标准层可在已划分的楼层用“复制功能区到其他楼层”复制功能区。设备标记在“设备”中进行，与本图共用同一份图纸。") : isOutdoor(U.b) ? "尚无总平面图，暂不能查看功能区。" : "本层尚无楼层图，暂不能查看功能区。", edit ? btn("上传" + planWord(U.b), "uploadPlan", {}, "primary") : "")}${open ? spacePanel(f) : ""}</div>${railLegend()}`
+      `<div class="ws-workbench no-plan sp-bench ${open ? "with-panel" : ""} ${isOutdoor(U.b) ? "no-rail" : ""} ${over}">${floorRail()}${floorPick()}${empty(zhSub(f.name, "r") + "尚未上传" + planWord(U.b), edit ? (isOutdoor(U.b) ? "上传总平面图后划分功能区（停车场、道路、广场等）。设备在“设备 › 设备标记”中标记，与本图共用同一份图纸。" : "上传本层图纸后划分功能区；同一套标准层可在已划分的楼层用“复制功能区到其他楼层”复制功能区。设备在“设备 › 设备标记”中标记，与本图共用同一份图纸。") : isOutdoor(U.b) ? "尚无总平面图，暂不能查看功能区。" : "本层尚无楼层图，暂不能查看功能区。", edit ? btn("上传" + planWord(U.b), "uploadPlan", {}, "primary") : "")}${open ? spacePanel(f) : ""}</div>${railLegend()}`
     );
   const top = floorModeTabs() + (edit && !U.scalePoints && U.mode === "zones"
     ? isMobile() ? `<span class="sp-mobile-note">${spMobileNote()}</span>` : spatialControl("创建功能区")
@@ -42584,6 +42591,11 @@ defineActions({
       if (space ? U.page === "projects" : devCanvas()) return actions.mode({ value: mode });
       route(space ? "projects" : "devices", { p: U.p, b: U.b, f: U.f, tab: space ? "" : "mark", mode, zone: null, zoom: U.zoom, canvasScrollX: U.canvasScrollX, canvasScrollY: U.canvasScrollY }, { source: U.source || null });
     }),
+  // 设备标记里功能区作为浅色图层显示，可关闭，不可修改（E141）
+  mkZonesLayer: () => {
+    U.mkZones = U.mkZones === false;
+    render();
+  },
   toSpace: () =>
     guard(() =>
       route(
@@ -45489,7 +45501,7 @@ function renderInventory() {
       `<span class="dev-ledger-more">${btn("全部信息", "deviceInfo", { id: p.id }, "ghost sm")}</span>${btn("在图上查看", "locatePoint", { id: p.id }, "ghost sm")}`,
     ]),
     // 查看人员与运营人员不给无法执行的指导（第14章“查看人员、运营人员不给创建或上传指导”；第四批遗留）。
-    all.length ? "没有匹配的设备" : canEdit() ? "尚未标记设备；在项目楼层图的“设备”模式中标记。" : "尚未标记设备。",
+    all.length ? "没有匹配的设备" : canEdit() ? "尚未标记设备；在“设备标记”中选择楼层开始。" : "尚未标记设备。",
   )}</div>${devPager(n, pages, ps.length)}${note("需处理优先，其次按楼宇、楼层和点位名称排列；跨多个楼层时按楼层分组，每页 200 台。")}</div>`;
 }
 // 设备列表、分组、设备网络与固件表格里的状态（全面设计核查第 155 条，2026-10-12 用户确认，方案 A）：正常状态（已绑定、已同步、在线、
@@ -46335,8 +46347,8 @@ function showDeviceInformation(id, tab = "runtime") {
           ["功能验证", verifyText(data(), p)],
           [
             "固件",
-            // 只提示“有新版本”，不计入需处理（2026-10-09 用户确认，ABB 对比 BP52）
-            esc(p.firmwareVersion || "未取得") + (fwNewer(p) ? ` · 有新版本 ${esc(fwNewer(p))}` : ""),
+            // 只提示“有新版本”，不计入需处理（2026-10-09 用户确认，ABB 对比 BP52）；有配置权限的角色旁边有“去升级”（2026-10-17 用户确认，配置区核查 E144）
+            esc(p.firmwareVersion || "未取得") + (fwNewer(p) ? ` · 有新版本 ${esc(fwNewer(p))}${canEdit() ? " " + btn("去升级", "fwGoUpgrade", { id: p.id }, "sm") : ""}` : ""),
           ],
           ["位置", p.planVersion === g("floors", p.floorId)?.planVersion ? "对应当前图纸" : "需要重新核对"],
           ...(p.fieldReset || comm === "离线" ? [deviceHelpersRow(p)].filter(Boolean) : []),
@@ -48285,6 +48297,8 @@ function deviceZoneTool(a) {
 defineActions({
   point: (a) => {
     if (U.connectKind) return;
+    // 项目楼层“查看”时的只读设备图层：点设备打开设备 › 设备标记并选中这台设备（2026-10-17 用户确认，配置区核查 E141）
+    if (U.page === "projects" && U.f) return actions.locatePoint({ id: a.id });
     if (!isFloorWorkspace() || U.mode === "view") return showDeviceInformation(a.id);
     U.point = a.id;
     U.type = null;
@@ -48760,7 +48774,7 @@ defineActions({
     else if (group.origin === "楼宇") actions.spaceOpen({ kind: "buildings", id: group.sourceId });
     else {
       const p = group.pointIds.map((id) => g("points", id)).find(Boolean);
-      if (p) goFloor(p.floorId, group.origin === "功能区" ? "zones" : "mark");
+      if (p) goFloor(p.floorId, group.origin === "功能区" ? "zones" : "mark", null, group.origin === "功能区" ? "projects" : "devices");
     }
   },
   connectTool: (a) => {
@@ -49229,6 +49243,15 @@ defineActions({
   },
   firmwareGuide: () => {
     firmwareDraft = null;
+    showFirmware();
+  },
+  // 设备详情的“去升级”：打开设备 › 固件，新建升级任务并选好这台设备的型号（E144）
+  fwGoUpgrade: (a) => {
+    const p = g("points", a.id);
+    if (!p || !canEdit()) return;
+    closeModal(true);
+    route("devices", { tab: "firmware" }, { remember: true });
+    firmwareDraft = { name: "固件升级", type: p.type, releaseId: "", networkIds: [], windowStart: "22:00", windowEnd: "06:00", unoccupied: false };
     showFirmware();
   },
   firmwareEdit: (a) => showFirmware(0, a.id),
@@ -71453,6 +71476,15 @@ const AU_GUIDE_URL = "";
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
   {
+    version: "2.05",
+    date: "2026-10-17",
+    notes: [
+      "设备标记回到“设备”，是第一个页签，模式为设备、照明分区与网络；项目 › 楼层管图纸、比例尺与功能区，模式为查看与功能区。",
+      "设备标记页头一行放“保存规划”；功能区作为浅色图层显示，可以隐藏；没有楼层图时可前往项目楼层上传。",
+      "设备详情：有新版本时旁边有“去升级”，打开固件并选好这台设备的型号。",
+    ],
+  },
+  {
     version: "2.04",
     date: "2026-10-17",
     notes: [
@@ -83315,9 +83347,9 @@ window.addEventListener(
 
 /* ---------- 演示菜单 ---------- */
 const DEMO_MODES = [
-  ["demo", "示例数据", "E栋 7F 完整部署并运行，可走通全部功能"],
-  ["plan", "本地规划", "真实空间资料与本浏览器保存的规划；无运行数据"],
-  ["empty", "空白机构", "尚未创建任何项目，查看首次使用时的页面"],
+  ["demo", "示例数据", "E栋 7F 已部署并在运行，可体验全部功能"],
+  ["plan", "本地规划", "广实各园区的楼宇与楼层，设备从零规划，保存在本浏览器；无运行数据"],
+  ["empty", "空白机构", "没有项目，查看首次使用时的页面"],
 ];
 const demoModeNow = () => ({ demo: "demo", current: "plan", empty: "empty" })[U.dataMode] || "demo";
 const demoArgs = (args) =>
