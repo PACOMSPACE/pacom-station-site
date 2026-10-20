@@ -16886,6 +16886,10 @@ ol.ai-ritems > .ai-ritem > span::before {
 .au-field-info-popover { --ws-info-ring:2px; --ws-info-ring-alpha:.16; position: fixed; z-index: 150; width:max-content; max-width:min(320px, calc(100vw - 32px)); padding:16px; border:0; border-radius:12px; background: #fff; box-shadow:0 0 0 1px #fff,0 0 0 var(--ws-info-ring) rgb(119 119 113 / var(--ws-info-ring-alpha)),0 0 24px 6px rgb(0 0 0 / .04),0 2px 1px rgb(0 0 0 / .04),0 2px 1px -.5px rgb(0 0 0 / .04),0 4px 3px -1.5px rgb(0 0 0 / .04),0 7px 6px -3px rgb(0 0 0 / .04),0 13px 12px -6px rgb(0 0 0 / .04),0 25px 24px -12px rgb(0 0 0 / .04); color:#636363; font:400 14px/21px var(--ff); text-align:left; outline:0; overflow:auto; overflow-wrap:anywhere; overscroll-behavior:contain; animation:au-info-enter 200ms ease both; }
 .au-field-info-popover[hidden] { display: none; }
 .au-field-info-popover > .ws-info-text { display:block; font:inherit; color:inherit; }
+/* 2.09 账户核查第 3 条：列表项在项目符号后悬挂缩进，折行与首行文字对齐 */
+.ws-info-text .au-info-l { display:block; }
+.ws-info-text .au-info-li { position:relative; padding-left:12px; }
+.ws-info-text .au-info-li::before { content:"•"; position:absolute; left:0; }
 @keyframes au-info-enter { from { opacity:0; transform:translateY(2px) scale(.97); } to { opacity:1; transform:none; } }
 .au-field-info-popover[data-side=bottom] { animation-name:au-info-enter-below; }
 @keyframes au-info-enter-below { from { opacity:0; transform:translateY(-2px) scale(.97); } to { opacity:1; transform:none; } }
@@ -72500,7 +72504,7 @@ const PACOM_PASSWORD_POLICY = (() => {
     const value = String(password || "").normalize("NFKC");
     return { letter: /[A-Za-z]/.test(value), digit: /[0-9]/.test(value), symbol: [...String(password || "")].some((c) => SPECIALS.includes(c)) };
   };
-  // The grey line under the field while typing: what is still missing, or that every requirement is met.
+  // The grey line under the field while typing: what is still missing; nothing once every requirement is met (2.09 账户核查第 4 条：原写“密码符合要求”).
   const progress = (password) => {
     if (!password) return "";
     const found = classes(password), need = [];
@@ -72509,7 +72513,7 @@ const PACOM_PASSWORD_POLICY = (() => {
     if (!found.digit) need.push("数字");
     if (!found.symbol) need.push("特殊字符");
     if (length(password) > MAX_LENGTH) return `密码不能超过 ${MAX_LENGTH} 个字符`;
-    return need.length ? "还需：" + need.join("、") : "密码符合要求";
+    return need.length ? "还需：" + need.join("、") : "";
   };
   const validateMinimum = (password) =>
     length(password) < MIN_LENGTH ? `密码至少需要 ${MIN_LENGTH} 个字符` : "";
@@ -73396,8 +73400,11 @@ const auNormPhone = (v) => {
 };
 
 /* ---------- 入口页通用：字段、按钮、校验 ---------- */
+// 以“• ”开头的行是列表项：项目符号后的文字悬挂缩进，折行与首行对齐（2.09 账户核查第 3 条）
+const auInfoBody = (text) =>
+  /\n• /.test(text) ? text.split("\n").map((l) => (l.startsWith("• ") ? `<span class="au-info-l au-info-li">${esc(l.slice(2))}</span>` : `<span class="au-info-l">${esc(l)}</span>`)).join("") : esc(text).replace(/\n/g, "<br>");
 const auFieldInfo = (name, label, text) =>
-  `<span class="au-field-info-wrap"><button type="button" class="au-field-info-trigger" data-act="auFieldInfo" aria-label="${esc(label)}说明" aria-expanded="false" aria-haspopup="dialog" aria-controls="au-${name}-info">${wsInfoIcon()}</button><span id="au-${name}-info" class="au-field-info-popover" role="dialog" aria-modal="false" tabindex="-1" aria-label="${esc(label)}说明" aria-describedby="au-${name}-info-body" hidden><span class="ws-info-text" id="au-${name}-info-body">${esc(text).replace(/\n/g, "<br>")}</span></span></span>`;
+  `<span class="au-field-info-wrap"><button type="button" class="au-field-info-trigger" data-act="auFieldInfo" aria-label="${esc(label)}说明" aria-expanded="false" aria-haspopup="dialog" aria-controls="au-${name}-info">${wsInfoIcon()}</button><span id="au-${name}-info" class="au-field-info-popover" role="dialog" aria-modal="false" tabindex="-1" aria-label="${esc(label)}说明" aria-describedby="au-${name}-info-body" hidden><span class="ws-info-text" id="au-${name}-info-body">${auInfoBody(text)}</span></span></span>`;
 let auFieldInfoOpen = null;
 function auCloseFieldInfo(restoreFocus = false) {
   const trigger = auFieldInfoOpen;
@@ -74192,7 +74199,7 @@ BARE.apply = () => {
   // 2.04 账户第 22、51 条：申请开通新机构只留标题和表单；申请访问写一句去处，不写审核方。
   const lead = mode === "new-org" ? "" : "如机构已开通，请联系机构管理员邀请加入。";
   return auApplyShell(
-    `<h1 class="au-h1">${AUX.applyEditing ? "修改申请" : mode === "new-org" ? "申请开通新机构" : "申请访问"}</h1>${AUX.applyEditing || lead ? `<p class="au-lead">${AUX.applyEditing ? "提交后将更新原申请。" : lead}</p>` : ""}<form data-form="apply" novalidate><fieldset>${auField({ name: "ap_org", label: "公司或机构名称", auto: "organization", count: true })}${me ? auApplyContact(me) : `${auField({ name: "ap_name", label: "联系人姓名", auto: "name", count: true })}${auField({ name: "ap_mail", label: "电子邮箱", type: "email", auto: "email", inputmode: "email", info: "用于接收审核结果和开通邀请。" })}`}${auField({ name: "ap_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", info: "用于审核时联系你。非中国大陆号码需加国际区号，如 +852。" })}<div class="au-field au-apply-overview" data-f="ap_need"><div class="au-lab"><label for="au-ap_need">项目概况 <span>选填</span></label></div><div class="au-textarea-shell"><textarea id="au-ap_need" name="ap_need" class="au-in au-ta" rows="3" aria-describedby="au-ap_need-err au-ap_need-count" placeholder="例如项目位置、楼宇规模或计划使用的功能">${esc(AUX.v.ap_need || "")}</textarea><button type="button" class="au-resize" data-resize="au-ap_need" aria-label="调整项目概况输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-ap_need-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-ap_need-count" ${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need)}</p></div><label class="au-check" data-f="ap_ok"><input type="checkbox" name="ap_ok" class="au-v" required aria-required="true" aria-describedby="au-ap_ok-err" ${AUX.v.ap_ok ? "checked" : ""}><span>继续申请访问即表示我了解并同意 PACOM ${auConsentLegalLink("privacy")}和${auConsentLegalLink("terms")}</span></label><p class="au-err au-check-err" id="au-ap_ok-err"></p><span class="au-sr" id="au-apply-nochanges" hidden></span><p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}</fieldset></form>${AUX.applyEditing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit" ${PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? "disabled" : ""}>取消修改</button><span class="au-dot" aria-hidden="true"></span>${auBackAction(mode)}</div>` : auBackLinks(mode)}`,
+    `<h1 class="au-h1">${AUX.applyEditing ? "修改申请" : mode === "new-org" ? "申请开通新机构" : "申请访问"}</h1>${AUX.applyEditing || lead ? `<p class="au-lead">${AUX.applyEditing ? "提交后将更新原申请。" : lead}</p>` : ""}<form data-form="apply" novalidate><fieldset>${auField({ name: "ap_org", label: "公司或机构名称", auto: "organization", count: true })}${me ? auApplyContact(me) : `${auField({ name: "ap_name", label: "联系人姓名", auto: "name", count: true })}${auField({ name: "ap_mail", label: "电子邮箱", type: "email", auto: "email", inputmode: "email", info: "用于接收审核结果和开通邀请。" })}`}${auField({ name: "ap_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", info: "用于审核时联系。非中国大陆号码需加国际区号，如 +852。" })}<div class="au-field au-apply-overview" data-f="ap_need"><div class="au-lab"><label for="au-ap_need">项目概况 <span>选填</span></label></div><div class="au-textarea-shell"><textarea id="au-ap_need" name="ap_need" class="au-in au-ta" rows="3" aria-describedby="au-ap_need-err au-ap_need-count" placeholder="例如项目位置、楼宇规模或计划使用的功能">${esc(AUX.v.ap_need || "")}</textarea><button type="button" class="au-resize" data-resize="au-ap_need" aria-label="调整项目概况输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-ap_need-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-ap_need-count" ${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("ap_need", AUX.v.ap_need)}</p></div><label class="au-check" data-f="ap_ok"><input type="checkbox" name="ap_ok" class="au-v" required aria-required="true" aria-describedby="au-ap_ok-err" ${AUX.v.ap_ok ? "checked" : ""}><span>继续申请访问即表示我了解并同意 PACOM ${auConsentLegalLink("privacy")}和${auConsentLegalLink("terms")}</span></label><p class="au-err au-check-err" id="au-ap_ok-err"></p><span class="au-sr" id="au-apply-nochanges" hidden></span><p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}</fieldset></form>${AUX.applyEditing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit" ${PACOM_AUTH_FLOW.applicationPending(AUX.applyRequest) ? "disabled" : ""}>取消修改</button><span class="au-dot" aria-hidden="true"></span>${auBackAction(mode)}</div>` : auBackLinks(mode)}`,
   );
 };
 BARE_AFTER.apply = () => {
@@ -75244,6 +75251,7 @@ const AU_RELEASES = [
       "告警可推送到企业微信、钉钉或飞书群，按项目推送。",
       "智能助手可回答“这里有哪些问题？”；对话自动保存，可继续追问；依据链接直接打开对应期间与功能区。",
       "没有可访问的项目时可一键申请访问；卡片、标签与图表样式更柔和。",
+      "登录输错不再提示剩余次数；密码要求的列表对齐，输入满足要求后不再提示。",
     ],
   },
   {
@@ -79658,9 +79666,9 @@ document.addEventListener('keydown', e => {
   input.style.height = Math.max(80, input.getBoundingClientRect().height + (e.key === 'ArrowDown' ? 16 : -16)) + 'px';
 });
 document.addEventListener('input', e => {
-  // 2.04 账户第 35 条：新密码、设置密码输入时在框下用灰字提示还缺的项，全部满足时写“密码符合要求”。
+  // 2.04 账户第 35 条：新密码、设置密码输入时在框下用灰字提示还缺的项；全部满足时不再提示（2.09 账户核查第 4 条：原写“密码符合要求”）。
   if (['np1', 'iv_pwd'].includes(e.target.name) || e.target.id === 'auPwd1') {
-    const hint = document.getElementById(e.target.id === 'auPwd1' ? 'auPwd1-hint' : `au-${e.target.name}-hint`), text = PACOM_PASSWORD_POLICY.progress(e.target.value) || (e.target.id === 'auPwd1' ? PACOM_PASSWORD_POLICY.summary : '');
+    const hint = document.getElementById(e.target.id === 'auPwd1' ? 'auPwd1-hint' : `au-${e.target.name}-hint`), text = e.target.value ? PACOM_PASSWORD_POLICY.progress(e.target.value) : e.target.id === 'auPwd1' ? PACOM_PASSWORD_POLICY.summary : '';
     if (hint && hint.textContent !== text) hint.textContent = text;
   }
   if (e.target.name === 'id') AUX.resetInviteContext = null;
@@ -87018,10 +87026,9 @@ Object.assign(AU_SVC, {
         if (count >= 100) return { status: "invalid-credentials", failureCount: count, resetRequired: true, message: wrong };
         const pause = demoLoginPause(count), retryAt = pause ? auNow() + pause : 0;
         if (retryAt) DEMO_LOGIN_LOCKS.set(key, retryAt);
-        // The 8th and 9th failures warn that the next ones pause sign-in; after a pause the page says how long the next one would be
-        // (or, before the 100th, that a password reset would then be required).
+        // 2.04 账户第 22、37 条取消失败提醒，2.09 账户核查第 1 条清掉演示服务中的残留：输错只写“账户或密码不正确”，不写剩余次数。
         return { status: "invalid-credentials", failureCount: count, retryAt, ...(pause ? demoNextFailure(count) : { nextPause: 0 }),
-          message: `${wrong}${count >= 8 && count < 10 ? `（再错 ${10 - count} 次将暂停登录 ${demoLoginPause(10) / 6e4} 分钟）` : ""}` };
+          message: wrong };
       }
       DEMO_LOGIN_FAILURES.delete(key); DEMO_LOGIN_LOCKS.delete(key); return { status: "ok", uid: found[0] };
     }
@@ -87722,7 +87729,7 @@ const DEMO_ITEMS = [
     "登录",
     "login-warn",
     "连续输错 8 次",
-    "提示剩余次数",
+    "不提示剩余次数",
     () => (demoOut(), Object.assign(AUX.v, { id: "wang.min@example.test", pwd: "password" }), DEMO_LOGIN_FAILURES.set(demoFailureKey("wang.min@example.test"), 7), (DEMO_FAIL.password = 1), demoShow("login"), demoSubmit("login")),
   ],
   [
@@ -87736,7 +87743,7 @@ const DEMO_ITEMS = [
     "登录",
     "login-resume",
     "暂停结束后",
-    "提示下一次的暂停时间",
+    "不另提示",
     () => (demoOut(), Object.assign(AUX.v, { id: "wang.min@example.test" }), demoPauseEnded("wang.min@example.test"), demoShow("login")),
   ],
   ["登录", "login-expired", "登录已过期", "空闲超过 8 小时或一次登录满 30 天", () => (demoOut(), (AUX.expired = true), (AUX.returnTo = "#overview"), demoShow("login"))],
