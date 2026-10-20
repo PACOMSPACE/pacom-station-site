@@ -16898,7 +16898,7 @@ ol.ai-ritems > .ai-ritem > span::before {
 @media (min-resolution:1.5dppx) { .au-field-info-popover { --ws-info-ring:1px; --ws-info-ring-alpha:.28; } }
 @media (prefers-reduced-motion:reduce) { .au-field-info-popover, .au-field-info-popover.ws-info-exit { animation:none; transition:none; } }
 .au .au-lab .au-login-forgot { margin-left: auto; color: #636363; }
-.au .au-login-forgot > span { display: inline-block; text-decoration: underline; text-underline-offset: 3px; }
+.au .au-login-forgot > span { display: inline-block; text-decoration: none; }
 .au .au-login-forgot:hover { color: #636363; }
 .au .au-login-forgot:focus-visible { outline: none; }
 .au .au-login-forgot:focus-visible > span { outline: 2px solid #00AEEF; outline-offset: 2px; border-radius: 2px; }
@@ -19863,9 +19863,14 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
    输入框与按钮与申请页相同（电脑 32px、圆角 8px、14/24px，触屏 44px），主按钮占满宽度，“稍后再邀请”等文字操作在主按钮下方 16px 居中。 */
 #app.bare-welcome .au-steps { gap: 24px; }
 #app.bare-welcome .au-step, #app.bare-welcome .au-step.cur { padding: 0; border-radius: 0; background: none; box-shadow: none; }
-/* 两步的说明、字段和按钮从步骤标题文字左边开始（缩进 40px：序号 28px 加间距 12px），电脑和手机相同；标题到说明 8px（标题行按 28px 序号居中，文字下另有 2px）。
-   Account 核查第 90 条，2026-10-20 用户确认：原为不缩进、标题到说明 18px。 */
-#app.bare-welcome .au-step-b { padding: 6px 0 0 40px; }
+/* 序号圆圈（28px）在标题上方、与标题左对齐，序号到标题 8px，标题到说明 8px；说明、字段和按钮不缩进，与标题同一左边；
+   收起的步骤摘要在标题下，“修改”在标题行右侧。电脑和手机相同（Account 核查第 94 条，2026-10-20 用户确认：原为序号在标题左侧，
+   第 90 条起说明、字段和按钮缩进 40px）。 */
+#app.bare-welcome .au-step header { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "n n" "t act"; align-items: start; gap: 8px 12px; }
+#app.bare-welcome .au-step header > .au-step-n { grid-area: n; }
+#app.bare-welcome .au-step header > div { grid-area: t; }
+#app.bare-welcome .au-step header > .au-textbtn { grid-area: act; }
+#app.bare-welcome .au-step-b { padding: 8px 0 0; }
 #app.bare-welcome .au-step .au-lab label, #app.bare-welcome .au-step .au-lab-t { font: 480 14px/24px var(--ff); }
 #app.bare-welcome .au-step :is(.au-in, .ws-select > button, .au-upload) { height: 32px; min-height: 32px; padding: 0 12px; border-radius: 8px; font: 400 14px/24px var(--ff); }
 #app.bare-welcome :is(.au-step, .au-wfinish) .au-primary { width: 100%; height: 32px; min-height: 32px; padding: 0 12px; margin: 0; border-radius: 8px; font: 400 14px/24px var(--ff) !important; }
@@ -20215,8 +20220,8 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 @media (hover: hover) {
   .bare-login .au-login-actions > .au-done-more > .au-textbtn:hover { text-decoration: underline; text-underline-offset: 3px; }
 }
-/* 第 57 条：“忘记密码？”（登录页、接受邀请页）平时就带下划线，#636363，鼠标停上去不变；字号仍 14。 */
-.au .au-field-right .au-textbtn > span { text-decoration: underline; text-underline-offset: 3px; }
+/* “忘记密码？”（登录页、接受邀请页）#636363，鼠标停上去不变；字号仍 14。不带下划线（Account 核查第 93 条，2026-10-20 用户确认：原为第 57 条的常显下划线）。 */
+.au :is(.au-login-forgot, .au-field-right .au-textbtn):hover { text-decoration: none; }
 .au .au-field-right .au-textbtn:hover { color: var(--au-muted); }
 /* 第 63 条：“无法使用绑定的电子邮箱或手机号码？”（重置弹窗、直接打开的重置页）与无法加载页的“技术信息”鼠标停上去变 #030303，同页脚的灰色链接。 */
 @media (hover: hover) {
@@ -72505,7 +72510,8 @@ const PACOM_PASSWORD_POLICY = (() => {
   const MIN_LENGTH = 8;
   const MAX_LENGTH = 64;
   const SPECIALS = "!@#$%^&*()_-+={}[]|\\:;\"'<>,.?/~`";
-  const hint = ["密码要求：", "• 至少 8 个字符", "• 至少一个字母（a-z 或 A-Z）", "• 至少一个数字（0-9）", "• 至少一个特殊字符（" + [...SPECIALS].join(" ") + "）"].join("\n");
+  // 2.10 账户核查第 91 条：说明直接从四条要求开始（原首行为“密码要求：”）
+  const hint = ["• 至少 8 个字符", "• 至少一个字母（a-z 或 A-Z）", "• 至少一个数字（0-9）", "• 至少一个特殊字符（" + [...SPECIALS].join(" ") + "）"].join("\n");
   const summary = "至少 8 个字符，包含字母、数字和特殊字符";
   const blockedMessage = "该密码过于常见或已泄露，请更换。";
   // Length counts Unicode characters; nothing beyond 64 is cut off, the message asks for a shorter one.
@@ -75259,6 +75265,13 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "2.10",
+    date: "2026-10-20",
+    notes: [
+      "密码要求说明直接列出四条要求；机构开通引导的步骤序号移到标题上方，内容与标题左对齐；“忘记密码？”不再带下划线。",
+    ],
+  },
   {
     version: "2.09",
     date: "2026-10-20",
