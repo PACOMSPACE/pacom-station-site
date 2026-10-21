@@ -2372,6 +2372,14 @@ p {
   height: 16px;
   flex: none;
 }
+/* 带图标的文字按钮：图标一侧内边距 14，另一侧 16（项目页核查 E220，2026-10-21 用户确认，按 Lovable 带图标按钮；原为两侧 16）。
+   小号按钮与大屏、运营后台、部署 App 不变 */
+.btn.ic-l:where(:not(.sm, [data-page=screen] *, [data-page=display] *, [data-page=console] *, [data-page=app] *)) {
+  padding-left: 14px;
+}
+.btn.ic-r:where(:not(.sm, [data-page=screen] *, [data-page=display] *, [data-page=console] *, [data-page=app] *)) {
+  padding-right: 14px;
+}
 .btn.primary {
   background: linear-gradient(#282828, #080808);
   color: #fff;
@@ -5127,6 +5135,26 @@ details[open] > summary::before {
   gap: 8px;
   margin-left: auto;
 }
+/* 页头工具栏里只有图标的按钮（信息、导出、更多）为描边样式：无底、1px 黑 25% 内描边，悬停叠黑 8%、按下 10%；
+   “信息”是开关，面板打开时浅蓝底、1px 蓝色内描边、深品牌蓝图标，同视图切换选中项
+   （项目页核查 E218，2026-10-21 用户确认；原为白色次要按钮：白 80% 底、16% 细边、底部高光和投影） */
+:is(.ws-toolbar, .ops-overview-location) .iconbtn.round:where(:not([data-page=console] *, [data-page=app] *)) {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+  color: var(--text);
+}
+:is(.ws-toolbar, .ops-overview-location) .iconbtn.round:where(:not([data-page=console] *, [data-page=app] *, :disabled, [aria-disabled="true"])):hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+:is(.ws-toolbar, .ops-overview-location) .iconbtn.round:where(:not([data-page=console] *, [data-page=app] *, :disabled, [aria-disabled="true"])):active {
+  background: rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+.ws-toolbar .iconbtn.round[data-act="spacePanelInfo"][aria-expanded="true"] {
+  background: color-mix(in srgb, var(--accent) 16%, #fff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 80%, #000);
+  color: color-mix(in srgb, var(--accent) 55%, #000);
+}
 .ws-pop-empty {
   padding: 6px 8px;
   margin: 0;
@@ -5918,12 +5946,12 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .ws-map-popup p.muted {
   color: var(--text3);
 }
-/* 项目的配置进度（2.11 全平台优化 Y38、项目页核查 E213）：第一行“配置进度”、六段小进度条与“N / 6”；第二行灰字“下一步：…”，
-   有需处理设备时同一行加“ · 需处理 N 台”；放不下时先省略下一步，台数完整显示 */
+/* 项目的配置进度（2.11 全平台优化 Y38、项目页核查 E213）：“配置进度”加一整条细进度条，有需处理设备时同一行接“ · 需处理 N 台”
+   （项目页核查 E216，2026-10-21 用户确认：高 4、宽 96、两端全圆，轨道 #EBEBEB，已完成部分 #202A44，没有“进行中”颜色；
+   原为六个圆头小段、后接“N / 6”，第二行“下一步：…”） */
 .pc-prog {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   max-width: 100%;
   min-width: 0;
 }
@@ -5933,33 +5961,27 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   gap: 8px;
   max-width: 100%;
 }
-.pc-prog-l,
-.pc-prog-n {
+.pc-prog-l {
   flex: none;
-  font-variant-numeric: tabular-nums;
 }
-.pc-prog-r2 {
-  display: flex;
-  align-items: center;
-  max-width: 100%;
-  min-width: 0;
+.pc-prog-att,
+.pc-prog .pc-sep {
+  flex: none;
 }
-.pc-prog-next {
-  flex: 0 1 auto;
-  min-width: 0;
+.pc-bar {
+  position: relative;
+  flex: none;
+  width: 96px;
+  height: 4px;
+  border-radius: 9999px;
+  background: #ebebeb;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
-.pc-prog-att {
-  flex: none;
-}
-.pc-prog .v13-seg.xs {
-  flex: none;
-  width: 72px;
-}
-.pc-prog .v13-seg.xs i {
-  height: 6px;
+.pc-bar > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 9999px;
+  background: #202a44;
 }
 .ws-dir .t .pc-prog .ws-list-status {
   padding: 0;
@@ -6018,13 +6040,34 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   position: relative;
   container-type: inline-size;
 }
+/* 卡片“更多”：透明按钮 28×28、实心三点 16，图标右缘与卡片对齐；电脑上悬停卡片、键盘聚焦或菜单打开时才出现，触屏一直显示
+   （项目页核查 E217，2026-10-21 用户确认；原为 32×32、一直显示） */
 .pcard > .pc-more {
   position: absolute;
-  right: -8px;
+  right: -6px;
   top: calc(100cqw * 9 / 16 + 22.5px);
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
   transform: translateY(-50%);
   box-shadow: none;
   background: none;
+  color: #030303;
+}
+.pcard > .pc-more > .ic {
+  width: 16px;
+  height: 16px;
+}
+@media (hover: hover) and (pointer: fine) {
+ .cards .pcard > .pc-more {
+   opacity: 0;
+   transition: opacity 150ms ease-out;
+ }
+ .cards .pcard:hover > .pc-more,
+ .cards .pcard:focus-within > .pc-more,
+ .cards .pcard > .pc-more[aria-expanded="true"] {
+   opacity: 1;
+ }
 }
 .pcard > .pc-more:hover {
   background: var(--sel);
@@ -6076,10 +6119,15 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .pcard .pc-sum {
   margin-top: 2px;
 }
-@media (max-width: 850px) {
+@media (max-width: 850px), (pointer: coarse) {
  .pcard > .pc-more {
    right: -14px;
+   width: 44px;
+   height: 44px;
+   min-width: 44px;
  }
+}
+@media (max-width: 850px) {
  .pcard .nm {
    padding-right: 36px;
  }
@@ -6317,7 +6365,8 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 }
 
 /* ========== 2. 工具栏与选择器：上一级、空间选择器、视图切换、操作组、同级切换菜单 ========== */
-/* 视图切换（项目页核查 E201，2026-10-21 用户确认：Lovable 视图切换，颜色与整页类别切换相同；原为三个圆形按钮、选中黑色实心） */
+/* 视图切换（项目页核查 E201，2026-10-21 用户确认：Lovable 视图切换，颜色与整页类别切换相同；原为三个圆形按钮、选中黑色实心）。
+   三项都只显示 16 的图标，每项 32×32，选中胶囊同宽（E214，2026-10-21 用户确认；原为选中项展开显示名称） */
 .ws-views {
   --view-border: color-mix(in srgb, var(--accent) 80%, #000);
   --view-fill: color-mix(in srgb, var(--accent) 16%, #fff);
@@ -6333,8 +6382,10 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 32px;
   height: 32px;
-  padding: 0 12px;
+  padding: 0;
   border-radius: 9999px;
   background: transparent;
   color: var(--text3);
@@ -6346,23 +6397,11 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .ws-view > .ic {
   flex: none;
 }
-.ws-view-l {
-  display: inline-block;
-  max-width: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: max-width 340ms cubic-bezier(.32,.72,0,1), margin-left 340ms cubic-bezier(.32,.72,0,1), opacity 150ms ease-out;
-}
 .ws-view.on {
   color: var(--view-fg);
   background: linear-gradient(to bottom, transparent, #0000000a), var(--view-fill);
   box-shadow: inset 0 0 0 1px var(--view-border), inset 0 1px 0 #ffffff7a;
   cursor: default;
-}
-.ws-view.on .ws-view-l {
-  max-width: 3em;
-  margin-left: 6px;
-  opacity: 1;
 }
 .ws-view:not(.on) + .ws-view:not(.on)::before {
   content: "";
@@ -6392,8 +6431,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
  }
 }
 @media (prefers-reduced-motion: reduce) {
- .ws-view,
- .ws-view-l {
+ .ws-view {
    transition: none;
  }
 }
@@ -6452,13 +6490,31 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 /* 2026-10-03: current spatial hierarchy and shared components. */
 .ws-space-nav { display:flex; align-items:center; gap:8px; min-width:0; width:320px; max-width:100%; }
 .ws-space-nav .ws-parent-back { width:32px; padding:0; flex:none; }
+/* 返回上一级：透明圆形按钮 32，箭头 16 平时 #636363、悬停 #030303 并叠黑 8%、按下 10%；左移 8 让箭头左缘与卡片左缘对齐，
+   到选择器 4（项目页核查 E219，2026-10-21 用户确认；原为白色次要按钮，到选择器 8） */
+.ws-space-nav .ws-parent-back {
+  margin: 0 -4px 0 -8px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text3);
+}
+.ws-space-nav .ws-parent-back:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--text);
+}
+.ws-space-nav .ws-parent-back:active {
+  --btn: none;
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text);
+}
 .ws-space-nav .ws-project-picker { width:0; flex:1; }
 .ws-project-picker > span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ws-project-picker > svg { flex:none; }
 .ws-space-nav .ws-views { flex:none; }
 @media (max-width:850px), (pointer:coarse) {
  .ws-space-nav { width:100%; }
- .ws-space-nav .ws-parent-back { width:44px; height:44px; }
+ .ws-space-nav .ws-parent-back { width:44px; height:44px; margin-left:-14px; }
  .ws-source-back { min-width:44px; min-height:44px; }
 }
 /* D1：楼宇“楼层操作 / 定位楼层”为次级按钮，紧跟楼宇选择器（工具栏间距 8px）；标记与窄屏提示放在楼宇画布内上方居中。 */
@@ -11102,7 +11158,7 @@ details.v13-tech>summary{cursor:pointer;color:var(--text2)}
 .v13-seg{display:flex;gap:4px;flex:1}
 .v13-seg i{flex:1;height:8px;border-radius:4px;background:var(--line2)}
 .v13-seg i.done{background:#202A44}
-.v13-seg i.todo{background:var(--warn)}
+/* 当前环节与未完成同为 #EBEBEB，不用需关注色（项目页核查 E216，2026-10-21 用户确认；原为需关注色 #8A5A00） */
 .v13-seg.sm{flex:none;width:120px}
 .v13-seg.sm i{height:6px}
 .v13-ov-n{font-variant-numeric:tabular-nums;color:var(--text2);white-space:nowrap}
@@ -29444,8 +29500,9 @@ const XI = {
   "sliders-horizontal": '<path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/>',
   "clipboard-check": '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
 };
+// 全站“更多”用 Lovable 的实心三点（项目页核查 E217，2026-10-21 用户确认；原为三个空心小圆圈，线宽 1.6）
 const ico = (n, cls = "") =>
-  A.icons[n] ? A.icons[n].replace("<svg", `<svg class="ic ${cls}" aria-hidden="true"`) : XI[n] ? LI(XI[n], cls) : "";
+  (n = n === "more" && A.icons["dir-more"] ? "dir-more" : n, A.icons[n]) ? A.icons[n].replace("<svg", `<svg class="ic ${cls}" aria-hidden="true"`) : XI[n] ? LI(XI[n], cls) : "";
 
 /* ---------- 动作注册表（2026-10-03 D2） ---------- */
 // 每个动作只定义一次：用 defineActions 注册，同名再次注册即报错；构建时 docs/scripts/check_actions.py 按源码检查，重复定义则构建失败。
@@ -36036,10 +36093,15 @@ const whereNow = () =>
   U.f ? where(U.f) : U.b ? `${g("projects", U.p)?.name} / ${currentBuilding()?.name}` : g("projects", U.p)?.name || "全部项目";
 const safeJson = (x) => esc(JSON.stringify(x)).replace(/'/g, "&#39;");
 const btn = (label, act, args = {}, cls = "") =>
-  `<button class="btn ${cls}" data-act="${act}" ${Object.entries(args)
+  `<button class="btn ${cls}${btnIconSide(label, cls)}" data-act="${act}" ${Object.entries(args)
     .filter(([k]) => k !== "disabled")
     .map(([k, v]) => `data-${k}="${esc(v)}"`)
     .join(" ")} ${args.disabled ? "disabled" : ""}>${label}</button>`;
+// 带图标的文字按钮按图标在哪一侧加 ic-l / ic-r，该侧内边距 14（项目页核查 E220，2026-10-21 用户确认；原为两侧都是 16）；小号按钮不变
+const btnIconSide = (label, cls = "") => {
+  const s = String(label).trim(), l = s.startsWith("<svg"), r = s.endsWith("</svg>");
+  return l === r || /(^|\s)sm(\s|$)/.test(cls) ? "" : l ? " ic-l" : " ic-r";
+};
 const iconBtn = (name, icon, act, args = {}) =>
   `<button class="iconbtn round" aria-label="${name}" data-tip="${name}" data-act="${act}" ${Object.entries(args)
     .map(([k, v]) => `data-${k}="${esc(v)}"`)
@@ -37221,7 +37283,8 @@ function pageCategoryTitleActions() {
 }
 // 视图切换是一组按钮，名称“视图”（Lovable 核查第 344 条，2026-10-11 用户确认）。按 Lovable 视图切换的样式（项目页核查 E201，2026-10-21 用户确认；
 // 原为三个 32 的圆形按钮、选中黑色实心）：浅灰全圆轨道，选中项在浅蓝胶囊里显示图标与名称，其余只显示 16 的图标，未选中项之间有 1×12 分隔线；
-// 尺寸与颜色同整页类别切换（32 高）；方向键在三项之间移动
+// 尺寸与颜色同整页类别切换（32 高）；方向键在三项之间移动。三项都只显示图标，每项 32×32，名称只在提示气泡和读屏名称里
+// （项目页核查 E214，2026-10-21 用户确认；原为选中项在胶囊里显示图标和名称）
 const views = () =>
   `<div class="ws-views" role="group" aria-label="视图">${[
     ["cards", "dir-grid", "卡片"],
@@ -37230,7 +37293,7 @@ const views = () =>
   ]
     .map(
       ([v, i, l]) =>
-        `<button class="ws-view ${U.view === v ? "on" : ""}" data-act="view" data-value="${v}" aria-label="${l}视图" ${U.view === v ? "" : `data-tip="${l}" `}aria-pressed="${U.view === v}">${ico(i, "ic16")}<span class="ws-view-l">${l}</span></button>`,
+        `<button class="ws-view ${U.view === v ? "on" : ""}" data-act="view" data-value="${v}" aria-label="${l}视图" data-tip="${l}" aria-pressed="${U.view === v}">${ico(i, "ic16")}</button>`,
     )
     .join("")}</div>`;
 document.addEventListener("keydown", (e) => {
@@ -37254,7 +37317,7 @@ const pageActs = (html) =>
   `<span class="ws-page-acts">${html}</span>${menuTrigger(iconBtn("更多", "more", "pageMore")).replace('class="iconbtn round"', 'class="iconbtn round ws-page-more"')}`;
 function projectNavigation(showViews = false) {
   const parent = U.zone && U.f ? ["f", currentFloor()?.name] : U.f && isOutdoor(U.b) ? ["p", g("projects", U.p)?.name] : U.f ? ["b", currentBuilding()?.name] : U.b ? ["p", g("projects", U.p)?.name] : U.p ? ["root", "全部项目"] : null;
-  return `<div class="ws-space-nav">${parent ? `<button class="btn ws-parent-back" data-act="crumb" data-to="${parent[0]}" aria-label="返回${esc(parent[1])}" title="返回${esc(parent[1])}">${ico("back", "ic16")}</button>` : ""}${dirSearch()}${showViews ? views() : ""}</div>`;
+  return `<div class="ws-space-nav">${parent ? `<button class="btn ws-parent-back" data-act="crumb" data-to="${parent[0]}" aria-label="返回${esc(parent[1])}" data-tip="返回${esc(parent[1])}">${ico("back", "ic16")}</button>` : ""}${dirSearch()}${showViews ? views() : ""}</div>`;
 }
 // 项目、楼宇页头的“导出…资料”收进“⋯”菜单（与卡片“更多”同一菜单），全部项目仍为导出按钮（2.04 配置区全面核查 E100，2026-10-17 用户确认）
 function projectActions(kind, id, primary = "") {
@@ -42579,6 +42642,12 @@ const dirSearch = () => {
   // 名称截断时悬停或键盘聚焦用全站提示气泡显示全名，宽度和截断不变（Lovable 核查第 343 条，2026-10-11 用户确认）
   // 配置进度、配置参数的选择器只能切换和搜索项目，读屏名称写“切换或搜索项目”（全面设计核查第 27 条，2026-10-12 用户确认；原为“切换或搜索空间”）
   // 与五页的位置选择器同一个组件（项目页核查 E202，2026-10-21 用户确认：箭头 16 #636363、文字 14/24；原为按钮样式，箭头 #030303、文字 14/20）
+  // 项目页打开五页的位置选择器同一弹层，项目、楼宇、楼层都能直接选；按钮写完整路径，在功能区时末尾加功能区名称
+  // （项目页核查 E215，2026-10-21 用户确认；原为同级切换，只列同一层的对象，按钮只写当前对象名称）
+  if (U.page === "projects") {
+    const path = whereNow() + (U.zone && U.f && g("zones", U.zone) ? " / " + g("zones", U.zone).name : "");
+    return `<button class="ws-location ws-project-picker" data-act="location" aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(path)}：选择位置" data-tip="${esc(path)}" data-tip-trunc><span data-trunc>${esc(path)}</span>${ico("chevron", "ic16")}</button>`;
+  }
   return `<button class="ws-location ws-project-picker" data-act="siblings" data-kind="${switchKind()}" aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(name)}：切换或搜索${U.page === "deployment" ? "项目" : "空间"}" data-tip="${esc(name)}" data-tip-trunc><span data-trunc>${esc(name)}</span>${ico("chevron", "ic16")}</button>`;
 };
 // 规模：项目“N 栋楼宇”（Y36）；楼宇“地上 N 层 · 地下 N 层 · 已上传楼层图 N 层”（完整授权空间，不按部署范围）。
@@ -42654,7 +42723,9 @@ function spaceCard(kind, o, mapPopup = false) {
 // plain：摘要写成普通文字，不另作入口（配置进度目录的卡片，Lovable 核查第 409 条）
 // 项目的配置进度（2.11 全平台优化 Y38 与项目页核查 E213，2026-10-21 用户确认：原为“配置进度：待处理 · 验证与交付 · 需处理 N 台”）：
 // 与配置进度目录卡片同一图示：六段短进度条加“N / 6”，下一行灰字“下一步：…”，有需处理设备时同一行加提醒色“需处理 N 台”；不用百分比（SPACE01）。
-// 始终六段；全部完成写“已交付”；放不下时先省略“下一步”。全部项目的卡片、列表与地图卡片共用；楼宇卡片不变（BP68）
+// 始终六段；全部完成写“已交付”；放不下时先省略“下一步”。全部项目的卡片、列表与地图卡片共用；楼宇卡片不变（BP68）。
+// 改为一整条细进度条（高 4、宽 96，灰轨道，已完成部分为标志色，没有“进行中”颜色），去掉“N / 6”和“下一步”一行，
+// 完成数与下一步只在提示气泡和读屏名称里；有需处理设备时同一行接“ · 需处理 N 台”（项目页核查 E216，2026-10-21 用户确认）
 function projectProgress(p) {
   const G = v13Progress(data(), p.id),
     word = v13NextWord(G);
@@ -42664,7 +42735,8 @@ function projectProgressLine(o, t, cls = "pc-line") {
   const P = projectProgress(o),
     att = P.G.attention,
     need = att.total ? `<span class="pc-sep" aria-hidden="true"> · </span><button class="${cls} warn pc-prog-att" data-act="netIssues"${v13AttentionArgs(att)}>需处理 ${att.total} 台</button>` : "";
-  return `<div class="pc-prog"><button class="${cls} pc-prog-main" data-act="dirStatus" data-p="${t.pid}"${t.anchor ? ' data-anchor="space"' : ""} aria-label="${esc(P.label)}" title="${esc(P.label)}"><span class="pc-prog-l">配置进度</span>${v13Segs(P.G.rows, "xs")}<span class="pc-prog-n">${P.G.done} / ${P.G.total}</span></button><div class="pc-prog-r2"><button class="${cls} pc-prog-next" data-act="dirStatus" data-p="${t.pid}" tabindex="-1" aria-hidden="true">${esc(P.word)}</button>${need}</div></div>`;
+  const pct = P.G.total ? Math.round((P.G.done / P.G.total) * 1000) / 10 : 0;
+  return `<div class="pc-prog"><button class="${cls} pc-prog-main" data-act="dirStatus" data-p="${t.pid}"${t.anchor ? ' data-anchor="space"' : ""} aria-label="${esc(P.label)}" data-tip="${esc(P.label)}"><span class="pc-prog-l">配置进度</span><span class="pc-bar" aria-hidden="true"><i style="width:${pct}%"></i></span></button>${need}</div>`;
 }
 function sumLines(kind, o, mapPopup = false, attention = false, plain = false) {
   if (kind === "projects" && !plain && !attention) return `<div class="pc-sum">${projectProgressLine(o, statusLine(kind, o))}</div>`;
@@ -50283,6 +50355,11 @@ defineActions({
     const intent = U.pickIntent;
     if (intent === "mark" && !a.f) return msg("请选择具体楼层；未上传图纸的楼层也可以进入");
     U.pickIntent = null;
+    // 项目页：选中后进入对应层级，楼层按查看方式打开并保留该层上次的缩放（项目页核查 E215）
+    if (U.page === "projects" && !intent) {
+      if (a.f) return goFloor(a.f, "view", null, "projects");
+      return route("projects", { p: a.p || null, b: a.b || null, f: null, tab: "", view: U.view });
+    }
     if (intent === "mark") {
       scope.mode = "mark";
       scope.tab = U.page === "projects" ? "" : "mark";
@@ -57847,7 +57924,8 @@ const V13_TPL = [
     { more: "只用于风机盘管；豁免空间不做", when: (P) => P.tempBasis !== "exempt" || "豁免项目不做待机、节能" },
   ],
   ["H-11", "暖通空调", "§6.2", "时间表", "按项目工作时间（默认工作日 8:00–19:00）与节假日表", "每天 ≤ 8 个事件（含预启动）", "GB 50189-2015 4.5.12", "网关", {}],
-  ["H-12", "暖通空调", "§6.2", "预启动", "提前 30 min", "—", "", "网关", {}],
+  // 预启动按功能区自动（2.12 全平台优化 Y48，2026-10-21 用户确认；原为“提前 30 min”）
+  ["H-12", "暖通空调", "§6.2", "预启动", "自动：按功能区近 30 个工作日、清晨室外温度相近（±3 K）各天用时的中位数加 10 min；室温已在设定 1 K 以内时不预启动", "0–120 min；记录不足 5 天或室外温度缺失时 30 min", "", "网关", {}],
   [
     "H-16",
     "暖通空调",
@@ -61672,13 +61750,14 @@ const DemoService = (() => {
      风机盘管：有人或无人不到 15 分钟为舒适，无人 15–59 分钟待机（供冷设定 +2 K、供热 −2 K），60 分钟起节能（供冷 30 ℃、供热 15 ℃）；
      本区 MS20 都离线时占用未知，按有人运行。舒适设定取适用标准的默认值（hvacRange），待机、节能不受舒适范围限制。
      多联机（公共区）只按时间表开关，不做待机、节能与无人关机；模式随外机。分体空调只计量（电能表功率 ≥ 30 W 为用电中）。 */
-  // 开机时段按项目工作时间（默认工作日 08:00–19:00），提前 30 分钟预启动（07:30 起）
-  const hvSchedOn = (ts) => {
+  // 开机时段按项目工作时间（默认工作日 08:00–19:00）；预启动按功能区自动（Y48，见 prestartPlan），不给功能区时按回退值 30 分钟（07:30 起）
+  const preMin = (ts, zid) => (zid ? prestartPlan(zid, dayStart(ts)).min : HVAC_TIMING.prestart);
+  const hvSchedOn = (ts, zid) => {
     if (!isWorkday(ts)) return false;
     const l = loc(ts),
       h = l.h + l.mi / 60,
       [on, off] = workSpan();
-    return h >= on - HVAC_TIMING.prestart / 60 && h < off;
+    return h >= on - preMin(ts, zid) / 60 && h < off;
   };
   // 下一次时间表关机与下一次时间表开机（含预启动）；放假日不开机
   function hvNextOff(ts) {
@@ -61688,10 +61767,10 @@ const DemoService = (() => {
     }
     return null;
   }
-  function hvNextOn(ts) {
+  function hvNextOn(ts, zid) {
     for (let d = 0; d < 20; d++) {
       const day = dayStart(ts) + d * DAY,
-        t = day + workSpan()[0] * H - HVAC_TIMING.prestart * MIN;
+        t = day + workSpan()[0] * H - preMin(day, zid) * MIN;
       if (isWorkday(day) && t > ts) return t;
     }
     return null;
@@ -62022,6 +62101,42 @@ const DemoService = (() => {
     const xs = Array.from({ length: 24 }, (_, h) => outdoorAt(d + h * H + 30 * MIN)).filter((v) => v != null);
     return xs.length ? +(xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(1) : null;
   };
+  /* 预启动（2.12 全平台优化 Y48，2026-10-21 用户确认，H-12 改为自动；原为固定提前 30 min）：
+     每个功能区按自己的记录，记下每个工作日从预启动到室温回到设定 1 K 以内（与 H-17 解除同一口径）的分钟数与当时的清晨室外温度；
+     当天取近 30 个工作日中清晨室外温度相近（±3 K）各天用时的中位数，加 10 min 余量，限 0–120 min；
+     室温已在设定 1 K 以内时当天不预启动；相近的天不足 5 天或室外温度缺失时用 30 min。由网关时间表执行。
+     示例：清晨室外温度取 06:00 的读数（以后的日子取最近一天）；用时按功能区热惰性（大开放办公长、会议室短）与室外温度生成，
+     清晨室外 24 ℃ 及以下视为室温已合适。 */
+  const PRESTART = { margin: 10, max: 120, fallback: HVAC_TIMING.prestart, band: 3, days: 30, least: 5 };
+  const preMorning = (day) => outdoorAt(Math.min(day, TODAY) + 6 * H);
+  const preNeed = (z, day, T) =>
+    Math.max(4, Math.round((z.area > 150 ? 1.6 : /会议/.test(z.type || "") ? 0.5 : 1) * (8 + 7 * Math.max(0, T - 23)) + between(-4, 4, z.id, day, "pre")));
+  const prePlanCache = new Map();
+  function prestartPlan(zid, day = TODAY) {
+    const z = zoneOf(zid),
+      key = zid + ":" + day;
+    if (!z) return { min: PRESTART.fallback, skip: false, fallback: true };
+    if (prePlanCache.has(key)) return prePlanCache.get(key);
+    const T = preMorning(day),
+      on = day + workSpan()[0] * H,
+      used = [];
+    for (let d = day - DAY, n = 0; d >= START && n < PRESTART.days; d -= DAY) {
+      if (!isWorkday(d)) continue;
+      n++;
+      const Td = preMorning(d);
+      if (Td != null && Td > 24 && T != null && Math.abs(Td - T) <= PRESTART.band) used.push(preNeed(z, d, Td));
+    }
+    used.sort((a, b) => a - b);
+    const mid = used.length ? (used.length % 2 ? used[(used.length - 1) / 2] : (used[used.length / 2 - 1] + used[used.length / 2]) / 2) : null,
+      fallback = T == null || used.length < PRESTART.least,
+      skip = T != null && T <= 24,
+      min = skip ? 0 : fallback ? PRESTART.fallback : Math.min(PRESTART.max, Math.max(0, Math.round(mid + PRESTART.margin))),
+      at = on - min * MIN,
+      reach = skip ? null : at + (T == null ? PRESTART.fallback : preNeed(z, day, T)) * MIN,
+      plan = { min, skip, fallback, at, reach: reach != null && reach <= NOW ? reach : null, days: used.length, outdoor: T };
+    prePlanCache.set(key, plan);
+    return plan;
+  }
   /* 计量数据质量（规范 OPS05；第10章 E-08–E-13）：缺数、估算、补采、复位与换表分别标注，未标注的为实测。
      示例：9/8 空调末端 4 小时缺数（补不回，日合计按电能表前后读数差计入）；9/20 E栋 7F 网关离线 14 分钟，期间读数由网关补传。
      与告警处理记录中的“E栋 7F 网关离线”是同一次，用同一名称（2026-10-09 用户确认，Vision 核查 V72：原先写“网关上联中断”）。 */
@@ -62184,7 +62299,7 @@ const DemoService = (() => {
     return { light, hvac, total: light + hvac, off: share.off, offShare: share.pct, offAbove, offDays: use.length, offGapDays: gapDays.length, tou, hours: rs.length, gaps: rs.filter((r) => r.hvac == null).length };
   }
   // 节电量（2.08 全平台优化 Y5，2026-10-19 用户确认）：照明以工作时间内满亮度（登记的驱动功率合计）为基准，减去按亮度与驱动功率估算的用电。
-  // 工作时间以外不计；当天从未亮灯的功能区不计。来源按 LC20 回报的调暗原因：占用联动（无人关灯）、感应调光（有人时按日光调暗）、其他调暗（定时、手动）
+  // 工作时间以外不计；当天从未亮灯的功能区不计。来源按 LC20 回报的调暗原因：感应调光（无人时待机、关灯）、恒照度控制（有人时随天然光调暗）、其他调暗（定时、手动）（Y47；原写占用联动、感应调光）
   function savingsIn(rg) {
     const zs = zones().filter((z) => zoneLightW(z) > 0),
       lvlOf = (z) => (z.facade === "south" ? 0.55 : z.facade === "north" ? 0.72 : 0.95),
@@ -62882,6 +62997,7 @@ const DemoService = (() => {
     hvacSchedOn: hvSchedOn,
     hvacNextOff: hvNextOff,
     hvacNextOn: hvNextOn,
+    prestartPlan,
     hvacProfile: hvP,
     hvacSeason: hvSeason,
     oduMode,
@@ -65097,10 +65213,21 @@ function hvcSection(z, s) {
           : hvcIdle(s)
             ? `无人 ${HVAC_TIMING.standby} 分钟后待机（设定 ±${HVAC_TIMING.standbyK} K），${HVAC_TIMING.eco} 分钟后节能（供冷 ${HVAC_TIMING.ecoCool} ℃ / 供热 ${HVAC_TIMING.ecoHeat} ℃）；检测到有人立即恢复。`
             : "",
+    pre = live && z.fcs.length ? hvPrestartLine(z) : "",
     acs = [...z.fcs, ...z.idus],
     // 只监测、不下发的原因写在脚注中（按钮另有提示）
     foot = acs.length ? hvFoot(z, s) : "";
-  return `<section class="ops-zp-sec hvac"><h4>${ico("thermo", "ic16")}暖通空调<span class="sp"></span>${tags.map((t) => `<span class="ops-dim">${esc(t)}</span>`).join("")}</h4>${note ? `<p class="ops-zp-sub">${esc(note)}</p>` : ""}${acs.length ? hvZoneCtl(z, s, acs) + `<ul class="ops-hv-list">${acs.map((p) => hvItem(p)).join("")}</ul>` : ""}${z.splits.map(splitRow).join("")}${acs.length && !Demo.ctl.gwOffline ? ctlWhy("p", acs.map((p) => p.id)) : ""}${foot ? `<p class="ops-foot">${esc(foot)}</p>` : ""}</section>`;
+  return `<section class="ops-zp-sec hvac"><h4>${ico("thermo", "ic16")}暖通空调<span class="sp"></span>${tags.map((t) => `<span class="ops-dim">${esc(t)}</span>`).join("")}</h4>${note ? `<p class="ops-zp-sub">${esc(note)}</p>` : ""}${acs.length ? hvZoneCtl(z, s, acs) + `<ul class="ops-hv-list">${acs.map((p) => hvItem(p)).join("")}</ul>` : ""}${z.splits.map(splitRow).join("")}${acs.length && !Demo.ctl.gwOffline ? ctlWhy("p", acs.map((p) => p.id)) : ""}${pre}${foot ? `<p class="ops-foot">${esc(foot)}</p>` : ""}</section>`;
+}
+// 今天的预启动（全平台优化 Y48）：“今天 7:18 预启动 · 7:52 达到设定”；室温已合适写“今天室温已合适，未预启动”；不是工作日不写
+function hvPrestartLine(z) {
+  const today = Demo.dayStart(opsNow());
+  if (!Demo.isWorkday(today)) return "";
+  const P = Demo.prestartPlan(z.id, today),
+    tip = P.fallback ? "本功能区相近室外温度的记录不足 5 天，按 30 分钟预启动" : `按近 30 个工作日中清晨室外温度相近的 ${P.days} 天用时取中位数，加 10 分钟余量`;
+  if (P.skip) return `<p class="ops-zp-sub ops-hv-pre">今天室温已合适，未预启动</p>`;
+  const reach = P.reach ? ` · ${Demo.hm(P.reach)} 达到设定` : P.at <= opsNow() ? " · 尚未达到设定" : "";
+  return `<p class="ops-zp-sub ops-hv-pre" data-tip="${esc(tip)}">今天 ${Demo.hm(P.at)} 预启动${reach}</p>`;
 }
 // 可调范围与依据（适用标准 · 季节）、手动的有效期；多联机当天剩余 5 次以内时写还可调整的次数
 function hvFoot(z, s) {
@@ -67160,7 +67287,7 @@ function anSaving() {
             : sv.has
               ? anSaveCard(rg, sv, ms, since)
               : chartPending("节电量", "登记照明控制器的驱动功率后估算节电量。"),
-    saveSrc = sel === "save" && sv.total > 0 ? anPanel("energySave", "节电量 · 按来源", SAVE_SRC.filter(([k]) => sv.src[k] > 0).map(([k, n, c]) => anItem(esc(n), "", `<span class="an-hbar" style="--c:${c}"><i><b style="width:${(sv.src[k] / sv.total) * 100}%"></b></i></span><b>${nf(sv.src[k])} kWh</b>`))) : "",
+    saveSrc = sel === "save" && sv.total > 0 ? anPanel("energySave", "节电量 · 按来源", SAVE_SRC.filter(([k]) => sv.src[k] > 0).map(([k, n, c, d]) => anItem(esc(n) + opsInfo(n, esc(d)), "", `<span class="an-hbar" style="--c:${c}"><i><b style="width:${(sv.src[k] / sv.total) * 100}%"></b></i></span><b>${nf(sv.src[k])} kWh</b>`))) : "",
     saveZones = sel === "save" && sv.zones.length ? anPanel("energySaveZones", "节电量 · 按功能区", sv.zones.map((x) => anItem(esc(x.z.name), "", `${nf(x.kwh)} kWh`))) : "",
     measPanel = anPanel("energyMeasures", "节能措施", [], { right: canOperate() ? btn("登记措施", "anMeasureForm", {}, "ghost sm") : "", body: mss.length ? `<div class="an-measures">${mss.map((x) => measureRow(x, rg)).join("")}</div>` : `<p class="ops-empty-note">尚无措施。告警处理后的核实会自动加入${canOperate() ? "，已实施的措施可登记" : ""}。</p>` });
   return filterRow() + anGwLine() + anMainCard("saving", blocks, chart, { def: "save" }) + anPanels([saveSrc, saveZones, measPanel]);
@@ -67195,7 +67322,13 @@ defineActions({
   },
 });
 const SAVE_INFO = "照明以工作时间满亮度为基准估算；改进按处理前后各 7 天比较估算。",
-  SAVE_SRC = [["occ", "占用联动", S1], ["dim", "感应调光", S2], ["other", "其他调暗", S4], ["verified", "已核实的改进", SAC]];
+  // 来源用控制方式的名称（2.12 全平台优化 Y47，2026-10-21 用户确认，与 E126 一致；原为占用联动、感应调光、其他调暗，计算不变）
+  SAVE_SRC = [
+    ["occ", "感应调光", S1, "无人时按待机亮度调暗，待机结束后关灯省下的电。"],
+    ["dim", "恒照度控制", S2, "有人时随天然光调暗省下的电。"],
+    ["other", "其他调暗（定时、手动）", S4, "定时与手动调暗省下的电。"],
+    ["verified", "已核实的改进", SAC, "能耗异常告警处理后与登记的节能措施，经前后比较核实的节电量。"],
+  ];
 // 节电量图（Y5）：按日（近 12 个月按月）堆叠各来源
 function anSaveCard(rg, sv, ms, foot = "") {
   const xs = sv.days,
@@ -75748,6 +75881,13 @@ const AU_GUIDE_URL = "";
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
   {
+    version: "2.12",
+    date: "2026-10-21",
+    notes: [
+      "项目页的位置选择器可直接选到楼宇和楼层，视图切换只显示图标；项目卡片改为细进度条，更多按钮悬停时显示，工具栏按钮和返回按钮更轻；节电量按感应调光、恒照度控制、其他调暗和已核实的改进分来源；空调预启动按功能区和清晨室外温度自动学习提前时间。",
+    ],
+  },
+  {
     version: "2.11",
     date: "2026-10-21",
     notes: [
@@ -76414,7 +76554,7 @@ const HELP_ARTICLES = [
     steps: ["周报每周一、月报每月 1 日、年报每年 1 月 1 日 09:00 由 AI 起草，并按通知偏好告知机构管理员与配置人员。", "12:00 自动发布，遇节假日顺延到下一个工作日 12:00；在此之前可编辑草稿，或点“暂不发布”改为手动发布。", "报告期间数据覆盖不完整（缺数、网关离线）的一期不自动发布，处理后手动发布。", "发布后各节文字与数据截至固定，按通知偏好给接收人发邮件。"],
     faq: [["自建报告也会自动发布吗？", "不会，自建报告仍手动发布。"]], rel: ["savings"] },
   { id: "savings", topic: "analysis", title: "节电量", roles: "所有可查看数据分析的角色", sum: "在数据分析 › 节能查看节电量、目标进度、节能措施与对标。",
-    steps: ["照明：工作时间内按驱动功率满亮度为基准，减去按亮度与驱动功率估算的用电；工作时间以外和当天未亮灯的功能区不计。", "按来源分为占用联动、感应调光、其他调暗与已核实的改进，也可按功能区查看。", "已核实的改进来自能耗异常告警的效果核实与登记的节能措施；节能措施按实施前后同类时段比较核实。", "副文写照明节电率与上线以来的累计；登记电价后同时写出约多少元。"],
+    steps: ["照明：工作时间内按驱动功率满亮度为基准，减去按亮度与驱动功率估算的用电；工作时间以外和当天未亮灯的功能区不计。", "按来源分为感应调光、恒照度控制、其他调暗（定时、手动）与已核实的改进，也可按功能区查看。", "已核实的改进来自能耗异常告警的效果核实与登记的节能措施；节能措施按实施前后同类时段比较核实。", "副文写照明节电率与上线以来的累计；登记电价后同时写出约多少元。"],
     faq: [["节电量是计量值吗？", "是估算值，数值旁标“估算”。"]], rel: ["alarm", "report"] },
   { id: "offline", topic: "trouble", title: "设备离线与未回报", roles: "运营人员及以上", sum: "先查网关，再查单台设备的电源与设备网络。",
     steps: ["网关离线时其下设备状态未知：检查网关的上联与机房网络。", "单台离线：检查电源与断路器，再看设备网络的网络检测结果。", "控制未回报：点“重新查询”；仍无回报时检查该设备是否在线。", "现场恢复出厂的设备脱离设备网络，需要远程重新绑定或现场用部署 App 绑回原点位。"],
