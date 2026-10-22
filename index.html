@@ -7023,6 +7023,10 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 }
 /* 工作台放不下并排（面板并排后图纸区不足 700px，由页面按工作台实际宽度加上 sp-overlay；2026-10-09 B-4b，原先按窗口宽 1180px）：
    面板覆盖展开（不压缩画布），切换面板不重置缩放与滚动。 */
+/* 2.16 E372：并排时楼层页面板与项目信息一样从页面卡片顶到底整高（top、right、bottom 由 wsPlaceSpaceInfo 计算），宽仍 320；页面标题行、工具栏与工作台让出右侧。 */
+#pbody > .sp-panel.docked { position:fixed; z-index:5; border-radius:0 16px 16px 0; }
+#pbody:has(> .sp-panel.docked) > .ws-space-page { margin-right:320px; }
+@media (min-width:851px) { .panel:has(> #pbody > .sp-panel.docked) > .phead { margin-right:320px; } }
 .sp-bench.sp-overlay .sp-panel {
   position: absolute;
   top: 0;
@@ -7318,11 +7322,36 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
    卡片、列表、地图随之变窄（卡片 3 列变 2 列），不被遮挡；展开 200ms，减少动态效果时不动画。位置由 wsPlaceSpaceInfo 按内容右缘与第一行内容顶边计算。 */
 /* 2.14 E246：改为到底的右栏：从工具栏下方 8 到页面白卡底边（bottom 由 wsPlaceSpaceInfo 计算），左侧 1px #EBEBEB 竖线，没有自己的边线和圆角，内容在栏内滚动。
    原为宽 320 的卡片：1px 边线、圆角 12、离底 28。 */
-.v13-drawer.ws-space-info.docked { width:320px; bottom:0; border:0; border-left:1px solid #ebebeb; box-shadow:none; border-radius:0; z-index:5; animation:wsInfoDock 200ms cubic-bezier(.4,0,.2,1); }
-/* 2.14 E246：信息开关为 32 透明图标按钮（不描边），展开时仍为选中态（E218）。 */
-.ws-toolbar .iconbtn.round[data-act="spacePanelInfo"]:not([aria-expanded="true"]) { box-shadow:none; }
+/* 2.16 E362（2026-10-22 HONG 按推荐）：贴在页面卡片右侧，从卡片顶到底整高（top、right、bottom 由 wsPlaceSpaceInfo 按卡片计算），宽 400，内边距 24；
+   仍挤开内容，不加阴影，保留左侧 1px #EBEBEB 线，右侧两角随卡片圆 16。页面标题行与工具栏只占左栏，与内容同宽，内容右边与面板之间留 28。
+   E370：展开收起 200ms cubic-bezier(.4,0,.2,1)，面板从右侧展开（clip-path，不越出卡片），内容宽度同时变化。取代 E246 的宽 320、从工具栏下 8 开始。 */
+.v13-drawer.ws-space-info.docked { width:400px; bottom:0; border:0; border-left:1px solid #ebebeb; box-shadow:none; border-radius:0 16px 16px 0; z-index:5; animation:wsInfoDock 200ms cubic-bezier(.4,0,.2,1); transition:clip-path 200ms cubic-bezier(.4,0,.2,1); }
+#pbody.ws-info-closing > .ws-space-info.docked { clip-path:inset(0 0 0 100%); }
+#pbody > :is(.ws-dir, .ws-space-page), .panel > .phead { transition:margin-right 200ms cubic-bezier(.4,0,.2,1); }
+@media (min-width:851px) { .panel:has(> #pbody > .ws-space-info.docked) > .phead { margin-right:400px; } }
+#pbody.ws-info-closing:has(> .ws-space-info.docked) > :is(.ws-dir, .ws-space-page), .panel:has(> #pbody.ws-info-closing > .ws-space-info.docked) > .phead { margin-right:0; }
+/* E365：标题写对象名称 20/30 字重 480，与页面标题同一高度（卡片顶下 21）；下一行 14/24 #636363 写类别与要点。 */
+.ws-space-info.docked .v13-dh { padding:21px 24px 16px; }
+.ws-space-info.named .v13-dh h2 { font-size:20px; line-height:30px; font-weight:480; color:#030303; }
+.ws-space-info .v13-dh .ws-info-meta { margin:0; font-size:14px; line-height:24px; color:#636363; }
+/* E366：概要数字，每个 32 高，1px #EBEBEB 边，圆角 8，左右 10，16 的图标，数字 14/24 #030303 字重 480，单位 14/24 #636363，间隔 8，放不下时换行。 */
+.ws-info-sum { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 0; }
+.ws-info-chip { display:inline-flex; align-items:center; gap:4px; height:32px; padding:0 10px; border:1px solid #ebebeb; border-radius:8px; font-size:14px; line-height:24px; color:#636363; white-space:nowrap; }
+.ws-info-chip > .ic { flex:none; margin-right:2px; color:#636363; }
+.ws-info-chip > b { font-weight:480; color:#030303; font-variant-numeric:tabular-nums; }
+/* E367：配置进度卡片，1px #DEDEDE 边，圆角 8，上下 12、左右 16。 */
+.ws-info-card { display:grid; gap:8px; margin:16px 0 0; padding:12px 16px; border:1px solid #dedede; border-radius:8px; }
+.ws-info-card-h { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:14px; line-height:24px; font-weight:480; color:#030303; }
+.ws-info-card-n { font-weight:400; font-variant-numeric:tabular-nums; }
+.ws-info-card-next, .ws-info-card-x { display:flex; flex-wrap:wrap; align-items:center; gap:0 8px; font-size:14px; line-height:24px; color:#636363; }
+.ws-info-card-next > .lk { color:#030303; }
+.ws-info-card-next > .lk.warn { color:var(--warn); }
+.ws-info-card-next > .pc-sep { margin:0 -4px; }
+/* E369：“编辑项目”固定在面板底部，上方 1px #EBEBEB 线，白底 32 高靠右。 */
+.ws-space-info .v13-df { border-top-color:#ebebeb; }
 .ws-tb-actions > .ws-page-more { display:none; }
-@media (max-width:599.98px) { .ws-tb-actions > .ws-page-more { display:grid; } }
+/* 2.16 E371：手机上（≤850）工具栏的“更多”第一项是项目信息或楼宇信息，原为 ≤599 才有“更多”、另有信息图标按钮 */
+@media (max-width:850px) { .ws-tb-actions > .ws-page-more { display:grid; } }
 .ws-space-info .v13-dh .ws-info-scope { margin:0; font-size:12px; line-height:18px; color:#636363; }
 /* 2.14 E266：键值行 14/24（标签 #636363、值 #030303）；分组标题 14/24、字重 480；折叠行 14/24 #030303，末尾 6 的下箭头。
    原为键值 13/24、分组标题 16/24 字重 500、折叠行 13/21 #636363。 */
@@ -7336,16 +7365,15 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .ws-space-info .v13-db > .ws-details[open] > summary::after { margin:3px 3px 0 0; transform:rotate(-135deg); }
 .ws-space-info .ws-info-none { margin:0; font-size:14px; line-height:24px; color:#636363; }
 .ws-space-info .ws-info-warn { color:#8a5a00; }
-#pbody:has(> .ws-space-info.docked) > :is(.ws-dir, .ws-space-page) { margin-right:336px; }
+#pbody:has(> .ws-space-info.docked) > :is(.ws-dir, .ws-space-page) { margin-right:400px; }
 /* 2.14 E246：工具栏不随面板变窄，信息开关右缘与面板右缘对齐。 */
-@media (min-width:851px) { #pbody:has(> .ws-space-info.docked) > :is(.ws-dir, .ws-space-page) > .ws-toolbar { margin-right:-336px; } }
 @media (min-width:851px) { .ws-space-info.docked .v13-dh > [data-act="spacePanelInfoClose"] { display:none; } }
-.ws-toolbar .iconbtn.round[data-act="spacePanelInfo"] .ws-info-ic { transform:scaleX(-1); }
-@keyframes wsInfoDock { from { opacity:0; transform:translateX(16px); } }
-@media (prefers-reduced-motion:reduce) { .v13-drawer.ws-space-info.docked { animation:none; } }
+@keyframes wsInfoDock { from { clip-path:inset(0 0 0 100%); } }
+@media (prefers-reduced-motion:reduce) { .v13-drawer.ws-space-info.docked { animation:none; transition:none; } #pbody > :is(.ws-dir, .ws-space-page), .panel > .phead { transition:none; } }
 .ws-space-info .kv { grid-template-columns:88px 1fr; line-height:24px; }
 
-.ws-space-info .ws-info-image { width:100%; height:160px; object-fit:cover; border-radius:8px; }
+/* E368：照片 352×198（面板内宽），圆角 8，没有照片不占位 */
+.ws-space-info .ws-info-image { width:100%; height:198px; object-fit:cover; border-radius:8px; }
 /* 只在窄屏占满宽度；触屏平板与告警详情、参数详情一样 400 宽（全面设计核查第 20 条，2026-10-12 用户确认：原先触屏上也占满宽度） */
 @media (max-width:850px) {
  .v13-drawer.ws-space-info, .v13-drawer.ws-space-info.docked { top:8px; right:8px; bottom:8px; width:calc(100% - 16px); max-width:calc(100% - 16px); box-shadow:var(--pop); border:0; z-index:60; }
@@ -7360,6 +7388,16 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 
 /* 信息面板首图距标题线 16px。 */
 .ws-space-info .v13-db > .ws-info-image:first-child { margin-top:12px; }
+
+/* 2.16 E363、E372：右侧面板的把手（项目信息、楼层页功能区面板、设备标记面板共用）：24×48，白底，左侧两角圆 8，1px #EBEBEB 边，浮层阴影，
+   16 的箭头（展开时指向右）；位置由 wsPlaceRpHandle 计算；手机上不显示。 */
+.ws-rp-handle { position:fixed; left:0; top:0; z-index:7; display:grid; place-items:center; width:24px; height:48px; padding:0; border:1px solid #ebebeb; border-right:0; border-radius:8px 0 0 8px; background:#fff; box-shadow:var(--pop); color:#030303; cursor:pointer; }
+.ws-rp-handle:hover { background:#f5f5f5; }
+.ws-rp-handle .ic { width:16px; height:16px; }
+.ws-rp-handle.open .ic { transform:scaleX(-1); }
+.ws-rp-handle.moving { transition:left 200ms cubic-bezier(.4,0,.2,1); }
+@media (max-width:850px) { .ws-rp-handle { display:none; } }
+@media (prefers-reduced-motion:reduce) { .ws-rp-handle.moving { transition:none; } }
 
 /* ========== 8. 表单：创建与编辑项目、楼宇（地图位置、地址检索、时区、楼层结构预览、说明框） ========== */
 .ws-image-field {
@@ -15401,32 +15439,55 @@ button.ops-zbadge::before {
 .ops-cmp .ops-foot + .ops-foot {
   margin-top: 2px;
 }
-/* VD8 数据截至：平时灰字；超过 5 分钟没有取得新数据时黄点与深黄字，指标、状态条、楼层图与表格的数值变暗（告警角标不变暗） */
+/* 2.16 E373：实时标签，同全站状态标签的绿色（.chip.good：#E6F4E6 底、#0A7A0A 字），20 高，全圆，左右 8，12/18 字重 480；前面 8 的绿点，
+   外圈每 2 秒向外扩散淡出一次，减少动态效果时只留静止的点。E375：超过 5 分钟没有取得新数据时黄色（#FDF0D2 底、#8A5A00 字），静止的黄点。
+   取代 VD8 的 12/18 #636363 灰字“数据截至 10:30 · 每分钟更新”。指标、状态条、楼层图与表格的数值变暗照旧（告警角标不变暗）。 */
 .ops-live {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex: none;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #e6f4e6;
+  color: #0a7a0a;
   font-size: 12px;
   line-height: 18px;
-  color: var(--text3);
+  font-weight: 480;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.ops-live.stale {
-  color: var(--warn);
-}
-.ops-live.stale::before {
-  content: "";
+.ops-live > i {
+  position: relative;
   flex: none;
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #eda100;
+  background: currentColor;
 }
-.ws-toolbar > .ops-live + .btn {
-  margin-left: 8px;
+.ops-live:not(.stale) > i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: currentColor;
+  animation: opsLivePulse 2s ease-out infinite;
 }
-.ops-my-h .ops-live {
-  margin-top: 4px;
+@keyframes opsLivePulse { from { transform: scale(1); opacity: .5; } to { transform: scale(2.6); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .ops-live > i::after { animation: none; display: none; } }
+.ops-live.stale {
+  background: #fdf0d2;
+  color: #8a5a00;
+}
+.ops-live.stale > i { background: #eda100; }
+/* E374：页面标题后面，与标题垂直居中，间隔 12（页头 gap）；标题不再撑满，页头右侧操作仍在右端。手机上放不下时换到标题下一行。 */
+.phead > h1:has(+ .ops-live) { flex: none; }
+.phead > .ops-live { margin-right: auto; }
+@media (max-width: 599.98px) {
+  .phead:has(> .ops-live) { flex-wrap: wrap; height: auto; min-height: 72px; row-gap: 4px; }
+  .phead > .ops-live { white-space: normal; height: auto; min-height: 20px; }
 }
 /* 数据未更新时文字改 #636363，不用透明度；数据质量的圆点仍淡；楼层图填色 66% 降到 30%，名称和状态字 #636363
    （Lovable 核查第 192 条，2026-10-11 用户确认）。告警角标、对比表“未恢复告警”一列和“需要处理”不变暗 */
@@ -37646,9 +37707,12 @@ function projectActions(kind, id, primary = "") {
   const infoOpen = !!U.spaceInfo && U.spaceInfo.kind === kind && (U.spaceInfo.id || "") === (id || "");
   const acts = `${kind === "projects" || kind === "buildings" ? menuTrigger(iconBtn("更多", "more", "spaceMore", { kind, id, tb: 1 })) : canExportAny() ? (kind === "all" && !data().projects.length ? `<button class="iconbtn round" aria-disabled="true" aria-label="导出项目资料：尚无项目可导出" data-tip="尚无项目可导出" data-act="exAllOpen">${ico("download")}</button>` : iconBtn("导出项目资料", "download", kind === "all" ? "exAllOpen" : "exOpen", { p: kind === "projects" ? id : U.p, ...(kind === "buildings" ? { b: id } : {}) })) : ""}${primary}`;
   PAGE_CATEGORY_HEADERS.set(U.page, { actions: acts });
-  const more = acts ? menuTrigger(iconBtn("更多", "more", "pageMore", { pageactions: "pageCategoryTitleActions" })).replace('class="iconbtn round"', 'class="iconbtn round ws-page-more"') : "";
-  // 2.13 E225：按钮图标为“右侧面板”（方框加右侧一栏，原为圆圈里的 ⓘ），面板停靠在内容右侧，同一个按钮展开、收起。
-  return `<div class="ws-tb-actions">${more}${iconBtn(noun + "信息", "collapse", "spacePanelInfo", { kind, ...(id ? { id } : {}) }).replace("<button ", `<button aria-expanded="${infoOpen}" aria-controls="wsSpaceInfo" `).replace(ico("collapse"), ico("collapse", "ws-info-ic"))}</div>`;
+  // 2.16 E371：手机上（≤850）去掉工具栏的信息图标按钮，“项目信息”“楼宇信息”放进工具栏“更多”的第一项（图标 ⓘ，与卡片“⋯”菜单同一项）；
+  // 只读的人也有这个“更多”，里面只有这一项。标题行的操作只在标题行收起时（≤599）才进这个菜单。
+  const more = menuTrigger(iconBtn("更多", "more", "pageMore", { pageactions: "pageCategoryTitleActions", infokind: kind, ...(id ? { infoid: id } : {}) })).replace('class="iconbtn round"', 'class="iconbtn round ws-page-more"');
+  // 2.16 E363：电脑上的开关是面板左缘的把手（rpHandle），取代 2.13 E225 工具栏右端的“右侧面板”图标按钮。
+  rpHandle(noun + "信息", infoOpen, "spacePanelInfo", { kind, ...(id ? { id } : {}) }, ".ws-space-info");
+  return `<div class="ws-tb-actions">${more}</div>`;
 }
 function openLocation(anchor, intent) {
   const r = showLocationPicker(anchor, intent),
@@ -37804,10 +37868,13 @@ function render() {
   verifySync();
   // 权限变化后不能再访问的项目（GLOBAL02，2026-10-08）：由账户服务判断（auth-ui.js 的 auAccessLostPage），写明当前角色与项目授权。
   PAGE_CATEGORY_HEADERS.delete(U.page);
+  rpHandleHtml = "";
+  if (typeof opsHeadLive !== "undefined") opsHeadLive = "";
+  infoAutoOpen();
   const objPage = ["projects", "deployment", "devices", "overview", "analysis", "alarms", "scenes"].includes(U.page),
     lostPage = objPage && !U.missing && U.p && typeof auAccessLostPage === "function" ? auAccessLostPage(U.p) : "";
   const body = U.missing && objPage ? missingPage() : lostPage || pages[U.page]();
-  const app = $("#app"), side = wsSideHtml(), head = wsHeadHtml(), main = `${wsPageTabPanel(body)}${(U.page === "projects" || devCanvas()) && U.spaceInfo ? projectInformationPanel() : ""}`;
+  const app = $("#app"), side = wsSideHtml(), head = wsHeadHtml(), main = `${wsPageTabPanel(body)}${isMobile() ? "" : rpHandleHtml}${(U.page === "projects" || devCanvas()) && U.spaceInfo ? projectInformationPanel() : ""}`;
   app.className = shellClass();
   const sideEl = app.querySelector(":scope > #side"), headEl = app.querySelector(":scope > .main .phead"), pbody = $("#pbody");
   // 外壳开头的“跳到主要内容”（Lovable 核查第 112 条，2026-10-11 用户确认）：页面第一个可聚焦的元素，只在用键盘聚焦时出现；回车把焦点移到页面内容。
@@ -38025,7 +38092,7 @@ function floorCountText(ids, db = data()) {
 pages.projects = () => {
   if (U.b && !U.f && outdoorSite(U.b)) { U.f = outdoorSite(U.b).id; syncRoute(true); }
   // 楼宇、楼层页与目录同为尺寸容器：选择器组按同一公式等于目录第一列宽（3 / 2 / 1 列）。
-  if (U.f) return `<div class="ws-space-page">${floorPage()}</div>`;
+  if (U.f) { const html = floorPage(), f = currentFloor(); return `<div class="ws-space-page">${html}</div>${f && spDock(f) ? spacePanel(f, true) : ""}`; }
   if (U.b) return `<div class="ws-space-page">${buildingPage()}</div>`;
   const kind = U.p ? "buildings" : "projects",
     noun = U.p ? "楼宇" : "项目",
@@ -38314,7 +38381,9 @@ function floorPage() {
     overlay = !!f.image && mkOverlay();
   // 楼层图是设备标记的子页面，页头为一行工作区顶栏（2026-10-17 用户确认，设备核查 E146，细化 E140）；面板收起后顶栏才有“展开面板”，
   // 收起按钮只在面板上（原先页头和面板各有一个“收起面板”）。宽度 ≤850px 时面板排在画布下方，没有这个按钮。
-  const body = mkTopBar(f, f.image ? F.planChecks(data(), { floorId: f.id }) : null, f.image && !mkStacked() && !panelOpen);
+  // 2.16 E372：面板位置不变，开关改为面板左缘的把手（与项目信息、楼层页同一种），取代面板上的“收起面板”与收起后顶栏的“展开面板”（E146）。
+  if (f.image && !mkStacked()) rpHandle("面板", panelOpen, "mkPanel", {}, ".ws-planning-panel", "mk-panel-btn");
+  const body = mkTopBar(f, f.image ? F.planChecks(data(), { floorId: f.id }) : null);
   // 没有图纸时指向项目楼层（2026-10-17 用户确认，配置区核查 E141）；查看人员与运营人员不给上传指导（第14章；2026-10-05 核查 D16）。
   if (!f.image)
     return (
@@ -38366,7 +38435,7 @@ function mkTopBar(f, checks, panelBtn = false) {
     dirty = U.dirty || U.attrsDirty,
     blocks = checks?.blocks.length || 0,
     hist = (label, icon, act, on) => iconBtn(label, icon, act).replace("<button ", `<button ${on ? "" : "disabled "}`),
-    panel = panelBtn ? `<button class="iconbtn round sp-panel-btn mk-panel-btn" data-act="mkPanel" aria-pressed="false" aria-label="展开面板" data-tip="展开面板">${ico("collapse", "sp-panel-ic")}</button>` : "";
+    panel = "";
   // 2.15 E306（2026-10-21 HONG 按建议）：去掉“返回楼层目录”按钮，换层级用位置选择器（选楼宇或项目即打开楼层目录），与项目楼层页一致。
   // E309：有阻止项时“现场绑定”不可点，提示气泡写“阻止项清零后才能现场绑定”。
   return `<div class="mk-topbar" role="toolbar" aria-label="设备标记">${scopeControl()}${f.image ? floorModeTabs() + checkPill(checks) : ""}${
@@ -40687,13 +40756,16 @@ defineActions({
   pageMore: (a, el) => {
     if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
     const group = ["overviewTitleActions", "pageCategoryTitleActions"].includes(a.pageactions) ? document.getElementById(a.pageactions) : el.closest(".ws-toolbar")?.querySelector(".ws-page-acts");
-    const items = [...(group?.querySelectorAll("button") || [])].map((b) => {
+    // 2.16 E371：项目页的“更多”第一项是项目信息或楼宇信息；标题行仍显示时（600–850）不再重复标题行的操作。
+    const info = a.infokind ? btn(ico("info", "ic16") + (a.infokind === "buildings" ? spaceNoun("buildings", g("buildings", a.infoid)) : "项目") + "信息", "spacePanelInfo", { kind: a.infokind, ...(a.infoid ? { id: a.infoid } : {}) }, "popitem") : "";
+    const shown = !!(a.infokind && group?.getClientRects?.().length);
+    const items = [...(info ? [info] : []), ...[...(shown ? [] : group?.querySelectorAll("button") || [])].map((b) => {
       const c = b.cloneNode(true);
       c.className = "btn popitem";
       c.removeAttribute("id");
       if (!c.textContent.trim()) c.insertAdjacentHTML("beforeend", `<span>${esc(b.getAttribute("aria-label") || b.dataset.tip || "")}</span>`);
       return c.outerHTML;
-    });
+    })];
     if (items.length) {
       popRight(el, menuBox("更多", items.join("")));
       const panel = $("#pop");
@@ -42164,14 +42236,15 @@ function mapGroupHtml(kind, list) {
 function wsPlaceSpaceInfo() {
   const tb = $("#pbody .ws-toolbar") || $("#pbody .ws-tb-actions");
   // 停靠的信息面板（2.13 E225）：右缘与内容右缘对齐，顶边与工具栏下面第一行内容对齐，页面滚动后贴住页头下方，到页面底部。
-  const dock = $("#pbody > .ws-space-info.docked"), pb = $("#pbody");
+  const pb = $("#pbody"), docks = [...document.querySelectorAll("#pbody > .ws-space-info.docked, #pbody > .sp-panel.docked")], dock = docks[0];
   if (dock && pb && !isMobile()) {
-    // 2.14 E246：从工具栏下方 8 开始，一直到页面白卡底边（原为与第一行内容顶边对齐、离底 28）。
-    const r = pb.getBoundingClientRect(), pad = parseFloat(getComputedStyle(pb).paddingRight) || 0,
-      ft = tb ? tb.getBoundingClientRect().bottom + 8 : r.top, card = pb.closest(".panel")?.getBoundingClientRect() || r;
-    dock.style.right = Math.round(innerWidth - r.right + pad) + "px";
-    dock.style.top = Math.round(Math.max(r.top + 8, ft)) + "px";
-    dock.style.bottom = Math.max(0, Math.round(innerHeight - Math.min(innerHeight, card.bottom))) + "px";
+    // 2.16 E362、E372：贴在页面卡片右侧，从卡片顶到底整高（取代 2.14 E246 的“从工具栏下方 8 开始”）。
+    const card = pb.closest(".panel")?.getBoundingClientRect() || pb.getBoundingClientRect();
+    for (const d of docks) {
+      d.style.right = Math.round(innerWidth - card.right) + "px";
+      d.style.top = Math.round(card.top) + "px";
+      d.style.bottom = Math.max(0, Math.round(innerHeight - Math.min(innerHeight, card.bottom))) + "px";
+    }
   } else if (dock) {
     dock.style.top = "";
     dock.style.right = "";
@@ -42185,8 +42258,32 @@ function wsPlaceSpaceInfo() {
     if (top > base && innerHeight - top - base >= 240) d.style.top = top + "px";
   });
 }
-document.addEventListener("scroll", (e) => { if (e.target === document || e.target?.id === "pbody") wsPlaceSpaceInfo(); }, true);
-window.addEventListener("resize", () => wsPlaceSpaceInfo());
+// 2.16 E363：把手的位置。展开时贴在面板左缘：整高的面板与工具栏同高居中（卡片顶下 64，48 高），工作台里的面板在面板顶下 8；
+// 收起后留在页面卡片右边缘的同一高度。把手在内容之后（内容区是尺寸容器，放在工具栏里会被裁切），用 fixed 定位，按实际包含块校正。
+let wsInfoWas = false, rpLast = null;
+function wsPlaceRpHandle(closing = false) {
+  const h = $("#pbody > .ws-rp-handle"), pb = $("#pbody");
+  if (!h || !pb || isMobile()) return;
+  const card = pb.closest(".panel")?.getBoundingClientRect() || pb.getBoundingClientRect(),
+    sel = h.dataset.panel, p = sel && !closing ? $(sel) : null, pr = p?.getClientRects().length ? p.getBoundingClientRect() : null,
+    // 项目信息与并排的楼层页面板：与工具栏同高居中（卡片顶下 64）；设备标记与覆盖方式的楼层页面板在工作台里：工作台顶下 8。展开收起同一高度。
+    bench = sel === ".ws-space-info" ? null : $(sel === ".ws-planning-panel" ? ".mk-bench" : ".sp-bench"),
+    inBench = bench && (sel === ".ws-planning-panel" || bench.classList.contains("sp-overlay")),
+    top = inBench ? bench.getBoundingClientRect().top + 8 : card.top + 64,
+    right = pr ? pr.left : card.right;
+  h.classList.toggle("open", !!pr);
+  h.classList.remove("moving");
+  h.style.left = "0px"; h.style.top = "0px";
+  const o = h.getBoundingClientRect(), x = Math.round(right - h.offsetWidth), y = Math.round(top);
+  // 展开、收起时从原来的位置滑到新位置（与面板同步 200ms），滚动时直接跟随；减少动态效果时不滑动（CSS）。
+  const prev = rpLast && rpLast.sel === sel && rpLast.y === y && rpLast.x !== x ? rpLast : null;
+  if (prev) { h.style.left = prev.x - o.left + "px"; h.style.top = y - o.top + "px"; void h.offsetWidth; h.classList.add("moving"); setTimeout(() => h.classList.remove("moving"), 220); }
+  h.style.left = x - o.left + "px";
+  h.style.top = y - o.top + "px";
+  rpLast = { sel, x, y };
+}
+document.addEventListener("scroll", (e) => { if (e.target === document || e.target?.id === "pbody") { wsPlaceSpaceInfo(); wsPlaceRpHandle(); } }, true);
+window.addEventListener("resize", () => { wsPlaceSpaceInfo(); wsPlaceRpHandle(); });
 // 绘制完成后：先做工作区自身的处理，再依次运行各模块登记的处理（运营图表、绘制入口位置与说明框）。
 // 2026-10-03 D2：以登记取代各模块对 afterRender 的运行时覆盖，执行顺序不变（运营模块先于绘制模块）。
 const AFTER_RENDER = [];
@@ -42244,10 +42341,14 @@ function wsAfterRender() {
   }
   initBuildingMarks();
   wsPlaceSpaceInfo();
+  wsPlaceRpHandle();
+  // 2.16 E370：面板展开、收起后地图随宽度重新适应（内容宽度 200ms 变化之后），所选位置保持在中心。
+  const infoNow = !!$("#pbody > .ws-space-info.docked");
+  if (infoNow !== wsInfoWas) { wsInfoWas = infoNow; if (listMap) setTimeout(() => listMap?.invalidateSize(), 220); }
   spSheetReserve();
   // 重新绘制后原提示的按钮已不存在（如点按信息按钮打开面板）：收起这条过时的提示，Esc 不必先关闭它。
   if (wsTipAnchor && !wsTipAnchor.isConnected) wsHideTip(true);
-  if (U.infoFocus && $(".ws-space-info")) { U.infoFocus = false; ($(".ws-space-info.docked") && !isMobile() ? $(".ws-tb-actions [data-act=spacePanelInfo][aria-expanded=true]") : $(".ws-space-info [data-act=spacePanelInfoClose]"))?.focus({ preventScroll: true }); }
+  if (U.infoFocus && $(".ws-space-info")) { U.infoFocus = false; ($(".ws-space-info.docked") && !isMobile() ? $("#pbody > .ws-rp-handle") : $(".ws-space-info [data-act=spacePanelInfoClose]"))?.focus({ preventScroll: true }); }
   // 从项目“在配置进度中调整”进入：打开范围弹窗；触发的链接已不在本页，关闭后焦点回到页面标题（核查 R22）。
   if (U.openScope) {
     const o = U.openScope; U.openScope = null;
@@ -43074,7 +43175,8 @@ function sourceBack() {
 }
 // 标题区路径：项目 / 广实2号园 / E栋 / 7F。祖先为链接；当前对象为标题，点按打开同级切换与四级搜索。
 function headTitle() {
-  return `<h1>${memberHome() ? MEMBER_HOME : TITLES[U.page] || "PACOM Station"}</h1>`;
+  // 2.16 E374：总览、告警、场景、我的区域的实时标签跟在标题后面（ops-demo.js liveHead）
+  return `<h1>${memberHome() ? MEMBER_HOME : TITLES[U.page] || "PACOM Station"}</h1>${typeof opsHeadLive !== "undefined" ? opsHeadLive : ""}`;
 }
 // 室外区域只有一张总平面：选择器在楼宇与室外区域之间切换（2026-10-05 核查 S8：原先展开只有这一张总平面，切不到其他室外区域）。
 const switchKind = () => (U.page === "deployment" ? "projects" : U.f && U.zone && g("zones", U.zone) ? "zones" : U.f && !isOutdoor(U.b) ? "floors" : U.b ? "buildings" : "projects");
@@ -43338,13 +43440,6 @@ function exScopeFloors(bs, inS) {
   const fs = bs.flatMap((b) => sortedFloors(b.id).filter((f) => inS.has(f.id)).map((f) => (b.kind === "outdoor" ? b.name : `${b.name} ${f.name}`)));
   return fs.length > 3 ? `${fs[0]} 等 ${fs.length} 个楼层` : fs.join("、");
 }
-// 信息面板“本次范围”行（第 9 步 G2）：室外区域写“总平面在本次范围 · 已上传总平面图 / 未上传总平面图”；项目含总平面时计数用 floorCountText，
-// 有楼层图数写“N 个有楼层图”（2.13 E238：原为“图纸”；2.14 E250：只有楼层时也写“个”，原为“N 层有楼层图”）。
-function scopeRowText(inScope, outdoor) {
-  const up = inScope.filter((f) => f.image).length;
-  if (outdoor) return `总平面在本次范围 · ${up ? "已上传总平面图" : "未上传总平面图"}`;
-  return `${floorCountText(inScope.map((f) => f.id))} · ${up} 个有楼层图`;
-}
 function spaceInformationBody(o, isBuilding = false) {
   const db = data(), p = isBuilding ? g("projects", o.projectId) : o, outdoor = isBuilding && o.kind === "outdoor";
   const bs = isBuilding ? [o] : db.buildings.filter(b => b.projectId === o.id);
@@ -43360,19 +43455,68 @@ function spaceInformationBody(o, isBuilding = false) {
   const typeOrder = (t) => { const i = SPACE_TYPE_TABLE.findIndex((x) => x[0] === t); return i < 0 ? 999 : i; },
     typeN = (t) => zs.filter(z => (z.spaceType || "未设类型") === t).length,
     types = [...new Set(zs.map(z => z.spaceType || "未设类型"))].sort((a, b) => typeN(b) - typeN(a) || typeOrder(a) - typeOrder(b)).map(t => `${t} ${typeN(t)} 个`),
-    out = isBuilding && !scope.whole && !inScope.length,
-    prog = out ? "" : projectProgressLine(o, statusLine(isBuilding ? "buildings" : "projects", o), "ws-info-prog");
+    out = isBuilding && !scope.whole && !inScope.length;
   // 2.14 E267：去掉名称行（面板标题下已写名称）；没有楼宇的项目只写“全部空间 尚未创建楼宇”；没填说明时不显示“说明”；位置已核对时不显示
   // “位置核对”，待核对写提醒色“位置待核对”；坐标下不再写坐标系说明；没有修改记录时只写一行灰字。楼宇面板相同。
   const none = !isBuilding && !bs.length,
     pending = isBuilding && o.sameLocation ? !p?.location?.confirmed : !o.location?.confirmed,
     recs = db.records.filter(r => r.objectId === o.id);
-  return `${o.image ? `<img class="ws-info-image" src="${esc(o.image)}" alt="${esc(o.name)}">` : ""}<h3>基本资料</h3>${infoRows([...(outdoor ? [["类型", "室外区域"]] : [[isBuilding ? "主要用途" : "类型", o.usage || "未填写"]]), ...(isBuilding ? [[outdoor ? "占地面积" : "建筑面积", F.areaText(o.area)], ...(outdoor ? [] : [["楼层结构", { html: nwSeps(structWords(o)) }]])] : []), ["全部空间", none ? "尚未创建楼宇" : { html: nwSeps(outdoor ? `${fs[0]?.name || "总平面"} · ${zs.length} 个功能区` : isBuilding ? `${fs.length} 个楼层 · ${zs.length} 个功能区` : spaceScale(bs, zs.length)) }], ...(none ? [] : [outdoor ? ["总平面图", fs[0]?.image ? "已上传" : "未上传"] : ["楼层图", { html: nwSeps(planCountText(bs, fs)) }], ["空间类型", types.length ? { html: nwJoin(types) } : "未划分"]])])}<h3>部署</h3>${infoRows([["本次部署范围", { html: (out ? '<span class="nw">未纳入本次部署</span>' : nwSeps(scope.whole ? "整个项目" : scopeRowText(inScope, outdoor))) + scopeAdjustLink(p.id, isBuilding ? o.id : null) }], ...(out ? [] : [["配置进度", { html: prog }]])])}<h3>位置与说明</h3>${infoRows([["详细地址", o.address || "未填写"], ["所在地", regionText(p)], ...(pending ? [["位置核对", { html: '<span class="ws-info-warn">位置待核对</span>' }]] : []), ["时区", zoneText(p.timezone)], ...(o.description ? [["说明", o.description]] : [])])}<details class="ws-details"><summary>地图坐标</summary>${infoRows([["坐标", coordinate(o.location)]])}</details><details class="ws-details"><summary>修改记录</summary>${recs.length ? recordsTable(recs) : '<p class="ws-info-none">尚无修改记录</p>'}</details>`;
+  // 2.16 E366（2026-10-22 HONG 07:20Z 按推荐）：标题下一排概要数字，基本资料里的“全部空间”与楼宇的“楼层结构”两行删去（取代 E239、E267 这两行）。
+  // E367：配置进度做成一张卡片（第一行“配置进度 N / 6”，六段细条，“下一步：…”与“N 台需处理”，最后一行本次部署范围），小标题“部署”删去。
+  // E368：顺序为照片、概要数字、配置进度卡片、基本资料、位置与说明、地图坐标与修改记录（仍折叠）。
+  const flat = isBuilding ? fs : fs.filter((f) => db.buildings.find((b) => b.id === f.buildingId)?.kind !== "outdoor"),
+    outs = bs.filter((b) => b.kind === "outdoor").length,
+    chips = none ? [infoChip("building", "", "尚未创建楼宇")]
+      : outdoor ? [infoChip("zone", zs.length, "个功能区")]
+      : isBuilding ? [o.above || o.below ? infoChip("layers", o.above || 0, "层", "地上") : infoChip("layers", "", "尚无楼层"), ...(o.below ? [infoChip("layers", o.below, "层", "地下")] : []), infoChip("zone", zs.length, "个功能区")]
+      : [infoChip("building", bs.length - outs, "栋楼宇"), ...(outs ? [infoChip("map", outs, "个室外区域")] : []), infoChip("layers", flat.length, "个楼层"), infoChip("zone", zs.length, "个功能区")];
+  const scopeText = scope.whole ? "整个项目" : outdoor ? "总平面" : isBuilding ? `${inScope.length} 个楼层` : scopeWords(inScope),
+    card = out
+      ? `<div class="ws-info-card"><div class="ws-info-card-x"><span>未纳入本次部署</span>${scopeAdjustLink(p.id, o.id)}</div></div>`
+      : progressCard(o, isBuilding, none ? "" : `<div class="ws-info-card-x">本次部署范围 ${nwSeps(scopeText)}${scopeAdjustLink(p.id, isBuilding ? o.id : null)}</div>`);
+  return `${o.image ? `<img class="ws-info-image" src="${esc(o.image)}" alt="${esc(o.name)}">` : ""}<div class="ws-info-sum">${chips.join("")}</div>${card}<h3>基本资料</h3>${infoRows([...(outdoor ? [["类型", "室外区域"]] : [[isBuilding ? "主要用途" : "类型", o.usage || "未填写"]]), ...(isBuilding ? [[outdoor ? "占地面积" : "建筑面积", F.areaText(o.area)]] : []), ...(none ? [] : [outdoor ? ["总平面图", fs[0]?.image ? "已上传" : "未上传"] : ["楼层图", { html: nwSeps(planCountText(bs, fs)) }], ["空间类型", types.length ? { html: nwJoin(types) } : "未划分"]])])}<h3>位置与说明</h3>${infoRows([["详细地址", o.address || "未填写"], ["所在地", regionText(p)], ...(pending ? [["位置核对", { html: '<span class="ws-info-warn">位置待核对</span>' }]] : []), ["时区", zoneText(p.timezone)], ...(o.description ? [["说明", o.description]] : [])])}<details class="ws-details"><summary>地图坐标</summary>${infoRows([["坐标", coordinate(o.location)]])}</details><details class="ws-details"><summary>修改记录</summary>${recs.length ? recordsTable(recs) : '<p class="ws-info-none">尚无修改记录</p>'}</details>`;
 }
 // 部署范围只在配置进度中编辑（2026-10-03 用户确认 C6）：项目里只读显示，附此入口；进入配置进度并打开“本次部署范围”，标题旁有来源返回。
 // “本次范围”行后的“在配置进度中调整”是信息面板中唯一的范围入口，底部不再重复同名按钮（2026-10-03 小修）。
 // 项目尚无楼宇时没有可选的楼层，不给这个入口（核查 R24）。
 const scopeAdjustLink = (pid, bid = null) => (canEdit() && data().buildings.some((b) => b.projectId === pid) ? ` <button class="lk ws-scope-adjust" data-act="scopeAdjust" data-p="${esc(pid)}"${bid ? ` data-b="${esc(bid)}"` : ""} aria-haspopup="dialog">在配置进度中调整</button>` : "");
+// 2.16 E366：概要数字，每个 32 高的小框：16 的图标、数字 14/24 字重 480、单位 14/24 #636363（“地上 3 层”的“地上”同为单位色）。
+const infoChip = (icon, n, unit, pre = "") => `<span class="ws-info-chip">${ico(icon, "ic16")}${pre ? `<span>${pre}</span>` : ""}${n !== "" ? `<b>${n}</b>` : ""}<span>${unit}</span></span>`;
+// 本次部署范围写“2 栋 · 12 个楼层”，含室外区域时接“N 个总平面”（floorCountText；E367 的“12 层”按 E250：“数字 + 层”只用于楼宇自身的层数）。
+// 取代第 9 步 G2 的“N 个楼层 · N 个有楼层图”与室外区域写总平面是否上传（楼层图是否上传见基本资料）。
+function scopeWords(floors) {
+  const db = data(), nb = new Set(floors.filter((f) => M.building(db, f.buildingId)?.kind !== "outdoor").map((f) => f.buildingId)).size;
+  return floors.length ? (nb ? `${nb} 栋 · ` : "") + floorCountText(floors.map((f) => f.id), db) : "尚未选择";
+}
+// 2.16 E367：信息面板的配置进度卡片（1px #DEDEDE、圆角 8）：“配置进度”与右侧“N / 6”，六段细条（同 E245），“下一步：…”点击进入配置进度的这一步，
+// 有需处理设备时同一行接“N 台需处理”（同项目卡片 E213、Y38），最后一行为本次部署范围（extra）。没有楼宇的项目写“0 / 6”与“下一步：创建楼宇”。
+function progressCard(o, isBuilding, extra = "") {
+  const P = projectProgress(o), G = P.G, att = G.attention, t = statusLine(isBuilding ? "buildings" : "projects", o),
+    dir = `data-act="dirStatus" data-p="${t.pid}"${t.anchor ? ' data-anchor="space"' : ""}`;
+  return `<div class="ws-info-card"><div class="ws-info-card-h"><span>配置进度</span><span class="ws-info-card-n">${G.done} / ${G.total}</span></div>${v13Segs(G.rows, "pc-seg ws-info-seg")}<div class="ws-info-card-next"><button class="lk" ${dir}>${esc(P.word)}</button>${att.total ? `<span class="pc-sep" aria-hidden="true"> · </span><button class="lk warn" data-act="netIssues"${v13AttentionArgs(att)}>${att.total} 台需处理</button>` : ""}</div>${extra}</div>`;
+}
+// 2.16 E364：窗口宽 1440 及以上默认展开，851–1439 默认收起；每个人上次展开或收起记在本机（全部项目、项目、楼宇三级与三种视图共用），记住的选择优先。
+const infoPrefKey = () => "pacom-station-info-panel:" + ((typeof AUTH !== "undefined" && AUTH.uid) || "");
+function infoPref() {
+  try { const v = localStorage.getItem(infoPrefKey()); return v === "1" ? true : v === "0" ? false : null; } catch (_) { return null; }
+}
+function infoPrefSet(open) {
+  try { localStorage.setItem(infoPrefKey(), open ? "1" : "0"); } catch (_) {}
+}
+const infoLevel = () => (U.b ? { kind: "buildings", id: U.b } : U.p ? { kind: "projects", id: U.p } : { kind: "all" });
+function infoAutoOpen() {
+  if (!infoDocked() || isMobile() || U.spaceInfo || U.infoShut) return;
+  if (infoPref() ?? (typeof innerWidth === "number" && innerWidth >= 1440)) U.spaceInfo = infoLevel();
+}
+// 2.16 E363、E372：右侧面板的展开收起把手（取代工具栏右端的图标按钮），24×48，白底，左侧两角圆 8，1px #EBEBEB 边，浮层阴影，16 的箭头：
+// 展开时指向右（收起），收起时指向左（展开）。展开时贴在面板左缘，收起后留在页面卡片右边缘的同一高度（在 28 的页边距里，不压内容）。
+// 项目页、楼层页与设备标记共用；手机上不显示（E371）。位置由 wsPlaceRpHandle 计算。
+let rpHandleHtml = "";
+function rpHandle(label, open, act, args = {}, panel = "", cls = "") {
+  const tip = (open ? "收起" : "展开") + label;
+  rpHandleHtml = `<button class="ws-rp-handle${cls ? " " + cls : ""}${open ? " open" : ""}" data-act="${act}" ${Object.entries(args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")} data-panel="${panel}" aria-expanded="${open}"${open && panel === ".ws-space-info" ? ' aria-controls="wsSpaceInfo"' : ""} aria-label="${tip}" data-tip="${tip}">${ico("back", "ic16")}</button>`;
+  return "";
+}
 const infoDocked = () => U.page === "projects" && !U.f;
 function projectInformationPanel() {
   const target = U.spaceInfo; if (!target) return "";
@@ -43383,14 +43527,22 @@ function projectInformationPanel() {
   // 2.14 E265：全部项目层只写汇总三行（全部空间、城市、类型，各按数量从多到少），不再逐个展开项目；
   // 原为“全部空间”下每个项目一个折叠行，展开是该项目的整套资料与“进入项目”“编辑项目”（C12）。
   const tally = (vals) => { const n = new Map(); vals.forEach((v) => n.set(v, (n.get(v) || 0) + 1)); return nwJoin([...n].sort((a, b) => b[1] - a[1]).map(([k, c]) => `${k} ${c}`), " · "); };
-  const summary = all ? (db.projects.length ? infoRows([["全部空间", { html: nwSeps(`${db.projects.length} 个项目 · ${spaceScale(db.buildings, db.zones.length)}`) }], ["城市", { html: tally(db.projects.map((x) => cityShort(x) || "未取得")) }], ["类型", { html: tally(db.projects.map((x) => x.usage || "未填写")) }]]) : `<p class="ws-info-none">${canEdit() ? "尚未创建项目" : "当前没有可访问的项目"}</p>`) : isF ? `${infoRows(floorInfoRows(o, o.id, out))}<details class="ws-details"><summary>修改记录</summary>${recordsTable(db.records.filter((r) => r.objectId === o.id))}</details>` : spaceInformationBody(o, isB);
+  // 2.16 E366：全部项目写“3 个项目”“2 栋楼宇”“18 个功能区”一排概要数字，“全部空间”一行删去（取代 E265 这一行）。
+  const outN = db.buildings.filter((b) => b.kind === "outdoor").length,
+    allChips = `<div class="ws-info-sum">${[infoChip("building-2", db.projects.length, "个项目"), infoChip("building", db.buildings.length - outN, "栋楼宇"), ...(outN ? [infoChip("map", outN, "个室外区域")] : []), infoChip("zone", db.zones.length, "个功能区")].join("")}</div>`;
+  const summary = all ? (db.projects.length ? allChips + infoRows([["城市", { html: tally(db.projects.map((x) => cityShort(x) || "未取得")) }], ["类型", { html: tally(db.projects.map((x) => x.usage || "未填写")) }]]) : `<p class="ws-info-none">${canEdit() ? "尚未创建项目" : "当前没有可访问的项目"}</p>`) : isF ? `${infoRows(floorInfoRows(o, o.id, out))}<details class="ws-details"><summary>修改记录</summary>${recordsTable(db.records.filter((r) => r.objectId === o.id))}</details>` : spaceInformationBody(o, isB);
   // 只读面板不放底部“关闭”，由右上角的关闭按钮关闭；底部只在能编辑时放“编辑项目”（全面设计核查第 20 条（2026-10-12 用户确认）：原先底部另有“关闭”）
   // 设备页里只看楼层信息，不编辑楼层：白色“在项目中修改”打开项目 › 楼层的同一层（2026-10-17 用户确认，设备核查 E155，按 E141）
   const foot = o && canEdit() ? `<div class="v13-df"><span class="sp"></span>${isF && U.page === "devices" ? btn("在项目中修改", "markDirSpace", { id: o.id }) : btn("编辑" + noun, "spaceForm", { kind: target.kind, id: o.id })}</div>` : "";
   // 2.13 E225：项目页（全部项目、项目、楼宇）的信息面板停靠在内容右侧，宽 320、与第一行卡片顶边对齐，内容随之变窄，不浮在内容上；
   // 面板里不放关闭按钮，用工具栏的同一个按钮或 Esc 收起（原为浮在页面上的 400 宽卡片，带自己的关闭按钮）；手机上仍为整屏面板，保留关闭按钮。
-  const docked = infoDocked();
-  return `<aside class="v13-drawer ws-space-info${docked ? " docked" : ""}" id="wsSpaceInfo" ${docked ? 'role="region"' : 'role="dialog" aria-modal="false"'} aria-label="${noun}信息"><div class="v13-dh"><div><h2>${noun}信息</h2><p class="ws-info-scope">${esc(all ? "全部项目" : o.name)}</p></div>${iconBtn("关闭信息面板", "x", "spacePanelInfoClose")}</div><div class="v13-db" data-key="${esc(all ? "info|all" : `info|${target.kind}|${o.id}`)}">${summary}</div>${foot}</aside>`;
+  // 2.16 E362：停靠的面板贴在页面卡片右侧，从卡片顶到底整高，宽 400，仍挤开内容（不盖住），左侧 1px #EBEBEB 线，不加阴影；页面标题行与工具栏只占左栏。
+  // E365：标题写对象名称（20/30 字重 480，与页面标题同一行高度），下一行 14/24 #636363 写“项目 · 广州 · 科研”“楼宇 · 广实2号园 · 办公”，
+  // 全部项目标题“全部项目”，不写下一行；面板的读屏名称仍叫“项目信息”“楼宇信息”。楼层信息（设备页）照旧。原为标题“项目信息”、下一行写所看范围（E246）。
+  const docked = infoDocked(), named = !isF,
+    meta = all ? "" : isB ? [o.kind === "outdoor" ? "室外区域" : "楼宇", g("projects", o.projectId)?.name, o.kind === "outdoor" ? "" : o.usage].filter(Boolean).join(" · ") : ["项目", cityShort(o), o.usage].filter(Boolean).join(" · "),
+    head = named ? `<h2>${esc(all ? "全部项目" : o.name)}</h2>${meta ? `<p class="ws-info-meta">${nwSeps(meta)}</p>` : ""}` : `<h2>${noun}信息</h2><p class="ws-info-scope">${esc(o.name)}</p>`;
+  return `<aside class="v13-drawer ws-space-info${docked ? " docked" : ""}${named ? " named" : ""}" id="wsSpaceInfo" ${docked ? 'role="region"' : 'role="dialog" aria-modal="false"'} aria-label="${noun}信息"><div class="v13-dh"><div>${head}</div>${iconBtn("关闭信息面板", "x", "spacePanelInfoClose")}</div><div class="v13-db" data-key="${esc(all ? "info|all" : `info|${target.kind}|${o.id}`)}">${summary}</div>${foot}</aside>`;
 }
 function initInfoMap() {
   const el = $("#infoMap"),
@@ -43916,7 +44068,8 @@ const RAIL_HIDDEN_MQ = typeof matchMedia === "function" ? matchMedia("(max-width
 // 工作台与楼宇页、楼层页共用的 .ws-space-page 同宽；从其他页面进入、还没有时按内容区（没有时按窗口与侧栏）估算，绘制后再按实际宽度核对。
 function spBenchWidth() {
   const page = $(".ws-space-page");
-  if (page?.clientWidth) return page.clientWidth;
+  // 2.16 E372：面板整高停靠时页面让出的右边距仍算在工作台里，不然按变窄的宽度会误判为放不下并排
+  if (page?.clientWidth) return page.clientWidth + (typeof getComputedStyle === "function" ? parseFloat(getComputedStyle(page).marginRight) || 0 : 0);
   const body = $("#pbody");
   if (body?.clientWidth && typeof getComputedStyle === "function") { const cs = getComputedStyle(body); return body.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); }
   return (typeof innerWidth === "number" ? innerWidth : 1440) - (isMobile() ? 0 : U.collapsed ? 56 : 256) - 64;
@@ -43969,7 +44122,8 @@ function spPanelModeSync(centre = spPlanCentre()) {
   if (bench.classList.contains("sp-overlay") === over) return;
   bench.classList.toggle("sp-overlay", over);
   spPlanCentreApply(centre);
-  if (U.spPanel == null && !$("#dlg") && !U.drawZone && !U.zoneDraft && !U.spatialEdit) {
+  // 面板展开时换版式要重新绘制：并排时面板在工作台之外整高停靠，覆盖时在工作台里（E372）
+  if ((U.spPanel == null || (spPanelOpen() && !isMobile())) && !$("#dlg") && !U.drawZone && !U.zoneDraft && !U.spatialEdit) {
     U.spCentre = centre && { ...centre, f: U.f };
     requestAnimationFrame(() => render());
   }
@@ -44146,19 +44300,21 @@ function spaceFloorPage() {
     sheetZ = spSheetZone(f),
     open = spPanelOpen() && !sheetZ,
     over = overlayPanel() ? "sp-overlay" : "",
+    // 2.16 E372：并排时面板与项目信息一样从页面卡片顶到底整高（宽仍 320），排在工作台之外（pages.projects）；覆盖方式与手机照旧在工作台里。
+    dock = open && !over && !isMobile(),
     drawing = U.drawZone || U.zoneDraft || U.spatialEdit || U.scalePoints;
   // 与设备标记互跳只用两个按钮：这里的“标记设备”（查看人员为“查看设备”），设备标记里的“编辑功能区”（E141）。
   // 2.06（2026-10-17 用户确认，项目核查第 10 条）：没有楼层图时按钮仍可聚焦，悬停或聚焦提示原因（同楼宇页“标注楼层位置”）。
   // 2.06（项目核查第 7 条）：楼层资料的操作只在面板“楼层”页签各自的行里，工具栏不再有“图纸与比例尺”菜单。
   const devLabel = edit ? "标记设备" : "查看设备",
     devWhy = f.image ? "" : "先上传" + (isOutdoor(U.b) ? "总平面图" : "本层楼层图");
-  const bar = toolbar(`<div class="ws-tb-actions">${btn(ico("cpu", "ic16") + devLabel, "toDevices").replace('data-act="toDevices" ', devWhy ? `data-act="toDevices" aria-disabled="true" aria-label="${devLabel}：${devWhy}" data-tip="${devWhy}" ` : 'data-act="toDevices" ')}<button class="iconbtn round sp-panel-btn" data-act="spPanel" aria-pressed="${open}" aria-label="${open ? "收起面板" : "展开面板"}" data-tip="${open ? "收起面板" : "展开面板"}">${ico("collapse", "sp-panel-ic")}</button></div>`);
+  const bar = toolbar(`<div class="ws-tb-actions">${btn(ico("cpu", "ic16") + devLabel, "toDevices").replace('data-act="toDevices" ', devWhy ? `data-act="toDevices" aria-disabled="true" aria-label="${devLabel}：${devWhy}" data-tip="${devWhy}" ` : 'data-act="toDevices" ')}${isMobile() ? `<button class="iconbtn round sp-panel-btn" data-act="spPanel" aria-pressed="${open}" aria-label="${open ? "收起面板" : "展开面板"}" data-tip="${open ? "收起面板" : "展开面板"}">${ico("collapse", "sp-panel-ic")}</button>` : rpHandle("面板", open, "spPanel", {}, ".sp-panel", "sp-panel-btn")}</div>`);
   // 没有楼层图时仍有右侧面板：“楼层”页签照常（资料、待补原因、编辑楼层、修改记录），“功能区”页签提示先上传楼层图（SPACE04）。
   if (!f.image)
     return (
       bar +
       verifyBar(f) +
-      `<div class="ws-workbench no-plan sp-bench ${open ? "with-panel" : ""} ${isOutdoor(U.b) ? "no-rail" : ""} ${over}">${floorRail()}${floorPick()}${empty(zhSub(f.name, "r") + "尚未上传" + planWord(U.b), edit ? (isOutdoor(U.b) ? "上传总平面图后，可划分功能区和标记设备。" : "上传本层楼层图后，可划分功能区和标记设备。") : isOutdoor(U.b) ? "尚无总平面图，暂不能查看功能区。" : "本层尚无楼层图，暂不能查看功能区。", edit ? btn("上传" + planWord(U.b), "uploadPlan", {}, "primary") : "")}${open ? spacePanel(f) : ""}</div>`
+      `<div class="ws-workbench no-plan sp-bench ${open && !dock ? "with-panel" : ""} ${isOutdoor(U.b) ? "no-rail" : ""} ${over}">${floorRail()}${floorPick()}${empty(zhSub(f.name, "r") + "尚未上传" + planWord(U.b), edit ? (isOutdoor(U.b) ? "上传总平面图后，可划分功能区和标记设备。" : "上传本层楼层图后，可划分功能区和标记设备。") : isOutdoor(U.b) ? "尚无总平面图，暂不能查看功能区。" : "本层尚无楼层图，暂不能查看功能区。", edit ? btn("上传" + planWord(U.b), "uploadPlan", {}, "primary") : "")}${open && !dock ? spacePanel(f) : ""}</div>`
     );
   const top = floorModeTabs() + (edit && !U.scalePoints
     ? isMobile() ? `<span class="sp-mobile-note">${spMobileNote()}</span>` : spatialControl("创建功能区")
@@ -44168,7 +44324,7 @@ function spaceFloorPage() {
     bar +
     verifyBar(f) +
     scaleBar(f) +
-    `<div class="ws-workbench viewing sp-bench ${open ? "with-panel" : ""} ${sheetZ ? "with-sheet" : ""} ${isOutdoor(U.b) ? "no-rail" : ""} ${over}">${floorRail()}<div class="ws-canvas-col"><div class="ws-canvas-top ws-view-actions">${top}<div class="spatial-layer-controls">${menuTrigger(btn("图层" + ico("chevron", "ic16"), "spLayers", {}, "sm sp-layer-btn"))}</div></div><div class="ws-canvas-viewport" id="canvasViewport"><div class="ws-plan sp-plan ${U.namesLayer === false ? "hide-names" : ""} ${drawing && !isMobile() ? "drawing" : ""} ${U.devLayer ? "with-devices" : ""}" id="floorCanvas" style="width:${U.zoom * 100}%" tabindex="0" aria-label="${esc(b.name + " " + f.name)}${planWord(b.id)}"><img src="${esc(f.image)}" alt="${esc(b.name + " " + f.name)}${planWord(b.id)}" draggable="false">${U.planCompare && f.planReview && f.planHistory?.length ? `<img class="sp-compare" src="${esc(f.planHistory.at(-1).image)}" alt="" aria-hidden="true">` : ""}${spZones()}${verifyOverlaySvg(f)}${pts.map(renderPoint).join("")}</div></div><div class="ws-canvas-bottom">${floorPick()}${zoomPill(planWord(f.buildingId), U.zoom, "zoom", "fit")}${F.planNorth(f) != null ? `<span class="sp-north" role="img" aria-label="${esc(northText(F.planNorth(f)))}" data-tip="${esc(northText(F.planNorth(f)))}"><i style="transform:rotate(${F.planNorth(f)}deg)">${ico("chevron", "ic16")}</i>N</span>` : ""}${spHint() ? `<span class="mk-hint sp-hint" role="status">${esc(spHint())}</span>` : ""}</div></div>${open ? spacePanel(f) : ""}${sheetZ ? spSheet(f, sheetZ) : ""}</div>`
+    `<div class="ws-workbench viewing sp-bench ${open && !dock ? "with-panel" : ""} ${sheetZ ? "with-sheet" : ""} ${isOutdoor(U.b) ? "no-rail" : ""} ${over}">${floorRail()}<div class="ws-canvas-col"><div class="ws-canvas-top ws-view-actions">${top}<div class="spatial-layer-controls">${menuTrigger(btn("图层" + ico("chevron", "ic16"), "spLayers", {}, "sm sp-layer-btn"))}</div></div><div class="ws-canvas-viewport" id="canvasViewport"><div class="ws-plan sp-plan ${U.namesLayer === false ? "hide-names" : ""} ${drawing && !isMobile() ? "drawing" : ""} ${U.devLayer ? "with-devices" : ""}" id="floorCanvas" style="width:${U.zoom * 100}%" tabindex="0" aria-label="${esc(b.name + " " + f.name)}${planWord(b.id)}"><img src="${esc(f.image)}" alt="${esc(b.name + " " + f.name)}${planWord(b.id)}" draggable="false">${U.planCompare && f.planReview && f.planHistory?.length ? `<img class="sp-compare" src="${esc(f.planHistory.at(-1).image)}" alt="" aria-hidden="true">` : ""}${spZones()}${verifyOverlaySvg(f)}${pts.map(renderPoint).join("")}</div></div><div class="ws-canvas-bottom">${floorPick()}${zoomPill(planWord(f.buildingId), U.zoom, "zoom", "fit")}${F.planNorth(f) != null ? `<span class="sp-north" role="img" aria-label="${esc(northText(F.planNorth(f)))}" data-tip="${esc(northText(F.planNorth(f)))}"><i style="transform:rotate(${F.planNorth(f)}deg)">${ico("chevron", "ic16")}</i>N</span>` : ""}${spHint() ? `<span class="mk-hint sp-hint" role="status">${esc(spHint())}</span>` : ""}</div></div>${open && !dock ? spacePanel(f) : ""}${sheetZ ? spSheet(f, sheetZ) : ""}</div>`
   );
 }
 // 图层菜单切换后重绘并在新的“图层”按钮下重新打开菜单，焦点回到刚点的一项（E208）
@@ -44282,7 +44438,9 @@ function spSheetCover() {
   return Math.max(0, vp.getBoundingClientRect().bottom - sh.getBoundingClientRect().top);
 }
 // 2.14 E293（2026-10-21 HONG 按建议）：没有楼层图时面板不显示页签，直接显示楼层资料；上传后恢复“功能区 | 楼层”两个页签。
-function spacePanel(f) {
+// 2.16 E372：楼层页的功能区面板并排时整高停靠（与项目信息同一位置规则）
+const spDock = (f) => U.page === "projects" && !!U.f && !isMobile() && spPanelOpen() && !spSheetZone(f) && !overlayPanel();
+function spacePanel(f, docked = false) {
   const tab = !f.image ? "floor" : U.spTab || "zones",
     // 面板主体的键随所示内容变化，换内容时整块换新（D4）；同一个值也是页签所控制的面板 id（合并细节第 4 条）。
     body = ["sp", f.id, U.zoneDraft ? "draft" : tab === "floor" ? "floor" : U.zone || (U.zoneMulti ? "multi" : "list")].join("|");
@@ -44300,7 +44458,7 @@ function spacePanel(f) {
     // 页签组以所在面板命名（Lovable 核查第 321 条，2026-10-11 用户确认：原为“面板”）
     `${isOutdoor(f.buildingId) ? "功能区与总平面" : "功能区与楼层"}页签`,
   ).replace('class="seg"', 'class="seg sm sp-tabs"');
-  return `<aside class="sp-panel" aria-label="${isOutdoor(f.buildingId) ? "功能区与总平面" : "功能区与楼层"}">${f.image ? tabBar : ""}<div class="sp-body" data-key="${esc(body)}" id="${esc(body)}"${f.image ? ` role="tabpanel" aria-labelledby="spTab-${tab}"` : ""}>${!U.zoneDraft ? planReviewBanner(f) : ""}${tab === "floor" && !U.zoneDraft ? spFloorBody(f) : !f.image ? `<div class="sp-noplan">${empty("尚未上传" + planWord(f.buildingId), canEdit() ? "" : isOutdoor(f.buildingId) ? "尚无总平面图，暂不能查看功能区。" : "本层尚无楼层图，暂不能查看功能区。", "", "layers")}</div>` : U.zoneDraft ? spDraftBody(f) : U.zone && g("zones", U.zone) ? spZoneBody(f, g("zones", U.zone)) : spZoneList(f)}</div></aside>`;
+  return `<aside class="sp-panel${docked ? " docked" : ""}" aria-label="${isOutdoor(f.buildingId) ? "功能区与总平面" : "功能区与楼层"}">${f.image ? tabBar : ""}<div class="sp-body" data-key="${esc(body)}" id="${esc(body)}"${f.image ? ` role="tabpanel" aria-labelledby="spTab-${tab}"` : ""}>${!U.zoneDraft ? planReviewBanner(f) : ""}${tab === "floor" && !U.zoneDraft ? spFloorBody(f) : !f.image ? `<div class="sp-noplan">${empty("尚未上传" + planWord(f.buildingId), canEdit() ? "" : isOutdoor(f.buildingId) ? "尚无总平面图，暂不能查看功能区。" : "本层尚无楼层图，暂不能查看功能区。", "", "layers")}</div>` : U.zoneDraft ? spDraftBody(f) : U.zone && g("zones", U.zone) ? spZoneBody(f, g("zones", U.zone)) : spZoneList(f)}</div></aside>`;
 }
 // 功能区类型筛选（2026-10-03 A9）：本层超过 20 个功能区才显示类型胶囊，否则只用搜索框旁的“类型 ▾”下拉。
 const SP_TYPE_CHIPS = 20;
@@ -47234,14 +47392,25 @@ defineActions({
   spacePanelInfo: (a, el) => {
     closePop();
     if (U.page !== "projects" && !devCanvas()) return spaceInfo(a.kind, a.id);
-    // 工具栏的信息按钮再点一次收起同一面板，焦点留在该按钮。
-    if (el?.closest?.(".ws-tb-actions") && U.spaceInfo && U.spaceInfo.kind === a.kind && (U.spaceInfo.id || "") === (a.id || "")) { U.infoAnchor = null; return actions.spacePanelInfoClose(); }
+    // 把手再点一次收起面板，焦点留在把手（2.16 E363：原为工具栏的信息按钮）；展开、收起都记为这个人的选择（E364）。
+    const handle = !!el?.closest?.(".ws-rp-handle");
+    if (handle && U.spaceInfo) { U.infoAnchor = null; return actions.spacePanelInfoClose(); }
+    if (handle && infoDocked()) { infoPrefSet(true); U.infoShut = false; }
     U.infoAnchor = el || document.activeElement;
     // 楼层页与功能区面板共用右侧位置：打开一个就收起另一个（2.13 E225）
     if (U.page === "projects" && U.f) U.spPanel = false;
     U.spaceInfo = { kind: a.kind, id: a.id }; U.infoFocus = true; render();
   },
-  spacePanelInfoClose: () => { const anchor = U.infoAnchor; U.spaceInfo = null; render(); requestAnimationFrame(() => { if (anchor?.isConnected) anchor.focus(); else ($(".ws-tb-actions [data-act=spacePanelInfo]") || $("[data-act=spacePanelInfo]"))?.focus(); }); },
+  // 2.16 E370：停靠的面板滑出与内容变宽同步，200ms cubic-bezier(.4,0,.2,1)；减少动态效果时不做动画。收起记为这个人的选择（E364）。
+  spacePanelInfoClose: () => {
+    const anchor = U.infoAnchor, dock = $("#pbody > .ws-space-info.docked");
+    if (infoDocked() && !isMobile()) { infoPrefSet(false); U.infoShut = true; }
+    const done = () => { U.spaceInfo = null; render(); requestAnimationFrame(() => { if (anchor?.isConnected) anchor.focus(); else ($("#pbody > .ws-rp-handle") || $("[data-act=spacePanelInfo]"))?.focus(); }); };
+    if (!dock || matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return done();
+    $("#pbody").classList.add("ws-info-closing");
+    wsPlaceRpHandle(true);
+    setTimeout(() => { $("#pbody")?.classList.remove("ws-info-closing"); if (U.spaceInfo) done(); }, 200);
+  },
   switchMore: a => { U.switchExpanded = { query: a.query, kind: a.kind }; $("#switchRows").innerHTML = switchSearch($("#switchQuery")?.value || ""); $("#switchRows .ws-switch-row")?.focus(); },
   switchGroup: a => {
     const o = U.switchGroupOpen, same = o?.query === a.query && o?.kind === a.kind && o?.parent === a.parent;
@@ -48961,7 +49130,8 @@ function renderPlanningPanel(n) {
   else body = renderContinuousMarking(n);
   // 面板正文按“页面 · 楼层 · 模式 · 点位 · 类型 · 功能区”区分：相同时增量更新保留滚动位置，换了对象时为新的正文、从顶部开始（2026-10-03 D4，取代原重绘时的滚动补偿）。
   // 面板上的“收起面板”同项目楼层面板的关闭（第 31 条）；面板排在画布下方（≤850px）时没有。
-  const close = U.page === "devices" && !mkStacked() ? iconBtn("收起面板", "x", "mkPanel").replace('class="iconbtn round"', 'class="iconbtn round mk-panel-close"') : "";
+  // 2.16 E372：面板上不再有“收起面板”，开关只有面板左缘的把手（rpHandle）。
+  const close = "";
   return `<aside class="ws-planning-panel" aria-label="设备标记面板">${U.mode === "zones" ? close : networkContext(n, f, close)}<div class="ws-panel-body" data-key="${esc(["panel", U.page, U.f, U.mode, U.point, U.type, U.zone].join("|"))}">${body}</div>${foot ? `<div class="ws-panel-foot">${foot}</div>` : ""}</aside>`;
 }
 function networkContext(n, f, extra = "") {
@@ -64555,13 +64725,19 @@ const lastDataAt = () => {
     gw = Demo.ctl.gwOffline && Demo.ctl.gwOfflineAt;
   return gw ? Math.min(at, gw) : at;
 };
+// 2.16 E373（2026-10-22 HONG 07:20Z 按推荐，取代 VD8 的灰字）：绿色实时标签（同 .chip.good），前面 8 的绿点，外圈每 2 秒向外扩散淡出一次，
+// 写“实时 · 10:30”（时刻为最近一次取得数据的时间）；“每分钟更新”放在悬停提示与读屏名称里。不用红色（05：红色只用于危险和错误）。
+// E375：超过 5 分钟没有取得新数据时同一个标签改为黄色、静止的黄点，文字仍为整句；取得新数据后自动回到“实时”。
 function liveLine() {
-  const L = opsLive();
+  const L = opsLive(), hm = Demo.hm(L.at);
   OPS.liveKey = `${L.at}|${L.mins}`;
-  return L.stale
-    ? `<span class="ops-live stale">数据截至 ${Demo.hm(L.at)} · 已 ${durText(L.mins)}未取得新数据，正在重试</span>`
-    : `<span class="ops-live">数据截至 ${Demo.hm(L.at)} · 每分钟更新</span>`;
+  if (L.stale) { const t = `数据截至 ${hm} · 已 ${durText(L.mins)}未取得新数据，正在重试`; return `<span class="ops-live stale" tabindex="0" aria-label="${t}"><i aria-hidden="true"></i>${t}</span>`; }
+  const tip = `数据截至 ${hm} · 每分钟更新`;
+  return `<span class="ops-live" tabindex="0" aria-label="实时，${tip}" data-tip="${tip}"><i aria-hidden="true"></i>实时 · ${hm}</span>`;
 }
+// E374：标签放在页面标题后面（总览、告警、场景、我的区域），与标题垂直居中，间隔 12；总览原来单独的一行删去。由 headTitle 放进页头。
+var opsHeadLive = "";
+const liveHead = () => { opsHeadLive = liveLine(); return ""; };
 // 每 5 秒核对一次，数据截至（或未取得新数据的分钟数）变了才重新绘制；绘制经 morph，滚动位置、打开的面板、焦点、输入与选择都保留。
 // 弹层、弹窗、框选中或正在输入时不绘制，关闭后的下一次核对再更新。指针停在楼层图或图表上显示的提示不挡更新（不然指针一直停在楼层图上就不再更新）：
 // 提示随绘制收起，指针仍停在（或键盘焦点仍在）原来的控件上时按新数据重新显示；图表的数值提示在指针再移动时按新数据显示。
@@ -66661,7 +66837,7 @@ function memberAreas() {
   // 有运行数据时同样写数据截至，超过 5 分钟没有取得新数据时卡片数值变暗（VD8）
   // 页面标题即“我的区域”，正文不再重复大标题，说明与数据截至写在标题下（2026-10-10 用户确认，ABB 对比 IA7）
   const live = zs.length && Demo.on(),
-    head = zs.length ? `<header class="ops-my-h"><p class="ops-meta">授权给你的 ${zs.length} 个功能区 · 点击功能区查看与控制</p>${live ? liveLine() : ""}</header>` : "";
+    head = zs.length ? `<header class="ops-my-h"><p class="ops-meta">授权给你的 ${zs.length} 个功能区 · 点击功能区查看与控制</p>${live ? liveHead() : ""}</header>` : "";
   if (!zs.length) return `<section class="ops-my">${head}<div class="ws-empty ops-my-empty">${ico("home")}<p>暂无可控制的区域，请联系机构管理员。</p></div></section>`;
   const groups = floors.map((f) => {
     const title = [multi ? pOf(f)?.name : "", `${bOf(f)?.name || ""} ${f.name}`.trim()].filter(Boolean).join(" · "),
@@ -66678,7 +66854,7 @@ function renderOpsOverview() {
   opsReset();
   const tab = U.tab || "general",
     // 总览主导航同排；数据时间归下方说明行，能源只留只读统计口径入口。
-    head = overviewHeader(tab, Demo.inScope() ? liveLine() : "");
+    head = overviewHeader(tab, Demo.inScope() ? liveHead() : "");
   if (!Demo.inScope()) return head + outOfScope();
   if (tab === "general") return head + ovGeneral();
   // 总览的“能源”页签并入数据分析 › 能源（2.08 全平台优化 Y2，2026-10-19 用户确认；改第 14 章 §9 页签规则）：旧地址打开数据分析 › 能源，期间为今日
@@ -69315,7 +69491,7 @@ function renderOpsAlarms() {
   if (!Demo.on()) return renderAlarms();
   opsReset();
   const tab = U.tab || "current",
-    head = pageCategoryHeader("alarms", tab, { live: Demo.inScope() ? liveLine() : "" });
+    head = pageCategoryHeader("alarms", tab, { live: Demo.inScope() ? liveHead() : "" });
   if (!Demo.inScope()) return head + outOfScope();
   const body = { current: alCurrent, tasks: alTasks, history: alHistory, rules: alRules }[tab]();
   const drawer = U.opsDrawer;
@@ -70174,7 +70350,7 @@ function renderOpsScenes() {
   // 页头右侧只写数据截至；“新建场景”“新建定时”“新建联动”在页签下第一行（执行位置说明条）的右端，说明条在左侧换行，
   // 不挤走按钮（2026-10-10 用户确认，ABB 对比 IA4：原先在页头右侧）。执行记录页签没有新建。
   const tab = U.tab || "manual",
-    head = pageCategoryHeader("scenes", tab, { live: Demo.inScope() ? liveLine() : "" }),
+    head = pageCategoryHeader("scenes", tab, { live: Demo.inScope() ? liveHead() : "" }),
     create = sceneNewBtn(tab);
   if (!Demo.inScope()) return head + outOfScope();
   // 执行位置的三条说明收进各表“执行位置”列名旁的 i，三个页签都不再常显（2.01 运营核查 V105，取代全面设计核查第 126 条：原先页签下常显三条说明，
@@ -76788,6 +76964,16 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "2.16",
+    date: "2026-10-22",
+    notes: [
+      "项目信息和楼宇信息面板贴在页面右侧、从顶到底，宽 400，用面板左边的把手展开收起；窗口够宽时默认展开，并记住你上次的选择。手机上在“更多”的第一项。",
+      "面板标题写项目或楼宇名称，下面一排概要数字（楼宇、楼层、功能区）；配置进度做成一张卡片，写完成数、下一步和本次部署范围；“编辑项目”固定在面板底部。",
+      "楼层页的功能区面板和设备标记的面板用同一个把手展开收起。",
+      "总览、告警、场景和“我的区域”的页面标题后面有绿色“实时 · 10:30”标签；超过 5 分钟没有取得新数据时变为黄色并写明已多久未更新。",
+    ],
+  },
   {
     version: "2.15",
     date: "2026-10-22",
