@@ -21258,6 +21258,10 @@ form > .au-subhead:first-child, fieldset > .au-subhead:first-child { margin-top:
 .au-apply-steps .op-b { margin-top: 12px; }
 .au-apply-steps .op-b > .au-ro:only-child { margin: 0; }
 .au-apply-tail { margin-top: 32px; }
+/* 2.20（2026-10-25 HONG 13:42Z 按推荐，账户第 170 条，改第 141 条“表单上方”）：登录失败提示在密码框（短信方式为验证码框）下，
+   距框 4，与字段提示相同为 14/24 红色；“保持登录”与提示的距离同没有提示时与框的距离 16。 */
+.bare-login form[data-form="login"] fieldset > .au-field:has(+ .au-ferr:not([hidden]):not(.au-notice)) { margin-bottom: var(--au-space-message); }
+.bare-login form[data-form="login"] fieldset > .au-ferr { margin: 0 0 16px; }
 
 }
 @layer base {
@@ -75659,10 +75663,12 @@ function auAdminLoginGate(uid, sms) {
   render();
   return true;
 }
+// 2.20（2026-10-25 HONG 13:39Z 按推荐，账户第 169 条）：标题下不写说明，不显示只读的手机号码；
+// 框下按验证码框的统一写法“验证码已发送至 {打码号码}，{时间} 前有效。”后接“收不到验证码？”。
+const auMfaReceiptHtml = (sent) => (sent ? `验证码${auCodeReceiptHtml(sent)}。${auNoCodeHtml("sms", "au-mfa-nocode")}` : "");
 function auMfaStep() {
-  const p = AUTH.people[AUX.mfa.uid];
   return auAuthShell(
-    `<h1 class="au-h1">短信验证</h1><p class="au-lead">机构管理员在新设备上登录需短信验证。</p><form class="au-compact-form" data-form="loginMfa" novalidate><fieldset><div class="au-field"><div class="au-lab"><span>手机号码</span></div><div class="au-ro num">${esc(auMask(p.phone))}</div><p class="au-hint" id="au-mfa_phone-hint" role="status" aria-live="polite">${auCodeReceiptHtml(auSmsSentText("mfa"))}</p></div>${auField({ name: "mfa_code", label: "短信验证码", auto: "one-time-code", inputmode: "numeric", maxlength: 6, suffix: auCodeBtn("mfa", "mfa_phone") })}<p class="au-ferr" role="alert" hidden></p>${auPrimary("验证并登录", true)}</fieldset></form><div class="au-links"><button type="button" class="au-textbtn" data-act="auMfaBack">返回登录</button></div>`,
+    `<h1 class="au-h1">短信验证</h1><form class="au-compact-form" data-form="loginMfa" novalidate><fieldset>${auField({ name: "mfa_code", label: "短信验证码", auto: "one-time-code", inputmode: "numeric", maxlength: 6, suffix: auCodeBtn("mfa", "mfa_phone"), hint: auMfaReceiptHtml(auSmsSentText("mfa")), hintRole: "status" })}<p class="au-ferr" role="alert" hidden></p>${auPrimary("验证并登录", true)}</fieldset></form><div class="au-links"><button type="button" class="au-textbtn" data-act="auMfaBack">返回登录</button></div>`,
   );
 }
 BARE.login = () => {
@@ -75694,7 +75700,7 @@ BARE.login = () => {
   // 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 141 条）：“保持登录”在密码框（短信方式为验证码框）下；底部“还没有账户？”加两个次按钮，去掉“登录已过期”和重置链接的提示。
   const keep = `<label class="au-check au-keep-login" data-f="keep"><input type="checkbox" name="keep" class="au-v" ${AUX.v.keep ? "checked" : ""}><span>保持登录</span></label>`;
   const notice = AUX.loginNotice ? auNotice("info", AUX.loginNotice, "au-login-notice") : "";
-  return auAuthShell(`<h1 class="au-h1">登录</h1>${notice}<form class="au-compact-form" data-form="login" novalidate><fieldset>${idField}${secret}${keep}<p class="au-ferr" id="au-login-ferr" role="alert" hidden></p>${auPrimary("登录", true)}</fieldset></form><div class="au-login-actions"><button type="button" class="au-textbtn" data-act="auSmsMode">${sms ? "使用密码登录" : "使用短信验证码登录"}</button><div class="au-login-divider" aria-hidden="true"></div><div class="au-noacct-group"><p class="au-noacct">还没有账户？</p><div class="au-noacct-btns"><button type="button" class="au-secondary" data-act="auGo" data-page="join">加入已开通的机构</button><button type="button" class="au-secondary" data-act="auGo" data-page="apply">申请开通新机构</button></div></div></div>`);
+  return auAuthShell(`<h1 class="au-h1">登录</h1>${notice}<form class="au-compact-form" data-form="login" novalidate><fieldset>${idField}${secret}<p class="au-ferr" id="au-login-ferr" role="alert" hidden></p>${keep}${auPrimary("登录", true)}</fieldset></form><div class="au-login-actions"><button type="button" class="au-textbtn" data-act="auSmsMode">${sms ? "使用密码登录" : "使用短信验证码登录"}</button><div class="au-login-divider" aria-hidden="true"></div><div class="au-noacct-group"><p class="au-noacct">还没有账户？</p><div class="au-noacct-btns"><button type="button" class="au-secondary" data-act="auGo" data-page="join">加入已开通的机构</button><button type="button" class="au-secondary" data-act="auGo" data-page="apply">申请开通新机构</button></div></div></div>`);
 };
 BARE_AFTER.login = () => {
   document.title = "登录 · PACOM Station";
@@ -77237,7 +77243,11 @@ const AU_RELEASES = [
   {
     version: "2.20",
     date: "2026-10-25",
-    notes: ["登录页底部“加入已开通的机构”“申请开通新机构”改为与“登录”同宽的两个描边按钮，上下排列。"],
+    notes: [
+      "登录页底部“加入已开通的机构”“申请开通新机构”改为与“登录”同宽的两个描边按钮，上下排列。",
+      "机构管理员在新设备上登录的“短信验证”只留验证码框，框下写验证码发到的号码和有效时间。",
+      "登录页“账户或密码不正确。”等登录失败提示移到密码框下。",
+    ],
   },
   {
     version: "2.19",
@@ -81517,7 +81527,7 @@ function auMeasureCodePadding() {
   });
 }
 function auSendHint(key) {
-  const name = AU_SMS_KEYS[key][0];
+  const name = key === 'mfa' ? 'mfa_code' : AU_SMS_KEYS[key][0];
   const el = document.getElementById('au-' + name + '-hint');
   if (!el) return;
   const limit = AUX.sendLimits[key];
@@ -81531,6 +81541,7 @@ function auSendHint(key) {
     if (el.dataset.auNoticeContent !== html) {
       el.innerHTML = html;
       el.dataset.auNoticeContent = html;
+      delete el.dataset.auReceipt;
     }
     if (el.classList.contains('au-notice') === keep) el.classList.toggle('au-notice', !keep);
     if (el.classList.contains('au-sent-limit') !== keep) el.classList.toggle('au-sent-limit', keep);
@@ -81547,6 +81558,12 @@ function auSendHint(key) {
     if ('auNoticeContent' in el.dataset) delete el.dataset.auNoticeContent;
     if (el.getAttribute('role') !== 'status') el.setAttribute('role', 'status');
     if (el.hasAttribute('aria-atomic')) el.removeAttribute('aria-atomic');
+    if (key === 'mfa') {
+      // 只在内容变化时重写，已展开的“收不到验证码？”保持展开。
+      const html = auMfaReceiptHtml(sentTo);
+      if (el.dataset.auReceipt !== html) { el.innerHTML = html; el.dataset.auReceipt = html; }
+      return;
+    }
     const html = auCodeReceiptHtml(sentTo);
     if (el.innerHTML !== html) el.innerHTML = html;
   }
