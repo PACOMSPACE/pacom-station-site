@@ -21255,6 +21255,12 @@ form > .au-subhead:first-child, fieldset > .au-subhead:first-child { margin-top:
 .au-inv-one { margin: 0 0 16px; font: 400 14px/24px var(--ff); }
 .au-mail-invs { margin-bottom: 16px; }
 .au-mail-invs .au-row-l { font: 400 14px/24px var(--ff); }
+/* 2.22 账户第 187 条：申请访问的切换器用默认尺寸（轨道 40、选项 32、14/21），撑满表单宽度、两项各占一半；标题下 24，下接说明 16 */
+.au .au-h1:has(+ .au-access-seg) { margin-bottom: 24px; }
+.au .au-access-seg { display: flex; width: 100%; margin: 0 0 16px; }
+.au .au-access-seg > button { flex: 1 1 0; min-width: 0; font-size: 14px; line-height: 21px; font-weight: 400; }
+.au .au-access-seg + .au-lead { margin-top: 0; }
+.au .au-lead + .au-access-seg, .au .au-mail-invs + .au-access-seg { margin-top: 0; }
 
 }
 @layer base {
@@ -75695,7 +75701,7 @@ BARE.login = () => {
   // 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 141 条）：“保持登录”在密码框（短信方式为验证码框）下；底部“还没有账户？”加两个次按钮，去掉“登录已过期”和重置链接的提示。2.21 账户第 174 条起底部为一行“没有账户？申请访问”。
   const keep = `<label class="au-check au-keep-login" data-f="keep"><input type="checkbox" name="keep" class="au-v" ${AUX.v.keep ? "checked" : ""}><span>保持登录</span></label>`;
   const notice = AUX.loginNotice ? auNotice("info", AUX.loginNotice, "au-login-notice") : "";
-  return auAuthShell(`<h1 class="au-h1">登录</h1>${notice}<form class="au-compact-form" data-form="login" novalidate><fieldset>${idField}${secret}<p class="au-ferr" id="au-login-ferr" role="alert" hidden></p>${keep}${auPrimary("登录", true)}</fieldset></form><div class="au-login-actions"><button type="button" class="au-textbtn" data-act="auSmsMode">${sms ? "使用密码登录" : "使用短信验证码登录"}</button><div class="au-login-divider" aria-hidden="true"></div><p class="au-noacct">没有账户？<button type="button" class="au-inline" data-act="auGo" data-page="access">申请访问</button></p></div>`);
+  return auAuthShell(`<h1 class="au-h1">登录</h1>${notice}<form class="au-compact-form" data-form="login" novalidate><fieldset>${idField}${secret}<p class="au-ferr" id="au-login-ferr" role="alert" hidden></p>${keep}${auPrimary("登录", true)}</fieldset></form><div class="au-login-actions"><button type="button" class="au-textbtn" data-act="auSmsMode">${sms ? "使用密码登录" : "使用短信验证码登录"}</button><div class="au-login-divider" aria-hidden="true"></div><p class="au-noacct">没有账户？<button type="button" class="au-inline" data-act="auGo" data-page="join">申请访问</button></p></div>`);
 };
 BARE_AFTER.login = () => {
   document.title = "登录 · PACOM Station";
@@ -75715,7 +75721,8 @@ BARE.orgs = () => {
   if (!orgs.length)
     return auStatusShell(
       // 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 149 条）：两张卡片，同机构菜单“开通新机构”弹窗的选项
-      `<h1 class="au-h1">尚未加入机构</h1><p class="au-lead">账户 ${esc(me.email || me.phone)} 目前没有可访问的机构。</p>${(() => { const rows = auMailInviteRows(); return rows ? `<div class="au-box au-mail-invs">${rows}</div>` : ""; })()}<div class="au-choice au-choices">${auChoice("join", "加入已开通的机构", "填写机构的邀请码，由机构管理员批准。")}${auChoice("apply", "申请开通新机构", "由 PACOM 审核，通常 2 个工作日内完成。")}</div><div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button></div>`,
+      // 2.22 账户第 187 条：选项列表改为申请访问的切换器，下接已登录的加入或开通表单；发给本账户的邀请仍在切换器上方
+      `<h1 class="au-h1">尚未加入机构</h1><p class="au-lead">账户 ${esc(me.email || me.phone)} 目前没有可访问的机构。</p>${(() => { const rows = auMailInviteRows(); return rows ? `<div class="au-box au-mail-invs">${rows}</div>` : ""; })()}${auAccessSeg(auOrgsTab())}${auOrgsTab() === "apply" ? (document.getElementById("app")?.classList.add("bare-apply"), auApplyInForm()) : auJoinInForm()}<div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button></div>`,
     );
   const search = orgs.length >= AU_ORG_SEARCH_FROM, q = search ? String(AUX.orgQ || "").trim().toLowerCase() : "";
   const shown = orgs.filter((o) => auOrgMatch(o, q));
@@ -75747,16 +75754,36 @@ document.addEventListener("input", (e) => {
   const empty = document.querySelector(".au-orgsearch-empty");
   if (empty) { const text = shown ? "" : "没有找到匹配的机构"; if (empty.textContent !== text) empty.textContent = text; }
 });
-BARE_AFTER.orgs = () => (document.title = "选择机构 · PACOM Station");
-// 2.21（2026-10-25 HONG 17:24Z，账户第 174 条，取代第 168 条）：登录页“没有账户？申请访问”打开此页；与登录页同一外框，标题下不写说明，
-// 选项列表同“尚未加入机构”页，下方“已有账户？登录”。已登录时不成页。
-BARE.access = () =>
-  AUTH.session === "in"
-    ? auBareLeave()
-    : auAuthShell(`<h1 class="au-h1">申请访问</h1><div class="au-choice au-choices">${auChoice("join", "加入已开通的机构", "填写机构的邀请码，由机构管理员批准。")}${auChoice("apply", "申请开通新机构", "由 PACOM 审核，通常 2 个工作日内完成。")}</div><p class="au-done-more">已有账户？<button type="button" class="au-textbtn" data-act="auGo" data-page="login">登录</button></p>`);
-BARE_AFTER.access = () => {
-  document.title = "申请访问 · PACOM Station";
-  auEntryFocus(".au-h1");
+BARE_AFTER.orgs = () => {
+  document.title = (auMyOrgs().length ? "选择机构" : "尚未加入机构") + " · PACOM Station";
+  if (auMyOrgs().length) return;
+  auEcSync();
+  const calc = $("#auBuyCalc");
+  if (calc) calc.innerHTML = auBuyCalc("apply").html;
+  auAccessRefocus();
+};
+// 2.22（2026-10-25 HONG 18:14Z“更新”，账户第 187 条，取代第 174 条的选项列表）：申请访问用全宽切换器“加入已开通的机构 | 申请开通新机构”，
+// 默认尺寸（轨道 40、选项 32、14/21），撑满表单宽度、两项各占一半；默认选中加入，切换立即生效，两边填过的内容各自保留。
+// 未登录时两项就是加入页与开通页（地址带上所选一项），标题都是“申请访问”；从邀请链接或二维码打开的加入页不显示切换器。
+// 已登录、还没有机构的“尚未加入机构”页同样用它，地址为 #orgs 或 #orgs?tab=apply。
+const AU_ACCESS_WAYS = [["join", "加入已开通的机构"], ["apply", "申请开通新机构"]];
+const auAccessSeg = (cur) =>
+  `<div class="seg au-access-seg" role="group" aria-label="申请访问">${AU_ACCESS_WAYS.map(([v, t]) => `<button type="button" class="${v === cur ? "on" : ""}" aria-pressed="${v === cur}" data-act="auAccessTab" data-value="${v}">${t}</button>`).join("")}</div>`;
+const auOrgsTab = () => (U.tab === "apply" ? "apply" : "join");
+// 切换后焦点留在切换器上（不跳到表单第一个空框）
+function auAccessRefocus() {
+  const v = AUX.accessFocus, b = v && document.querySelector(`.au-access-seg [data-value="${v}"]`);
+  AUX.accessFocus = "";
+  if (b) b.focus();
+  return !!b;
+}
+// 旧地址 #access 打开加入一边
+BARE.access = () => {
+  if (AUTH.session === "in") return auBareLeave();
+  U.page = "join";
+  history.replaceState(null, "", "#join");
+  document.getElementById("app")?.classList.replace("bare-access", "bare-join");
+  return BARE.join();
 };
 
 /* ---------- 机构已暂停 / 已被移出机构 ---------- */
@@ -75943,8 +75970,10 @@ const auRoRow = (label, text, action = "") =>
   `<div class="au-field au-locked" role="group" aria-label="${esc(label)}"><div class="au-lab au-label-row"><span class="au-lab-t">${esc(label)}</span>${action}</div><p class="au-static">${esc(text)}</p></div>`;
 // 注册的三步在同一页依次展开（第 143 条）：1 电子邮箱和同意（加入时先填邀请码）；2 邮件验证码；3 姓名和设置密码，后接各页自己的字段。
 // AUX.reg = { flow: "join" | "apply", step, mail }。邮箱已有账户时同样进入第 2 步，服务不发验证码、改发“你已有账户”邮件，页面不透露。
+// 2.22 账户第 187 条：加入与开通共用一份，电子邮箱在一边验证过，切到另一边不用再验证。
 function auRegState(flow) {
-  if (AUX.reg?.flow !== flow) AUX.reg = { flow, step: 1, mail: "" };
+  if (!AUX.reg) AUX.reg = { flow, step: 1, mail: "" };
+  else AUX.reg.flow = flow;
   return AUX.reg;
 }
 function auRegTop(flow, step1Extra = "") {
@@ -75965,7 +75994,7 @@ function auRegCreate() {
   Object.assign(AUTH, { uid, session: "in", loginAt: auNow(), keep: false });
   auSessionMark();
   for (const k of ["rg_mail", "rg_ok", "rg_code", "rg_name", "rg_pwd"]) delete AUX.v[k];
-  AUX.reg = null; AUX.ec.rg = {};
+  AUX.reg = null; AUX.ec.rg = {}; AUX.joinLink = false;
   return uid;
 }
 
@@ -76070,6 +76099,11 @@ const auMailInviteRows = () =>
     .filter((x) => !auMe().orgs?.[x.org])
     .map((x) => `<div class="au-row"><div class="au-row-l">${auMailInviteText(x)}<small>邀请有效期至 ${auFmt(x.i.sent + 7 * auDay)}</small></div><div class="au-row-a">${btn("接受", "auMailAccept", { org: x.org, id: x.i.id }, "sm primary")}</div></div>`)
     .join("");
+// 已登录的加入表单（加入页与“尚未加入机构”页共用）
+const auJoinInForm = () => {
+  const me = auMe();
+  return `<p class="au-lead">${AU_JOIN_LEAD}</p><form class="au-compact-form" data-form="joinIn" novalidate><fieldset>${auJoinCodeField()}${auRoRow("账户", `${me.name} · ${me.email || me.phone || ""}`)}${auJoinNote()}<p class="au-ferr" role="alert" hidden></p>${auPrimary("发送申请", true)}</fieldset></form>`;
+};
 const auJoinNote = () =>
   `<div class="au-field" data-f="jn_note"><div class="au-lab"><label for="au-jn_note">申请说明</label></div><div class="au-textarea-shell"><textarea id="au-jn_note" name="jn_note" class="au-in au-ta" rows="3" maxlength="200" aria-describedby="au-jn_note-err au-jn_note-count" placeholder="例如所在部门、职务和负责的楼宇">${esc(AUX.v.jn_note || "")}</textarea></div><p class="au-err" id="au-jn_note-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-jn_note-count" ${PACOM_AUTH_FLOW.charCount("jn_note", AUX.v.jn_note) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("jn_note", AUX.v.jn_note)}</p></div>`;
 const auWayOut = () =>
@@ -76089,14 +76123,17 @@ BARE.join = () => {
   if (U.tab === "expired" && st === "expired")
     return auStatusShell(`<h1 class="au-h1">申请已过期</h1><p class="au-lead"><b>${name}</b> 的机构管理员 7 天内没有处理。</p><button type="button" class="au-primary au-compact-primary" data-act="auJoinResend">重新发送</button>${auWayOut()}`);
   if (U.tab) { U.tab = ""; history.replaceState(null, "", "#join"); }
+  AUX.accessSeg = false;
   if (AUTH.session === "in") {
-    const me = auMe();
-    return auStatusShell(`<h1 class="au-h1">加入已开通的机构</h1><p class="au-lead">${AU_JOIN_LEAD}</p><form class="au-compact-form" data-form="joinIn" novalidate><fieldset>${auJoinCodeField()}${auRoRow("账户", `${me.name} · ${me.email || me.phone || ""}`)}${auJoinNote()}<p class="au-ferr" role="alert" hidden></p>${auPrimary("发送申请", true)}</fieldset></form>${auMyOrgs().length ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auApplyBack">返回工作区</button></div>` : `<div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">使用其他账户登录</button></div>`}`);
+    return auStatusShell(`<h1 class="au-h1">加入已开通的机构</h1>${auJoinInForm()}${auMyOrgs().length ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auApplyBack">返回工作区</button></div>` : `<div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">使用其他账户登录</button></div>`}`);
   }
   // 2.21（2026-10-25 HONG 17:24Z 其他按推荐，账户第 176 条，取代第 144 条“先填邀请码”）：先验证电子邮箱（第 1、2 步同第 143 条）。
   // 这个邮箱有未过期的邀请：列出邀请（几个时选一个），填姓名、设置密码，“注册并加入”直接进入该机构；
   // 没有邀请：填邀请码（从链接或二维码打开时已填好）、姓名、设置密码、申请说明，“注册并申请加入”。
   const r = auRegState("join"), linkOrg = r.step < 3 ? auJoinOrgOf(AUX.v.jn_code) : "";
+  // 2.22 账户第 187 条：从邀请链接或二维码打开（邀请码已填好）时已经选定加入，不显示切换器，标题“加入已开通的机构”
+  if (linkOrg) AUX.joinLink = true;
+  AUX.accessSeg = !AUX.joinLink;
   const invs = r.step === 3 ? auMailInvites(r.mail) : [];
   if (invs.length && !invs.some((x) => x.i.id === AUX.v.jn_inv)) AUX.v.jn_inv = invs[0].i.id;
   const pick = invs.length > 1
@@ -76106,10 +76143,12 @@ BARE.join = () => {
     : invs.length
       ? `<form class="au-compact-form" data-form="joinInv" novalidate><fieldset>${pick}${auRegStep3()}<p class="au-ferr" role="alert" hidden></p>${auPrimary("注册并加入", true)}</fieldset></form>`
       : `<form class="au-compact-form" data-form="join" novalidate><fieldset>${auJoinCodeField()}${auRegStep3()}${auJoinNote()}<p class="au-ferr" role="alert" hidden></p>${auPrimary("注册并申请加入", true)}</fieldset></form>`;
-  return auAuthShell(`<h1 class="au-h1">加入已开通的机构</h1>${linkOrg ? `<p class="au-lead au-join-org">申请加入：<b>${esc(auOrg(linkOrg).name)}</b></p>` : ""}<p class="au-lead">${AU_JOIN_LEAD}</p>${auRegTop("join")}${step3}${auLoginLink("#join")}`);
+  return auAuthShell(`${AUX.accessSeg ? `<h1 class="au-h1">申请访问</h1>${auAccessSeg("join")}` : `<h1 class="au-h1">加入已开通的机构</h1>`}${linkOrg ? `<p class="au-lead au-join-org">申请加入：<b>${esc(auOrg(linkOrg).name)}</b></p>` : ""}<p class="au-lead">${AU_JOIN_LEAD}</p>${auRegTop("join")}${step3}${auLoginLink("#join")}`);
 };
 BARE_AFTER.join = () => {
   auEcSync();
+  if (AUX.accessSeg) document.title = "申请访问 · PACOM Station";
+  if (auAccessRefocus()) return;
   if (!document.querySelector("#dlg")) auEntryFocus(["#au-rg_code", "#au-jn_code", "#au-rg_name", "#au-rg_mail"].find((s) => $(s) && !$(s).value) || ".au-h1");
 };
 // 申请发出后：全部机构管理员收到“新的加入申请”邮件（第 153 条）。已有待批准的申请时直接显示“等待批准”，不会重复。
@@ -76145,6 +76184,12 @@ function auApplySubscription() {
   return `<div class="au-apply-sub">${fld("设备额度（台）", "auLicQty", input("auLicQty", AUX.v.ap_qty ?? AU_PRICE.min, "", "number"), AU_QTY_HINT)}${fld("年数", "auLicYears", select("auLicYears", [["1", "1 年"], ["2", "2 年"], ["3", "3 年"]], years, "年数"))}<div id="auBuyCalc" data-kind="apply">${auBuyCalc("apply").html}</div><p class="au-apply-quote"><button type="button" class="au-inline" data-act="auOrderDoc" data-doc="quote">下载报价单</button></p><p class="au-apply-pay">审核通过后生成订单，请在 14 天内付款，到账当天起计服务期。</p></div>`;
 }
 const auApplyTail = () => `<div class="au-apply-tail">${auAgree()}<p class="au-apply-auth">提交申请即表示我已获得本机构授权。</p></div>`;
+const auApplySubmitTail = () => `${auApplyTail()}<p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(AUX.applyEditing ? "提交修改" : "提交申请")}`;
+// 已登录的开通表单（开通页与“尚未加入机构”页共用）：只读一行“联系人”，下面两步“填写机构信息”“选择订阅”
+const auApplyInForm = () => {
+  const me = auMe();
+  return `<p class="au-lead">${AU_APPLY_LEAD}</p><form data-form="apply" novalidate><fieldset>${auRoRow("联系人", `${me.name} · ${me.email || me.phone || ""}`)}${opSteps([{ title: "填写机构信息", body: auApplyOrgFields() }, { title: "选择订阅", body: auApplySubscription() }], "au-apply-steps")}${auApplySubmitTail()}</fieldset></form>`;
+};
 const auApplyShell = (inner) =>
   `<div class="au au-split"><section class="au-left"><div class="au-center"><main class="au-group">${auLogo()}${inner}</main></div>${auFooter()}</section><aside class="au-art" aria-hidden="true"><img src="${A.img_auth}" alt=""></aside></div>`;
 const auApplyBottom = () =>
@@ -76155,15 +76200,12 @@ BARE.apply = () => {
   if (auAppOpen(app) && !AUX.applyEditing && app.status !== "rejected") { U.tab = "review"; history.replaceState(null, "", "#apply?tab=review"); return auApplyReview(app); }
   if (U.tab) { U.tab = ""; history.replaceState(null, "", "#apply"); }
   const editing = !!AUX.applyEditing;
-  const head = `<h1 class="au-h1">申请开通新机构</h1><p class="au-lead">${AU_APPLY_LEAD}</p>`;
-  const orgStep = { title: "填写机构信息", body: auApplyOrgFields() },
-    subStep = { title: "选择订阅", body: auApplySubscription() },
-    tail = `${auApplyTail()}<p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(editing ? "提交修改" : "提交申请")}`;
+  AUX.accessSeg = AUTH.session !== "in";
   const foot = editing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit">取消修改</button></div>` : auApplyBottom();
-  if (AUTH.session === "in") {
-    const me = auMe();
-    return auApplyShell(`${head}<form data-form="apply" novalidate><fieldset>${auRoRow("联系人", `${me.name} · ${me.email || me.phone || ""}`)}${opSteps([orgStep, subStep], "au-apply-steps")}${tail}</fieldset></form>${foot}`);
-  }
+  if (AUTH.session === "in") return auApplyShell(`<h1 class="au-h1">申请开通新机构</h1>${auApplyInForm()}${foot}`);
+  // 2.22 账户第 187 条：未登录时标题“申请访问”，下接切换器（选中“申请开通新机构”）
+  const head = `<h1 class="au-h1">申请访问</h1>${auAccessSeg("apply")}<p class="au-lead">${AU_APPLY_LEAD}</p>`;
+  const orgStep = { title: "填写机构信息", body: auApplyOrgFields() }, subStep = { title: "选择订阅", body: auApplySubscription() }, tail = auApplySubmitTail();
   const r = auRegState("apply"), ok = r.step === 3;
   // 第 1 步的表单（填邮箱、填验证码）与第 2–4 步的表单分开，两段编号列表接在一起（op-more 的最后一步保留竖线）
   const s1 = opSteps([{ title: "验证电子邮箱", done: ok, body: ok ? auRoRow("电子邮箱", r.mail, `<button type="button" class="au-textbtn au-ro-edit" data-act="auRegEdit">修改</button>`) : auRegTop("apply") }], "au-apply-steps op-more");
@@ -76175,6 +76217,8 @@ BARE_AFTER.apply = () => {
   auEcSync();
   const calc = $("#auBuyCalc");
   if (calc) calc.innerHTML = auBuyCalc("apply").html;
+  if (AUX.accessSeg && U.tab !== "review") document.title = "申请访问 · PACOM Station";
+  if (auAccessRefocus()) return;
   if (U.tab !== "review" && !document.querySelector("#dlg")) auEntryFocus(["#au-rg_mail", "#au-rg_code", "#au-rg_name", "#au-ap_org"].find((s) => $(s) && !$(s).value) || ".au-h1");
 };
 // 申请审核中：一个页面三种状态（第 148 条）。通过时不停在本页，进入机构开通引导（第 150 条）。
@@ -77309,6 +77353,13 @@ const AU_GUIDE_URL = "";
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
   {
+    version: "2.22",
+    date: "2026-10-25",
+    notes: [
+      "“申请访问”页和“尚未加入机构”页用切换器在“加入已开通的机构”与“申请开通新机构”之间切换，选中即显示对应表单，两边填过的内容各自保留。",
+    ],
+  },
+  {
     version: "2.21",
     date: "2026-10-25",
     notes: [
@@ -78201,6 +78252,21 @@ Object.assign(actions, {
       document.title = "PACOM Station";
       route(a.page);
     }
+  },
+  // 2.22 账户第 187 条：申请访问的切换器。未登录时打开加入页或开通页；“尚未加入机构”页换下面的表单。
+  // 已登录时这一边已有待批准的加入申请、审核中的开通申请，直接打开它的状态页。
+  auAccessTab: (a) => {
+    const v = a.value === "apply" ? "apply" : "join";
+    if (AUTH.session !== "in") {
+      if (U.page === v) return;
+      AUX.accessFocus = v;
+      return actions.auGo({ page: v });
+    }
+    const join = auMyJoin();
+    if ((v === "join" && join && auJoinState(join.r) === "pending") || (v === "apply" && auAppOpen(auMyApp()) && auMyApp().status !== "rejected")) return actions.auGo({ page: v });
+    if (auOrgsTab() === v) return;
+    AUX.accessFocus = v;
+    auRoute("orgs", v === "apply" ? "apply" : "");
   },
   auSmsMode: () => {
     PACOM_AUTH_FLOW.switchMode(AUX);
@@ -89616,7 +89682,7 @@ function demoPrep() {
     returnOrg: "",
     welcomeOutside: "",
     invMode: "new",
-    reg: null, ec: {}, verifyUid: "", loginNotice: "", joinMiss: [], joinLockUntil: 0, protectedReturn: null,
+    reg: null, joinLink: false, accessFocus: "", ec: {}, verifyUid: "", loginNotice: "", joinMiss: [], joinLockUntil: 0, protectedReturn: null,
   });
   demoOrgs();
   if (DEMO.offline) demoOffline(false, true);
