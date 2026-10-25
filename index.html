@@ -35689,16 +35689,16 @@ const StationFlowModel = ((M) => {
 if (typeof module !== "undefined") module.exports = StationFlowModel;
 
 /* demo-data.js — 演示层：示例数据（E栋 7F 按 V1.3 规划完整部署并交付），所有数值均为示例。
-   只在演示版加载，正式版不包含本文件。数据模式：示例数据（demo）、本地规划（current）、空白机构（empty）；
-   在演示菜单“数据”中切换（localStorage pacom-v13-data：demo / plan / empty）。 */
+   只在演示版加载，正式版不包含本文件。数据模式：示例数据（demo）、本地规划（current）；
+   在演示菜单“数据”中切换（localStorage pacom-v13-data：demo / plan）。“尚未创建项目”与开通引导临时用空的机构（empty），不另存为一种数据（2.18（2026-10-25 HONG 08:06Z 更新好，E377）。 */
 const DEMO_DATA_MODE = () => {
   let v = "demo";
   try {
     v = localStorage.getItem("pacom-v13-data") || "demo";
   } catch {}
-  return v === "plan" ? "current" : v === "empty" ? "empty" : "demo";
+  return v === "plan" ? "current" : "demo";
 };
-// 首次打开某一数据模式时生成工作区：示例数据按 V1.3 部署；空白机构没有项目、楼宇与楼层；本地规划从已有空间资料开始
+// 首次打开某一数据模式时生成工作区：示例数据按 V1.3 部署；临时的空机构（empty）没有项目、楼宇与楼层；本地规划从已有空间资料开始
 function DEMO_WORKSPACE(mode, seed) {
   if (mode === "demo") return buildDemoWorkspace(seed);
   if (mode === "empty") for (const k of ["projects", "buildings", "floors"]) seed[k] = [];
@@ -75864,16 +75864,8 @@ function auOpenResetDialog(returnFromSupport = false) {
     document.querySelector('#dlg [data-act="auResetSupport"]')?.focus({ preventScroll: true });
   } else auEntryFocus(AUX.v.rs_id ? "#au-rs_code" : "#au-rs_id");
 }
-BARE.reset = () => {
-  if (U.tab) { U.tab = ""; history.replaceState(null, "", "#reset"); }
-  return auAuthShell(`<h1 class="au-h1">重置密码</h1>${auResetForm()}<div class="au-links"><button type="button" class="au-textbtn" data-act="auGo" data-page="login">返回登录</button></div>`);
-};
-BARE_AFTER.reset = () => {
-  document.title = "重置密码 · PACOM Station";
-  if (!AUX.v.rs_id && auIdKind(AUX.v.id) && auIdKind(AUX.v.id) !== "bad") { AUX.v.rs_id = AUX.v.id; if ($("#au-rs_id")) $("#au-rs_id").value = AUX.v.rs_id; }
-  auEcSync();
-  auEntryFocus("#au-rs_id");
-};
+// 2.18（2026-10-25 HONG 08:06Z 更新好，E378）：重置密码只在登录页的弹窗里完成，独立页面删除；直接打开 #reset 时显示登录页并打开重置弹窗。
+BARE.reset = () => auBareLeave(() => { auRoute("login"); requestAnimationFrame(() => actions.auForgot()); });
 
 /* ---------- 加入已开通的机构（第 144 条）：邀请码、注册申请与等待批准 ---------- */
 // 邀请码每个机构一个，9 位数字，按 3 位分组显示；邀请链接和二维码就是带着邀请码的地址（#join?code=…），三者同时有效、同时失效。
@@ -76059,7 +76051,17 @@ BARE_AFTER.verify = () => {
 
 /* ---------- 通过邀请加入 ---------- */
 const AU_INV = { member: null, owner: null };
-// 邀请已失效、已撤销、暂时无法查看邀请：说明下 24 加一行左对齐的文字入口，不加主按钮（Lovable 核查第 78 条，2026-10-10 用户确认）。
+// 2.18（2026-10-25 HONG 08:06Z 更新好，E378、E380、E382）：没有内容可看的地址不再单独成页，下一帧直接去目标页：
+// 未登录到登录页；已登录到该机构（是其成员时）或登录后的去向。
+function auBareLeave(go) {
+  requestAnimationFrame(typeof go === "function" ? go : () => {
+    if (AUTH.session !== "in") return auRoute("login");
+    if (go && auMe().orgs?.[go]) return auEnter(go);
+    history.replaceState(null, "", auEntryHash()); readRoute(); render();
+  });
+  return auAuthShell("");
+}
+// 邀请已失效（2.18 起已撤销同此页）：说明下 24 加一行左对齐的文字入口，不加主按钮（Lovable 核查第 78 条，2026-10-10 用户确认）。
 // 未登录“已有账户？登录”；已登录“返回工作区”，没有机构时“返回选择机构”（同申请结果页按入口定去向）。
 const auInviteWayBack = () =>
   AUTH.session !== "in"
@@ -76109,7 +76111,7 @@ function auInviteServiceState(response, kind, reference) {
   if (context?.src) context.src.status = state;
   else inv.status = state;
   if (kind === 'owner' && state === 'accepted') AUTH.ownerInvite = 'accepted';
-  U.tab = { expired: 'expired', revoked: 'revoked', accepted: 'used' }[state];
+  U.tab = { expired: 'expired', revoked: 'expired', accepted: 'used' }[state];
   const known = auInviteContext(kind);
   if (known) auRememberInviteContext(known);
   render();
@@ -76117,8 +76119,8 @@ function auInviteServiceState(response, kind, reference) {
 }
 BARE.invite = () => {
   if (U.tab === "phone") return auBindPhoneStep();
-  // 不知道是哪种邀请：联系对象写邀请人或 PACOM 支持（2.01 账户核查第 3 条：原为“或联系邀请人”）
-  const none = () => auAuthShell(`<h1 class="au-h1">暂时无法查看邀请</h1><p class="au-lead">请重新打开邀请邮件中的链接。仍无法查看时，请联系邀请人或 PACOM 支持。</p>${auInviteWayBack()}`);
+  // 没有可核对的邀请时不另成页（2.18（2026-10-25 HONG 08:06Z 更新好，E380，原为“暂时无法查看邀请”）。
+  const none = () => auBareLeave();
   if (U.tab && !['member', 'owner', 'expired', 'used', 'revoked'].includes(U.tab)) return none();
   const stateStep = ['expired', 'used', 'revoked'].includes(U.tab);
   const reference = typeof history === 'undefined' ? null : history.state?.accountInvite;
@@ -76126,7 +76128,9 @@ BARE.invite = () => {
   const kind = stateStep ? reference?.kind || 'member' : U.tab === 'owner' ? 'owner' : 'member';
   const context = auInviteContext(kind);
   if (!context) return none();
-  const stateTab = { accepted: 'used', revoked: 'revoked', expired: 'expired' }[context.state];
+  // 2.18（2026-10-25 HONG 08:06Z 更新好，E382）：已撤销与已失效同一页“邀请已失效”；已被接受不成页，已登录进入该机构，未登录到登录页。
+  if (context.state === 'accepted') return auBareLeave(context.inv.org);
+  const stateTab = { revoked: 'expired', expired: 'expired' }[context.state];
   if (stateStep && !stateTab) return none();
   if (stateTab) U.tab = stateTab;
   auRememberInviteContext(context);
@@ -76136,14 +76140,6 @@ BARE.invite = () => {
   if (U.tab === "expired")
     return auAuthShell(
       `<h1 class="au-h1">邀请已失效</h1><p class="au-lead">请联系邀请人或机构管理员重新发送。</p>${auInviteWayBack()}`,
-    );
-  if (U.tab === "used")
-    return auAuthShell(
-      `<h1 class="au-h1">邀请已被接受</h1><p class="au-lead">如为本人接受，请直接登录。如非本人操作，请联系邀请人。</p><button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="login">登录</button>`,
-    );
-  if (U.tab === "revoked")
-    return auAuthShell(
-      `<h1 class="au-h1">邀请已撤销</h1><p class="au-lead">如仍需加入，请联系机构管理员。</p>${auInviteWayBack()}`,
     );
   const { inv, org, expiresAt: expires } = context;
   const meNow = AUTH.session === "in" ? auMe() : null;
@@ -76171,7 +76167,7 @@ BARE_AFTER.invite = () => {
     AUX.returnTo = location.hash;
     return auRoute("login");
   }
-  document.title = ({ expired: "邀请已失效", used: "邀请已被接受", revoked: "邀请已撤销", phone: "绑定手机号码" }[U.tab] || (AUTH.session === "in" ? "接受邀请" : "注册")) + " · PACOM Station";
+  document.title = ({ expired: "邀请已失效", phone: "绑定手机号码" }[U.tab] || (AUTH.session === "in" ? "接受邀请" : "注册")) + " · PACOM Station";
   ($("#au-bd_phone") || ($("#au-iv_name")?.value ? $("#au-iv_pwd") : $("#au-iv_name")) || $('form[data-form="inviteAccept"] .au-primary'))?.focus({ preventScroll: true });
 };
 
@@ -76181,10 +76177,8 @@ BARE_AFTER.invite = () => {
 const auBindMust = (b) => !!b && (b.kind === "login" || b.kind === "owner" || AU_INV[b.kind]?.role === "admin");
 function auBindPhoneStep() {
   const b = AUX.bindPhone;
-  if (!b)
-    return auAuthShell(
-      `<h1 class="au-h1">账户状态</h1><p class="au-lead">当前没有待绑定的手机号码。登录后可在“我的账户 › 账户”中管理。</p><button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="login">登录</button>`,
-    );
+  // 没有待绑定的号码时不另成页（2.18（2026-10-25 HONG 08:06Z 更新好，E380，原为“账户状态”）。
+  if (!b) return auBareLeave();
   AUX.v.bd_phone ??= b.phone || "";
   const sent = auCodeReceiptHtml(auSmsSentText("bind")),
     must = auBindMust(b);
@@ -77105,6 +77099,14 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "2.18",
+    date: "2026-10-25",
+    notes: [
+      "邀请过期或被撤销时都显示“邀请已失效”；再次打开已接受的邀请时，直接进入该机构或回到登录页。",
+      "直接打开重置密码的地址时显示登录页并打开“重置密码”弹窗。",
+    ],
+  },
   {
     version: "2.17",
     date: "2026-10-25",
@@ -89197,9 +89199,9 @@ window.addEventListener(
 const DEMO_MODES = [
   ["demo", "示例数据", "E栋 7F 已部署并在运行，可体验全部功能"],
   ["plan", "本地规划", "广实各园区的楼宇与楼层，设备从零规划，保存在本浏览器；无运行数据"],
-  ["empty", "空白机构", "没有项目，查看首次使用时的页面"],
 ];
-const demoModeNow = () => ({ demo: "demo", current: "plan", empty: "empty" })[U.dataMode] || "demo";
+// 2.18（2026-10-25 HONG 08:06Z 更新好，E377）：数据只有示例数据与本地规划；“尚未创建项目”和开通引导一样临时用空的机构，菜单仍按原来的数据显示。
+const demoModeNow = () => ({ demo: "demo", current: "plan" })[demoOpeningWorkspace ? demoOpeningWorkspace.mode : U.dataMode] || "demo";
 const demoArgs = (args) =>
   Object.entries(args)
     .map(([k, v]) => `data-${k}="${esc(v)}"`)
@@ -89244,16 +89246,12 @@ function demoMenuHtml() {
   const radio = ([v, t, d]) =>
     `<button class="popitem demo-mi" role="menuitemradio" aria-checked="${mode === v}" data-act="demoData" data-value="${v}"><span><b>${t}</b><small>${d}</small></span>${mode === v ? ico("check", "ic16") : ""}</button>`;
   const reset =
-    mode === "demo" ? btn("重置示例数据", "demoResetData", {}, "sm") : mode === "empty" ? btn("重置空白机构", "demoResetData", {}, "sm") : btn("导出本地规划", "demoExportPlan", {}, "sm");
+    mode === "demo" ? btn("重置示例数据", "demoResetData", {}, "sm") : btn("导出本地规划", "demoExportPlan", {}, "sm");
   return `<div class="demo-menu" role="menu" aria-label="演示">${ctx.length ? `<div class="demo-h">此页面</div>${ctx.join("")}<div class="demo-sep" role="separator"></div>` : ""}<div class="demo-h">数据</div>${DEMO_MODES.map(radio).join("")}<div class="demo-foot">${reset}</div><div class="demo-sep" role="separator"></div><div class="demo-h">身份</div>${
     inWs
       ? demoItem("demoRoles", "切换角色", "", {}, `<span class="demo-mi-r">${auRole(U.role)}</span>`)
       : demoItem("demoSignIn", "登录并进入工作区", "王敏 · 机构管理员 · 广州国家实验室")
-  }<div class="demo-sep" role="separator"></div>${demoItem("demoCatalog", "页面与状态", `登录、邀请、开通、错误页与空状态，共 ${DEMO_ITEMS.length} 项`)}${typeof scrLinks === "function" ? demoItem("demoScreenGo", "大屏", "值班、管理与公共三种版式，用展示链接打开", { k: DEMO_SCREENS[0].token }) : ""}<div class="demo-sep" role="separator"></div><div class="demo-h">其他产品</div>${demoItem("demoApp", "部署 App", "手机端 · 现场绑定、配置与局部测试")}${demoItem(
-    "demoConsole",
-    "PACOM 运营后台",
-    "PACOM 员工 · 机构审核、开通与额度",
-  )}<div class="demo-sep" role="separator"></div>${demoItem("demoHelp", "演示说明")}</div>`;
+  }<div class="demo-sep" role="separator"></div>${demoItem("demoCatalog", "页面与状态", `登录、邀请、开通、错误页与空状态，共 ${DEMO_ITEMS.length} 项`)}${typeof scrLinks === "function" ? demoItem("demoScreenGo", "大屏", "值班、管理与公共三种版式，用展示链接打开", { k: DEMO_SCREENS[0].token }) : ""}<div class="demo-sep" role="separator"></div><div class="demo-h">其他产品</div>${demoItem("demoApp", "部署 App", "手机端 · 现场绑定、配置与局部测试")}<div class="demo-sep" role="separator"></div>${demoItem("demoHelp", "演示说明")}</div>`;
 }
 
 /* ---------- 驱动实际页面的小工具 ---------- */
@@ -89261,12 +89259,6 @@ const demoToday = () => new Date().toISOString().slice(0, 10);
 const demoAfter = (fn) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(fn, 30)));
 const demoSubmit = (form) => demoAfter(() => $(`form[data-form="${form}"]`)?.requestSubmit());
 const demoClick = (sel) => demoAfter(() => $(sel)?.click());
-// “暂停结束后”：第 10 次失败的 1 分钟暂停刚结束，账户服务回复过下一次失败的暂停时间（2 分钟）。
-function demoPauseEnded(account) {
-  const key = demoFailureKey(account), identity = auLoginIdentity(account);
-  DEMO_LOGIN_FAILURES.set(key, 10); DEMO_LOGIN_LOCKS.set(key, auNow() - 1);
-  AUX.loginLocks[identity] = auNow() - 1; AUX.loginNext[identity] = demoLoginPause(11);
-}
 function demoPrep() {
   demoRestoreOpeningWorkspace();
   closeModal(true);
@@ -89506,24 +89498,10 @@ const DEMO_ITEMS = [
   ["登录", "login-wrong", "账户或密码不正确", "", () => (demoOut(), Object.assign(AUX.v, { id: "wang.min@example.test", pwd: "password" }), (DEMO_FAIL.password = 1), demoShow("login"), demoSubmit("login"))],
   [
     "登录",
-    "login-warn",
-    "连续输错 8 次",
-    "不提示剩余次数",
-    () => (demoOut(), Object.assign(AUX.v, { id: "wang.min@example.test", pwd: "password" }), DEMO_LOGIN_FAILURES.set(demoFailureKey("wang.min@example.test"), 7), (DEMO_FAIL.password = 1), demoShow("login"), demoSubmit("login")),
-  ],
-  [
-    "登录",
     "login-lock",
     "尝试次数过多",
     "暂停登录 1 分钟",
     () => (demoOut(), Object.assign(AUX.v, { id: "wang.min@example.test", pwd: "password" }), DEMO_LOGIN_FAILURES.set(demoFailureKey("wang.min@example.test"), 9), (DEMO_FAIL.password = 1), demoShow("login"), demoSubmit("login")),
-  ],
-  [
-    "登录",
-    "login-resume",
-    "暂停结束后",
-    "不另提示",
-    () => (demoOut(), Object.assign(AUX.v, { id: "wang.min@example.test" }), demoPauseEnded("wang.min@example.test"), demoShow("login")),
   ],
   ["登录", "login-reset-required", "密码已锁定", "连续输错 100 次，只能重置密码", () => (demoOut(), Object.assign(AUX.v, { id: "wang.min@example.test", pwd: "password" }), DEMO_LOGIN_FAILURES.set(demoFailureKey("wang.min@example.test"), 99), (DEMO_FAIL.password = 1), demoShow("login"), demoSubmit("login"))],
   ["登录", "verify-mail", "验证电子邮箱", "距上次验证满 90 天，登录后先验证", () => (demoIn(), (AUTH.people.wm.mailAt = auYmdAdd(auCstYmd(), -91)), (AUX.verifyUid = "wm"), demoShow("verify"))],
@@ -89546,21 +89524,17 @@ const DEMO_ITEMS = [
   ],
   ["登录", "login-send-failed", "短信验证码发送失败", "浅红服务提示条", () => (demoOut(), (AUX.sms = true), (AUX.v.sphone = "139 0000 0101"), (DEMO_FAIL.send = "failed"), demoShow("login"), demoClick(".au-getcode"))],
   ["登录", "login-sms-frequent", "发送次数过多", "", () => (demoOut(), (AUX.sms = true), (AUX.v.sphone = "139 0000 0101"), (DEMO_FAIL.send = "frequent"), demoShow("login"), demoClick(".au-getcode"))],
-  ["登录", "login-forgot", "忘记密码", "登录页上的重置弹窗", () => (demoOut(), (AUX.v.id = "wang.min@example.test"), demoShow("login"), demoAfter(() => actions.auForgot()))],
   // 手机号码重置改为短信验证码（全面设计核查第 134 条，取代原“重置请求已提交（短信）”）：重置弹窗里获取验证码。演示号码同登录页（第 132 条）。
-  ["登录", "login-forgot-sms", "忘记密码：验证码已发送", "手机号码收短信验证码", () => (demoOut(), (AUX.v.id = "139 0000 0101"), demoShow("login"), demoAfter(() => (actions.auForgot(), demoClick("#dlg .au-getcode"))))],
-  ["登录", "legal-privacy", "客户隐私声明", "独立法律页", () => (demoOut(), demoShow("legal", "privacy"))],
-  ["登录", "legal-terms", "使用条款", "独立法律页", () => (demoOut(), demoShow("legal", "terms"))],
-  ["登录", "contact", "联系我们", "", () => (demoOut(), demoShow("login"), demoAfter(() => actions.auContact()))],
 
-  ["重置密码", "reset", "重置密码", "独立页面", () => (demoOut(), demoShow("reset"))],
-  ["重置密码", "reset-sent", "验证码已发送", "电子邮箱收邮件验证码", () => (demoOut(), (AUX.v.id = "wang.min@example.test"), demoShow("login"), demoAfter(() => (actions.auForgot(), demoClick("#dlg .au-getcode"))))],
-  ["重置密码", "reset-err", "重置密码：需要核对", "", () => (demoOut(), demoShow("login"), demoAfter(() => (actions.auForgot(), demoSubmit("reset"))))],
-  ["重置密码", "reset-wrong", "验证码不正确或已过期", "", () => demoReset("000000")],
-  ["重置密码", "reset-weak", "新密码不符合要求", "框下的要求变红", () => demoReset("123456", "short")],
-  ["重置密码", "reset-blocked", "新密码被服务拒绝", "常见或已泄露的密码", () => ((DEMO_FAIL.blockedPassword = true), demoReset("123456"))],
-  ["重置密码", "reset-failed", "暂时无法重置", "", () => ((DEMO_FAIL.operation = "resetPassword"), demoReset("123456"))],
-  ["重置密码", "reset-ok", "重置后直接登录", "", () => demoReset("123456")],
+  ["忘记密码", "login-forgot", "重置密码弹窗", "登录页“忘记密码？”打开", () => (demoOut(), (AUX.v.id = "wang.min@example.test"), demoShow("login"), demoAfter(() => actions.auForgot()))],
+  ["忘记密码", "reset-sent", "邮件验证码已发送", "电子邮箱收邮件验证码", () => (demoOut(), (AUX.v.id = "wang.min@example.test"), demoShow("login"), demoAfter(() => (actions.auForgot(), demoClick("#dlg .au-getcode"))))],
+  ["忘记密码", "login-forgot-sms", "短信验证码已发送", "手机号码收短信验证码", () => (demoOut(), (AUX.v.id = "139 0000 0101"), demoShow("login"), demoAfter(() => (actions.auForgot(), demoClick("#dlg .au-getcode"))))],
+  ["忘记密码", "reset-err", "需要核对", "", () => (demoOut(), demoShow("login"), demoAfter(() => (actions.auForgot(), demoSubmit("reset"))))],
+  ["忘记密码", "reset-wrong", "验证码不正确或已过期", "", () => demoReset("000000")],
+  ["忘记密码", "reset-weak", "新密码不符合要求", "框下的要求变红", () => demoReset("123456", "short")],
+  ["忘记密码", "reset-blocked", "新密码被服务拒绝", "常见或已泄露的密码", () => ((DEMO_FAIL.blockedPassword = true), demoReset("123456"))],
+  ["忘记密码", "reset-failed", "暂时无法重置", "", () => ((DEMO_FAIL.operation = "resetPassword"), demoReset("123456"))],
+  ["忘记密码", "reset-ok", "重置后直接登录", "", () => demoReset("123456")],
 
   ["加入机构", "join", "加入已开通的机构", "登录页进入", () => (demoOut(), demoShow("join"))],
   ["加入机构", "join-link", "打开邀请链接", "邀请码已带入", () => (demoOut(), (AUX.v.jn_code = auJoinCodeText("386204517")), demoShow("join"))],
@@ -89587,9 +89561,6 @@ const DEMO_ITEMS = [
   ["邀请与注册", "inv-accept", "接受邀请", "已登录的正是受邀账户", () => (demoInvite("member", "existing"), Object.assign(AUTH, { uid: AU_INV.member.uid, session: "in" }), auSave(), demoShow("invite", "member"))],
   ["邀请与注册", "inv-other", "邀请发给其他账户", "已登录其他账户时打开邀请", () => (demoInvite("member", "new"), demoIn(), demoShow("invite", "member"))],
   ["邀请与注册", "inv-expired", "邀请已失效", "", () => demoInvitationState('expired')],
-  ["邀请与注册", "inv-used", "邀请已被接受", "", () => demoInvitationState('used')],
-  ["邀请与注册", "inv-revoked", "邀请已撤销", "", () => demoInvitationState('revoked')],
-  ["邀请与注册", "inv-none", "暂时无法查看邀请", "打开邀请地址但没有可核对的邀请", () => (demoOut(), demoShow("invite", "none"))],
   ["邀请与注册", "bind", "绑定手机号码", "注册后，可跳过", () => (demoBind(), demoShow("invite", "phone"))],
   ["邀请与注册", "bind-sent", "绑定：验证码已发送", "", () => (demoBind(), (AUX.v.bd_phone = "+86 139 0000 0118"), demoShow("invite", "phone"), demoClick(".au-getcode"))],
   [
@@ -89607,7 +89578,6 @@ const DEMO_ITEMS = [
     },
   ],
   ["邀请与注册", "bind-frequent", "绑定：发送次数过多", "", () => (demoBind(), (AUX.v.bd_phone = "+86 139 0000 0118"), (DEMO_FAIL.send = "frequent"), demoShow("invite", "phone"), demoClick(".au-getcode"))],
-  ["邀请与注册", "bind-none", "账户状态", "没有待完成的手机号码绑定时打开", () => (demoOut(), (AUX.bindPhone = null), demoShow("invite", "phone"))],
 
   ["开通机构", "welcome-1", "机构已开通 · 创建第一个项目", "开通后的第 1 步", () => (demoWelcome(1), demoShow("welcome"))],
   ["开通机构", "welcome-2", "机构已开通 · 邀请成员", "第 2 步", () => (demoWelcome(2), demoShow("welcome"))],
@@ -89632,7 +89602,6 @@ const DEMO_ITEMS = [
     AUX.orgTab = "requests";
     demoHash("#org?tab=members");
   }],
-  ["机构", "mem-joincode", "成员：邀请码", "复制链接、下载二维码海报、重置", () => (demoIn(), demoHash("#org?tab=members"), actions.auJoinCodeDlg())],
   // 订阅与订购（DEMO03；2026-10-09 用户确认，商业许可方案第 9 条）
   [
     "机构",
@@ -89699,42 +89668,8 @@ const DEMO_ITEMS = [
     },
   ],
 
-  ["工作区", "ws", "工作区", "王敏 · 机构管理员", () => (demoIn(), demoHash("#overview"))],
   ["工作区", "notfound", "页面不存在", "", () => (demoIn(), demoHash("#no-such-page"))],
-  ["工作区", "miss-project", "项目不存在或已删除", "", () => (demoIn(), demoHash("#projects?p=project-deleted"))],
-  [
-    "工作区",
-    "miss-building",
-    "楼宇不存在或已删除",
-    "",
-    demoNeeds(
-      "示例数据中没有项目",
-      () => demoFind("projects", () => true),
-      (p) => (demoIn(), demoHash(`#projects?p=${p.id}&b=building-deleted`)),
-    ),
-  ],
-  [
-    "工作区",
-    "miss-floor",
-    "楼层不存在或已删除",
-    "",
-    demoNeeds(
-      "示例数据中没有楼宇",
-      () => demoFind("buildings", () => true),
-      (b) => (demoIn(), demoHash(`#projects?p=${b.projectId}&b=${b.id}&f=floor-deleted`)),
-    ),
-  ],
-  [
-    "工作区",
-    "miss-zone",
-    "功能区不存在或已删除",
-    "",
-    demoNeeds(
-      "示例数据中没有功能区",
-      () => data().zones.map((z) => g("floors", z.floorId)).find((f) => f && g("buildings", f.buildingId)),
-      (f) => (demoIn(), demoHash(`#projects?p=${g("buildings", f.buildingId).projectId}&b=${f.buildingId}&f=${f.id}&z=zone-deleted`)),
-    ),
-  ],
+  ["工作区", "miss-project", "项目不存在或已删除", "楼宇、楼层、功能区相同", () => (demoIn(), demoHash("#projects?p=project-deleted"))],
   [
     "工作区",
     "no-access",
@@ -89802,7 +89737,7 @@ const DEMO_ITEMS = [
     },
   ],
 
-  ["空状态", "empty-projects", "尚未创建项目", "切换到“空白机构”数据", () => demoSwitch("empty", "#projects")],
+  ["空状态", "empty-projects", "尚未创建项目", "没有项目时的项目页", () => (demoIn(), demoOpeningBlank(), demoHash("#projects"))],
   [
     "空状态",
     "empty-buildings",
@@ -89857,10 +89792,8 @@ const DEMO_ITEMS = [
   ],
   ["空状态", "empty-zones", "尚未划分功能区", "切换到“本地规划”数据 · E栋 7F", () => demoSwitch("plan", `#projects?f=${OPS_SCOPE.floor}`)],
   ["空状态", "empty-networks", "尚未规划设备网络", "切换到“本地规划”数据 · 设备网络", () => demoSwitch("plan", "#devices?tab=networks")],
-  ["空状态", "empty-trash", "已删除", "可恢复 30 天内删除的内容；项目只由机构管理员恢复", () => (demoIn(), $("#side") || demoHash("#overview"), actions.trash())],
 
   ["其他产品", "app", "部署 App", "手机端 · 现场绑定、配置与局部测试", () => actions.demoApp()],
-  ["其他产品", "console", "PACOM 运营后台", "PACOM 员工使用", () => actions.demoConsole()],
 ];
 function demoReset(code, pwd = "Pacom#2026x") {
   demoOut();
@@ -89927,7 +89860,7 @@ document.addEventListener("input", (e) => {
 });
 
 /* ---------- 演示说明 ---------- */
-const DEMO_HELP = `<div class="demo-help"><h3>账户</h3><ul><li>机构管理员：王敏，wang.min@example.test 或 +86 139 0000 0101，密码任意。</li><li>短信验证码输入任意 6 位数字；000000 视为不正确。</li><li>邮件验证码输入任意 6 位数字；000000 视为不正确。邀请码：386 204 517（广实智慧楼宇）。</li><li>演示不发送短信或邮件。邀请链接、审核结果等从演示菜单的“此页面”或“页面与状态”打开。</li></ul><h3>数据</h3><ul><li>示例数据：广实2号园 E栋 7F 完整部署并运行，运行数值由确定性规则生成，不代表现场。</li><li>本地规划：真实空间资料与你在此浏览器保存的规划；没有运行数据时显示“未取得”。</li><li>空白机构：尚未创建任何项目。</li><li>数据只保存在此浏览器，跨浏览器不同步；清理站点数据会删除本地规划，建议定期导出。导出的演示数据文件名带“演示”，内容注明“演示数据”。</li></ul><h3>其他产品</h3><ul><li>部署 App 为手机端，时长已压缩；按首次部署演示现场流程，不写入工作区。</li><li>PACOM 运营后台供 PACOM 员工使用；动态码输入任意 6 位数字，000000 视为不正确。</li></ul><h3>正式版</h3><ul><li>正式版不包含“演示”胶囊、示例数据、部署 App 与运营后台演示；页面、字段和提示与此处一致。</li></ul></div>`;
+const DEMO_HELP = `<div class="demo-help"><h3>账户</h3><ul><li>机构管理员：王敏，wang.min@example.test 或 +86 139 0000 0101，密码任意。</li><li>短信验证码输入任意 6 位数字；000000 视为不正确。</li><li>邮件验证码输入任意 6 位数字；000000 视为不正确。邀请码：386 204 517（广实智慧楼宇）。</li><li>演示不发送短信或邮件。邀请链接、审核结果等从演示菜单的“此页面”或“页面与状态”打开。</li></ul><h3>数据</h3><ul><li>示例数据：广实2号园 E栋 7F 完整部署并运行，运行数值由确定性规则生成，不代表现场。</li><li>本地规划：真实空间资料与你在此浏览器保存的规划；没有运行数据时显示“未取得”。</li><li>数据只保存在此浏览器，跨浏览器不同步；清理站点数据会删除本地规划，建议定期导出。导出的演示数据文件名带“演示”，内容注明“演示数据”。</li></ul><h3>其他产品</h3><ul><li>部署 App 为手机端，时长已压缩；按首次部署演示现场流程，不写入工作区。</li></ul><h3>正式版</h3><ul><li>正式版不包含“演示”胶囊、示例数据、部署 App 与运营后台演示；页面、字段和提示与此处一致。</li></ul></div>`;
 
 /* ---------- 动作 ---------- */
 defineActions({
@@ -89949,7 +89882,7 @@ defineActions({
       try {
         localStorage.setItem(DEMO_MODE_KEY, a.value);
       } catch {}
-      demoReload(BARE[U.page] ? location.hash : a.value === "empty" ? "#projects" : location.hash);
+      demoReload(location.hash);
     }),
   demoResetData: () =>
     guard(async () => {
@@ -90142,11 +90075,6 @@ defineActions({
     closePop();
     closeModal(true);
     actions.openAppPreview();
-  },
-  demoConsole: () => {
-    closePop();
-    closeModal(true);
-    actions.admEnter();
   },
   demoHelp: () => {
     closePop();
