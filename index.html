@@ -2319,6 +2319,39 @@ button.chip:hover {
   flex: 1;
 }
 
+/* 操作步骤（2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 160 条））：编号方块 20×20 圆角 6，浅灰底，数字 12px 次要文字色，与内容相距 12；
+   标题 14/22 字重 500 正文色，说明 14/22 #636363，标题与说明相距 4，控件在说明下 8；步间距 32；编号之间 1px 分隔线色竖线，
+   从编号下 10 到下一编号上 8，最后一步没有线。 */
+.op-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 32px; }
+.op-step { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: 12px; }
+.op-step:not(:last-child)::after { content: ""; position: absolute; left: 9.5px; top: 30px; bottom: -24px; width: 1px; background: var(--line); }
+.op-n, .sb-n { width: 20px; height: 20px; border-radius: 6px; background: var(--shell); color: var(--text3); font-size: 12px; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.op-step.done .op-n, .sb-step.done .sb-n, .sb-step.cur .sb-n { background: var(--brand); color: #fff; }
+.op-ok { width: 12px; height: 12px; stroke-width: 2.4; }
+.op-c { min-width: 0; }
+.op-t { font-size: 14px; line-height: 22px; font-weight: 500; color: var(--text); }
+.op-d { margin: 4px 0 0; font-size: 14px; line-height: 22px; color: var(--text3); }
+.op-b { margin-top: 8px; }
+.op-step.off .op-t { color: var(--text3); }
+/* 步骤条（同上，账户第 161 条）：已完成深色底白色对勾，当前一步深色底白色数字、步骤名正文色字重 500，未做的浅灰底、步骤名 #636363；
+   中间 24px 短横线；手机宽度（≤600）只显示编号方块，当前一步后面写步骤名。 */
+.step-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.sb-step { display: inline-flex; }
+.sb-b { display: inline-flex; align-items: center; gap: 8px; padding: 2px 0; border: 0; background: none; font: inherit; font-size: 14px; line-height: 22px; color: var(--text3); white-space: nowrap; }
+button.sb-b:not(:disabled) { cursor: pointer; }
+button.sb-b:not(:disabled):hover .sb-l { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+button.sb-b:disabled { cursor: default; opacity: 1; }
+.sb-step.cur .sb-l { color: var(--text); font-weight: 500; }
+.sb-step.done .sb-l { color: var(--text2); }
+.sb-sep { width: 24px; height: 1px; background: var(--line); flex: none; }
+@media (max-width: 600px) {
+  .sb-step:not(.cur) .sb-l { display: none; }
+  .sb-sep { width: 12px; }
+}
+/* 一页里分成两段的操作步骤（如申请开通）：前一段的最后一步保留竖线，两段相距同步间距 */
+.op-steps.op-more > .op-step:last-child::after { content: ""; position: absolute; left: 9.5px; top: 30px; bottom: -24px; width: 1px; background: var(--line); }
+.op-steps.op-more + .op-steps, .op-steps.op-more + form { margin-top: 32px; }
+
 }
 @layer base {
 /* Approved PACOM geometry and control treatment. */
@@ -7958,7 +7991,6 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 #dlg .bu-next-ic { transform:rotate(-90deg); }
 #dlg [data-act=buInspectStep] .ic16:not(.bu-next-ic) { margin-right:2px; }
 /* 复制到其他楼层（C5）：步骤说明、功能区搜索、上传入口、确认步骤的源楼层缩略图与轮廓（A1④）。 */
-#dlg .zc-step { margin:0 0 12px; font-size:13px; line-height:20px; color:var(--text3); }
 #dlg .zc-zone-tools { display:flex; align-items:center; gap:8px; margin:4px 0 8px; }
 #dlg .zc-zone-tools > .ws-search { flex:1 1 auto; min-width:0; margin:0; }
 #dlg .zc-zones label[hidden] { display:none; }
@@ -20387,8 +20419,10 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
 .au-help-list > li:first-child { border-top: 0; padding-top: 0; }
 .au-help-list > li > small { color: var(--text2); font-size: 13px; line-height: 20px; }
 .au-help-list .ops-link { align-self: flex-start; }
-.au-help-steps { margin: 12px 0 0; padding-left: 20px; font: 400 14px/24px var(--ff); }
-.au-help-steps > li + li { margin-top: 4px; }
+/* 2.19 账户第 160 条：文章步骤用操作步骤（style.css .op-steps），文字为整句，字重 400，步间距 24 */
+.au-help-steps { margin: 16px 0 0; gap: 24px; }
+.au-help-steps .op-t { font-weight: 400; }
+.au-help-steps .op-step:not(:last-child)::after { bottom: -16px; }
 .au-help-h { margin: 20px 0 8px; font: 500 14px/24px var(--ff); }
 .au-help-faq { margin: 0; }
 .au-help-faq dt { font: 480 14px/24px var(--ff); }
@@ -20465,6 +20499,19 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
 .au-payqr:not(:has(svg, img)) { min-height: 152px; justify-content: flex-end; }
 .au-pay-doc { margin: 12px 0 0; font-size: 14px; }
 .au-pay-dlg [data-pay] .au-dlead { margin-top: 12px; }
+/* 2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 162–164 条）：添加群、付款、邀请码改为操作步骤（组件见 style.css .op-steps） */
+.au-pay-steps { margin-top: 20px; }
+.au-pay-dlg .au-pay-way { margin: 0; }
+.au-pay-steps .au-box, .au-pay-steps .au-payqr { margin-top: 0; }
+.au-pay-steps [data-pay] .op-d { margin-top: 8px; }
+.op-t [data-pay][hidden], .op-b [data-pay][hidden], [data-botpf][hidden] { display: none; }
+.au-bot-steps { margin-top: 16px; }
+.au-bot-steps .op-b > .field:last-child, .au-bot-steps [data-botpf] > .field:last-child { margin-bottom: 0; }
+.au-bot-steps .op-b > [data-botpf] > .op-d:first-child { margin-top: 0; color: var(--text2); }
+.au-bot-test { align-items: center; }
+.au-bot-res { font-size: 14px; line-height: 22px; }
+.au-bot-res.ok { color: var(--good); }
+.au-bot-res.err { color: var(--crit); }
 .au-key { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; background: var(--canvas); }
 .au-key code { flex: 1; min-width: 0; overflow-wrap: anywhere; font: 13px/20px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .au-key + .au-dlead { margin-top: 12px; }
@@ -21189,8 +21236,21 @@ form > .au-subhead:first-child, fieldset > .au-subhead:first-child { margin-top:
 .au-jc.off .au-jc-code, .au-jc.off .au-jc-link, .au-jc.off .au-jc-qr { opacity: 0.4; }
 .au-jc .au-inline-actions { justify-content: center; }
 .au-jc-on { margin-top: 20px; }
+.au-jc-steps { margin-top: 16px; }
+.au-jc-steps .au-jc { justify-items: start; margin-top: 0; }
+.au-jc-steps .au-jc .au-inline-actions { justify-content: flex-start; }
+.au-jc-foot { margin-top: 24px; padding-top: 4px; border-top: 1px solid var(--line2); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.au-jc-foot .au-jc-on { margin-top: 0; flex: 1; }
 .au-dlg-nocode { display: block; margin-top: 4px; }
 .au-dlg-nocode[hidden] { display: none; }
+/* 2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 167 条）：申请开通按步骤填写，步骤标题 16/24 字重 500；第 1 步完成前其余三步只显示编号和标题 */
+.au-apply-steps { margin-top: 24px; }
+.au-apply-steps .op-t { font-size: 16px; line-height: 24px; }
+.au-apply-steps .op-step { grid-template-columns: 20px minmax(0, 1fr); }
+.au-apply-steps .op-n { margin-top: 2px; }
+.au-apply-steps .op-b { margin-top: 12px; }
+.au-apply-steps .op-b > .au-ro:only-child { margin: 0; }
+.au-apply-tail { margin-top: 32px; }
 
 }
 @layer base {
@@ -29824,6 +29884,35 @@ const XI = {
 // 全站“更多”用 Lovable 的实心三点（项目页核查 E217，2026-10-21 用户确认；原为三个空心小圆圈，线宽 1.6）
 const ico = (n, cls = "") =>
   (n = n === "more" && A.icons["dir-more"] ? "dir-more" : n, A.icons[n]) ? A.icons[n].replace("<svg", `<svg class="ic ${cls}" aria-hidden="true"`) : XI[n] ? LI(XI[n], cls) : "";
+
+// 操作步骤（2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 160 条））：两个以上必须按顺序做的动作，竖排编号方块与竖线，
+// 一步一个动作，标题以动词开头；说明只写出错时怎么办或必须知道的一个条件；这一步要用的按钮、复制框放在步内。
+// steps：[{ title, note, body, done, off }]；done 只在平台能确认时为真（方块为对勾）；off 为还不能做的一步（只显示编号和标题）。
+// start：接着上一段列表编号（一页里分成两个表单时，如申请开通）
+const opSteps = (steps, cls = "", start = 1) =>
+  `<ol class="op-steps${cls ? " " + cls : ""}"${start > 1 ? ` start="${start}"` : ""}>${steps
+    .filter(Boolean)
+    .map(
+      (s, i) =>
+        `<li class="op-step${s.done ? " done" : ""}${s.off ? " off" : ""}"${s.attrs ? " " + s.attrs : ""}><span class="op-n" aria-hidden="true">${s.done ? ico("check", "op-ok") : i + start}</span><div class="op-c"><div class="op-t">${s.title}</div>${s.off ? "" : `${s.note ? `<p class="op-d">${s.note}</p>` : ""}${s.body ? `<div class="op-b">${s.body}</div>` : ""}`}</div></li>`,
+    )
+    .join("")}</ol>`;
+// 步骤条（同上，账户第 161 条）：分屏的向导与系统接入用，放在弹窗标题下一行；编号方块同操作步骤，步与步之间 24px 短横线。
+// cur 从 1 起；done(k)：已完成（深色底对勾）；can(k)：可点（默认只有已完成的可点，未做的不能点）；act：点击时的动作，带 data-step。
+const stepBar = (labels, cur, { done = (k) => k < cur, can = null, act = "", args = {}, label = "步骤" } = {}) =>
+  `<div class="step-bar" role="list" aria-label="${esc(label)}">${labels
+    .map((l, i) => {
+      const k = i + 1,
+        d = k !== cur && done(k),
+        st = k === cur ? "cur" : d ? "done" : "todo",
+        on = act && k !== cur && (can ? can(k) : d),
+        inner = `<span class="sb-n" aria-hidden="true">${d ? ico("check", "op-ok") : k}</span><span class="sb-l">${esc(l)}</span>`,
+        extra = Object.entries(args).map(([a, v]) => ` data-${a}="${esc(v)}"`).join("");
+      return `${i ? `<span class="sb-sep" aria-hidden="true"></span>` : ""}<span role="listitem" class="sb-step ${st}">${
+        act ? `<button type="button" class="sb-b" data-act="${act}" data-step="${k}"${extra}${on ? "" : " disabled"}${k === cur ? ' aria-current="step"' : ""} aria-label="第 ${k} 步 ${esc(l)}${st === "done" ? "，已完成" : ""}">${inner}</button>` : `<span class="sb-b"${k === cur ? ' aria-current="step"' : ""}>${inner}</span>`
+      }</span>`;
+    })
+    .join("")}</div>`;
 
 /* ---------- 动作注册表（2026-10-03 D2） ---------- */
 // 每个动作只定义一次：用 defineActions 注册，同名再次注册即报错；构建时 docs/scripts/check_actions.py 按源码检查，重复定义则构建失败。
@@ -46279,7 +46368,8 @@ function zcShow() {
   if (!src?.image || src.buildingId !== d.bid) { U.zcDraft = null; return msg("源楼层已不存在或没有楼层图，请重新选择"); }
   d.zones = d.zones.filter((id) => g("zones", id)?.floorId === d.src);
   d.targets = d.targets.filter((id) => { const f = g("floors", id); return f?.image && f.id !== d.src && f.buildingId === d.bid; });
-  const head = `<p class="zc-step">第 ${d.step} 步，共 3 步 · ${ZC_STEPS[d.step - 1]}</p>`;
+  // 2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 166 条）：标题下的步骤条取代“第 N 步，共 3 步 · …”；已完成的步骤可点回
+  const head = stepBar(ZC_STEPS, d.step, { act: "zcTo", label: "复制功能区的步骤" });
   let title = "复制功能区到其他楼层", body = "", foot = "";
   if (d.step === 1) {
     const zs = zcZonesOf(d.src), q = (d.q || "").trim().toLowerCase();
@@ -46454,6 +46544,12 @@ defineActions({
     const d = zcCollect();
     if (!d) return;
     d.step = Math.max(1, d.step - 1);
+    zcShow();
+  },
+  zcTo: (a) => {
+    const d = zcCollect();
+    if (!d || !(+a.step < d.step)) return;
+    d.step = +a.step;
     zcShow();
   },
   // 上传目标楼层图：打开同一个“上传楼层图”（可选多个文件，不预选楼层），完成或取消后回到本步，草稿保留。
@@ -49839,13 +49935,9 @@ function showDelivery(step = 0, nid) {
   }
   // 弹窗里的页签用胶囊页签 40/32、14 号字，和“查看接入”一样（Lovable 核查第 361 条，2026-10-11 用户确认：原为紧凑页签 32/26、13 号字）
   // 步骤页签组以弹窗命名“交付步骤”，每个页签指向下面的步骤内容，内容为页签面板（Lovable 核查第 413 条，按第 321 条）
-  const deliverySteps = [
-    ["0", "1 检查"],
-    ["1", "2 核对代理"],
-    ["2", "3 安全处理"],
-    ["3", "4 确认存档"],
-  ];
-  body += tabs(deliverySteps, String(step), "deliveryStep", "deliveryStepPanel", "交付步骤");
+  // 2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 166 条）：页签改为步骤条；交付是逐项检查，四步都能点；
+  // “检查”五项全部通过、“核对代理”没有需要核对的楼层时为已完成（对勾），安全处理可选、确认存档是最后的动作，不显示已完成。
+  body += stepBar(["检查", "核对代理", "安全处理", "确认存档"], step + 1, { done: (k) => (k === 1 ? okAll : k === 2 ? !proxyWarn : false), can: () => true, act: "deliveryStepTo", label: "交付步骤" });
   const stepAt = body.length;
   if (step === 0)
     body += `<div class="flow-space">${checks
@@ -49907,11 +49999,11 @@ function showDelivery(step = 0, nid) {
       // 中继表、TTL 放进“技术明细”（2.04 配置区全面核查 E99）
       `<details class="ws-details"><summary>技术明细</summary>${infoRows([["网络记录", "中继表、TTL（跳数）"]])}</details>` +
       (!okAll
-        ? `<div class="mk-gate">${ico("alert", "ic16")}<span><b>检查未全部通过，</b>不能确认交付。回到“1 检查”处理缺项。</span></div>`
+        ? `<div class="mk-gate">${ico("alert", "ic16")}<span><b>检查未全部通过，</b>不能确认交付。回到第 1 步“检查”处理缺项。</span></div>`
         : "") +
       (!isAdmin() ? `<p>${roleNote("admin")}</p>` : "") +
       simNote();
-  body = body.slice(0, stepAt) + tabPanel("deliveryStepPanel", "deliveryStep", deliverySteps, String(step), body.slice(stepAt));
+  body = body.slice(0, stepAt) + `<div class="step-panel" id="deliveryStepPanel">${body.slice(stepAt)}</div>`;
   // 条件未满足时“确认交付”禁用并写原因（2.04 配置区全面核查 E93，2026-10-17 用户确认）；原先第 1 步主按钮是“查看下一步”，确认按钮叫“确认并存档”。
   const canConfirm = okAll && isAdmin(),
     unmet = checks.filter((c) => !c.ok).length;
@@ -50164,13 +50256,8 @@ function showFirmware(step = 0, id) {
     F.meshPoints(db, nid).filter(
       (p) => p.type === d.type && F.boundNow(p) && (!rel || (p.firmwareVersion || "").localeCompare(rel.version, "en", { numeric: true }) < 0),
     );
-  // 步骤页签以弹窗命名，其下的内容标为它控制的页签面板（Lovable 核查第 321 条，2026-10-11 用户确认）
-  const steps = [
-    ["0", "1 型号与版本"],
-    ["1", "2 范围"],
-    ["2", "3 时段"],
-    ["3", "4 确认影响"],
-  ];
+  // 2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 166 条）：带编号的页签改为步骤条（原为可随意切换的页签）；已完成的步骤可点回
+  const steps = ["型号与版本", "范围", "时段", "确认影响"];
   let body = "";
   if (step === 0)
     body += `<div class="flow-space">${fld("任务名称", "fwName", input("fwName", d.name))}${fld(
@@ -50212,7 +50299,7 @@ function showFirmware(step = 0, id) {
   const ready = rel && d.networkIds.length && d.unoccupied && d.windowStart && d.windowEnd && d.windowStart !== d.windowEnd;
   modal(
     "新建升级任务",
-    tabs(steps, String(step), "firmwareStep", "fwStepPanel", "新建升级任务步骤") + tabPanel("fwStepPanel", "firmwareStep", steps, String(step), body),
+    stepBar(steps, step + 1, { act: "firmwareStepTo", label: "新建升级任务步骤" }) + `<div class="step-panel" id="fwStepPanel">${body}</div>`,
     btn("取消", "close") +
       (step ? btn("上一步", "firmwareStep", { value: step - 1 }) : "") +
       btn("保存草稿", "saveFirmware") +
@@ -51569,6 +51656,8 @@ defineActions({
     if (value("deliverySecurity")) U.deliverySecurity = value("deliverySecurity");
     showDelivery(Number(a.value), id);
   },
+  firmwareStepTo: (a) => actions.firmwareStep({ value: +a.step - 1 }),
+  deliveryStepTo: (a) => actions.deliveryStep({ value: +a.step - 1 }),
   deliveryResolve: (a) => {
     closeModal(true);
     if (a.kind === "app") showBindingPreparation(a.id);
@@ -53830,7 +53919,8 @@ function dcShow() {
     const f = g("floors", id);
     return f?.image && f.id !== d.src && f.buildingId === d.bid;
   });
-  const head = `<p class="zc-step">第 ${d.step} 步，共 4 步 · ${DC_STEPS[d.step - 1]}</p>`;
+  // 2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 166 条）：标题下的步骤条取代“第 N 步，共 4 步 · …”；已完成的步骤可点回
+  const head = stepBar(DC_STEPS, d.step, { act: "dcTo", label: "复制设备的步骤" });
   let title = "复制设备到其他楼层",
     body = "",
     foot = "";
@@ -54048,6 +54138,12 @@ defineActions({
     const d = dcCollect();
     if (!d) return;
     d.step = Math.max(1, d.step - 1);
+    dcShow();
+  },
+  dcTo: (a) => {
+    const d = dcCollect();
+    if (!d || !(+a.step < d.step)) return;
+    d.step = +a.step;
     dcShow();
   },
   // 返回修改：从确认步骤回到设备网络与关系，保留已选内容。
@@ -57514,24 +57610,30 @@ const foldLabels = (html, labels) =>
     let i = 0;
     return "<tr>" + cells.replace(/<(td|th scope="row")(?=[ >])/g, (m, tag) => `<${tag} data-l="${esc(labels[i++] || "")}"`) + "</tr>";
   });
-function showConnectionDetail(id, stage = 0) {
+// 2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 165 条）：系统接入四步的完成判断（步骤条的对勾）：
+// 1 连接：连接验证通过且执行过设备发现；2 数据映射：数据验证通过；3 控制验证：可写数据点通过，没有可写数据点时“不适用”也算完成；
+// 4 应用验证：关联了应用并通过验证。
+function connStepsDone(c) {
+  const ck = F.connectionChecks(data(), c);
+  return [ck[0].state === "已通过" && !!c.discoveredAt, ck[1].state === "已通过", ["已通过", "不适用"].includes(ck[2].state), ck[3].state === "已通过"];
+}
+// stage 不传时打开第一个未完成的步骤，全部完成时打开第 1 步
+function showConnectionDetail(id, stage) {
   const c = g("connections", id);
   if (!c) return;
+  const done = connStepsDone(c);
+  if (stage == null) stage = Math.max(0, done.indexOf(false));
   U.connectionInfo = id;
   U.connectionStage = stage;
   const receipt = (key) => (c.verifications || []).find((r) => r.kind === key && r.version === (c.version || 1));
   // 弹窗标题为连接名称（2026-10-09 用户确认，ABB 对比 71-7：原先标题为“系统接入”，名称另起一行）
-  // 四步页签以系统接入命名，各步的内容标为它控制的页签面板（Lovable 核查第 321 条，2026-10-11 用户确认）
-  const stages = [
-    ["0", "连接"],
-    ["1", "数据映射"],
-    ["2", "控制验证"],
-    ["3", "应用验证"],
-  ];
+  // 四步页签改为步骤条（第 165 条）：这是连接的详情，不是一次性的向导，四步都可以点
+  const writable = (c.mappings || []).some((m) => m.writable),
+    stages = ["连接", "数据映射", writable ? "控制验证" : "控制验证（不适用）", "应用验证"];
   let body = `${infoRows([
     ["协议", c.protocol],
     ["服务楼层", placeText(c.floorIds)],
-  ])}${tabs(stages, String(stage), "connectionStage", "connStagePanel", "系统接入步骤")}`;
+  ])}${stepBar(stages, stage + 1, { done: (k) => done[k - 1], can: () => true, act: "connectionStageTo", label: "系统接入步骤" })}`;
   const lead = body;
   if (stage === 0)
     // 采集位置与采集周期（BP55）、写入上限（X-04，71-12）、凭证的登记状态（BP54，不回显）
@@ -57604,7 +57706,7 @@ function showConnectionDetail(id, stage = 0) {
       ]) + appSettingButtons(c);
   modal(
     c.name,
-    lead + tabPanel("connStagePanel", "connectionStage", stages, String(stage), body.slice(lead.length)) + stateNote(),
+    lead + `<div class="step-panel" id="connStagePanel">${body.slice(lead.length)}</div>` + stateNote(),
     // 2.15 E302：底部不放“关闭”，只用右上角 ×；底部只放“编辑连接”“验证连接”
     (canEdit() ? btn("编辑连接", "connectionForm", { id }) : "") +
       unavailable(["验证连接", "发现与验证数据", "验证可写数据点", "验证应用"][stage]),
@@ -57878,6 +57980,7 @@ defineActions({
     render();
   },
   connectionStage: (a) => showConnectionDetail(U.connectionInfo, Number(a.value)),
+  connectionStageTo: (a) => showConnectionDetail(U.connectionInfo, +a.step - 1),
   // 有运行数据时（侧栏搜索等）打开与场景列表相同的“场景 · 名称”等弹窗（2026-10-08 Vision 核查 V57）
   // 有没有运行数据都打开同一个详情面板（V153）
   sceneDetail: (a) => (actions.opsSceneInfo ? actions.opsSceneInfo(a) : showSceneDetail(a.id)),
@@ -74831,6 +74934,11 @@ const AU_BOT_PF = [
   ["钉钉", /^https:\/\/oapi\.dingtalk\.com\/robot\/send\?access_token=[\w-]{6,}$/],
   ["飞书", /^https:\/\/open\.feishu\.cn\/open-apis\/bot\/v2\/hook\/[\w-]{6,}$/],
 ];
+// 添加群（2.19 账户第 162 条）：填写的平台、地址与密钥；没有选平台时按企业微信
+function auBotInput() {
+  const pf = document.querySelector('#dlg input[name="auBotPf"]:checked')?.value || "企业微信";
+  return { pf, url: value("auBotUrl").trim(), secret: (pf === "钉钉" ? value("auBotKeyDd") : pf === "飞书" ? value("auBotKeyFs") : "").trim(), re: AU_BOT_PF.find(([p]) => p === pf)[1] };
+}
 const AU_CH = { sms: "短信", mail: "邮件", wecom: "群机器人" };
 const AU_NOTIFY_ROWS = { urgent: "紧急告警", major: "重要告警", minor: "提示告警", security: "安全事件", delivery: "交付与部署", repair: "新报修" };
 // Inline error under a form field (fld) on 机构设置 and 我的账户 pages or dialogs: the same field error as the workspace (GLOBAL03;
@@ -75886,9 +75994,18 @@ function auNewJoinCode() {
   return c;
 }
 const auJoinCodeOf = (org = AUTH.org) => ((AUTH.joinCodes ||= {})[org] ||= { code: auNewJoinCode(), on: true });
+// 2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 164 条，改第 154 条）：2 步操作步骤：发出邀请链接或二维码、在“待批准”中批准；
+// “允许申请加入”和“重置”放在两步下面，分隔线隔开；原说明“收到邀请码、链接或二维码的人可以申请加入，由机构管理员批准。”删去。
 function auJoinCodeBody() {
-  const jc = auJoinCodeOf(), qr = AU_JOIN_QR.html();
-  return `<p class="au-dlead">收到邀请码、链接或二维码的人可以申请加入，由机构管理员批准。请只发给要加入本机构的人。</p><div class="au-jc${jc.on ? "" : " off"}"><div class="au-jc-code">${auJoinCodeText(jc.code)}</div><input class="input au-jc-link" readonly value="${esc(auJoinLink(AUTH.org))}" aria-label="邀请链接">${qr ? `<div class="au-jc-qr">${qr}</div>` : ""}<div class="au-inline-actions">${btn(ico("copy", "ic16") + "复制链接", "auJcCopy")}${btn(ico("download", "ic16") + "下载二维码海报", "auJcPoster")}${btn("重置", "auJcReset")}</div></div><div class="au-row au-jc-on"><div class="au-row-l">允许申请加入</div><div class="au-row-a">${auSwitch("auJcToggle", jc.on, {}, false, "允许申请加入")}</div></div>`;
+  const jc = auJoinCodeOf(), qr = AU_JOIN_QR.html(), n = auJoinPending().length;
+  return `<p class="au-dlead">请只发给要加入本机构的人。</p>${opSteps([
+    {
+      title: "把邀请链接或二维码发给要加入的人",
+      note: "口头告知时报 9 位邀请码。",
+      body: `<div class="au-jc${jc.on ? "" : " off"}"><div class="au-jc-code">${auJoinCodeText(jc.code)}</div><input class="input au-jc-link" readonly value="${esc(auJoinLink(AUTH.org))}" aria-label="邀请链接">${qr ? `<div class="au-jc-qr">${qr}</div>` : ""}<div class="au-inline-actions">${btn(ico("copy", "ic16") + "复制链接", "auJcCopy")}${btn(ico("download", "ic16") + "下载二维码海报", "auJcPoster")}</div></div>`,
+    },
+    { title: "在“待批准”中批准", note: "对方注册并提交后出现在“成员 › 待批准”，批准时选择角色；7 天内没有处理自动过期。", body: btn(n ? `查看待批准（${n}）` : "查看待批准", "auJcPending") },
+  ], "au-jc-steps")}<div class="au-jc-foot"><div class="au-row au-jc-on"><div class="au-row-l">允许申请加入</div><div class="au-row-a">${auSwitch("auJcToggle", jc.on, {}, false, "允许申请加入")}</div></div><div class="au-inline-actions">${btn("重置", "auJcReset")}</div></div>`;
 }
 // 加入申请 7 天没有处理自动过期。
 const auJoinState = (r) => (r.status === "pending" && auNow() > r.at + 7 * auDay ? "expired" : r.status);
@@ -75951,7 +76068,11 @@ function auJoinSubmit(org, uid) {
 }
 
 /* ---------- 申请开通新机构（第 147 条）与申请审核中（第 148 条） ---------- */
-// 一页，用小标题“账户”“机构信息”“订阅”分组，不编号、不加步骤条。未登录先注册三步；已登录只读一行“联系人”，不再勾选客户隐私声明和使用条款。
+// 一页。2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 167 条，取代第 147 条的小标题“账户”“机构信息”“订阅”）：按步骤填写，
+// 用操作步骤的编号方块和竖线（步骤标题 16/24 字重 500），编号就是这一页的四部分：未登录 1 验证电子邮箱、2 设置账户、3 填写机构信息、
+// 4 选择订阅；第 1 步完成前第 2–4 步只显示编号和标题，验证后三步一起展开，中间不设“下一步”；验证后第 1 步收成一行电子邮箱和“修改”，
+// 编号方块变为对勾。已登录只读一行“联系人”在最上面，下面两步“填写机构信息”“选择订阅”，不再勾选客户隐私声明和使用条款。
+// 四步之后不编号：服务协议勾选、“提交申请即表示我已获得本机构授权。”、“提交申请”。
 // 订阅与“许可与用量”的订阅弹窗用同一组件（设备额度、年数、服务期间、明细与合计）。同一账户同时只能有一份审核中的申请（AUTH.apps）。
 const AU_APPLY_LEAD = "PACOM 通常在 2 个工作日内审核，通过当天开通，你是机构管理员。";
 const auMyApp = (uid = AUTH.uid) => (AUTH.session === "in" ? (AUTH.apps || {})[uid] || null : null);
@@ -75964,8 +76085,9 @@ function auApplyOrgFields() {
 }
 function auApplySubscription() {
   const years = String(AUX.v.ap_years || "1");
-  return `${auSub("订阅")}<div class="au-apply-sub">${fld("设备额度（台）", "auLicQty", input("auLicQty", AUX.v.ap_qty ?? AU_PRICE.min, "", "number"), AU_QTY_HINT)}${fld("年数", "auLicYears", select("auLicYears", [["1", "1 年"], ["2", "2 年"], ["3", "3 年"]], years, "年数"))}<div id="auBuyCalc" data-kind="apply">${auBuyCalc("apply").html}</div><p class="au-apply-quote"><button type="button" class="au-inline" data-act="auOrderDoc" data-doc="quote">下载报价单</button></p><p class="au-apply-pay">审核通过后生成订单，请在 14 天内付款，到账当天起计服务期。</p>${auAgree()}<p class="au-apply-auth">提交申请即表示我已获得本机构授权。</p></div>`;
+  return `<div class="au-apply-sub">${fld("设备额度（台）", "auLicQty", input("auLicQty", AUX.v.ap_qty ?? AU_PRICE.min, "", "number"), AU_QTY_HINT)}${fld("年数", "auLicYears", select("auLicYears", [["1", "1 年"], ["2", "2 年"], ["3", "3 年"]], years, "年数"))}<div id="auBuyCalc" data-kind="apply">${auBuyCalc("apply").html}</div><p class="au-apply-quote"><button type="button" class="au-inline" data-act="auOrderDoc" data-doc="quote">下载报价单</button></p><p class="au-apply-pay">审核通过后生成订单，请在 14 天内付款，到账当天起计服务期。</p></div>`;
 }
+const auApplyTail = () => `<div class="au-apply-tail">${auAgree()}<p class="au-apply-auth">提交申请即表示我已获得本机构授权。</p></div>`;
 const auApplyShell = (inner) =>
   `<div class="au au-split"><section class="au-left"><div class="au-center"><main class="au-group">${auLogo()}${inner}</main></div>${auFooter()}</section><aside class="au-art" aria-hidden="true"><img src="${A.img_auth}" alt=""></aside></div>`;
 const auApplyBottom = () =>
@@ -75977,14 +76099,20 @@ BARE.apply = () => {
   if (U.tab) { U.tab = ""; history.replaceState(null, "", "#apply"); }
   const editing = !!AUX.applyEditing;
   const head = `<h1 class="au-h1">申请开通新机构</h1><p class="au-lead">${AU_APPLY_LEAD}</p>`;
-  const rest = `${auSub("机构信息")}${auApplyOrgFields()}${auApplySubscription()}<p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(editing ? "提交修改" : "提交申请")}`;
+  const orgStep = { title: "填写机构信息", body: auApplyOrgFields() },
+    subStep = { title: "选择订阅", body: auApplySubscription() },
+    tail = `${auApplyTail()}<p class="au-ferr" id="au-apply-ferr" role="alert" hidden></p>${auPrimary(editing ? "提交修改" : "提交申请")}`;
   const foot = editing ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auCancelEdit">取消修改</button></div>` : auApplyBottom();
   if (AUTH.session === "in") {
     const me = auMe();
-    return auApplyShell(`${head}<form data-form="apply" novalidate><fieldset>${auRoRow("联系人", `${me.name} · ${me.email || me.phone || ""}`)}${rest}</fieldset></form>${foot}`);
+    return auApplyShell(`${head}<form data-form="apply" novalidate><fieldset>${auRoRow("联系人", `${me.name} · ${me.email || me.phone || ""}`)}${opSteps([orgStep, subStep], "au-apply-steps")}${tail}</fieldset></form>${foot}`);
   }
-  const r = auRegState("apply");
-  return auApplyShell(`${head}${auSub("账户")}${auRegTop("apply")}${r.step === 3 ? `<form data-form="apply" novalidate><fieldset>${auRegStep3()}${rest}</fieldset></form>` : ""}${foot}`);
+  const r = auRegState("apply"), ok = r.step === 3;
+  // 第 1 步的表单（填邮箱、填验证码）与第 2–4 步的表单分开，两段编号列表接在一起（op-more 的最后一步保留竖线）
+  const s1 = opSteps([{ title: "验证电子邮箱", done: ok, body: ok ? auRoRow("电子邮箱", r.mail, `<button type="button" class="au-textbtn au-ro-edit" data-act="auRegEdit">修改</button>`) : auRegTop("apply") }], "au-apply-steps op-more");
+  const later = [{ title: "设置账户", body: auRegStep3() }, orgStep, subStep].map((s) => (ok ? s : { title: s.title, off: true }));
+  const s2 = opSteps(later, "au-apply-steps", 2);
+  return auApplyShell(`${head}${s1}${ok ? `<form data-form="apply" novalidate><fieldset>${s2}${tail}</fieldset></form>` : s2}${foot}`);
 };
 BARE_AFTER.apply = () => {
   auEcSync();
@@ -77100,6 +77228,15 @@ const AU_GUIDE_URL = "";
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
   {
+    version: "2.19",
+    date: "2026-10-25",
+    notes: [
+      "申请开通新机构按步骤填写：先验证电子邮箱，再设置账户、填写机构信息和选择订阅。",
+      "添加群机器人按平台分步说明，添加后可发一条消息核对；付款与邀请码按两步说明。",
+      "系统接入与各向导的步骤显示已完成、当前和未做。",
+    ],
+  },
+  {
     version: "2.18",
     date: "2026-10-25",
     notes: [
@@ -77896,13 +78033,14 @@ function auHelpTopicOpen(k) {
     "au-help-dlg",
   );
 }
+// 2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 160 条）：文章的步骤用操作步骤的样式（编号方块与竖线），不带控件
 function auHelpArticleOpen(id) {
   const x = helpArticle(id);
   if (!x) return;
   const topic = HELP_TOPICS.find((t) => t[0] === x.topic)?.[1] || "";
   auDialog(
     x.title,
-    `<p class="au-dlead">帮助中心 › ${esc(topic)} · 更新于 ${esc(HELP_UPDATED)} · 适用：${esc(x.roles)}</p><p class="ai-p">${esc(x.sum)}</p><ol class="au-help-steps">${x.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>` +
+    `<p class="au-dlead">帮助中心 › ${esc(topic)} · 更新于 ${esc(HELP_UPDATED)} · 适用：${esc(x.roles)}</p><p class="ai-p">${esc(x.sum)}</p>${opSteps(x.steps.map((s) => ({ title: esc(s) })), "au-help-steps")}` +
       (x.faq.length ? `<h4 class="au-help-h">常见问题</h4><dl class="au-help-faq">${x.faq.map(([q, a]) => `<dt>${esc(q)}</dt><dd>${esc(a)}</dd>`).join("")}</dl>` : "") +
       (x.rel.length ? `<h4 class="au-help-h">相关文章</h4><ul class="au-help-list">${x.rel.map(helpArticle).filter(Boolean).map((r) => `<li><button type="button" class="ops-link" data-act="auHelpArticle" data-id="${r.id}">${esc(r.title)}</button></li>`).join("")}</ul>` : "") +
       `<div class="au-help-fb"><span>有帮助吗？</span>${btn("有", "auHelpFeedback", { id: x.id, v: "yes" }, "sm")}${btn("没有", "auHelpFeedback", { id: x.id, v: "no" }, "sm")}${btn("联系支持", "auSupport", { from: "help" }, "ghost sm")}</div>`,
@@ -78540,6 +78678,12 @@ Object.assign(actions, {
     msg("已复制邀请链接");
   },
   auJcPoster: () => msg("二维码海报由服务生成，暂时无法下载。"),
+  // 第 164 条：从邀请码弹窗到“成员 › 待批准”；没有待批准时到“已加入”
+  auJcPending: () => {
+    closeModal(true);
+    AUX.orgTab = "requests";
+    render();
+  },
   auJcReset: () =>
     auDialog("重置邀请码？", `<p class="au-dlead">旧的邀请码、链接和二维码立即失效，已提交的申请不受影响。</p>`, btn("取消", "auJoinCodeDlg") + btn("重置", "auJcResetDo", {}, "danger"), "au-alert"),
   auJcResetDo: () => {
@@ -78908,27 +79052,62 @@ Object.assign(actions, {
     msg(`${AU_CH[a.ch]}通知已${c[a.ch] ? "开启" : "关闭"}`);
   },
   // 添加群机器人（Y17）：只有机构管理员可设置；地址按平台核对格式
+  // 2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 162 条）：改为 5 步操作步骤：选择平台、在群里添加机器人（按平台显示一种）、
+  // 粘贴 Webhook 地址（钉钉密钥必填，飞书选填）、群名称和项目、发送测试消息；不强制先测试。菜单名按各平台 2026 年 10 月的官方帮助。
   auBotForm: () => {
     if (!auCanManage()) throw Error("只有机构管理员可以修改通知设置");
+    const pfs = AU_BOT_PF.map(([p]) => p),
+      by = (m) => pfs.map((p) => `<div data-botpf="${p}"${p === pfs[0] ? "" : " hidden"}>${m[p]}</div>`).join("");
     modal(
       "添加群",
-      `${fld("平台", "auBotPf", select("auBotPf", AU_BOT_PF.map(([p]) => [p, p]), "企业微信", "平台"))}${fld("群名称", "auBotName", input("auBotName", "", "如 E栋值班群"))}${fld("Webhook 地址", "auBotUrl", input("auBotUrl", "", "从群设置 › 群机器人复制"))}${fld("密钥（选填）", "auBotKey", input("auBotKey", "", "钉钉“加签”、飞书“签名校验”开启时填写"))}${fld("项目", "auBotProj", select("auBotProj", [["all", "全部项目"], ...auProjects().map((x) => [x, x])], "all", "项目"))}`,
+      `<p class="au-dlead">告警按项目推送到群里。</p>${opSteps([
+        { title: "选择平台", body: `<div class="au-radios au-scope-radios au-bot-pfs" role="radiogroup" aria-label="平台">${pfs.map((p, i) => `<label class="au-radio"><input type="radio" name="auBotPf" value="${p}" ${i ? "" : "checked"}><span><b>${p}</b></span></label>`).join("")}</div>` },
+        {
+          title: "在群里添加机器人",
+          body: by({
+            企业微信: `<p class="op-d au-bot-how">打开要接收告警的内部群，点右上角“…”，选“群机器人”，新创建一个机器人。</p><p class="op-d">外部群不能添加机器人。</p>`,
+            钉钉: `<p class="op-d au-bot-how">在电脑端打开要接收告警的群，选“群设置 › 机器人 › 添加机器人 › 自定义”，安全设置勾选“加签”。</p>`,
+            飞书: `<p class="op-d au-bot-how">打开要接收告警的群，选“设置 › 群机器人 › 添加机器人 › 自定义机器人”。</p>`,
+          }),
+        },
+        {
+          title: "复制 Webhook 地址，粘贴到这里",
+          body: `${fld("Webhook 地址", "auBotUrl", input("auBotUrl", "", "https://"))}${by({
+            企业微信: "",
+            钉钉: fld("密钥", "auBotKeyDd", input("auBotKeyDd", "", "“加签”下的密钥")),
+            飞书: fld("密钥 选填", "auBotKeyFs", input("auBotKeyFs", ""), "开启了“签名校验”时填写。"),
+          })}`,
+        },
+        { title: "填写群名称和推送的项目", body: `${fld("群名称", "auBotName", input("auBotName", "", "如 E栋值班群"))}${fld("项目", "auBotProj", select("auBotProj", [["all", "全部项目"], ...auProjects().map((x) => [x, x])], "all", "项目"))}` },
+        { title: "发送测试消息", body: `<div class="au-inline-actions au-bot-test">${btn("发送测试消息", "auBotTest")}<span id="auBotTestMsg" class="au-bot-res" role="status"></span></div>` },
+      ], "au-bot-steps")}`,
       btn("取消", "close") + btn("添加", "auBotSave", {}, "primary"),
       false,
     );
   },
+  auBotTest: withPolicy({ busy: "modal" }, async () => {
+    if (!auCanManage()) throw Error("只有机构管理员可以修改通知设置");
+    const { pf, url, secret, re } = auBotInput(),
+      out = (t, ok) => {
+        const o = $("#auBotTestMsg");
+        if (o) (o.textContent = t), (o.className = "au-bot-res " + (ok ? "ok" : "err"));
+      };
+    if (!re.test(url)) return out("Webhook 地址无效", false);
+    if (pf === "钉钉" && !secret) return auFieldErr("auBotKeyDd", "请填写“加签”下的密钥");
+    const r = await auRequest("testBot", { org: AUTH.org, platform: pf, url, secret, text: "PACOM Station 测试消息：群机器人设置成功。" });
+    out(r.status === "ok" ? "已发送，请到群里查看" : r.message || "暂时无法发送，请稍后再试。", r.status === "ok");
+  }),
   auBotSave: () => {
     if (!auCanManage()) throw Error("只有机构管理员可以修改通知设置");
-    const pf = value("auBotPf") || "企业微信",
+    const { pf, url, secret, re } = auBotInput(),
       name = value("auBotName").trim(),
-      url = value("auBotUrl").trim(),
-      re = AU_BOT_PF.find(([p]) => p === pf)[1],
       n = auNotifyOf();
+    if (!re.test(url)) return auFieldErr("auBotUrl", `请粘贴${pf}群机器人的完整 Webhook 地址`);
+    if (pf === "钉钉" && !secret) return auFieldErr("auBotKeyDd", "请填写“加签”下的密钥");
     if (!name) return auFieldErr("auBotName", "请填写群名称");
     if (n.bots.some((b) => b.name === name)) return auFieldErr("auBotName", "已有同名的群");
-    if (!re.test(url)) return auFieldErr("auBotUrl", `请粘贴${pf}群机器人的完整 Webhook 地址`);
     const proj = value("auBotProj") || "all";
-    n.bots.push({ id: "bot-" + Date.now().toString(36), platform: pf, name, url, secret: value("auBotKey").trim(), projects: proj === "all" ? "all" : [proj] });
+    n.bots.push({ id: "bot-" + Date.now().toString(36), platform: pf, name, url, secret, projects: proj === "all" ? "all" : [proj] });
     auLog("修改通知渠道", `群机器人：添加“${name}”（${pf}）`, "account");
     auSave();
     closeModal(true);
@@ -80403,7 +80582,9 @@ document.addEventListener("input", (e) => {
 });
 document.addEventListener("change", (e) => {
   if (e.target?.name === "auKeyScope" && $("#auKeyProjects")) $("#auKeyProjects").hidden = e.target.value !== "some";
-  if (e.target?.name === "auPayWay") document.querySelectorAll("#dlg [data-pay]").forEach((x) => (x.hidden = x.dataset.pay !== (e.target.value === "对公转账" ? "bank" : "qr")));
+  if (e.target?.name === "auPayWay") document.querySelectorAll("#dlg [data-pay]").forEach((x) => (x.hidden = x.dataset.pay !== (e.target.value === "对公转账" ? "bank" : e.target.value === "微信支付" ? "wx" : "ali")));
+  // 添加群（账户第 162 条）：第 2、3 步只显示所选平台的一种
+  if (e.target?.name === "auBotPf") document.querySelectorAll("#dlg [data-botpf]").forEach((x) => (x.hidden = x.dataset.botpf !== e.target.value));
   if (e.target?.name === "auPackSize" && $("#auPackCalc")) {
     $("#auPackSize").value = e.target.value;
     $("#auPackCalc").innerHTML = auPackCalc().html;
@@ -80599,11 +80780,12 @@ AU_ORG_PAGES.orders = () => {
   );
 };
 // 付款弹窗中的专属汇款账号
-const auAccRows = (acc) =>
+// copy：付款弹窗里每行右侧“复制”（2.19 账户第 163 条）
+const auAccRows = (acc, copy = false) =>
   auRows([
-    ["户名", acc ? `<span class="au-nowrap">${esc(acc.name)}</span>` : `<span class="muted">未取得</span>`],
-    ["开户银行", acc ? esc(acc.bank) : `<span class="muted">未取得</span>`],
-    ["账号", acc ? `<span class="num">${esc(acc.no)}</span>` : `<span class="muted">未取得</span>`],
+    ["户名", acc ? `<span class="au-nowrap">${esc(acc.name)}</span>` : `<span class="muted">未取得</span>`, acc && copy ? btn("复制", "auAccCopy", { k: "name" }, "sm") : ""],
+    ["开户银行", acc ? esc(acc.bank) : `<span class="muted">未取得</span>`, acc && copy ? btn("复制", "auAccCopy", { k: "bank" }, "sm") : ""],
+    ["账号", acc ? `<span class="num">${esc(acc.no)}</span>` : `<span class="muted">未取得</span>`, acc && copy ? btn("复制", "auAccCopy", { k: "no" }, "sm") : ""],
   ]);
 // Real filing details share the copyright/legal/contact row; never invent a filing number.
 const auFiling = () => {
@@ -80718,6 +80900,8 @@ defineActions({
     actions.auPay({ id: x.id });
   }),
   // 付款：订单号与金额、付款方式（对公转账、微信支付、支付宝）、下载订单合同（ORG09）。
+  // 2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 163 条）：2 步操作步骤：选择付款方式、按所选方式付款；户名、开户银行、账号每行“复制”；
+  // 删去“需要先开通、后付款的，请联系 PACOM 客户经理。”（开通即订阅，客户经理已取消）。
   auPay: (a) => {
     if (!auCanManage()) throw Error("只有机构管理员可以付款");
     const l = auLic(),
@@ -80730,14 +80914,30 @@ defineActions({
     ];
     auDialog(
       "付款",
-      `<div class="au-pay-h"><span>${esc(od.text)}<small class="num">订单号 ${esc(od.no)} · ${auDate(od.until)}前有效</small></span><b class="num">${auYuan(od.amount)}</b></div><fieldset class="field"><legend>付款方式</legend><div class="au-radios au-scope-radios">${way
+      `<div class="au-pay-h"><span>${esc(od.text)}<small class="num">订单号 ${esc(od.no)} · ${auDate(od.until)}前有效</small></span><b class="num">${auYuan(od.amount)}</b></div>` +
+        opSteps([
+          { title: "选择付款方式", body: `<fieldset class="field au-pay-way"><legend class="sr-only">付款方式</legend><div class="au-radios au-scope-radios">${way
         .map(([v, t], i) => `<label class="au-radio"><input type="radio" name="auPayWay" value="${v}" ${i ? "" : "checked"}><span><b>${t}</b></span></label>`)
-        .join(
-          "",
-        )}</div></fieldset><div data-pay="bank">${auAccRows(l.account)}<p class="au-dlead">请用本机构的对公账户汇款。到账后自动生效，一般 1 个工作日内，以邮件告知。</p></div><div data-pay="qr" hidden><div class="au-payqr">${AU_LIC_HOOK.qr(od)}<b class="num">${auYuan(od.amount)}</b></div><p class="au-dlead">请在 15 分钟内完成付款，付款后自动到账。二维码失效后订单仍为待付款，可在“订单与发票”继续付款。</p></div>${note("需要先开通、后付款的，请联系 PACOM 客户经理。")}`,
+        .join("")}</div></fieldset>` },
+          {
+            title: `<span data-pay="bank">用本机构的对公账户汇款到以下账号</span><span data-pay="wx" hidden>用微信扫码付款</span><span data-pay="ali" hidden>用支付宝扫码付款</span>`,
+            body: `<div data-pay="bank">${auAccRows(l.account, true)}<p class="op-d">到账后订单自动生效，一般 1 个工作日内，以邮件告知。</p></div>${["wx", "ali"].map((w) => `<div data-pay="${w}" hidden><div class="au-payqr">${AU_LIC_HOOK.qr(od)}<b class="num">${auYuan(od.amount)}</b></div><p class="op-d">二维码 15 分钟内有效，失效后可在“订单与发票”继续付款。</p></div>`).join("")}`,
+          },
+        ], "au-pay-steps"),
       auDocFoot("下载订单合同", "contract") + (AU_LIC_HOOK.payFoot(od) || `<span class="sp"></span>`) + btn("关闭", "close", {}, "primary"),
       "wide-form au-pay-dlg",
     );
+  },
+  auAccCopy: async (a) => {
+    const acc = auLic().account,
+      t = acc?.[a.k];
+    if (!t) return;
+    try {
+      await navigator.clipboard.writeText(t);
+      msg(`已复制${{ name: "户名", bank: "开户银行", no: "账号" }[a.k]}`);
+    } catch {
+      msg("无法自动复制，请手动选择后复制");
+    }
   },
   auOrderCancel: (a) => {
     // 标题写出是哪一笔订单（参考组件核查第 438 条，同第 410 条）；读作警示对话框（第 443 条）。2026-10-11 用户确认
