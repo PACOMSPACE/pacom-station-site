@@ -21183,18 +21183,25 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .au-dialog.au-aidetail-dlg { width: 720px; }
 
 /* ---------- 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 141–151 条）：注册、加入、申请开通与验证邮箱 ---------- */
-/* 登录页底部“还没有账户？”与两个次要按钮：一行居中，间距 12；窄屏各占一行 */
-.au-noacct { margin-top: 16px; color: #636363; font: 400 14px/24px var(--ff); text-align: center; }
-.au-noacct-btns { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
-.au-secondary {
-  display: inline-flex; align-items: center; justify-content: center;
-  height: 40px; padding: 0 16px; border: 0; border-radius: 999px;
-  background: #fff; color: var(--text); font: 500 14px/24px var(--ff); cursor: pointer;
-  box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px rgba(0, 0, 0, 0.04);
+/* 登录页底部（2.20，账户第 168 条，取代第 141 条第 9 行）：“还没有账户？”与两个描边按钮为一组，
+   分隔线到文字 16（外层间距），文字到第一个按钮 8，按钮之间 12；按钮竖排、与“登录”同宽，电脑 36、手机和触屏 44。
+   选择器带 .au，不被通用的 .au button { font: inherit } 盖掉。 */
+.au .au-noacct-group { display: flex; flex-direction: column; width: 100%; }
+.au .au-noacct { margin: 0; color: #636363; font: 400 14px/24px var(--ff); text-align: center; }
+.au .au-noacct-btns { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 8px; }
+.au .au-secondary {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 36px; min-height: 36px; padding: 0 16px; margin: 0; border: 0; border-radius: 999px;
+  background: transparent; color: #030303; font: 480 16px/24px var(--ff); white-space: nowrap; cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / .25);
+  transition: background-color .15s;
 }
-.au-secondary:hover { background: #f7f7f7; }
-@media (max-width: 600px) { .au-noacct-btns .au-secondary { flex: 1 1 100%; } }
-@media (pointer: coarse) { .au-secondary { height: 44px; } }
+@media (hover: hover) and (pointer: fine) {
+  .au .au-secondary:hover { background: rgb(0 0 0 / .08); }
+  .au .au-secondary:active { background: rgb(0 0 0 / .1); }
+}
+.au .au-secondary:focus-visible { outline: 2px solid #00AEEF; outline-offset: 2px; }
+@media (max-width: 850px), (pointer: coarse) { .au .au-secondary { height: 44px; min-height: 44px; } }
 /* 保持登录：密码或验证码下方 12，到登录按钮 24 */
 .au-check.au-keep-login { margin: 12px 0 24px; color: #636363; font: 400 14px/24px var(--ff); }
 .au-login-notice { margin-bottom: 16px; }
@@ -75687,7 +75694,7 @@ BARE.login = () => {
   // 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 141 条）：“保持登录”在密码框（短信方式为验证码框）下；底部“还没有账户？”加两个次按钮，去掉“登录已过期”和重置链接的提示。
   const keep = `<label class="au-check au-keep-login" data-f="keep"><input type="checkbox" name="keep" class="au-v" ${AUX.v.keep ? "checked" : ""}><span>保持登录</span></label>`;
   const notice = AUX.loginNotice ? auNotice("info", AUX.loginNotice, "au-login-notice") : "";
-  return auAuthShell(`<h1 class="au-h1">登录</h1>${notice}<form class="au-compact-form" data-form="login" novalidate><fieldset>${idField}${secret}${keep}<p class="au-ferr" id="au-login-ferr" role="alert" hidden></p>${auPrimary("登录", true)}</fieldset></form><div class="au-login-actions"><button type="button" class="au-textbtn" data-act="auSmsMode">${sms ? "使用密码登录" : "使用短信验证码登录"}</button><div class="au-login-divider" aria-hidden="true"></div><p class="au-noacct">还没有账户？</p><div class="au-noacct-btns"><button type="button" class="au-secondary" data-act="auGo" data-page="join">加入已开通的机构</button><button type="button" class="au-secondary" data-act="auGo" data-page="apply">申请开通新机构</button></div></div>`);
+  return auAuthShell(`<h1 class="au-h1">登录</h1>${notice}<form class="au-compact-form" data-form="login" novalidate><fieldset>${idField}${secret}${keep}<p class="au-ferr" id="au-login-ferr" role="alert" hidden></p>${auPrimary("登录", true)}</fieldset></form><div class="au-login-actions"><button type="button" class="au-textbtn" data-act="auSmsMode">${sms ? "使用密码登录" : "使用短信验证码登录"}</button><div class="au-login-divider" aria-hidden="true"></div><div class="au-noacct-group"><p class="au-noacct">还没有账户？</p><div class="au-noacct-btns"><button type="button" class="au-secondary" data-act="auGo" data-page="join">加入已开通的机构</button><button type="button" class="au-secondary" data-act="auGo" data-page="apply">申请开通新机构</button></div></div></div>`);
 };
 BARE_AFTER.login = () => {
   document.title = "登录 · PACOM Station";
@@ -77227,6 +77234,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "2.20",
+    date: "2026-10-25",
+    notes: ["登录页底部“加入已开通的机构”“申请开通新机构”改为与“登录”同宽的两个描边按钮，上下排列。"],
+  },
   {
     version: "2.19",
     date: "2026-10-25",
