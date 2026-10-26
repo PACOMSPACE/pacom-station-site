@@ -77834,6 +77834,13 @@ const AU_GUIDE_URL = "";
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
   {
+    version: "2.26",
+    date: "2026-10-26",
+    notes: [
+      "页面与状态目录：加入机构与申请开通的步骤说明与现在的步骤条一致；忘记密码的五个结果打开后直接显示对应提示。",
+    ],
+  },
+  {
     version: "2.25",
     date: "2026-10-25",
     notes: [
@@ -90449,8 +90456,8 @@ const DEMO_ITEMS = [
   ["加入机构", "join", "加入已开通的机构", "登录页进入", () => (demoOut(), demoShow("join"))],
   ["加入机构", "join-link", "打开邀请链接", "邀请码已带入", () => (demoOut(), (AUX.v.jn_code = auJoinCodeText("386204517")), demoShow("join"))],
   ["加入机构", "join-bad", "邀请码不正确", "", () => (demoOut(), Object.assign(AUX.v, { jn_code: "123 456 789", rg_name: "周宁", rg_pwd: "Pacom#2026", jn_note: "广实2号园物业工程部。" }), (AUX.reg = { flow: "join", step: 3, mail: "zhou.ning@example.test" }), demoShow("join"), demoSubmit("join"))],
-  ["加入机构", "join-code", "注册：验证电子邮箱", "第 2 步", () => (demoOut(), (AUX.v.jn_code = auJoinCodeText("386204517")), (AUX.reg = { flow: "join", step: 2, mail: "chen.lu@example.test" }), (AUX.ec.rg = { to: "chen.lu@example.test", cool: auNow() + 6e4, exp: auNow() + 10 * 6e4 }), demoShow("join"))],
-  ["加入机构", "join-step3", "注册并申请加入", "第 3 步", () => (demoOut(), (AUX.v.jn_code = auJoinCodeText("386204517")), (AUX.reg = { flow: "join", step: 3, mail: "chen.lu@example.test" }), demoShow("join"))],
+  ["加入机构", "join-code", "注册：验证电子邮箱", "第 1 步", () => (demoOut(), (AUX.v.jn_code = auJoinCodeText("386204517")), (AUX.reg = { flow: "join", step: 2, mail: "chen.lu@example.test" }), (AUX.ec.rg = { to: "chen.lu@example.test", cool: auNow() + 6e4, exp: auNow() + 10 * 6e4 }), demoShow("join"))],
+  ["加入机构", "join-step3", "注册并申请加入", "第 2、3 步", () => (demoOut(), (AUX.v.jn_code = auJoinCodeText("386204517")), (AUX.reg = { flow: "join", step: 3, mail: "chen.lu@example.test" }), demoShow("join"))],
   ["加入机构", "join-invited", "注册并加入", "这个电子邮箱有邀请", () => (demoInvite("member", "new"), (AUX.reg = { flow: "join", step: 3, mail: AU_INV.member.email }), demoShow("join"))],
   ["加入机构", "join-in", "已登录：申请加入", "尚未加入机构的账户", () => (demoNoOrg(), (AUX.v.jn_code = auJoinCodeText("386204517")), demoShow("join"))],
   ["加入机构", "join-wait", "等待批准", "", () => (demoJoin("pending"), demoShow("join", "wait"))],
@@ -90458,7 +90465,7 @@ const DEMO_ITEMS = [
   ["加入机构", "join-expired", "申请已过期", "7 天没有处理", () => (demoJoin("expired"), demoShow("join", "expired"))],
 
   ["申请开通", "apply", "申请开通新机构", "登录页进入，先注册", () => (demoOut(), auClearApply(), (AUX.reg = null), demoShow("apply"))],
-  ["申请开通", "apply-form", "填写机构信息与订阅", "注册第 3 步之后", () => (demoOut(), auClearApply(), (AUX.reg = { flow: "apply", step: 3, mail: "zhang.hua@example.test" }), demoShow("apply"))],
+  ["申请开通", "apply-form", "填写机构信息与订阅", "第 3、4 步", () => (demoOut(), auClearApply(), (AUX.reg = { flow: "apply", step: 3, mail: "zhang.hua@example.test" }), demoShow("apply"))],
   ["申请开通", "apply-err", "申请表需要核对", "", () => (demoOut(), auClearApply(), (AUX.reg = { flow: "apply", step: 3, mail: "zhang.hua@example.test" }), demoShow("apply"), demoSubmit("apply"))],
   ["申请开通", "apply-signed", "申请开通新机构（已登录）", "机构菜单“开通新机构”进入", () => (demoIn(), auClearApply(), (AUX.applyFrom = "#overview"), demoShow("apply"))],
   ["申请开通", "apply-review", "申请审核中", "", () => (demoApp("review"), demoShow("apply", "review"))],
@@ -90707,6 +90714,8 @@ const DEMO_ITEMS = [
 
   ["其他产品", "app", "部署 App", "手机端 · 现场绑定、配置与局部测试", () => actions.demoApp()],
 ];
+// 2.26（2026-10-26 HONG 02:29Z“更新”）：再次打开弹窗用 auOpenResetDialog，不用 actions.auForgot（它会清掉验证码与新密码），
+// 让“验证码不正确或已过期”等五项带着填好的验证码与新密码提交，显示各自的结果。
 function demoReset(code, pwd = "Pacom#2026x") {
   demoOut();
   Object.assign(AUX.v, { id: "wang.min@example.test" });
@@ -90715,7 +90724,7 @@ function demoReset(code, pwd = "Pacom#2026x") {
     actions.auForgot();
     AUX.ec.rs = { to: "wang.min@example.test", cool: auNow() + 6e4, exp: auNow() + 10 * 6e4 };
     Object.assign(AUX.v, { rs_code: code, rs_pwd: pwd });
-    actions.auForgot();
+    auOpenResetDialog();
     demoSubmit("reset");
   });
 }
