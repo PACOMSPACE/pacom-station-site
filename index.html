@@ -17552,11 +17552,6 @@ ol.ai-ritems > .ai-ritem > span::before {
 .au-field.bad .au-hint:not(.au-char-count) {
   display: none;
 }
-/* 2.29 账户第 207 条：新密码不符合要求时框下红字列出还缺的项（原被上一条隐藏，只剩红色边线） */
-.au-field.bad .au-hint.au-pwd-bad:not(:empty) {
-  display: block;
-  color: var(--crit);
-}
 .au-ferr {
   margin: 0 0 12px;
   padding: 10px 14px;
@@ -21185,9 +21180,6 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 }
 #dlg .au-label-row { display: flex; align-items: center; gap: 4px; }
 #dlg .au-label-row > label { font-size: 14px; line-height: 24px; font-weight: 500; color: var(--text); }
-/* 2.29 账户第 206 条：重置密码弹窗里 ⓘ 紧跟“新密码”，间隔 4（原在行末，说明框伸出弹窗）；“新密码”字重 480，与其他字段名相同 */
-#dlg .au-reset-dlg .au-label-row { justify-content: flex-start; gap: 4px; }
-#dlg .au-reset-dlg .au-label-row > label { font-weight: 480; }
 
 /* 2.04 账户第 26、27、57 条（2026-10-17 用户确认）：折叠帮助的标题排版高 24，折角离文字 8px（取消 2.03 第 13 条的左收）；
    触屏 44 的点击区由 ::before 向上下各扩 10px，不占高度；展开内容上边距 4，标题到内容的视觉间距约 14px（原约 28px）。 */
@@ -21263,10 +21255,6 @@ form > .au-subhead:first-child, fieldset > .au-subhead:first-child { margin-top:
 .au-nocode[hidden] { display: none; }
 /* 只读行旁的“修改” */
 .au-ro-edit { margin-left: 8px; }
-/* 新密码不满足要求：提示行变红，不另加错误文字 */
-.au-hint.au-pwd-bad, #auPwd1-hint.au-pwd-bad { color: var(--crit); }
-/* 2.21 账户第 180 条：修改密码的新密码框下输入前不显示 */
-#auPwd1-hint:empty { display: none; }
 /* 申请审核中：提交内容列表 */
 .au-apply-dl { display: grid; gap: 8px; margin: 16px 0 0; font: 400 14px/24px var(--ff); }
 .au-apply-dl > div { display: grid; grid-template-columns: 8em minmax(0, 1fr); gap: 12px; }
@@ -21376,6 +21364,25 @@ form > .au-subhead:first-child, fieldset > .au-subhead:first-child { margin-top:
   .dialog.au-account-dlg.au-reset-dlg .au-getcode { height: 28px; min-height: 28px; right: 4px; padding: 0 10px; }
   .dialog.au-account-dlg.au-reset-dlg .au-getcode::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
 }
+/* 第 220 条（2026-10-26 HONG 07:26Z“要实际间距”）：重置密码弹窗（电脑和手机）最后一项到底部按钮 24（原 16），最后一项是框下一行字时也是 24；
+   字段之间仍是 16（第 218 条，现状已是）。 */
+.au-account-dlg.au-reset-dlg .df { padding-top: 24px; }
+.au-account-dlg.au-reset-dlg .au-ferr.au-notice { margin-bottom: 0; }
+/* 第 226 条（2026-10-26 HONG 07:26Z“不要看起来，要实际间距”）：所有账户页表单实际间距 16 / 16 / 24：框（或框下一行字）到下一个字段名 16，最后一项到主按钮 24。
+   登录页、受邀注册等现状已是；补两处：分步表单最后一个字段到主按钮（原 16），受邀注册同意勾选行到下一个字段名（原 0）。 */
+#app:is(.bare-join, .bare-access, .bare-apply, .bare-orgs) form .op-steps > li:last-child .op-b > .au-field:last-child { margin-bottom: 24px; }
+#app .au form .au-check + .au-check-err + .au-field { margin-top: 16px; }
+/* 第 222 条：“收不到验证码？”发送前不显示；与“忘记密码？”一样不占字段名一行的高度（脱离排版），这一行始终 24，切换登录方式、发送后出现都不移动页面。 */
+.au-nocode-right[hidden] { display: none !important; }
+:is(.au, #dlg) .au-lab:has(> .au-nocode-right) { position: relative; min-height: 0; }
+:is(.au, #dlg) .au-lab > .au-nocode-right { position: absolute; top: 0; right: 0; height: 24px; min-height: 0; margin: 0; }
+/* 第 223 条：设置新密码的框下 4 常显“密码要求：”和四条要求，14/24 灰字 #636363，圆点列表；提交时未满足的几条与“密码要求：”变红（与其他错误同色）。 */
+.au-pwd-req { margin-top: 4px; color: #636363; font: 400 14px/24px var(--ff); text-align: left; }
+.au-pwd-req p, .au-pwd-req ul { margin: 0; padding: 0; list-style: none; }
+.au-pwd-req li { display: flex; gap: 6px; }
+.au-pwd-req li::before { content: "•" / ""; flex: none; }
+.au-pwd-req.bad .au-pwd-req-h, .au-pwd-req li.bad { color: var(--au-error-text, oklch(.4984 .197 26.56)); }
+.field .au-pwd-req { margin-top: 0; }
 
 }
 @layer base {
@@ -74878,7 +74885,7 @@ const PACOM_PASSWORD_POLICY = (() => {
   // 2.10 账户核查第 91 条：说明直接从四条要求开始（原首行为“密码要求：”）
   // 2.21（2026-10-25 HONG 17:24Z 其他按推荐，账户第 180 条，取代第 142 条“不用 ⓘ”）：新密码字段名右侧 ⓘ 写全 5 条要求，每条一行。
   // 2.29（2026-10-26 HONG 04:56Z“密码要求内容错误，按照截图内容”，账户第 205 条，取代第 180 条的五条写法）：只写四条；最长 64 和常见、已泄露检查不变，触发时才提示。
-  const hint = ["• 至少 8 个字符", "• 至少一个字母（a-z 或 A-Z）", "• 至少一个数字（0-9）", "• 至少一个特殊字符（" + [...SPECIALS].join(" ") + "）"].join("\n");
+  // 2.30 账户第 223 条：这四条改在框下常显（见 rules），不再用 ⓘ。
   const blockedMessage = "该密码过于常见或已泄露，请更换。";
   // Length counts Unicode characters; nothing beyond 64 is cut off, the message asks for a shorter one.
   const length = (password) => Array.from(String(password || "")).length;
@@ -74888,16 +74895,17 @@ const PACOM_PASSWORD_POLICY = (() => {
     const value = String(password || "").normalize("NFKC");
     return { letter: /[A-Za-z]/.test(value), digit: /[0-9]/.test(value), symbol: [...String(password || "")].some((c) => SPECIALS.includes(c)) };
   };
-  // The grey line under the field while typing: what is still missing; nothing once every requirement is met (2.09 账户核查第 4 条：原写“密码符合要求”).
-  // 2.21 账户第 180 条：输入前不显示（要求在 ⓘ 里），取代第 142 条框下的概要一行。
-  const progress = (password) => {
-    if (!password) return "";
-    const found = classes(password), need = [];
-    if (length(password) < MIN_LENGTH) need.push("至少 8 个字符");
-    if (!found.letter) need.push("字母");
-    if (!found.digit) need.push("数字");
-    if (!found.symbol) need.push("特殊字符");
-    return need.length ? "还需：" + need.join("、") : "";
+  // 2.30（2026-10-26 HONG 07:13Z 按推荐，账户第 223 条，取代第 180、205–207 条的 ⓘ 与“还需：…”）：框下常显“密码要求：”加这四条；
+  // 提交时 unmet 列出的几条变红。
+  const rules = Object.freeze([
+    { key: "len", text: "至少 8 个字符" },
+    { key: "letter", text: "至少一个字母（a-z 或 A-Z）" },
+    { key: "digit", text: "至少一个数字（0-9）" },
+    { key: "symbol", text: "至少一个特殊字符（" + [...SPECIALS].join(" ") + "）" },
+  ]);
+  const unmet = (password) => {
+    const found = classes(password);
+    return rules.filter((r) => (r.key === "len" ? length(password) < MIN_LENGTH : !found[r.key])).map((r) => r.key);
   };
   const validateMinimum = (password) =>
     length(password) < MIN_LENGTH ? `密码至少需要 ${MIN_LENGTH} 个字符` : "";
@@ -74915,7 +74923,7 @@ const PACOM_PASSWORD_POLICY = (() => {
       throw new Error("服务端必须接入常见及已泄露密码检查");
     return (await isCommonOrBreached(password)) ? blockedMessage : "";
   }
-  return Object.freeze({ MIN_LENGTH, MAX_LENGTH, SPECIALS, hint, blockedMessage, length, classes, progress, validateMinimum, validate, validateForServer });
+  return Object.freeze({ MIN_LENGTH, MAX_LENGTH, SPECIALS, rules, blockedMessage, length, classes, unmet, validateMinimum, validate, validateForServer });
 })();
 if (typeof module !== "undefined" && module.exports) module.exports = PACOM_PASSWORD_POLICY;
 
@@ -75934,13 +75942,14 @@ document.addEventListener("input", (e) => {
   }
 });
 function auErr(name, text) {
-  // 设置密码未满足要求时（AU_PWD_BAD）框下的要求一行变红，不另写提示（2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 142、143 条））
+  // 设置密码未满足要求时（AU_PWD_BAD）框下“密码要求”中未满足的几条变红，不另写提示（2.30 账户第 223 条，原为“还需：…”变红）
   const pwdBad = text === AU_PWD_BAD;
   AUX.errors[name] = text || "";
   const f = document.querySelector(`.au-field[data-f="${name}"], .au-check[data-f="${name}"]`);
   if (!f) return;
   f.classList.toggle("bad", !!text);
-  $(`#au-${name}-hint`)?.classList.toggle("au-pwd-bad", pwdBad);
+  const req = $(`#au-${name}-req`);
+  if (req) auPwdReqMark(req, pwdBad ? auVal(name) : null);
   if (pwdBad) text = "";
   const error = f.querySelector(".au-err") || $(`#au-${name}-err`);
   if (error) error.textContent = text || "";
@@ -76391,7 +76400,8 @@ const AU_EC = {
 const AU_NOCODE = {
   mail: "请查看垃圾邮件；工作邮箱请 IT 管理员放行 noreply@pacom.cn。仍收不到，请{s}。",
   sms: "请核对手机号码，并查看手机的骚扰拦截。仍收不到，请{s}。",
-  rs: "请查看垃圾邮件或手机的骚扰拦截；工作邮箱请 IT 管理员放行 noreply@pacom.cn。电子邮箱或手机号码已不能使用时，改用另一种重置；都不能使用时，请{s}核验身份。",
+  // 2.30 账户第 225 条：先请用户核对输入（覆盖账户不存在的情况，不透露账户是否存在）。
+  rs: "请确认输入的是账户的电子邮箱或手机号码。请查看垃圾邮件或手机的骚扰拦截；工作邮箱请 IT 管理员放行 noreply@pacom.cn。电子邮箱或手机号码已不能使用时，改用另一种重置；都不能使用时，请{s}核验身份。",
   ve: "请查看垃圾邮件；工作邮箱请 IT 管理员放行 noreply@pacom.cn。邮箱已停用时，请{s}更换。",
   // 2.21 账户第 178 条：加入页邀请码框下“没有邀请码？”，与“收不到验证码？”同一组件。
   join: "请已加入的同事在“我的账户 › 我的机构”点“邀请同事”发给你，或请机构管理员按这个电子邮箱邀请你。被邀请后，点邀请邮件中的链接或回到这一页，即可直接加入。",
@@ -76429,12 +76439,13 @@ function auEcSent(key) {
   if (!auEcSame(key)) return "";
   // 2.29（2026-10-26 HONG 05:18Z“去掉13:25 前有效和句号”，账户第 211 条）：申请访问的邮件验证码回执只写发送到哪里；过期仍由提交时提示。
   // 2.29 账户第 212 条：所有回执不写有效时间、不加句号。
-  return key === "rs" ? "如账户存在，验证码已发送" : `验证码已发送至 ${key === "ap" ? auSmsDestination(s.to) : s.to}`;
+  return key === "rs" ? "验证码已发送" : `验证码已发送至 ${key === "ap" ? auSmsDestination(s.to) : s.to}`;
 }
 function auEcLine(key) {
   const s = auEcState(key), sent = auEcSent(key), to = auEcTarget(key);
   const limit = s.limit && (!s.limit.retryAt || s.limit.retryAt > auNow()) && auLoginIdentity(s.limit.to) === auLoginIdentity(to) ? s.limit.text : "";
-  return `${sent ? `<span class="au-ec-sent">${auCodeReceiptHtml(sent)}</span>` : ""}${limit ? auSendErr(limit) : ""}`;
+  // 2.30（2026-10-26 HONG 07:13Z 按推荐，账户第 225 条）：重置密码不显示“如账户存在，验证码已发送”，只由读屏播报“验证码已发送”（auEcSync）。
+  return `${sent && key !== "rs" ? `<span class="au-ec-sent">${auCodeReceiptHtml(sent)}</span>` : ""}${limit ? auSendErr(limit) : ""}`;
 }
 const auEcBtn = (key, hidden = false) => {
   const st = auEcLabel(key);
@@ -76457,6 +76468,8 @@ function auEcSync() {
     if (el.dataset.ec !== html) { el.innerHTML = html; el.dataset.ec = html; }
     auNoCodeShow(`au-${key}-nocode`, !!auEcSent(key));
   }
+  const live = document.getElementById("au-rs-live"), said = auEcSent("rs") ? "验证码已发送" : "";
+  if (live && live.textContent !== said) live.textContent = said;
   auMeasureCodePadding();
 }
 setInterval(auEcSync, 1000);
@@ -76482,9 +76495,20 @@ const AU_DIGIT_FIELDS = ["rs_code", "rg_code", "ap_sms", "ve_code", "scode", "mf
 // 设置密码只有一个框（第 142、143 条）；2.21 账户第 180 条：字段名右侧 ⓘ 写全要求，框下输入前不显示，输入时只列未满足的，满足后消失，
 // 提交时未满足则变红；最多 64 个字符由框限制。
 const AU_PWD_BAD = "\u0000pwd";
+// 2.30（2026-10-26 HONG 07:13Z 按推荐，账户第 223 条，取代第 180、205–207 条）：所有设置新密码的地方框下 4 常显“密码要求：”和四条要求，
+// 不用 ⓘ、不写“还需：…”；提交时未满足的几条与“密码要求：”变红 #B90E19，框边变红；改到满足后恢复灰色。最长 64、常见或已泄露仍在提交时提示。
+const auPwdReq = (id) =>
+  `<div class="au-pwd-req" id="${id}-req"><p class="au-pwd-req-h">密码要求：</p><ul>${PACOM_PASSWORD_POLICY.rules.map((r) => `<li data-r="${r.key}">${esc(r.text)}</li>`).join("")}</ul></div>`;
+function auPwdReqMark(req, value) {
+  const miss = value == null ? [] : PACOM_PASSWORD_POLICY.unmet(value);
+  req.classList.toggle("bad", miss.length > 0);
+  req.querySelectorAll("li").forEach((li) => li.classList.toggle("bad", miss.includes(li.dataset.r)));
+}
 const auNewPwd = (name, label) =>
-  auField({ name, label, type: "password", auto: "new-password", maxlength: 64, info: PACOM_PASSWORD_POLICY.hint, suffix: auEye(name), hint: esc(PACOM_PASSWORD_POLICY.progress(AUX.v[name])), hintRole: "status" });
-const auNewPwdCheck = (empty) => (v) => (!v ? empty : PACOM_PASSWORD_POLICY.validate(v) ? AU_PWD_BAD : "");
+  auField({ name, label, type: "password", auto: "new-password", maxlength: 64, suffix: auEye(name) })
+    .replace(`aria-describedby="au-${name}-err au-${name}-hint"`, `aria-describedby="au-${name}-err au-${name}-req"`)
+    .replace(/<\/div>$/, `${auPwdReq(`au-${name}`)}</div>`);
+const auNewPwdCheck = (empty) => (v) => (!v ? empty : PACOM_PASSWORD_POLICY.unmet(v).length ? AU_PWD_BAD : PACOM_PASSWORD_POLICY.validate(v));
 const auMailCheck = (v) => (PACOM_AUTH_FLOW.email(v) ? "" : "请输入有效的电子邮箱");
 const auConsent = (name) =>
   `<label class="au-check" data-f="${name}"><input type="checkbox" name="${name}" class="au-v" required aria-required="true" aria-describedby="au-${name}-err" ${AUX.v[name] ? "checked" : ""}><span>我已阅读并同意 PACOM ${auConsentLegalLink("privacy")}和${auConsentLegalLink("terms")}</span></label><p class="au-err au-check-err" id="au-${name}-err" aria-live="polite"></p>`;
@@ -76535,7 +76559,7 @@ function auRegCreate() {
 // 直接打开的重置密码页内容相同，下方“返回登录”。取代重置链接与“设置新密码”“密码已重置”“重置链接已过期”“验证已过期”4 种页面（原 AUTH03–AUTH05）。
 const auResetForm = (inDialog = false) => {
   const kind = auIdKind(AUX.v.rs_id || "");
-  return `<form id="${inDialog ? "au-reset-dlg-form" : "au-reset-form"}" data-form="reset"${inDialog ? "" : ' class="au-compact-form"'} novalidate><fieldset>${auField({ name: "rs_id", label: "电子邮箱或手机号码", auto: "username", suffix: auEcBtn("rs", !kind || kind === "bad"), hint: auEcLine("rs"), hintRole: "status" })}${auField({ name: "rs_code", label: "验证码", right: auNoCodeRight("rs", "au-rs-nocode", !!auEcSent("rs")), auto: "one-time-code", inputmode: "numeric", maxlength: 6 })}${auNewPwd("rs_pwd", "新密码")}<p class="au-ferr" role="alert" hidden></p></fieldset></form>${inDialog ? "" : `<button type="submit" class="au-primary au-compact-primary" form="au-reset-form">重置并登录</button>`}`;
+  return `<form id="${inDialog ? "au-reset-dlg-form" : "au-reset-form"}" data-form="reset"${inDialog ? "" : ' class="au-compact-form"'} novalidate><fieldset>${auField({ name: "rs_id", label: "电子邮箱或手机号码", auto: "username", suffix: auEcBtn("rs", !kind || kind === "bad"), hint: auEcLine("rs"), hintRole: "status" })}${auField({ name: "rs_code", label: "验证码", right: auNoCodeRight("rs", "au-rs-nocode", !!auEcSent("rs")), auto: "one-time-code", inputmode: "numeric", maxlength: 6 })}${auNewPwd("rs_pwd", "新密码")}<p class="au-ferr" role="alert" hidden></p><span id="au-rs-live" class="sr-only" role="status" aria-live="polite"></span></fieldset></form>${inDialog ? "" : `<button type="submit" class="au-primary au-compact-primary" form="au-reset-form">重置并登录</button>`}`;
 };
 function auFitResetDialog() {
   const scrim = document.querySelector('#dlg.au-reset-scrim');
@@ -77900,6 +77924,16 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "2.30",
+    date: "2026-10-26",
+    notes: [
+      "设置新密码：重置密码、注册和修改密码的新密码框下直接列出密码要求；提交时没有满足的几条变红。",
+      "重置密码：发送验证码后框下不再写提示；“收不到验证码？”说明先请核对输入的电子邮箱或手机号码；底部按钮与表单之间加宽。",
+      "登录页：切换短信验证码和密码登录时页面不再移动；“收不到验证码？”发送验证码后才出现。",
+      "加入机构与受邀注册：表单最后一项到按钮、同意条款到下一项的间距与其他表单相同。",
+    ],
+  },
   {
     version: "2.29",
     date: "2026-10-26",
@@ -80039,16 +80073,16 @@ Object.assign(actions, {
   auChangePwd: () =>
     auDialog(
       "修改密码",
-      `${fld("当前密码", "auPwd0", auInAttrs(input("auPwd0", "", "", "password"), AU_CUR_PWD))}<div class="field"><div class="au-label-row"><label for="auPwd1">新密码</label>${auFieldInfo("auPwd1", "新密码", PACOM_PASSWORD_POLICY.hint)}</div>${auInAttrs(input("auPwd1", "", "", "password"), AU_NEW_PWD)}<small class="muted au-pwd-line" id="auPwd1-hint" role="status" aria-live="polite"></small></div>${note("保存后，其他设备上的登录会退出；当前会话保留。")}`,
+      `${fld("当前密码", "auPwd0", auInAttrs(input("auPwd0", "", "", "password"), AU_CUR_PWD))}<div class="field"><label for="auPwd1">新密码</label>${auInAttrs(input("auPwd1", "", "", "password"), AU_NEW_PWD).replace("<input ", '<input aria-describedby="auPwd1-req" ')}${auPwdReq("auPwd1")}</div>${note("保存后，其他设备上的登录会退出；当前会话保留。")}`,
       btn("取消", "close") + btn("保存新密码", "auChangePwdSave", {}, "primary"),
     ),
   auChangePwdSave: () => {
     // 当前密码、新密码与确认新密码的错误各写在所属字段下方，聚焦第一个错误（Account A1；确认新密码的两种错误同AUTH03）
     const errs = [];
     if (!value("auPwd0")) errs.push(["auPwd0", "请输入当前密码"]);
-    // 2.21 账户第 180 条：新密码未满足要求时框下“还需：……”变红，不另写错误
-    const pv = value("auPwd1"), passwordError = auPwdCheck(pv), need = pv ? PACOM_PASSWORD_POLICY.progress(pv) : "";
-    if (need) { const h = $("#auPwd1-hint"); if (h) { h.textContent = need; h.classList.add("au-pwd-bad"); } }
+    // 2.30 账户第 223 条：新密码未满足要求时框下“密码要求”中未满足的几条变红，框边变红，不另写错误
+    const pv = value("auPwd1"), passwordError = auPwdCheck(pv), need = pv ? PACOM_PASSWORD_POLICY.unmet(pv).length : 0;
+    if (need) { const req = $("#auPwd1-req"); if (req) auPwdReqMark(req, pv); $("#auPwd1")?.closest(".field")?.classList.add("invalid"); $("#auPwd1")?.setAttribute("aria-invalid", "true"); }
     else if (passwordError) errs.push(["auPwd1", passwordError]);
     if (errs.length) return auFieldErrs(errs);
     if (need) return $("#auPwd1")?.focus();
@@ -82611,11 +82645,13 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('input', e => {
   // 2.04 账户第 35 条：新密码、设置密码输入时在框下用灰字提示还缺的项；全部满足时不再提示（2.09 账户核查第 4 条：原写“密码符合要求”）。
-  // 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 142、143、144、147 条）：设置密码框下一行写要求，输入时只列未满足的，满足后消失；开始改就不再标红。
+  // 2.30 账户第 223 条：“密码要求”常显；提交后已标红的，改到满足的那几条恢复灰色，全部满足后“密码要求：”和框边也恢复。
   if (['rs_pwd', 'rg_pwd', 'iv_pwd'].includes(e.target.name) || e.target.id === 'auPwd1') {
-    const hint = document.getElementById(e.target.id === 'auPwd1' ? 'auPwd1-hint' : `au-${e.target.name}-hint`), text = PACOM_PASSWORD_POLICY.progress(e.target.value);
-    if (hint && hint.textContent !== text) hint.textContent = text;
-    hint?.classList.remove('au-pwd-bad');
+    const req = document.getElementById(e.target.id === 'auPwd1' ? 'auPwd1-req' : `au-${e.target.name}-req`);
+    if (req?.classList.contains('bad')) {
+      auPwdReqMark(req, e.target.value);
+      if (!req.classList.contains('bad') && e.target.id === 'auPwd1') { e.target.closest('.field')?.classList.remove('invalid'); e.target.setAttribute('aria-invalid', 'false'); }
+    }
   }
   // 验证码框只能输入数字；邀请码按 3 位分组；统一社会信用代码转大写。
   if (AU_DIGIT_FIELDS.includes(e.target.name)) { const v = e.target.value.replace(/\D/g, '').slice(0, 6); if (v !== e.target.value) { e.target.value = v; AUX.v[e.target.name] = v; } }
@@ -90562,7 +90598,7 @@ const DEMO_ITEMS = [
   ["忘记密码", "login-forgot-sms", "短信验证码已发送", "手机号码收短信验证码", () => (demoOut(), (AUX.v.id = "139 0000 0101"), demoShow("login"), demoAfter(() => (actions.auForgot(), demoClick("#dlg .au-getcode"))))],
   ["忘记密码", "reset-err", "需要核对", "", () => (demoOut(), demoShow("login"), demoAfter(() => (actions.auForgot(), demoSubmit("reset"))))],
   ["忘记密码", "reset-wrong", "验证码不正确或已过期", "", () => demoReset("000000")],
-  ["忘记密码", "reset-weak", "新密码不符合要求", "框下红字列出还缺的项", () => demoReset("123456", "short")],
+  ["忘记密码", "reset-weak", "新密码不符合要求", "未满足的要求变红", () => demoReset("123456", "short")],
   ["忘记密码", "reset-blocked", "新密码被服务拒绝", "常见或已泄露的密码", () => ((DEMO_FAIL.blockedPassword = true), demoReset("123456"))],
   ["忘记密码", "reset-failed", "暂时无法重置", "", () => ((DEMO_FAIL.operation = "resetPassword"), demoReset("123456"))],
   ["忘记密码", "reset-ok", "重置后直接登录", "", () => demoReset("123456")],
