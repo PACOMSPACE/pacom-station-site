@@ -76559,7 +76559,8 @@ const auJoinCodeHint = (org) => (org ? `申请加入：<b>${esc(auOrg(org).name)
 const auJoinCodeField = () => auField({ name: "jn_code", label: "邀请码", auto: "off", inputmode: "numeric", maxlength: 11, hint: auJoinCodeHint(auJoinOrgOf(AUX.v.jn_code)), hintRole: "status" });
 // 2.21 账户第 177 条：加入页说明，未登录和已登录同一句（HONG 17:24Z 定）。
 // 2.25 账户第 195 条取代第 177 条：收到邀请的直接加入，其他用邀请码申请。
-const AU_JOIN_LEAD = "收到邀请的直接加入，其他用邀请码申请，由机构管理员批准。";
+// 2.27 账户第 203 条取代第 195 条（HONG 2026-10-26 03:55Z 两句原文）：两个选项的说明让客户分清该填哪个表单；未登录与已登录“尚未加入机构”页相同。
+const AU_JOIN_LEAD = `所在机构已开通 <span class="au-keep">PACOM Station</span>？创建个人账户并申请加入，<span class="au-keep">机构管理员</span>批准后，可访问授权的项目。`;
 // 2.21 账户第 176 条：发给这个电子邮箱、未过期的成员邀请（各机构，新的在前）。验证电子邮箱后据此直接加入，不用邀请码，也不用批准。
 const auMailInvites = (mail) => {
   const id = mail ? auLoginIdentity(mail) : "";
@@ -76652,7 +76653,8 @@ function auJoinSubmit(org, uid) {
 // 订阅与“许可与用量”的订阅弹窗用同一组件（设备额度、年数、服务期间、明细与合计）。同一账户同时只能有一份审核中的申请（AUTH.apps）。
 // 2.21 账户第 182 条：提交时还不是机构管理员，写“你将成为”
 // 2.25 账户第 202 条：角色名“机构管理员”整体不拆行。
-const AU_APPLY_LEAD = "PACOM 通常在 2 个工作日内审核，通过当天开通，你将成为<span class=\"au-keep\">机构管理员</span>。";
+// 2.27 账户第 203 条取代原说明；审核时长仍写在“申请审核中”页。
+const AU_APPLY_LEAD = `所在机构尚未开通 <span class="au-keep">PACOM Station</span>？提交机构信息，PACOM 审核通过后开通，你将成为<span class="au-keep">机构管理员</span>。`;
 const auMyApp = (uid = AUTH.uid) => (AUTH.session === "in" ? (AUTH.apps || {})[uid] || null : null);
 const auAppOpen = (a) => !!a && ["review", "more", "rejected"].includes(a.status);
 const auApplyNeedSms = () => { const me = AUTH.session === "in" ? auMe() : null; return !(me?.phone && auPhoneIdentity(me.phone) === auPhoneIdentity(AUX.v.ap_tel || "")); };
@@ -77833,6 +77835,13 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "2.27",
+    date: "2026-10-26",
+    notes: [
+      "申请访问页：“加入已开通的机构”与“申请开通新机构”的说明写明各自适用的情况，已登录的“尚未加入机构”页相同。",
+    ],
+  },
   {
     version: "2.26",
     date: "2026-10-26",
