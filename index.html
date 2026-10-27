@@ -19090,12 +19090,6 @@ fieldset:disabled .au-primary {
   gap: 8px;
   align-items: center;
 }
-.au-wecom {
-  margin-top: 10px;
-}
-.au-wecom .input {
-  flex: 1;
-}
 
 /* 单选与项目列表（弹窗与设置页） */
 .au-radios {
@@ -19835,9 +19829,6 @@ fieldset:disabled .au-primary {
   grid-template-columns: 1fr 1fr;
   gap: 0 8px;
 }
-.au-wecom-f {
-  margin: 8px 0 0;
-}
 
 /* 2026-09-27 · 双栏入口页统一：同意条款与字段说明同为 14/24；表单下方文字链接距主按钮 16px；邀请指定账户与输入框同高。 */
 :is(.bare-login, .bare-apply, .bare-reset, .bare-invite, .bare-join, .bare-access) .au-check {
@@ -20543,13 +20534,6 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
 .au-pay-steps .au-box, .au-pay-steps .au-payqr { margin-top: 0; }
 .au-pay-steps [data-pay] .op-d { margin-top: 8px; }
 .op-t [data-pay][hidden], .op-b [data-pay][hidden], [data-botpf][hidden] { display: none; }
-.au-bot-steps { margin-top: 16px; }
-.au-bot-steps .op-b > .field:last-child, .au-bot-steps [data-botpf] > .field:last-child { margin-bottom: 0; }
-.au-bot-steps .op-b > [data-botpf] > .op-d:first-child { margin-top: 0; color: var(--text2); }
-.au-bot-test { align-items: center; }
-.au-bot-res { font-size: 14px; line-height: 22px; }
-.au-bot-res.ok { color: var(--good); }
-.au-bot-res.err { color: var(--crit); }
 .au-key { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; background: var(--canvas); }
 .au-key code { flex: 1; min-width: 0; overflow-wrap: anywhere; font: 13px/20px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .au-key + .au-dlead { margin-top: 12px; }
@@ -20647,11 +20631,6 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
   .au-matrix.au-notify :is(th, td).c { width: 64px; padding-inline: 4px; }
   .au-matrix.au-notify td:first-child { white-space: normal; }
 }
-/* 第 433 条：企业微信开关和“企业微信”名称对齐，同短信、邮件两行 */
-.au-row.au-row-top { align-items: flex-start; }
-.au-row.au-row-top > .au-row-a { min-height: 24px; }
-/* 第 434 条：“保存地址”32 高，同旁边的输入框（同第 318 条） */
-.au-wecom > .btn { height: 32px; min-height: 32px; }
 /* 第 432 条：开关（全站，账户页与机构设置）：32×20，开为 PACOM 标志色 #202A44（同第 23 条勾选框），关为白底加浅灰内边线；
    悬停叠黑 4%、按下 8%；150ms；不可用 50%、能用键盘移到（第 217、223 条）。部署 App 的开关不在此列。 */
 button.switch {
@@ -21037,27 +21016,6 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
   }
   .au-matrix.au-notify tbody td.c {
     height: 44px;
-  }
-}
-/* 第 56 条：企业微信 Webhook：手机宽度（≤600）输入框占满一行，“保存地址”换到下一行；窄屏与触屏上按钮 44 高，同输入框（原为 32；
-   平板触屏上输入框原为 32，一并 44，两者同高） */
-@media (max-width: 600px) {
-  .au-inrow.au-wecom {
-    flex-wrap: wrap;
-  }
-  .au-inrow.au-wecom > .input {
-    flex: 1 1 100%;
-    min-width: 0;
-  }
-}
-@media (max-width: 850px), (pointer: coarse) {
-  .au-wecom > .input {
-    height: 44px;
-    min-height: 44px;
-  }
-  .au-wecom > .btn {
-    height: 40px;
-    min-height: 40px;
   }
 }
 /* 第 57 条：机构设置、我的账户和它们的弹窗里的字段名（含单选组的组名）字重 480，字号不变（原为 500） */
@@ -33121,11 +33079,11 @@ const StationFlowModel = ((M) => {
     const req = items.filter((i) => i.level === "required");
     return out(req.some((i) => i.status === "待补") ? "待补" : req.length ? "待核对" : "已完成", items);
   }
-  // ---------- 导出资料（配置 › 项目）：PDF / Excel / JSON 共用同一快照 ----------
+  // ---------- 导出资料（配置 › 项目）：PDF / CSV / JSON 共用同一快照 ----------
   // 权限按角色（R14）：机构管理员与配置人员可导出三种资料，运营人员与查看人员不能导出。正式版本由服务端逐次核对，此处只决定入口与模型层拒绝。
   const EXPORT_KINDS = {
     report: { label: "PDF 空间资料报告", ext: "pdf" },
-    sheet: { label: "Excel 空间清单", ext: "xlsx" },
+    sheet: { label: "CSV 空间清单", ext: "zip" },
     data: { label: "JSON 空间数据", ext: "json" },
   };
   const SPACE_EXPORT_NOTICE = "空间规划资料不代表设备绑定、配置已应用、功能验证或交付。";
@@ -33317,7 +33275,7 @@ const StationFlowModel = ((M) => {
         });
     });
     const req = checks.filter((i) => i.level === "必需");
-    // 部署数量（仅供 PDF 按需附摘要；JSON / Excel 不含）：导出楼层的规划点位与已绑定（有硬件身份和 App 回执）数量。
+    // 部署数量（仅供 PDF 按需附摘要；JSON / CSV 不含）：导出楼层的规划点位与已绑定（有硬件身份和 App 回执）数量。
     const deploy = {
       floors: fs.map((f) => {
         const ps = db.points.filter((pt) => pt.floorId === f.id);
@@ -33432,7 +33390,7 @@ const StationFlowModel = ((M) => {
       files: snap.files,
     });
   }
-  // 文件中的“导出范围”：整个项目、单栋楼宇或本次部署范围（2026-10-09 用户确认，待决定事项 B-4c）。PDF 与 Excel 相同，JSON 见 snapshot.range（kind 为 "scope"）。
+  // 文件中的“导出范围”：整个项目、单栋楼宇或本次部署范围（2026-10-09 用户确认，待决定事项 B-4c）。PDF 与 CSV 相同，JSON 见 snapshot.range（kind 为 "scope"）。
   // 2.14 E250（HONG 18:33Z）：本次部署范围不再带规模（原为“（1 栋 · 1 层）”），范围里的楼层在报告正文中已列出。
   function rangeText(snap) {
     const r = snap.range;
@@ -33597,7 +33555,7 @@ const StationFlowModel = ((M) => {
           "“—”表示未知或未填写，不表示 0。面积来源：“登记值”为人工填写；“按图面估算”由已校准比例尺与功能区图形计算。",
           "空间资料按本次部署范围计算，与项目目录和“配置 › 配置进度”使用同一结果。",
           "本报告文字可检索；楼层图为图片，图内文字不可检索。",
-          "不含参数、设备点位与网络凭据。稳定编号见同一快照导出的 Excel 空间清单或 JSON 空间数据。",
+          "不含参数、设备点位与网络凭据。稳定编号见同一快照导出的 CSV 空间清单或 JSON 空间数据。",
         ],
       },
     );
@@ -33609,7 +33567,7 @@ const StationFlowModel = ((M) => {
       blocks,
     };
   }
-  // ---------- Excel 空间清单：说明、楼宇、楼层、功能区、待补项；未知值留空（不写 0） ----------
+  // ---------- CSV 空间清单：说明、楼宇、楼层、功能区、待补项；未知值留空（不写 0） ----------
   const SHAPE_NAMES = { rectangle: "矩形", ellipse: "圆形", polygon: "多边形", lasso: "套索" };
   const OBJECT_KINDS = { projects: "项目", buildings: "楼宇", floors: "楼层", zones: "功能区" };
   function spaceSheets(snap, { exportedAt = M.now(), time = (t) => t, zone = (tz) => tz } = {}) {
@@ -33757,11 +33715,11 @@ const StationFlowModel = ((M) => {
     );
     return [about, buildings, floors, zones, checks];
   }
-  // ---------- 现场安装资料（2026-10-05 核查 H1）：按设备网络的服务楼层出带编号的设备安装图与设备清单（PDF、Excel），供布线与安装 ----------
-  // 只读已保存的规划；图上编号按楼层从 1 起（EG20、LC20、MS20、FC20、AQ20 依次，同型号按名称），同一次生成的 PDF 与 Excel 一致。
+  // ---------- 现场安装资料（2026-10-05 核查 H1）：按设备网络的服务楼层出带编号的设备安装图与设备清单（PDF、CSV），供布线与安装 ----------
+  // 只读已保存的规划；图上编号按楼层从 1 起（EG20、LC20、MS20、FC20、AQ20 依次，同型号按名称），同一次生成的 PDF 与 CSV 一致。
   // 不含设备身份（序列号、设备 UUID）与网络密钥，也不是绑定、验证或交付报告。
   const INSTALL_NOTICE = "安装资料按已保存的规划生成，用于布线与安装；不代表设备绑定、配置已应用、功能验证或交付，不含设备身份与网络密钥。";
-  const INSTALL_KINDS = { pdf: { label: "PDF 现场安装图", ext: "pdf" }, sheet: { label: "Excel 设备清单", ext: "xlsx" } };
+  const INSTALL_KINDS = { pdf: { label: "PDF 现场安装图", ext: "pdf" }, sheet: { label: "CSV 设备清单", ext: "zip", fmt: "CSV" } };
   const INSTALL_ORDER = ["gw", "lc", "ms", "fc", "aq"];
   const CTRL_NAMES = { dim: "0–10 V 调光", switch: "开关" };
   // 规划检查各项在设备行中的简称（按检查项编号的前缀）；未列出的写规划检查原文。
@@ -34076,7 +34034,7 @@ const StationFlowModel = ((M) => {
         t: "list",
         items: [
           `按生成时已保存的规划（网络 v${n.version}）；规划变化后请重新下载。`,
-          "图上编号按楼层从 1 起（EG20、LC20、MS20、FC20、AQ20 依次，同型号按名称），只用于本资料，与同一次生成的 Excel 设备清单一致。",
+          "图上编号按楼层从 1 起（EG20、LC20、MS20、FC20、AQ20 依次，同型号按名称），只用于本资料，与同一次生成的 CSV 设备清单一致。",
           "“已绑定”为生成时平台的记录，用于区分增补的设备；本资料不是绑定、验证或交付报告。",
           "不含设备身份（序列号、设备 UUID）与网络密钥，不能用于现场绑定；现场绑定使用部署 App。",
           "楼层图为图片，图内文字不可检索；“—”表示未知或未填写，不表示 0。",
@@ -34086,7 +34044,7 @@ const StationFlowModel = ((M) => {
     return {
       title: `现场安装资料 · ${n.name}`,
       subject: "现场安装资料",
-      missingSource: "原文见同一次生成的 Excel 设备清单",
+      missingSource: "原文见同一次生成的 CSV 设备清单",
       footer: `网络 v${n.version} · 生成 ${time(kit.takenAt)}`,
       sample: kit.sample,
       sampleLabel: kit.sample && sampleMark ? sampleMark.source : "",
@@ -34182,17 +34140,23 @@ const StationFlowModel = ((M) => {
     );
     return [about, devices, circuits, checks];
   }
-  // 标准 .xlsx（OOXML）：内联字符串、仅存储（不压缩）的 ZIP；不依赖外部库。
-  const XML_ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
-  const xmlText = (s) =>
-    String(s)
-      .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]/g, "")
-      .replace(/[&<>"]/g, (ch) => XML_ESC[ch]);
-  const colName = (i) => {
-    let s = "";
-    for (let n = i + 1; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + ((n - 1) % 26)) + s;
-    return s;
+  // CSV：UTF-8 带 BOM、逗号分隔、CRLF 换行，电子表格软件直接打开不乱码；多张表打包为仅存储（不压缩）的 ZIP，每张表一个 CSV；不依赖外部库。
+  // 数字按列的格式写小数位，不加千分位；以 = + @ 开头的文字前加单引号，打开时不当作公式。
+  const CSV_DIGITS = { int: 0, area: 1, decimal1: 1, m: 2, pct: 3, coord: 6 };
+  const csvCell = (val, t) => {
+    if (val == null || val === "") return "";
+    if (typeof val === "number") return Number.isFinite(val) ? (t in CSV_DIGITS ? val.toFixed(CSV_DIGITS[t]) : String(val)) : "";
+    let x = String(val).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]/g, "");
+    if (/^[=+@]/.test(x)) x = "'" + x;
+    return /[",\r\n]|^\s|\s$/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x;
   };
+  // 一张表一个 CSV；extra 为表后另加的行（如数据表后的“说明”）
+  function csvText(sh, extra = []) {
+    const lines = [sh.cols.map((c) => csvCell(c.h)), ...sh.rows.map((row) => sh.cols.map((c, i) => csvCell(row[i], c.t))), ...extra.map((row) => row.map((v) => csvCell(v)))];
+    return "\ufeff" + lines.map((r) => r.join(",")).join("\r\n") + "\r\n";
+  }
+  const csvEntries = (sheets, dir = "") => sheets.map((sh) => ({ name: `${dir}${sh.name}.csv`, data: csvText(sh) }));
+  const csvZip = (sheets) => zipStore(csvEntries(sheets));
   const CRC_TABLE = (() => {
     const t = new Uint32Array(256);
     for (let n = 0; n < 256; n++) {
@@ -34255,86 +34219,6 @@ const StationFlowModel = ((M) => {
       o += x.length;
     }
     return out;
-  }
-  const XF = { text: 0, head: 1, area: 2, int: 3, pct: 4, wrap: 5, coord: 6, m: 7, decimal1: 8 };
-  const XML_HEAD = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',
-    NS_MAIN = "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
-    NS_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
-    NS_PKG = "http://schemas.openxmlformats.org/package/2006/relationships";
-  const XLSX_STYLES =
-    XML_HEAD +
-    `<styleSheet xmlns="${NS_MAIN}"><numFmts count="5"><numFmt numFmtId="164" formatCode="#,##0.0"/><numFmt numFmtId="165" formatCode="0.000"/><numFmt numFmtId="166" formatCode="0.000000"/><numFmt numFmtId="167" formatCode="#,##0.00"/><numFmt numFmtId="168" formatCode="0.0"/></numFmts>` +
-    `<fonts count="2"><font><sz val="11"/><name val="等线"/><family val="2"/><charset val="134"/></font><font><b/><sz val="11"/><name val="等线"/><family val="2"/><charset val="134"/></font></fonts>` +
-    `<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/><bgColor indexed="64"/></patternFill></fill></fills>` +
-    `<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>` +
-    `<cellXfs count="9"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>` +
-    `<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="3" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>` +
-    `<xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf>` +
-    `<xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="167" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="168" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs>` +
-    `<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
-  function sheetXml(sh, first) {
-    const rows = [sh.cols.map((c) => c.h), ...sh.rows],
-      last = colName(sh.cols.length - 1) + rows.length,
-      cell = (val, ref, s) =>
-        val == null || val === ""
-          ? ""
-          : typeof val === "number"
-            ? Number.isFinite(val)
-              ? `<c r="${ref}" s="${s}"><v>${val}</v></c>`
-              : ""
-            : `<c r="${ref}" t="inlineStr" s="${s}"><is><t xml:space="preserve">${xmlText(val)}</t></is></c>`;
-    const data = rows
-      .map((row, i) => `<row r="${i + 1}">${row.map((val, ci) => cell(val, colName(ci) + (i + 1), i === 0 ? XF.head : XF[sh.cols[ci].t] ?? XF.text)).join("")}</row>`)
-      .join("");
-    return (
-      XML_HEAD +
-      `<worksheet xmlns="${NS_MAIN}" xmlns:r="${NS_REL}"><dimension ref="A1:${last}"/><sheetViews><sheetView workbookViewId="0"${first ? ' tabSelected="1"' : ""}><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A2" sqref="A2"/></sheetView></sheetViews>` +
-      `<sheetFormatPr defaultRowHeight="15"/><cols>${sh.cols.map((c, i) => `<col min="${i + 1}" max="${i + 1}" width="${c.w || 12}" customWidth="1"/>`).join("")}</cols>` +
-      `<sheetData>${data}</sheetData>${sh.filter ? `<autoFilter ref="A1:${last}"/>` : ""}</worksheet>`
-    );
-  }
-  function xlsxFile(sheets) {
-    const n = sheets.length,
-      q = (name) => "'" + String(name).replace(/'/g, "''") + "'",
-      filters = sheets
-        .map((s, i) =>
-          s.filter
-            ? `<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">${xmlText(q(s.name))}!$A$1:$${colName(s.cols.length - 1)}$${s.rows.length + 1}</definedName>`
-            : "",
-        )
-        .join("");
-    return zipStore([
-      {
-        name: "[Content_Types].xml",
-        data:
-          XML_HEAD +
-          `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets
-            .map((s, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`)
-            .join("")}</Types>`,
-      },
-      {
-        name: "_rels/.rels",
-        data: XML_HEAD + `<Relationships xmlns="${NS_PKG}"><Relationship Id="rId1" Type="${NS_REL}/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
-      },
-      {
-        name: "xl/workbook.xml",
-        data:
-          XML_HEAD +
-          `<workbook xmlns="${NS_MAIN}" xmlns:r="${NS_REL}"><bookViews><workbookView activeTab="0"/></bookViews><sheets>${sheets
-            .map((s, i) => `<sheet name="${xmlText(s.name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`)
-            .join("")}</sheets>${filters ? `<definedNames>${filters}</definedNames>` : ""}</workbook>`,
-      },
-      {
-        name: "xl/_rels/workbook.xml.rels",
-        data:
-          XML_HEAD +
-          `<Relationships xmlns="${NS_PKG}">${sheets
-            .map((s, i) => `<Relationship Id="rId${i + 1}" Type="${NS_REL}/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`)
-            .join("")}<Relationship Id="rId${n + 1}" Type="${NS_REL}/styles" Target="styles.xml"/></Relationships>`,
-      },
-      { name: "xl/styles.xml", data: XLSX_STYLES },
-      ...sheets.map((s, i) => ({ name: `xl/worksheets/sheet${i + 1}.xml`, data: sheetXml(s, i === 0) })),
-    ]);
   }
   // 本层功能区不能重叠，允许共边：在两个区域各自内部取样，任一方超过 2% 的面积落在另一方内即视为重叠。
   function zoneOverlap(db, z, ignoreId) {
@@ -36220,7 +36104,9 @@ const StationFlowModel = ((M) => {
     spaceSnapshot,
     spaceDataJson,
     spaceSheets,
-    xlsxFile,
+    csvText,
+    csvEntries,
+    csvZip,
     zipStore,
     spaceReport,
     zoneOverlap,
@@ -47386,7 +47272,7 @@ function exFileName(s, what, ext) {
 // 导出项目资料（E230，2026-10-21 HONG 按建议，取代 C8 的三种格式各自下载）：全部项目层与项目层是同一个弹窗，只有“项目”、“范围”（选了单个项目时）、“格式”三项，
 // 底部“取消”和“导出”；选全部项目时每个项目生成一个文件，合并为压缩包。每次导出按当时已保存的资料生成，存档序号与空间资料指纹照常写入文件与审计日志，弹窗里不再说明。
 // 不再提供 JSON 空间数据（只供其他系统读取，不能导入恢复）；选“本次部署范围”时 PDF 附部署数量摘要。
-const EX_FORMATS = [["report", "PDF 报告", "可打印，用于交付存档"], ["sheet", "Excel 清单", "楼宇、楼层与功能区，便于核对"]];
+const EX_FORMATS = [["report", "PDF 报告", "可打印，用于交付存档"], ["sheet", "CSV 清单", "楼宇、楼层与功能区，便于核对"]];
 const exFormats = () => EX_FORMATS.filter(([k]) => F.canExport(U.role, k));
 // 2.14 E272（2026-10-21 HONG 按建议）：从楼宇卡片或楼宇页打开时标题为“导出楼宇资料 · E栋”，只导出这栋楼，只有“格式”一项；
 // 整个项目或本次部署范围从全部项目或项目层导出（E230 不变）。原为“导出项目资料 · 项目名”，范围默认选中该楼宇。
@@ -47459,9 +47345,9 @@ defineActions({
       } else if (a.kind === "data") downloadJson(exFileName(s, "空间数据", "json"), F.spaceDataJson(s, at));
       else if (a.kind === "sheet")
         downloadBlob(
-          exFileName(s, "空间清单", "xlsx"),
-          F.xlsxFile(F.spaceSheets(s, { exportedAt: at, time: (t) => exTime(t, true, s.range.projectId), zone: zoneLabel })),
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          exFileName(s, "空间清单", "zip"),
+          F.csvZip(F.spaceSheets(s, { exportedAt: at, time: (t) => exTime(t, true, s.range.projectId), zone: zoneLabel })),
+          "application/zip",
         );
       else throw Error("此导出格式尚未提供");
     } catch (e) {
@@ -47647,7 +47533,7 @@ async function buildReportPdf(rep, snap, onStep) {
       .map((ch) => (ch === "\n" ? ch : /[\u0000-\u001f\u007f]/.test(ch) ? " " : G.cover.hasGlyphForCodePoint(ch.codePointAt(0)) ? ch : (missing++, "□")))
       .join("");
   const R = JSON.parse(JSON.stringify(rep), (k, v) => (typeof v === "string" ? clean(v) : v));
-  if (missing) R.blocks.push({ t: "p", muted: true, text: `有 ${missing} 处字符当前字体不支持，以 □ 表示；${rep.missingSource || "原文见同一快照导出的 Excel 空间清单或 JSON 空间数据"}。` });
+  if (missing) R.blocks.push({ t: "p", muted: true, text: `有 ${missing} 处字符当前字体不支持，以 □ 表示；${rep.missingSource || "原文见同一快照导出的 CSV 空间清单或 JSON 空间数据"}。` });
   const footL = clean(`PACOM Station · ${rep.title}`),
     footR = clean(rep.footer);
   const doc = await PDFDocument.create();
@@ -48166,8 +48052,11 @@ defineActions({
         // PDF 另写当前阶段（首次载入中文字体、第几页）
         const phase = async t => { if ($("#exProgress")) $("#exProgress").textContent = `${head} · ${t}`; if (document.visibilityState === "visible") await new Promise(r => setTimeout(r, 0)); };
         if (a.kind === "report") bytes = await buildReportPdf(F.spaceReport(snap, { exportedAt: at, time, zone: zoneLabel }), snap, phase);
-        else if (a.kind === "sheet") bytes = F.xlsxFile(F.spaceSheets(snap, { exportedAt: at, time, zone: zoneLabel }));
-        else bytes = new TextEncoder().encode(JSON.stringify(F.spaceDataJson(snap, at), null, 2));
+        // CSV 清单：每个项目一个文件夹，内为五个 CSV 文件
+        else if (a.kind === "sheet") {
+          files.push(...F.csvEntries(F.spaceSheets(snap, { exportedAt: at, time, zone: zoneLabel }), `${i + 1}-${exFileName(snap, "空间清单", "zip").replace(/\.zip$/, "")}/`));
+          continue;
+        } else bytes = new TextEncoder().encode(JSON.stringify(F.spaceDataJson(snap, at), null, 2));
         files.push({ name: `${i + 1}-${exFileName(snap, "空间资料", F.EXPORT_KINDS[a.kind].ext)}`, data: bytes });
       }
       if (U.ex !== request || !dlg?.isConnected) return;
@@ -49949,12 +49838,12 @@ function showBindingPreparation(nid) {
       btn("导出规划清单", "exportNetwork", { id: n.id, disabled: !canEdit() }, "ghost"),
   );
 }
-/* ---------- 现场安装资料（2026-10-05 核查 H1）：按设备网络出带编号的分层安装图（PDF）与设备清单（Excel），供布线与安装 ---------- */
-// 打开时按已保存的规划生成一份（不含未保存的修改），PDF 与 Excel 都取这一份，图上编号一致；权限与 PDF、Excel 导出相同（规范 2 5）。
+/* ---------- 现场安装资料（2026-10-05 核查 H1）：按设备网络出带编号的分层安装图（PDF）与设备清单（CSV），供布线与安装 ---------- */
+// 打开时按已保存的规划生成一份（不含未保存的修改），PDF 与 CSV 都取这一份，图上编号一致；权限与 PDF、CSV 导出相同（规范 2 5）。
 // 不含设备身份与网络密钥；入口在网络“更多”菜单与“现场绑定”。
 const INSTALL_BRIEF = {
   pdf: "每个服务楼层一页带编号的安装图与设备表，另附照明控制器、待确认与阻止项；首次生成需载入中文字体（约 10 MB）。",
-  sheet: "说明、设备、照明控制器、待确认四张表，可筛选；图上编号与 PDF 一致，未知值留空。",
+  sheet: "说明、设备、照明控制器、待确认四个 CSV 文件，打包为 ZIP；图上编号与 PDF 一致，未知值留空。",
 };
 const canInstall = () => F.canInstallExport(U.role);
 function installFileName(kit, what, ext) {
@@ -49984,12 +49873,12 @@ function showInstallKit(nid) {
       .map(
         (k) =>
           `<div class="ex-kind"><div><b>${esc(F.INSTALL_KINDS[k].label)}</b><small>${esc(INSTALL_BRIEF[k])}</small></div>${btn(
-            ico("download", "ic16") + "下载 " + F.INSTALL_KINDS[k].ext.toUpperCase(),
+            ico("download", "ic16") + "下载 " + (F.INSTALL_KINDS[k].fmt || F.INSTALL_KINDS[k].ext.toUpperCase()),
             "installDownload",
             { kind: k, disabled: !c.points },
           )}</div>`,
       )
-      .join("")}</div>${note("按打开本窗口时已保存的规划生成，PDF 与 Excel 取同一份；规划变化后请重新打开。每次下载写入审计日志。")}`,
+      .join("")}</div>${note("按打开本窗口时已保存的规划生成，PDF 与 CSV 取同一份；规划变化后请重新打开。每次下载写入审计日志。")}`,
     btn("关闭", "close"),
   );
 }
@@ -50017,7 +49906,7 @@ defineActions({
         downloadBlob(installFileName(kit, "现场安装图", "pdf"), bytes, "application/pdf");
         stp.done();
       } else if (a.kind === "sheet")
-        downloadBlob(installFileName(kit, "设备清单", "xlsx"), F.xlsxFile(F.installSheets(kit, { time })), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        downloadBlob(installFileName(kit, "设备清单", "zip"), F.csvZip(F.installSheets(kit, { time })), "application/zip");
       else throw Error("此格式尚未提供");
     } catch (e) {
       stp?.fail(e);
@@ -56794,7 +56683,7 @@ function energyLimitLoads(pid) {
   }
   return out;
 }
-// 电费账单（2.08 全平台优化 Y16，2026-10-19 用户确认）：按月登记计量边界内的总用电量（kWh）与电费（元，选填），可从 Excel 导入；
+// 电费账单（2.08 全平台优化 Y16，2026-10-19 用户确认）：按月登记计量边界内的总用电量（kWh）与电费（元，选填），可从 CSV 导入；
 // 平台计量不足的月份用它补齐同比、节能基线、年度能耗强度与对标，图上这些月份标“电费账单”；两者都有的月份以计量为准
 const ymName = (ym) => `${Number(ym.slice(0, 4))} 年 ${Number(ym.slice(5, 7))} 月`;
 const ymNext = (ym) => {
@@ -56812,7 +56701,7 @@ const billRow = (b, i, ro) =>
 const billRowsHtml = (rows, ro) => (rows.length ? rows.map((b, i) => billRow(b, i, ro)).join("") : `<p class="muted">未登记</p>`);
 function billField(rows, ro) {
   return `<fieldset class="field ops-fs app-bills"><legend>电费账单（选填）${opsInfo("电费账单", esc(BILL_INFO))}</legend><div id="appBills">${billRowsHtml(rows, ro)}</div>${
-    ro ? "" : `<div class="app-bill-acts">${btn("添加月份", "appBillAdd", {}, "ghost sm")}${btn("从 Excel 导入", "appBillImport", {}, "ghost sm")}${btn("下载模板", "appBillTpl", {}, "ghost sm")}<input type="file" id="appBillFile" accept=".xlsx,.csv" hidden></div><small id="appBillErr" class="ws-field-err" role="alert" hidden></small>`
+    ro ? "" : `<div class="app-bill-acts">${btn("添加月份", "appBillAdd", {}, "ghost sm")}${btn("从 CSV 导入", "appBillImport", {}, "ghost sm")}${btn("下载模板", "appBillTpl", {}, "ghost sm")}<input type="file" id="appBillFile" accept=".csv,text/csv" hidden></div><small id="appBillErr" class="ws-field-err" role="alert" hidden></small>`
   }</fieldset>`;
 }
 // 读出表单中的各月；check 时校验（空行忽略）：月份必填且已经结束、不重复，用电量大于 0，电费不小于 0
@@ -56839,7 +56728,7 @@ function billRowsPaint(rows) {
   const el = $("#appBills");
   if (el) el.innerHTML = billRowsHtml(rows, false);
 }
-// 导入：.xlsx 读第一张工作表，.csv 按逗号分列；每行为月份、用电量（kWh）、电费（元，选填），表头行与空行跳过；同月以后一行为准
+// 导入：只接受 .csv，按逗号分列；每行为月份、用电量（kWh）、电费（元，选填），表头行与空行跳过；同月以后一行为准
 function billParseRows(cells) {
   const ym = (x) => {
     const s = String(x ?? "").trim();
@@ -56859,40 +56748,31 @@ function billParseRows(cells) {
   }
   return [...map.values()];
 }
-async function billUnzip(buf) {
-  const u = new Uint8Array(buf), dv = new DataView(buf), files = {};
-  let e = u.length - 22;
-  while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
-  if (e < 0) throw Error("不是有效的 Excel 文件");
-  let p = dv.getUint32(e + 16, true);
-  for (let i = 0, n = dv.getUint16(e + 10, true); i < n; i++) {
-    const method = dv.getUint16(p + 10, true), size = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true),
-      name = new TextDecoder().decode(u.subarray(p + 46, p + 46 + nl)),
-      start = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true),
-      raw = u.subarray(start, start + size);
-    if (/^xl\/(sharedStrings|worksheets\/sheet1)\.xml$/.test(name))
-      files[name] = new TextDecoder().decode(method === 0 ? raw : new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer()));
-    p += 46 + nl + xl + cl;
+// CSV 分列：引号内可含逗号、引号与换行；去掉开头的 BOM
+function billCsvRows(text) {
+  const rows = [[]];
+  let cell = "",
+    q = false;
+  text = String(text).replace(/^\ufeff/, "");
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) {
+      if (ch !== '"') cell += ch;
+      else if (text[i + 1] === '"') (cell += '"'), i++;
+      else q = false;
+    } else if (ch === '"') q = true;
+    else if (ch === ",") rows.at(-1).push(cell), (cell = "");
+    else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && text[i + 1] === "\n") i++;
+      rows.at(-1).push(cell), (cell = ""), rows.push([]);
+    } else cell += ch;
   }
-  return files;
+  rows.at(-1).push(cell);
+  return rows;
 }
 async function billReadFile(file) {
-  const xmlText = (s) => s.replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&");
-  if (/\.csv$/i.test(file.name)) return billParseRows((await file.text()).split(/\r?\n/).map((l) => l.split(/[,，\t]/)));
-  const f = await billUnzip(await file.arrayBuffer()),
-    ss = [...(f["xl/sharedStrings.xml"] || "").matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) => xmlText(m[1])),
-    rows = [...(f["xl/worksheets/sheet1.xml"] || "").matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g)].map((r) => {
-      const out = [];
-      for (const c of r[1].matchAll(/<c ([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
-        const col = (c[1].match(/r="([A-Z]+)/) || [, "A"])[1].charCodeAt(0) - 65,
-          t = (c[1].match(/t="(\w+)"/) || [])[1],
-          v = (c[2] || "").match(/<v>([\s\S]*?)<\/v>/)?.[1],
-          is = (c[2] || "").match(/<is>([\s\S]*?)<\/is>/)?.[1];
-        out[col] = t === "s" ? ss[Number(v)] : t === "inlineStr" ? xmlText(is || "") : v != null ? xmlText(v) : "";
-      }
-      return out;
-    });
-  return billParseRows(rows);
+  if (!/\.csv$/i.test(file.name)) throw Error("请选择 CSV 文件（.csv）");
+  return billParseRows(billCsvRows(await file.text()));
 }
 document.addEventListener("change", async (e) => {
   if (e.target?.id !== "appBillFile") return;
@@ -58390,7 +58270,7 @@ defineActions({
         const d = new Date(Date.UTC(l.y, l.mo - 13 + i, 1));
         return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
       });
-    downloadBlob("PACOM-电费账单模板.xlsx", F.xlsxFile([{ name: "电费账单", cols: [{ h: "月份", w: 12 }, { h: "用电量（kWh）", w: 16 }, { h: "电费（元，选填）", w: 18 }], rows: months.map((m) => [m, "", ""]) }]), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    downloadBlob("PACOM-电费账单模板.csv", F.csvText({ name: "电费账单", cols: [{ h: "月份", w: 12 }, { h: "用电量（kWh）", w: 16 }, { h: "电费（元，选填）", w: 18 }], rows: months.map((m) => [m, "", ""]) }), "text/csv;charset=utf-8");
   },
   overviewBasisEdit: (a) => {
     if (!canEdit()) throw Error("需要配置权限才能修改统计口径");
@@ -64563,11 +64443,11 @@ const DemoService = (() => {
       .sort((a, b) => b.total - a.total);
   }
   /* ---------- 告警通知的发送结果（规范 ALARM05，2026-10-09 用户确认，ABB 对比 BP106） ----------
-     按机构默认的通知矩阵：紧急为短信、邮件、群机器人，重要为邮件、群机器人，提示不发送；发给项目授权内的机构管理员、配置人员和运营人员
+     按机构默认的通知矩阵：紧急为短信、邮件，重要为邮件，提示不发送；发给项目授权内的机构管理员、配置人员和运营人员
      （people，由页面按成员与授权取得）。确定性生成：紧急告警第 3 位接收人的短信未送达。 */
   function notices(a, people = []) {
     const lv = a.level === "一般" ? "提示" : a.level,
-      ch = { 紧急: ["短信", "邮件", "群机器人"], 重要: ["邮件", "群机器人"] }[lv] || [];
+      ch = { 紧急: ["短信", "邮件"], 重要: ["邮件"] }[lv] || [];
     if (!ch.length) return [];
     return people.map((p, i) => ({ name: p.name, ch: ch.map((c) => [c, lv === "紧急" && c === "短信" && i === 2 ? "未送达" : "已送达"]) }));
   }
@@ -65289,7 +65169,7 @@ document.addEventListener("pointermove", (e) => {
 /* 图表卡片：标题写结论，口径常驻，数据表 */
 // panel：卡片内页签控制图表时，图表区标为页签面板的属性（Lovable 核查第 321 条，2026-10-11 用户确认）
 function chartCard({ title, meta, legend = [], body, table: tb, id, cls = "", extra = "", foot = "", tableFoot = null, aria = "", panel = "" }) {
-  // 数据表弹窗与导出 Excel 带上图表标题、口径与数据质量说明（2026-10-09 用户确认，ABB 对比 BP112）；
+  // 数据表弹窗与导出的 CSV 带上图表标题、口径与数据质量说明（2026-10-09 用户确认，ABB 对比 BP112）；
   // 图下脚注已合成一行时（2.25 V178），数据表仍逐日写数据质量（tableFoot）
   if (tb && OPS_TABLES[tb]) Object.assign(OPS_TABLES[tb], { title: opsPlain(title), meta: opsPlain(meta), foot: opsPlain(tableFoot ?? foot) });
   // 柱标的通用释义归入名称右侧；具体日期的缺数、补采等状态仍在图下显示。
@@ -65315,7 +65195,7 @@ function regTable(key, headers, rows, formats = {}) {
   OPS_TABLES[key] = { headers, rows, formats };
   return key;
 }
-// 数据表导出 Excel（2026-10-09 用户确认，ABB 对比 BP112；导出按角色，规范 2 5）：能看到数据分析的角色都能导出，普通成员不能
+// 数据表导出 CSV（2026-10-09 用户确认，ABB 对比 BP112；导出按角色，规范 2 5）：能看到数据分析的角色都能导出，普通成员不能
 const opsCanExportTable = () => U.role !== "member";
 const opsCell = (c) => (typeof c === "number" ? c : /^-?[\d,]*\d(\.\d+)?$/.test(String(c ?? "").trim()) ? Number(String(c).replace(/,/g, "")) : String(c ?? ""));
 function opsTableSheets(t, at, who) {
@@ -70002,7 +69882,7 @@ function alarmNotice(a) {
   if (!n) return null;
   if (!n.length) return { text: "未通知：提示告警只在告警页显示" };
   const all = n.flatMap((p) => p.ch),
-    by = ["短信", "邮件", "群机器人"].map((c) => [c, all.filter(([x]) => x === c).length]).filter(([, k]) => k),
+    by = ["短信", "邮件"].map((c) => [c, all.filter(([x]) => x === c).length]).filter(([, k]) => k),
     fail = all.filter(([, st]) => st !== "已送达").length,
     text = `已通知 ${n.length} 人 · ${by.map(([c, k]) => `${c} ${k}`).join("、")}${fail ? ` · ${fail} 条未送达` : ""}`;
   return { text, html: `<details class="ops-notice"><summary>${esc(text)}</summary><ul>${n.map((p) => `<li>${esc(p.name)}：${p.ch.map(([c, st]) => `${c} ${st}`).join(" · ")}</li>`).join("")}</ul></details>` };
@@ -72763,8 +72643,8 @@ defineActions({
           })),
         )}</div>` +
         foot,
-      // 底部都靠右：“关闭”在左、“导出 Excel”在右，都用白色次要按钮（Lovable 核查第 302 条，2026-10-11 用户确认）
-      btn("关闭", "close") + (opsCanExportTable() ? btn("导出 Excel", "opsTableExport", { key: a.key }) : ""),
+      // 底部都靠右：“关闭”在左、“导出 CSV”在右，都用白色次要按钮（Lovable 核查第 302 条，2026-10-11 用户确认）
+      btn("关闭", "close") + (opsCanExportTable() ? btn("导出 CSV", "opsTableExport", { key: a.key }) : ""),
     );
   },
   devCurveSpan: (a) => {
@@ -72790,7 +72670,7 @@ defineActions({
     if (typeof requestAnimationFrame === "function") requestAnimationFrame(drawCharts);
   },
   connMapBack: (a) => showConnectionDetail(a.id, 1),
-  // 导出内容与弹窗相同：数据表一张，说明一张（图表、口径、数据质量与说明）；每次导出写入审计日志
+  // 导出内容与弹窗相同：先是数据表，空一行后是说明（图表、口径、数据质量与导出时间、导出人）；每次导出写入审计日志
   opsTableExport: (a) => {
     const t = OPS_TABLES[a.key];
     if (!t) return;
@@ -72800,13 +72680,14 @@ defineActions({
       p2 = (n) => String(n).padStart(2, "0"),
       stamp = `${d.getUTCFullYear()}${p2(d.getUTCMonth() + 1)}${p2(d.getUTCDate())}-${p2(d.getUTCHours())}${p2(d.getUTCMinutes())}`,
       mark = typeof DEMO_EXPORT_MARK !== "undefined" ? "-" + DEMO_EXPORT_MARK.tag : "",
-      name = `PACOM-数据表-${String(t.title || a.key).replace(/[\\/:*?"<>|\s·]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 40)}-${stamp}${mark}.xlsx`;
-    downloadBlob(name, F.xlsxFile(opsTableSheets(t, at, OPS_WHO())), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      name = `PACOM-数据表-${String(t.title || a.key).replace(/[\\/:*?"<>|\s·]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 40)}-${stamp}${mark}.csv`,
+      [tab, about] = opsTableSheets(t, at, OPS_WHO());
+    downloadBlob(name, F.csvText(tab, [[], ["说明"], ...about.rows]), "text/csv;charset=utf-8");
     if (typeof auLog === "function") {
       auLog("导出数据表", `${t.title || a.key} · ${t.rows.length} 行${mark ? " · " + DEMO_EXPORT_MARK.tag : ""}`, "security");
       if (typeof auSave === "function") auSave();
     }
-    msg(`已导出数据表 Excel（${t.rows.length} 行），导出记录在 机构设置 › 审计日志 中查看`);
+    msg(`已导出数据表 CSV（${t.rows.length} 行），导出记录在 机构设置 › 审计日志 中查看`);
   },
   opsCompAll: (a) => {
     U.opsCompAll = a?.value ? a.value === "all" : !U.opsCompAll;
@@ -75561,21 +75442,18 @@ const AUX = {
   workspaceReturn: null,
   applyDrafts: {},
 };
-// 不设站内通知与通知列表，只有短信、邮件和企业微信（2026-10-09 用户确认，ABB 对比 BP104）
+// 告警通知只有短信和邮件两种渠道，不设站内通知与通知列表，不接入即时通讯群
 const AU_NOTIFY0 = () => ({
   matrix: {
-    urgent: { sms: 1, mail: 1, wecom: 1 },
-    major: { sms: 0, mail: 1, wecom: 1 },
-    minor: { sms: 0, mail: 0, wecom: 0 },
-    security: { sms: 0, mail: 1, wecom: 0 },
-    delivery: { sms: 0, mail: 1, wecom: 0 },
-    // 新报修（Y4）：机构默认发邮件与群机器人
-    repair: { sms: 0, mail: 1, wecom: 1 },
+    urgent: { sms: 1, mail: 1 },
+    major: { sms: 0, mail: 1 },
+    minor: { sms: 0, mail: 0 },
+    security: { sms: 0, mail: 1 },
+    delivery: { sms: 0, mail: 1 },
+    // 新报修：机构默认发邮件
+    repair: { sms: 0, mail: 1 },
   },
-  channels: { sms: 1, mail: 1, wecom: 1 },
-  // 群机器人（全平台优化 Y17，2026-10-19 用户确认；原为一个企业微信 Webhook）：可添加多个群，每个群写平台、群名称、Webhook 地址、
-  // 密钥（钉钉加签、飞书签名校验开启时）与项目（全部项目或所选项目）；地址与密钥加密保存，列表只显示群名称、平台与项目
-  bots: [],
+  channels: { sms: 1, mail: 1 },
 });
 const AU_PREF0 = () => ({
   urgent: { sms: 1, mail: 1 },
@@ -75597,9 +75475,10 @@ const AU_PREF0 = () => ({
 // Notification routing belongs to one institution; notification preferences belong to one account.
 const auNotifyOf = (id = AUTH.org) => {
   const n = (AUTH.notifyBy[id] ||= AU_NOTIFY0());
-  // 早先保存的一个企业微信 Webhook 读作一个“全部项目”的企业微信群
-  if (!n.bots) n.bots = n.wecom ? [{ id: "bot-wecom", platform: "企业微信", name: "企业微信群", url: n.wecom, projects: "all" }] : [];
-  n.matrix.repair ||= { sms: 0, mail: 1, wecom: 1 };
+  // 早先保存的群机器人渠道与群地址不再使用，读入时去掉
+  delete n.bots, delete n.wecom, delete n.channels.wecom;
+  Object.values(n.matrix).forEach((r) => delete r.wecom);
+  n.matrix.repair ||= { sms: 0, mail: 1 };
   return n;
 };
 // 通知偏好按“账户 × 机构”分别保存，免打扰仍按账户一份（2.07 第 85 条，2026-10-17 用户确认）。早先按账户存的一份作为各机构的初值
@@ -75614,18 +75493,7 @@ const auPrefOf = (uid = AUTH.uid, org = AUTH.org) => {
   return by[org];
 };
 const auQuietOf = (uid = AUTH.uid) => (AUTH.prefBy[uid] ||= AU_PREF0());
-// 渠道键 wecom 沿用原保存格式，名称为“群机器人”（Y17）
-const AU_BOT_PF = [
-  ["企业微信", /^https:\/\/qyapi\.weixin\.qq\.com\/cgi-bin\/webhook\/send\?key=[\w-]{6,}$/],
-  ["钉钉", /^https:\/\/oapi\.dingtalk\.com\/robot\/send\?access_token=[\w-]{6,}$/],
-  ["飞书", /^https:\/\/open\.feishu\.cn\/open-apis\/bot\/v2\/hook\/[\w-]{6,}$/],
-];
-// 添加群（2.19 账户第 162 条）：填写的平台、地址与密钥；没有选平台时按企业微信
-function auBotInput() {
-  const pf = document.querySelector('#dlg input[name="auBotPf"]:checked')?.value || "企业微信";
-  return { pf, url: value("auBotUrl").trim(), secret: (pf === "钉钉" ? value("auBotKeyDd") : pf === "飞书" ? value("auBotKeyFs") : "").trim(), re: AU_BOT_PF.find(([p]) => p === pf)[1] };
-}
-const AU_CH = { sms: "短信", mail: "邮件", wecom: "群机器人" };
+const AU_CH = { sms: "短信", mail: "邮件" };
 const AU_NOTIFY_ROWS = { urgent: "紧急告警", major: "重要告警", minor: "提示告警", security: "安全事件", delivery: "交付与部署", repair: "新报修" };
 // Inline error under a form field (fld) on 机构设置 and 我的账户 pages or dialogs: the same field error as the workspace (GLOBAL03;
 // 2026-10-08 Account A1、A2) — red 14/24 text under the field, a red outline that stays visible while the field has focus, focus on
@@ -78283,8 +78151,13 @@ BARE_AFTER.legal = () => {
 const AU_GUIDE_URL = "";
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
-// 每次发布时与规范 11 4 一起在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
+// 每次发布时在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "2.35",
+    date: "2026-10-27",
+    notes: ["告警通知的渠道为短信和邮件。", "数据表、空间清单与现场设备清单导出为 CSV 文件，电费账单从 CSV 导入。"],
+  },
   {
     version: "2.34",
     date: "2026-10-27",
@@ -78418,7 +78291,7 @@ const AU_RELEASES = [
     date: "2026-10-25",
     notes: [
       "申请开通新机构按步骤填写：先验证电子邮箱，再设置账户、填写机构信息和选择订阅。",
-      "添加群机器人按平台分步说明，添加后可发一条消息核对；付款与邀请码按两步说明。",
+      "付款与邀请码按两步说明。",
       "系统接入与各向导的步骤显示已完成、当前和未做。",
     ],
   },
@@ -78511,7 +78384,6 @@ const AU_RELEASES = [
       "数据分析新增“本年”期间；能源、室内环境与空间使用可按楼宇或项目对比；室内环境横条首行为全部功能区合计，图例写出各档数值。",
       "新增年报；周报、月报遇节假日顺延到下一个工作日发布。",
       "能耗设置可设年度用电目标；碳排放设置可从公布的排放因子中选择。",
-      "告警可推送到企业微信、钉钉或飞书群，按项目推送。",
       "智能助手可回答“这里有哪些问题？”；对话自动保存，可继续追问；依据链接直接打开对应期间与功能区。",
       "没有可访问的项目时可一键申请访问；卡片、标签与图表样式更柔和。",
       "登录输错不再提示剩余次数；密码要求的列表对齐，输入满足要求后不再提示。",
@@ -78959,7 +78831,7 @@ const AU_RELEASES = [
       "配置参数：电力 CO₂ 因子、电力折标煤与分时电价引用碳排放设置和能耗设置，只读显示；适用标准可登记建筑类型。",
       "能耗强度：建筑类型与气候区已登记且有满 12 个月的数据时才与国家标准的引导值、约束值比较，否则写“暂不对标”和原因。",
       "数据分析：峰谷时段只在登记分时电价后统计；新增“与基线比较”卡，按节能基线的基期同月比较本期用电；室外温湿度可按项目位置取天气数据或指定室外传感器。",
-      "数据表：写明图表与口径，表下附数据质量说明；导出的 Excel 含“数据表”与“说明”两张表，每次导出写入审计日志。",
+      "数据表：写明图表与口径，表下附数据质量说明；导出的 CSV 先是数据表，后附说明，每次导出写入审计日志。",
       "报告：可选择报告内容（能耗、碳排放、室内环境、设备健康）；由机构管理员或配置人员发布，发布后各节文字固定，按成员的通知偏好发送邮件。",
     ],
   },
@@ -78973,7 +78845,7 @@ const AU_RELEASES = [
       "告警 → 告警记录：原“处理记录”页签改名，期间可选近 24 小时到自定义，新增“告警最多”。",
       "告警详情：写明已通知几人、各渠道是否送达；未确认就已恢复的紧急告警留在当前告警中。",
       "侧栏：“告警”显示待确认的紧急与重要告警数量。",
-      "机构设置 → 通知：改为“按事件通知”，渠道为短信、邮件和企业微信；查看人员不收告警短信。",
+      "机构设置 → 通知：改为“按事件通知”，渠道为短信和邮件；查看人员不收告警短信。",
       "通知偏好：增加“排查任务（指派给我的）”；免打扰固定为 22:00–07:00，只对短信。",
       "场景：标准场景只有“上班”“下班”，“清扫关灯”改为“定时关灯”；新增“工作时间”，定时场景可按工作时间开始或结束执行。",
       "场景：手动场景可以控制空调与新风；定时与联动场景可以停用和启用。",
@@ -79022,7 +78894,7 @@ const AU_RELEASES = [
       "机构设置 → 成员：新增角色“普通成员”，按功能区授权；普通成员只看到总览中的“我的区域”，可以控制授权功能区的灯光与空调。",
       "机构设置 → 角色与权限：只能查看授权项目资料和状态的角色改名为“查看人员”，权限不变。",
       "机构设置：各位机构管理员权限相同；全量数据导出和注销机构由任一机构管理员输入当前密码后申请。",
-      "导出按角色，不再逐人授权：能看到报告和数据分析的角色都能下载报告 PDF 和数据表 Excel；空间资料、现场安装资料和 JSON 空间数据由机构管理员和配置人员导出，楼层图纸原件只有机构管理员能下载。",
+      "导出按角色，不再逐人授权：能看到报告和数据分析的角色都能下载报告 PDF 和数据表 CSV；空间资料、现场安装资料和 JSON 空间数据由机构管理员和配置人员导出，楼层图纸原件只有机构管理员能下载。",
       "配置参数：配置人员可以修改项目级配置参数和登记适用标准，机构管理员批准后生效。",
       "总览：运营人员可在机构管理员批准的范围内修改照明控制参数，保存即下发。",
       "总览 → 暖通空调：按楼层上的空调系统（风机盘管、多联机、分体空调）分别显示和控制；无人 15 分钟转为待机，60 分钟转为节能。",
@@ -79165,7 +79037,7 @@ const HELP_ARTICLES = [
     faq: [["打开旧对话时数据会变吗？", "会按当前数据重新回答，并写出数据截至时间。"]], rel: ["savings", "control"] },
   { id: "alarm", topic: "alarm", title: "处理告警", roles: "运营人员及以上", sum: "确认告警、创建工单，告警以设备数据恢复为准。",
     steps: ["在“告警 › 当前告警”查看待确认与已确认的告警。", "点告警查看发生了什么、影响、数据证据与受影响位置。", "点“确认”表示已知晓；需要现场处理时“创建工单”，指定负责人和计划时间。", "设备数据恢复后告警自动恢复，在告警记录中查看。"],
-    faq: [["能耗异常告警恢复后会怎样？", "恢复 7 晚后，平台用同一指标比较前后各 7 晚，结果写在告警详情的“效果”，改善的计入节电量。"], ["怎样把告警推送到值班群？", "机构管理员在“机构设置 › 通知”开启群机器人，添加企业微信、钉钉或飞书群并选择项目。"]], rel: ["savings", "offline"] },
+    faq: [["能耗异常告警恢复后会怎样？", "恢复 7 晚后，平台用同一指标比较前后各 7 晚，结果写在告警详情的“效果”，改善的计入节电量。"]], rel: ["savings", "offline"] },
   { id: "scene", topic: "scene", title: "场景、定时与联动", roles: "运营人员及以上", sum: "照明控制器在本地自动控制，场景管理网关或跨系统动作，定时与联动引用场景。",
     steps: ["占用联动与感应调光由照明控制器在本地执行，网关离线时照常工作。", "在“场景 › 场景”新建场景，按功能区逐条设定动作后保存。", "在“定时”选择执行时间与场景；时间可以引用工作时间的开始与结束。", "在“联动”选择触发条件与执行的场景。"],
     faq: [["为什么不在定时里直接设定照明？", "定时与联动引用场景，不重复建立同一照明控制器的照明控制，避免冲突。"]], rel: ["calendar", "control"] },
@@ -80281,7 +80153,7 @@ Object.assign(actions, {
     render();
     msg(`已移除${zhSub(m.name, "l")}`);
   },
-  // Switches and checkboxes save immediately (each change is audited); only the webhook address has its own save button.
+  // Switches and checkboxes save immediately (each change is audited).
   auNotifyCell: (a, el) => {
     if (!auCanManage()) throw Error("只有机构管理员可以修改通知设置");
     const row = auNotifyOf().matrix[a.row];
@@ -80300,81 +80172,6 @@ Object.assign(actions, {
     auSave();
     render();
     msg(`${AU_CH[a.ch]}通知已${c[a.ch] ? "开启" : "关闭"}`);
-  },
-  // 添加群机器人（Y17）：只有机构管理员可设置；地址按平台核对格式
-  // 2.19（2026-10-25 HONG 10:13Z 按推荐更新，账户第 162 条）：改为 5 步操作步骤：选择平台、在群里添加机器人（按平台显示一种）、
-  // 粘贴 Webhook 地址（钉钉密钥必填，飞书选填）、群名称和项目、发送测试消息；不强制先测试。菜单名按各平台 2026 年 10 月的官方帮助。
-  auBotForm: () => {
-    if (!auCanManage()) throw Error("只有机构管理员可以修改通知设置");
-    const pfs = AU_BOT_PF.map(([p]) => p),
-      by = (m) => pfs.map((p) => `<div data-botpf="${p}"${p === pfs[0] ? "" : " hidden"}>${m[p]}</div>`).join("");
-    modal(
-      "添加群",
-      `<p class="au-dlead">告警按项目推送到群里。</p>${opSteps([
-        { title: "选择平台", body: `<div class="au-radios au-scope-radios au-bot-pfs" role="radiogroup" aria-label="平台">${pfs.map((p, i) => `<label class="au-radio"><input type="radio" name="auBotPf" value="${p}" ${i ? "" : "checked"}><span><b>${p}</b></span></label>`).join("")}</div>` },
-        {
-          title: "在群里添加机器人",
-          body: by({
-            企业微信: `<p class="op-d au-bot-how">打开要接收告警的内部群，点右上角“…”，选“群机器人”，新创建一个机器人。</p><p class="op-d">外部群不能添加机器人。</p>`,
-            钉钉: `<p class="op-d au-bot-how">在电脑端打开要接收告警的群，选“群设置 › 机器人 › 添加机器人 › 自定义”，安全设置勾选“加签”。</p>`,
-            飞书: `<p class="op-d au-bot-how">打开要接收告警的群，选“设置 › 群机器人 › 添加机器人 › 自定义机器人”。</p>`,
-          }),
-        },
-        {
-          title: "复制 Webhook 地址，粘贴到这里",
-          body: `${fld("Webhook 地址", "auBotUrl", input("auBotUrl", "", "https://"))}${by({
-            企业微信: "",
-            钉钉: fld("密钥", "auBotKeyDd", input("auBotKeyDd", "", "“加签”下的密钥")),
-            飞书: fld("密钥 选填", "auBotKeyFs", input("auBotKeyFs", ""), "开启了“签名校验”时填写。"),
-          })}`,
-        },
-        { title: "填写群名称和推送的项目", body: `${fld("群名称", "auBotName", input("auBotName", "", "如 E栋值班群"))}${fld("项目", "auBotProj", select("auBotProj", [["all", "全部项目"], ...auProjects().map((x) => [x, x])], "all", "项目"))}` },
-        { title: "发送测试消息", body: `<div class="au-inline-actions au-bot-test">${btn("发送测试消息", "auBotTest")}<span id="auBotTestMsg" class="au-bot-res" role="status"></span></div>` },
-      ], "au-bot-steps")}`,
-      btn("取消", "close") + btn("添加", "auBotSave", {}, "primary"),
-      false,
-    );
-  },
-  auBotTest: withPolicy({ busy: "modal" }, async () => {
-    if (!auCanManage()) throw Error("只有机构管理员可以修改通知设置");
-    const { pf, url, secret, re } = auBotInput(),
-      out = (t, ok) => {
-        const o = $("#auBotTestMsg");
-        if (o) (o.textContent = t), (o.className = "au-bot-res " + (ok ? "ok" : "err"));
-      };
-    if (!re.test(url)) return out("Webhook 地址无效", false);
-    if (pf === "钉钉" && !secret) return auFieldErr("auBotKeyDd", "请填写“加签”下的密钥");
-    const r = await auRequest("testBot", { org: AUTH.org, platform: pf, url, secret, text: "PACOM Station 测试消息：群机器人设置成功。" });
-    out(r.status === "ok" ? "已发送，请到群里查看" : r.message || "暂时无法发送，请稍后再试。", r.status === "ok");
-  }),
-  auBotSave: () => {
-    if (!auCanManage()) throw Error("只有机构管理员可以修改通知设置");
-    const { pf, url, secret, re } = auBotInput(),
-      name = value("auBotName").trim(),
-      n = auNotifyOf();
-    if (!re.test(url)) return auFieldErr("auBotUrl", `请粘贴${pf}群机器人的完整 Webhook 地址`);
-    if (pf === "钉钉" && !secret) return auFieldErr("auBotKeyDd", "请填写“加签”下的密钥");
-    if (!name) return auFieldErr("auBotName", "请填写群名称");
-    if (n.bots.some((b) => b.name === name)) return auFieldErr("auBotName", "已有同名的群");
-    const proj = value("auBotProj") || "all";
-    n.bots.push({ id: "bot-" + Date.now().toString(36), platform: pf, name, url, secret, projects: proj === "all" ? "all" : [proj] });
-    auLog("修改通知渠道", `群机器人：添加“${name}”（${pf}）`, "account");
-    auSave();
-    closeModal(true);
-    render();
-    msg(`已添加“${name}”`);
-  },
-  auBotDel: (a) => {
-    if (!auCanManage()) throw Error("只有机构管理员可以修改通知设置");
-    const n = auNotifyOf(),
-      b = n.bots.find((x) => x.id === a.id);
-    if (!b) return;
-    n.bots = n.bots.filter((x) => x !== b);
-    if (b.id === "bot-wecom") n.wecom = "";
-    auLog("修改通知渠道", `群机器人：删除“${b.name}”`, "account");
-    auSave();
-    render();
-    msg(`已删除“${b.name}”`);
   },
   auAuditKind: (a) => {
     AUX.auditKind = a.value;
@@ -80822,7 +80619,7 @@ function auZoneSync(p) {
 // 功能区授权的错误写在字段下方，聚焦第一个功能区
 const auZoneErrId = (p) => (document.getElementById(`${p}Zone-0`) ? `${p}Zone-0` : `${p}Zones`);
 // 审计日志中的权限：角色 · 项目授权。导出按角色，不逐人授权（R14，取代 Account B11 与待决定事项 G-1）：
-// 空间资料（PDF、Excel、JSON）与现场安装资料只给机构管理员和配置人员，见 workflow-model.js 的 canExport。
+// 空间资料（PDF、CSV、JSON）与现场安装资料只给机构管理员和配置人员，见 workflow-model.js 的 canExport。
 // 普通成员写功能区授权，如“普通成员 · E栋 7F · 3 个功能区”（角色权限方案第 4 条）。
 const auPermText = (m) => `${auRole(m.role)} · ${auAccessText(m)}`;
 // 加入时间（ORG02，03 第 3 条）：成员记录中的加入时间；没有时取审计日志中接受邀请的时间，都没有时写“—”。
@@ -81249,7 +81046,7 @@ const AU_ORG_PAGES = {
     // （2026-10-09 用户确认，ABB 对比 BP28；检修中 BP92，发布报告 BP115，恢复 BP45，创建项目 BP29，记录 BP30，登录设备 BP21）。
     const rows = [
       ["查看设备、分组、状态", [0, 1, 1, 1, 1]],
-      ["下载报告 PDF 与数据表 Excel", [0, 1, 1, 1, 1]],
+      ["下载报告 PDF 与数据表 CSV", [0, 1, 1, 1, 1]],
       // 大屏（OPS07）给普通成员以外的四个角色；展示链接只由机构管理员管理（2026-10-09 用户确认，大屏显示方案 DP1、DP2）
       ["打开大屏", [0, 1, 1, 1, 1]],
       ["控制自己功能区的灯光与空调", [1, 0, 1, 1, 1]],
@@ -81267,7 +81064,7 @@ const AU_ORG_PAGES = {
       ["在可调范围内修改参数、新增楼层或功能区覆盖、登记适用标准", [0, 0, 0, 1, 1]],
       ["登记验证结果与测试记录，重新下发配置", [0, 0, 0, 1, 1]],
       ["发布报告", [0, 0, 0, 1, 1]],
-      ["导出空间资料（PDF、Excel、JSON）、现场安装资料与规划清单", [0, 0, 0, 1, 1]],
+      ["导出空间资料（PDF、CSV、JSON）、现场安装资料与规划清单", [0, 0, 0, 1, 1]],
       ["用部署 App 绑定网关和设备（配置人员按项目授权）", [0, 0, 0, 1, 1]],
       ["更换设备、远程重新绑定、恢复出厂、移除设备、删除图上位置与解除位置关联", [0, 0, 0, 1, 1]],
       ["修改可调范围、温度限制依据选“豁免”、采用模板新版本", [0, 0, 0, 0, 1]],
@@ -81317,7 +81114,6 @@ const AU_ORG_PAGES = {
     const chs = [
       ["sms", "短信"],
       ["mail", "邮件"],
-      ["wecom", "群机器人"],
     ];
     // 行下只列告警规则与第10章中实际有的告警（2026-10-09 用户确认，ABB 对比 BP99；级别按告警与通知规则核查的默认级别）
     const rows = [
@@ -81336,21 +81132,13 @@ const AU_ORG_PAGES = {
       if (chOff) return `<td class="c">${auCheck("auNotifyCell", false, { row: r, ch: c }, false, label).replace("<input ", `<input aria-disabled="true" aria-description="${AU_CH[c]}渠道已关闭" `)}</td>`;
       return `<td class="c">${auCheck("auNotifyCell", on, { row: r, ch: c }, !edit, label)}</td>`;
     };
-    // 带 Webhook 地址的一行开关与名称对齐，不在整行竖直中间（参考组件核查第 433 条）
-    const chRow = (c, title, sub, extra = "") =>
-      `<div class="au-row${extra ? " au-row-top" : ""}"><div class="au-row-l">${title}<small>${sub}</small>${extra}</div><div class="au-row-a">${auSwitch("auChannel", n.channels[c], { ch: c }, !edit, title)}</div></div>`;
+    const chRow = (c, title, sub) =>
+      `<div class="au-row"><div class="au-row-l">${title}<small>${sub}</small></div><div class="au-row-a">${auSwitch("auChannel", n.channels[c], { ch: c }, !edit, title)}</div></div>`;
     return `${auSec(
       "通知渠道",
       "机构统一的告警通知去向。个人可在“我的账户 → 通知偏好”关闭部分渠道，不影响告警本身。",
       "",
-      `${edit ? "" : auReadonlyNote("修改通知设置")}<div class="au-box">${chRow("sms", "短信", "发送到接收人已验证的手机号码")}${chRow("mail", "邮件", "发送到接收人的登录电子邮箱")}${chRow(
-        "wecom",
-        "群机器人" + auFieldInfo("bots", "群机器人", "每个事件推送到所属项目的群，不属于项目的事件只推到“全部项目”的群。消息写级别、名称、位置与链接，点开进入该告警或工单。免打扰只管短信，群消息的提醒由成员在群里自己设置。"),
-        "推送到企业微信、钉钉或飞书群，按项目推送",
-        n.channels.wecom
-          ? `<div class="au-bots">${n.bots.length ? `<ul class="au-bot-list">${n.bots.map((b) => `<li><span><b>${esc(b.name)}</b><small>${esc(b.platform)} · ${esc(b.projects === "all" ? "全部项目" : b.projects.join("、"))}</small></span>${edit ? btn("删除", "auBotDel", { id: b.id }, "ghost sm") : ""}</li>`).join("")}</ul>` : `<p class="au-sub">尚未添加群</p>`}${edit ? btn("添加群", "auBotForm", {}, "sm") : ""}<small class="au-sub">通知服务未接入，暂不能发送测试消息。</small></div>`
-          : "",
-      )}</div>`,
+      `${edit ? "" : auReadonlyNote("修改通知设置")}<div class="au-box">${chRow("sms", "短信", "发送到接收人已验证的手机号码")}${chRow("mail", "邮件", "发送到接收人的登录电子邮箱")}</div>`,
     )}${auSec(
       // 分节名与恢复时的通知（2026-10-09 用户确认，ABB 对比 BP99、BP101）
       // 升级再通知、30 分钟催办、10 分钟合并、查看人员与部署期的规则收进标题旁的 ⓘ，表下只留一句（2.07 第 72 条）
@@ -81841,8 +81629,6 @@ document.addEventListener("input", (e) => {
 document.addEventListener("change", (e) => {
   if (e.target?.name === "auKeyScope" && $("#auKeyProjects")) $("#auKeyProjects").hidden = e.target.value !== "some";
   if (e.target?.name === "auPayWay") document.querySelectorAll("#dlg [data-pay]").forEach((x) => (x.hidden = x.dataset.pay !== (e.target.value === "对公转账" ? "bank" : e.target.value === "微信支付" ? "wx" : "ali")));
-  // 添加群（账户第 162 条）：第 2、3 步只显示所选平台的一种
-  if (e.target?.name === "auBotPf") document.querySelectorAll("#dlg [data-botpf]").forEach((x) => (x.hidden = x.dataset.botpf !== e.target.value));
   if (e.target?.name === "auPackSize" && $("#auPackCalc")) {
     $("#auPackSize").value = e.target.value;
     $("#auPackCalc").innerHTML = auPackCalc().html;
@@ -82502,7 +82288,7 @@ const AU_ACC_PAGES = {
     ];
     return `${auSec(
       `${zhSub(esc(auOrg().name), "r")}的通知`,
-      "只影响你自己收到的通知。其他机构的通知，切换到该机构后设置。群消息由机构统一配置。",
+      "只影响你自己收到的通知。其他机构的通知，切换到该机构后设置。",
       "",
       `<div class="tw"><table class="t au-matrix au-notify"><thead><tr><th>通知</th>${chs.map(([, l]) => `<th class="c">${l}</th>`).join("")}</tr></thead><tbody>${rows.map(([r, l]) => `<tr><td><b class="au-ev">${l}</b></td>${chs.map(([c]) => cell(r, c)).join("")}</tr>`).join("")}</tbody></table></div>${notes.filter(Boolean).map(note).join("")}`,
     )}${auSec(
