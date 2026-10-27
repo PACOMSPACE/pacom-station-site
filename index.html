@@ -7654,20 +7654,6 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 }
 /* 恢复楼层时层数随之扩回（2026-10-04 用户确认）：在“已删除”行内、删除时间下一行事先写明，比删除时间深一级。 */
 .ws-task-row .ws-trash-struct { display:block; color:var(--text2); }
-.ws-struct-sec + .ws-struct-sec {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--line2);
-}
-.ws-struct-sec h3 {
-  margin: 0 0 12px;
-  font-size: 14px;
-  line-height: 21px;
-  font-weight: 480;
-}
-.ws-struct-sec > .btn {
-  margin-top: 12px;
-}
 .ws-struct-preview {
   margin: 4px 0 0;
   font-size: 12px;
@@ -8035,16 +8021,8 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 #dlg .zc-confirm-list p { margin:0 0 4px; }
 /* 比例尺与朝向批量应用（B2）。 */
 #dlg .cal-floors { margin-top:12px; }
-/* 楼层结构草稿（C14）：保存后的楼层列表，标明新增、补建、保留、超出新层数与在“已删除”中的楼层。 */
-#dlg .ws-struct-final #structPreview { display:block; }
 #dlg .ws-struct-preview.warn { color:#8a5a00; }
-/* 楼层结构受阻（核查 R12）：主按钮不可用，原因写在“将删除 …”一行之下。 */
-#dlg .ws-struct-blocked { margin:8px 0; font-size:12px; line-height:18px; color:#8a5a00; }
-/* 2.13 E241：只写变化的几行（12/18 #636363），确认输入离上一行 8；层数一段不设小标题，勾选离输入框 8；
-   特殊层的名称、位置与描边“添加”同一行（按钮与输入框底边对齐），本次加入的特殊层逐行列出，行尾移除图标。 */
-#dlg .ws-struct-final #structDelete:not([hidden]) { margin-top:8px; }
-#dlg .ws-struct-count .ws-form-row > .field { margin-bottom:0; }
-#dlg .ws-struct-count label.row { margin-top:8px; }
+/* 2.36 S1：编辑楼宇中特殊层的名称、位置与描边“添加”同一行（按钮与输入框底边对齐），加入的特殊层逐行列出，行尾移除图标。 */
 #dlg .ws-special-add { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) auto; gap:8px; align-items:end; margin-top:8px; }
 #dlg .ws-special-add > .field { margin-bottom:0; }
 #dlg .ws-special-add > .ws-special-btn { height:32px; }
@@ -37701,12 +37679,9 @@ const wsAcctDirty = () => {
 };
 const wsAcctText = "“个人资料”中有尚未保存的修改";
 const wsUnsaved = () => !!(U.dirty || U.attrsDirty || wsSpaceDirty() || wsAcctDirty());
-// 楼层结构草稿（C14）有改动：弹窗内的“已删除”与受阻清单中的处理入口等出口先确认放弃（STRUCT01“草稿未保存时关闭询问放弃”，核查 R1）。
-const structDraftDirty = () => !!U.structDraft && !!$("#structPreview") && modalDirty;
 function guard(fn) {
   // 范围有尚未保存的修改（调整边界、绘制中的范围、楼宇标记草稿）：先确认放弃，放弃后再做下面的检查（2026-10-03 D2 并入原绘制模块对 guard 的覆盖）。
   if (spatialDirty()) return askDiscard(() => { spatialDiscard(); guard(fn); }, "范围有尚未保存的修改");
-  if (structDraftDirty()) return askDiscard(() => { U.structDraft = null; closeModal(true); guard(fn); }, "楼层结构草稿有尚未保存的修改");
   if ($("#dlg")?.dataset.busy === "1" || $(".sp-body")?.dataset.busy === "1") return msg("正在保存，请等待结果后再切换");
   const space = wsSpaceDirty();
   if (wsUnsaved())
@@ -39385,7 +39360,7 @@ function spaceForm(kind, id) {
         ? "" // 室外区域的面积只在区域资料中登记一处（“占地面积”），总平面不另设面积。
         : fld("楼层面积（选填）", "spaceArea", input("spaceArea", o.area ?? "", "", "number"), "单位 m²；手工登记的楼层面积，不覆盖功能区图面估算面积。")
       : `${fld(isB ? "主要用途（选填）" : "项目类型（选填）", "spaceUsage", select("spaceUsage", usages.map((s) => [s, s]), o.usage || "", isB ? "主要用途" : "项目类型", true)).replace('<div class="field"', `<div class="field ws-usage-field"${outdoor ? " hidden" : ""}`)}${isP || isB ? "</div>" : ""}${
-          !isB ? "" : outdoor ? areaFld() : `<div class="ws-form-row ws-form-row3">${fld("地上层数", "spaceAbove", input("spaceAbove", o.above ?? "", "", "number")).replace('<div class="field"', '<div class="field ws-bfloor"')}${fld("地下层数", "spaceBelow", input("spaceBelow", o.below ?? 0, "", "number")).replace('<div class="field"', '<div class="field ws-bfloor"')}${areaFld()}</div><div class="ws-bstruct"><label class="row small"><input id="spaceRoof" type="checkbox" ${o.roof ? "checked" : ""}>包含屋顶层 RF</label>${o.id ? '<div class="ws-struct-change" id="structPreview" aria-live="polite"></div>' : `<p class="ws-struct-preview" id="structPreview" aria-live="polite">${esc(structText(structPlan(null, o.above, o.below ?? 0, o.roof), true))}</p>`}</div>`
+          !isB ? "" : outdoor ? areaFld() : `<div class="ws-form-row ws-form-row3">${fld("地上层数", "spaceAbove", input("spaceAbove", o.above ?? "", "", "number")).replace('<div class="field"', '<div class="field ws-bfloor"')}${fld("地下层数", "spaceBelow", input("spaceBelow", o.below ?? 0, "", "number")).replace('<div class="field"', '<div class="field ws-bfloor"')}${areaFld()}</div><div class="ws-bstruct"><label class="row small"><input id="spaceRoof" type="checkbox" ${o.roof ? "checked" : ""}>包含屋顶层 RF</label>${o.id ? editSpecialHtml(o) + '<div class="ws-struct-change" id="structPreview" aria-live="polite"></div>' : `<p class="ws-struct-preview" id="structPreview" aria-live="polite">${esc(structText(structPlan(null, o.above, o.below ?? 0, o.roof), true))}</p>`}</div>`
         }${fld("详细地址", "spaceAddress", `<div class="ws-addr-row">${input("spaceAddress", o.address || p?.address || "", "输入可识别的详细地址")}${mapConfigured() ? `<button type="button" class="iconbtn ws-addr-locate" data-act="geoAddress" aria-label="定位已填地址" data-tip="定位已填地址">${ico("crosshair", "ic16")}</button>` : ""}</div>`)}${locationField(o, p, isB, same, outdoor)}${!isB ? tzField(formState.timezone) : ""}${fld((isB ? (outdoor ? "区域" : "楼宇") : "项目") + "图片（选填）", "spaceImage", imageField(o.image))}`) +
     // 2.14 E275：创建项目和楼宇不填说明，编辑时再填（原创建楼宇也有“楼宇说明（选填）”）。
     (o.id || isF
@@ -40411,74 +40386,6 @@ function groupForm(id, opts = {}) {
       : btn("取消", "close") + btn("保存", "saveGroup", {}, "primary"),
   );
 }
-function sceneForm(id) {
-  const o = g("scenes", id) || {},
-    kind = o.kind || U.tab || "manual",
-    pid = o.projectId || U.p;
-  if (!pid)
-    return modal(
-      "选择项目",
-      fld("项目", "sceneProject", projectSelect("sceneProject", "")),
-      btn("取消", "close") + btn("继续", "sceneProjectNext", {}, "primary"),
-    );
-  formState = { kind: "scenes", id, pid, sceneKind: kind };
-  modal(
-    id ? "编辑场景" : "新建" + ({ manual: "场景", schedule: "定时", link: "联动" }[kind] || "场景"),
-    `${fld("名称", "sceneName", input("sceneName", o.name || ""))}${
-      kind === "manual"
-        ? `${fld(
-            "控制分组",
-            "sceneGroup",
-            select(
-              "sceneGroup",
-              [
-                ["", "请选择"],
-                ...F.allGroups(data())
-                  .filter((g) => g.projectId === pid && g.usage !== "仅管理" && (!g.automatic || g.purpose === "light"))
-                  .sort(M.byName)
-                  .map((g) => [g.id, g.name]),
-              ],
-              o.groupId || "",
-              "控制分组",
-            ),
-          )}${fld(
-            "动作",
-            "sceneAction",
-            select(
-              "sceneAction",
-              [
-                ["关闭", "关灯（保持自动）"],
-                ["开启", "调光（进入手动）"],
-                ["恢复自动灯控", "恢复自动"],
-              ],
-              o.action || "关闭",
-              "动作",
-            ),
-          )}`
-        : `${fld(
-            "引用场景",
-            "sceneRef",
-            select(
-              "sceneRef",
-              [
-                ["", "请选择"],
-                ...data()
-                  .scenes.filter((s) => s.projectId === pid && s.kind === "manual")
-                  .map((s) => [s.id, s.name]),
-              ],
-              o.refId || "",
-              "引用场景",
-            ),
-          )}${fld(kind === "schedule" ? "执行时间" : "触发条件", "sceneWhen", input("sceneWhen", o.when || "", kind === "schedule" ? "18:00" : "填写触发条件"))}`
-    }${note("不重复建立已由端侧自动控制完成的同一照明控制器联动。实际执行位置、容量和逐网络结果由能力服务核验。")}`,
-    id
-      ? btn("删除场景", "deleteSpace", { kind: "scenes", id }, "ghost danger") +
-          `<span class="sp"></span>` +
-          btn("取消", "close") +
-          btn("保存", "saveScene", {}, "primary")
-      : btn("取消", "close") + btn("保存", "saveScene", {}, "primary"),
-  );
-}
 const SPACE_NOUN = { projects: "项目", buildings: "楼宇", floors: "楼层", networks: "设备网络", zones: "功能区", groups: "分组", scenes: "场景", connections: "系统连接" };
 // 依赖原因 → 处理入口（单个删除与批量删除楼层共用同一写法）。
 const SPACE_DEP_TARGET = (text) => /本次部署范围/.test(text) ? "scope" : /分组/.test(text) ? "groups" : /系统连接|连接被/.test(text) ? "connections" : /网络/.test(text) ? "networks" : /点位|绑定|供电|接线|跟随|照度/.test(text) ? "inventory" : "status";
@@ -40503,13 +40410,9 @@ function floorBatchDependencyList(blocked) {
     return `<div><span><b>${esc(f.name)}</b>：${esc(issues.join("；"))}</span><span class="ws-dep-actions">${targets.map((target) => btn(SPACE_DEP_LABEL[target], "spaceDependency", { target, p, b: f.buildingId, f: f.id }, "ghost sm")).join("")}</span></div>`;
   }).join("")}</div>`;
 }
-// 删除楼层的依赖检查、输入确认与执行：“删除楼层…”与楼层结构草稿中缩减层数（C14）共用同一套，不另写一份。
+// 删除楼层的依赖检查与执行：“删除楼层…”与编辑楼宇中减少层数共用同一套，不另写一份。
 // 受阻楼层：[楼层, 依赖原因[]]；有任何受阻楼层时整批不删除（不静默删除一部分）。
 const floorDeleteBlocked = (fs) => fs.map((f) => [f, M.deletionIssues(data(), "floors", f.id)]).filter(([, issues]) => issues.length);
-const floorDeleteConfirmField = () => fld("输入“删除”以确认", "deleteName", input("deleteName", "", "删除"));
-function floorDeleteConfirmed() {
-  if (value("deleteName").trim() !== "删除") throw fieldErr("deleteName", "请输入“删除”以确认");
-}
 // 提交时在事务中逐个重新检查依赖；任一楼层不能删除则整批不执行。删除的楼层连同功能区移到“已删除”，可恢复。
 function floorDeleteApply(db, ids) {
   for (const id of ids) {
@@ -40989,7 +40892,7 @@ async function saveSpaceForm() {
     invalid(isF ? "spaceArea" : "spaceRegion", "面积应为不小于 0 的数值");
   if (errors.length) throw fieldErrs(errors);
   // 资料没有实质变化：不保存、不写修改记录（2026-10-05 核查 S4）。
-  if (s.id && M.spaceUnchanged(data(), s.kind, v)) {
+  if (s.id && M.spaceUnchanged(data(), s.kind, v) && !(s.specials || []).length) {
     closeModal(true);
     render();
     return msg("没有修改");
@@ -40997,6 +40900,7 @@ async function saveSpaceForm() {
   // 2.14 E256：编辑楼宇时直接改层数：先从“已删除”恢复加回的楼层，再把减掉的空楼层移到“已删除”，保存时补建缺失楼层；有数据的楼层不能在这里减。
   const ed = isB && s.id && o.kind !== "outdoor" ? editStructPlan(o, v.above, v.below, v.roof) : null;
   if (ed?.blocked.length) throw fieldErr("spaceAbove", ed.blocked[0]);
+  const specials = ed ? structFinal(o, { above: v.above, below: v.below, roof: v.roof, specials: s.specials || [] }).rows.filter((r) => r.special) : [];
   let saved;
   try {
     saved = await transaction((db) => {
@@ -41004,7 +40908,14 @@ async function saveSpaceForm() {
         for (const n of ed.plan.trashed) { const tr = db.trash.find((x) => x.kind === "floors" && x.value.buildingId === o.id && x.value.name === n); if (tr) M.restore(db, tr.id); }
         if (ed.del.length) floorDeleteApply(db, ed.del.map((f) => f.id));
       }
-      return M.saveSpace(db, s.kind, v);
+      const out = M.saveSpace(db, s.kind, v);
+      for (const sp of specials) {
+        if (db.floors.some((f) => f.buildingId === o.id && f.name === sp.name) || db.trash.some((t) => t.kind === "floors" && t.value.buildingId === o.id && t.value.name === sp.name))
+          throw Error(`本楼宇已有（或已删除中有）楼层“${sp.name}”，楼宇资料未保存`);
+        db.floors.push({ id: M.uid("floor"), buildingId: o.id, kind: "special", level: sp.level, name: sp.name, planVersion: 0 });
+      }
+      if (specials.length) M.record(db, "添加特殊层", o.id, `${v.name} · ${specials.map((r) => r.name).join("、")}`);
+      return out;
     });
   } catch (e) {
     if (/同名/.test(e.message)) throw fieldErr("spaceName", `已有同名${noun}，请换一个名称`);
@@ -41026,7 +40937,7 @@ async function saveSpaceForm() {
   if (!s.id && s.kind === "projects") route("projects", { p: saved.id, b: null, f: null, tab: "" });
   else if (!s.id && isB) route("projects", { p: saved.projectId, b: saved.id, f: outdoorSite(saved.id)?.id || null, tab: "" });
   else render();
-  msg(s.id ? `${noun}资料已保存` : `已创建${noun}“${v.name}”`);
+  msg(s.id ? `${noun}资料已保存${specials.length ? `，已添加特殊层${zhSub(specials.map((r) => r.name).join("、"), "l")}` : ""}` : `已创建${noun}“${v.name}”`);
 }
 async function saveNetworkForm(a) {
   const ids = checked("networkFloors"),
@@ -41204,35 +41115,6 @@ async function saveGroup() {
   render();
   // 新建后提示（Lovable 核查第 387 条，同规范“已创建项目…”）
   if (!o.id) msg(`已创建分组“${name}”`);
-}
-async function saveScene() {
-  const s = formState,
-    o = g("scenes", s.id) || {},
-    name = value("sceneName").trim(),
-    kind = s.sceneKind;
-  if (!name) throw Error("请填写场景名称");
-  const v = { ...o, id: o.id || M.uid("scene"), projectId: s.pid, name, kind, version: (o.version || 0) + 1, status: "draft" };
-  if (kind === "manual") {
-    v.groupId = value("sceneGroup");
-    v.action = value("sceneAction");
-    const group = F.allGroups(data()).find((x) => x.id === v.groupId);
-    if (!group) throw Error("请选择控制分组");
-    // 动作写显示名（2026-10-09 用户确认，ABB 对比 BP75）；保存的动作值不变
-    v.description = group.name + " · " + ({ 关闭: "关灯（保持自动）", 开启: "调光（进入手动）", 恢复自动灯控: "恢复自动" }[v.action] || v.action);
-  } else {
-    v.refId = value("sceneRef");
-    v.when = value("sceneWhen").trim();
-    if (!g("scenes", v.refId) || !v.when) throw Error("请选择引用场景并填写触发条件");
-    if (kind === "schedule" && !/^([01]\d|2[0-3]):[0-5]\d$/.test(v.when)) throw Error("时间格式为 HH:mm，例如 18:00");
-    v.description = v.when + " · " + g("scenes", v.refId).name;
-  }
-  await transaction((db) => {
-    const i = db.scenes.findIndex((x) => x.id === v.id);
-    i < 0 ? db.scenes.push(v) : db.scenes.splice(i, 1, v);
-    M.record(db, "保存场景规划", v.id, v.name, o);
-  }, "operate");
-  closeModal(true);
-  render();
 }
 defineActions({
   // 跳到主要内容：焦点移到页面内容（主面板），下一次 Tab 进入页头与页面内容，不再先走侧栏（第 112 条）。
@@ -41649,16 +41531,17 @@ defineActions({
     if (!U.p) throw Error("请选择项目");
     groupForm();
   },
-  // 场景规划：加载运营模块时由运营模块的场景表单与保存处理（2026-10-03 D2 合并原两处定义）。
+  // 场景规划：由运营的场景编辑页新建、修改与保存（2.36 S23）。
   sceneProjectNext: () => {
     U.p = value("sceneProject");
     if (!U.p) throw Error("请选择项目");
-    (typeof opsSceneForm === "function" ? opsSceneForm : sceneForm)();
+    opsSceneForm();
   },
   groupForm: withPolicy({ guard: true }, (a) => groupForm(a.id)),
   saveGroup,
-  sceneForm: withPolicy({ guard: true }, (a) => (typeof opsSceneForm === "function" ? opsSceneForm : sceneForm)(a.id)),
-  saveScene: (...args) => (typeof opsSceneSave === "function" ? opsSceneSave : saveScene)(...args),
+  // 2.36 S23：场景只在运营的场景编辑页中新建与修改，去掉旧的场景表单
+  sceneForm: withPolicy({ guard: true }, (a) => opsSceneForm(a.id)),
+  saveScene: (...args) => opsSceneSave(...args),
   healthInfo: (a) => healthInfo(a.id),
   serviceInfo: (a) => serviceInfo(a.name),
   missingBack: (a) => {
@@ -41861,7 +41744,7 @@ defineActions({
     if (!Number.isFinite(meters) || meters <= 0) throw fieldErr("scaleMeters", "请填写大于 0 的有限实际距离，单位米");
     if (!pts || pts.length !== 2 || Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) < 0.1) throw Error("请选择两个不同的楼层图端点");
     const img = $("#floorCanvas>img"), fid = U.f, version = currentFloor()?.planVersion;
-    if (!img?.naturalWidth || !img?.naturalHeight) throw Error("楼层图尚未载入，请稍后重试；已选端点保留");
+    if (!img?.naturalWidth || !img?.naturalHeight) throw Error("楼层图尚未载入，请稍后再试；已选端点保留");
     await transaction((db) => {
       const f = M.floor(db, fid);
       if (f.planVersion !== version) throw Error("楼层图已变化，请重新选取校准端点");
@@ -42000,8 +41883,7 @@ document.addEventListener("input", (e) => {
   if (e.target.id === "zcSrc") zcSetSource(e.target.value);
   if (e.target.id === "zcZoneQuery") zcFilterZones(e.target.value);
   if (e.target.id === "northDeg" && $("#northArrow")) $("#northArrow").style.transform = `rotate(${Number(e.target.value) || 0}deg)`;
-  if (["structAbove", "structBelow", "structRoof"].includes(e.target.id) && U.structDraft) structRefresh();
-  else if (["spaceAbove", "spaceBelow", "spaceRoof"].includes(e.target.id) && $("#structPreview")) {
+  if (["spaceAbove", "spaceBelow", "spaceRoof"].includes(e.target.id) && $("#structPreview")) {
     const form = e.target.id.startsWith("space"),
       pre = form ? "space" : "struct",
       b = form ? g("buildings", formState?.id) : currentBuilding();
@@ -42448,7 +42330,7 @@ const tdtReverseUrl = (lat, lng) => `https://api.tianditu.gov.cn/geocoder?postSt
 const MAP_ATTRIBUTION = () => `© <a href="https://www.tianditu.gov.cn/" target="_blank" rel="noopener">天地图</a>${PACOM_MAP.approval ? " · " + esc(PACOM_MAP.approval) : ""}`;
 function mapBase(el, center, zoom, onOff) {
   if (!window.L) {
-    el.innerHTML = '<div class="ws-empty"><h3>地图组件暂不可用</h3><p>原有坐标仍保留，请稍后重试。</p></div>';
+    el.innerHTML = '<div class="ws-empty"><h3>地图组件暂不可用</h3><p>原有坐标仍保留，请稍后再试。</p></div>';
     onOff?.("component");
     return null;
   }
@@ -44323,7 +44205,16 @@ function editStructRefresh(b) {
   const el = $("#structPreview");
   if (!el) return;
   const ed = editStructPlan(b, value("spaceAbove"), value("spaceBelow"), $("#spaceRoof")?.checked);
-  el.innerHTML = [...ed.lines.map((t) => `<p class="ws-struct-preview">${esc(t)}</p>`), ...ed.blocked.map((t) => `<p class="ws-struct-preview ws-struct-err">${esc(t)}</p>`)].join("");
+  const sp = structFinal(b, editSpecialDraft(b)).rows.filter((r) => r.special).map((r) => `将新增特殊层 ${r.name}，${r.tag.split(" · ")[1]}`);
+  el.innerHTML = [...ed.lines, ...sp].map((t) => `<p class="ws-struct-preview">${esc(t)}</p>`).join("") + ed.blocked.map((t) => `<p class="ws-struct-preview ws-struct-err">${esc(t)}</p>`).join("");
+  const list = $("#editSpecials");
+  if (list) list.innerHTML = editSpecialRows();
+  const at = $("#specialAt"), ctl = $("#specialAt-control");
+  if (at && ctl) {
+    const opts = editSpecialAt(b);
+    ctl.dataset.options = JSON.stringify(opts);
+    if (!opts.some(([x]) => x === at.value)) { at.value = opts[0]?.[0] || ""; ctl.querySelector("span").textContent = opts[0]?.[1] || "请选择"; }
+  }
   const save = $("#dlg .df .primary");
   if (save) save.disabled = !!ed.blocked.length;
 }
@@ -44336,20 +44227,8 @@ function structText(plan, isNew) {
   if (plan.over.length) t.push(`需先删除${zhSub(floorNames(plan.over), "l")}（移到“已删除”）才能缩减层数`);
   return t.join("；") || "层数未变化";
 }
-// ---------- 楼层结构（2026-10-03 用户确认 C14）：一份草稿 ----------
-// 层数、屋顶层与添加特殊层都写入草稿（U.structDraft），弹窗内实时预览最终楼层列表：新增、补建、保留、新增特殊层、
-// 在“已删除”中（不会新建）与将删除（缩减层数后超出的楼层，2026-10-03 用户确认“在草稿内一并删除”）；最后一次保存。
-// 将删除的楼层与“删除楼层…”同一套依赖检查与输入确认（floorDeleteBlocked / floorDeleteConfirmField / floorDeleteApply）：
-// 有依赖的楼层阻止保存，在草稿中列出原因与处理入口；可删除时保存按钮为“删除 N 个楼层并保存”，删除的楼层移到“已删除”，可恢复。
-// “缺失楼层”一段只在按当前层数确有缺失时显示，补建随保存一并完成。
+// ---------- 楼层结构：编辑楼宇中的层数、屋顶层与特殊层（2.36 S1） ----------
 const structLevel = (n) => (n === "RF" ? 999 : n.startsWith("B") ? -Number(n.slice(1)) : Number(n.slice(0, -1)));
-function structDraftRead(b) {
-  const d = U.structDraft || { specials: [] };
-  const above = $("#structAbove") ? value("structAbove") : b.above ?? 0,
-    below = $("#structBelow") ? value("structBelow") : b.below ?? 0,
-    roof = $("#structRoof") ? $("#structRoof").checked : !!b.roof;
-  return { above, below, roof, specials: d.specials };
-}
 // 最终楼层列表（自上而下）：每行 { name, level, tag, cls }；plan 为 structPlan 的结果，missing 为按当前层数应有而缺失的楼层。
 function structFinal(b, draft) {
   const plan = structPlan(b, draft.above, draft.below, draft.roof);
@@ -44378,102 +44257,43 @@ function structFinal(b, draft) {
   rows.sort((x, y) => y.level - x.level);
   return { plan, rows, missing, del, blocked };
 }
-// 保存按钮：有将删除的楼层时写明“删除 N 个楼层并保存”，否则“保存楼层结构”。
-const structSaveLabel = (del) => (del.length ? `删除 ${del.length} 个楼层并保存` : "保存楼层结构");
-// 将删除的楼层：有依赖时列出原因与处理入口（与“删除楼层…”受阻时同一写法），否则写明去向并要求输入“删除”确认。
-function structDeleteHtml(del, blocked) {
-  if (!del.length) return "";
-  // 受阻时主按钮不可用，并在这里写明原因（核查 R12）。
-  if (blocked.length) return `<p class="ws-struct-blocked" id="structBlocked">先处理有依赖的楼层，才能删除并保存；也可改回层数，不删除楼层。</p>${floorBatchDependencyList(blocked)}`;
-  // 2.13 E241：去向写在“保存后的楼层”的“将删除 …”一行，这里只留“输入‘删除’以确认”（原另写一句“… 将移到‘已删除’…”）
-  return floorDeleteConfirmField();
+// 2.36 S1（HONG 2026-10-27 11:40Z 按推荐）：楼层结构都在“编辑楼宇”中修改：层数、屋顶层与特殊层；去掉已没有入口的“调整楼层结构”弹窗。
+// 特殊层名称、位置与描边“添加”一行，加入的特殊层逐行列出（行尾移除），写入变化预览，随“保存”一起生成；位置为保存后的楼层（不含屋顶层、已删除和将删除的楼层）。
+const editSpecialDraft = (b) =>
+  $("#spaceAbove")
+    ? { above: value("spaceAbove"), below: value("spaceBelow"), roof: !!$("#spaceRoof")?.checked, specials: formState?.specials || [] }
+    : { above: b.above ?? 0, below: b.below ?? 0, roof: !!b.roof, specials: formState?.specials || [] };
+const editSpecialAt = (b) => structFinal(b, editSpecialDraft(b)).rows.filter((r) => r.level < 1e6 && r.cls !== "muted" && !r.del && !r.special).map((r) => [r.name, `位于${zhSub(r.name)}之上`]);
+const editSpecialRows = () => (formState?.specials || []).map((x) => `<div class="ws-special-row"><span>${esc(x.name)}</span><small>位于${zhSub(esc(x.at))}之上</small>${iconBtn("移除特殊层" + x.name, "x", "bEditSpecialDrop", { name: x.name })}</div>`).join("");
+function editSpecialHtml(b) {
+  const opts = editSpecialAt(b);
+  return `<div class="ws-special-add">${fld("特殊层（选填）", "specialName", input("specialName", "", "例如：夹层、M2"))}${fld("位置", "specialAt", select("specialAt", opts, opts[0]?.[0] || "", "特殊层位置"))}${btn("添加", "bEditSpecialAdd", {}, "ws-special-btn")}</div><div id="editSpecials">${editSpecialRows()}</div>`;
 }
-// 2.13 E241（2026-10-21 用户确认）：“保存后的楼层”只写变化：一行摘要“保存后共 21 个楼层（B2–20F、RF）”，有新增时“新增 23F、24F”，
-// 有删除时“将删除 22F、21F，移到‘已删除’，可恢复原编号、楼层图与功能区”，其下为输入确认；不再列出全部楼层、逐行写“保留”。
-// 没有变化时只写“结构未变化”，“保存楼层结构”不可点。
-const structChanged = (rows) => rows.some((r) => r.cls === "new" || r.del);
-function structRange(keep) {
-  const reg = keep.filter((r) => r.level < 1e6 && !r.special && !r.sp),
-    asc = [...reg].reverse(),
-    others = keep.filter((r) => !reg.includes(r) && r.level < 1e6).map((r) => r.name),
-    roof = keep.some((r) => r.level >= 1e6);
-  return [asc.length ? (asc.length > 1 ? `${asc[0].name}–${asc.at(-1).name}` : asc[0].name) : "", ...others, roof ? "RF" : ""].filter(Boolean).join("、");
-}
-function structPreviewHtml(b) {
-  const draft = structDraftRead(b), { plan, rows } = structFinal(b, draft);
-  if (!plan) return `<p class="ws-struct-preview warn" id="structSummary">地上 0–200、地下 0–30 的整数</p>`;
-  if (!plan.want.length && !draft.specials.length) return `<p class="ws-struct-preview warn" id="structSummary">地上、地下层数不能都为 0</p>`;
-  const keep = rows.filter((r) => r.cls !== "muted" && !r.del),
-    names = (f) => rows.filter(f).map((r) => r.name),
-    added = names((r) => r.tag === "新增" || r.special).reverse(),
-    filled = names((r) => r.tag === "补建").reverse(),
-    del = names((r) => r.del),
-    trashed = names((r) => r.cls === "muted"),
-    line = (t, first) => `<p class="ws-struct-preview"${first ? ' id="structSummary"' : ""}>${t}</p>`;
-  const lines = structChanged(rows)
-    ? [`保存后共 ${keep.length} 个楼层（${esc(structRange(keep))}）`, added.length ? `新增 ${floorNamesHtml(added)}` : "", filled.length ? `补建 ${floorNamesHtml(filled)}` : "", del.length ? `将删除 ${floorNamesHtml(del)}，移到“已删除”，可恢复原编号、楼层图与功能区` : ""]
-    : ["结构未变化"];
-  if (trashed.length) lines.push(`${floorNamesHtml(trashed)}在“已删除”中，不会新建；请从“已删除”恢复`);
-  return lines.filter(Boolean).map((t, i) => line(t, !i)).join("");
-}
-// 本次草稿里加入的特殊层：逐行列出，行尾移除图标（E241）
-const structSpecialRows = () => (U.structDraft?.specials || []).map((s) => `<div class="ws-special-row"><span>${esc(s.name)}</span><small>位于${zhSub(esc(s.at))}之上</small>${iconBtn("移除特殊层" + s.name, "x", "bSpecialDrop", { name: s.name })}</div>`).join("");
-function structRefresh() {
-  const b = currentBuilding(), el = $("#structPreview");
-  if (!b || !el) return;
-  el.innerHTML = structPreviewHtml(b);
-  // 将删除的楼层或其依赖变化时才重写确认段，已输入的“删除”在层数不变时保留。
-  const { del, blocked } = structFinal(b, structDraftRead(b)), sec = $("#structDelete"), key = JSON.stringify([del.map((f) => f.id), blocked.map(([f, i]) => [f.id, i])]);
-  if (sec && sec.dataset.key !== key) {
-    sec.dataset.key = key;
-    sec.hidden = !del.length;
-    sec.querySelector(".ws-struct-del").innerHTML = structDeleteHtml(del, blocked);
-  }
-  const sp = $("#structSpecials");
-  if (sp) sp.innerHTML = structSpecialRows();
-  const save = $("#dlg [data-act=bStructSave]");
-  if (save) {
-    save.textContent = structSaveLabel(del);
-    save.disabled = !!blocked.length || !structChanged(structFinal(b, structDraftRead(b)).rows);
-    if (blocked.length) save.setAttribute("aria-describedby", "structBlocked"); else save.removeAttribute("aria-describedby");
-  }
-  const at = $("#specialAt"), ctl = $("#specialAt-control");
-  if (at && ctl) {
-    const opts = structAtOptions(b);
-    ctl.dataset.options = JSON.stringify(opts);
-    if (!opts.some(([v]) => v === at.value)) { at.value = opts[0]?.[0] || ""; ctl.querySelector("span").textContent = opts[0]?.[1] || "请选择"; }
-  }
-}
-// 特殊层位置：草稿保存后的楼层（不含屋顶层、在“已删除”中和将删除的楼层）。
-function structAtOptions(b) {
-  const { rows } = structFinal(b, structDraftRead(b));
-  return rows.filter((r) => r.level < 1e6 && r.cls !== "muted" && !r.del).map((r) => [r.name, `位于${zhSub(r.name)}之上`]);
-}
-function structureModal() {
-  const b = currentBuilding();
-  U.structDraft = { bid: b.id, specials: [] };
-  const fs = sortedFloors(b.id),
-    specials = fs.filter((f) => f.kind === "special"),
-    trashedNames = data().trash.filter((t) => t.kind === "floors" && t.value.buildingId === b.id).map((t) => t.value.name),
-    cur = structPlan(b, b.above ?? 0, b.below ?? 0, b.roof),
-    missing = cur ? cur.add : [],
-    atOpts = structAtOptions(b),
-    fin = structFinal(b, structDraftRead(b));
-  // 2.13 E241：标题与菜单项一致为“调整楼层结构”（原为“楼层结构”）；去掉“层数”小标题，地上、地下层数一行，勾选离输入框 8；
-  // 特殊层说明一句，名称、位置与描边“添加”同一行，本次加入的特殊层逐行列出；底栏去掉“已删除”（入口在“更多 › 查看已删除”）。
-  modal(
-    "调整楼层结构",
-    `<section class="ws-struct-sec ws-struct-count"><div class="ws-form-row">${fld("地上层数", "structAbove", input("structAbove", b.above ?? 0, "", "number"))}${fld("地下层数", "structBelow", input("structBelow", b.below ?? 0, "", "number"))}</div><label class="row small"><input id="structRoof" type="checkbox" ${b.roof ? "checked" : ""}>包含屋顶层 RF</label></section>` +
-      `<section class="ws-struct-sec"><h3>特殊层</h3><p class="ws-struct-preview">不按地上、地下编号的楼层，如夹层、设备层。${
-        specials.length ? `现有：${specials.map((f) => esc(f.name)).join("、")}。` : ""
-      }</p><div class="ws-special-add">${fld("名称", "specialName", input("specialName", "", "例如：夹层、M2"))}${fld("位置", "specialAt", select("specialAt", atOpts, atOpts[0]?.[0] || "", "特殊层位置"))}${btn("添加", "bSpecialAdd", {}, "ws-special-btn")}</div><div id="structSpecials">${structSpecialRows()}</div></section>` +
-      (missing.length
-        ? `<section class="ws-struct-sec"><h3>缺失楼层</h3><p class="small">按当前层数应有但不存在、也没有删除记录的楼层：${floorNamesHtml(missing)}。保存楼层结构时一并补建。${trashedNames.length ? "已删除的楼层请从“已删除”恢复原楼层，不会用补建生成同名新楼层。" : ""}</p></section>`
-        : "") +
-      `<section class="ws-struct-sec ws-struct-final"><h3>保存后的楼层</h3><div id="structPreview" aria-live="polite">${structPreviewHtml(b)}</div><div id="structDelete" data-key="${esc(JSON.stringify([fin.del.map((f) => f.id), fin.blocked.map(([f, i]) => [f.id, i])]))}"${fin.del.length ? "" : " hidden"}><div class="ws-struct-del">${structDeleteHtml(fin.del, fin.blocked)}</div></div></section>`,
-    btn("取消", "close") + btn(structSaveLabel(fin.del), "bStructSave", { disabled: !!fin.blocked.length || !structChanged(fin.rows) }, "primary"),
-  );
-}
+defineActions({
+  bEditSpecialAdd: () => {
+    const b = g("buildings", formState?.id);
+    if (!b) return;
+    const name = value("specialName").trim(), at = value("specialAt");
+    if (!name) throw fieldErr("specialName", "请填写特殊层名称");
+    if (name.length > 6) throw fieldErr("specialName", "名称不超过 6 个字，楼层轨道中需要完整显示");
+    const taken = structFinal(b, editSpecialDraft(b)).rows.some((r) => r.name === name) || data().trash.some((t) => t.kind === "floors" && t.value.buildingId === b.id && t.value.name === name);
+    if (taken) throw fieldErr("specialName", "本楼宇已有同名楼层（含已删除）");
+    if (!at || !editSpecialAt(b).some(([x]) => x === at)) throw fieldErr("specialAt", "请选择特殊层的位置");
+    (formState.specials ||= []).push({ name, at });
+    modalDirty = true;
+    $("#specialName").value = "";
+    editStructRefresh(b);
+    msg(`已加入特殊层“${name}”，位于${zhSub(at)}之上，保存后生成`);
+    $("#specialName")?.focus();
+  },
+  bEditSpecialDrop: (a) => {
+    if (!formState?.specials) return;
+    formState.specials = formState.specials.filter((x) => x.name !== a.name);
+    const b = g("buildings", formState.id);
+    if (b) editStructRefresh(b);
+    $("#specialName")?.focus();
+  },
+});
 defineActions({
   bDelete: () => {
     const fs = (U.bsel || []).map((id) => g("floors", id)).filter(Boolean),
@@ -44518,66 +44338,6 @@ defineActions({
     }),
   bInfo: (a) => actions.spacePanelInfo({ kind: "buildings", id: a.id || U.b }),
   bInfoClose: () => actions.spacePanelInfoClose(),
-  bStructure: withPolicy({ guard: true }, () => structureModal()),
-
-  bStructSave: withPolicy({ busy: "modal" }, async () => {
-    if (value("structAbove") === "" || !Number.isInteger(+value("structAbove")) || +value("structAbove") < 0 || +value("structAbove") > 200) throw fieldErr("structAbove", "请填写 0–200 的整数");
-    if (value("structBelow") === "" || !Number.isInteger(+value("structBelow")) || +value("structBelow") < 0 || +value("structBelow") > 30) throw fieldErr("structBelow", "请填写 0–30 的整数");
-    const b = currentBuilding(), draft = structDraftRead(b),
-      { plan, rows, del, blocked } = structFinal(b, draft);
-    if (!plan) throw fieldErr("structAbove", "地上 0–200、地下 0–30 的整数");
-    if (!plan.want.length) throw fieldErr("structAbove", "地上、地下层数不能都为 0");
-    // 缩减层数时在草稿内一并删除（C14）：与“删除楼层…”同一套依赖检查与输入确认；有依赖的楼层阻止保存。
-    if (blocked.length) {
-      structRefresh();
-      throw Error(`${zhSub(floorNames(blocked.map(([f]) => f.name)), "r")}仍有依赖，先处理后才能删除；本次未保存楼层结构`);
-    }
-    if (del.length) floorDeleteConfirmed();
-    const patch = { above: Number(draft.above), below: Number(draft.below), roof: draft.roof },
-      before = { above: b.above, below: b.below, roof: !!b.roof },
-      specials = rows.filter((r) => r.special),
-      added = rows.filter((r) => r.cls === "new" && !r.special).map((r) => r.name);
-    if (!added.length && !specials.length && !del.length && JSON.stringify(before) === JSON.stringify(patch)) { closeModal(true); return msg("楼层结构未变化"); }
-    await transaction((db) => {
-      const cur = M.get(db, "buildings", b.id);
-      if (!cur) throw Error("楼宇已删除，楼层结构未保存");
-      // 先删除（逐个重新检查依赖，任一不能删除则整体不保存），再按新层数保存。
-      if (del.length) floorDeleteApply(db, del.map((f) => f.id));
-      for (const sp of specials)
-        if (db.floors.some((f) => f.buildingId === b.id && f.name === sp.name) || db.trash.some((t) => t.kind === "floors" && t.value.buildingId === b.id && t.value.name === sp.name))
-          throw Error(`本楼宇已有（或已删除中有）楼层“${sp.name}”，楼层结构未保存`);
-      M.saveSpace(db, "buildings", { ...cur, ...patch });
-      for (const sp of specials) db.floors.push({ id: M.uid("floor"), buildingId: b.id, kind: "special", level: sp.level, name: sp.name, planVersion: 0 });
-      M.record(db, "保存楼层结构", b.id, [del.length ? `删除${zhSub(floorNames(del.map((f) => f.name)), "l")}` : "", added.length ? `新增${zhSub(floorNames(added), "l")}` : "", specials.length ? `特殊层${zhSub(specials.map((r) => r.name).join("、"), "l")}` : ""].filter(Boolean).join(" · ") || "层数", before);
-    });
-    U.structDraft = null;
-    closeModal(true);
-    render();
-    msg([del.length ? `已将${zhSub(floorNames(del.map((f) => f.name)))}移到“已删除”，可恢复原楼层` : "", added.length ? `已新增${zhSub(floorNames(added), "l")}` : "", specials.length ? `已添加特殊层${zhSub(specials.map((r) => r.name).join("、"), "l")}` : ""].filter(Boolean).join("；") || "楼层结构已保存");
-  }),
-  // 添加特殊层只写入草稿（C14）：校验名称与位置后加入预览，弹窗不关闭；键盘与鼠标操作时焦点回到名称，便于连续添加。
-  bSpecialAdd: () => {
-    const b = currentBuilding(), d = U.structDraft;
-    if (!b || !d) return;
-    const name = value("specialName").trim(), at = value("specialAt");
-    if (!name) throw fieldErr("specialName", "请填写特殊层名称");
-    if (name.length > 6) throw fieldErr("specialName", "名称不超过 6 个字，楼层轨道中需要完整显示");
-    const taken = structFinal(b, structDraftRead(b)).rows.some((r) => r.name === name) || data().trash.some((t) => t.kind === "floors" && t.value.buildingId === b.id && t.value.name === name);
-    if (taken) throw fieldErr("specialName", "本楼宇已有（或已删除中有、草稿中有）同名楼层");
-    if (!at || !structAtOptions(b).some(([v]) => v === at)) throw fieldErr("specialAt", "请选择特殊层的位置");
-    d.specials.push({ name, at });
-    modalDirty = true;
-    $("#specialName").value = "";
-    structRefresh();
-    msg(`已加入草稿：特殊层“${name}”，位于${zhSub(at)}之上；保存楼层结构后生效`);
-    (typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches ? $("#structSummary") : $("#specialName"))?.focus();
-  },
-  bSpecialDrop: (a) => {
-    const d = U.structDraft; if (!d) return;
-    d.specials = d.specials.filter((x) => x.name !== a.name);
-    structRefresh();
-    $("#specialName")?.focus();
-  },
 });
 // ---------- 2026-09-28 实施基线第 3 步（c）：项目楼层工作区（UI_RULES §17） ----------
 // 空间类型表（2026-10-09 用户确认，ABB 对比 BP40–BP42；规范 SPACE05“空间类型”表）：[名称, 代码, 适用, 归类]，只在这里定义一次。
@@ -45385,7 +45145,8 @@ defineActions({
     );
   },
   spMulti: withPolicy({ guard: true }, () => { U.zoneMulti = { fid: U.f, ids: [] }; U.zone = null; syncRoute(true); render(); requestAnimationFrame(() => $("input[name=spMulti]")?.focus()); }),
-  spMultiDone: () => { U.zoneMulti = null; render(); requestAnimationFrame(() => $("[data-act=spMulti]")?.focus()); },
+  // 2.36 S15：“多选”在“更多”菜单里，退出多选后焦点回到“更多”按钮（原回到菜单项，菜单已关闭，焦点没有落点）。
+  spMultiDone: () => { U.zoneMulti = null; render(); requestAnimationFrame(() => $("[data-act=spZoneMore]")?.focus()); },
   spMultiAll: () => {
     const boxes = [...document.querySelectorAll("input[name=spMulti]")], all = boxes.every((x) => x.checked);
     boxes.forEach((x) => (x.checked = !all));
@@ -45843,7 +45604,7 @@ async function loadPdfJs() {
     mod.GlobalWorkerOptions.workerSrc = new URL("pdf.worker.min.js", base).href;
     return (pdfjsLib = mod);
   } catch (e) {
-    throw Error("PDF 组件未能加载，原楼层图未更改；请稍后重试");
+    throw Error("PDF 组件未能加载，原楼层图未更改；请稍后再试");
   }
 }
 const canWebp = () => {
@@ -55036,7 +54797,7 @@ function renderOverview() {
     zs = selectedZones();
   return (
     head +
-    `<div class="ws-section-toolbar ops-nodata-h"><p class="muted">${esc(whereNow())} · ${ps.length} 个${kind}相关点位 · 仅显示当前范围</p>${kind === "照明" ? (canOperate() ? btn("照明控制参数", "lightingSettings", { kind }) : "") : btn(kind + "参数", "applicationSettings", { kind })}</div>${zs.length ? `<div class="cards">${zs.map((z) => overviewAreaCard(z, tab)).join("")}</div>` : empty("尚未划分功能区", "进入楼层图划分空间后，按功能区汇总设备和运行状态。", btn("查看楼层图", "overviewFloor"))}${
+    `<div class="ws-section-toolbar ops-nodata-h"><p class="muted">${esc(whereNow())} · ${ps.length} 个${kind}相关点位 · 仅显示当前范围</p>${kind === "照明" ? (canOperate() ? btn("照明控制参数", "lightingSettings", { kind }) : "") : btn("查看设置", "goSettings", { tab })}</div>${zs.length ? `<div class="cards">${zs.map((z) => overviewAreaCard(z, tab)).join("")}</div>` : empty("尚未划分功能区", "进入楼层图划分空间后，按功能区汇总设备和运行状态。", btn("查看楼层图", "overviewFloor"))}${
       // 没有相关点位时不显示设备表，只留“尚未划分功能区”一个空状态（Lovable 核查第 219 条，2026-10-11 用户确认）
       ps.length
         ? `<div class="ops-nodata">${table(
@@ -55485,7 +55246,6 @@ function renderAnalysis() {
   const tab = U.tab || "energy",
     kind = { energy: "能耗", carbon: "碳排放", environment: "室内环境", space: "空间使用", health: "设备健康", reports: "报告" }[tab] || "能耗",
     // 能耗设置与碳排放设置对所有角色可见，没有编辑权限时以只读方式打开（2026-10-08 Vision 核查 V24）；
-    // 室内环境为只读的“室内环境参数”，所有角色可开（2.01 运营核查 V109：原为编辑权限的“室内环境设置”）
     // 筛选行右端最多一个按钮（V129）：能源“统计口径”，室内环境“查看设置”
     settings = tab === "energy" && U.role !== "member" ? btn("统计口径", "overviewBasis", {}) : tab === "environment" ? btn("查看设置", "goSettings", { tab }) : "",
     // 桌面设置在筛选行右端；手机与筛选控件自然换行，范围、时区和期间另起通栏，与有运行数据时保持同一结构。
@@ -55958,12 +55718,6 @@ function ruleOwnerField(pid, cur) {
   // 责任对象只作工单的默认负责人，不决定通知发给谁（2026-10-09 用户确认，ABB 对比 BP100）
   return fld("责任对象", "ruleOwner", select("ruleOwner", [["", "未指定"], ...ms.map((m) => [m.name, m.label])], ms.some((m) => m.name === cur) ? cur : "", "责任对象"), "工单的默认负责人，不影响通知");
 }
-// 室内环境设置中按配置参数（SPACE07）逐项列出当前值与状态，“查看”打开配置参数中的该行，这里不另设字段
-// （规范 OPS04，2026-10-08 第 2 轮第6章，OPS04 待实现第5条）；暖通空调设置按系统分组列出，见 hvacGroupsHtml。
-// 参考范围的各行（Q-02、Q-03、H-17、Q-16、H-19）列在“参考范围（配置参数）”中，见 envRefHtml（2026-10-09 用户确认，ABB 对比 BP85）
-const OPS_PARAMS = {
-  室内环境: ["Q-01", "Q-04", "Q-14"],
-};
 // 状态的写法与应用设置相同，有待核对的写“待核对”（2026-10-09 用户确认，ABB 对比 BP68）；取消参数审批后不再有“待批准”（2.09 残留核查 R18）
 const opsParamStatus = (st) => (st.applies !== true ? "不适用" : st.hold ? "待核对" : st.status);
 // 一行：名称，编号与执行位置、状态，当前值（几台不同时写“各台不同”，下面列出各值的台数）与“待下发”；“查看”打开配置参数中的该行，
@@ -55972,20 +55726,6 @@ function opsParamItem({ name, meta, value, split = "", pending = false, pid, row
   return `<li><div><b>${esc(name)}</b>${meta ? `<small>${esc(meta)}</small>` : ""}<span>${esc(value)}${pending ? " " + badge("待下发", "info") : ""}</span>${split ? `<small class="ops-param-split">${esc(split)}</small>` : ""}</div>${
     row === false ? "" : `<button class="btn ghost sm" data-act="opsParamGo" data-p="${esc(pid)}"${row ? ` data-row="${esc(row)}"` : ""} aria-label="在应用设置中查看${esc(aria)}">查看</button>`
   }</li>`;
-}
-function opsParamList(kind, pid, floorIds) {
-  if (kind === "暖通空调") return hvacGroupsHtml(pid, floorIds);
-  const db = data(),
-    P = v13Profile(db, pid),
-    rows = v13Rows(db, pid);
-  return `<ul class="ops-param-list">${OPS_PARAMS[kind]
-    .map((code) => {
-      const r = rows.find((x) => x.level === "project" && x.code === code);
-      if (!r) return "";
-      const st = v13State(r, P, db, pid);
-      return opsParamItem({ name: st.t.item, meta: `${code} · ${st.t.layer}${st.applies === true ? " · " + opsParamStatus(st) : ""}`, value: st.applies === true ? st.value : "不适用：" + st.applies, pid, row: r.id });
-    })
-    .join("")}</ul>`;
 }
 /* 室内环境的参考范围（规范 OPS04，2026-10-09 用户确认，ABB 对比 BP85）：只有一套，取配置参数，总览、数据分析、报告与智能助手共用。
    CO₂ 1 h 均值不超过 Q-02 的值，PM2.5 24 h 均值不超过 Q-03 中“一般”的上限，湿度按季节取 H-19；室温在平台控制空调（风机盘管、多联机）
@@ -56081,216 +55821,15 @@ function aqLevel(aq, ref) {
   return { i, by, text: AQ_BANDS[i] + (by ? `（${by}）` : "") };
 }
 // 档名标签：该档颜色作底、深色字
-const aqChip = (text, i) => `<span class="ops-cmp-chip" style="--c:${AQ_COLORS[i]}">${esc(text)}</span>`;
 // 室内环境设置的“参考范围（配置参数）”（规范 OPS04，2026-10-09 用户确认，ABB 对比 BP85）：只读，按所选楼层的功能区列出当前值，
 // 写法同暖通空调设置（各功能区取楼层或功能区覆盖，值不同时写“各功能区不同”并列出各值的功能区数）；“查看”打开配置参数中的该行，修改在配置参数中进行
-function envRefHtml(pid, floorIds) {
-  const db = data(),
-    P = v13Profile(db, pid),
-    fl = new Set(floorIds || []);
-  if (!fl.size) return `<p class="muted small appset-points-tip">当前位置没有楼层。</p>`;
-  const rows = envRows(db, pid),
-    zs = db.zones.filter((z) => fl.has(z.floorId)).sort(M.byName),
-    ac = (z) => db.points.some((p) => p.zoneId === z.id && (p.type === "fc" || p.type === "idu")),
-    season = envSeason(pid),
-    text = {
-      "Q-02": (v) => `1 h 均值 ≤ ${envN(envNum(v, ENV_CO2_RE) ?? 1000)} ppm`,
-      "Q-03": (v) => `24 h 均值 ≤ ${envN(envPmRef(v))} μg/m³`,
-      "H-17": (v) => envAcText(envAcK(v)),
-    },
-    item = (code, name, list) => {
-      const top = rows.find((r) => r.level === "project" && r.code === code);
-      if (!top) return "";
-      const s = v13State(top, P, db, pid),
-        base = opsParamStatus(s),
-        xs = (list.length ? list : [null]).map((z) => {
-          const r = envRowFor(rows, code, envAt(db, z)),
-            e = r === top ? s : v13State(r, P, db, pid),
-            st = opsParamStatus(e);
-          return (e.applies !== true ? "不适用：" + e.applies : (text[code] || String)(e.value)) + (st !== base ? `（${st}）` : "");
-        });
-      return opsParamItem({ name, meta: `${code} · ${s.t.layer}${s.applies === true ? " · " + base : ""}`, ...hvacTally(xs, "个功能区"), pid, row: top.id, aria: s.t.item });
-    };
-  return `<p class="muted small appset-current-state" style="margin:0 0 8px">当前为${season.name}，室温与湿度${season.key === "mid" ? "取冬夏两个范围合并" : "按" + season.sk}。</p><ul class="ops-param-list">${[
-    item("Q-02", "CO₂", zs),
-    item("Q-03", "PM2.5", zs),
-    item("H-17", "室温（平台控制空调的功能区）", zs.filter(ac)),
-    item("Q-16", "室温（其他功能区）", zs.filter((z) => !ac(z))),
-    item("H-19", "湿度", zs),
-  ].join("")}</ul>`;
-}
 // 暖通空调设置（规范 OPS03，2026-10-09 暖通空调方案评估 HV9）：按所选楼层上的系统分组列出当前值，修改在配置参数中进行。
 // 共用、风机盘管（FC20 本地温控）、多联机（按系统接入，列内机与外机）、分体空调（只计量）。值按每台设备取：楼层或功能区覆盖优先（功能区 > 楼层 > 楼宇），
 // 可调范围与默认设定按该台的设备范围与步长（hvacDev），面板锁、线控器禁止项与无人关机按功能区是否为公共区；几台不同写“各台不同”并列出各值的台数。
 // 已批准、尚未下发到设备的值后写“待下发”：设备网络最近一次交付之后批准、适用范围与该网络服务楼层相交的参数（v13ApprovedAfter），还没有交付的网络不写。
 // 只读的计量接入（电能表）不是控制来源：分体空调只按电能表列出；有可写数据点、所选楼层还没有登记多联机内机的系统接入也列出，写明还没有登记内机。
-const HVAC_ITEMS = {
-  共用: [
-    ["H-02", "可调范围"],
-    ["H-01", "默认设定"],
-    ["H-03", "门厅、走廊默认设定"],
-    ["H-24", "季节"],
-    ["H-11", "时间表"],
-    ["H-12", "预启动"],
-    ["H-28", "非工作时间手动开机"],
-  ],
-  风机盘管: [
-    ["H-09", "待机"],
-    ["H-10", "节能"],
-    ["H-27", "面板锁"],
-    ["H-05", "防冻保护"],
-    ["H-07", "断电恢复"],
-    ["H-08", "通信中断"],
-  ],
-  多联机: [
-    ["H-30", "线控器禁止项"],
-    ["H-29", "无人关机"],
-  ],
-};
 // 各台的值相同时写一个值，不同时写“各台不同”并列出各值的台数（台数多的在前，台数相同按设备顺序）；
 // 室内环境设置按功能区计（“各功能区不同”，“N 个功能区”）
-function hvacTally(texts, unit = "台") {
-  const m = new Map();
-  texts.forEach((t) => m.set(t, (m.get(t) || 0) + 1));
-  return m.size <= 1
-    ? { value: texts[0] ?? "—", split: "" }
-    : { value: unit === "台" ? "各台不同" : "各功能区不同", split: [...m].sort((a, b) => b[1] - a[1]).map(([t, n]) => `${t} ${n} ${unit}`).join("；") };
-}
-function hvacGroupsHtml(pid, floorIds) {
-  const db = data(),
-    P = v13Profile(db, pid),
-    floors = floorIds || db.floors.filter((f) => M.projectOfFloor(db, f.id) === pid).map((f) => f.id),
-    fl = new Set(floors);
-  if (!floors.length) return `<p class="muted small appset-points-tip">当前位置没有楼层。</p>`;
-  const states = v13Rows(db, pid).map((r) => v13State(r, P, db, pid)),
-    top = (code) => states.find((s) => s.r.level === "project" && s.r.code === code),
-    pub = (p) => !!p && hvacPublic(db.zones.find((z) => z.id === p.zoneId)?.spaceType || ""),
-    pts = db.points.filter((p) => fl.has(p.floorId)).sort(M.byName),
-    fcs = pts.filter((p) => p.type === "fc"),
-    idus = pts.filter((p) => p.type === "idu"),
-    splits = pts.filter(hvacSplit);
-  // 设备网络最近一次交付之后批准的参数（尚未下发）
-  const pending = new Set(
-    db.networks
-      .filter((n) => n.projectId === pid && n.floorIds.some((f) => fl.has(f)))
-      .flatMap((n) => {
-        const last = db.deliveries.filter((x) => x.networkId === n.id && x.serviceReceiptId).sort((a, b) => String(b.at).localeCompare(String(a.at)))[0];
-        return last ? v13ApprovedAfter(db, n, last.at).map((s) => s.r.id) : [];
-      }),
-  );
-  // 某台设备取的行：功能区 > 楼层 > 楼宇的楼层或功能区覆盖，没有覆盖时为项目行
-  const eff = (s, p) => {
-    if (!p) return s;
-    const ks = states.filter((o) => o.r.parentId === s.r.id),
-      bid = db.floors.find((f) => f.id === p.floorId)?.buildingId;
-    return (
-      ks.find((k) => k.r.level === "zone" && k.r.scopeId === p.zoneId) ||
-      ks.find((k) => k.r.level === "floor" && k.r.scopeId === p.floorId) ||
-      ks.find((k) => k.r.level === "building" && k.r.scopeId === bid) ||
-      s
-    );
-  };
-  const devText = (code, s, p) => {
-    if (s.applies !== true) return "不适用：" + s.applies;
-    if (s.r.custom) return s.value;
-    const dev = hvacDev(db, p);
-    if (code === "H-02") return v13HvacRangeText(P, dev);
-    if (code === "H-01" || code === "H-03") return v13HvacSetText(P, code === "H-03", dev);
-    if (code === "H-27") return pub(p) ? "全锁（开关、模式、调温、风速）" : "只锁模式";
-    if (code === "H-30") return pub(p) ? "禁止开关、改模式、改设定" : hvacVrfSpec(hvacOdu(db, p)).oemLimit === "no" ? "禁止改模式、改设定" : "只禁止改模式";
-    if (code === "H-29") return pub(p) ? "公共区不用（只按时间表开关）" : s.value;
-    return s.value;
-  };
-  const item = (code, name, devs) => {
-    const s = top(code);
-    if (!s) return "";
-    const base = opsParamStatus(s),
-      xs = (devs.length ? devs : [null]).map((p) => {
-        const e = eff(s, p),
-          st = opsParamStatus(e);
-        return { text: devText(code, e, p) + (st !== base ? `（${st}）` : ""), id: e.r.id };
-      });
-    return opsParamItem({
-      name,
-      meta: `${code} · ${s.t.exec || s.t.layer}${s.applies === true ? " · " + base : ""}`,
-      ...hvacTally(xs.map((x) => x.text)),
-      pending: xs.some((x) => pending.has(x.id)),
-      pid,
-      row: s.r.id,
-      aria: s.t.item,
-    });
-  };
-  const list = (items) => `<ul class="ops-param-list">${items.join("")}</ul>`,
-    sec = (title, body) => `<section class="hvac-grp"><h4>${esc(title)}</h4>${body}</section>`,
-    out = [];
-  if (fcs.length || idus.length) {
-    const all = [...fcs, ...idus],
-      basis = v13HvacBasis(P),
-      devsOf = (code) => (code === "H-01" ? all.filter((p) => !pub(p)) : code === "H-03" ? all.filter(pub) : all);
-    out.push(
-      sec(
-        "共用",
-        list([
-          opsParamItem({ name: "温度限制依据", meta: "适用标准", value: HVAC_BASIS_NAME[basis] + (basis === "exempt" ? " · " + (P.tempNote || "依据未填写") : ""), pid, aria: "适用标准" }),
-          ...HVAC_ITEMS.共用.map(([code, name]) => item(code, name, devsOf(code))),
-        ]),
-      ),
-    );
-  }
-  if (fcs.length) {
-    const pipes = hvacTally(fcs.map((p) => (hvacFcSpec(p).pipes === 4 ? "四管制" : "两管制")));
-    out.push(
-      sec(
-        `风机盘管（FC20 本地温控 · ${fcs.length} 台）`,
-        list([
-          opsParamItem({ name: "水系统", meta: "设备登记 · FC20", value: pipes.split ? pipes.value : `${pipes.value} ${fcs.length} 台`, split: pipes.split, pid, row: false }),
-          ...HVAC_ITEMS.风机盘管.map(([code, name]) => item(code, name, fcs)),
-        ]),
-      ),
-    );
-  }
-  // 多联机按系统接入分组（一套 VG2x 一组）；外机按内机登记的所属外机，跨楼层的也算
-  const byConn = new Map();
-  idus.forEach((p) => byConn.set(p.connectionId || "", [...(byConn.get(p.connectionId || "") || []), p]));
-  const now = typeof Demo !== "undefined" && Demo.on?.() && typeof opsNow === "function" ? opsNow() : Date.now(),
-    season = hvacSeason(P, projectTime(now, false, pid, true).slice(5, 10)),
-    s24 = top("H-24"),
-    s04 = top("X-04");
-  for (const [cid, ps] of byConn) {
-    const conn = db.connections.find((x) => x.id === cid),
-      odus = [...new Set([...ps.map((p) => hvacOdu(db, p)), ...pts.filter((p) => p.type === "odu" && cid && p.connectionId === cid)].filter(Boolean))],
-      perOdu = (fn) => (odus.length ? hvacTally(odus.map((o) => fn(hvacVrfSpec(o)))) : { value: "内机还没有登记所属外机", split: "" }),
-      mode = perOdu((v) =>
-        v.kind === "heatpump" ? { cool: "制冷（供冷季）", heat: "制热（供暖季）", mid: "过渡季：由运营人员按系统选择（默认送风）" }[season.key] : "按房间（热回收）",
-      );
-    out.push(
-      sec(
-        `多联机（${conn ? `经“${conn.name}”` : "未关联系统接入"} · 内机 ${ps.length} 台 · 外机 ${odus.length} 台）`,
-        list([
-          s24 ? opsParamItem({ name: "外机模式", meta: `H-24 · ${s24.t.layer} · ${opsParamStatus(s24)}`, ...mode, pending: pending.has(s24.r.id), pid, row: s24.r.id, aria: s24.t.item }) : "",
-          ...HVAC_ITEMS.多联机.map(([code, name]) => item(code, name, ps)),
-          s04
-            ? opsParamItem({
-                name: "写入限制",
-                meta: `X-04 · ${s04.t.layer} · ${opsParamStatus(s04)}`,
-                ...perOdu((v) => `每点每天 ${fmt(v.writeLimit || HVAC_WRITE.perDay)} 次${v.writeLimit ? "" : "（未登记，按默认）"}`),
-                pending: pending.has(s04.r.id),
-                pid,
-                row: s04.r.id,
-                aria: s04.t.item,
-              })
-            : "",
-          opsParamItem({ name: "原厂限温", meta: "外机登记 · 原厂", ...perOdu((v) => ({ yes: "支持，调试时设好", no: "不支持：线控器禁止改设定" })[v.oemLimit] || "未确认"), pid, row: false }),
-        ]),
-      ),
-    );
-  }
-  const bare = db.connections.filter((x) => x.projectId === pid && (x.mappings || []).some((m) => m.writable) && (x.floorIds || []).some((f) => fl.has(f)) && !byConn.has(x.id));
-  if (bare.length) out.push(sec("多联机", bare.map((x) => `<p class="hvac-none">${esc(x.name)}：还没有登记多联机内机</p>`).join("")));
-  if (splits.length) out.push(sec(`分体空调（${splits.length} 台）`, `<p class="hvac-none">只计量 · ${esc(splits.map((p) => p.name).join("、"))}</p>`));
-  if (!out.length) return `<p class="muted small appset-points-tip">本项目还没有风机盘管、多联机或分体空调。</p>`;
-  return out.join("");
-}
 // 采集位置与代表性（规范 OPS04，2026-10-08 第 2 轮第6章，OPS04 待实现第4条）：每台 AQ20 登记安装位置和读数能代表的范围，
 // 在功能区面板“室内环境”分节显示。2.01 运营核查 V109（2026-10-16 用户确认）：改在设备中逐台登记（点位的 aqPos、aqRep），
 // 原在“室内环境设置”中登记；部署 App 的安装记录填写同一项
@@ -56304,54 +55843,9 @@ const aqRegOf = (p) => {
 function showApplicationSettings(kind, project, floor) {
   if (["能耗", "碳排放"].includes(kind)) return applicationForm(kind, project);
   if (kind === "照明") return showLightingSettings();
-  return showAppParams(kind, project, floor);
+  // 2.36 S18：暖通空调、室内环境不再有只读参数视图，打开应用设置的对应页签
+  return actions.goSettings({ tab: kind === "室内环境" ? "environment" : "hvac", p: project || U.p });
 }
-/* 暖通空调参数、室内环境参数（2.01 运营核查 V108、V109，2026-10-16 用户确认：原为可保存的“暖通空调设置”“室内环境设置”，
-   有适用楼层、清空适用范围与保存）：只读视图，所有角色可以打开，范围为当前位置（打开时的楼层；没有楼层时为当前楼宇或项目），
-   没有适用楼层和保存。各值按参数列出，修改在应用设置中进行，“查看”只对配置人员与机构管理员显示；
-   室内环境列出每台 AQ20 的采集位置与代表性（在设备中登记，见 aqRegOf）；暖通空调旧版本的“运行要求”原文只读放在底部。 */
-const OPS_PARAM_GO_RE = /<button class="btn ghost sm" data-act="opsParamGo"[^>]*>查看<\/button>/g;
-function appParamScope(pid, floor) {
-  const db = data(),
-    s = floor && M.projectOfFloor(db, floor) === pid ? { p: pid, f: floor } : U.p === pid ? { p: pid, b: U.b || undefined, f: U.f || undefined } : { p: pid },
-    floors = F.scopedFloors(db, s).map((f) => f.id);
-  return { floors, text: s.f ? where(s.f) : s.b ? `${g("projects", pid)?.name || ""} / ${g("buildings", s.b)?.name || ""}` : g("projects", pid)?.name || "" };
-}
-function aqRegHtml(floorIds) {
-  const ps = data()
-    .points.filter((p) => p.type === "aq" && floorIds.includes(p.floorId))
-    .sort(M.byName);
-  if (!ps.length) return `<p class="muted small appset-points-tip">本项目还没有空气质量传感器（AQ20）。</p>`;
-  const regs = ps.map((p) => [p, aqRegOf(p)]),
-    n = regs.filter(([, r]) => r.pos || r.rep).length;
-  return `<p class="muted small appset-current-state" style="margin:0 0 8px">AQ20 ${ps.length} 台 · 已登记 ${n} 台</p><ul class="ops-param-list">${regs
-    .map(
-      ([p, r]) =>
-        `<li><div><b>${esc(p.name)}</b><small>${esc(g("zones", p.zoneId)?.name || "未划分功能区")} · ${esc(floorLabel(p.floorId))}</small><span>${esc(
-          r.pos || r.rep ? `${AQ_POS_OPTS.find(([v]) => v === r.pos)?.[1] || "位置未登记"} · ${AQ_REP_OPTS.find(([v]) => v === r.rep)?.[1] || "代表性未登记"}` : "未登记",
-        )}</span></div>${canEdit() ? `<button class="btn ghost sm" data-act="locatePoint" data-id="${esc(p.id)}" aria-label="在设备中修改${esc(p.name)}的采集位置与代表性">在设备中修改</button>` : ""}</li>`,
-    )
-    .join("")}</ul>`;
-}
-function showAppParams(kind, project, floor) {
-  const pid = project || U.p;
-  if (!pid)
-    return modal(
-      "选择项目",
-      fld("项目", "applicationProject", projectSelect("applicationProject", "")),
-      btn("取消", "close") + btn("继续", "appProjectNext", { kind }, "primary"),
-    );
-  const { floors, text } = appParamScope(pid, floor),
-    notes = kind === "暖通空调" ? latestConfig("暖通空调", pid)?.values?.notes || "" : "",
-    body =
-      kind === "室内环境"
-        ? `<div class="field"><span class="appset-k">参考范围（参数）${opsInfo("参考范围", esc("按参数列出当前位置的参考范围，总览、数据分析与报告均按这些值判断；修改在应用设置中进行。项目、楼宇、楼层和功能区覆盖按实际适用值读取。"))}</span><div id="envRefs">${envRefHtml(pid, floors)}</div></div><div class="field"><span class="appset-k">采集位置与代表性${opsInfo("采集位置与代表性", esc("在设备中逐台登记空气质量传感器的安装位置与读数能够代表的范围（设备标记的点位面板、设备列表的批量修改，或部署 App 的安装记录），功能区面板中显示。未登记或只代表局部时按监测点解释，不能由一台设备推定整个功能区。"))}</span><div id="envSensors">${aqRegHtml(floors)}</div></div><div class="field"><span class="appset-k">统计窗口与告警（参数）${opsInfo("统计窗口与告警", esc("统计窗口、进入、持续、解除与缺数回退按参数登记，这里不另设。当前值、完整参考窗口与告警窗口可以不同，均以应用设置中的参数为准。"))}</span>${opsParamList(kind, pid)}</div>`
-        : `<div class="field"><span class="appset-k">各系统的当前值（参数）</span><div id="hvacGroups">${opsParamList("暖通空调", pid, floors)}</div></div>${note("温控器和空调系统分别完成接入与控制验证；中央系统的可写数据点须先通过控制验证。")}${
-            notes ? `<div class="field"><span class="appset-k">原“运行要求”</span><p class="ops-legacy">${esc(notes)}</p><p class="muted small">这一栏不再填写，原文只读保留；保护与回退在应用设置中逐项登记。</p></div>` : ""
-          }`;
-  modal(kind + "参数", `<p class="ops-modal-sub">${esc(text)}</p>${canEdit() ? body : body.replace(OPS_PARAM_GO_RE, "")}`, btn("关闭", "close"));
-}
-
 /* ---------- 能耗设置与碳排放设置（规范 APP01、APP02，2026-10-08 第 2 轮第6章） ---------- */
 // 分项按两级（2026-10-09 用户确认，ABB 对比 BP116 方案A）：一级为照明插座、空调、动力、特殊用电、其他，空调下设冷热源、空调末端，
 // 也可直接选空调；总表不再是分项，改为计量点的“表计层级”（总表、分表）。原先的“全部用电（总表）”按表计层级“总表”读取
@@ -58140,13 +57634,13 @@ function showConnectionDetail(id, stage) {
   );
 }
 // “应用验证”页的按钮按关联去向命名（规范 DEVICE06，2026-10-09 用户确认，ABB 对比 BP60）：关联了能耗或碳排放设置的打开该设置，
-// 按设备登记关联暖通空调的打开暖通空调参数（2.01 运营核查 V108：原为“打开暖通空调设置”）；尚未关联时打开能耗设置。
+// 按设备登记关联暖通空调的打开暖通空调设置（2.36 S18）；尚未关联时打开能耗设置。
 function appSettingButtons(c) {
   const kinds = [
     ...new Set(data().configs.filter((x) => x.projectId === c.projectId && x.values.connectionId === c.id).map((x) => x.kind)),
     ...(F.hvacConnection(data(), c) ? ["暖通空调"] : []),
   ];
-  return (kinds.length ? kinds : ["能耗"]).map((kind) => btn(`打开${kind}${["暖通空调", "室内环境"].includes(kind) ? "参数" : "设置"}`, "applicationSettings", { kind, project: c.projectId })).join("");
+  return (kinds.length ? kinds : ["能耗"]).map((kind) => btn(`打开${kind}设置`, "applicationSettings", { kind, project: c.projectId })).join("");
 }
 // 换表等登记的时间写“9 月 24 日 09:00”（规范 2 6），按中国标准时间（UTC+08:00）
 const meterTime = (ts) => {
@@ -59017,7 +58511,7 @@ const V13_TPL = [
     "到时长上限或下一次定时执行时恢复自动，以先到者为准；人执行的场景算一次新的手动；工作时间与非工作时间按项目工作时间由网关下发",
     "90.1 (i)(j)、Title 24-2022 §130.1(c)3（非工作时间 ≤ 2 h）",
     "设备本地",
-    { range: "15 min–2 h", off: "断网时 LC20 按最后下发的工作时间计时；无工作时间信息按 2 h" },
+    { range: "15 min–2 h", off: "断网时照明控制器按最后下发的工作时间计时；无工作时间信息按 2 h" },
   ],
   [
     "L-02",
@@ -60661,7 +60155,7 @@ function v13LightFormHtml(L, v, ids, floor, holdPre = "", resumeInfo = "", typed
 }
 // “手动后恢复自动”旁 i 的规则（两个弹窗共用；2.01 运营核查 V88：原为表单下的一段说明）
 const v13ResumeInfo = (pid) =>
-  esc(`开 / 关灯不退出自动；调光或执行动作为调光的场景后进入手动，到时长或下一次定时执行时恢复自动，以先到者为准。工作时间与非工作时间按项目工作时间（工作日 ${workHoursText(pid)}）由网关下发，断网时 LC20 按最后下发的工作时间计时。`);
+  esc(`开 / 关灯不退出自动；调光或执行动作为调光的场景后进入手动，到时长或下一次定时执行时恢复自动，以先到者为准。工作时间与非工作时间按项目工作时间（工作日 ${workHoursText(pid)}）由网关下发，断网时照明控制器按最后下发的工作时间计时。`);
 // “继续编辑”时把已填的值填回（含楼层默认按空间类型的恒照度目标）
 function v13LightFill(ids, L, v, floor) {
   const put = (id, x) => {
@@ -60703,7 +60197,7 @@ function lightResetModal(o) {
     `恢复${target} · ${name}`,
     `<p class="ops-modal-sub">${zone ? `删除${zhSub(esc(name), "r")}的本区覆盖，改为沿用${target}。` : `删除${zhSub(esc(name))}的楼层默认，未覆盖的功能区改为沿用参考默认（按空间类型）。`}</p><dl class="ops-kv ops-reset-kv">${
       rows.length ? rows.map(([l, a, b, k]) => `<dt>${esc(l)}</dt><dd><span class="ops-num">${esc(fmt(k, a))}</span> → <span class="ops-num">${esc(fmt(k, b))}</span></dd>`).join("") : `<dt>变化</dt><dd>当前值与${zhSub(target, "r")}相同，恢复后数值不变</dd>`
-    }<dt>受影响</dt><dd>${esc(zone ? name : `${zs.length} 个功能区`)} · ${lcs.length} 台 LC20${on != null && on < lcs.length ? `（${on} 台在线，${lcs.length - on} 台离线待同步）` : ""}</dd></dl><p class="ops-foot">只列有变化的项。恢复后形成照明控制参数的新版本，经网关下发到上述设备${on != null ? "，离线设备恢复在线后补发" : "；没有运行数据时配置等待实际下发"}。</p>`,
+    }<dt>受影响</dt><dd>${esc(zone ? name : `${zs.length} 个功能区`)} · ${lcs.length} 台照明控制器${on != null && on < lcs.length ? `（${on} 台在线，${lcs.length - on} 台离线待同步）` : ""}</dd></dl><p class="ops-foot">只列有变化的项。恢复后形成照明控制参数的新版本，经网关下发到上述设备${on != null ? "，离线设备恢复在线后补发" : "；没有运行数据时配置等待实际下发"}。</p>`,
     btn("取消", "close") + btn("恢复并下发", o.act, { ...(o.args || {}), confirmed: "1" }, "primary"),
     false,
   );
@@ -62177,16 +61671,7 @@ function v13AppSettings(db, pid, en, floors) {
     // 照明默认值按空间类型（配置区核查 E171：原为逐层写“楼层默认”“沿用参考默认”）
     rows.push({ app: "照明", text: "照明默认值按空间类型", act: "goSettings", args: { tab: "lighting" }, can: true });
   }
-  if (F.appOn(en, ["hvac"])) {
-    const src = [pts.some((p) => p.type === "fc") && "风机盘管（FC20 本地温控）", pts.some((p) => ["idu", "odu", "vg"].includes(p.type)) && "多联机（系统接入）", pts.some(hvacSplit) && "分体空调（只计量）"].filter(Boolean);
-    // 2.01 运营核查 V108：暖通空调、室内环境不再保存设置，这两行写“查看暖通空调参数”“查看室内环境参数”，打开运营中同一个只读视图（所有角色）
-    rows.push({ app: "暖通空调", text: `暖通空调参数 · ${src.join("、") || "未标记暖通空调设备"}`, act: "applicationSettings", args: { kind: "暖通空调", project: pid }, can: true, label: "查看暖通空调参数" });
-  }
-  if (F.appOn(en, ["iaq"])) {
-    const aqs = pts.filter((p) => p.type === "aq"),
-      reg = aqs.filter((p) => p.aqPos || p.aqRep).length;
-    rows.push({ app: "室内环境", text: `室内环境参数 · ${aqs.length ? `AQ20 ${aqs.length} 台，已登记采集位置与代表性 ${reg} 台` : "未标记 AQ20"}`, act: "applicationSettings", args: { kind: "室内环境", project: pid }, can: true, label: "查看室内环境参数" });
-  }
+  // 2.36 S18：暖通空调、室内环境在应用设置中查看，配置进度不再列两行参数
   if (F.appOn(en, ["energy"])) {
     const c = last("能耗"),
       n = (c?.values?.points || []).filter((x) => x.use === "total").length;
@@ -65398,7 +64883,7 @@ const LAYERS = {
     // 标签不再写“ · 监测点”，图例下写一次（2.01 运营核查 V91）
     text: s=>!s.aq ? "未监测" : `${opsAqCurrent(s) ? "" : "最后 "}${nf(co2Of(s))} ppm`,
     get legend() { return aqRefMixed() ? [...AQ_BANDS.map((n,i)=>[AQ_COLORS[i],n]),["#f0f0f0","未监测"],["hatch","数据不足"]] : [...aqLegend("co2", zoneRef()),["#f0f0f0","未监测"],["hatch","数据不足"]]; },
-    get tip() { return `当前 1 分钟均值分档，仅用于定位浓度变化，不是 1 小时参考评价或告警结论。分档及参考值引用当前项目配置；只代表局部或代表性未确认时，仅显示监测点，不填满功能区。`; },
+    get tip() { return `当前 5 分钟均值分档，与告警同一口径，仅用于定位浓度变化，不是 1 小时参考评价或告警结论。分档及参考值引用当前项目配置；只代表局部或代表性未确认时，仅显示监测点，不填满功能区。`; },
   },
   pm: {
     label: "PM2.5",
@@ -74233,7 +73718,7 @@ function aiAnswer(q, pick) {
   $("#globalQuery")?.setAttribute("aria-expanded", "false");
   $("#globalQuery")?.removeAttribute("aria-activedescendant");
   if (AIP.down) {
-    $("#aiAnswer").innerHTML = `<div class="ai-ans ai-ans-down"><div class="ai-ans-q">${esc(q)}</div>${aiNotice(`<b>AI 暂时无法回答。</b>服务没有响应，这次提问没有得到回答${AIP.tries > 1 ? `（已重试 ${AIP.tries - 1} 次）` : ""}。可以稍后重试，或改用搜索查找空间、设备和场景；仍有问题可在帮助中联系我们。`, "error", btn("重试", "aiRetry", {}, "sm") + btn("改用搜索", "aiMode", { value: "search" }, "ghost sm") + btn("帮助", "aiHelp", {}, "ghost sm"))}</div>`;
+    $("#aiAnswer").innerHTML = `<div class="ai-ans ai-ans-down"><div class="ai-ans-q">${esc(q)}</div>${aiNotice(`<b>AI 暂时无法回答。</b>服务没有响应，这次提问没有得到回答${AIP.tries > 1 ? `（已重试 ${AIP.tries - 1} 次）` : ""}。可以稍后再试，或改用搜索查找空间、设备和场景；仍有问题可在帮助中联系我们。`, "error", btn("重试", "aiRetry", {}, "sm") + btn("改用搜索", "aiMode", { value: "search" }, "ghost sm") + btn("帮助", "aiHelp", {}, "ghost sm"))}</div>`;
     return;
   }
   // 本月 AI 用量与用量包都用完、或机构尚未订阅（开通后付款前不算，2.33 第 278 条）时不回答，说明原因并给出“改用搜索”（GLOBAL01；2026-10-09 用户确认，商业许可方案第 2、3、6 条）
@@ -76374,18 +75859,24 @@ BARE.suspended = () => {
     name = zhSub(esc(o.name), "r"),
     admin = auMe().orgs?.[id] === "admin",
     expiry = o.suspended?.reason === "许可到期",
+    // 2.36 S7（HONG 2026-10-27 11:40Z 按推荐）：订单逾期未付款暂停时，机构管理员“去付款”直接打开付款（见 auRenewEnter），其他成员请机构管理员付款。
+    overdue = o.suspended?.reason === "订单逾期未付款",
     others = auOtherOrgs(id).length,
-    renew = admin && expiry;
+    renew = admin && (expiry || overdue);
   const lead = !admin
-    ? `${name}已暂停使用，平台已停止发送告警通知。如有疑问，请联系本机构的机构管理员。`
+    ? overdue
+      ? `${name}已暂停使用，平台已停止发送告警通知。请联系本机构的机构管理员付款。`
+      : `${name}已暂停使用，平台已停止发送告警通知。如有疑问，请联系本机构的机构管理员。`
     : expiry
       ? `${name}的许可已到期，平台已停止发送告警通知。续期付款到账后将自动恢复使用。`
-      : `${name}已暂停使用${o.suspended?.reason ? `：${esc(o.suspended.reason)}` : ""}。平台已停止发送告警通知。如需恢复使用，请联系 PACOM 支持。`;
-  const notice = renew
+      : overdue
+        ? `${name}已暂停使用：订单逾期未付款。平台已停止发送告警通知。重新下单并付款，到账后自动恢复使用。`
+        : `${name}已暂停使用${o.suspended?.reason ? `：${esc(o.suspended.reason)}` : ""}。平台已停止发送告警通知。如需恢复使用，请联系 PACOM 支持。`;
+  const notice = renew && expiry
     ? `<div class="au-notice au-susp-notice" data-tone="warning">${auNoticeContent("warning", `请于 ${auDate(auLicLastRenewDay(auLic(id)))} 24:00 前完成续期，逾期将删除本机构全部数据。`)}</div>`
     : "";
   const primary = renew
-    ? `<button type="button" class="au-primary au-compact-primary" data-act="auRenewEnter" data-org="${id}">续期</button>`
+    ? `<button type="button" class="au-primary au-compact-primary" data-act="auRenewEnter" data-org="${id}">${overdue ? "去付款" : "续期"}</button>`
     : others
       ? `<button type="button" class="au-primary au-compact-primary" data-act="auGo" data-page="orgs">选择其他机构</button>`
       : admin
@@ -77068,6 +76559,13 @@ const auApplyBottom = () =>
   AUTH.session !== "in" ? "" : `<div class="au-links">${auMyOrgs().length ? `<button type="button" class="au-textbtn" data-act="auApplyBack">返回工作区</button>` : `<button type="button" class="au-textbtn" data-act="auGo" data-page="orgs">返回</button>`}</div>`;
 BARE.apply = () => {
   const app = auMyApp();
+  // 2.36 S10（HONG 2026-10-27 11:40Z 按推荐）：停在“申请审核中”期间申请已获批，刷新即进入机构开通引导（原要下次登录才进入）。
+  if (app?.status === "approved" && !app.welcomed && auMe().orgs?.[app.org]) {
+    app.welcomed = true;
+    auSave();
+    queueMicrotask(() => auOpenWelcome(app.org));
+    return auApplyShell("");
+  }
   if (U.tab === "review" && auAppOpen(app) && !AUX.applyEditing) return auApplyReview(app);
   if (auAppOpen(app) && !AUX.applyEditing && app.status !== "rejected") { U.tab = "review"; history.replaceState(null, "", "#apply?tab=review"); return auApplyReview(app); }
   if (U.tab) { U.tab = ""; history.replaceState(null, "", "#apply"); }
@@ -78104,7 +77602,7 @@ function auDialog(title, body, foot = "", cls = "") {
 // 生效日期：正式文本发布时填写；未填写时不显示。
 const AU_LEGAL_DATE = "";
 // This identifies the currently displayed summary, not an approved production legal document.
-const AU_LEGAL_VERSION = 'summary-2026-10-15';
+const AU_LEGAL_VERSION = 'summary-2026-10-27';
 function auConsentRecord(documents) {
   return { documents: Object.fromEntries(documents.map(name => [name, AU_LEGAL_VERSION])), acceptedAt: auNow() };
 }
@@ -78114,7 +77612,7 @@ const AU_LEGAL = {
     [
       "处理者：广州天环智能技术有限公司。",
       "我们处理账户信息（姓名、电子邮箱及已绑定的手机号码）、机构成员关系和操作记录，用于身份验证、授权、审计和服务通知。",
-      "公开申请访问时，我们处理机构名称、联系人姓名、电子邮箱、手机号码及你选填的项目概况，用于审核申请、与你联系及在审核通过后发送开通邀请；以当前账户申请开通机构时，联系人为本账户，资料用于审核申请及与你联系，审核通过后新机构直接加入本账户，不另发邀请。",
+      "公开申请访问时，我们处理机构名称、联系人姓名、电子邮箱、手机号码及你选填的项目概况，用于审核申请、与你联系及在审核通过后开通机构；以当前账户申请开通机构时，联系人为本账户，资料用于审核申请及与你联系，审核通过后新机构直接加入本账户。",
       "楼宇运行数据归属于所在机构；占用数据默认只到功能区级，不识别个人。",
       // AI 服务部署在中国境内，提问与运行数据不出境、不用于训练（2026-10-09 用户确认，ABB 对比 BP5）
       "使用 AI 提问时，提问和所涉运行数据只在中国境内处理，不用于训练模型；对话按机构的数据保存期限保存。",
@@ -78153,6 +77651,17 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "2.36",
+    date: "2026-10-27",
+    notes: [
+      "楼宇的层数、屋顶层和特殊层都在“编辑楼宇”中修改，特殊层随保存一起生成。",
+      "机构因订单逾期未付款暂停时，机构管理员可以直接去付款；其他成员看到请机构管理员付款的说明。",
+      "申请获批后，在“申请审核中”页刷新即进入机构开通引导。",
+      "运营的暖通空调和室内环境改为“查看设置”，打开应用设置的对应页签。",
+      "CO₂ 图层按 5 分钟均值分档；运营中的设备型号改写为照明控制器等功能名称。",
+    ],
+  },
   {
     version: "2.35",
     date: "2026-10-27",
@@ -79261,7 +78770,7 @@ Object.assign(actions, {
     const response = await auRequest('health'); AUX.healthBusy = false;
     if (el?.isConnected) { el.removeAttribute('aria-busy'); el.removeAttribute('aria-disabled'); content.textContent = label; }
     if (!el?.isConnected || epoch !== AUX.accountEpoch) return;
-    if (response.status !== 'ok') { if (status) status.textContent = response.message || '服务尚未恢复，请稍后重试。'; return; }
+    if (response.status !== 'ok') { if (status) status.textContent = response.message || '服务尚未恢复，请稍后再试。'; return; }
     // Without a page to return to, the application entry opens (a reload would show the same status page again).
     const back = AUX.retryHash || auEntryHash(); AUX.retryHash = '';
     history.replaceState(null, '', back); readRoute(); render();
@@ -81179,7 +80688,7 @@ const AU_ORG_PAGES = {
       "",
       `${edit ? "" : auReadonlyNote("查看进入本机构的记录")}${auRows([
         // 2.07 第 73、74 条
-        ["会话", "空闲 8 小时自动退出（退出前 5 分钟提示），一次登录最长 30 天"],
+        ["会话", "空闲 8 小时自动退出，一次登录最长 30 天"],
         ["机构管理员登录", "新设备需短信验证"],
         ["高风险操作", "全量数据导出、离职成员个人信息删除、注销机构前输入当前密码"],
       ])}`,
@@ -81521,7 +81030,7 @@ function auLicBar() {
 }
 // 许可到期暂停后，机构管理员点“续期”进入的机构设置（AUTH15）：只开“许可与用量”和“订单与发票”。
 const auRenewOnly = () =>
-  !!AUX.renewOnly && AUX.renewOnly === AUTH.org && AUTH.orgs[AUTH.org]?.suspended?.reason === "许可到期" && auMe().orgs?.[AUTH.org] === "admin";
+  !!AUX.renewOnly && AUX.renewOnly === AUTH.org && ["许可到期", "订单逾期未付款"].includes(AUTH.orgs[AUTH.org]?.suspended?.reason) && auMe().orgs?.[AUTH.org] === "admin";
 // 机构设置的页签：“订单与发票”只给机构管理员（ORG09）；续期期间只有许可与用量、订单与发票。
 const auOrgTabs = () =>
   auCanManage()
@@ -82149,7 +81658,7 @@ defineActions({
   // 机构暂停使用（许可到期）时机构管理员的“续期”：进入本机构的机构设置，只开许可与用量和订单与发票（AUTH15）。
   auRenewEnter: (a) => {
     const id = a.org || AUX.suspendedOrg;
-    if (auMe().orgs?.[id] !== "admin" || AUTH.orgs[id]?.suspended?.reason !== "许可到期") return;
+    if (auMe().orgs?.[id] !== "admin" || !["许可到期", "订单逾期未付款"].includes(AUTH.orgs[id]?.suspended?.reason)) return;
     Object.assign(AUX, { renewOnly: id });
     AUTH.org = id;
     AUTH.lastOrg[AUTH.uid] = id;
@@ -82158,6 +81667,11 @@ defineActions({
     auSave();
     document.title = "PACOM Station";
     route("org", { tab: "license" });
+    // 2.36 S7：订单逾期未付款时“去付款”直接打开付款：有待付款的订单打开其付款，没有时打开订阅下单
+    if (AUTH.orgs[id].suspended.reason === "订单逾期未付款") {
+      const od = auLicPending(auLic(id));
+      od ? actions.auPay({ id: od.id }) : actions.auLicBuy({ kind: "sub" });
+    }
   },
 });
 
@@ -92215,7 +91729,7 @@ defineActions({
   spatialBuildingConfirm:()=>spatialBuildingConfirm(),
   spatialBuildingSplit:withPolicy({guard:true},()=>{
     closePop();if(!canEdit()||isMobile())throw Error(wideHint('进行楼层标记'));if(!g('buildings',U.b)?.image)return msg('先上传楼宇图片，再进行楼层标记');
-    if(sortedFloors(U.b).length<1)return msg('楼宇尚无楼层，请先调整楼层结构');
+    if(sortedFloors(U.b).length<1)return msg('楼宇尚无楼层，请先在“编辑楼宇”中设置层数');
     Object.assign(U,{buildingMark:true,buildingShape:'rectangle',buildingDraft:null,buildingEditId:null,buildingHistory:null,buildingContext:spatialCaptureBuilding(),spatialCanUndo:false,buildingSplit:{...splitDefaults(U.b),rect:null,ids:null,regions:null,sel:null}});
     render();msg('拖出整栋楼的上下范围','提示',WS_GUIDE_MS);
   }),
