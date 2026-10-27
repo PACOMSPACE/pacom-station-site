@@ -77869,6 +77869,11 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
   {
+    version: "2.39",
+    date: "2026-10-27",
+    notes: ["增加配置导图和运营导图，各节点链接到对应页面；界面没有变化。"],
+  },
+  {
     version: "2.38",
     date: "2026-10-27",
     notes: [
@@ -91009,7 +91014,13 @@ const DEMO_LINKABLE = (id) => DEMO_ITEMS.some((x) => x[1] === id);
 // 直接打开或刷新某个状态的链接（index.html?demo=条目）：工作区数据就绪后，与从目录打开该条目相同
 {
   const id = new URLSearchParams(location.search).get("demo");
-  if (id && !DEMO.link && DEMO_LINKABLE(id)) {
+  // 2.39 导图链接（HONG 2026-10-27 21:32Z 按推荐）：?demo=ws#页面 以王敏登录示例数据后打开 # 后的页面，地址去掉 ?demo=ws
+  if (id === "ws") {
+    if (AUTH.session !== "in") demoIn();
+    try {
+      history.replaceState(history.state, "", location.pathname + location.hash);
+    } catch {}
+  } else if (id && !DEMO.link && DEMO_LINKABLE(id)) {
     DEMO.pendingLink = id;
     // 链接中的页面（# 之后的部分）：条目打不开时登录后进入这里（E30）
     DEMO.linkHash = location.hash;
