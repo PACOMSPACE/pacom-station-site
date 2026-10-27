@@ -21513,6 +21513,20 @@ form > .au-subhead:first-child, fieldset > .au-subhead:first-child { margin-top:
 .au-meter-note { margin: 8px 0 0; font: 400 14px/24px var(--ff); color: #636363; }
 .au-meter-note.warn { color: var(--warn, #b45309); }
 .au-mem-tools .au-search { width: 320px; max-width: 100%; }
+/* 2.38 账户第 331 条：同意句中的“客户隐私声明”“使用条款”与“申请访问”“登录”等问句链接 480 字重，平时无下划线，电脑悬停时出现。 */
+.au .au-check .au-legal-link, .au .au-noacct .au-inline { font-weight: 480; text-decoration: none; }
+@media (hover: hover) { .au .au-check .au-legal-link:hover { text-decoration: underline; } }
+/* 2.38 账户第 333 条：申请说明用全站的多行输入框：底色、描边、悬停、聚焦同本页单行框，圆角 8，3 行高，可往下拉高，文字大小同本页其他框。 */
+#app .au .au-in.au-ta.au-ta-std {
+  height: 88px; min-height: 88px !important; padding: 8px 12px; border-radius: 8px; resize: vertical;
+  background: var(--au-input-fill); box-shadow: var(--au-input-shade), inset var(--au-in-rim); transition: box-shadow var(--au-exit);
+}
+@media (hover: hover) { #app .au .au-in.au-ta.au-ta-std:not(:focus):hover { box-shadow: var(--au-input-shade), inset var(--au-in-hover); transition-duration: 0s; } }
+#app .au .au-in.au-ta.au-ta-std:focus { box-shadow: var(--au-input-shade), inset 0 0 0 1px #00AEEF; transition-duration: 0s; }
+#app .au .au-field.bad .au-in.au-ta.au-ta-std, #app .au .au-in.au-ta.au-ta-std[aria-invalid="true"] { box-shadow: var(--au-input-shade), inset 0 0 0 1px var(--au-in-err); }
+/* 2.38 账户第 337、338 条：“尚未加入机构”页顶的加入申请提示条，标题下 16。 */
+.au .au-join-notice { margin: 16px 0 0; }
+.au .au-join-notice > .btn { margin-left: auto; flex: none; align-self: center; }
 
 }
 @layer base {
@@ -75471,7 +75485,7 @@ const auUserHint = (v) =>
   `<input type="email" class="au-user-hint" name="username" autocomplete="username" value="${esc(v || "")}" readonly tabindex="-1" aria-hidden="true" aria-label="账户">`;
 const auPrimary = (label, compact = false) => `<button type="submit" class="au-primary${compact ? " au-compact-primary" : ""}">${label}</button>`;
 // 2.32 账户第 240 条：文件名称加书名号（GB/T 15834-2011 4.15），书名号连同名称为一个链接、不拆行。
-const auConsentLegalLink = (doc) => `<a class="au-inline au-legal-link au-keep" href="${esc(location.pathname)}#legal?tab=${doc}" target="_blank" rel="noopener" aria-label="${doc === "terms" ? "使用条款" : "客户隐私声明"}（新标签页打开）">《${doc === "terms" ? "使用条款" : "客户隐私声明"}》</a>`;
+const auConsentLegalLink = (doc) => `<a class="au-inline au-legal-link au-keep" href="${esc(location.pathname)}#legal?tab=${doc}" target="_blank" rel="noopener" aria-label="${doc === "terms" ? "使用条款" : "客户隐私声明"}（新标签页打开）">${doc === "terms" ? "使用条款" : "客户隐私声明"}</a>`;
 function auFooter(center = false, legalLink = true) {
   return `<footer class="au-foot ${center ? "center" : ""}" aria-label="版权、法律与联系信息"><span class="au-copyright">© ${PACOM_AUTH_FLOW.cstYear(auNow())} ${esc(AU_FILING.company)}</span><div class="au-foot-links">${legalLink ? `<a href="${esc(location.pathname)}#legal" target="_blank" rel="noopener" aria-label="隐私和法律（新标签页打开）">隐私和法律</a>` : ""}<button type="button" data-act="auContact">联系我们</button>${typeof auFiling === "function" ? auFiling() : ""}</div></footer>`;
 }
@@ -75819,13 +75833,21 @@ const AU_ORG_SEARCH_FROM = 6;
 const auOrgMatch = (o, q) => !q || [o.name, o.code].some((v) => String(v || "").toLowerCase().includes(q));
 const auChoice = (page, title, text) =>
   `<button type="button" class="au-choice-i" data-act="auGo" data-page="${page}"><span><b>${title}</b><small>${text}</small></span>${ico("chevron", "ic16")}</button>`;
+// 2.38 账户第 337、338 条：加入申请未获批准或已过期时，登录后“尚未加入机构”页顶的提示条（只显示一次）；已过期的带“重新申请”。
+function auJoinNoticeBar() {
+  const n = AUX.joinNotice, org = n && AUTH.orgs?.[n.org];
+  if (!org) return "";
+  const name = `<b>${esc(org.name)}</b>`, expired = n.kind === "expired";
+  const text = expired ? `你加入 ${name} 的申请已过期，机构管理员 7 天内没有处理。` : `你加入 ${name} 的申请未获批准。`;
+  return `<div class="au-notice au-join-notice" data-tone="warning" role="status"><span class="au-notice-icon" aria-hidden="true">${ico("alert", "ic16")}</span><span class="au-notice-text">${text}</span>${expired ? btn("重新申请", "auJoinResend", {}, "sm") : ""}</div>`;
+}
 BARE.orgs = () => {
   const me = auMe(), orgs = auMyOrgs();
   // The account is shown in full: the person needs to see which of their accounts this is (Account 核查第 30、31 点).
   if (!orgs.length)
     return auStatusShell(
       // 2.22 账户第 187 条：申请访问的切换器，下接已登录的加入或创建表单；发给本账户的邀请仍在切换器上方（2.37 第 300 条：第二项“创建新机构”）
-      `<h1 class="au-h1">尚未加入机构</h1>${(() => { const rows = auMailInviteRows(); return `<p class="au-lead">账户 ${esc(me.email || me.phone)} 目前没有可访问的机构。${rows || !me.email ? "" : "收到邀请后会显示在这里。"}</p>${rows ? `<div class="au-box au-mail-invs">${rows}</div>` : ""}`; })()}${auAccessSeg(auOrgsTab())}${auOrgsTab() === "apply" ? (document.getElementById("app")?.classList.add("bare-apply"), auApplyInForm()) : auJoinInForm()}<div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button></div>`,
+      `<h1 class="au-h1">尚未加入机构</h1>${auJoinNoticeBar()}${(() => { const rows = auMailInviteRows(); return `<p class="au-lead">账户 ${esc(me.email || me.phone)} 目前没有可访问的机构。${rows || !me.email ? "" : "收到邀请后会显示在这里。"}</p>${rows ? `<div class="au-box au-mail-invs">${rows}</div>` : ""}`; })()}${auAccessSeg(auOrgsTab())}${auOrgsTab() === "apply" ? (document.getElementById("app")?.classList.add("bare-apply"), auApplyInForm()) : auJoinInForm()}<div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button></div>`,
     );
   const search = orgs.length >= AU_ORG_SEARCH_FROM, q = search ? String(AUX.orgQ || "").trim().toLowerCase() : "";
   const shown = orgs.filter((o) => auOrgMatch(o, q));
@@ -75841,7 +75863,7 @@ BARE.orgs = () => {
         (o) =>
           `<button type="button" class="au-orgpick" data-act="auEnter" data-org="${o.id}" ${shown.includes(o) ? "" : "hidden"}>${auMark(o, 40)}<span class="au-orgpick-t"><span class="au-orgpick-n"><b>${esc(o.name)}</b>${AUTH.orgs[o.id]?.suspended ? `<span class="chip">已暂停</span>` : ""}</span><small>${auSegs([auRole(o.role), AUTH.orgs[o.id]?.suspended && o.role === "admin" ? `<span class="au-suspended-hint">查看原因</span>` : ""])}</small></span>${ico("chevron", "ic16 au-org-enter-chevron")}</button>`,
       )
-      .join("")}</div>${search ? `<p class="au-hint au-orgsearch-empty" role="status">${shown.length ? "" : "没有找到匹配的机构"}</p>` : ""}<div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">使用其他账户登录</button></div>`,
+      .join("")}</div>${search ? `<p class="au-hint au-orgsearch-empty" role="status">${shown.length ? "" : "没有找到匹配的机构"}</p>` : ""}<div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">退出登录</button></div>`,
   );
 };
 // Typing in “搜索机构” filters the rows in place; the page is not redrawn, so focus stays in the box.
@@ -76002,8 +76024,9 @@ const auNoCodeHtml = (kind, id, label = "收不到验证码？") =>
   `<button type="button" class="au-inline au-nocode-btn" data-act="auNoCode" aria-expanded="false" aria-controls="${id}">${label}</button><span class="au-nocode" id="${id}" hidden>${auNoCodeBody(kind)}</span>`;
 // 2.29（2026-10-26 HONG 05:29Z 按推荐，账户第 213 条，取代第 193 条和第 211 条“放在下一行”）：“收不到验证码？”放在“验证码”框字段名一行右侧，
 // 样式同“忘记密码？”，发送后才出现；点开的说明用 ⓘ 说明框组件在它上方弹出，不推动下方内容。
-const auNoCodeRight = (kind, id, shown) =>
-  `<button type="button" class="au-textbtn au-login-forgot au-nocode-right" data-act="auNoCode" aria-expanded="false" aria-haspopup="dialog" aria-controls="${id}"${shown ? "" : " hidden"}><span>收不到验证码？</span></button><span id="${id}" class="au-field-info-popover" role="dialog" aria-modal="false" tabindex="-1" aria-label="收不到验证码？" hidden><span class="ws-info-text">${auNoCodeBody(kind)}</span></span>`;
+// 2.38 账户第 332 条：“没有邀请码？”用同一组件（label）。
+const auNoCodeRight = (kind, id, shown, label = "收不到验证码？") =>
+  `<button type="button" class="au-textbtn au-login-forgot au-nocode-right" data-act="auNoCode" aria-expanded="false" aria-haspopup="dialog" aria-controls="${id}"${shown ? "" : " hidden"}><span>${label}</span></button><span id="${id}" class="au-field-info-popover" role="dialog" aria-modal="false" tabindex="-1" aria-label="${label}" hidden><span class="ws-info-text">${auNoCodeBody(kind)}</span></span>`;
 // 发送状态变化时显示或收起；收起时关闭已打开的说明。
 function auNoCodeShow(id, shown) {
   const b = document.querySelector(`.au-nocode-right[aria-controls="${id}"]`);
@@ -76102,8 +76125,9 @@ const auNewPwd = (name, label) =>
     .replace(/<\/div>$/, `${auPwdReq(`au-${name}`)}</div>`);
 const auNewPwdCheck = (empty) => (v) => (!v ? empty : PACOM_PASSWORD_POLICY.unmet(v).length ? AU_PWD_BAD : PACOM_PASSWORD_POLICY.validate(v));
 const auMailCheck = (v) => (PACOM_AUTH_FLOW.email(v) ? "" : "请输入有效的电子邮箱");
+// 2.38 账户第 331 条：“我已阅读并同意 PACOM 客户隐私声明和使用条款”，不用书名号；两个链接 480 字重，平时无下划线，悬停时出现。
 const auConsent = (name) =>
-  `<label class="au-check" data-f="${name}"><input type="checkbox" name="${name}" class="au-v" required aria-required="true" aria-describedby="au-${name}-err" ${AUX.v[name] ? "checked" : ""}><span>我已阅读并同意 PACOM${auConsentLegalLink("privacy")}和${auConsentLegalLink("terms")}</span></label><p class="au-err au-check-err" id="au-${name}-err" aria-live="polite"></p>`;
+  `<label class="au-check" data-f="${name}"><input type="checkbox" name="${name}" class="au-v" required aria-required="true" aria-describedby="au-${name}-err" ${AUX.v[name] ? "checked" : ""}><span>我已阅读并同意 PACOM ${auConsentLegalLink("privacy")}和${auConsentLegalLink("terms")}</span></label><p class="au-err au-check-err" id="au-${name}-err" aria-live="polite"></p>`;
 const auConsentCheck = (v) => (v ? "" : "请同意客户隐私声明和使用条款");
 // 2.25 账户第 199 条：与登录页“没有账户？申请访问”同一组件：灰字问句紧接黑字链接（2.29 第 208 条起不带下划线，电脑悬停时出现），行高 24；主按钮到这一行 18。
 // 2.32 账户第 234 条：申请访问页放在说明下一行（说明到它 0，它到第 1 步标题 24），第 1 步完成后不显示。
@@ -76163,25 +76187,25 @@ function auStepList(flow, titles, bodyOf, sumOf, noteOf = () => "") {
 }
 // 每步下面的按钮：中间各步“继续”，最后一步提交
 const auStepFoot = (label, extra = "") => `<p class="au-ferr" role="alert" hidden></p>${auPrimary(label, true)}${extra}`;
-// 第 1 步“创建账户”的字段：加入为姓名、电子邮箱或手机号码、验证码、设置密码、同意；开通为姓名、电子邮箱、邮件验证码、手机号码、短信验证码、设置密码、同意
+// 第 1 步“创建账户”的字段：加入为姓名、电子邮箱或手机号码、验证码、设置密码、同意；创建机构为姓名、电子邮箱、邮件验证码、设置密码、同意
+// （2.38 账户第 339 条：手机号码和短信验证码移到第 2 步“绑定手机号码”）
 function auRegStep1(flow) {
   const join = flow === "join", need = auRegNeedCode(flow), sms = join && auRegKind(AUX.v.rg_mail) === "phone";
   const id = join
     ? auField({ name: "rg_mail", label: "电子邮箱或手机号码", auto: "username", suffix: auEcBtn("rg", !need), hint: auEcLine("rg"), hintRole: "status" })
     : auField({ name: "rg_mail", label: "电子邮箱", type: "email", auto: "email", inputmode: "email", suffix: auEcBtn("rg", !need), hint: auEcLine("rg"), hintRole: "status" });
   const code = auField({ name: "rg_code", label: join ? "验证码" : "邮件验证码", right: auNoCodeRight(sms ? "sms" : "mail", "au-rg-nocode", !!auEcSent("rg")), auto: "one-time-code", inputmode: "numeric", maxlength: 6 }).replace('<div class="au-field ', `<div ${need ? "" : "hidden "}class="au-field au-reg-code `);
-  return `${auField({ name: "rg_name", label: "姓名", auto: "name", maxlength: 50 })}${id}${code}${join ? "" : auApplyPhoneFields()}${auNewPwd("rg_pwd", "设置密码")}${auConsent("rg_ok")}`;
+  return `${auField({ name: "rg_name", label: "姓名", auto: "name", maxlength: 50 })}${id}${code}${auNewPwd("rg_pwd", "设置密码")}${auConsent("rg_ok")}`;
 }
 const auRegChecks1 = (flow) => [
   ["rg_name", auReq("请输入姓名")],
   ["rg_mail", flow === "join" ? auIdCheck : auMailCheck],
   ...(auRegNeedCode(flow) ? [["rg_code", auEcCheck("rg")]] : []),
-  ...(flow === "join" ? [] : auApplyPhoneChecks()),
   ["rg_pwd", auNewPwdCheck("请输入密码")],
   ["rg_ok", auConsentCheck],
 ];
-// 第 1 步摘要：姓名 · 电子邮箱（· 手机号码）
-const auRegSum1 = (flow) => { const r = auRegState(flow); return esc([AUX.v.rg_name || "", flow === "join" ? r.id : r.mail, flow === "join" ? "" : r.tel].filter(Boolean).join(" · ")); };
+// 第 1 步摘要：姓名 · 电子邮箱
+const auRegSum1 = (flow) => { const r = auRegState(flow); return esc([AUX.v.rg_name || "", flow === "join" ? r.id : r.mail].filter(Boolean).join(" · ")); };
 const auRegWho = () => { const r = auRegState(AUX.regFlow || "join"); return { email: r.mail, ...(r.tel ? { phone: r.tel } : {}) }; };
 // 注册（第 143 条）：账户随加入或开通产生；验证过的地址记为本次验证的日期（第 151 条）。
 // 2.32 账户第 235 条：用手机号码验证的，手机号码记入账户，没有电子邮箱的按手机号码验证日期计 90 天。
@@ -76194,24 +76218,18 @@ function auRegCreate(flow = AUX.regFlow || "join") {
   auRegNo(); AUX.ec.rg = {}; AUX.ec.ap = {}; AUX.joinLink = false;
   return uid;
 }
-// 第 1 步“继续”：核对验证码（地址没变、已验证过的不再核对）；开通的手机号码已绑定其他账户的，核对验证码后写明（不向他人透露）。
+// 第 1 步“继续”：核对验证码（地址没变、已验证过的不再核对）。
 async function auRegVerify(f, flow) {
   const r = auRegState(flow);
   if (!auValidate(f, auRegChecks1(flow))) return;
   const id = PACOM_AUTH_FLOW.identifier(AUX.v.rg_mail), tel = flow === "join" && auRegKind(id) === "phone";
-  const needMail = auRegNeedCode(flow), needSms = flow === "apply" && auApplyNeedSms(), phone = flow === "apply" ? auTelStore(PACOM_AUTH_FLOW.identifier(AUX.v.ap_tel)) : "";
+  const needMail = auRegNeedCode(flow);
   const done = auBusy(f, "正在验证…");
   const a = needMail ? await auRequest(tel ? "verifyPhoneCode" : "verifyEmailCode", { ...(tel ? { phone: id } : { email: id }), code: auVal("rg_code").trim(), purpose: "register" }) : { status: "ok" };
-  const b = a.status === "ok" && needSms ? await auRequest("verifyPhoneCode", { phone, code: auVal("ap_sms").trim(), purpose: "bind" }) : { status: "ok" };
   await done();
   if (a.status === "invalid-credentials") { auErr("rg_code", "验证码不正确或已过期"); return $("#au-rg_code")?.focus(); }
-  if (b.status === "invalid-credentials") { auErr("ap_sms", "验证码不正确或已过期"); return $("#au-ap_sms")?.focus(); }
-  if (a.status !== "ok" || b.status !== "ok") return auFormErr(f, "暂时无法验证，请稍后再试。", true, "error");
-  if (flow === "apply" && Object.values(AUTH.people).some((p) => p.phone && auPhoneIdentity(p.phone) === auPhoneIdentity(phone))) {
-    auHeldErr("ap_tel", "该号码已绑定其他账户，请更换号码。");
-    return $("#au-ap_tel")?.focus();
-  }
-  if (flow === "join") r.id = id; else { r.mail = id; r.tel = phone; }
+  if (a.status !== "ok") return auFormErr(f, "暂时无法验证，请稍后再试。", true, "error");
+  if (flow === "join") r.id = id; else r.mail = id;
   if (flow === "join") { r.mail = tel ? "" : id; r.tel = tel ? id : ""; }
   r.consent = auConsentRecord(["privacy", "terms"]);
   auStepNext(flow);
@@ -76352,9 +76370,10 @@ function auJoinMiss() {
   recent.push(now); AUX.joinMiss = recent;
   if (recent.length >= 10) { AUX.joinLockUntil = now + 36e5; AUX.joinMiss = []; }
 }
-// 2.21 账户第 178 条：没有填满可用的邀请码时，框下为“没有邀请码？”（点开才显示做法）；填满 9 位、显示“申请加入：{机构名称}”后不再显示。
-const auJoinCodeHint = (org) => (org ? `申请加入：<b>${esc(auOrg(org).name)}</b>` : auNoCodeHtml("join", "au-jn-nocode", "没有邀请码？"));
-const auJoinCodeField = () => auField({ name: "jn_code", label: "邀请码", auto: "off", inputmode: "numeric", maxlength: 11, hint: auJoinCodeHint(auJoinOrgOf(AUX.v.jn_code)), hintRole: "status" });
+// 2.38 账户第 332 条（取代第 178 条“框下”）：“没有邀请码？”放在“邀请码”字段名一行右侧，与“收不到验证码？”同一组件，点开的说明用 ⓘ 说明框向上弹出；
+// 填满 9 位、框下显示“申请加入：{机构名称}”后隐藏。
+const auJoinCodeHint = (org) => (org ? `申请加入：<b>${esc(auOrg(org).name)}</b>` : "");
+const auJoinCodeField = () => { const org = auJoinOrgOf(AUX.v.jn_code); return auField({ name: "jn_code", label: "邀请码", right: auNoCodeRight("join", "au-jn-nocode", !org, "没有邀请码？"), auto: "off", inputmode: "numeric", maxlength: 11, hint: auJoinCodeHint(org), hintRole: "status" }); };
 // 2.21 账户第 177 条：加入页说明，未登录和已登录同一句（HONG 17:24Z 定）。
 // 2.25 账户第 195 条取代第 177 条：收到邀请的直接加入，其他用邀请码申请。
 // 2.27 账户第 203 条取代第 195 条（HONG 2026-10-26 03:55Z 两句原文）：两个选项的说明让客户分清该填哪个表单；未登录与已登录“尚未加入机构”页相同。
@@ -76383,8 +76402,9 @@ const auJoinInForm = () => {
   const me = auMe();
   return `<p class="au-lead">${AU_JOIN_LEAD_IN}</p><form class="au-compact-form" data-form="joinIn" novalidate><fieldset>${auRoRow("申请人", `${me.name} · ${me.email || me.phone || ""}`)}${auJoinCodeField()}${auJoinNote()}<p class="au-ferr" role="alert" hidden></p>${auPrimary("申请加入", true)}</fieldset></form>`;
 };
+// 2.38 账户第 333 条：申请说明用全站的多行输入框（au-ta-std：底色、描边、悬停、聚焦同本页单行框，圆角 8，3 行高，可往下拉高）。
 const auJoinNote = () =>
-  `<div class="au-field" data-f="jn_note"><div class="au-lab"><label for="au-jn_note">申请说明</label></div><div class="au-textarea-shell"><textarea id="au-jn_note" name="jn_note" class="au-in au-ta" rows="3" maxlength="200" aria-describedby="au-jn_note-err au-jn_note-count" placeholder="例如所在部门、职务和负责的楼宇">${esc(AUX.v.jn_note || "")}</textarea></div><p class="au-err" id="au-jn_note-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-jn_note-count" ${PACOM_AUTH_FLOW.charCount("jn_note", AUX.v.jn_note) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("jn_note", AUX.v.jn_note)}</p></div>`;
+  `<div class="au-field" data-f="jn_note"><div class="au-lab"><label for="au-jn_note">申请说明</label></div><div class="au-textarea-shell"><textarea id="au-jn_note" name="jn_note" class="au-in au-ta au-ta-std" rows="3" maxlength="200" aria-describedby="au-jn_note-err au-jn_note-count" placeholder="例如所在部门、职务和负责的楼宇">${esc(AUX.v.jn_note || "")}</textarea></div><p class="au-err" id="au-jn_note-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-jn_note-count" ${PACOM_AUTH_FLOW.charCount("jn_note", AUX.v.jn_note) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("jn_note", AUX.v.jn_note)}</p></div>`;
 const auWayOut = () =>
   AUTH.session === "in" && auMyOrgs().length
     ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auApplyBack">返回工作区</button></div>`
@@ -76397,18 +76417,15 @@ BARE.join = () => {
   const mine = AUTH.session === "in" ? auMyJoin() : null, st = mine && auJoinState(mine.r), name = mine ? esc(auOrg(mine.org).name) : "";
   if (U.tab === "wait" && st === "pending")
     return auStatusShell(`<h1 class="au-h1">等待批准</h1><p class="au-lead">加入申请已发送给 <b>${name}</b> 的机构管理员，${auDate(auCstYmd(mine.r.at + 7 * auDay))} 前有效。批准后你会收到${auMe().email ? "邮件" : "短信"}。</p><p class="au-done-more au-done-solo"><button type="button" class="au-textbtn" data-act="auJoinWithdraw">撤回申请</button></p>${auWayOut()}`);
-  if (U.tab === "rejected" && st === "rejected")
-    return auStatusShell(`<h1 class="au-h1">申请未获批准</h1><p class="au-lead"><b>${name}</b> 的机构管理员未批准你的加入申请。如有疑问，请联系该机构的同事。</p>${auWayOut()}`);
-  if (U.tab === "expired" && st === "expired")
-    return auStatusShell(`<h1 class="au-h1">申请已过期</h1><p class="au-lead"><b>${name}</b> 的机构管理员 7 天内没有处理。</p><button type="button" class="au-primary au-compact-primary" data-act="auJoinResend">重新发送</button>${auWayOut()}`);
   if (U.tab) { U.tab = ""; history.replaceState(null, "", "#join"); }
   AUX.accessSeg = false;
+  // 2.38 账户第 335 条：已登录、尚未加入机构时页底为“返回”（回“尚未加入机构”页），不再有“使用其他账户登录”。
   if (AUTH.session === "in") {
-    return auStatusShell(`<h1 class="au-h1">加入已开通的机构</h1>${auJoinInForm()}${auMyOrgs().length ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auApplyBack">返回工作区</button></div>` : `<div class="au-links"><button type="button" class="au-textbtn" data-act="auSignOut">使用其他账户登录</button></div>`}`);
+    return auStatusShell(`<h1 class="au-h1">加入已开通的机构</h1>${auJoinInForm()}${auMyOrgs().length ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auApplyBack">返回工作区</button></div>` : `<div class="au-links"><button type="button" class="au-textbtn" data-act="auGo" data-page="orgs">返回</button></div>`}`);
   }
   // 2.33 账户第 251、252、256、257 条：两步逐步填写。1 创建账户（姓名、电子邮箱或手机号码、验证码、设置密码、同意）→ 继续；
   // 2 这个电子邮箱有未过期的邀请时“确认邀请”（几个时选一个）→ 加入；没有时“填写邀请码”（从链接或二维码打开时已填好）和申请说明 → 申请加入，
-  // 都没有的可点“先完成注册”（2.28 第 204 条）。受邀为机构管理员、还没有手机号码的，在“确认邀请”里加手机号码和短信验证码（第 268 条）。
+  // 2.38 账户第 334 条：不再有“先完成注册”（取代 2.28 第 204 条）。受邀为机构管理员、还没有手机号码的，在“确认邀请”里加手机号码和短信验证码（第 268 条）。
   const r = auRegState("join"), linkOrg = r.step < 2 ? auJoinOrgOf(AUX.v.jn_code) : "";
   // 2.22 账户第 187 条：从邀请链接或二维码打开（邀请码已填好）时已经选定加入，不显示切换器，标题“加入已开通的机构”
   if (linkOrg) AUX.joinLink = true;
@@ -76422,7 +76439,7 @@ BARE.join = () => {
     ? `${auRegStep1("join")}${auStepFoot("继续")}`
     : invs.length
       ? `${pick}${auJoinInvPhone(invs)}${auStepFoot("加入")}`
-      : `${auJoinCodeField()}${auJoinNote()}${auStepFoot("申请加入", `<div class="au-links au-reg-only"><button type="button" class="au-textbtn" data-act="auRegOnly">先完成注册</button></div>`)}`;
+      : `${auJoinCodeField()}${auJoinNote()}${auStepFoot("申请加入")}`;
   const form = r.step === 1 ? "regStep" : invs.length ? "joinInv" : "join";
   const steps = auStepList("join", ["创建账户", invs.length ? "确认邀请" : "填写邀请码"], body, () => auRegSum1("join"));
   return auAuthShell(`${AUX.accessSeg ? `<h1 class="au-h1">申请访问</h1>${auAccessSeg("join")}` : `<h1 class="au-h1">加入已开通的机构</h1>`}${linkOrg ? `<p class="au-lead au-join-org">申请加入：<b>${esc(auOrg(linkOrg).name)}</b></p>` : ""}<p class="au-lead">${AU_JOIN_LEAD}</p>${r.max > 1 ? "" : auLoginLink("#join")}<form class="au-compact-form au-step-form" data-form="${form}" data-flow="join" novalidate><fieldset>${steps}</fieldset></form>`);
@@ -76475,18 +76492,26 @@ function auJoinSubmit(org, uid) {
 
 /* ---------- 创建机构（2.37 账户第 296、300 条） ---------- */
 // 2.37（HONG 2026-10-27 13:03Z 按推荐，账户第 296–330 条，取代申请开通与 PACOM 审核、申请审核中页）：创建机构即时完成，不经审核。
-// 未登录两步：1 创建账户、2 填写机构信息；已登录（机构菜单、“尚未加入机构”页）只有机构信息一步。机构信息为机构名称、行业、所在地区，按钮“创建机构”。
+// 2.38 账户第 339、340 条（取代 2.37 的两步）：未登录三步：1 创建账户、2 绑定手机号码、3 填写机构信息，每步只有一个验证码；
+// 已登录（机构菜单、“尚未加入机构”页）已绑定手机号码的只有机构信息一步，没有绑定的两步：1 绑定手机号码、2 填写机构信息。
+// 机构信息为机构名称、行业、所在地区，按钮“创建机构”。
 // 创建后本人为机构管理员，机构为“未订阅”：可用全部规划和配置功能、邀请成员，不能绑定设备或接入系统，没有 AI 额度（第 297 条）；
 // 机构全称、统一社会信用代码、订阅和开票都在订阅时填写（第 301–307 条）。
 const AU_APPLY_LEAD = `创建后即可规划和配置，你将成为<span class="au-keep">机构管理员</span>。订阅后可以绑定设备和使用 AI。`;
 const AU_QTY_HINT = "100 的整数倍，最多 10,000 台";
 const AU_INDUSTRIES = ["办公", "商业", "酒店", "医疗", "教育", "工业", "交通", "文化体育", "政府与公共机构", "物业服务", "其他"].map((x) => [x, x]);
-// 第 1 步验证过的号码不再要验证码。
-const auApplyNeedSms = () => { const known = auRegState("apply").tel; return !(known && auPhoneIdentity(known) === auPhoneIdentity(AUX.v.ap_tel || "")); };
-// 创建机构的人是机构管理员，须绑定手机号码（同受邀为机构管理员，第 268 条）
+// 创建机构的表单：未登录为 apply，已登录为 in
+const auApplyFlow = () => (AUTH.session === "in" ? "in" : "apply");
+// 已验证过的号码不再要验证码。
+const auApplyNeedSms = () => { const known = auRegState(auApplyFlow()).tel; return !(known && auPhoneIdentity(known) === auPhoneIdentity(AUX.v.ap_tel || "")); };
+const auApplyPhoneChecks = () => [["ap_tel", auPhoneCheck], ...(auApplyNeedSms() ? [["ap_sms", auEcCheck("ap")]] : [])];
+// 已登录、还没有绑定手机号码时先绑定（第 340 条）
+const auApplyNeedPhone = () => AUTH.session === "in" && !auMe().phone;
+const AU_APPLY_PHONE_NOTE = "机构管理员须绑定手机号码，用于在新设备上登录时验证。";
+// 创建机构的人是机构管理员，须绑定手机号码（同受邀为机构管理员，第 268 条）；说明写在“绑定手机号码”一步的标题下
 function auApplyPhoneFields() {
   const sms = auApplyNeedSms();
-  return `${auField({ name: "ap_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", info: "机构管理员须绑定手机号码，用于在新设备上登录时验证。", suffix: auEcBtn("ap", !sms), hint: auEcLine("ap"), hintRole: "status" })}${auField({ name: "ap_sms", label: "短信验证码", right: auNoCodeRight("sms", "au-ap-nocode", !!auEcSent("ap")), auto: "one-time-code", inputmode: "numeric", maxlength: 6 }).replace('<div class="au-field ', `<div ${sms ? "" : "hidden "}class="au-field au-apply-sms `)}`;
+  return `${auField({ name: "ap_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", suffix: auEcBtn("ap", !sms), hint: auEcLine("ap"), hintRole: "status" })}${auField({ name: "ap_sms", label: "短信验证码", right: auNoCodeRight("sms", "au-ap-nocode", !!auEcSent("ap")), auto: "one-time-code", inputmode: "numeric", maxlength: 6 }).replace('<div class="au-field ', `<div ${sms ? "" : "hidden "}class="au-field au-apply-sms `)}`;
 }
 // 机构名称、行业、所在地区；行业用全站下拉框，值记在 AUX.v.ap_ind
 function auApplyOrgFields() {
@@ -76499,13 +76524,34 @@ const auApplyOrgChecks = () => [
   ["ap_ind", (v) => (v ? "" : "请选择行业")],
   ["ap_region", auReq("请输入所在地区")],
 ];
-const auApplyTitles = (signed) => [...(signed ? [] : ["创建账户"]), "填写机构信息"];
-// 未登录：第 1 步创建账户，第 2 步机构信息；已登录：机构信息（不编号）
+const auApplyTitles = (signed) => [...(signed ? [] : ["创建账户"]), "绑定手机号码", "填写机构信息"];
+// 各步的编号：未登录 1 创建账户、2 绑定手机号码、3 填写机构信息；已登录未绑定 1 绑定手机号码、2 填写机构信息
+const auApplyPhoneStep = (flow) => (flow === "in" ? 1 : 2);
+// 第 2 步（已登录为第 1 步）“继续”：核对短信验证码；号码已绑定其他账户的写明（不向他人透露）。
+async function auApplyPhoneVerify(f, flow) {
+  const r = auRegState(flow);
+  if (!auValidate(f, auApplyPhoneChecks())) return;
+  const phone = auTelStore(PACOM_AUTH_FLOW.identifier(AUX.v.ap_tel)), need = auApplyNeedSms();
+  const done = auBusy(f, "正在验证…");
+  const b = need ? await auRequest("verifyPhoneCode", { phone, code: auVal("ap_sms").trim(), purpose: "bind" }) : { status: "ok" };
+  await done();
+  if (b.status === "invalid-credentials") { auErr("ap_sms", "验证码不正确或已过期"); return $("#au-ap_sms")?.focus(); }
+  if (b.status !== "ok") return auFormErr(f, "暂时无法验证，请稍后再试。", true, "error");
+  const self = flow === "in" ? AUTH.uid : "";
+  if (Object.entries(AUTH.people).some(([uid, p]) => uid !== self && p.phone && auPhoneIdentity(p.phone) === auPhoneIdentity(phone))) {
+    auHeldErr("ap_tel", "该号码已绑定其他账户，请更换号码。");
+    return $("#au-ap_tel")?.focus();
+  }
+  r.tel = phone;
+  auStepNext(flow);
+}
 function auApplyForm(flow) {
   const signed = flow === "in";
-  if (signed) return `<form class="au-step-form au-create-form" data-form="apply" data-flow="in" novalidate><fieldset>${auApplyOrgFields()}${auStepFoot("创建机构")}</fieldset></form>`;
-  const r = auRegState(flow), last = r.step === 2;
-  const steps = auStepList(flow, auApplyTitles(false), (n) => (n === 1 ? `${auRegStep1("apply")}${auStepFoot("继续")}` : `${auApplyOrgFields()}${auStepFoot("创建机构")}`), (n) => (n === 1 ? auRegSum1("apply") : ""));
+  if (signed && !auApplyNeedPhone()) return `<form class="au-step-form au-create-form" data-form="apply" data-flow="in" novalidate><fieldset>${auApplyOrgFields()}${auStepFoot("创建机构")}</fieldset></form>`;
+  const r = auRegState(flow), ph = auApplyPhoneStep(flow), last = r.step === ph + 1;
+  const body = (n) => (n === 1 && !signed ? `${auRegStep1("apply")}${auStepFoot("继续")}` : n === ph ? `${auApplyPhoneFields()}${auStepFoot("继续")}` : `${auApplyOrgFields()}${auStepFoot("创建机构")}`);
+  const sum = (n) => (n === 1 && !signed ? auRegSum1("apply") : n === ph ? esc(r.tel || "") : "");
+  const steps = auStepList(flow, auApplyTitles(signed), body, sum, (n) => (n === ph ? AU_APPLY_PHONE_NOTE : ""));
   return `<form class="au-step-form" data-form="${last ? "apply" : "applyStep"}" data-flow="${flow}" novalidate><fieldset>${steps}</fieldset></form>`;
 }
 // 已登录的创建表单（创建页与“尚未加入机构”页共用）
@@ -77089,11 +77135,12 @@ function auCompleteLogin(uid) {
   }
   if (orgs.length === 1) return auEnter(orgs[0].id);
   if (last && auMe().orgs[last]) return auEnter(last);
-  // 没有机构时，有待批准的加入申请进入“等待批准”；未获批准、已过期的申请显示一次（第 144 条）。
+  // 没有机构时，有待批准的加入申请进入“等待批准”（2.38 第 336 条保留）；未获批准、已过期的申请提示一次（第 144 条）。
   if (!orgs.length) {
     const join = auMyJoin(uid), js = join && auJoinState(join.r);
     if (js === "pending") return auSave(), auRoute("join", "wait");
-    if (["rejected", "expired"].includes(js) && !join.r.seen) { join.r.seen = true; auSave(); return auRoute("join", js); }
+    // 2.38 账户第 337、338 条：不再有“申请未获批准”“申请已过期”页，改在“尚未加入机构”页顶提示一次。
+    if (["rejected", "expired"].includes(js) && !join.r.seen) { join.r.seen = true; AUX.joinNotice = { org: join.org, kind: js }; }
   }
   auSave();
   auRoute("orgs");
@@ -77195,13 +77242,13 @@ const AU_SUBMIT = {
     if (f.getAttribute("aria-busy") === "true") return;
     const flow = f.dataset.flow;
     if (auRegState(flow).step === 1 && flow !== "in") return auRegVerify(f, flow);
-    if (!auValidate(f, auStepChecks(flow))) return;
     auStepNext(flow);
   },
-  // 2.37 账户第 296 条：创建机构未登录时第 1 步“创建账户”的“继续”，核对验证码。
+  // 创建机构中间各步的“继续”：“创建账户”核对邮件验证码，“绑定手机号码”核对短信验证码（2.38 账户第 339、340 条）。
   async applyStep(f) {
     if (f.getAttribute("aria-busy") === "true") return;
-    return auRegVerify(f, f.dataset.flow);
+    const flow = f.dataset.flow;
+    return auRegState(flow).step === auApplyPhoneStep(flow) ? auApplyPhoneVerify(f, flow) : auRegVerify(f, flow);
   },
   // 2.37 账户第 302–305 条：订阅页中间各步的“继续”。第 1 步核对额度；资质和开票都已有的续期、增加设备额度直接到第 4 步；
   // 第 2 步当场核对代码校验码，再由后台核验工商登记；第 3 步核对开票信息。
@@ -77281,14 +77328,16 @@ const AU_SUBMIT = {
     if (f.getAttribute("aria-busy") === "true") return;
     const flow = f.dataset.flow, signed = flow === "in";
     if (!auValidate(f, auApplyOrgChecks())) return;
-    if (!signed && !auStepRecheck(flow, [[1, auRegChecks1("apply")]])) return;
+    const bind = !signed || auApplyNeedPhone();
+    if (!auStepRecheck(flow, [...(signed ? [] : [[1, auRegChecks1("apply")]]), ...(bind ? [[auApplyPhoneStep(flow), auApplyPhoneChecks()]] : [])])) return;
     const r = auRegState(flow), org = { name: String(AUX.v.ap_name).trim(), industry: AUX.v.ap_ind, region: String(AUX.v.ap_region).trim() };
     const done = auBusy(f, "正在创建…");
-    const res = await auRequest("createOrg", { org, ...(signed ? {} : { email: r.mail, phone: r.tel, name: String(AUX.v.rg_name).trim(), password: AUX.v.rg_pwd, consentRecord: r.consent }) });
+    const res = await auRequest("createOrg", { org, ...(bind ? { phone: r.tel } : {}), ...(signed ? {} : { email: r.mail, name: String(AUX.v.rg_name).trim(), password: AUX.v.rg_pwd, consentRecord: r.consent }) });
     await done();
     if (["blocked-password", "invalid-password"].includes(res.status)) return auRegPwdBack("apply");
     if (res.status !== "ok") return auFormErr(f, "暂时无法创建，请稍后再试。", true, "error");
     if (!signed) auRegCreate("apply");
+    else if (bind) Object.assign(auMe(), { phone: r.tel, telAt: auCstYmd() });
     const id = auCreateOrg(res);
     auClearApply();
     auSave();
@@ -77819,6 +77868,17 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "2.38",
+    date: "2026-10-27",
+    notes: [
+      "创建新机构分三步：创建账户、绑定手机号码、填写机构信息，每步只有一个验证码；已登录、还没有绑定手机号码的先绑定。",
+      "“没有邀请码？”移到“邀请码”字段名一行右侧；申请说明改用全站的多行输入框；不再有“先完成注册”。",
+      "加入申请未获批准或已过期时发邮件或短信，登录后在“尚未加入机构”页顶部提示，过期的可以重新申请。",
+      "同意句改为“我已阅读并同意 PACOM 客户隐私声明和使用条款”。",
+      "修正创建新机构第 1 步点“继续”没有反应的问题。",
+    ],
+  },
   {
     version: "2.37",
     date: "2026-10-27",
@@ -78692,11 +78752,11 @@ const HELP_TOPICS = [
 const HELP_UPDATED = "2026-10-27";
 const HELP_ARTICLES = [
   { id: "acct-apply", topic: "account", title: "创建机构", roles: "要创建新机构的人", sum: "填写机构名称、行业和所在地区即可创建，你是机构管理员；规划和配置不需要订阅，绑定设备和使用 AI 前订阅。",
-    steps: ["在登录页点“申请访问”，选“创建新机构”，先创建账户。已有账户的，在“尚未加入机构”页选“创建新机构”；已加入其他机构的，在机构菜单点“创建机构”。", "填写机构名称、行业和所在地区，点“创建机构”。机构名称用于平台内显示，可随时修改。", "创建后即可创建项目、上传楼层图、规划设备和邀请成员。", "要绑定设备和使用 AI 时，在“机构设置 › 订阅与用量”订阅，见《订阅、续期与付款》。"],
+    steps: ["在登录页点“申请访问”，选“创建新机构”，先创建账户，再绑定手机号码。已有账户的，在“尚未加入机构”页选“创建新机构”；已加入其他机构的，在机构菜单点“创建机构”；账户还没有绑定手机号码的先绑定。", "填写机构名称、行业和所在地区，点“创建机构”。机构名称用于平台内显示，可随时修改。", "创建后即可创建项目、上传楼层图、规划设备和邀请成员。", "要绑定设备和使用 AI 时，在“机构设置 › 订阅与用量”订阅，见《订阅、续期与付款》。"],
     faq: [["个人可以创建机构吗？", "可以创建并规划；订阅时须填写机构全称和统一社会信用代码，由平台核对工商登记信息。"], ["机构已经在用了怎么办？", "不要重复创建，在登录页点“申请访问”，选“加入已开通的机构”。"], ["同一个统一社会信用代码能订阅几个机构？", "可以订阅多个，如各园区分开管理，机构之间数据完全隔离。"], ["建错了机构怎么办？", "未订阅的机构可以在“机构信息”最后删除，30 天内可在“我的账户 › 我的机构”恢复。"]], rel: ["acct-join", "acct-sub"] },
   { id: "acct-join", topic: "account", title: "加入已开通的机构", roles: "所有要加入的人", sum: "用机构的邀请码、邀请链接、二维码或邮件邀请加入，角色由机构管理员确定。",
-    steps: ["在登录页点“申请访问”，选“加入已开通的机构”，先验证电子邮箱。机构管理员按这个邮箱邀请过你时直接加入；没有邀请时填写邀请码，设置密码后提交，打开邀请链接或扫邀请二维码时邀请码已填好。邀请码在工作群里的邀请链接或二维码中，或请已加入的同事发给你。还没有邀请码时可以点“先完成注册”，之后在“尚未加入机构”页接受邀请或填写邀请码。", "已有账户的，登录后打开邀请链接或扫二维码；或在“我的账户 › 我的机构”点“加入机构”，填写邀请码。发给你的邀请列在“我的机构”最上面，点“接受”即加入。", "机构管理员直接邀请：打开邀请邮件，设置姓名和密码即可加入，邀请 7 天内有效。", "申请发出后等待机构管理员批准，7 天内有效，可以撤回；批准后收到邮件，登录即可进入。"],
-    faq: [["换了工作怎么办？", "离职前在“我的账户 › 账户”把登录邮箱换成你能长期使用的邮箱，原机构的邮箱停用后就收不到验证码。原机构的机构管理员会将你移出，你用同一个账户加入新的机构。"], ["同事能共用一个账户吗？", "不能。每人用自己的电子邮箱注册，角色、授权和操作记录都按账户区分。"], ["申请未获批准怎么办？", "请向该机构的同事确认后重新申请。"]], rel: ["login", "acct-admin"] },
+    steps: ["在登录页点“申请访问”，选“加入已开通的机构”，先验证电子邮箱。机构管理员按这个邮箱邀请过你时直接加入；没有邀请时填写邀请码，设置密码后提交，打开邀请链接或扫邀请二维码时邀请码已填好。邀请码在工作群里的邀请链接或二维码中，或请已加入的同事发给你。还没有邀请码时点“没有邀请码？”查看做法，或选“创建新机构”。", "已有账户的，登录后打开邀请链接或扫二维码；或在“我的账户 › 我的机构”点“加入机构”，填写邀请码。发给你的邀请列在“我的机构”最上面，点“接受”即加入。", "机构管理员直接邀请：打开邀请邮件，设置姓名和密码即可加入，邀请 7 天内有效。", "申请发出后等待机构管理员批准，7 天内有效，可以撤回；批准后收到邮件，登录即可进入。"],
+    faq: [["换了工作怎么办？", "离职前在“我的账户 › 账户”把登录邮箱换成你能长期使用的邮箱，原机构的邮箱停用后就收不到验证码。原机构的机构管理员会将你移出，你用同一个账户加入新的机构。"], ["同事能共用一个账户吗？", "不能。每人用自己的电子邮箱注册，角色、授权和操作记录都按账户区分。"], ["申请未获批准或过期了怎么办？", "你会收到邮件或短信，登录后“尚未加入机构”页顶部有提示。过期的可以点“重新申请”；未获批准的请向该机构的同事确认后重新申请。"]], rel: ["login", "acct-admin"] },
   { id: "login", topic: "account", title: "登录与验证", roles: "所有角色", sum: "登录方式、保持登录、输错暂停和定期验证的规则。",
     steps: ["账户是电子邮箱；手机号码绑定并验证后也可以登录。", "提示账户或密码不正确时，核对后重试，或点“忘记密码？”用验证码重置。", "连续输错 10 次暂停 1 分钟，之后每错一次暂停时间加倍，最长 30 分钟；连续 100 次后只能重置密码再登录。", "机构管理员在新设备或新浏览器上登录，须验证手机号码；没有绑定手机号码的，登录时先绑定。", "勾选“保持登录”后，关闭浏览器也不会退出，最长 30 天；修改或重置密码后需要重新登录。", "每 90 天登录时须输入发到电子邮箱的验证码；没有电子邮箱的账户输入发到手机号码的验证码。", "能登录但看不到机构：显示“尚未加入机构”时，按《加入已开通的机构》申请；显示“你已不在该机构中”，表示你已被移出该机构。"],
     faq: [["电子邮箱已不能使用怎么办？", "用已绑定的手机号码登录或重置密码，再在“我的账户 › 账户”更换电子邮箱；都不能使用时联系 PACOM 支持核验身份。"], ["看不到某个项目怎么办？", "请联系本机构的机构管理员修改你的项目授权范围，修改后立即生效。"]], rel: ["acct-mail", "acct-profile"] },
@@ -78987,28 +79047,13 @@ Object.assign(actions, {
     auEcIssue(key, to);
     $(`#au-${AU_EC[key].code}`)?.focus({ preventScroll: true });
   },
-  // 2.28 账户第 204 条：没有邀请也没有邀请码时“先完成注册”：建好账户（不属于任何机构），进入“尚未加入机构”（2.33 第 268 条：不再进“绑定手机号码”页）。
-  auRegOnly: async () => {
-    const f = document.querySelector('form[data-form="join"]');
-    if (!f || f.getAttribute("aria-busy") === "true") return;
-    delete AUX.errors.jn_code; delete AUX.errors.jn_note;
-    if (!auStepRecheck("join", [[1, auRegChecks1("join")]])) return;
-    const done = auBusy(f, "正在注册…");
-    const r = await auRequest("register", { ...auRegWho(), name: String(AUX.v.rg_name).trim(), password: AUX.v.rg_pwd, org: null, consentRecord: auRegState("join").consent });
-    await done();
-    if (["blocked-password", "invalid-password"].includes(r.status)) return auRegPwdBack("join");
-    if (r.status !== "ok") return auFormErr(f, "暂时无法注册，请稍后再试。", true, "error");
-    auRegCreate("join");
-    for (const k of ["jn_code", "jn_note"]) delete AUX.v[k];
-    auSave();
-    auRoute("orgs");
-  },
   // 2.33 账户第 256 条：完成的步骤“修改”回到那一步，已填的内容保留；改过的地址“继续”时重新验证。
   auStepEdit: (a) => {
     const flow = a.flow, r = auRegState(flow), n = Number(a.n) || 1;
     if (n > r.max) return;
     r.step = n;
-    if (n === 1 && !["in", "sub"].includes(flow)) { AUX.v.rg_mail ||= flow === "join" ? r.id : r.mail; if (flow === "apply") AUX.v.ap_tel ||= r.tel; }
+    if (n === 1 && !["in", "sub"].includes(flow)) AUX.v.rg_mail ||= flow === "join" ? r.id : r.mail;
+    if (["apply", "in"].includes(flow) && n === auApplyPhoneStep(flow)) AUX.v.ap_tel ||= r.tel;
     AUX.stepFocus = true;
     render();
   },
@@ -79033,10 +79078,12 @@ Object.assign(actions, {
     if (auMyOrgs().length) auRestoreWorkspace(); else auRoute("orgs");
     msg("加入申请已撤回");
   },
+  // 2.38 账户第 338 条：“重新申请”按原邀请码和申请说明再发一次，之后进入“等待批准”。
   auJoinResend: () => {
     const mine = auMyJoin();
     if (!mine) return;
-    Object.assign(mine.r, { status: "pending", at: auNow() });
+    AUX.joinNotice = null;
+    Object.assign(mine.r, { status: "pending", at: auNow(), seen: false });
     auSave();
     auRoute("join", "wait");
   },
@@ -82653,7 +82700,7 @@ document.addEventListener('input', e => {
   if (e.target.name === 'jn_code') { const v = auJoinCodeText(e.target.value).slice(0, 11); if (v !== e.target.value) { e.target.value = v; AUX.v.jn_code = v; } }
   if (e.target.name === 'sb_uscc') { const v = e.target.value.toUpperCase(); if (v !== e.target.value) { e.target.value = v; AUX.v.sb_uscc = v; } }
   if (e.target.name === 'ap_tel') { const need = auApplyNeedSms(), box = document.querySelector('.au-apply-sms'), b = document.querySelector('[data-ec="ap"]'); if (box) box.hidden = !need; if (b) b.hidden = !need; }
-  if (e.target.name === 'jn_code') { const hint = $('#au-jn_code-hint'), org = auJoinOrgOf(e.target.value); if (hint && (org || !hint.querySelector('.au-nocode-btn'))) hint.innerHTML = auJoinCodeHint(org); }
+  if (e.target.name === 'jn_code') { const hint = $('#au-jn_code-hint'), org = auJoinOrgOf(e.target.value); if (hint) hint.innerHTML = auJoinCodeHint(org); auNoCodeShow('au-jn-nocode', !org); }
   // 2.33：受邀为机构管理员的邀请显示手机号码；地址与验证过的相同时不显示验证码框；专用发票显示另外四项
   if (e.target.name === 'jn_inv') { AUX.v.jn_inv = e.target.value; const box = document.querySelector('.au-inv-phone'); if (box) box.hidden = !auJoinInvAdmin(auMailInvites(auRegState('join').mail)); }
   if (e.target.name === 'rg_mail' && AUX.regFlow) { const need = auRegNeedCode(AUX.regFlow), box = document.querySelector('.au-reg-code'), b = document.querySelector('[data-ec="rg"]'); if (box) box.hidden = !need; if (b) b.hidden = !need; }
@@ -90394,14 +90441,14 @@ function demoJoinAt(name, mail) {
   auRegSet("join", { step: 2, id: mail, mail, consent: auConsentRecord(["privacy", "terms"]) });
   Object.assign(AUX.v, { rg_name: name, rg_mail: mail, rg_pwd: "Pacom#2026x", rg_ok: true });
 }
-// 申请访问“创建新机构”第 step 步（2.37 账户第 296 条）：第 2 步时账户已填好
+// 申请访问“创建新机构”第 step 步（2.38 账户第 339 条：三步）：第 2 步时账户已填好，第 3 步时手机号码已验证
 function demoApplyAt(step, extra = {}) {
   demoOut();
   auClearApply();
   if (AUTH.people.zh && !Object.keys(AUTH.people.zh.orgs || {}).length) delete AUTH.people.zh;
-  if (step > 1) auRegSet("apply", { step, mail: "zhang.hua@example.test", tel: "+86 139 0000 0109", consent: auConsentRecord(["privacy", "terms"]) });
+  if (step > 1) auRegSet("apply", { step, mail: "zhang.hua@example.test", tel: step > 2 ? "+86 139 0000 0109" : "", consent: auConsentRecord(["privacy", "terms"]) });
   else auRegNo();
-  if (step > 1) Object.assign(AUX.v, { rg_name: "张华", rg_mail: "zhang.hua@example.test", rg_pwd: "Pacom#2026x", rg_ok: true, ap_tel: "+86 139 0000 0109" });
+  if (step > 1) Object.assign(AUX.v, { rg_name: "张华", rg_mail: "zhang.hua@example.test", rg_pwd: "Pacom#2026x", rg_ok: true, ...(step > 2 ? { ap_tel: "+86 139 0000 0109" } : {}) });
   Object.assign(AUX.v, extra);
   demoShow("apply");
 }
@@ -90457,6 +90504,15 @@ function demoJoin(status) {
   demoNoOrg();
   AUTH.joinReqs.gzlab.unshift({ id: "jr-demo-nw", uid: "nw", name: "周宁", email: "zhou.ning@example.test", note: "广实2号园物业工程部。", at: auNow() - (status === "expired" ? 8 : 1) * auDay, status: status === "expired" ? "pending" : status });
   auSave();
+}
+// 加入申请未获批准或已过期后登录：进入“尚未加入机构”，页顶提示一次（2.38 账户第 337、338 条）
+function demoJoinNotice(status) {
+  demoJoin(status);
+  const mine = auMyJoin();
+  if (mine) mine.r.seen = true;
+  AUX.joinNotice = { org: "gzlab", kind: status };
+  U.tab = "";
+  demoShow("orgs");
 }
 // 新机构的创建人张华（2.37 账户第 296 条）
 function demoApplicant() {
@@ -90698,13 +90754,15 @@ const DEMO_ITEMS = [
   ["申请访问：加入", "join-link", "打开邀请链接", "邀请码已带入", () => (demoOut(), (AUX.v.jn_code = auJoinCodeText("386204517")), demoShow("join"))],
   ["申请访问：加入", "join-in", "已登录：申请加入", "尚未加入机构的账户", () => (demoNoOrg(), (AUX.v.jn_code = auJoinCodeText("386204517")), demoShow("join"))],
   ["申请访问：加入", "join-wait", "等待批准", "", () => (demoJoin("pending"), demoShow("join", "wait"))],
-  ["申请访问：加入", "join-rejected", "申请未获批准", "", () => (demoJoin("rejected"), demoShow("join", "rejected"))],
-  ["申请访问：加入", "join-expired", "申请已过期", "7 天没有处理", () => (demoJoin("expired"), demoShow("join", "expired"))],
+  // 2.38 账户第 337、338 条：未获批准、已过期不再有单独页面，登录后在“尚未加入机构”页顶提示
+  ["申请访问：加入", "join-rejected", "申请未获批准", "登录后在尚未加入机构页提示", () => demoJoinNotice("rejected")],
+  ["申请访问：加入", "join-expired", "申请已过期", "7 天没有处理", () => demoJoinNotice("expired")],
 
-  // 申请访问：创建新机构（2.37 账户第 296 条：两步，提交即开通）
+  // 申请访问：创建新机构（2.38 账户第 339 条：三步，提交即创建）
   ["申请访问：创建机构", "create-1", "第 1 步 创建账户", "“创建新机构”", () => demoApplyAt(1)],
-  ["申请访问：创建机构", "create-2", "第 2 步 填写机构信息", "", () => demoApplyAt(2)],
-  ["申请访问：创建机构", "create-err", "机构信息需要核对", "第 2 步未填写直接创建", () => (demoApplyAt(2), demoSubmit("apply"))],
+  ["申请访问：创建机构", "create-2", "第 2 步 绑定手机号码", "", () => demoApplyAt(2)],
+  ["申请访问：创建机构", "create-3", "第 3 步 填写机构信息", "", () => demoApplyAt(3)],
+  ["申请访问：创建机构", "create-err", "机构信息需要核对", "第 3 步未填写直接创建", () => (demoApplyAt(3), demoSubmit("apply"))],
   ["申请访问：创建机构", "create-signed", "已登录：创建机构", "机构菜单“创建机构”进入", () => (demoIn(), auClearApply(), (AUX.applyFrom = "#overview"), demoShow("apply"))],
 
   ["受邀注册", "inv-new", "受邀注册", "受邀邮箱还没有账户", () => (demoInvite("member", "new"), demoShow("invite", "member"))],
