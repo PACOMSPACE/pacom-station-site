@@ -3379,7 +3379,8 @@ textarea.input {
   gap: 8px;
   min-height: 32px;
   height: auto;
-  padding: 5px 8px;
+  /* 2.46 E451：上下内边距 4（行高 32，与其他菜单一致）；原为 5，“更多”和“切换设备网络”菜单每行 34 */
+  padding: 4px 8px;
   border-radius: 12px;
   background: none;
   box-shadow: none;
@@ -4347,10 +4348,11 @@ details[open] > summary::before {
   font-size: 14px;
   line-height: 24px;
 }
+/* 2.46 E453：指标数字各屏宽 24/32、字重 480（同运营各页）；原为 400，窄屏 20/32 */
 .ws-stat-grid b {
   font-size: 24px;
   line-height: 32px;
-  font-weight: 400;
+  font-weight: 480;
 }
 .ws-stat-grid small {
   font-size: 12px;
@@ -4635,9 +4637,6 @@ details[open] > summary::before {
  }
  /* 全面设计核查第 152 条（2026-10-12 用户确认）：统计卡在窄屏上仍是卡片间距 20、内边距 20，同数据分析的指标卡；
     原为 1250 以下间距 12、760 以下间距 8、内边距 12。 */
- .ws-stat-grid b {
-   font-size: 20px;
- }
  .ws-section-toolbar {
    flex-wrap: wrap;
  }
@@ -7099,7 +7098,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .sp-plan-review {
   margin: 0 0 12px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #fff7e6;
   box-shadow: inset 0 0 0 1px #f1dfb5;
   font-size: 12px;
@@ -7690,7 +7689,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 12px;
   /* 全面设计核查第 153 条（2026-10-12 用户确认）：区块浅灰 #F8F8F7；原为 #F6F6F6。 */
   background: #f8f8f7;
 }
@@ -7737,7 +7736,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   max-height: 320px;
   margin-top: 12px;
   padding: 8px;
-  border-radius: 10px;
+  border-radius: 12px;
   /* 全面设计核查第 153 条（2026-10-12 用户确认）：图片底用页面级浅灰 #F0F0F0（同 .ws-image-thumb）；原为 #F4F4F4。 */
   background: #f0f0f0;
   overflow: hidden;
@@ -7857,7 +7856,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .zc-preview {
   margin-top: 12px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 12px;
   /* 全面设计核查第 153 条（2026-10-12 用户确认）：区块浅灰 #F8F8F7；原为 #F6F6F6。 */
   background: #f8f8f7;
   font-size: 14px;
@@ -7886,7 +7885,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   padding: 12px;
   /* 全面设计核查第 153 条（2026-10-12 用户确认）：选项框用画布、图片框与控件边线 #DEDEDE；原为 #E8E8E8。 */
   border: 1px solid #dedede;
-  border-radius: 10px;
+  border-radius: 12px;
 }
 .ex-kind > div {
   flex: 1;
@@ -8276,6 +8275,25 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
 .sp-sheet-line > b { flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; font-weight:480; color:#030303; }
 .sp-sheet-line > span { flex:none; }
 .sp-sheet-line > span.warn { color:#8a5a00; }
+
+/* 2.46 E445：列表的“配置进度”格在细条后加“5 / 6”，整格是一个 32 高的按钮（触屏 44）；原为只有 3 高的细条可点 */
+.ws-dir .t .pc-prog .ws-list-status { min-height: 32px; padding: 0 8px; margin-left: -8px; }
+.pc-prog-n { flex: none; font-size: 12px; line-height: 18px; color: var(--text3); }
+@media (pointer: coarse) { .ws-dir .t .pc-prog .ws-list-status { min-height: 44px; } }
+/* 2.46 E462：触屏时工作区（配置、运营各页与弹窗）的文字按钮可见高度 44，与输入、选择同高（原为 40）；小号按钮与表格行内按钮外观不变、
+   点击区 44 照旧；菜单项、缩放条、账户页、演示层、部署 App 与运营后台按各自规格。放在层外，压过各页按钮 40 的触屏规则。 */
+@media (pointer: coarse) {
+  :is(#app, #dlg, #discard):not([data-page=console], [data-page=app], [data-page=admin]) .btn:not(.sm, .popitem, .ws-zoom > *, .t td .btn, .au .btn, [class*="demo-"], #demo .btn) { height: 44px; min-height: 44px; }
+}
+/* 2.46 账户第 430 条（取代第 399 条的按钮部分）：形状按用途分。主要、次要、透明、小号、危险按钮，提示条和表格行里的按钮一律胶囊
+   （圆角为高的一半）；没有底色的文字按钮，悬停和按下的底色也是胶囊；只有图标的按钮为圆形；输入框、选择框里的按钮（获取验证码、
+   显示密码、打开日历、清除）圆角 8（输入框 12 减内缩 4，同心）。聚焦外圈随按钮形状。不变：输入框、选择框、文本框 12（含工具栏的
+   搜索框和筛选选择框），菜单与下拉弹层 16、菜单项 12，卡片、提示条 12，弹窗 24；页签切换、状态标签、开关已是胶囊。大屏与演示层不改。
+   放在 project 层之外，压过各页原先的圆角 12、6、4。 */
+:is(.btn, .au-primary, .au-textbtn, .ops-rowbtn):not(.popitem, .input, .ws-inventory-tools > .btn.ghost, [class*="demo-"], #demo *, .demo-cat *, .demo-foot *, [data-page=console] *, .scr-stage *) { border-radius: 999px; }
+.au .au-field-right .au-textbtn:focus-visible > span { border-radius: 999px; }
+:is(.iconbtn, .icon-btn, .ai-ev, .ws-loc-tree .ws-loc-tog):not([data-page=console] *, .scr-stage *, #demo *) { border-radius: 999px; }
+:is(.au-suffix, .au .au-ctl > .au-suffix, .au-getcode, .ws-dt-pick, .ws-select > .ws-select-clear) { border-radius: 8px; }
 
 @layer base {
 /* Existing Station tokens and geometry; workflow content does not redefine controls. */
@@ -10688,6 +10706,9 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
 .mk-dir-group > summary small { font-size:14px; font-weight:400; color:var(--base); }
 .ws-info-tip { width:24px; height:24px; box-shadow:none; background:none; vertical-align:middle; margin-left:2px; }
 
+/* 2.46 E448：本层没有网络时的灰字“放置第一台设备时自动建立” */
+.mk-auto { margin: 0; font-size: 12px; line-height: 18px; color: var(--text3); }
+
 }
 @layer base {
 /* V1.3 shell additions */
@@ -10861,7 +10882,8 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
 .v13-layers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:20px}
 .v13-layers>div{padding:10px 12px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--line2);display:flex;flex-direction:column}
 .v13-layers span{font-size:12px;line-height:18px;color:var(--text3)}
-.v13-layers b{font-size:20px;line-height:28px;font-weight: 480;font-variant-numeric:tabular-nums}
+/* 2.46 E460：下发包预览的四个数量按指标数字 24/32、字重 480（原为 20/28） */
+.v13-layers b{font-size:24px;line-height:32px;font-weight: 480;font-variant-numeric:tabular-nums}
 .v13-layers small{font-size:12px;line-height:18px;color:var(--text3)}
 .v13-h4{margin:0 0 8px;font-size: 14px;font-weight: 480}
 /* 适用标准的两列间隔 8（规范 80；Lovable 核查第 401 条，2026-10-11 用户确认：原为 12） */
@@ -11489,6 +11511,10 @@ details.v13-tech[open]>summary::after{transform:translateY(1px) rotate(-135deg)}
 .v13-ver-list .v13-opt input{margin-top:4px}
 .v13-ver-list b{font-weight:480;color:#030303}
 .v13-ver-list small{display:block;font-size:12px;line-height:18px;color:#636363}
+/* 2.46 E454：“交付”弹窗里“下发并核对回执后才能确认交付”在各页都是 14/24 #636363（原在设备网络页为 14/22.4） */
+.flow-why-l{margin:4px 0 0;font-size:14px;line-height:24px;color:var(--text3)}
+/* 2.46 E456：“适用标准”弹窗的面积输入在触屏上 44 高，同其他输入（原为 32） */
+@media (pointer: coarse) { .v13-space .v13-area, #dlg[data-page=settings] .v13-space .v13-area { height:44px; min-height:44px; } }
 
 }
 @layer base {
@@ -14460,6 +14486,12 @@ button.ops-zbadge:active {
     margin-bottom: 0;
   }
 }
+/* 2.46 E457：手机上节假日表每项占一整行（原为两列各 159 宽，占位文字显示不全） */
+@media (max-width: 600px) {
+  .ops-hd-row {
+    grid-template-columns: 1fr;
+  }
+}
 /* 场景表单：勾选组、没有控制分组时的说明、跨午夜与恢复（规范 SCENE01–SCENE03，V66、V68） */
 #dlg .ops-fs {
   border: 0;
@@ -16400,8 +16432,14 @@ p.ops-work .ops-link {
 .ops-t td.ops-r .ops-cmp-v + .ops-cmp-sub { padding-left: 0; }
 /* 2.40 账户第 344 条：说明框按词换行：打开时在词与词之间加断行点（wsInfoWords），词不在中间断开，标点不在行首，其余照常排满整行。 */
 .ws-info-text.ws-words { word-break:keep-all; line-break:strict; overflow-wrap:anywhere; }
+/* 2.46 账户第 407 条：全平台正文按词换行（加了 <wbr> 的元素） */
+.ws-words { word-break:keep-all; line-break:strict; overflow-wrap:anywhere; }
 /* 2.45 账户第 405 条：状态页说明同样按词换行 */
 .au .au-lead.ws-words { word-break:keep-all; line-break:strict; overflow-wrap:anywhere; }
+
+/* 2.46 E458：只打开节能基线或电费账单时，字段名与弹窗标题重复，只给读屏 */
+#appParts.app-one-baseline label[for="appBaseline-control"],
+#appParts.app-one-bills .app-bills > legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 }
 @layer base {
@@ -19896,7 +19934,7 @@ fieldset:disabled .au-primary {
 .au-account-dlg .db:last-child { padding-bottom: 24px; }
 .au-account-dlg .df { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap-reverse; gap: 12px 8px; flex-shrink: 0; padding: 24px; border: 0; }
 /* 账户标准弹窗操作使用同一几何；材质和主次颜色仍由各自按钮样式决定。放不下时反向换行，主操作在上。 */
-.au-account-dlg .df .btn { height: 32px; min-height: 32px; min-width: 44px; border-radius: 12px; padding: 0 12px; font: 400 14px/24px var(--ff); }
+.au-account-dlg .df .btn { height: 32px; min-height: 32px; min-width: 44px; border-radius: 12px; padding: 0 16px; font: 400 14px/24px var(--ff); }
 /* 重置操作以同格隐藏文案预留正常与忙碌所需宽度；改变文案不挤动取消按钮，也不增加行高。 */
 .au-account-dlg .df .btn.au-reset-submit { display: inline-grid; grid-template-columns: max-content; align-items: center; justify-items: center; gap: 0; }
 .au-reset-submit > .au-button-content { grid-area: 1 / 1; }
@@ -20075,13 +20113,11 @@ form[aria-busy="true"] .au-primary .au-fx-hover, form[data-frozen="1"] .au-prima
 /* “截图”下面的说明 12/18，与“当前对象”“日志”下面的说明相同（Lovable 核查第 162 条，2026-10-11 用户确认：原为 13/19） */
 .au-dialog #supShotInfo > small { font-size: 12px; line-height: 18px; }
 .au-dialog #supShotInfo > span { display: inline-flex; align-items: center; gap: 4px; overflow-wrap: anywhere; }
-/* “支持服务尚未接入……”与复制结果用全站提示条（.ws-notice，第 152、154 条） */
-.au-dialog .au-sup-send a { color: inherit; text-decoration: underline; }
+/* 发送失败的提示用全站提示条（.ws-notice，第 154 条；2.46 第 428 条去掉“支持服务尚未接入”提示条） */
+.au-dialog .au-sup-status a { color: inherit; text-decoration: underline; }
 .au-dialog .au-sup-status:empty { display: none; }
 /* 两个多行框 14/24，8×8 弧形手柄只能纵向拉（第 155 条）；隐藏时外壳一起隐藏（外壳的 display:grid 在 project 层，这里要 !important 才能盖过） */
 .au-dialog textarea.input { font-size: 14px; line-height: 24px; }
-.au-dialog .au-sup-out { width: 100%; font-family: var(--ff); }
-.au-dialog .au-sup-out[hidden],
 .au-dialog .ws-textarea-shell:has(> textarea[hidden]) { display: none !important; }
 @media (max-width: 540px) {
   .au-dialog .au-sup-shot { flex-direction: column; }
@@ -21201,6 +21237,32 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .au-menu .au-orgrow-mk > .au-mark-box > .au-mark-img { width: 24px !important; height: 24px !important; border-radius: 0 !important; object-fit: cover; }
 .au-menu .au-orgrow-mk > :is(.au-mark, .au-mark-box)::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .06); pointer-events: none; }
 .au-menu .au-me > .au-av { width: 24px; height: 24px; flex: none; }
+/* 2.46 账户第 408 条：账户区字段名一律 14/24 字重 480 #030303（原登录、受邀注册整页与订阅第 1 步为 16/24，部分 #2E2E2E）；
+   选项、只读值与信息行的值 14/24 字重 400 #030303，信息行名称 #636363；不再用 #2E2E2E。步骤标题、分节标题与整页主按钮按各自规格。 */
+:is(#app, #dlg) .au :is(.au-lab label, .au-lab .au-lab-t, .au-label-row label) { font: 480 14px/24px var(--ff) !important; color: #030303; }
+:is(#app, #dlg) .au :is(.au-static, .au-ro, .au-radio > span, .au-check > span, .au-row-v) { font-size: 14px !important; line-height: 24px !important; font-weight: 400; color: #030303 !important; }
+:is(#app, #dlg) .au :is(.au-ro, .au-row-v) * { font-size: inherit; line-height: inherit; color: inherit; }
+:is(#app, #dlg) .au .au-row-l { font-size: 14px; line-height: 24px; color: var(--text3); }
+/* 2.46 账户第 417 条：受邀登录的提示条距标题 16（同“尚未加入机构”“选择机构”），提示条到表单 16 不变。 */
+.au .au-h1:has(+ .au-login-notice) { margin-bottom: 16px; }
+/* 2.46 账户第 421 条：订阅第 4 步只留一行合计（名称 14/24 灰，金额 16/24 字重 480），下接付款与单据 */
+.au .au-cf-total { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line2); }
+.au .au-cf-total > span { font-size: 14px; line-height: 24px; color: var(--text3); }
+.au .au-cf-total > b { font-size: 16px; line-height: 24px; font-weight: 480; color: #030303; }
+.au .au-cf-total + .au-cf-note { margin-top: -8px; }
+/* 2.46 账户第 423 条：订单页在手机上信息行改为上下两行（名称在上、值在下占满宽度）；订单号、电子邮箱不在中间断开 */
+@media (max-width: 600px) {
+  .au:has(.au-od-top) .au-box > .au-row:has(> .au-row-v) { flex-direction: column; align-items: stretch; gap: 0; }
+  .au:has(.au-od-top) .au-box > .au-row:has(> .au-row-v) > :is(.au-row-l, .au-row-v) { flex: none; width: 100%; }
+  .au:has(.au-od-top) .au-row-v { word-break: keep-all; overflow-wrap: break-word; }
+  .au:has(.au-od-top) .au-row-v .num { white-space: nowrap; }
+}
+/* 2.46 账户第 427 条：手机上整列宽度为屏宽减左右各 24，不被页顶的电子邮箱撑宽；空间不够时电子邮箱先省略，“退出登录”始终完整 */
+@media (max-width: 850px) {
+  .au-split { grid-template-columns: minmax(0, 1fr); }
+  .au-left, .au-center, .au-group { min-width: 0; }
+  .au-logo-line > .au-top-acct { flex: 0 1 auto; }
+}
 
 }
 @layer base {
@@ -26676,7 +26738,7 @@ body:has(.demo-cap) > #ai-pal > .ai-pal {
   height: 36px;
   padding: 0 12px 0 36px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 12px;
   background: #fff;
   font: inherit;
   font-size: 14px;
@@ -29515,6 +29577,63 @@ tr.stop > th {
   font-size: 12px;
   line-height: 16px;
 }
+/* ==== 2.46 运营再次核查（V204、V206、V207、V212、V215、V216、V219） ==== */
+/* V204：功能区面板宽 400，与告警详情、工单、定时与联动详情同宽；窄屏抽屉也是 400（不超过屏宽减 16） */
+.ops-split.open {
+  grid-template-columns: minmax(0, 1fr) 400px;
+}
+@media (max-width: 1100px) {
+  .ops-zp.inline {
+    width: 400px;
+  }
+}
+.ops-drawer-wrap {
+  width: 400px;
+}
+.ops-drawer-wrap > .ops-zp.drawer {
+  width: auto;
+  max-width: none;
+}
+/* V206：“今日变化 ›”“在设备中登记”与同一面板的“详情 ›”同为 12/18 */
+.ops-zp .ops-link.ops-zp-today,
+.ops-zp .ops-link.ops-zp-reg {
+  font-size: 12px;
+  line-height: 18px;
+}
+/* V207：单台设备弹层名称下的状态行 14/24 */
+.ops-devpop p.ops-zp-sub {
+  font-size: 14px;
+  line-height: 24px;
+}
+/* V212：空间使用热力图的行名 12/18 */
+.ops-heat-y {
+  font-size: 12px;
+  line-height: 18px;
+}
+/* V215：告警表格里的级别徽章与总览、告警详情、工单相同，12/20 字重 480 */
+td .ops-lvl.sq {
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 480;
+}
+/* V216：告警详情事件小图的坐标文字与其他图表相同，12 号 #636363 */
+.ops-ev svg text {
+  font-size: 12px;
+  fill: #636363;
+}
+/* V219：场景编辑页标题与页面标题相同，20/30 字重 480 */
+.sc-ed-head h2 {
+  font-size: 20px;
+  line-height: 30px;
+  font-weight: 480;
+}
+/* V217：联动只有一种应用类型时直接写出，与输入框同高 */
+.lk-app-one {
+  margin: 0;
+  padding: 4px 0;
+  font-size: 14px;
+  line-height: 24px;
+}
 
 }
 @layer base {
@@ -29760,7 +29879,8 @@ tr.stop > th {
   /* Names remain complete even when one identifier exceeds the available row. */
   .dev-ledger-frame .dev-ledger-table :is(.nw, .nwj) { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
   #app[data-page=devices] .dev-ledger-frame .dev-ledger-table .btn { max-width: 100%; margin: 0; padding-inline: 0; }
-  .dev-ledger-frame .dev-ledger-table .chip { max-width: 100%; height: auto; min-height: 20px; white-space: normal; }
+  /* 2.46 E452：状态标签整体不换行，放不下时整个标签移到下一行（原为在标签里折成两行） */
+  .dev-ledger-frame .dev-ledger-table .chip { max-width: 100%; height: 20px; white-space: nowrap; }
   #app[data-page=devices] .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="功能区"] {
     grid-column: 1 / -1; order: 2; color: var(--text3); font-size: 12px; line-height: 18px;
   }
@@ -35200,7 +35320,7 @@ const StationFlowModel = ((M) => {
           if (members.some((id) => suggestedFor.has(id)))
             hints.push({ id: "nsp-" + lc.id, text: `${zhSub(lc.name, "r")}的 MS20 接线尚待确认：确认前本照明控制器没有主照度传感器`, ids: [lc.id] });
           else if (lc.localSensorPlan !== "none")
-            hints.push({ id: "nos-" + lc.id, text: `${zhSub(lc.name, "r")}所在照明控制器没有 MS20：按感应调光或时间表运行`, ids: [lc.id] });
+            hints.push({ id: "nos-" + lc.id, text: `${zhSub(lc.name, "r")}没有 MS20，也未跟随占用：按时间表运行`, ids: [lc.id] });
         }
       }
     }
@@ -43587,7 +43707,7 @@ function projectProgressLine(o, t, cls = "pc-line") {
     const tip = "本次部署范围不含此楼宇";
     return `<div class="pc-prog">${canEdit() ? `<button class="${cls} pc-prog-main pc-out" data-act="scopeAdjust" data-p="${esc(o.projectId)}" data-b="${esc(o.id)}" aria-haspopup="dialog" aria-label="未纳入本次部署：${tip}" data-tip="${tip}">未纳入本次部署</button>` : `<span class="pc-out" data-tip="${tip}" tabindex="0" aria-label="未纳入本次部署：${tip}">未纳入本次部署</span>`}</div>`;
   }
-  return `<div class="pc-prog"><button class="${cls} pc-prog-main" data-act="dirStatus" data-p="${t.pid}"${t.anchor ? ' data-anchor="space"' : ""} aria-label="${esc(label)}" data-tip="${esc(label)}">${inList ? "" : '<span class="pc-prog-l">配置进度</span>'}${v13Segs(P.G.rows, "pc-seg")}</button></div>`;
+  return `<div class="pc-prog"><button class="${cls} pc-prog-main" data-act="dirStatus" data-p="${t.pid}"${t.anchor ? ' data-anchor="space"' : ""} aria-label="${esc(label)}" data-tip="${esc(label)}">${inList ? "" : '<span class="pc-prog-l">配置进度</span>'}${v13Segs(P.G.rows, "pc-seg")}${cls.includes("ws-list-status") ? `<span class="pc-prog-n">${P.G.done} / ${P.G.total}</span>` : ""}</button></div>`;
 }
 function sumLines(kind, o, mapPopup = false, attention = false, plain = false) {
   if ((kind === "projects" || kind === "buildings") && !plain && !attention) return `<div class="pc-sum">${projectProgressLine(o, statusLine(kind, o))}</div>`;
@@ -45216,11 +45336,12 @@ defineActions({
     render();
   },
   // 项目 ⇄ 设备：同一楼层、同一功能区与视野；另一侧显示来源返回。
+  // 2.46 E447：工具栏“标记设备”进入时不带选中的功能区，右侧直接是设备类型；功能区详情里“设备 · 查看”（view）仍带功能区。
   toDevices: (a = {}) =>
     guard(() =>
       route(
         "devices",
-        { p: U.p, b: U.b, f: U.f, tab: "mark", mode: canEdit() && a.view !== "1" ? "mark" : "view", zone: U.zone, zoom: U.zoom, canvasScrollX: U.canvasScrollX, canvasScrollY: U.canvasScrollY },
+        { p: U.p, b: U.b, f: U.f, tab: "mark", mode: canEdit() && a.view !== "1" ? "mark" : "view", zone: a.view === "1" ? U.zone : null, zoom: U.zoom, canvasScrollX: U.canvasScrollX, canvasScrollY: U.canvasScrollY },
         { source: U.source || null },
       ),
     ),
@@ -46771,6 +46892,57 @@ async function exTake(pid, bid) {
   snap.versions.spaceFingerprint = (await sha256Hex(new TextEncoder().encode(core))).slice(0, 16);
   return snap;
 }
+// 2.46（运营核查 V210、账户第 414 条）：生成 A4 的简单 PDF（标题、标记和逐行文字），用于报告、报价单、合同与发票的下载。
+// 中文用阅读器自带的宋体（STSong-Light，Adobe-GB1），不嵌入字体；文字按宽度折行，满页另起一页。
+function simplePdf(title, lines, tag = "") {
+  const hex = (t) => [...String(t)].map((ch) => { const c = ch.codePointAt(0); return (c > 0xffff ? 0x3f : c).toString(16).padStart(4, "0"); }).join("").toUpperCase(),
+    wide = (ch) => ch.codePointAt(0) > 0x2e7f,
+    wrap = (t, size, max = 495) => {
+      const out = [];
+      let cur = "", w = 0;
+      for (const ch of String(t)) {
+        const cw = wide(ch) ? size : size * 0.55;
+        if (w + cw > max && cur) out.push(cur), (cur = ""), (w = 0);
+        cur += ch;
+        w += cw;
+      }
+      return [...out, cur];
+    },
+    rows = [[title, 18, 30], ...(tag ? [[tag, 10, 22]] : []), ...lines.flatMap((l) => (l === "" ? [["", 11, 10]] : wrap(l, 11).map((x) => [x, 11, 18])))],
+    pages = [[]];
+  let y = 790;
+  for (const [t, size, gap] of rows) {
+    if (y - gap < 50) pages.push([]), (y = 790);
+    y -= gap;
+    if (t) pages.at(-1).push(`BT /F1 ${size} Tf 50 ${y} Td <${hex(t)}> Tj ET`);
+  }
+  const objs = [],
+    add = (o) => objs.push(o) && objs.length,
+    cat = add(""),
+    pagesId = add(""),
+    font = add(""),
+    cid = add(""),
+    desc = add("<< /Type /FontDescriptor /FontName /STSong-Light /Flags 6 /FontBBox [-25 -254 1000 880] /ItalicAngle 0 /Ascent 880 /Descent -120 /CapHeight 880 /StemV 93 >>"),
+    kids = pages.map((ops) => {
+      const body = ops.join("\n"),
+        c = add(`<< /Length ${body.length} >>\nstream\n${body}\nendstream`);
+      return add(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${font} 0 R >> >> /Contents ${c} 0 R >>`);
+    });
+  objs[cat - 1] = `<< /Type /Catalog /Pages ${pagesId} 0 R >>`;
+  objs[pagesId - 1] = `<< /Type /Pages /Kids [${kids.map((k) => `${k} 0 R`).join(" ")}] /Count ${kids.length} >>`;
+  objs[font - 1] = `<< /Type /Font /Subtype /Type0 /BaseFont /STSong-Light /Encoding /UniGB-UCS2-H /DescendantFonts [${cid} 0 R] >>`;
+  objs[cid - 1] = `<< /Type /Font /Subtype /CIDFontType0 /BaseFont /STSong-Light /CIDSystemInfo << /Registry (Adobe) /Ordering (GB1) /Supplement 2 >> /FontDescriptor ${desc} 0 R /DW 1000 >>`;
+  let out = "%PDF-1.4\n";
+  const at = objs.map((o, i) => {
+    const off = out.length;
+    out += `${i + 1} 0 obj\n${o}\nendobj\n`;
+    return off;
+  });
+  const xref = out.length;
+  out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n${at.map((o) => String(o).padStart(10, "0") + " 00000 n \n").join("")}trailer\n<< /Size ${objs.length + 1} /Root ${cat} 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return new TextEncoder().encode(out);
+}
+const downloadPdf = (name, title, lines, tag) => downloadBlob(name.endsWith(".pdf") ? name : name + ".pdf", simplePdf(title, lines, tag), "application/pdf");
 function downloadBlob(name, bytes, type) {
   const url = URL.createObjectURL(new Blob([bytes], { type }));
   const a = document.createElement("a");
@@ -49163,10 +49335,11 @@ function renderPlanningPanel(n) {
     body = pointProperties(p, n);
     foot = canEdit() && !M.bound(p) ? btn("删除", "deletePoint", { id: p.id }, "ghost sm danger") : "";
   } else if (U.mode === "zones" || (U.page === "devices" && U.zone && g("zones", U.zone) && ["mark", "view"].includes(U.mode) && !U.type)) body = renderZonePanel();
-  // 本层还没有设备网络（本地规划）：“照明控制器”“角色”“网络检测”写明，能编辑的角色附“规划本层网络”（与“标记”面板里的同一个按钮），
+  // 2.46 E448：放下第一台设备就自动建立本层网络，“规划本层网络”按钮改为灰字“放置第一台设备时自动建立”（两处）；一个网关管多层时在设备网络页改服务楼层。
+  // 本层还没有设备网络（本地规划）：“照明控制器”“角色”“网络检测”写明，能编辑的角色附灰字“放置第一台设备时自动建立”（与“标记”面板相同），
   // 只读角色只写这一句（Lovable 核查第 371 条，2026-10-11 用户确认：原先“照明控制器”只写“照明分区 0”，“角色”“网络检测”什么也不说）
   else if (!n && ["relations", "roles", "health"].includes(U.mode))
-    body = `<p class="mk-lead mk-nonet">本层尚未规划设备网络</p>${canEdit() ? `<div class="mk-actions">${btn(isOutdoor(f.buildingId) ? "规划设备网络" : "规划本层网络", "networkForm", { floor: f.id }, "sm")}</div>` : ""}`;
+    body = `<p class="mk-lead mk-nonet">本层尚未规划设备网络</p>${canEdit() ? `<p class="mk-auto">放置第一台设备时自动建立</p>` : ""}`;
   else if (U.mode === "relations") body = renderCircuitTools();
   // “网络”模式（E128）：上半节点类型规划，下半网络检测结果
   else if (U.mode === "roles")
@@ -49189,7 +49362,7 @@ function networkContext(n, f, extra = "") {
         `<span class="mk-net-label">设备网络</span><button class="ws-network-name" data-act="chooseNetwork" aria-label="切换设备网络，当前${esc(n.name)}" aria-haspopup="menu" aria-expanded="false"><b>${esc(n.name)}</b>${ico("chevron", "ic16")}</button>${
           F.networkState(data(), n) === "已交付" && !F.changeSinceDelivery?.(data(), n) ? "" : `<span class="mk-net-state">${esc(F.networkState(data(), n))}${F.changeSinceDelivery?.(data(), n) ? " · 有待交付的变更" : ""}</span>`
         }`
-      : `<span class="mk-net-label">设备网络</span><b class="muted">尚未规划</b>${canEdit() && !["view", "relations", "roles", "health"].includes(U.mode) ? btn(isOutdoor(f.buildingId) ? "规划设备网络" : "规划本层网络", "networkForm", { floor: f.id }, "sm") : ""}`
+      : `<span class="mk-net-label">设备网络</span><b class="muted">尚未规划</b>${canEdit() && !["view", "relations", "roles", "health"].includes(U.mode) ? `<span class="mk-auto">放置第一台设备时自动建立</span>` : ""}`
   }${extra}</div>`;
 }
 // 点位面板按模式（2026-10-17 用户确认，设备核查 E148）：设备模式为点位名称、功能区与设备登记，照明分区模式为接线与分区，网络模式为节点类型与所属设备网络。
@@ -50827,6 +51000,16 @@ function showFieldChange(id) {
     btn("关闭", "close") + (pending && canEdit() ? btn("并入", "mergeFieldChange", { id, disabled: !!blocked }, "primary") : ""),
   );
 }
+// 2.46 E461：维护草稿的“执行操作”。示例数据里模拟现场服务执行，回执记为模拟；网关未绑定或离线时原因写在按钮旁；
+// 机构管理员才能执行的事项（密钥更新等）其他角色只读
+function maintDraftFoot(t) {
+  const who = ADMIN_KINDS.includes(t.taskKind) ? "admin" : "config";
+  if (!(who === "admin" ? isAdmin() : canEdit())) return "";
+  const n = g("networks", t.networkId || g("points", t.pointId)?.networkId),
+    gw = n && ["remote", "keys", "gateway"].includes(t.taskKind) ? gatewayReady(data(), n) : { ok: true };
+  if (!gw.ok) return `<span class="flow-why">${esc(gw.why)}</span>` + unavailable("执行操作");
+  return SIM() ? btn("执行操作", "maintenanceDraftRun", { id: t.id }, "primary") : unavailable("执行操作");
+}
 function showMaintenanceDetail(id) {
   const t = g("maintenanceTasks", id);
   if (!t) return;
@@ -50845,7 +51028,7 @@ function showMaintenanceDetail(id) {
       ["执行回执", esc(t.serviceReceiptId || (t.taskKind === "meterChange" ? "资料登记，不经现场执行" : "尚无"))],
     ])}${note(maintenanceCatalog[t.taskKind]?.[1] || "现场执行与平台资料修改分别留痕。")}`,
     btn("关闭", "close") +
-      (t.status === "draft" ? unavailable("执行操作") : ""),
+      (t.status === "draft" ? maintDraftFoot(t) : ""),
     false,
   );
 }
@@ -51603,6 +51786,19 @@ defineActions({
   }),
   maintenance: (a) => showMaintenance(a.kind, a.point, a.net),
   maintenanceDetail: (a) => showMaintenanceDetail(a.id),
+  maintenanceDraftRun: async (a) => {
+    const t0 = g("maintenanceTasks", a.id);
+    if (!t0 || t0.status !== "draft" || !SIM()) return;
+    await transaction((db) => {
+      const t = M.get(db, "maintenanceTasks", a.id);
+      t.status = "completed";
+      t.serviceReceiptId = simId(t.taskKind || "maint");
+      t.doneAt = M.now();
+      M.record(db, t.name, t.pointId || t.networkId, "现场服务已执行");
+    });
+    showMaintenanceDetail(a.id);
+    msg(`${t0.name}：已执行`);
+  },
   saveMaintenance: async () => {
     const s = formState,
       reason = value("maintenanceReason").trim(),
@@ -52245,7 +52441,7 @@ const CHECK_GROUPS = {
   drv: (n) => `${n} 台 LC20 未填照明负载`,
   pws: (n) => `${n} 台 MS20 的接线为系统建议，请确认`,
   pw: (n) => `${n} 台 MS20 未接线`,
-  nos: (n) => `${n} 台照明控制器没有 MS20：按感应调光或时间表运行`,
+  nos: (n) => `${n} 台照明控制器没有 MS20，也未跟随占用：按时间表运行`,
   nsp: (n) => `${n} 台照明控制器的 MS20 接线尚待确认：确认前没有主照度传感器`,
   // 按实际型号写（2026-10-17 用户确认，设备核查 E152：原先固定写“AQ20 / FC20”，这项检查实际包括 LC20、MS20、FC20 和 AQ20）
   nz: (n, xs) => `${n} 台设备未划入功能区：${typeCounts(xs.map((x) => g("points", x.ids[0])).filter(Boolean)).replace(/ · /g, "、")}`,
@@ -54349,6 +54545,44 @@ function wsInfoWords(root) {
   }
   root.classList.add("ws-words");
 }
+// 2.46 账户第 407 条：全平台正文按词换行（大屏除外）。页面、弹窗与菜单的内容变化后，下一帧对新增的文字按 wsInfoWords 加 <wbr>，
+// 所在元素加 ws-words（keep-all）：机构名称、人名、词不在中间断开，标点不在行首。按钮、链接、输入、图表与大屏、运营后台、部署 App 不处理。
+const WS_WORDS_SKIP = "button,a,input,textarea,select,option,svg,script,style,code,pre,[contenteditable],.scr-stage,[data-page=console],[data-page=app],.ws-words-off";
+let wsWordsQueue = null;
+function wsWordsRun() {
+  const roots = wsWordsQueue;
+  wsWordsQueue = null;
+  if (!roots || typeof Intl === "undefined" || !Intl.Segmenter) return;
+  const seg = new Intl.Segmenter("zh", { granularity: "word" });
+  for (const root of roots) {
+    if (!root.isConnected || root.closest?.(WS_WORDS_SKIP)) continue;
+    const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [];
+    while (walk.nextNode()) {
+      const n = walk.currentNode;
+      if (n.nodeValue.length > 1 && WS_CJK.test(n.nodeValue) && !n.parentElement?.closest(WS_WORDS_SKIP)) nodes.push(n);
+    }
+    for (const n of nodes) {
+      const parts = [...seg.segment(n.nodeValue)].map((x) => x.segment);
+      if (parts.length < 2) continue;
+      const frag = document.createDocumentFragment(), host = n.parentElement;
+      parts.forEach((p, i) => {
+        const prev = parts[i - 1];
+        if (prev && !/\s$/.test(prev) && !/^\s/.test(p) && (WS_CJK.test(prev.slice(-1)) || WS_CJK.test(p[0])) && !WS_NO_BEFORE.test(p) && !WS_NO_AFTER.test(prev)) frag.append(document.createElement("wbr"));
+        frag.append(p);
+      });
+      n.replaceWith(frag);
+      host?.classList.add("ws-words");
+    }
+  }
+}
+if (typeof MutationObserver === "function" && typeof document !== "undefined" && document.body && typeof requestAnimationFrame === "function" && typeof Intl !== "undefined" && Intl.Segmenter)
+  new MutationObserver((recs) => {
+    const add = [];
+    for (const r of recs) for (const n of r.addedNodes) if (n.nodeType === 1) add.push(n); else if (n.nodeType === 3 && n.parentElement) add.push(n.parentElement);
+    if (!add.length) return;
+    if (!wsWordsQueue) (wsWordsQueue = new Set()), requestAnimationFrame(wsWordsRun);
+    add.forEach((n) => wsWordsQueue.add(n));
+  }).observe(document.body, { childList: true, subtree: true, characterData: false });
 function opsExplainOpenTip(anchor, content, existing = null) {
   if (opsExplainTip?.anchor === anchor) return opsExplainCloseTip(true);
   opsExplainCloseTip();
@@ -56022,7 +56256,8 @@ const ymList = (from, to) => {
 const BILL_INFO = "按月登记计量边界内的总用电量与电费。平台计量不足的月份用电费账单补齐同比、节能基线、年度能耗强度与对标；两者都有的月份以计量为准。";
 const billRow = (b, i, ro) =>
   `<div class="app-bill-row">${input("appBillM" + i, b.month || "", "", "month").replace("<input ", '<input aria-label="月份" ')}<div class="ops-unit-in">${input("appBillK" + i, b.kWh ?? "", "用电量", "number").replace("<input ", '<input aria-label="用电量" ')}<span>kWh</span></div><div class="ops-unit-in">${input("appBillY" + i, b.yuan ?? "", "电费（选填）", "number").replace("<input ", '<input aria-label="电费" ')}<span>元</span></div>${ro ? "" : btn("删除", "appBillDel", { i }, "ghost sm")}</div>`;
-const billRowsHtml = (rows, ro) => (rows.length ? rows.map((b, i) => billRow(b, i, ro)).join("") : `<p class="muted">未登记</p>`);
+// 2.46 E458：可编辑时空列表不写“未登记”，只留“添加月份”
+const billRowsHtml = (rows, ro) => (rows.length ? rows.map((b, i) => billRow(b, i, ro)).join("") : ro ? `<p class="muted">未登记</p>` : "");
 function billField(rows, ro) {
   return `<fieldset class="field ops-fs app-bills"><legend>电费账单（选填）${opsInfo("电费账单", esc(BILL_INFO))}</legend><div id="appBills">${billRowsHtml(rows, ro)}</div>${
     ro ? "" : `<div class="app-bill-acts">${btn("添加月份", "appBillAdd", {}, "ghost sm")}${btn("从 CSV 导入", "appBillImport", {}, "ghost sm")}${btn("下载模板", "appBillTpl", {}, "ghost sm")}<input type="file" id="appBillFile" accept=".csv,text/csv" hidden></div><small id="appBillErr" class="ws-field-err" role="alert" hidden></small>`
@@ -56386,8 +56621,10 @@ function applicationForm(kind, project, part = "") {
     sub = `<p class="ops-modal-sub">${esc([pname, cur ? "" : "尚未保存"].filter(Boolean).join(" · "))}${!U.p && !ro ? `。位置为“全部项目”，这里修改的是${esc(zhSub(pname))}的${kind}设置。` : ""}</p>`;
   // appConn 与 appSnap：切换计量来源前判断计量点与进线表有没有未保存的修改（总览核查第 51 条）
   formState = { kind: "configs", appKind: kind, projectId: pid, appConn: v.connectionId || "" };
+  // 2.46 E458：标题与按钮一致，节能基线未设置时“设置节能基线”，电费账单未登记时“登记电费账单”，已有内容时“修改…”
+  const verb = pt?.[0] === "baseline" && v.baseline?.method !== "period" ? "设置" : pt?.[0] === "bills" && !v.bills?.length ? "登记" : "修改";
   modal(
-    pt ? "修改" + pt[2] : kind + "设置",
+    pt ? verb + pt[2] : kind + "设置",
     (pt ? "" : sub) + (ro ? wsNotice("需要配置权限才能修改。", "info", false) : "") + `<div id="appParts">${kind === "能耗" ? energyForm(pid, entries, v, ro) : carbonForm(pid, entries, v, ro)}</div>`,
     // 保存按钮写“保存”，与照明控制参数相同（全面设计核查第 95 条，2026-10-12 用户确认：原为“保存设置”）
     ro ? btn("关闭", "close") : btn("取消", "close") + btn("保存", "saveApplication", {}, "primary"),
@@ -56395,6 +56632,8 @@ function applicationForm(kind, project, part = "") {
     !pt || pt[0] === "points",
   );
   if (pt) appPartApply(kind, pt[0]);
+  // 2.46 E458：只打开节能基线或电费账单时，去掉与标题重复的字段名（读屏仍读出）
+  if (pt && ["baseline", "bills"].includes(pt[0])) $("#appParts").classList.add("app-one-" + pt[0]);
   if (pt?.[0] === "coal" && part === "coal" && U.appCoalPick) {
     $("#appCoalBasis").value = U.appCoalPick;
     document.querySelectorAll('#dlg [data-show="coal"]').forEach((x) => (x.hidden = U.appCoalPick !== "equiv"));
@@ -56984,12 +57223,12 @@ function showHolidays(pid, year, edit = false, rows = null, source = null) {
   rows = rows || (t ? M.copy(t.items) : []).map((h) => ({ ...h, work: (h.work || []).join("、") }));
   formState = { kind: "holidays", pid, year, edit: true, n: rows.length };
   const row = (h, i) =>
-    `<div class="ops-hd-row">${fld("节日", "hdName" + i, input("hdName" + i, h.name || "", "如 国庆节"))}${fld("放假开始", "hdFrom" + i, input("hdFrom" + i, h.from || "", "", "date"))}${fld("放假结束", "hdTo" + i, input("hdTo" + i, h.to || "", "", "date"))}${fld("调休上班", "hdWork" + i, input("hdWork" + i, h.work || "", "如 2026-09-20、2026-10-10"))}${btn("删除", "holidayRow", { del: i }, "ghost sm danger")}</div>`;
+    `<div class="ops-hd-row">${fld("节日", "hdName" + i, input("hdName" + i, h.name || "", "如 国庆节"))}${fld("放假开始", "hdFrom" + i, input("hdFrom" + i, h.from || "", "", "date"))}${fld("放假结束", "hdTo" + i, input("hdTo" + i, h.to || "", "", "date"))}${fld("调休上班", "hdWork" + i, input("hdWork" + i, h.work || "", "如 2026-09-20"))}${btn("删除", "holidayRow", { del: i }, "ghost sm danger")}</div>`;
   modal(
     "节假日表",
     `${
       ref ? `<p class="ops-hd-ref"><span>${esc(ref.source)}</span>${btn("按通知填入", "holidayFill", {}, "ghost sm")}</p>` : `<p class="ops-hd-ref"><span>尚未收录 ${year} 年的国务院办公厅安排，请按当年通知逐个登记。</span></p>`
-    }<div id="hdRows">${rows.map(row).join("") || `<p class="ops-hd-none">还没有节日。</p>`}</div>${btn("添加节日", "holidayRow", {}, "ghost sm")}${fld("来源", "hdSource", input("hdSource", source ?? t?.source ?? "", "如 国务院办公厅关于当年部分节假日安排的通知"))}`,
+    }<div id="hdRows">${rows.map(row).join("") || `<p class="ops-hd-none">还没有节日。</p>`}</div>${btn("添加节日", "holidayRow", {}, "ghost sm")}${fld("来源", "hdSource", input("hdSource", source ?? t?.source ?? "", "如 国务院办公厅通知"))}`,
     btn("取消", calDirect ? "close" : "holidays", { p: pid, year }) + sameBtn(btn("保存", "holidaySave", {}, "primary")),
   );
 }
@@ -57371,11 +57610,31 @@ function showConnectionDetail(id, stage) {
     lead + `<div class="step-panel" id="connStagePanel">${body.slice(lead.length)}</div>`,
     // 2.15 E302：底部不放“关闭”，只用右上角 ×；底部只放“编辑连接”“验证连接”
     (canEdit() ? btn("编辑连接", "connectionForm", { id }) : "") +
-      // 2.44 配置核查 E436：网关未绑定时写明原因
-      (stage === 0 && c.collect?.at === "gateway" && !M.bound(g("points", c.collect.gatewayId) || {}) ? `<span class="flow-why">网关现场绑定后才能验证</span>` : "") +
-      unavailable(["验证连接", "发现与验证数据", "验证可写数据点", "验证应用"][stage]),
+      connVerifyFoot(c, stage),
     "xl",
   );
+}
+// 2.46 E461：四步的验证按钮。示例数据里模拟现场服务执行，回执记为模拟；不能验证时原因写在按钮旁（2.44 E436 的写法）：
+// 网关未绑定“网关现场绑定后才能验证”，没有数据映射、没有可写数据点、没有关联应用各写一句；只能查看的角色不显示按钮
+const CONN_VERIFY = [["验证连接", "connection"], ["发现与验证数据", "data"], ["验证可写数据点", "control"], ["验证应用", "application"]];
+function connVerifyWhy(c, stage) {
+  if (stage === 0 && c.collect?.at === "gateway" && !M.bound(g("points", c.collect.gatewayId) || {})) return "网关现场绑定后才能验证";
+  if (stage === 1 && !c.mappings?.length) return "先添加数据映射";
+  if (stage === 2 && !(c.mappings || []).some((m) => m.writable)) return "没有可写数据点，不需要控制验证";
+  if (stage === 3 && F.connectionChecks(data(), c)[3].state === "未关联应用") return "先关联应用";
+  return "";
+}
+function ruleEnableFoot(r, live, on, edit) {
+  if (on && !r.pending) return "";
+  if (live && edit) return btn(on ? "启用修改" : "启用规则", "alarmRuleEnable", { id: r.id }, "primary");
+  return (live ? "" : `<span class="flow-why">有运行数据后才能启用</span>`) + unavailable(on ? "启用修改" : "启用规则");
+}
+function connVerifyFoot(c, stage) {
+  if (!canEdit()) return "";
+  const [label] = CONN_VERIFY[stage],
+    why = connVerifyWhy(c, stage);
+  if (why) return `<span class="flow-why">${why}</span>` + unavailable(label);
+  return SIM() ? btn(label, "connVerify", { id: c.id, stage }, "primary") : unavailable(label);
 }
 // “应用验证”页的按钮按关联去向命名（规范 DEVICE06，2026-10-09 用户确认，ABB 对比 BP60）：关联了能耗或碳排放设置的打开该设置，
 // 按设备登记关联暖通空调的打开暖通空调设置（2.36 S18）；尚未关联时打开能耗设置。
@@ -57648,6 +57907,24 @@ defineActions({
   },
   connectionStage: (a) => showConnectionDetail(U.connectionInfo, Number(a.value)),
   connectionStageTo: (a) => showConnectionDetail(U.connectionInfo, +a.step - 1),
+  // 2.46 E461：示例数据里模拟现场服务完成这一步验证，记下回执（模拟）
+  connVerify: async (a) => {
+    const stage = +a.stage,
+      [label, kind] = CONN_VERIFY[stage],
+      c0 = g("connections", a.id);
+    if (!c0 || !SIM() || !canEdit()) return;
+    const why = connVerifyWhy(c0, stage);
+    if (why) throw Error(why);
+    await transaction((db) => {
+      const c = M.get(db, "connections", a.id),
+        v = c.version || 1;
+      c.verifications = [...(c.verifications || []).filter((r) => !(r.kind === kind && r.version === v)), { kind, version: v, status: "已通过", at: M.now(), serviceReceiptId: simId(kind) }];
+      if (stage === 0 && c.protocol === "BACnet/IP") c.discoveredAt = M.now();
+      M.record(db, label, c.id, `${c.name} v${v} 已通过`);
+    });
+    showConnectionDetail(a.id, stage);
+    msg(`${label}：已通过`);
+  },
   // 有运行数据时（侧栏搜索等）打开与场景列表相同的“场景 · 名称”等弹窗（2026-10-08 Vision 核查 V57）
   // 有没有运行数据都打开同一个详情面板（V153）
   sceneDetail: (a) => (actions.opsSceneInfo ? actions.opsSceneInfo(a) : showSceneDetail(a.id)),
@@ -57744,8 +58021,9 @@ defineActions({
           ["状态", "待数据核验，尚未生成"],
           ["计算版本", "生成时固定引用"],
           ...(reportKinds(r).includes("carbon") ? [["排放因子", reportCarbonText(r)]] : []),
-        ]) + note("报告服务尚未接入，暂不能生成报告。"),
-        btn("关闭", "close") + unavailable("生成报告"),
+        ]),
+        // 2.46 V220：不再写“报告服务尚未接入”，也不放点不了的“生成报告”
+        btn("关闭", "close", {}, "primary"),
       );
   },
   // 没有运行数据时派工与通知服务未接入（2026-10-09 用户确认，ABB 对比 71-23：当时页面不写“工单”；2026-10-10 用户确认 ABB 对比 IA2 后统一叫“工单”）：工单只保存为草稿并说明（规范 ALARM02，2026-10-08 第3轮第7章，ALARM02 待实现第3条）。
@@ -57761,7 +58039,7 @@ defineActions({
         fld("工单名称", "taskName", input("taskName", al.name + " 排查")) +
         `<p class="muted">位置：${esc(alarmScopeLabel(al))}</p>` +
         fld("说明", "taskNote", `<textarea class="input" id="taskNote" rows="3"></textarea>`) +
-        note("工单与告警双向关联；完成工单不会改变告警恢复状态，也不向现场设备发送指令。派工与通知服务尚未接入：工单保存为草稿，不派工，也不通知负责人。"),
+        note("工单与告警双向关联；完成工单不会改变告警恢复状态，也不向现场设备发送指令。"),
       btn("取消", "close") + btn("保存草稿", "saveInvestigation", {}, "primary"),
     );
   },
@@ -57789,7 +58067,7 @@ defineActions({
     }, "operate");
     closeModal(true);
     render();
-    msg(`已保存工单草稿“${name}”；派工与通知服务尚未接入，不会派工`);
+    msg(`已保存工单草稿“${name}”`);
   },
   // 报修（2026-10-09 用户确认，ABB 对比 BP108 方案A）：“新建工单”选位置，可附照片；没有运行数据时同样只存草稿
   repairForm: () => {
@@ -57798,12 +58076,11 @@ defineActions({
     formState = { kind: "investigationTasks", projectId: pid };
     modal(
       "新建工单",
-      `<p class="muted">报修：登记现场发现的问题，来源写“报修”。</p>` +
-        fld("工单名称", "taskName", input("taskName", "", "如 会议室 7-1 灯具闪烁")) +
+              fld("工单名称", "taskName", input("taskName", "", "如 会议室 7-1 灯具闪烁")) +
         fld("位置", "taskPlace", select("taskPlace", [["", "请选择"], ...repairPlaces(pid)], "", "位置")) +
         fld("说明", "taskNote", `<textarea class="input" id="taskNote" rows="3"></textarea>`) +
         fld("照片（选填）", "taskPhotos", photoPick("taskPhotos")) +
-        note("完成工单不向现场设备发送指令。派工与通知服务尚未接入：工单保存为草稿，不派工，也不通知负责人。"),
+        note("完成工单不向现场设备发送指令。"),
       btn("取消", "close") + btn("保存草稿", "saveRepair", {}, "primary"),
     );
   },
@@ -57837,7 +58114,7 @@ defineActions({
     }, "operate");
     closeModal(true);
     render();
-    msg(`已保存报修工单草稿“${name}”；派工与通知服务尚未接入，不会派工`);
+    msg(`已保存报修工单草稿“${name}”`);
   },
   investigationDetail: (a) => {
     const t = g("investigationTasks", a.id);
@@ -57962,6 +58239,21 @@ defineActions({
     // 版本号只在修改记录中显示（2.04 配置区全面核查 E117）
     msg(`已保存规则“${saved.name}” · ${saved.pending ? "修改待启用" : "规划，未启用"}`);
   },
+  // 2.46 E461：示例数据里“启用规则”（已启用且有修改时“启用修改”）模拟规则服务验证后启用，回执记为模拟
+  alarmRuleEnable: async (a) => {
+    const r0 = g("alertRules", a.id);
+    if (!r0 || !SIM() || !canEdit()) return;
+    await transaction((db) => {
+      const r = M.get(db, "alertRules", a.id);
+      if (r.pending) Object.assign(r, r.pending), delete r.pending;
+      r.serviceReceiptId = simId("rule");
+      r.runVersion = r.version || 1;
+      M.record(db, "启用告警规则", r.id, `${r.name} v${r.runVersion}`);
+    });
+    closeModal(true);
+    render();
+    msg(`已启用规则“${r0.name}”`);
+  },
   // “告警规则”弹窗（规范 ALARM04，2026-10-08 Vision 核查 V47、V49）：有运行数据时状态与列表同一说法，已启用的规则不写“执行服务尚未接入”；
   // 编辑权限可修改（生成新版本）；没有启用过的规划规则可删除，删除前确认；启用过的规则不能删除
   alarmRuleDetail: (a) => {
@@ -57972,7 +58264,7 @@ defineActions({
       edit = canEdit() && !ruleByNet(r);
     // 2.15 E347：标题写规则名称，去掉“名称”行；条件下写解除、例外、合并与抑制；底部去掉“关闭”（原为标题“告警规则”、底部“关闭”）
     const pt = ruleParts(r),
-      foot = (edit && !on && !r.runVersion ? btn("删除规则", "alarmRuleDelete", { id: r.id }, "ghost danger") : "") + (edit ? btn("修改规则", "alarmRuleForm", { id: r.id }) : "") + (on && live ? "" : unavailable("启用规则"));
+      foot = (edit && !on && !r.runVersion ? btn("删除规则", "alarmRuleDelete", { id: r.id }, "ghost danger") : "") + (edit ? btn("修改规则", "alarmRuleForm", { id: r.id }) : "") + ruleEnableFoot(r, live, on, edit);
     modal(
       r.name,
       // 2.25 V187：弹窗用 14/24；“默认负责人”；条件只留一句（解除、例外、合并与抑制不再另写三行）
@@ -60852,8 +61144,9 @@ function v13ProfileModal() {
     return `<label class="v13-space ${cur ? "on" : ""}"><input type="checkbox" name="v13Space" value="${esc(type)}" ${cur ? "checked" : ""}><span class="v13-space-n">${esc(type)}${z ? `<small>功能区合计 ${z.area == null ? "未知" : Number(z.area).toLocaleString("zh-CN") + " m²"} · ${z.zones} 个${z.missing ? `，${z.missing} 个缺少面积` : ""}</small>` : ""}</span><input class="input v13-area" id="v13Area-${v13TypeCode(type)}" type="number" step="any" min="0" value="${cur?.area ?? z?.area ?? ""}" placeholder="面积" aria-label="${esc(type)}面积"><small>m²</small></label>`;
   };
   const opt = (name, val, label) => `<label class="v13-opt"><input type="checkbox" id="${name}" ${val ? "checked" : ""}><span>${label}</span></label>`;
+  // 2.46 E455：弹窗标题与按钮一致，未登记时“登记适用标准”，登记后“修改适用标准”
   modal(
-    "适用标准",
+    P.registered ? "修改适用标准" : "登记适用标准",
     `<div class="v13-form2">${fld(
       "美国规范" + infoTip("登记结果决定参数表中哪些行适用，例如防冻按气候区、车库 CO 按空间类型、美国规范的行按采用情况。"),
       "v13Us",
@@ -62202,9 +62495,9 @@ function setGeneral(ctx) {
     canStd = v13CanProject(),
     canCal = canOperate();
   // 适用标准（E167）：五行；登记人和日期只在修改记录中。未登记时一行“尚未登记，按中国标准显示模板”与主按钮“登记适用标准”
-  // 2.25 E415：卡片名“适用条件”（原“适用标准”，与第一行重名）
+  // 2.46 E455：卡片名统一为“适用标准”（10 月 17 日定的名称；2.25 E415 曾改为“适用条件”）
   const std = setBlock(
-    "适用条件",
+    "适用标准",
     P.registered ? v13ProfileItems(P, "std").map(([l, v, d]) => setRow(esc(l), esc(d), esc(v))).join("") : setRow("尚未登记，按中国标准显示模板", "", "", canStd ? btn("登记适用标准", "v13ProfileEdit", {}, "primary sm") : ""),
     { desc: "决定参数表中哪些行适用", actions: P.registered && canStd ? btn("修改", "v13ProfileEdit", {}, "sm") : "" },
   );
@@ -62217,7 +62510,7 @@ function setGeneral(ctx) {
   // 联动与安全（E170）：室外温湿度，下面是只读的全部参数（2.44 配置核查 E440：删除需求响应开关）
   const link = setBlock(
     "联动与安全",
-    setRow("室外温湿度", "用于节能基线与联动", esc(outdoorText(pid)), canEdit() ? btn("修改", "outdoorSource", { project: pid }, "sm") : ""),
+    setRow("室外温湿度", "用于节能基线与联动", esc(outdoorText(pid)), canEdit() ? btn(outdoorText(pid) === "未指定室外传感器" ? "指定" : "修改", "outdoorSource", { project: pid }, "sm") : ""), // 2.46 E459：未指定时按钮写“指定”
   );
   return std + cal + link + setAllParams("general", ctx.states);
 }
@@ -65930,7 +66223,7 @@ function zonePanel(zid, mode = "inline") {
     ${Demo.ctl.gwOffline ? "" : ctlWhy("p", lcIds)}${last ? rcpt(last) : ""}
     <div class="ops-circuits ${s.gwUnknown ? "ops-stale" : ""}">${s.circuits
       .map(
-        (c) => `<div class="ops-circ"><div class="ops-circ-h">${s.circuits.length > 1 || c.name !== z.name ? `<b>${esc(c.name)}</b>` : ""}<span class="ops-circ-s">${segs(`<span class="ops-chip-mode" data-tip="${esc(c.mode === "constant" ? "运行 3–7 天后按数据判定：日光增量经常超过目标 20%" : c.mode === "maintain" ? "日光增量很少超过目标 20%：按有人、待机、关灯三段调光，不随日光调节" : c.mode === "fixed" ? "目标照度为 0（关闭）：有人时按有人亮度，不随日光调节" : "开关型照明控制器：占用加时间表")}">${c.modeLabel}</span>`, `<span class="ops-num">${c.on ? c.level + "%" : "关"}</span>`, `约 ${nf(c.watts)} W`)}</span><span class="sp"></span>${c.lcs[0] ? `<button type="button" class="ops-link ops-circ-more" data-act="deviceInfo" data-id="${esc(c.lcs[0].id)}">详情 ›</button>` : ""}</div>${c.offline.length ? `<div class="ops-circ-m"><span class="${offCls(c.offline)}">${zhSub(c.offline.map((p) => esc(p.name)).join("、"), "r")}离线</span></div>` : ""}</div>`,
+        (c) => `<div class="ops-circ"><div class="ops-circ-h">${s.circuits.length > 1 || c.name !== z.name ? `<b>${esc(c.name)}</b>` : ""}<span class="ops-circ-s">${segs(`<span class="ops-chip-mode" data-tip="${esc(c.mode === "constant" ? "运行 3–7 天后按数据判定：日光增量经常超过目标 20%" : c.mode === "maintain" ? "日光增量很少超过目标 20%：按有人、待机、关灯三段调光，不随日光调节" : c.mode === "fixed" ? "目标照度为 0（关闭）：有人时按有人亮度，不随日光调节" : "开关型照明控制器：占用加时间表")}">${c.modeLabel}</span>`, `<span class="ops-num">${c.on ? c.level + "%" : "关"}</span>`, `约 ${nf(c.watts)} W`)}</span><span class="sp"></span>${c.lcs[0] && U.role !== "member" ? `<button type="button" class="ops-link ops-circ-more" data-act="deviceInfo" data-id="${esc(c.lcs[0].id)}">详情 ›</button>` : ""}</div>${c.offline.length ? `<div class="ops-circ-m"><span class="${offCls(c.offline)}">${zhSub(c.offline.map((p) => esc(p.name)).join("、"), "r")}离线</span></div>` : ""}</div>`,
       )
       .join("")}</div></section>`;
   const hvac = hvcSection(z, s);
@@ -65956,7 +66249,7 @@ function zonePanel(zid, mode = "inline") {
     aqBody = s.aq
       ? `<p class="ops-zp-sub ops-aqh">${esc(aqStatus)} · ${aqNow || pmNow ? agoText(s.aq.age) : `最后读数 ${aqTime(s.aq.lastAt)}`}</p><div class="ops-metrics">${m("CO₂", `${aqHot(s.aq.co2h, ref.co2, nf(s.aq.co2h))} <small>ppm</small>`, `1 小时滚动均值，需完整 60 个有效分钟。参考上限 ${nf(ref.co2)} ppm，来源：${aqRefSrc(z)}。1 分钟值见“今日变化”。`, Number.isFinite(s.aq.co2h) ? `1 小时均值 · 上限 ${nf(ref.co2)}` : "1 小时数据不足")}${m("PM2.5", `${aqHot(pm24, ref.pm, nf(pm24, 1))} <small>μg/m³</small>`, `24 小时滚动均值，需完整 1440 个有效分钟。参考上限 ${nf(ref.pm)} μg/m³，来源：${aqRefSrc(z)}。1 分钟值与空气质量分见“今日变化”。`, Number.isFinite(pm24) ? `24 小时均值 · 上限 ${nf(ref.pm)}` : "24 小时数据不足")}</div><p class="ops-zp-sub">监测来源${opsInfo("监测来源", esc("逐台登记采集位置与代表性；多个监测点的平均值不自动代表整个功能区。只有全部有效点均确认代表整个功能区时才作区域摘要。"))} · ${s.aq.representative ? "已登记功能区代表性" : "仅代表监测点"}</p>${aqSources.map((q) => `<p class="ops-zp-sub"><b>${esc(q.name || q.id)}</b> · ${q.online ? q.valid ? "在线" : q.quality === "stale" ? "数据未更新" : q.quality === "partial" ? "部分指标不可用" : "读数不可用" : s.gwUnknown ? "状态未知" : "离线"} · ${aqTime(q.lastAt)}<br>${
         // 都未登记时合成一句，配置人员与机构管理员有“在设备中登记”，打开设备标记并选中这台 AQ20（2.05 总览核查 V123，按 2.01 运营核查 V109；原为“采集位置未登记 · 代表性未登记”，没有入口）
-        !AQ_POS[q.pos] && !AQ_REP[q.rep] ? `采集位置与代表性未登记${canEdit() && q.id && g("points", q.id) ? ` · <button class="ops-link" data-act="locatePoint" data-id="${q.id}">在设备中登记</button>` : ""}` : `${esc(AQ_POS[q.pos] || "采集位置未登记")} · ${esc(AQ_REP[q.rep] || "代表性未登记")}`
+        !AQ_POS[q.pos] && !AQ_REP[q.rep] ? `采集位置与代表性未登记${canEdit() && q.id && g("points", q.id) ? ` · <button class="ops-link ops-zp-reg" data-act="locatePoint" data-id="${q.id}">在设备中登记</button>` : ""}` : `${esc(AQ_POS[q.pos] || "采集位置未登记")} · ${esc(AQ_REP[q.rep] || "代表性未登记")}`
       }</p>`).join("")}`
       : `<p class="ops-zp-sub ops-aqh">CO₂ / PM2.5：本区无空气质量传感器</p>`;
   // “今日变化”（全平台优化 Y33）：打开环境趋势，已选好本功能区、今日和有读数的指标
@@ -66240,11 +66533,10 @@ function groupBar(tab) {
    功能区表每行前有勾选框，状态条上的“手动控制中”等可以点。选中后控制条浮在楼层图卡底部：照明页签只有照明组，暖通空调页签只有空调组，
    概况两组都有；每个动作先打开确认控制，回执显示在控制条里。取代“整层控制”菜单（原为 Lovable 核查第 244 条）与组控制条（第 242、243 条）。
    楼宇、项目范围的对比表同样可以勾选楼层或楼宇（V136），全部项目范围不提供控制。 */
+// 2.46 运营核查 V205：只留点选、矩形、套索（功能区多为矩形，任意形状用套索圈出；圆形、多边形用不上）
 const SEL_TOOLS = [
   ["pick", "点选"],
   ["rectangle", "矩形"],
-  ["ellipse", "圆形"],
-  ["polygon", "多边形"],
   ["lasso", "套索"],
 ];
 const PICK_GLYPH = `<svg class="ic16 spatial-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M5 3.5 18.5 12l-6 1.6-3.1 5.9z"/></svg>`;
@@ -66419,7 +66711,7 @@ function selBar(tab) {
           }${ctlBtn("恢复自动", "opsZSelHv", { cmd: "auto" }, "sm ghost", ac)}</span>`;
   }
   const ids = [...lc, ...ac];
-  return `${groupLive(esc(what))}<div class="ops-groupbar ops-selbar" role="region" aria-label="控制所选"><span><b>${esc(what)}</b>${n <= 3 ? `<small>${esc(names.join("、"))}</small>` : ""}</span>${btn("清除", "opsSelClear", {}, "ghost sm")}${light}${hv}${ctlWhy("span", ids)}<span class="sp"></span>${cmp ? "" : btn("存为场景", "opsSelScene", {}, "sm")}${r ? rcpt(r) : ""}</div>`;
+  return `${groupLive(esc(what))}<div class="ops-groupbar ops-selbar" role="region" aria-label="控制所选"><span><b>${esc(what)}</b>${n <= 3 ? `<small>${esc(names.join("、"))}</small>` : ""}</span>${btn("清除", "opsSelClear", {}, "ghost sm")}${light}${hv}${ctlWhy("span", ids)}<span class="sp"></span>${cmp || U.role === "viewer" ? "" : btn("存为场景", "opsSelScene", {}, "sm")}${r ? rcpt(r) : ""}</div>`;
 }
 
 /* ---------- 总览 ---------- */
@@ -66598,7 +66890,8 @@ function memberAreas() {
 }
 function renderOpsOverview() {
   if (U.role === "member") return memberAreas();
-  if (!Demo.on()) return renderOverview();
+  // 2.46 运营核查 V220：没有运行数据（本地规划数据，或所选位置不在已接入的楼层）时，各页签都只显示“所选范围没有运行数据”
+  if (!Demo.on()) return overviewHeader(U.tab || "general", "") + outOfScope();
   opsReset();
   const tab = U.tab || "general",
     // 总览主导航同排；数据时间归下方说明行，能源只留只读统计口径入口。
@@ -67444,12 +67737,13 @@ function filterRow(opts = {}) {
 function renderOpsAnalysis() {
   // 原“用电碳排放明细”页的地址打开能源并选中“用电碳排放”（2.07，V130）
   if (U.tab === "carbon") Object.assign(U, { tab: "energy" }), (AN_PICK.energy = "carbon");
-  if (!Demo.on()) return renderAnalysis();
+  // 2.46 运营核查 V220：没有运行数据（本地规划数据，或所选位置不在已接入的楼层）时，各页签都只显示“所选范围没有运行数据”
+  if (!Demo.on()) return pageCategoryHeader("analysis", U.tab || "energy") + outOfScope();
   opsReset();
   const tab = U.tab || "energy",
     head = pageCategoryHeader("analysis", tab);
-  // 所选位置没有运行数据时，报告页签照没有运行数据时的写法列出该项目的报告（为其他项目新建的报告切换过去后可见；2026-10-08 1.61 补，Vision 核查 V26）
-  if (!Demo.inScope()) return tab === "reports" ? renderAnalysis() : head + outOfScope();
+  // 报告页签同样（2.46 V220：原先照没有运行数据时的旧写法列出报告草稿，可新建却永远生成不了）
+  if (!Demo.inScope()) return head + outOfScope();
   return head + ({ energy: anEnergy, saving: anSaving, environment: anEnv, space: anSpace, health: anHealth, reports: anReports }[tab] || anEnergy)();
 }
 // 计量点（规范 ANALYSIS01，2026-10-08 第 3 轮，ANALYSIS01 待实现第1条；2026-10-09 用户确认，ABB 对比 BP110：原为“计量来源”）：全部计量点，或只看照明插座、空调末端中的一块电能表（2.01 运营核查 V94：选项不写寄存器地址）
@@ -69297,7 +69591,8 @@ function opsHealthAlarmBar() {
   return `<div class="flow-filter-sum">已筛选：${esc(text)}${btn("清除筛选","opsHealthAlarmClear",{},"ghost sm")}</div>`;
 }
 function renderOpsAlarms() {
-  if (!Demo.on()) return renderAlarms();
+  // 2.46 运营核查 V220：没有运行数据（本地规划数据，或所选位置不在已接入的楼层）时，各页签都只显示“所选范围没有运行数据”
+  if (!Demo.on()) return pageCategoryHeader("alarms", U.tab || "current") + outOfScope();
   opsReset();
   const tab = U.tab || "current",
     head = pageCategoryHeader("alarms", tab, { live: Demo.inScope() ? liveHead() : "" });
@@ -69607,8 +69902,8 @@ function opsAckIn(db, id, pending = []) {
 }
 // 工单页的说明收进“工单”旁的 i，表下只留“共 N 条”；创建、新建与改派工单三个弹窗底部只写“负责人在“工单”中查看”，
 // 通知服务的情况放进“负责人”旁的 i（2.01 运营核查 V104：原先页面底部常显两段，三个弹窗底部都重复“派工与通知服务尚未接入……”一整段）
-const TASK_DLG_FOOT = "负责人在“工单”中查看";
-const TASK_WHO_LABEL = "负责人" + opsInfo("负责人", esc("派工与通知服务尚未接入：工单保存在平台中，负责人在“工单”中查看；服务接入后按负责人的通知偏好发送。工单与告警双向关联；完成工单不改变告警恢复状态，也不向现场设备发送指令。"));
+const TASK_WHO_LABEL = "负责人" + opsInfo("负责人", esc("保存后按负责人的通知偏好通知。工单与告警双向关联；完成工单不改变告警恢复状态，也不向现场设备发送指令。"));
+// 2.46 运营核查 V213：创建、新建和改派工单后按负责人的通知偏好通知（原写“派工与通知服务尚未接入”，与报修、报告的通知前后矛盾）；弹窗底部不再写“负责人在“工单”中查看”
 function alTasks() {
   // 2.07 告警与场景核查 V144（2026-10-17 用户确认）：分段“未完成 · N”“已完成 · N”（默认未完成）与负责人下拉（全部负责人 / 我 / 未指派 / 各成员），
   // 逾期的排最前；原为状态下拉（全部、待处理、处理中、已完成、逾期，默认全部；ALARM02）
@@ -70168,7 +70463,8 @@ function renderOpsScenes() {
     if (Demo.on()) opsReset();
     return scEdPage();
   }
-  if (!Demo.on()) return renderScenes();
+  // 2.46 运营核查 V220：没有运行数据（本地规划数据，或所选位置不在已接入的楼层）时，各页签都只显示“所选范围没有运行数据”
+  if (!Demo.on()) return pageCategoryHeader("scenes", U.tab || "manual") + outOfScope();
   opsReset();
   // 页头右侧只写数据截至；“新建场景”“新建定时”“新建联动”在页签下第一行（执行位置说明条）的右端，说明条在左侧换行，
   // 不挤走按钮（2026-10-10 用户确认，ABB 对比 IA4：原先在页头右侧）。执行记录页签没有新建。
@@ -70220,7 +70516,9 @@ function scCards(ss, live) {
 function scManual(ss) {
   // 还没有场景时用空状态（全面设计核查第 127 条）
   if (!ss.some((s) => s.kind === "manual")) return sceneEmpty("manual");
-  return ctlWhy() + scCards(ss, true);
+  // 执行不可用的原因在页签顶部写一次，卡片不重复（V221）：查看人员一句话；网关离线用总览同一提示条
+  const why = U.role === "viewer" ? `<p class="ops-dis-why">${ico("info", "ic16")}<span>查看人员不能执行场景</span></p>` : Demo.ctl.gwOffline ? `<div class="ops-banner">${ico("alert", "ic16")}<span>${GW_OFF_TEXT}</span></div>` : ctlWhy();
+  return why + scCards(ss, true);
 }
 function scSchedule(ss) {
   const sch = ss.filter((s) => s.kind === "schedule");
@@ -70462,6 +70760,10 @@ const LINK_APPS = {
   新风: { source: "CO₂", target: "新风机组或风阀", none: "本项目还没有接入新风设备（在“设备 › 系统接入”登记新风机组或风阀后可选），暂不能保存" },
   净化: { source: "PM2.5", target: "空气净化设备", none: "本项目还没有接入空气净化设备，暂不能保存" },
 };
+// 2.46 运营核查 V217：有已接入并验证可写的新风或空气净化设备时，联动才出现这两类（none 表示本项目没有这类设备）；
+// 场景动作同样只有照明和空调，没有新风设备时不出现“新风”。V218：新建联动删去底部说明（消防不接入，后两句是内部实现）
+const linkApps = () => Object.keys(LINK_APPS).filter((k) => !LINK_APPS[k].none);
+const scHasFresh = () => !LINK_APPS.新风.none;
 // 有效时段的“工作时间”按项目登记的工作时间写（2026-10-09 用户确认，ABB 对比 BP77）
 const LINK_SPANS = (pid) => [
   ["全天", "全天"],
@@ -70678,7 +70980,7 @@ function opsSceneForm(id, preset = {}) {
           "scHv",
           scAppSelect("scHv", SC_HV, o.hvac?.action || "", "暖通空调", !scHvFloorOk(pid)),
           scHvFloorOk(pid) ? "分组所在功能区的风机盘管与多联机内机；关闭按手动关闭处理" : `${scWhere()}没有已接入并验证可写的空调`,
-        )}<div id="scHvSpBox"${o.hvac?.action === "sp" ? "" : " hidden"}>${fld("设定温度", "scHvSp", `<div class="ops-unit-in">${input("scHvSp", o.hvac?.sp ?? "", "", "number")}<span>℃</span></div>`, "按当前季节与空间的可调范围（H-02）")}</div></div><div id="scHvWhy"></div><div class="ws-form-row">${fld("新风", "scFresh", scAppSelect("scFresh", SC_FRESH, o.fresh?.action || "", "新风", true), `${scWhere()}没有已接入并验证可写的新风设备`)}<div></div></div><div id="scFreshWhy"></div>${note(
+        )}<div id="scHvSpBox"${o.hvac?.action === "sp" ? "" : " hidden"}>${fld("设定温度", "scHvSp", `<div class="ops-unit-in">${input("scHvSp", o.hvac?.sp ?? "", "", "number")}<span>℃</span></div>`, "按当前季节与空间的可调范围（H-02）")}</div></div><div id="scHvWhy"></div>${scHasFresh() ? `<div class="ws-form-row">${fld("新风", "scFresh", scAppSelect("scFresh", SC_FRESH, o.fresh?.action || "", "新风"))}<div></div></div><div id="scFreshWhy"></div>` : ""}${note(
           "人执行动作为调光的场景算一次新的手动操作，按“手动后恢复自动”的时长（工作时间 2 小时 / 非工作时间 30 分钟）或到下一次定时执行时恢复自动，以先到者为准。空调与新风的对象没有接入并验证可写时不能保存。保存时校验分组中的设备型号与调光能力，以及每台照明控制器参与的场景不超过 16 个。",
         )}`
       : kind === "schedule"
@@ -70706,14 +71008,12 @@ function opsSceneForm(id, preset = {}) {
               ? fld("夏令时", "scDst", select("scDst", [["shift", "跳过的时刻在切换后执行，重复的时刻只执行一次"], ["skip", "跳过的时刻当天不执行"]], o.dst || "shift", "夏令时"))
               : ""
           }${fld("关闭后恢复", "scResume", select("scResume", [["skip", "不补执行，等下一次"], ["catchup", "补执行当天错过的最近一次"]], o.resume || "skip", "关闭后恢复"), "网关断电、离线或定时停用后恢复时")}</details><div id="scHint"></div>`
-        : `${fld("名称", "sceneName", input("sceneName", o.name || "", "填写联动名称"))}<div class="ws-form-row">${fld(
-            "应用类型",
-            "lkApp",
-            select("lkApp", Object.keys(LINK_APPS).map((k) => [k, k]), o.cond?.app || "占用", "应用类型"),
-            "决定可选的触发来源与执行对象",
-          )}${fld("有效时段", "lkSpan", select("lkSpan", LINK_SPANS(pid), o.cond?.span || (o.cond ? "全天" : /非工作时间/.test(o.when || "") ? "非工作时间" : "全天"), "有效时段"))}</div><div id="lkBody">${linkBody(pid, o.cond || {})}</div><div id="lkRef"${(o.cond?.app || "占用") === "占用" ? "" : " hidden"}>${refFld}</div><div id="scHint"></div>${note(
-            "触发来源不含火警与排烟：由消防联动控制器执行，PACOM 只接收状态。同一设备网络内由网关执行；跨网络或跨系统由云端与网关协同。定时和联动只引用场景，不重复定义动作。",
-          )}`;
+        : `${fld("名称", "sceneName", input("sceneName", o.name || "", "填写联动名称"))}<div class="ws-form-row">${
+            // 2.46 V217：只列有已接入并验证可写设备的应用类型；只剩“占用”时直接写“占用”，不放下拉
+            linkApps().length > 1
+              ? fld("应用类型", "lkApp", select("lkApp", linkApps().map((k) => [k, k]), o.cond?.app || "占用", "应用类型"), "决定可选的触发来源与执行对象")
+              : fld("应用类型", "lkApp", `<p class="lk-app-one">占用</p><input type="hidden" id="lkApp" value="占用">`)
+          }${fld("有效时段", "lkSpan", select("lkSpan", LINK_SPANS(pid), o.cond?.span || (o.cond ? "全天" : /非工作时间/.test(o.when || "") ? "非工作时间" : "全天"), "有效时段"))}</div><div id="lkBody">${linkBody(pid, o.cond || {})}</div><div id="lkRef"${(o.cond?.app || "占用") === "占用" ? "" : " hidden"}>${refFld}</div><div id="scHint"></div>`;
   // 被定时或联动引用的场景不能删除（SCENE01）：“删除”打开时就不可用（aria-disabled，仍能 Tab 到，读出原因），
   // 底部按钮上方常显一行原因，写明被哪个定时或联动引用（Lovable 核查第 327 条（2026-10-11 用户确认）；原先点了才在底部报错）
   const refs = id ? data().scenes.filter((x) => x.refId === id) : [],
@@ -71013,7 +71313,7 @@ function scEdActCard(a, i, E) {
     a.light === "开启" ? fld("亮度", `scEdLv-${i}`, `<div class="ops-unit-in">${input(`scEdLv-${i}`, a.level ?? 100, "", "number")}<span>%</span></div>`) : "<div></div>"
   }</div><div class="ws-form-row">${fld("空调", `scEdH-${i}`, scAppSelect(`scEdH-${i}`, SC_HV, a.hvac?.action || "", "空调", !hvOk && !a.hvac?.action), !hvOk && !a.hvac?.action ? (t.ac.length ? "所选范围的空调没有接入并验证可写" : "所选范围没有风机盘管或多联机内机") : "")}${
     a.hvac?.action === "sp" ? fld("设定温度", `scEdSp-${i}`, `<div class="ops-unit-in">${input(`scEdSp-${i}`, a.hvac.sp ?? "", "", "number")}<span>℃</span></div>`) : "<div></div>"
-  }</div>${fld("新风", `scEdF-${i}`, scAppSelect(`scEdF-${i}`, SC_FRESH, "", "新风", true), "本项目没有已接入并验证可写的新风设备")}${why.length ? `<p class="sc-ed-why">${why.map(esc).join("；")}</p>` : ""}</section>`;
+  }</div>${scHasFresh() ? fld("新风", `scEdF-${i}`, scAppSelect(`scEdF-${i}`, SC_FRESH, "", "新风", true)) : ""}${why.length ? `<p class="sc-ed-why">${why.map(esc).join("；")}</p>` : ""}</section>`;
 }
 // 没有运行数据时的左栏：按楼层列出功能区，勾选即选中（V153）
 function scEdZoneList(E) {
@@ -71839,7 +72139,7 @@ defineActions({
       auLog("导出数据表", `${t.title || a.key} · ${t.rows.length} 行${mark ? " · " + DEMO_EXPORT_MARK.tag : ""}`, "security");
       if (typeof auSave === "function") auSave();
     }
-    msg(`已导出数据表 CSV（${t.rows.length} 行），导出记录在 机构设置 › 审计日志 中查看`);
+    msg(`已导出数据表 CSV（${t.rows.length} 行）`);
   },
   opsCompAll: (a) => {
     U.opsCompAll = a?.value ? a.value === "all" : !U.opsCompAll;
@@ -71964,7 +72264,7 @@ defineActions({
         "opsTWho",
         select("opsTWho", ms.map((m) => [m.name, m.label]), ms.find((m) => m.role === "config")?.name || ms[0]?.name || "", "负责人"),
         "有运营权限且授权范围含本项目的成员",
-      )}${fld("计划时间", "opsTPlan", input("opsTPlan", plan, "", "datetime-local"))}</div><p class="ops-modal-sub">位置：${esc([t.zone ? floorLabel() + " · " + t.zone.name : floorLabel(), devs.map((d) => g("points", d)?.name).join("、")].filter(Boolean).join(" · "))}</p>${fld("说明", "opsTNote", `<textarea class="input" id="opsTNote" rows="3">${esc(alarmNext(al))}</textarea>`)}<p class="ops-foot">${TASK_DLG_FOOT}</p>`,
+      )}${fld("计划时间", "opsTPlan", input("opsTPlan", plan, "", "datetime-local"))}</div><p class="ops-modal-sub">位置：${esc([t.zone ? floorLabel() + " · " + t.zone.name : floorLabel(), devs.map((d) => g("points", d)?.name).join("、")].filter(Boolean).join(" · "))}</p>${fld("说明", "opsTNote", `<textarea class="input" id="opsTNote" rows="3">${esc(alarmNext(al))}</textarea>`)}`,
       btn("取消", "close") + btn("创建工单", "opsTaskSave", {}, "primary"),
       false,
     );
@@ -72008,7 +72308,7 @@ defineActions({
     closeModal(true);
     U.opsDrawer = { page: "alarms", kind: "task", id };
     route("alarms", { tab: "tasks" });
-    msg(acked ? "已创建工单，并确认了来源告警" : "已创建工单");
+    msg(`${acked ? "已创建工单，并确认了来源告警" : "已创建工单"}；已按通知偏好通知${who}`);
   },
   // 改派（全面设计核查第 112 条（2026-10-12 用户确认）：原先工单建好后不能改负责人和计划时间）：改负责人和计划时间，
   // 记入排查记录（不算处理进展）与来源告警的时间线；负责人同“创建工单”，从有运营权限且授权范围含本项目的成员中选
@@ -72022,7 +72322,7 @@ defineActions({
     formState = { kind: "opsReassign", id: t.id };
     modal(
       "改派工单",
-      `<p class="ops-modal-sub">${esc(t.name)} · 现为 ${esc(t.assignee || "未指派")}${t.planAt ? `，计划 ${esc(opsWhen(Date.parse(t.planAt)))}` : ""}</p><div class="ws-form-row">${fld(TASK_WHO_LABEL, "opsTWho", select("opsTWho", opts, t.assignee || "", "负责人"), "有运营权限且授权范围含本项目的成员")}${fld("计划时间", "opsTPlan", input("opsTPlan", plan, "", "datetime-local"))}</div><p class="ops-foot">${TASK_DLG_FOOT}</p>`,
+      `<p class="ops-modal-sub">${esc(t.name)} · 现为 ${esc(t.assignee || "未指派")}${t.planAt ? `，计划 ${esc(opsWhen(Date.parse(t.planAt)))}` : ""}</p><div class="ws-form-row">${fld(TASK_WHO_LABEL, "opsTWho", select("opsTWho", opts, t.assignee || "", "负责人"), "有运营权限且授权范围含本项目的成员")}${fld("计划时间", "opsTPlan", input("opsTPlan", plan, "", "datetime-local"))}</div>`,
       btn("取消", "close") + btn("改派", "opsTaskReassignSave", {}, "primary"),
       false,
     );
@@ -72049,7 +72349,7 @@ defineActions({
     closeModal(true);
     render();
     $(".ops-drawer-h h3")?.focus({ preventScroll: true });
-    msg(`已改派：${text}`);
+    msg(`已改派：${text}${who !== was ? `；已按通知偏好通知${who}` : ""}`);
   },
   // 功能区面板的“报修”（Y4）：快捷选项与选填说明，提交后生成来源为“报修”的工单，进入概况“需要处理”，并按通知偏好告知运营人员
   opsZoneRepair: (a) => {
@@ -72126,7 +72426,7 @@ defineActions({
     formState = { kind: "opsRepair" };
     modal(
       "新建工单",
-      `<p class="ops-modal-sub">报修：登记现场发现的问题，来源写“报修”</p>${fld("工单名称", "opsTName", input("opsTName", "", "如 会议室 7-1 灯具闪烁"))}${fld(
+      `${fld("工单名称", "opsTName", input("opsTName", "", "如 会议室 7-1 灯具闪烁"))}${fld(
         "位置",
         "opsTPlace",
         select("opsTPlace", [["", "请选择"], ...repairPlaces(OPS_SCOPE.project)], "", "位置"),
@@ -72139,7 +72439,7 @@ defineActions({
         "照片（选填）",
         "opsTPhotos",
         photoPick("opsTPhotos"),
-      )}<p class="ops-foot">${TASK_DLG_FOOT}</p>`,
+      )}`,
       btn("取消", "close") + btn("创建工单", "opsRepairSave", {}, "primary"),
       false,
     );
@@ -72182,6 +72482,7 @@ defineActions({
     closeModal(true);
     U.opsDrawer = { page: "alarms", kind: "task", id };
     route("alarms", { tab: "tasks" });
+    msg(`已新建工单；已按通知偏好通知${who}`);
   },
   // 追加记录：处理记录或未响应（写明原因）；完成工单写结论；已完成的工单可“需返工”（写明原因，回到处理中）。记录写操作人（V46，ALARM02 待实现第2条）
   opsTaskKindSeg: (a) => {
@@ -72982,7 +73283,8 @@ function aiReportDraft(r0) {
     holdBtn = auto && !auto.hold && !auto.why && aiCanPublish() ? btn("暂不发布", "aiReportHold", { id: r.id }, "sm") : "";
   // 2.25 V183：按钮放在副标题行右端，“导出 PDF”收进“更多”；“（期间结束日）后可发布”为“发布”不可用时的悬停说明
   const actBtns = `${published || !canOperate() ? "" : btn("编辑草稿", "aiReportEdit", { id: r.id }, "sm")}${published || !aiCanPublish() ? "" : aiReportOpen(r) ? disBtn("发布", "aiReportPublish", { id: r.id }, "sm", aiReportOpenWhy(r)) : btn("发布", "aiReportPublish", { id: r.id }, "sm")}${
-      U.role === "member" ? "" : `<button type="button" class="btn sm" data-act="aiReportMore" aria-haspopup="menu">更多</button>`
+      // 2.46 运营核查 V210：已发布的报告在这一行直接“导出 PDF”（白色次要按钮），去掉只有一项的“更多”；AI 草稿发布后再导出
+      published ? btn("导出 PDF", "aiReportPdf", { id: r.id }, "sm") : ""
     }`,
     // 三个按钮为一组，窄屏放不下时整组换到状态标签的下一行，不拆开
     acts = actBtns || holdBtn ? `<span class="ai-report-acts">${actBtns}${holdBtn}</span>` : "";
@@ -73867,10 +74169,15 @@ defineActions({
     msg(s.kind === "resync" ? (n ? `已重新下发配置，${n} 台逐项回执已应用` : "没有可下发的设备") + (off ? `；${off} 台离线，上线后由网关补齐` : "") : s.kind === "task" ? "已写入工单" : "已记录");
   },
   // 编辑 AI 草稿（规范 ANALYSIS05，2026-10-08 第 3 轮，ANALYSIS05 待实现第4条）：逐节修改文字，保存在报告草稿中；“恢复 AI 起草的内容”删去修改
-  // 2.25 V183：报告的“更多”：导出 PDF（正式导出待报告服务，不可用）
-  aiReportMore: (a, el) => {
-    if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
-    pop(el, `<div class="ops-floorpop" role="menu" aria-label="更多"><button class="popitem" role="menuitem" aria-disabled="true" data-act="noop" data-tip="正式导出需固定数据截止、质量说明与计算版本">${ico("download", "ic16")}<span>导出 PDF</span></button></div>`);
+  // 2.46 运营核查 V210：已发布报告导出 PDF，内容与预览相同（各节标题与正文，发布时已固定数据截至）
+  aiReportPdf: (a) => {
+    const r = REPORTS.find((x) => x.id === a.id);
+    if (!r || aiReportEff(r).state !== "已发布") return;
+    const card = $(".ai-report"),
+      sub = card?.querySelector(".ai-report-h")?.nextElementSibling?.innerText?.trim() || "",
+      lines = [sub, "", ...[...(card?.querySelectorAll(".ai-rsec") || [])].flatMap((sec) => [sec.querySelector("h4")?.innerText.trim() || "", ...[...sec.querySelectorAll("p, li")].map((x) => x.innerText.trim()).filter(Boolean), ""])];
+    downloadPdf(r.name, r.name, lines);
+    msg(`已导出“${r.name}”PDF`);
   },
   aiReportEdit: (a) => {
     const r = REPORTS.find((x) => x.id === (a.id || U.opsReport || "r-2609"));
@@ -73915,11 +74222,11 @@ defineActions({
     modal(
       "发布报告",
       `<p class="ai-p">发布“${esc(r.name)}”（${esc(r.span)}）后，各节文字与数据截至固定，不能再编辑。</p>` +
+        // 2.46 运营核查 V211：去掉“接收人”一行，规则写进“邮件”旁的 i
         infoRows([
           ["邮件", to.length ? `${to.length} 人：${to.join("、")}` : "没有接收人"],
           ["正文", "摘要与“查看报告”链接（需登录查看）"],
-          ["接收人", "有本项目授权、通知偏好中“报告”一行勾选了邮件的成员；普通成员不收报告"],
-        ]) +
+        ]).replace("<dt>邮件</dt>", `<dt>邮件${opsInfo("邮件", esc("发给有本项目授权、通知偏好中“报告”勾选了邮件的成员。"))}</dt>`) +
         note("数据截至报告期末 24:00。"),
       btn("取消", "close") + btn("发布", "aiReportPublishSave", { id: r.id }, "primary"),
       // 确认弹窗 512 宽（原 720；Lovable 核查第 300 条，2026-10-11 用户确认）
@@ -75463,7 +75770,7 @@ BARE.orgs = () => {
         // 2.45 账户第 400 条：当前账户已在页顶，说明不再重复账户。
         const lead = rows ? "你收到了以下邀请。" : "目前没有可访问的机构。";
         const forms = more
-          ? `${auAccessSeg(auOrgsTab())}${auOrgsTab() === "apply" ? (document.getElementById("app")?.classList.add("bare-apply"), auApplyInForm()) : auJoinInForm(false)}`
+          ? `${auAccessSeg(auOrgsTab())}${auOrgsTab() === "apply" ? (document.getElementById("app")?.classList.add("bare-apply"), auApplyInForm()) : auJoinInForm()}`
           : `<p class="au-noorg-more"><button type="button" class="au-inline" data-act="auNoorgMore">加入其他机构或创建新机构</button></p>`;
         return `<h1 class="au-h1">尚未加入机构</h1>${auJoinNoticeBar()}<p class="au-lead">${lead}</p>${rows ? `<div class="au-box au-mail-invs">${rows}</div>` : ""}${forms}`;
       })(),
@@ -76008,10 +76315,10 @@ const auMailInviteRows = () =>
     .map((x) => `<div class="au-row"><div class="au-row-l"><span class="au-inv-text">${auMailInviteText(x)}</span><small>邀请有效期至 ${auFmt(x.i.sent + 7 * auDay)}</small></div><div class="au-row-a">${btn("加入", "auMailAccept", { org: x.org, id: x.i.id }, "sm primary")}</div></div>`)
     .join("");
 // 已登录的加入表单（加入页与“尚未加入机构”页共用）；2.32 账户第 247 条：最上面只读“申请人”，再邀请码、申请说明，按钮“申请加入”。
-// 2.42 账户第 370 条：“尚未加入机构”页的说明已写出账户，不再有“申请人”；从“我的机构”进入的加入页保留。
-const auJoinInForm = (applicant = true, lead = "") => {
-  const me = auMe();
-  return `<p class="au-lead">${lead || AU_JOIN_LEAD_IN}</p><form class="au-compact-form" data-form="joinIn" novalidate><fieldset>${applicant ? auRoRow("申请人", `${me.name} · ${me.email || me.phone || ""}`) : ""}${auJoinCodeField()}${auJoinNote()}<p class="au-ferr" role="alert" hidden></p>${auPrimary("申请加入", true)}</fieldset></form>`;
+// 2.42 账户第 370 条：“尚未加入机构”页的说明已写出账户，不再有“申请人”。
+// 2.46 账户第 415 条：从“我的机构”进入的加入页也不再有“申请人”（页顶已显示当前账户）。
+const auJoinInForm = (lead = "") => {
+  return `<p class="au-lead">${lead || AU_JOIN_LEAD_IN}</p><form class="au-compact-form" data-form="joinIn" novalidate><fieldset>${auJoinCodeField()}${auJoinNote()}<p class="au-ferr" role="alert" hidden></p>${auPrimary("申请加入", true)}</fieldset></form>`;
 };
 // 2.38 账户第 333 条：申请说明用全站的多行输入框（au-ta-std：底色、描边、悬停、聚焦同本页单行框，圆角 12，可往下拉高）。
 // 2.40（HONG 2026-10-28 04:44Z 按推荐）：外壳与拖动标志同“项目说明”（ws-textarea-shell、ws-resize，可用方向键调整），高 80，下方不留空白。
@@ -76033,7 +76340,7 @@ BARE.join = () => {
   // 2.38 账户第 335 条：已登录、尚未加入机构时为“返回”（回“尚未加入机构”页），不再有“使用其他账户登录”；2.41 第 363 条：在主按钮右侧。
   if (AUTH.session === "in") {
     const lo = code && AUX.joinLinkOrg && AUTH.orgs?.[AUX.joinLinkOrg];
-    return auStatusShell(`<h1 class="au-h1">${lo ? `加入${zhSub(esc(lo.name), "l")}` : "加入已开通的机构"}</h1>${auWithBack(auJoinInForm(true, lo ? AU_JOIN_LEAD_LINK_IN : ""))}`);
+    return auStatusShell(`<h1 class="au-h1">${lo ? `加入${zhSub(esc(lo.name), "l")}` : "加入已开通的机构"}</h1>${auWithBack(auJoinInForm(lo ? AU_JOIN_LEAD_LINK_IN : ""))}`);
   }
   // 2.33 账户第 251、252、256、257 条：两步逐步填写。1 创建账户（姓名、电子邮箱或手机号码、验证码、设置密码、同意）→ 继续；
   // 2 这个电子邮箱有未过期的邀请时“确认邀请”（几个时选一个）→ 加入；没有时“填写邀请码”（从链接或二维码打开时已填好）和申请说明 → 申请加入，
@@ -76401,7 +76708,7 @@ function auSbInvoice() {
   return `<div class="au-field au-inv-type" data-f="sb_invt" role="radiogroup" aria-labelledby="au-sb_invt-l"><div class="au-lab"><span class="au-lab-t" id="au-sb_invt-l">发票类型</span></div><div class="au-radios">${AU_INV_TYPES.map(([v, n]) => `<label class="au-radio"><input type="radio" name="sb_invt" class="au-v" value="${v}" ${v === t ? "checked" : ""}><span>${n}</span></label>`).join("")}</div></div>${auRoRow("发票抬头", AUX.v.sb_org || "")}${auRoRow("纳税人识别号", String(AUX.v.sb_uscc || "").toUpperCase())}${auField({ name: "sb_imail", label: "收票邮箱", type: "email", auto: "email", inputmode: "email" })}<div class="au-inv-special"${t === "special" ? "" : " hidden"}>${AU_INV_EXTRA.map(([n, l, , m]) => auField({ name: n, label: l, maxlength: m })).join("")}</div>`;
 }
 const auSbInvoiceChecks = () => [["sb_imail", auMailCheck], ...(auInvType() === "special" ? AU_INV_EXTRA.map(([n, , e]) => [n, auReq(e)]) : [])];
-// 第 4 步：汇总（各带“修改”）、付款与单据四行、两个勾选、“提交订单”（第 306 条）
+// 第 4 步：合计、付款与单据四行、两个勾选、“提交订单”（第 306 条；2.46 第 421 条去掉重复的汇总）
 const AU_SUB_TERMS = [
   ["付款", "提交后生成订单，14 天内付款，到账即生效。"],
   ["合同", "提交后可下载 PACOM 已盖章的电子合同；需要双方盖章的，可在线签署或申请纸质合同。"],
@@ -76414,10 +76721,11 @@ function auSbPlanRows(kind) {
   return [["设备额度", `${fmt(c.q)} 台`], ["年数", `${c.years} 年`], ["有效期", b.period], ["合计", `${auYuan(c.total)}（含税）`]];
 }
 function auSbConfirm(kind) {
-  const me = auMe(), s = AUX.sub, dup = auSbDup(AUX.v.sb_uscc);
-  const group = (title, n, rows, extra = "") => `<section class="au-cf-g"><div class="au-cf-h"><h3 class="au-sub-h">${title}</h3>${auRegEditBtn("auStepEdit", n, ' data-flow="sub"')}</div><dl class="au-apply-dl">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(String(v))}</dd></div>`).join("")}</dl>${extra}</section>`;
+  const s = AUX.sub, dup = auSbDup(AUX.v.sb_uscc);
   const qualNote = [s.check === "manual" ? "未查得本机构的工商登记信息（新登记的单位数据可能有延迟），提交后由 PACOM 人工核对，结果以邮件通知。" : "", dup ? `该代码已用于已订阅的机构“${dup}”。` : ""].filter(Boolean).map((t) => `<p class="au-hint au-cf-note">${esc(t)}</p>`).join("");
-  return `<div class="au-cf">${group("方案", 1, auSbPlanRows(kind))}${group("机构资质", 2, [["机构全称", AUX.v.sb_org || ""], ["统一社会信用代码", String(AUX.v.sb_uscc || "").toUpperCase()], ["经办人", me.name]], qualNote)}${group("开票信息", 3, [["发票类型", auInvTypeName()], ["收票邮箱", AUX.v.sb_imail || ""], ...(auInvType() === "special" ? AU_INV_EXTRA.map(([n, l]) => [l, AUX.v[n] || ""]) : [])])}<section class="au-cf-terms-s"><h3 class="au-sub-h">付款与单据</h3><ol class="au-cf-terms">${AU_SUB_TERMS.map(([k, v]) => `<li><b>${k}：</b>${v}</li>`).join("")}</ol></section><div class="au-cf-checks"><label class="au-check" data-f="sb_agree"><input type="checkbox" name="sb_agree" class="au-v" aria-describedby="au-sb_agree-err" ${AUX.v.sb_agree ? "checked" : ""}><span>我已阅读并同意<button type="button" class="au-linkbtn au-keep" data-act="auOrderDoc">《PACOM Station 服务协议》</button></span></label><p class="au-err au-check-err" id="au-sb_agree-err" aria-live="polite"></p><label class="au-check" data-f="sb_auth"><input type="checkbox" name="sb_auth" class="au-v" aria-describedby="au-sb_auth-err" ${AUX.v.sb_auth ? "checked" : ""}><span>我已获得本机构授权，提交的信息真实准确</span></label><p class="au-err au-check-err" id="au-sb_auth-err" aria-live="polite"></p></div></div>`;
+  // 2.46 账户第 421 条：第 4 步不再重复前三步（上方摘要各带“修改”），只留合计、付款与单据、两项勾选；资质人工核对等说明照旧写在合计下。
+  const total = auSbPlanRows(kind).find(([k]) => k === "合计")[1];
+  return `<div class="au-cf"><div class="au-cf-total"><span>合计</span><b class="num">${esc(total)}</b></div>${qualNote}<section class="au-cf-terms-s"><h3 class="au-sub-h">付款与单据</h3><ol class="au-cf-terms">${AU_SUB_TERMS.map(([k, v]) => `<li><b>${k}：</b>${v}</li>`).join("")}</ol></section><div class="au-cf-checks"><label class="au-check" data-f="sb_agree"><input type="checkbox" name="sb_agree" class="au-v" aria-describedby="au-sb_agree-err" ${AUX.v.sb_agree ? "checked" : ""}><span>我已阅读并同意<a class="au-inline au-legal-link au-keep" href="${esc(location.pathname)}#legal?tab=service" target="_blank" rel="noopener" aria-label="PACOM Station 服务协议（新标签页打开）">《PACOM Station 服务协议》</a></span></label><p class="au-err au-check-err" id="au-sb_agree-err" aria-live="polite"></p><label class="au-check" data-f="sb_auth"><input type="checkbox" name="sb_auth" class="au-v" aria-describedby="au-sb_auth-err" ${AUX.v.sb_auth ? "checked" : ""}><span>我已获得本机构授权，提交的信息真实准确</span></label><p class="au-err au-check-err" id="au-sb_auth-err" aria-live="polite"></p></div></div>`;
 }
 const auSbConfirmChecks = () => [["sb_agree", (v) => (v ? "" : "请阅读并同意服务协议")], ["sb_auth", (v) => (v ? "" : "请确认已获得本机构授权")]];
 function auSbSum(kind, n) {
@@ -76521,10 +76829,10 @@ BARE.order = () => {
   auLicSync();
   document.getElementById("app")?.classList.add("bare-apply");
   const [stText, tone] = AU_ORDER_ST[od.status];
-  const main = od.status === "pending" ? btn("付款", "auPayFocus", {}, "primary") : od.status === "paid" ? btn(ico("download", "ic16") + "下载电子合同", "auOrderDoc", { doc: "contract" }, "primary") : od.status === "cancelled" && od.kind !== "ai" ? btn("重新下单", "auOrderAgain", { id: od.id }, "primary") : "";
+  // 2.46 账户第 422 条：已生效的订单顶部只写状态和到账时间，合同、发票在各自一块下载；不再有与标题相同的“内容”一行。
+  const main = od.status === "pending" ? btn("付款", "auPayFocus", {}, "primary") : od.status === "cancelled" && od.kind !== "ai" ? btn("重新下单", "auOrderAgain", { id: od.id }, "primary") : "";
   const sub = od.status === "pending" ? `请在 ${auDate(od.until)} 24:00 前付款，到账即生效。` : od.status === "cancelled" ? "订单已过期或已取消，可重新下单，内容自动带入。" : od.status === "paid" ? `${auFmtY(od.paidAt || od.at)} 到账，已生效。` : "";
   const info = auRows([
-    ["内容", esc(od.text)],
     ...(od.quota || od.to ? [["设备额度", `${fmt(od.to || od.quota)} 台`]] : []),
     ["有效期", esc(auOrderPeriod(od))],
     ["金额（含税）", `<span class="num">${auYuan(od.amount)}</span>`],
@@ -76533,7 +76841,7 @@ BARE.order = () => {
     ["订单号", `<span class="au-code-v"><span class="num">${esc(od.no)}</span><button type="button" class="au-copy" data-act="auOrderNoCopy" data-id="${od.id}" aria-label="复制订单号" data-tip="复制">${ico("copy", "ic16")}</button></span>`],
     ...(od.status === "pending" ? [["付款期限", `${auDate(od.until)} 24:00`]] : []),
   ]);
-  return auApplyShell(`<div class="au-od-top"><h1 class="au-h1">${esc(od.text)}</h1>${btn("联系 PACOM", "auSupport", {}, "sm ghost")}</div><div class="au-od-status">${badge(stText, tone)}<span>${esc(sub)}</span>${main}</div>${info}${od.status === "pending" ? auOrderPayBlock(od) : ""}${od.kind === "ai" ? "" : auOrderContract(od)}${od.status === "cancelled" ? "" : auOrderInvoice(od)}<div class="au-links"><button type="button" class="au-textbtn" data-act="auOrderBack">返回订单与发票</button></div>`);
+  return auApplyShell(`<div class="au-od-top"><h1 class="au-h1">${esc(od.text)}</h1>${btn("联系支持", "auSupport", {}, "sm ghost")}</div><div class="au-od-status">${badge(stText, tone)}<span>${esc(sub)}</span>${main}</div>${info}${od.status === "pending" ? auOrderPayBlock(od) : ""}${od.kind === "ai" ? "" : auOrderContract(od)}${od.status === "cancelled" ? "" : auOrderInvoice(od)}<div class="au-links"><button type="button" class="au-textbtn" data-act="auOrderBack">返回订单与发票</button></div>`);
 };
 BARE_AFTER.order = () => {
   document.title = "订单 · PACOM Station";
@@ -76647,7 +76955,7 @@ BARE.invite = () => {
   const meNow = AUTH.session === "in" ? auMe() : null;
   if (meNow?.email && inv?.email && meNow.email.toLowerCase() !== inv.email.toLowerCase())
     return auAuthShell(
-      `<h1 class="au-h1">此邀请发给其他账户</h1><p class="au-lead">受邀账户：<b>${esc(auMask(inv.email))}</b><br>当前账户：<b>${esc(auMask(meNow.email))}</b></p>${auStActs(auStBtn("退出并继续", "auInviteSwitch", "", true), auStBtn("返回工作区", "auApplyBack"))}`,
+      `<h1 class="au-h1">此邀请发给其他账户</h1><p class="au-lead">受邀账户：<b>${esc(auMask(inv.email))}</b></p>${auStActs(auStBtn("退出并继续", "auInviteSwitch", "", true), auStBtn("返回工作区", "auApplyBack"))}`,
     );
   // 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 145 条）：只有成员邀请。受邀邮箱没有账户时“注册”；已有账户、未登录时到登录页登录后回到邀请。
   // 2.41 账户第 365 条：没有“接受邀请”页：已登录的受邀账户打开邀请链接（或登录后回到邀请）即加入，进入该机构并提示“已加入…”。
@@ -76973,7 +77281,7 @@ const AU_SUBMIT = {
     const done = auBusy(f, "正在提交…");
     const r = await auRequest("submitOrder", { org: AUTH.org, kind, ...od, fullName: name, uscc: code, billing });
     await done();
-    if (r.status !== "ok") return auFormErr(f, "暂时无法连接订单服务，请稍后再试。", true, "error");
+    if (r.status !== "ok") return auFormErr(f, "暂时无法提交订单，请稍后再试。", true, "error");
     o.fullName = name;
     l.uscc = code;
     if (s.check) l.verified = { how: s.check, at: auCstYmd() };
@@ -77404,6 +77712,16 @@ const AU_LEGAL = {
       "设备控制、场景和联动由楼内边缘网关执行，平台显示实际回执，不代替现场安全措施。",
     ],
   ],
+  // 2.46 账户第 413 条：第三份文件“服务协议”，订阅第 4 步的《PACOM Station 服务协议》在新标签页打开这一页签
+  service: [
+    "服务协议",
+    [
+      "本协议适用于机构订阅 PACOM Station：订阅的设备额度、有效期和金额以订单和电子合同为准，付款到账当天起生效。",
+      "有效期内可增加设备额度，按剩余天数计费；到期前可续期，到期后暂停平台远程功能，现场设备按最后下发的配置继续运行。",
+      "运行数据归属于机构，平台按机构的数据保存期限保存；机构管理员可申请导出数据或注销机构。",
+      "发票按订单填写的开票信息开具；退款、变更与争议按电子合同的约定处理。",
+    ],
+  ],
 };
 function auLegalBody(doc = AUX.legal) {
   const [, items] = AU_LEGAL[doc];
@@ -77411,7 +77729,7 @@ function auLegalBody(doc = AUX.legal) {
 }
 // Public document route: no sign-in, agreement submission, or inherited account/demo query.
 BARE.legal = () => {
-  const doc = U.tab === "terms" ? "terms" : "privacy";
+  const doc = AU_LEGAL[U.tab] ? U.tab : "privacy";
   return `<div class="au au-legal-page"><main class="au-legal-main">${auLogo()}<h1 class="au-h1" tabindex="-1">隐私和法律</h1><nav class="au-legal-nav" aria-label="法律文件">${Object.entries(AU_LEGAL).map(([key, [title]]) => `<a href="#legal?tab=${key}" ${key === doc ? 'aria-current="page"' : ""}>${title}</a>`).join("")}</nav><article class="au-legal-content" aria-labelledby="au-legal-title"><h2 id="au-legal-title">${AU_LEGAL[doc][0]}</h2>${auLegalBody(doc)}</article></main>${auFooter(true, false)}</div>`;
 };
 BARE_AFTER.legal = () => {
@@ -77425,870 +77743,670 @@ BARE_AFTER.legal = () => {
 const AU_GUIDE_URL = "";
 // 软件版本只在这里写一次：帮助的“软件版本”、“联系支持”复制的内容与“更新说明”都取自 AU_RELEASES（2026-10-09 用户确认，ABB 对比 BP12、BP15）。
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
-// 每次发布时在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
+// 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "2.46",
+    date: "2026-10-28",
+    notes: [
+      "新增：在“联系支持”里直接发送问题说明和截图；订阅时的服务协议可以打开阅读。",
+      "改进：订阅第 4 步只留合计、付款与单据和确认；订单页去掉重复内容。",
+      "改进：放置第一台设备时自动建立本层网络；连接验证、启用告警规则和维护任务不能执行时写明原因。",
+      "改进：报告可以导出 PDF；工单按负责人的通知偏好通知。",
+      "修复已知问题，优化界面细节。",
+    ],
+  },
   {
     version: "2.45",
     date: "2026-10-28",
     notes: [
-      "ⓘ 说明框在账户页和工作区统一：宽度随内容，最宽 320；内边距 12，文字行高 24。",
-      "全平台 14 号文字的行高统一为 24，按钮、侧栏、表头和页签高度不变。",
-      "全平台按钮统一为圆角 12；胶囊只用于页签切换、状态标签和开关。",
-      "尚未加入机构、选择机构等账户页的当前账户和“退出登录”移到页顶标识右侧；加入申请过期的提示改为一句。",
-      "选择框统一为按钮材质和按钮的聚焦外圈，箭头距右 12；下拉列表与菜单同一规格，宽度与选择框相同，最多显示 8 项。",
-      "页面加载失败改用与系统维护中相同的状态页样式；三个状态页的按钮统一为“重新加载”。",
+      "改进：已登录的账户页把当前账户和“退出登录”移到页顶。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.44",
     date: "2026-10-28",
     notes: [
-      "菜单和下拉列表的外框圆角改为 16，与里面的菜单行转角一致。",
-      "还没有项目时，全部项目只显示说明和“创建项目”；地图服务尚未配置时，不再提示“位置待核对”。",
-      "上传楼层图、设置比例尺和画功能区去掉重复的提示；从楼层页进入标记设备时直接显示设备类型。",
-      "新建系统连接可选择楼层图上已标记、尚待现场绑定的网关，连接与点表先保存为规划；设备发现只用于 BACnet/IP。",
-      "应用设置去掉“需求响应”和“对外上传”；需量限制按登记顺序分级限制所选负荷；新建的项目直接采用最新的参数模板。",
-      "网络详情去掉“节点规划”页签，中继与代理节点在楼层图的网络模式里规划和检查。",
-      "场景 › 执行记录改名为“操作记录”，总览和确认控制里的“查看操作记录”都打开这个页签。",
-      "工单照片选择后显示缩略图，可移除；工单详情中点开看大图。",
-      "新建报告的说明改为一句；会议室 CO₂ 告警的建议改为会后通风并观察是否回落。",
+      "新增：工单照片选好后可查看大图和移除。",
+      "改进：系统连接可先按规划保存；应用设置去掉需求响应和对外上传。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.43",
     date: "2026-10-28",
     notes: [
-      "输入框、选择框、按钮、菜单行、提示条和信息卡的圆角统一为 12。",
-      "新建、编辑项目的地址搜索框和空间编辑的“调整楼层”由胶囊形改为圆角 12。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.42",
     date: "2026-10-28",
     notes: [
-      "“尚未加入机构”页有发给你的邀请时只列出邀请，点“加入”即加入；要加入其他机构或创建新机构，点下方的文字链接。",
-      "被移出机构后不再进入单独的页面，直接回到选择机构或尚未加入机构，页顶提示一次。",
-      "加入申请未获批准或已过期的提示写明原因，提示条与标题、说明的间距统一。",
-      "从加入链接打开时标题写出机构名称；确认邀请时可以改用邀请码加入其他机构。",
-      "已登录创建机构时，账户缺少电子邮箱或手机号码的先绑定，再填写机构信息。",
-      "登录和重置密码时账户没有填写，提示“请输入电子邮箱或手机号码”；重置密码弹窗打开时焦点在“获取验证码”。",
-      "机构菜单各行行首统一宽度，文字左边对齐，机构标识大小一致。",
+      "改进：“尚未加入机构”页有邀请时直接列出，点“加入”即加入。",
+      "改进：被移出机构后直接回到选择机构或尚未加入机构，页顶提示一次。",
+      "改进：已登录创建机构时，账户缺少电子邮箱或手机号码的先绑定。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.41",
     date: "2026-10-28",
     notes: [
-      "创建机构时，行业按国民经济行业分类的门类选择，所在地区分省份和城市选择；机构信息中修改时相同。",
-      "选择列表在选择框下方展开，下方放不下时在上方，最多显示 8 项，其余滚动。",
-      "账户相关页面的输入框、选择框、多行输入框和主按钮统一为圆角 8；电脑上输入文字改为 14 号。",
-      "创建机构后直接进入新机构的“项目”页，不再经过引导页。",
-      "已有账户的受邀人登录后直接加入机构；已登录时点邀请链接即加入，不再有“接受邀请”页。",
-      "已登录时创建机构、申请加入页的返回按钮移到主按钮右侧；已完成步骤的勾恢复原大小。",
-      "机构已暂停使用、服务暂时不可用、邀请已失效、申请已提交等页面的按钮改为说明下方左对齐，主按钮按文字宽度，其他操作为右侧的次要按钮。",
+      "改进：创建机构时行业按国家标准门类选择，所在地区分省份和城市。",
+      "改进：创建机构后直接进入新机构的项目页；已有账户的受邀人登录后直接加入机构。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.40",
     date: "2026-10-28",
     notes: [
-      "登录、邀请码和验证码的限次提示不再写等待时长；连续输错过多时提示重置密码后再登录。",
-      "“收不到验证码？”按发送到的地址给出不同说明；定期验证不再写天数。",
-      "绑定或更换手机号码时，号码已绑定另一个账户的，确认后可改绑到当前账户。",
-      "同意句中的链接和说明框中的“联系 PACOM 支持”改为常规字重。",
-      "“没有邀请码？”说明改为一句；加入申请提交后的页面改为“申请已提交”，撤回前先确认。",
-      "全站多行输入框用同一组件和拖动标志；申请说明高度与其他多行输入框一致，悬停时下方按钮不再移动。",
+      "新增：绑定或更换手机号码时，号码已绑定另一个账户的可确认后改绑。",
+      "改进：加入申请提交后显示“申请已提交”，撤回前先确认。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.39",
     date: "2026-10-27",
-    notes: ["增加配置导图和运营导图，各节点链接到对应页面；界面没有变化。"],
+    notes: [
+      "新增：配置导图和运营导图，各节点链接到对应页面。",
+    ],
   },
   {
     version: "2.38",
     date: "2026-10-27",
     notes: [
-      "创建新机构分三步：创建账户、绑定手机号码、填写机构信息，每步只有一个验证码；已登录、还没有绑定手机号码的先绑定。",
-      "“没有邀请码？”移到“邀请码”字段名一行右侧；申请说明改用全站的多行输入框；不再有“先完成注册”。",
-      "加入申请未获批准或已过期时发邮件或短信，登录后在“尚未加入机构”页顶部提示，过期的可以重新申请。",
-      "同意句改为“我已阅读并同意 PACOM 客户隐私声明和使用条款”。",
-      "修正创建新机构第 1 步点“继续”没有反应的问题。",
+      "改进：创建新机构分三步：创建账户、绑定手机号码、填写机构信息。",
+      "新增：加入申请未获批准或已过期时发邮件或短信，过期的可以重新申请。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.37",
     date: "2026-10-27",
     notes: [
-      "创建机构不再审核：填写机构名称、行业和所在地区即创建，创建人是机构管理员，可以先规划、配置和邀请成员。",
-      "“许可与用量”改称“订阅与用量”：未订阅时为订阅说明；订阅分选择方案、机构资质、开票信息、确认并提交四步，机构资质当场核对工商登记信息。",
-      "提交订单后进入订单详情，可用微信支付、支付宝、企业网银或对公转账付款，到账即生效；合同可在线签署或申请纸质合同。",
-      "机构信息分为概况、基本信息、资质和其他；单位更名时可变更机构全称，未订阅的机构可以删除并在 30 天内恢复。",
-      "成员可按姓名、电子邮箱或手机号码搜索，邀请可填手机号码，成员名单可导出为 CSV；唯一的机构管理员退出时先选一位成员接任。",
-      "各类数据的保存期限移到“数据导出与删除”。",
+      "改进：创建机构不再审核，填好机构名称、行业和所在地区即创建。",
+      "新增：“订阅与用量”可订阅，提交订单后在订单详情付款，合同可在线签署或申请纸质合同。",
+      "新增：未订阅的机构可以删除，30 天内可恢复；成员名单可以搜索和导出。",
+      "改进：唯一的机构管理员退出机构时，先选一位成员接任。",
     ],
   },
   {
     version: "2.36",
     date: "2026-10-27",
     notes: [
-      "楼宇的层数、屋顶层和特殊层都在“编辑楼宇”中修改，特殊层随保存一起生成。",
-      "机构因订单逾期未付款暂停时，机构管理员可以直接去付款；其他成员看到请机构管理员付款的说明。",
-      "申请获批后，在“申请审核中”页刷新即进入机构开通引导。",
-      "运营的暖通空调和室内环境改为“查看设置”，打开应用设置的对应页签。",
-      "CO₂ 图层按 5 分钟均值分档；运营中的设备型号改写为照明控制器等功能名称。",
+      "改进：楼宇的层数和特殊层都在“编辑楼宇”中修改。",
+      "改进：机构因订单逾期暂停时，机构管理员可以直接去付款。",
+      "改进：总览的暖通空调和室内环境可直接打开应用设置的对应页签。",
     ],
   },
   {
     version: "2.35",
     date: "2026-10-27",
-    notes: ["告警通知的渠道为短信和邮件。", "数据表、空间清单与现场设备清单导出为 CSV 文件，电费账单从 CSV 导入。"],
+    notes: [
+      "改进：告警通知的渠道为短信和邮件；数据表和清单导出为 CSV 文件，电费账单从 CSV 导入。",
+    ],
   },
   {
     version: "2.34",
     date: "2026-10-27",
     notes: [
-      "设备接入方式统一写作“Mesh”。",
-      "室温偏离告警的规则说明更简洁。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.33",
     date: "2026-10-27",
     notes: [
-      "申请访问改为逐步填写，开通新机构分五步：创建账户、机构信息、订阅、开票信息、确认并提交。",
-      "选择订阅先列出包含的内容和价格，可选专用发票并填写开票信息。",
-      "登录时的手机号码和电子邮箱验证改在登录页的弹窗中完成，验证通过后才登录。",
-      "机构开通后即可使用，付款页提供专属汇款账号，电子合同可下载并申请双方盖章。",
-      "机构菜单分为机构、账户、帮助三组，点姓名一行进入我的账户；“查看已删除”移到项目页的“更多”。",
+      "改进：申请访问改为逐步填写。",
+      "改进：登录时的手机号码和电子邮箱验证在登录页的弹窗中完成。",
+      "新增：机构开通后提供专属汇款账号，电子合同可下载并申请双方盖章。",
+      "改进：机构菜单分为机构、账户、帮助三组。",
     ],
   },
   {
     version: "2.32",
     date: "2026-10-26",
     notes: [
-      "加入已开通的机构可以用手机号码注册，审核结果通过短信通知。",
-      "申请访问页的输入框、按钮和步骤间距统一，订阅明细单独一行写明增值税。",
-      "已登录时申请加入或开通，申请人和已绑定的手机号码直接显示，不用重填。",
+      "新增：加入已开通的机构可以用手机号码注册，审核结果通过短信通知。",
+      "改进：已登录时申请加入或开通，不用重填账户信息。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.31",
     date: "2026-10-26",
     notes: [
-      "设置新密码：重置密码、注册和修改密码的新密码旁加入 ⓘ，写明密码要求；框下平时不显示要求，提交时只用红字列出没有满足的几条，改对后消失。",
+      "改进：设置新密码时，只列出还没有满足的密码要求。",
     ],
   },
   {
     version: "2.30",
     date: "2026-10-26",
     notes: [
-      "设置新密码：重置密码、注册和修改密码的密码要求改为在框下列出。",
-      "重置密码：发送验证码后框下不再写提示；“收不到验证码？”说明先请核对输入的电子邮箱或手机号码；底部按钮与表单之间加宽。",
-      "登录页：切换短信验证码和密码登录时页面不再移动；“收不到验证码？”发送验证码后才出现。",
-      "加入机构与受邀注册：表单最后一项到按钮、同意条款到下一项的间距与其他表单相同。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.29",
     date: "2026-10-26",
     notes: [
-      "重置密码：新密码说明只写四条要求，图标紧跟“新密码”；不符合要求时提交，框下红字列出还缺的项。",
-      "登录页：“申请访问”“忘记密码？”平时不带下划线，电脑上悬停时出现；“已有账户？登录”相同。",
-      "申请访问：表单字段名改为 14 号字，与申请表后两步相同。",
-      "验证码：发送后框下只写“验证码已发送至……”，不再写有效时间；“收不到验证码？”移到验证码框标题一行右侧，点开在上方显示说明。",
-      "重置密码弹窗：标题与第一个字段之间加宽；手机上弹窗两侧留白加宽，底部按钮各占一行，输入框和按钮高度与登录页相同。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.28",
     date: "2026-10-26",
     notes: [
-      "加入已开通的机构：第 3 步改为“加入机构”，收到邀请的点“加入”，有邀请码的“申请加入”；都没有时可以“先完成注册”，之后在“尚未加入机构”页接受邀请或填写邀请码。",
+      "改进：加入已开通的机构时，收到邀请的直接加入，有邀请码的申请加入。",
     ],
   },
   {
     version: "2.27",
     date: "2026-10-26",
     notes: [
-      "申请访问页：“加入已开通的机构”与“申请开通新机构”的说明写明各自适用的情况，已登录的“尚未加入机构”页相同。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.26",
     date: "2026-10-26",
     notes: [
-      "页面与状态目录：加入机构与申请开通的步骤说明与现在的步骤条一致；忘记密码的五个结果打开后直接显示对应提示。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.25",
     date: "2026-10-25",
     notes: [
-      "登录页与申请访问页：提示的标点、错误提示位置和输入框样式统一，“加入已开通的机构”改用步骤条，收到邀请的电子邮箱设置账户后直接加入。",
-      "配置各页：字号、字重、圆角与日期写法统一，删去重复或用不上的说明；暖通空调设计室内温度与可调范围不再矛盾，告警规则状态写法一致。",
-      "总览、数据分析、告警与场景：文字、数字与颜色样式收成一套，说明只留需要解释的；节能页签按计量数据决定是否显示目标与对标，报告每节末尾写数据质量。",
-      "告警详情的数据证据写成一行，工单的“未响应”改为“暂未处理”；场景卡写被谁引用，联动表分列写条件与执行场景，新建联动在楼层图上点选功能区。",
-      "场景 › 执行记录与总览“操作记录”：对象与命令合成“操作”一列，回报结果合成“结果”一列，有未回报或失败时标色。",
+      "改进：“加入已开通的机构”改用步骤条，收到邀请的设置账户后直接加入。",
+      "改进：数据分析的节能页签按计量数据决定是否显示目标与对标，报告每节写数据质量。",
+      "改进：场景卡片写明被哪些定时和联动引用；新建联动在楼层图上选功能区。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.24",
     date: "2026-10-25",
     notes: [
-      "登录页：“登录”按钮、“使用短信验证码登录”、分隔线和“没有账户？申请访问”之间的间距都为 18，电脑和手机相同。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.23",
     date: "2026-10-25",
     notes: [
-      "全部切换器的滑块离外框四边 2px，滑块高度不变，外框随之变矮。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.22",
     date: "2026-10-25",
     notes: [
-      "“申请访问”页和“尚未加入机构”页用切换器在“加入已开通的机构”与“申请开通新机构”之间切换，选中即显示对应表单，两边填过的内容各自保留。",
+      "改进：申请访问可在“加入已开通的机构”与“申请开通新机构”之间切换，两边填过的内容各自保留。",
     ],
   },
   {
     version: "2.21",
     date: "2026-10-25",
     notes: [
-      "登录页底部改为一行“没有账户？申请访问”，在“申请访问”页选择加入已开通的机构或申请开通新机构。",
-      "加入已开通的机构先验证电子邮箱：机构管理员按这个邮箱邀请过的直接加入，没有邀请的再填写邀请码申请；邀请码框下有“没有邀请码？”。",
-      "“我的账户 › 我的机构”可以邀请同事，并列出发给你的邀请；机构管理员在“待批准”中看到推荐人。",
-      "新密码字段名右侧 ⓘ 写全密码要求；邀请码的二维码改为下载二维码图片。",
+      "改进：加入已开通的机构先验证电子邮箱，被邀请过的直接加入。",
+      "新增：在“我的账户 › 我的机构”邀请同事，并查看发给你的邀请。",
+      "新增：邀请码的二维码可下载为图片。",
     ],
   },
   {
     version: "2.20",
     date: "2026-10-25",
     notes: [
-      "登录页底部“加入已开通的机构”“申请开通新机构”改为与“登录”同宽的两个描边按钮，上下排列。",
-      "机构管理员在新设备上登录的“短信验证”只留验证码框，框下写验证码发到的号码和有效时间。",
-      "登录页“账户或密码不正确。”等登录失败提示移到密码框下。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.19",
     date: "2026-10-25",
     notes: [
-      "申请开通新机构按步骤填写：先验证电子邮箱，再设置账户、填写机构信息和选择订阅。",
-      "付款与邀请码按两步说明。",
-      "系统接入与各向导的步骤显示已完成、当前和未做。",
+      "改进：申请开通新机构按步骤填写；系统接入和各向导的步骤显示进度。",
     ],
   },
   {
     version: "2.18",
     date: "2026-10-25",
     notes: [
-      "邀请过期或被撤销时都显示“邀请已失效”；再次打开已接受的邀请时，直接进入该机构或回到登录页。",
-      "直接打开重置密码的地址时显示登录页并打开“重置密码”弹窗。",
+      "改进：邀请过期或被撤销时都显示“邀请已失效”。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.17",
     date: "2026-10-25",
     notes: [
-      "登录页加“保持登录”，底部“还没有账户？”下有“加入已开通的机构”“申请开通新机构”两个按钮；提示更短，账户或密码不正确时不说明是哪一项。",
-      "重置密码在同一个弹窗里完成：填电子邮箱或手机号码，输入验证码和新密码，重置后直接登录；不再发重置链接，也不用再输一遍新密码。",
-      "注册改为三步：电子邮箱和同意、邮件验证码、姓名和密码；填验证码的地方都有“收不到验证码？”。",
-      "没有账户的人可以填写机构的 9 位邀请码注册并申请加入，由机构管理员批准；已有账户的在“我的账户 › 我的机构”点“加入机构”。",
-      "申请开通新机构在一页填完机构全称、统一社会信用代码、手机号码和订阅；审核中可以查看和修改，通过当天开通，订单 14 天内付款。",
-      "成员页加“待批准”和“邀请码”，可多选批准或移除；每 90 天登录时验证一次电子邮箱；帮助中心加“账户与机构”8 篇。",
+      "新增：登录页可选“保持登录”。",
+      "改进：重置密码在一个弹窗里完成，验证后设置新密码并直接登录。",
+      "新增：没有账户的人可以用机构邀请码注册并申请加入，由机构管理员批准。",
+      "新增：成员页增加“待批准”和“邀请码”；帮助中心增加“账户与机构”。",
     ],
   },
   {
     version: "2.16",
     date: "2026-10-22",
     notes: [
-      "项目信息和楼宇信息面板贴在页面右侧、从顶到底，宽 400，用面板左边的把手展开收起；窗口够宽时默认展开，并记住你上次的选择。手机上在“更多”的第一项。",
-      "面板标题写项目或楼宇名称，下面一排概要数字（楼宇、楼层、功能区）；配置进度做成一张卡片，写完成数、下一步和本次部署范围；“编辑项目”固定在面板底部。",
-      "楼层页的功能区面板和设备标记的面板用同一个把手展开收起。",
-      "总览、告警、场景和“我的区域”的页面标题后面有绿色“实时 · 10:30”标签；超过 5 分钟没有取得新数据时变为黄色并写明已多久未更新。",
+      "改进：项目信息和楼宇信息面板固定在页面右侧，可展开收起并记住选择。",
+      "新增：总览、告警、场景和我的区域的标题后显示数据更新时间，超过 5 分钟未更新时提示。",
     ],
   },
   {
     version: "2.15",
     date: "2026-10-22",
     notes: [
-      "设备页的状态只在需要处理时用标签，位置写成“E栋 · 7F”，详情弹窗去掉底部“关闭”；楼层目录按楼宇分组，楼层图去掉返回按钮，画布右上角改为“图层”菜单，缩放移到左下角，“检查”没有问题时不显示数字，现场绑定弹窗只留网关、待绑定和可部署的成员。",
-      "设备列表勾选后才出现批量修改条，去掉“需处理”列；设备分组只列分组、范围、设备和同步；网络详情的返回按钮放在网络名前；系统接入的四个验证合为一列“验证”；固件按型号只列设备、当前版本、可用版本和可升级。",
-      "应用设置的值只写结果，规则放进说明或 ⓘ，时长写“分钟”“小时”；修改弹窗没有改动时“保存”不可点；“恒照度目标”统一为“目标照度”；告警规则表的条件只写触发条件，两档级别写“提示 / 重要”，解除条件和合并说明在规则详情中。",
-      "配置进度中没有待办的环节不再展开，“验证与交付”按功能验证、参数现场验证和相较交付的改动三组列出，参数现场验证可勾选多项一起登记；重新交付时写明改动和上次交付；部署范围只写改动的影响；项目选择器与应用设置同宽。",
+      "改进：设备列表勾选后才出现批量修改；固件按型号列出可升级的设备。",
+      "改进：应用设置的修改弹窗没有改动时不能保存。",
+      "改进：配置进度只展开有待办的环节，参数现场验证可多项一起登记。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.14",
     date: "2026-10-21",
     notes: [
-      "项目页标题改为“项目信息”，页面操作放在标题行，信息面板占满右侧；列表列宽、卡片和配置进度页的步骤条统一，地图视图悬停即显示项目或楼宇卡片；导出资料和各处的楼层数写为“N 个楼层”，不再写成总层数。",
-      "创建项目和楼宇时名称加宽，类型未选时写“请选择”并可清除；项目时区的说明改为点击打开，时区下拉按地区分组、可按偏移搜索；图片上传的格式说明放进上传区，选图后显示缩略图；楼宇位置只有一张地图，地图服务未配置时不再显示空白地图。",
-      "楼层导航上方单独放“全部楼层”，缩放按钮与楼层导航同一外观，楼层图去掉“查看 | 功能区”切换，楼宇图下方的小点图例删除；编辑楼宇时直接修改层数，保存前写明将增减的楼层；账户说明中的路径改为“我的账户 › 账户”和“我的账户 › 登录设备”。",
-      "信息面板不再显示空值行和坐标说明，没有图片的项目只显示图标；删除项目、楼宇、楼层和功能区时不再需要输入名称；创建楼宇时“类型”标题放在两个选项上方。",
-      "楼层面板精简：标题只写楼层名，楼层图、比例尺和功能区各写一行，没有修改记录时不显示；没有楼层图时直接显示楼层资料；功能区详情去掉形状、位置和“在图上定位”，没改动时“保存修改”不可点；手机上楼宇页不再显示“需要更宽的屏幕”浮条。",
+      "改进：地图视图悬停即显示项目或楼宇卡片；时区可按地区和偏移搜索。",
+      "改进：编辑楼宇时直接修改层数，保存前写明将增减的楼层。",
+      "改进：删除项目、楼宇、楼层和功能区时不再需要输入名称。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.13",
     date: "2026-10-21",
     notes: [
-      "项目页去掉返回按钮，位置选择改为可展开的树，信息面板停靠在右侧，卡片进度条铺满一行；楼宇页工具栏只留信息、更多和上传楼层图，“楼层标记”移到楼宇图片上，楼层导航第一项为“全部楼层”，调整楼层结构只写变化，“图纸”统一称“楼层图”。",
+      "改进：位置选择改为可展开的树，信息面板停靠在页面右侧。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.12",
     date: "2026-10-21",
     notes: [
-      "项目页的位置选择器可直接选到楼宇和楼层，视图切换只显示图标；项目卡片改为细进度条，更多按钮悬停时显示，工具栏按钮和返回按钮更轻；节电量按感应调光、恒照度控制、其他调暗和已核实的改进分来源；空调预启动按功能区和清晨室外温度自动学习提前时间。",
+      "新增：节电量按感应调光、恒照度控制和已核实的改进分来源统计。",
+      "新增：空调预启动按功能区和清晨室外温度自动学习提前时间。",
     ],
   },
   {
     version: "2.11",
     date: "2026-10-21",
     notes: [
-      "项目卡片的配置进度改为六段进度条和下一步，规模与地址写法更简洁；视图切换、图层菜单和功能区面板更清楚；数据分析加能源构成环形图、室内环境楼层图、空间使用按星期和无人时空调，图表可一键请 AI 解释。",
+      "新增：数据分析增加能源构成、室内环境楼层图和按星期的空间使用，图表可请 AI 解释。",
+      "改进：项目卡片的配置进度显示分段进度和下一步。",
     ],
   },
   {
     version: "2.10",
     date: "2026-10-20",
     notes: [
-      "密码要求说明直接列出四条要求；机构开通引导的步骤序号移到标题上方，内容与标题左对齐；“忘记密码？”不再带下划线。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.09",
     date: "2026-10-20",
     notes: [
-      "单个功能区、单台设备的控制点按即下发；整层、多个功能区与执行场景仍先确认。",
-      "普通成员与查看人员可在功能区面板报修，面板和我的区域卡片显示处理进度；我的区域卡片显示空气质量，功能区面板可直接查看今日室内环境变化。",
-      "数据分析新增“节能”页签：节电量与照明节电率、年度用电目标进度、节能措施与对标集中一处。",
-      "数据分析新增“本年”期间；能源、室内环境与空间使用可按楼宇或项目对比；室内环境横条首行为全部功能区合计，图例写出各档数值。",
-      "新增年报；周报、月报遇节假日顺延到下一个工作日发布。",
-      "能耗设置可设年度用电目标；碳排放设置可从公布的排放因子中选择。",
-      "智能助手可回答“这里有哪些问题？”；对话自动保存，可继续追问；依据链接直接打开对应期间与功能区。",
-      "没有可访问的项目时可一键申请访问；卡片、标签与图表样式更柔和。",
-      "登录输错不再提示剩余次数；密码要求的列表对齐，输入满足要求后不再提示。",
-      "联系我们弹窗下边留出间距；未勾选同意的提示与勾选框左对齐；开通引导的步骤内容与标题对齐，邀请的电子邮箱改为随内容长高的输入框，说明放进 ⓘ。",
+      "改进：单个功能区、单台设备的控制点按即下发，整层和执行场景仍先确认。",
+      "新增：普通成员和查看人员可以在功能区面板报修并查看处理进度。",
+      "新增：数据分析增加“节能”页签和“本年”期间；新增年报。",
+      "新增：智能助手可以回答“这里有哪些问题？”，对话自动保存。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.08",
     date: "2026-10-19",
     notes: [
-      "总览的“能源”页签并入数据分析 › 能源；空调状态改为“未达设定”“已达设定”。",
-      "数据分析 › 能源新增节电量，按来源与功能区查看；图上可叠加室外温度，自动标出告警、控制与节假日等事件，也可加备注。",
-      "室内环境按有人时间统计，横条按各档占比显示；空间使用把使用最少的功能区排在前面。",
-      "周报、月报生成 3 小时后自动发布，期间可修改或暂不发布；数据不完整的一期不自动发布。",
-      "能耗异常告警写明已多用的电量，处理后自动核实效果，核实的节电计入节电量。",
-      "定时页可直接查看各功能区的实际使用；能耗设置可登记电费账单，计量不足的月份也能同比、对比基线与对标。",
-      "帮助中心按任务查找操作方法和故障排查；智能助手可按一句话起草场景、定时与节假日表，检查后保存。",
-      "删减页面上常显的说明句，说明放进 i 与帮助中心；“基载”改为“基荷”，“环境监测”改为“室内环境”。",
+      "新增：数据分析 › 能源增加节电量，图上可叠加室外温度和事件，可加备注。",
+      "新增：周报、月报自动生成并发布，发布前可修改或暂不发布。",
+      "新增：能耗异常告警处理后自动核实效果；能耗设置可登记电费账单。",
+      "新增：帮助中心按任务查找操作方法；智能助手可起草场景、定时与节假日表。",
     ],
   },
   {
     version: "2.07",
     date: "2026-10-17",
     notes: [
-      "数据分析：五个页签同一版式，点上排数值切换下方图表；用电碳排放并入能源页签。",
-      "总览：先在楼层图上选中功能区或设备，再用底部控制条调光、开关空调或存为场景；可点选、框选、圈选和全选本层。",
-      "AI 建议可直接确认下发、修改设置、重新下发配置或写入工单，不再保存配置草稿。",
-      "当前告警分“待确认”“已确认”两组，可全部确认；告警详情按摘要、处置、数据证据、根因、位置和时间线排列。",
-      "工单按负责人筛选，完成时填写结论；告警记录按日期分组。",
-      "场景可包含多条动作，在编辑页的楼层图上选择范围；场景以卡片显示，定时以本周表格显示。",
-      "机构设置分为机构、成员、订阅、安全与数据四组；表格行尾的“…”菜单放各行操作。",
-      "机构信息和开票信息在弹窗里修改；运行数据和全量数据导出改为自助生成。",
-      "机构管理员在新设备上登录需短信验证，并须绑定手机号码。",
-      "我的账户分为账户、登录设备、通知偏好和我的机构；通知偏好按机构分别设置。",
+      "改进：总览先在楼层图上选中功能区或设备，再用底部控制条控制，可框选、圈选和全选。",
+      "改进：AI 建议可直接下发、修改设置或写入工单。",
+      "改进：告警分待确认和已确认，可全部确认；工单可按负责人筛选，完成时填写结论。",
+      "改进：场景可包含多条动作；机构设置和我的账户重新分组。",
+      "新增：机构管理员在新设备上登录需短信验证。",
     ],
   },
   {
     version: "2.06",
     date: "2026-10-17",
     notes: [
-      "项目默认部署范围为整个项目，包含全部楼层和全部应用；需要缩小时在配置进度中调整，可随时恢复为整个项目。",
-      "项目楼层：未设置比例尺时画布上方有提示条；楼层图、比例尺、朝向和名称各在自己的一行修改；没有楼层图时只在画布上传。",
-      "取消功能区的划分确认；换图复核按“完成复核”；复制功能区改为三步，复制结果可逐层查看。",
-      "楼宇页“上传楼层图”为主按钮；编辑楼宇只显示楼层结构，层数在“调整楼层结构”中修改。",
-      "设备标记：未选楼层时显示楼层目录；楼层图顶部一行工具，去掉底部保存条；第一次放置设备时自动建立本层设备网络。",
-      "接线由系统建议，在“照明分区”模式中全部确认或个别修改；照明负载在规划检查中批量填写；“供电”统一称“接线”。",
-      "总览：照明、暖通空调、室内环境的“需要关注”与楼层图角标只看本系统的告警；概况新增“今日运行”；功能区名称可点开面板。",
-      "功能区面板：暖通空调可整区设定温度和开关，各台为条目行；照明控制参数并入“照明”并默认收起；网关离线的提示只写一次。",
-      "应用设置：取消参数审批，可调范围内的修改保存即生效；六个页签，每页的设置值直接写在页面上；照明默认值按空间类型设置一次。",
-      "配置进度：一页三块，概览卡写现状与下一步，环节清单只列待办，设备网络表每个网络一行；交付后修改参数可下发并核对回执后重新交付。",
+      "改进：项目默认部署整个项目，需要时在配置进度中缩小范围。",
+      "改进：复制功能区改为三步，结果可逐层查看。",
+      "改进：第一次放置设备时自动建立本层设备网络；接线由系统建议。",
+      "改进：应用设置取消参数审批，可调范围内的修改保存即生效。",
+      "改进：总览的功能区面板可整区设定温度和开关空调。",
     ],
   },
   {
     version: "2.05",
     date: "2026-10-17",
     notes: [
-      "设备标记回到“设备”，是第一个页签，模式为设备、照明分区与网络；项目 › 楼层管图纸、比例尺与功能区，模式为查看与功能区。",
-      "设备标记页头一行放“保存规划”；功能区作为浅色图层显示，可以隐藏；没有楼层图时可前往项目楼层上传。",
-      "设备详情：有新版本时旁边有“去升级”，打开固件并选好这台设备的型号。",
+      "改进：设备标记回到“设备”；设备详情有新版本时可直接去升级。",
     ],
   },
   {
     version: "2.04",
     date: "2026-10-17",
     notes: [
-      "新增“应用设置”：通用、照明、暖通空调、室内环境、能耗、碳排放、告警规则与参数审批集中在一处，每个值只在一处设置；在已批准的可调范围内修改保存即生效，改可调范围、模板值或新增覆盖进参数审批。",
-      "项目 › 楼层：楼层图是唯一的工作区，模式为查看、功能区、设备、照明分区与网络；设备页改为设备列表、设备分组、设备网络、系统接入与固件五个列表。",
-      "配置进度：每组一行，点组名展开；“下一步”只有一个按钮；交付条件写明已满足或未满足，交付弹窗可确认交付。",
-      "名称：设备台账改为设备列表，回路组改为照明分区，照度源改为主照度传感器，体检改为网络检测，工作时间与节假日表合称工作日历，电表改为电能表。",
-      "运营：告警页不再有告警规则页签，告警详情有“查看规则”；定时、总览、数据分析中的设置改为“查看设置”。",
-      "登录、重置密码与申请访问：说明文字按行宽排满；“隐私政策”改为“客户隐私声明”，“服务条款”改为“使用条款”；去掉失败次数提醒。",
+      "新增：“应用设置”集中各应用参数，每个值只在一处设置。",
+      "改进：设备页分为设备列表、设备分组、设备网络、系统接入与固件。",
+      "改进：配置进度每组一行，“下一步”只有一个按钮，交付条件写明是否满足。",
+      "改进：部分名称改为国家标准和行业通用的叫法，如“照明分区”“电能表”。",
     ],
   },
   {
     version: "2.03",
     date: "2026-10-16",
     notes: [
-      "登录与重置密码：重置密码的帮助说明分两行；只有两三句的短说明每句单独一行。",
-      "联系我们、隐私政策、服务条款、帮助、更新说明、术语与 AI 用量明细：去掉底部“关闭”，用右上角关闭；从帮助打开的更新说明和术语底部只留“返回帮助”。",
-      "机构开通引导：“创建第一个项目”在引导页上直接打开“创建项目”；“邀请成员”可在一个框里填多个电子邮箱，选一个角色一起发送。",
-      "机构设置 › 成员：“邀请成员”可一次填多个电子邮箱，有问题的地址在框下逐个写明。",
-      "机构暂停使用与许可提示：续期期限写到最后续期日 24:00；暂停期间的功能与数据说明每句一行。",
-      "服务暂时不可用、系统维护中与页面加载失败：说明改为简短的两行。",
+      "改进：邀请成员可一次填多个电子邮箱，有问题的地址逐个写明。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.02",
     date: "2026-10-16",
     notes: [
-      "配置：楼层操作、设备页签和设备菜单的图标统一为一个图标只表示一件事；配置进度标题下写出下一步，设备网络单独成组。",
-      "登录与申请访问：从登录页进入申请访问时带入已填的电子邮箱或手机号码；通过开通邀请注册后才开通机构，14 天订阅期从注册当天算起。",
-      "总览：今日用电只与典型同一工作日同时段比较；暖通空调温度按偏离 1 K、2 K 两档着色；室内环境在楼层图下直接列出功能区表。",
-      "总览与场景：操作记录与执行记录合成一份，可按来源筛选；暖通空调参数和室内环境参数改为所有角色可查看的只读视图，AQ20 的采集位置在设备中登记。",
-      "数据分析、告警与场景：告警名称改用规则说法，报告在期间结束后才可发布，各页说明收进名称旁的 i。",
+      "改进：从登录页进入申请访问时带入已填的账户。",
+      "改进：操作记录与执行记录合成一份，可按来源筛选。",
+      "改进：报告在期间结束后才可发布。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.01",
     date: "2026-10-16",
     notes: [
-      "数据分析与告警：工单跳转保留设备健康筛选，操作前重新核对项目权限，统一网络检测到达率的显示精度。",
-      "机构信息：更换标识不再清除未保存的资料；离页、撤销及连续选择图片时，草稿和读取结果保持一致。",
-      "全站：统一提示称呼和名称旁的信息说明气泡，修复中文输入法确认选词时误打开搜索结果的问题。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "2.00",
     date: "2026-10-16",
     notes: [
-      "设备与配置进度：补齐网络规划的项目授权和楼层检查，统一规划检查结论，纳入未归属设备网络的系统设备。",
-      "数据分析与告警：修复设备健康下钻的历史返回、刷新和旧详情残留，网络检测趋势与导出按同一记录显示。",
-      "机构信息：保存失败时保留修改并持续显示错误，保存成功后才更新资料和审计。",
+      "改进：机构信息保存失败时保留修改并显示错误。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.99",
     date: "2026-10-16",
     notes: [
-      "数据分析：修正小时功率表与导出，设备健康可定位对应告警与复位记录，并显示实际网络检测版本。",
-      "配置：规划检查区分未执行、检查结果和失败，补齐设备网络与位置空状态。",
-      "工作区：修复联系资料脱敏、侧栏偏好、手机菜单刷新和更多操作的焦点衔接，补齐正式共用样式。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.98",
     date: "2026-10-15",
     notes: [
-      "设备：手机台账改为摘要布局，名称、位置和关键状态直接可见，保留全部信息、设备网络和图上定位入口。",
-      "数据分析：优化手机筛选区，统一筛选、相关操作与范围说明的排列，保留自定义日期及原有权限。",
+      "改进：手机上的设备列表改为摘要排版，名称、位置和状态直接可见。",
     ],
   },
   {
     version: "1.97",
     date: "2026-10-15",
     notes: [
-      "工作区：总览、数据分析、告警、场景和设备共用32px类别页签，统一图标、手机名称展开和连续切换效果。",
-      "总览与数据分析：调整主内容和辅助卡片的层次，修正标题旁说明图标、健康分节和报告布局。",
-      "交互：统一主按钮按下、选中行、筛选和单选状态，补齐键盘操作及触屏命中范围。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.96",
     date: "2026-10-15",
     notes: [
-      "总览：精简概况与能源内容，突出空间状态、待处理事项和今日运行；室内环境分开显示各项指标。",
-      "数据分析：按能源、室内环境、空间使用、设备健康和报告分类；保留用电碳排放明细及返回入口。",
-      "空气质量：统一当前读数、完整统计窗口及空气质量分的数据有效性，保留缺测、离线和监测代表性提示。",
-      "说明：解释性内容统一收进名称右侧的 i，数据状态、必要标签和警告继续直接显示。",
+      "改进：总览突出空间状态、待处理事项和今日运行；数据分析按能源、室内环境、空间使用、设备健康和报告分类。",
     ],
   },
   {
     version: "1.95",
     date: "2026-10-15",
     notes: [
-      "总览：选中胶囊采用与数据分析一致的滑动节奏；保留32px高度、每项左右12px、图标及手机名称展开。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.94",
     date: "2026-10-15",
     notes: [
-      "总览：重新实现类别页签的连续滑动，修正快速切换、反向切换及手机名称展开；保留32px高度和每项左右12px留白。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.93",
     date: "2026-10-15",
     notes: [
-      "总览：类别页签的左右留白统一为12px，修复快速切换时滑块跳动；手机保留选中名称展开和图标导航。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.92",
     date: "2026-10-15",
     notes: [
-      "总览：类别页签增加统一图标和两侧留白，保持32px高度；手机仅展开选中类别的名称，其他类别保留图标，切换时胶囊与文字同步过渡。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.91",
     date: "2026-10-15",
     notes: [
-      "总览：类别页签采用平齐的32px轨道与选中胶囊，五个名称常显，文字14/24；以浅蓝底和蓝色轮廓标识选中，保留键盘切换及触屏点击范围。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.90",
     date: "2026-10-15",
     notes: [
-      "总览：位置选择与类别导航统一为32px，宽屏同排，空间不足时自动分行；操作记录与大屏移至标题行，手机保留更多入口。",
-      "总览能源：合并为统计口径入口，按项目查看计量来源、边界、版本和碳因子；有权限时可修改同一份配置。",
-      "配置进度：能耗与碳排放设置集中在应用设置，数据分析保留快捷入口。",
+      "改进：总览能源可按项目查看计量来源、边界和碳排放因子。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.89",
     date: "2026-10-15",
     notes: [
-      "登录与重置密码：优化键盘顺序、验证码输入和短窗口弹窗，补齐密码说明及联系支持入口。",
-      "申请访问：无资料变更时不重复提交，统一修改申请的前进后退行为，待确认结果可复制脱敏参考信息。",
-      "邀请与创建账户：修正跨机构邀请状态核验、同意框及密码错误的焦点处理。",
-      "机构开通：区分完成和跳过状态，统一引导按钮，并明确未订阅的截止时间及影响。",
-      "设置新密码：保存结果未知时保留原请求，改为核查该次结果，避免重复保存。",
+      "改进：保存结果未知时核对该次结果，不重复提交。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.88",
     date: "2026-10-14",
     notes: [
-      "选择机构：机构卡片间距调整为 16px，右侧改用统一的进入箭头。",
-      "机构已暂停使用：暂停期间的功能与数据说明移至主按钮上方，默认收起；各角色原有说明和操作保持不变。",
-      "服务状态页：没有检查结果时不预留空白，联系支持按既定间距显示。",
-      "页面加载失败：原加载异常页标题调整为“页面加载失败”，技术信息移至主按钮上方，默认收起。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.87",
     date: "2026-10-14",
     notes: [
-      "登录与重置密码：整页输入框及主按钮统一为 36px 胶囊，与设置新密码、邀请及绑定页面一致；手机保留至少 44px 的点击范围。",
-      "账户弹窗：底部操作按钮统一为 32px、8px 圆角和 14/24px 文字，取消在左、主要操作在右；提交中保持按钮尺寸。",
-      "手机与触屏：弹窗底部按钮保持 32px 外观，以透明区域保证至少 44px 点按；空间不足时纵向排列，主操作在上。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.86",
     date: "2026-10-14",
     notes: [
-      "申请访问与修改申请：单行输入调整为 36px 圆角框，提交及结果页主按钮统一为 36px 胶囊。字段说明移到名称右侧的信息按钮，项目概况的选填标记与新机构申请说明简化；保留按身份返回和防重复提交保护。",
-      "登录与账户入口：忘记密码移到密码框右上方；设置新密码、邀请与绑定的输入及主按钮、账户与机构状态页的主按钮统一为 36px。密码规则可从字段名称右侧查看，提示图标与首行文字对齐。",
-      "申请与邀请：同意文字中的隐私政策、服务条款改为对应法律文件的新标签页链接，阅读时保留表单内容和同意状态。",
+      "改进：同意文字中的法律文件在新标签页打开，表单内容保留。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.85",
     date: "2026-10-14",
     notes: [
-      "短信验证码：发送成功提示统一为“已发送至 139 •••• 0101 · 14:35 前有效”，截止时间取发送服务回执；跨日显示日期，重发间隔与发送限制保持不变。",
-      "申请访问：修改申请提交中或结果待确认时，浏览器返回与页面返回均可正常离开；保留原请求供再次进入后核查，避免重复提交。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.84",
     date: "2026-10-14",
     notes: [
-      "账户页脚：恢复版权年份与公司全称，移除营业执照信息入口；隐私和法律改为独立页面链接，两份文件分别阅读。保持 13/20，文字间距收紧，电脑优先一行、空间不足成组换行。",
+      "改进：隐私和法律改为单独的页面。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.83",
     date: "2026-10-14",
     notes: [
-      "申请访问：按公开申请、当前账户申请和新机构申请分别说明，信息处理同意文字明确区分开通邀请，邮箱说明、回执与错误提示同步统一。",
-      "账户页脚：统一为 13/20，电脑优先一行、空间不足自然换行；移除版权行及虚构备案号，保留法律、联系与营业执照入口，已配置的真实备案号完整展示。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.82",
     date: "2026-10-14",
     notes: [
-      "账户与机构表单：电子邮箱和电话输入框补齐输入类型、键盘与自动填充语义；原有校验和外观保持不变，登录及重置密码的混合账户输入框不变。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.81",
     date: "2026-10-14",
     notes: [
-      "全站：原 44px 胶囊输入框和按钮统一为 40px，触屏点击范围仍至少 44px；矩形输入框、独立圆形按钮和既有紧凑控件保持原规格。",
-      "登录、申请访问、重置密码及账户状态页：标题下说明统一为 14/24；手机页顶留白改为 48px，短屏单栏改为 24px；页脚随内容排列，底部辅助入口与页脚的完整点击范围至少相隔 32px。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.80",
     date: "2026-10-12",
     notes: [
-      "总览：数据超过 5 分钟没有更新时，“N 分钟前更新”从最后一次取得数据算起，数据质量变黄并写“已 N 分钟未取得新数据”；今日要点只引用最后数据并写明时刻，不预测全天用电、不给控制建议；功能区面板顶部写明是哪个时刻的最后数据，读数变暗；控制确认框写明下发前会重新读取设备状态，读不到不下发。",
-      "总览、告警与 AI 建议：网关离线的说法统一，不再写本地联动“不受影响”；网关离线时功能区面板的手动标记、亮度、恢复时间和设定温度标为“最后记录”。",
-      "总览 › 照明、暖通空调、室内环境：位置为楼宇、项目或全部项目时，状态条前写明统计的楼层。",
-      "总览 › 概况：“环境正常的空间”改为“监测点在参考范围内”，并写明 AQ20 代表性未登记；室内环境中 MS20 离线时仍显示 AQ20 的 CO₂ 与 PM2.5，并区分“MS20 离线”和“无 MS20”；功能区有自己的参考范围时，面板写明该区的取值和设置来源。",
-      "总览 › 照明：开关型照明控制器（电梯厅、卫生间）只有开灯、关灯、恢复自动；全层与框选调光不含开关型，确认框列出排除的设备；开灯、关灯时写明哪些功能区保持手动、何时恢复自动。",
-      "照明控制参数：楼层默认的恒照度目标按空间类型分别设置，走廊、电梯厅、卫生间不再按 300 lx；空字段提示“请填写…”而不是存成 0，错误写在对应字段下；恢复楼层默认前先确认，列出原值和新值；同步状态如实写已同步与离线待同步的台数；手机上两列排列。",
-      "暖通空调：温度加减按钮带设备名称，读屏可听到当前设定、可调范围与每档幅度。暖通空调设置、室内环境设置：默认勾选当前楼层，写明本次增加、移除的楼层，移除楼层的采集位置登记需再次确认。",
-      "总览 › 能源：今日用电、本月用电、能耗强度、本月碳排放用同一条数据质量规则，缺数时段单独写明；电费估算不再用缺数时段的读数；同一期间有 CO₂ 与 CO₂e 两种口径时分列小计、不合计；多个因子版本时写“按 N 个版本分段计算”，可展开各段；未接入能耗数据时显示同样的四项指标并写明缺什么；进入数据分析时带期间“本月”。",
-      "能耗设置、碳排放设置：切换计量来源前确认未保存的修改；没有修改时保存不生成新版本，有修改时先列出改动、生效期间和对已发布报告的影响；标题下写明项目和版本，位置为“全部项目”时写明修改的是哪个项目。",
-      "手机：总览、数据分析和告警的指标卡改为单列，名称和数值在同一行。",
-      "总览 › 操作记录：可按期间（默认近 7 天）、结果和对象筛选，按日期分组，先列 20 条可加载更多；5 秒内未确认的写“未确认”，失败只计明确失败；普通成员只看到自己功能区的记录。",
-      "总览、我的区域与数据表：卡片标题、设置弹窗字段名、楼层分组和数据表表头的字号字重按规范统一。",
+      "改进：数据超过 5 分钟没有更新时，总览写明已多久未取得新数据，控制前重新读取设备状态。",
+      "改进：开关型照明只有开灯、关灯和恢复自动；照明控制参数按空间类型设置默认值。",
+      "新增：操作记录可按期间、结果和对象筛选。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.79",
     date: "2026-10-12",
     notes: [
-      "登录与设置新密码：用键盘点“显示密码”后焦点留在按钮上；两个按钮分别叫“显示新密码”“显示确认新密码”。",
-      "短信登录：失败次数过多时，提示里可直接点“重置密码”，自动带入当前号码；重新获取验证码成功后，清掉已失效的旧码。",
-      "申请访问：写明审核通过后才会收到开通邀请；已登录申请开通新机构的同意文字不再提邀请；提交结果待确认时可以阅读隐私政策，也可以先离开页面。",
-      "电子邮箱：含逗号、分号、括号等分隔字符的地址会提示格式不正确。",
-      "重置密码：用手机号码验证后过期时，写“验证已过期”，按钮为“重新验证手机号码”。",
-      "机构开通引导：先创建第一个项目，再邀请成员，邀请时可以按项目授权；两步都可以跳过。",
-      "许可到期提示：写明最晚续期日包含当天。",
+      "改进：短信登录失败次数过多时可直接重置密码。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.78",
     date: "2026-10-12",
     notes: [
-      "搜索或提问：手机、平板和触屏上输入框右侧有“关闭”；“提问”“搜索”页签可用方向键、Home、End 切换；触屏上“回答范围”和它的选项更容易点中。",
-      "机构菜单与其他浮层：手机转屏或改变窗口大小后按新位置显示，不再超出屏幕。",
-      "位置选择：当前范围是楼宇时，楼宇一行右侧打勾。",
-      "帮助：普通成员不再看到用不了的“搜索或提问”“AI 模型”；从任何页面打开字号都相同；术语、更新说明、联系支持里有“返回帮助”。",
-      "联系支持：写明截图不会自动脱敏，请在发送前遮盖个人信息；截图文件名中的手机号码等也会隐藏；选错截图类型的提示写在截图一行下，换成正确图片后消失。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.77",
     date: "2026-10-12",
     notes: [
-      "侧栏：屏宽 851–1199（如横放的平板）时默认收起为图标栏，点“展开侧栏”后记住选择；在机构设置、我的账户时左下角的机构入口显示为当前所在；手机抽屉的遮罩变浅。",
-      "触屏：侧栏菜单行、机构入口，各页页头的位置选择、按钮与页签，楼层轨道和缩放按钮的点按范围都不小于 44。",
-      "手机：页头的“操作记录”“大屏”“修改记录”收进位置选择右边的“更多”，“数据截至…”写在位置选择下面；“搜索或提问”面板几乎占满屏幕；输入框改为 16 号字，点进去不再放大整页。",
-      "搜索或提问：结果按项目、楼宇、楼层、功能区、设备、设备网络、场景、未恢复告警排列，名称完全相同的排在最前；侧栏告警数量的提示写“N 条重要及以上待确认”。",
-      "机构菜单与帮助：从手机抽屉打开时不超出抽屉；普通成员不显示“开通新机构”；切换角色后写切换后的角色；没有标识的机构首字改为灰色；帮助里“联系我们”改名“联系支持”，“使用指南”在正式文档上线前不显示。",
-      "全站：输入框与选择框统一为“创建项目”弹窗的样式；勾选和单选后的文字统一为 14 号黑字；AI 卡片、报告正文和时间线改为 14 号字；浅灰底和边线颜色收成少数几种；侧面板统一为 400 宽、从工具栏下方开始；卡片间距统一为 20。",
-      "总览：“需要处理”先列告警，灯光手动控制排在后面；网关离线时今日要点先说明离线和影响，不再给出控制建议；“未恢复告警”卡按级别写条数；能源页签的设置按钮移到页签行右端，“本月用电”与上月同期比较，“能耗强度”加数据质量一行。",
-      "总览：室内环境图层中优、良的填色变浅，超标的更醒目；“离线”用告警的级别色；能点的指标卡带浅阴影；表格和指标卡名称改为 14 号字；“操作记录”“修改记录”弹窗改为 1200 宽；设置弹窗的保存按钮都写“保存”。",
-      "数据分析：时间范围新增“上月”“近 12 个月”，选近 12 个月时按月显示；没有可比数据时三张对比卡合成一行提示；数据表日期不换行、数字靠右；报告的“导出 PDF / 编辑草稿 / 发布”移到标题行右侧；新建报告的错误写在字段下方，期间默认为上一个完整月。",
-      "数据分析 › 设备健康：点“离线”“现场恢复出厂”打开告警时只列设备与网络告警，可一键清除筛选。",
-      "告警：1440 宽及以上打开告警详情时列表让到左边并排；详情顶部显示工单状态，待确认的告警可直接创建工单并同时确认；当前告警可多选批量确认；工单可改派，超过计划时间未完成的标“逾期”并可筛选；告警规则四张卡列宽对齐。",
-      "场景：定时日历写“时刻 定时名”；定时改名“定时下班”；执行记录可按期间筛选、按日期分组并加载更多；新建定时先填日期和时刻再选执行的场景；还没有场景、定时或联动时显示空状态和新建按钮。",
-      "设备标记：右侧面板改为 320 宽，画布不够宽时浮在图上、可收起；看全图时设备点画成按大类着色的小点；查看人员和运营人员默认“查看”；手机上“编辑功能区”“检查”收进“⋯”。",
-      "设备：表格改为 14 号字、行下小字加深；正常状态写普通文字，只有需要处理的状态用标签；还没有设备网络时显示空状态；网络详情的返回改为圆形按钮“返回设备网络”。",
-      "配置进度：标题下新增“下一步”，只给当前该做的一件事；分组按空间资料、设备、设备网络、系统接入、应用设置、验证与交付排列；规划检查没有问题时只显示一行通过提示；配置参数的目标值完整显示。",
-      "机构设置与我的账户：不够宽时分类改为顶部横排，成员表恢复为表格；安全页合成“安全规则”一张卡片；开票信息排成两列；选择规格、付款方式和版式改为上下排的单选；“登录方式”与密码合成一张卡片。",
+      "改进：搜索结果按项目、楼宇、楼层、功能区、设备等排列。",
+      "新增：数据分析增加“上月”“近 12 个月”；告警可多选确认，工单可改派并标出逾期。",
+      "改进：配置进度标题下写出下一步。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.76",
     date: "2026-10-12",
     notes: [
-      "登录与重置密码：用手机号码重置密码改为输入短信验证码，验证后直接设置新密码；电子邮箱仍发送重置链接。",
-      "登录页：手机上的表单左右居中；暂停结束后的提示改为灰色说明；验证码过于频繁或已达上限的提示更短；手机页脚去掉版权一行。",
-      "申请开通新机构：已登录成员只填机构名称、手机号码和项目概况，审核通过后新机构直接加到本账户，不再发送邀请。",
-      "开通引导只保留“邀请成员”“创建第一个项目”两步；机构已暂停使用页重新排版，写明最后续期日和暂停期间的功能与数据说明。",
-      "未订阅、许可即将到期和待付款提示条统一高度；菜单路径统一用“›”。",
+      "改进：用手机号码重置密码改为输入短信验证码。",
+      "改进：已登录成员申请开通新机构只填机构名称、手机号码和项目概况。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.75",
     date: "2026-10-11",
     notes: [
-      "全站：开关改为更小的样式；滚动条平时很淡，滚动或指向时加深；触屏上开关、排序表头和小按钮的点击区不小于 44 像素。",
-      "机构设置：表格放不下时按行折叠；确认对话框的标题写出具体对象；用量条和近 30 天用量图更新；“许可与用量”页顶部提示不再重复“订阅”“续期”按钮。",
-      "机构设置：撤销邀请后焦点移到下一条；发放接口密钥后点“完成”不再询问；机构标志的提示移到图片下方。",
-      "我的账户：更换邮箱或手机号时验证码倒计时正常，已发送提示写在输入框下方；修改姓名后未保存就离开时先确认；“退出机构”改为红色文字。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.74",
     date: "2026-10-11",
     notes: [
-      "全站：危险操作的最后一步统一用红色按钮；需要输入名称确认的，输对之前按钮不可用。",
-      "全站：删除、清空等入口改为红色文字；维护操作要先勾选“已了解影响”才能执行。",
-      "全站：数字等宽对齐；只有能点开的表格行才有悬停效果。",
-      "项目：卡片悬停效果、楼层画布颜色和缩放控件更新，绘制时的提示一直显示到操作结束。",
-      "设备：照明分区改用中性灰，“查看接入”弹窗加宽；填写有误时提示写在该项下面；触屏上可单指平移、双指缩放。",
-      "配置进度：字号与颜色统一，宽表放不下时按行折叠，不再横向滚动。",
+      "改进：不能撤回的操作需要输入名称或勾选“已了解影响”后才能执行。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.73",
     date: "2026-10-11",
     notes: [
-      "全站：勾选框、单选、选择框、输入框和按钮统一样式与状态；填写有误时，提示写在该项下面。",
-      "全站：日期和时刻改用文字输入，日期写作 2026-09-24，时刻用 24 小时制。",
-      "全站：弹窗、面板、菜单和气泡提示统一尺寸、阴影与打开关闭的动画；手机上的弹窗四周留出边距。",
-      "全站：提示条、状态标签和空白页各用同一种样式。",
-      "表格：行的名称可以用键盘进入；放不下时按所在区域的宽度折叠，不再左右滚动。",
-      "名称、日期范围、带星期的日期和比值不再从中间断开换行。",
-      "文字：小字统一为 12 号，灰色文字统一为一种灰；文字链接和展开收起的写法统一。",
-      "工作区：主面板改为浅灰底；用键盘时可先“跳到主要内容”。",
-      "搜索或提问：“提问”排在前面，两个页签都带图标。",
-      "AI 相关的标记统一使用靛蓝色。",
-      "消息提示按字数决定停留时间。",
-      "登录页底部暂不显示公安联网备案号，备案完成后补上。",
-      "未订阅时的提示改为请在截止日期前完成订阅，不再写删除日期。",
+      "改进：日期和时刻改用文字输入，表格放不下时按行折叠。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.72",
     date: "2026-10-10",
     notes: [
-      "帮助：在“软件版本”之后增加“AI 模型”一行。",
-      "浏览器标签：图标改为 PACOM 图形标志，P 字左上角带三个小方块。",
+      "新增：帮助中显示 AI 模型。",
     ],
   },
   {
     version: "1.71",
     date: "2026-10-10",
     notes: [
-      "告警：“排查任务”改叫“工单”，按钮为“新建工单”“创建工单”“完成工单”。",
-      "场景：页签改为“场景”“定时”“联动”“执行记录”。",
-      "总览：功能区面板显示本区未恢复的告警和未完成的工单，点击可查看。",
-      "设备信息：名称下显示本设备未恢复的告警和未完成的工单。",
-      "配置进度 → 应用设置：“应用设置”表列出工作日历和室外温湿度，可直接打开。",
-      "设备：范围是楼层时打开“设备标记”，否则打开“设备列表”。",
-      "设备、场景与总览：新建与设置按钮移到页签下第一行的右端。",
-      "普通成员：侧栏和页面标题改为“我的区域”。",
+      "改进：“排查任务”改叫“工单”；场景分为场景、定时、联动和执行记录。",
+      "新增：功能区面板和设备信息显示未恢复的告警和未完成的工单。",
+      "改进：普通成员的入口改为“我的区域”。",
     ],
   },
   {
     version: "1.70",
     date: "2026-10-10",
     notes: [
-      "配置 → 项目：导出资料的说明不再列出部署包。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.69",
     date: "2026-10-10",
     notes: [
-      "总览：工具条增加“大屏”，在新窗口打开值班大屏。",
-      "大屏：值班、管理、公共三种版式，按 1920×1080 设计并整体缩放；新告警按级别显示横幅。",
-      "大屏：触屏可只读浏览楼层、功能区与项目，5 分钟无人操作回到默认画面。",
-      "机构设置 → 展示链接：机构管理员新建只读的展示链接，给值班室和大堂的屏用，撤销后屏上立即停用。",
-      "机构设置 → 许可与用量：改为“订阅”，机构管理员可以订阅、续期和增加设备额度；额度只按已绑定或已接入的设备计。",
-      "机构设置 → 许可与用量：增加“AI 用量”，显示本月已用比例、重置时间与用量包。",
-      "机构设置 → 订单与发票：查看订单、报价单、合同与发票，可用对公转账、微信支付或支付宝付款。",
-      "许可到期前 30 天显示提示条；到期次日起暂停使用，续期付款到账后自动恢复。",
-      "新开通的机构订阅后才能绑定设备、接入系统和使用 AI。",
-      "AI 提问：本月用量到 80% 时提示，额度用完后使用用量包。",
-      "登录页：页脚显示营业执照信息与备案号。",
-      "登录：全平台统一为空闲 8 小时自动退出、一次登录最长 30 天，退出前 5 分钟提示，点任意处继续。",
-      "机构设置 → 安全：登录记录改为“进入本机构的记录”，只有机构管理员可以查看。",
-      "审计日志与数据申请记录只给机构管理员；PACOM 对本机构的操作也记入审计日志，操作人写“PACOM”。",
-      "机构设置 → 许可与用量：增加“数据保存”，列出各类数据的保存期限。",
-      "机构设置 → 角色与权限：操作权限表列出各角色能做的全部操作。",
-      "只有机构管理员和授权“全部项目”的配置人员可以创建项目。",
-      "我的账户 → 登录与安全：可以注销账户。",
-      "AI 建议：控制类建议确认一次即下发；配置类建议保存为草稿，由机构管理员批准后生效。",
-      "排查任务：除从告警创建外，可用“新建任务”登记报修（选位置，可记下照片），配置参数规定的定期检查（如滤网清洗）自动生成任务。",
-      "设备信息：“运行数据”下有近 24 小时与近 7 天的历史曲线和在线状态；系统接入的数据映射每一行可“查看曲线”。",
-      "电能表换表：在数据映射中“登记换表”，换表前后的能耗分段衔接，日用电图在当天标“换”，并写入该电能表的维护记录。",
-      "电能表的倍率（含互感器变比）、额定功率与起始底数只在数据映射中登记，能耗设置只读显示倍率。",
-      "能耗设置：分项分两级（空调下设冷热源与空调末端），“总表”改为计量点的“表计层级”；折标系数在能耗设置中登记，折标煤显示在用电处，不再依赖碳排放设置。",
-      "配置参数：电力 CO₂ 因子、电力折标煤与分时电价引用碳排放设置和能耗设置，只读显示；适用标准可登记建筑类型。",
-      "能耗强度：建筑类型与气候区已登记且有满 12 个月的数据时才与国家标准的引导值、约束值比较，否则写“暂不对标”和原因。",
-      "数据分析：峰谷时段只在登记分时电价后统计；新增“与基线比较”卡，按节能基线的基期同月比较本期用电；室外温湿度可按项目位置取天气数据或指定室外传感器。",
-      "数据表：写明图表与口径，表下附数据质量说明；导出的 CSV 先是数据表，后附说明，每次导出写入审计日志。",
-      "报告：可选择报告内容（能耗、碳排放、室内环境、设备健康）；由机构管理员或配置人员发布，发布后各节文字固定，按成员的通知偏好发送邮件。",
+      "新增：值班大屏，可用只读的展示链接给值班室和大堂的屏使用。",
+      "新增：机构管理员可以订阅、续期和增加设备额度，在“订单与发票”付款和查看单据。",
+      "新增：AI 用量与用量包；设备信息有近 24 小时与近 7 天的运行曲线。",
+      "新增：电能表换表登记；能耗强度满足条件时与国家标准对标。",
+      "新增：可以注销账户；工单可登记报修，定期检查自动生成工单。",
     ],
   },
   {
     version: "1.68",
     date: "2026-10-09",
     notes: [
-      "告警：告警分为环境越限、能耗异常、设备与网络、安全与保护四类；规则的条件统一取自配置参数，可从规则直接打开对应参数。",
-      "告警：设备离线只产生一条“设备离线”；设备在线但某项数据收不到时产生“数据中断”。",
-      "设备与设备网络：可“设为检修中”，检修期间的告警照常记录、不通知，安全与保护告警照常通知。",
-      "告警 → 告警记录：原“处理记录”页签改名，期间可选近 24 小时到自定义，新增“告警最多”。",
-      "告警详情：写明已通知几人、各渠道是否送达；未确认就已恢复的紧急告警留在当前告警中。",
-      "侧栏：“告警”显示待确认的紧急与重要告警数量。",
-      "机构设置 → 通知：改为“按事件通知”，渠道为短信和邮件；查看人员不收告警短信。",
-      "通知偏好：增加“排查任务（指派给我的）”；免打扰固定为 22:00–07:00，只对短信。",
-      "场景：标准场景只有“上班”“下班”，“清扫关灯”改为“定时关灯”；新增“工作时间”，定时场景可按工作时间开始或结束执行。",
-      "场景：手动场景可以控制空调与新风；定时与联动场景可以停用和启用。",
-      "总览：调光后到工作时间 2 小时（非工作时间 30 分钟）或下一个定时场景时恢复自动，以先到者为准。",
-      "系统接入：连接可登记凭证（只写入，不回显）、采集位置与采集周期；地址按数据映射逐行登记，单位改为下拉选择，可登记状态值与计算点。",
-      "能耗设置：最后一行为“对外上传（地方能耗监测平台）”，由机构管理员设置。",
-      "配置参数：上报周期只在网络参数中登记；由平台、固件或合同决定的行标“平台规定”，只读；参数详情列出“使用处”。",
-      "总览：运营人员在批准范围内调整照明控制参数不需要重新交付，配置进度单列“运营调整”。",
-      "配置进度：增加“应用设置”一组，列出各应用设置的版本与状态。",
-      "设备网络：代理常开，每层 1–2 台；交付第 2 步改为“核对代理”。",
-      "部署 App：凭账户登录，只列出有权部署的项目与网络，不再有部署包；成员菜单可查看并退出其登录设备。",
-      "设备：固件只提示“有新版本”，不计入需处理；网关信息显示网关软件版本与最近更新时间。",
-      "设备信息 → 记录：可查看本设备的告警。",
-      "配置页面：设备、设备网络、配置进度、配置参数、场景、节假日表与帮助中的日期写成“9 月 24 日 10:28”，不是今年的才写年份。",
+      "改进：告警分为环境越限、能耗异常、设备与网络、安全与保护四类。",
+      "新增：设备与设备网络可设为检修中，期间告警只记录不通知。",
+      "新增：定时场景可按工作时间执行；手动场景可以控制空调与新风。",
+      "新增：部署 App 凭账户登录，只列出有权部署的项目与网络。",
     ],
   },
   {
     version: "1.67",
     date: "2026-10-09",
     notes: [
-      "机构菜单：分为机构与个人两组，各机构、“机构设置”“已删除”和“开通新机构”在上，本人姓名、“我的账户”和“通知偏好”在下。",
-      "我的账户：“登录方式”从“个人资料”移到“登录与安全”，排在“密码”之前。",
-      "机构设置 → 机构信息：“机构联系人”改为联系人姓名、联系邮箱和联系电话，联系邮箱接收服务通知和许可到期提醒。",
-      "机构设置 → 成员：邀请成员时不预选角色，项目授权统一写“全部项目”，并注明以后新建的项目也包括在内。",
-      "机构设置 → 角色与权限：负责部署与调试的角色统一叫“配置人员”。",
-      "帮助：增加“软件版本”“更新说明”和“术语”。",
-      "全站：页面上统一写“AI”；四位及以上的数量写千分位，如“2,000 台”；句子中的日期写“9 月 24 日”。",
-      "总览与场景：照明控制的动作统一为开灯、关灯、调光、恢复自动，“灯控参数”改称“照明控制参数”。",
-      "配置参数：依据只写标准号与条款。",
-      "项目：空间类型增加“其他”，室外区域只列停车场、道路、广场和其他。",
-      "项目与设备：楼层上的图统一叫“楼层图”，设备点位的名称统一叫“点位名称”。",
-      "总览与数据分析：室内环境按参考范围显示，数据分析的“环境”页签改名“室内环境”。",
-      "总览 → 室内环境：空气质量改用色觉友好的四档颜色，取 CO₂ 与 PM2.5 中较差的一档。",
-      "运营页面的颜色按统一规则，用电分项的空调末端改为青色。",
-      "总览：楼层图上标出未恢复的告警。",
-      "运营页面每分钟自动更新，并写明数据截至时间。",
-      "数据分析：筛选行写项目时区“中国标准时间（UTC+08:00）”，能耗页签的“计量来源”筛选改名“计量点”。",
-      "数据分析 → 能耗：“按小时”改为日期与小时的热力图。",
-      "数据分析 → 报告：每节配一张图。",
+      "新增：帮助中增加软件版本、更新说明和术语。",
+      "新增：总览的楼层图上标出未恢复的告警，运营页面每分钟自动更新。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
     version: "1.66",
     date: "2026-10-09",
     notes: [
-      "机构设置 → 成员：新增角色“普通成员”，按功能区授权；普通成员只看到总览中的“我的区域”，可以控制授权功能区的灯光与空调。",
-      "机构设置 → 角色与权限：只能查看授权项目资料和状态的角色改名为“查看人员”，权限不变。",
-      "机构设置：各位机构管理员权限相同；全量数据导出和注销机构由任一机构管理员输入当前密码后申请。",
-      "导出按角色，不再逐人授权：能看到报告和数据分析的角色都能下载报告 PDF 和数据表 CSV；空间资料、现场安装资料和 JSON 空间数据由机构管理员和配置人员导出，楼层图纸原件只有机构管理员能下载。",
-      "配置参数：配置人员可以修改项目级配置参数和登记适用标准，机构管理员批准后生效。",
-      "总览：运营人员可在机构管理员批准的范围内修改照明控制参数，保存即下发。",
-      "总览 → 暖通空调：按楼层上的空调系统（风机盘管、多联机、分体空调）分别显示和控制；无人 15 分钟转为待机，60 分钟转为节能。",
-      "告警：新增能耗异常规则“夜间照明负荷”和“夜间及非工作日用电”，表计离线、读数不变与分表之和超过总表也列在规则中。",
-      "已删除：删除的内容保留 30 天，期满自动彻底删除。",
-      "配置进度 → 现场绑定：部署 App 上传的现场改动一律按现场值并入规划，状态写“以现场为准”。",
-      "搜索或提问：输入框提示改为“搜索或提问：空间、设备、场景，或直接问一个问题”。",
-      "机构设置 → 成员：成员被移除后，其建的场景和时间安排照常运行，负责的排查任务和告警规则改为“未指定”。",
+      "新增：“普通成员”角色，按功能区授权，可以控制授权功能区的灯光与空调。",
+      "新增：暖通空调按风机盘管、多联机、分体空调分别显示和控制。",
+      "新增：夜间照明和非工作日用电的能耗异常告警。",
+      "改进：删除的内容保留 30 天，期满自动彻底删除。",
     ],
   },
 ];
@@ -78775,10 +78893,10 @@ Object.assign(actions, {
   auLegal: (a) => {
     if (a.doc) AUX.legal = a.doc;
     if ($("#dlg .au-legal-seg")) {
-      $("#dlg .dh h2").textContent = AUX.legal === "terms" ? "使用条款" : "客户隐私声明";
+      $("#dlg .dh h2").textContent = (AU_LEGAL[AUX.legal] || AU_LEGAL.privacy)[0];
       return ($("#dlgBody").innerHTML = auLegalBody() + `<div class="form-error" id="formError" role="alert"></div>`);
     }
-    auDialog(AUX.legal === "terms" ? "使用条款" : "客户隐私声明", auLegalBody(), "", "nodirty au-account-dlg");
+    auDialog((AU_LEGAL[AUX.legal] || AU_LEGAL.privacy)[0], auLegalBody(), "", "nodirty au-account-dlg");
   },
   auContact: () => {
     auCloseFieldInfo();
@@ -78806,6 +78924,18 @@ Object.assign(actions, {
       auSave();
       auRoute("login");
       msg("已退出登录");
+    }),
+  // 2.46 账户第 419 条：注销账户原因里的“成员”：进入该机构的“机构设置 › 成员”
+  auSoleMembers: (a) =>
+    guard(() => {
+      if (a.org && a.org !== AUTH.org && AUTH.orgs[a.org]) {
+        AUTH.org = a.org;
+        AUTH.lastOrg[AUTH.uid] = a.org;
+        U.role = auMe().orgs[a.org] || "viewer";
+        auLog("切换机构", auOrg(a.org).name, "account");
+        auSave();
+      }
+      route("org", { tab: "members" });
     }),
   auSwitchOrg: (a) =>
     guard(() => {
@@ -78890,47 +79020,39 @@ Object.assign(actions, {
   auReleaseNotes: (a) => auReleaseNotesOpen(a?.from === "help"),
   auHelpBack: () => {
     const go = () => { closeModal(true); actions.auHelp(); };
-    if (modalDirty) return askDiscard(go, "联系支持中有尚未复制的内容");
+    if (modalDirty) return askDiscard(go, "联系支持中有尚未发送的内容");
     go();
   },
   auSupportPick: () => $("#supShot")?.click(),
   auSupportShotClear: () => {
-    AUX.supportShot = null;
+    AUX.supportShot = AUX.supportShotFile = null;
     auSupportShotErr("");
     if ($("#supShot")) $("#supShot").value = "";
     auSupportShotShow();
     $("#supShotPick")?.focus();
   },
-  auSupportCopy: async () => {
-    // 上一次的错误（如没写问题说明）在再次复制时清除。
-    if ($("#formError")) $("#formError").innerHTML = "";
+  // 2.46 账户第 428 条：在弹窗里直接发送（问题说明、勾选的附带内容和截图一起发给 PACOM 支持），不再复制后发邮件。
+  auSupportSend: withPolicy({ busy: "modal" }, async () => {
     const desc = ($("#supText")?.value || "").trim();
     if (!desc) {
-      // 错误写在说明框下面，框变红，焦点回到说明框，改正后清除（GLOBAL03 字段错误就地；Lovable 核查第 153 条，2026-10-11 用户确认：原为底部按钮上方的红色错误框）
+      // 错误写在说明框下面，框变红，焦点回到说明框，改正后清除（GLOBAL03 字段错误就地）
       const err = fieldErr("supText", "请先写下遇到的问题");
       $("#supText")?.focus();
       throw err;
     }
-    const text = auSupportText(desc), st = $("#supStatus"), out = $("#supOut"),
-      // 复制完成前内容又改了、弹窗关了或换了一个，旧的回执不改动新内容的状态（交互核查第 12 条：原先回执一到就清除“未处理修改”）
-      ticket = AUX.supportCopy,
-      current = () => AUX.supportCopy === ticket && $("#supStatus") === st && auSupportText(($("#supText")?.value || "").trim()) === text;
-    // 结果放进提示条：已复制为浅绿，无法自动复制为“需关注”（Lovable 核查第 154 条，2026-10-11 用户确认：原为一行黑字）
-    const show = (t, type) => st && (st.innerHTML = wsNotice(esc(t), type, false));
-    try {
-      await navigator.clipboard.writeText(text);
-      if (!current()) return;
-      if (out) out.hidden = true;
-      show(`已复制。请粘贴到发给 ${AU_SUPPORT_MAIL} 的邮件中${AUX.supportShot ? "，并把截图作为附件添加" : ""}。`, "success");
-      modalDirty = false;
-    } catch {
-      if (!current()) return;
-      if (out) Object.assign(out, { value: text, hidden: false });
-      show("无法自动复制，请在下方选中全部内容后复制。", "warning");
-      out?.focus();
-      out?.select?.();
+    const st = $("#supStatus"), ticket = AUX.supportCopy;
+    if (st) st.innerHTML = "";
+    const r = await auRequest("support", { text: auSupportText(desc), shot: AUX.supportShotFile || null });
+    // 发送期间关了或换了一个弹窗，旧的回执不改动新内容
+    if (AUX.supportCopy !== ticket || $("#supStatus") !== st) return;
+    if (r.status !== "ok") {
+      if (st) st.innerHTML = wsNotice(`暂时无法发送，请稍后再试，或发邮件到 <a href="mailto:${AU_SUPPORT_MAIL}">${AU_SUPPORT_MAIL}</a>。`, "error", false);
+      return;
     }
-  },
+    modalDirty = false;
+    closeModal(true);
+    msg("已发送，回复会发到你的电子邮箱。");
+  }),
   /* 机构设置 */
   // “行业”不再编辑，已有值只读显示（ORG01，Account B6）；预览中的标识随保存生效并写入审计日志（03 第 2 条）。
   auOrgSave: () => {
@@ -79103,7 +79225,7 @@ Object.assign(actions, {
     try {
       await navigator.clipboard.writeText(auOrg().code);
     } catch {
-      return msg("无法复制，请选中机构编号复制。", "error");
+      return auCopyFail(auOrg().code);
     }
     try {
       auCopiedTip(el);
@@ -79213,7 +79335,12 @@ Object.assign(actions, {
     msg("已复制邀请链接");
   },
   // 2.21 账户第 186 条：PNG 图片，含机构名称和二维码，用于发到工作群或在会上投屏
-  auJcQr: () => msg("二维码图片由服务生成，暂时无法下载。"),
+  auJcQr: async () => {
+    if (AU_JOIN_QR.download) return AU_JOIN_QR.download();
+    const r = await auRequest("joinQr", { org: AUTH.org });
+    if (r.status !== "ok" || !r.url) return msg("暂时无法下载二维码，请稍后再试。", "error");
+    window.open(r.url, "_blank", "noopener");
+  },
   // 2.21 账户第 185 条：成员邀请同事，内容同机构管理员的“邀请码”弹窗（大字邀请码、邀请链接和二维码，复制链接、下载二维码），没有“重置”和开关
   auInviteColleague: (a) => {
     const o = auOrg(a.org);
@@ -79470,7 +79597,8 @@ Object.assign(actions, {
     // 2.37 账户第 320 条：唯一的机构管理员退出时，先选一位成员设为机构管理员，确认后对方成为机构管理员、本人退出
     if (me && m.role === "admin" && admins.length === 1) {
       const others = auMembers().filter((x) => x.uid !== m.uid);
-      if (!others.length) throw Error("本机构没有其他成员。请先邀请成员，或在机构信息中删除机构");
+      // 2.46 账户第 419 条：按订阅状态写去处（已订阅的机构在机构信息里只有“申请注销”）
+      if (!others.length) { const l = auLic(); throw Error(l.state === "active" || auLicPending(l) ? "本机构没有其他成员。请先邀请成员，或在“数据导出与删除”中申请注销机构。" : "本机构没有其他成员。请先邀请成员，或在机构信息中删除机构。"); }
       return auDialog(
         "选择一位成员设为机构管理员",
         `<p class="au-dlead">你是${zhSub(esc(auOrg().name), "r")}唯一的机构管理员。对方成为机构管理员后，你退出本机构。</p>${fld("新的机构管理员", "auSuccessor", select("auSuccessor", others.map((x) => [x.uid, `${x.name} · ${auRole(x.role)}`]), "", "新的机构管理员"))}`,
@@ -79763,7 +79891,7 @@ Object.assign(actions, {
   auDeleteAccount: () => {
     // 唯一的机构管理员时按钮不可用（第 66 条）；这里只作兜底。确认框读作警示对话框（第 84 条）
     const sole = auSoleAdminOrgs();
-    if (sole.length) throw Error(`你是${zhSub(sole[0].name, "r")}唯一的机构管理员，需先指定另一位`);
+    if (sole.length) throw Error(`你是${zhSub(sole[0].name, "r")}唯一的机构管理员。请先在成员中把另一位成员设为机构管理员，或删除机构。`);
     auDialog(
       "注销账户？",
       `<p class="au-dlead">注销后，你将退出全部机构（${auMyOrgs().length} 个），姓名、电子邮箱和手机号码随即删除，不能恢复。审计日志保留操作事实，不再显示你的姓名。</p>${fld("当前密码", "auDelPwd", auInAttrs(input("auDelPwd", "", "", "password"), AU_CUR_PWD), "高风险操作，需再次验证身份")}`,
@@ -80777,8 +80905,21 @@ const auVatOf = (n) => auCents(n - n / (1 + AU_PRICE.vat));
 // 含税合计：“¥30,000.00（含税，其中增值税 ¥1,698.11）”
 const auTotalText = (n) => `${auYuan(n)}（含税，其中增值税 ${auYuan(auVatOf(n))}）`;
 // “万”字的数字不加千分位（2 6）
-const auWan = (n) => `${Math.round(n)} 万`;
-const auPackName = (size) => (size >= 10000 ? `${size / 10000} 亿词元` : `${size} 万词元`);
+// 2.46 账户第 410 条：数量加千分位（“2,250 万词元”“1,000 万词元”）
+// 2.46 账户第 411 条：复制失败时先选中页面上的这段文字，再提示“无法自动复制，已选中，请手动复制。”（机构编号、订单号、收款信息同一句）
+function auCopyFail(text) {
+  const t = String(text || "").trim(),
+    el = t && [...document.querySelectorAll("#dlg *, #app *")].find((x) => x.childElementCount === 0 && x.textContent.trim() === t);
+  if (el && typeof getSelection === "function") {
+    const r = document.createRange();
+    r.selectNodeContents(el);
+    getSelection().removeAllRanges();
+    getSelection().addRange(r);
+  }
+  msg("无法自动复制，已选中，请手动复制。", "error");
+}
+const auWan = (n) => `${Math.round(n).toLocaleString("en-US")} 万`;
+const auPackName = (size) => (size >= 10000 ? `${(size / 10000).toLocaleString("en-US")} 亿词元` : `${size.toLocaleString("en-US")} 万词元`);
 function auYearFee(q) {
   let fee = AU_PRICE.base,
     from = 0;
@@ -81015,7 +81156,7 @@ function auOrderPaid(id, pay, org = AUTH.org) {
   msg(back ? `已续期，${zhSub(o.name, "r")}已恢复使用` : `已到账：${od.text}`);
 }
 const auAgree = () =>
-  `<div class="field au-agree"><label class="au-chk"><input type="checkbox" id="auLicAgree"><span>我已阅读并同意<button type="button" class="au-linkbtn au-keep" data-act="auOrderDoc">《PACOM Station 服务协议》</button></span></label></div>`;
+  `<div class="field au-agree"><label class="au-chk"><input type="checkbox" id="auLicAgree"><span>我已阅读并同意<a class="au-inline au-legal-link au-keep" href="${esc(location.pathname)}#legal?tab=service" target="_blank" rel="noopener" aria-label="PACOM Station 服务协议（新标签页打开）">《PACOM Station 服务协议》</a></span></label></div>`;
 const auPriceTable = (rows, total) =>
   `<table class="au-price"><tbody>${rows.map(([l, v]) => `<tr><td>${l}</td><td class="num">${v}</td></tr>`).join("")}</tbody><tfoot><tr><td>合计</td><td class="num"><b>${auYuan(total)}</b></td></tr><tr class="au-price-taxrow"><td colspan="2" class="num au-price-tax">含税，其中增值税 ${auYuan(auVatOf(total))}</td></tr></tfoot></table>`;
 // 2.32 账户第 236、237 条：含税说明在合计下面另起一行（灰字 14、右对齐），金额列不再被撑宽，明细每行一行显示（订阅、续期、增加设备额度弹窗同）。
@@ -81122,6 +81263,14 @@ const auBar = (pct, label, text, warn = pct >= 80) =>
   `<span class="au-bar" role="meter" aria-label="${esc(label)}" aria-valuemin="0" aria-valuemax="100"${pct == null ? "" : ` aria-valuenow="${Math.round(Math.min(100, pct))}" aria-valuetext="${esc(text)}"`}>${pct > 0 ? `<i style="width:${Math.min(100, pct)}%" class="${warn ? "warn" : ""}"></i>` : ""}</span>`;
 const auAiShare = (rows, total) => rows.map(([n, s]) => [n, Math.round(total * s)]).sort((a, b) => b[1] - a[1]);
 // 2.37 账户第 301、326–330 条：订阅与用量。未订阅时整页是订阅说明（状态和“订阅”、未订阅与订阅后对比、价格表、需要准备、常见问题、联系 PACOM）；
+// 2.46 账户第 420 条：开放接口一行写成句子：“开放接口：未开通。如需开通，请联系客户经理林晓（400-000-0000）。”／“开放接口：已开通。客户经理林晓（400-000-0000）。”
+// manager 为“姓名 · 电话（注）”；没有客户经理时未开通写“请在帮助中联系支持”。
+const auApiLine = (l) => {
+  const [who, tel = ""] = String(l.manager || "").split(" · ");
+  const m = /^(.*?)(（[^）]*）)?$/.exec(tel), num = m[1], note = m[2] || "";
+  const mgr = who ? `客户经理${esc(who)}${num ? `（${esc(num)}）${esc(note)}` : ""}` : "";
+  return l.api ? `开放接口：已开通。${mgr ? mgr + "。" : ""}` : `开放接口：未开通。如需开通，${mgr ? "请联系" + mgr : "请在帮助中联系支持"}。`;
+};
 // 已订阅时顶部状态卡（已订阅、设备额度、有效期和剩余天数，“续期”“增加设备额度”，下一行开放接口和客户经理），用量两张卡并排（设备、AI），
 // 规则说明收进标题旁 ⓘ，完整规则在帮助中心《订阅、续期与付款》；数据保存期限在“数据导出与删除”。
 const AU_SUB_COMPARE = [
@@ -81148,7 +81297,7 @@ function auSubIntro(admin, pendNote) {
     "订阅",
     "规划、配置和邀请成员不需要订阅。订阅后可以绑定设备和使用 AI。",
     admin && !pend ? btn("订阅", "auLicBuy", { kind: "sub" }, "primary") : "",
-    `${admin ? "" : auReadonlyNote("订阅")}${pendNote}<div class="au-plan au-plan-st"><div><span class="au-plan-k">状态</span><b>未订阅</b></div></div>${cmp}${auSubPrice()}${prep}${faq}<p class="au-sub-help">${btn("联系 PACOM", "auSupport", {}, "sm ghost")}</p>`,
+    `${admin ? "" : auReadonlyNote("订阅")}${pendNote}<div class="au-plan au-plan-st"><div><span class="au-plan-k">状态</span><b>未订阅</b></div></div>${cmp}${auSubPrice()}${prep}${faq}<p class="au-sub-help">${btn("联系支持", "auSupport", {}, "sm ghost")}</p>`,
   );
 }
 // 设备卡（第 328 条）：已用 / 额度、用量条、按项目列出前 5 个和“全部”
@@ -81197,7 +81346,7 @@ AU_ORG_PAGES.license = () => {
   else {
     const left = auYmdDiff(today, l.end) + 1;
     // 第 327 条：已订阅、设备额度、有效期至（剩 N 天）；有效期写到最后一天，次日 0:00 起暂停（BP33）
-    body = `<div class="au-plan au-plan3"><div><span class="au-plan-k">状态</span><b>${left > 0 ? "已订阅" : "已到期"}</b>${left > 0 ? "" : `<small>${auDate(auYmdAdd(l.end, 1))}起已暂停使用，续期后自动恢复</small>`}</div><div><span class="au-plan-k">设备额度</span><b class="num">${fmt(l.quota)} 台</b></div><div><span class="au-plan-k">有效期${auFieldInfo("licRules", "有效期", AU_LIC_RULES)}</span><b class="num">至 ${auDate(l.end, true)}</b>${left > 0 ? `<small>剩 ${left} 天</small>` : ""}</div></div><p class="au-plan-more">${auSegs([`开放接口：${l.api ? "已开通" : "未开通，如需开通请联系 PACOM"}`, `客户经理：${l.manager ? esc(l.manager) : "请在帮助中联系支持"}`])}</p>`;
+    body = `<div class="au-plan au-plan3"><div><span class="au-plan-k">状态</span><b>${left > 0 ? "已订阅" : "已到期"}</b>${left > 0 ? "" : `<small>${auDate(auYmdAdd(l.end, 1))}起已暂停使用，续期后自动恢复</small>`}</div><div><span class="au-plan-k">设备额度</span><b class="num">${fmt(l.quota)} 台</b></div><div><span class="au-plan-k">有效期${auFieldInfo("licRules", "有效期", AU_LIC_RULES)}</span><b class="num">至 ${auDate(l.end, true)}</b>${left > 0 ? `<small>剩 ${left} 天</small>` : ""}</div></div><p class="au-plan-more">${auApiLine(l)}</p>`;
   }
   // 已到期的只能续期，不能增加设备额度
   const right = admin && l.state === "active" ? btn("续期", "auLicBuy", { kind: "renew" }) + (l.end >= today ? btn("增加设备额度", "auLicAdd") : "") : "";
@@ -81350,7 +81499,7 @@ defineActions({
     if (errs.length) return auFieldErrs(errs);
     const od = { size: c.size, count: c.count, amount: c.total, text: `AI 用量包 · ${auPackName(c.size)} × ${c.count}` };
     const r = await auRequest("submitOrder", { org: AUTH.org, kind: "ai", ...od });
-    if (r.status !== "ok") throw Error("暂时无法连接订单服务，请稍后再试。");
+    if (r.status !== "ok") throw Error("暂时无法提交订单，请稍后再试。");
     const x = { id: "od-" + Math.random().toString(36).slice(2, 8), no: r.orderNo || auOrderNo(l), kind: "ai", ...od, amount: auCents(od.amount), status: "pending", at: auNow(), until: auYmdAdd(auCstYmd(), 14), by: auMe().name, pay: "" };
     l.orders.push(x);
     auLog("提交订单", `${x.text} · ${auYuan(x.amount)} · ${x.no}`, "license");
@@ -81374,18 +81523,24 @@ defineActions({
     render();
     msg("二维码已刷新");
   },
-  auPayEbank: () => msg("网银付款由支付服务提供，暂时无法打开。"),
+  auPayEbank: async (a) => {
+    const od = auOrderOf(a.id);
+    if (AU_LIC_HOOK.ebank) return AU_LIC_HOOK.ebank(od);
+    const r = await auRequest("payEbank", { org: AUTH.org, no: od?.no });
+    if (r.status !== "ok" || !r.url) return msg("暂时无法打开网银页面，请稍后再试。", "error");
+    window.open(r.url, "_blank", "noopener");
+  },
   auOrderNoCopy: async (a) => {
     const od = auOrderOf(a.id);
     if (!od) return;
-    try { await navigator.clipboard.writeText(od.no); msg("已复制订单号"); } catch { msg("无法自动复制，请手动选择后复制"); }
+    try { await navigator.clipboard.writeText(od.no); msg("已复制订单号"); } catch { auCopyFail(od.no); }
   },
   // 合同（第 311 条）：在线签署、申请纸质合同
   auOrderSign: async (a) => {
     const od = auOrderOf(a.id);
     if (!od) return;
     const r = await auRequest("orderSign", { org: AUTH.org, no: od.no });
-    if (r.status !== "ok") throw Error("暂时无法连接合同服务，请稍后再试。");
+    if (r.status !== "ok") throw Error("暂时无法签署，请稍后再试。");
     od.contract = "signing";
     auLog("在线签署合同", `${od.text} · ${od.no}`, "license");
     auSave();
@@ -81404,7 +81559,7 @@ defineActions({
     const errs = [["auPpName", v.name ? "" : "请输入收件人"], ["auPpTel", v.tel ? "" : "请输入电话"], ["auPpAddr", v.addr ? "" : "请输入地址"]].filter(([, e]) => e);
     if (errs.length) return auFieldErrs(errs);
     const r = await auRequest("orderPaper", { org: AUTH.org, no: od.no, ...v });
-    if (r.status !== "ok") throw Error("暂时无法连接合同服务，请稍后再试。");
+    if (r.status !== "ok") throw Error("暂时无法提交申请，请稍后再试。");
     od.contract = "paper";
     od.paperTo = `寄至 ${v.name} · ${v.tel} · ${v.addr}`;
     auLog("申请纸质合同", `${od.text} · ${od.no}`, "license");
@@ -81426,7 +81581,7 @@ defineActions({
       await navigator.clipboard.writeText(t);
       msg(a.k ? `已复制${{ name: "户名", bank: "开户银行", no: "账号" }[a.k]}` : "已复制收款信息");
     } catch {
-      msg("无法自动复制，请手动选择后复制");
+      auCopyFail(t);
     }
   },
   auOrderCancel: (a) => {
@@ -81440,7 +81595,7 @@ defineActions({
       od = l.orders.find((x) => x.id === a.id);
     if (!od || od.status !== "pending") return closeModal(true);
     const r = await auRequest("cancelOrder", { org: AUTH.org, no: od.no });
-    if (r.status !== "ok") throw Error("暂时无法连接订单服务，请稍后再试。");
+    if (r.status !== "ok") throw Error("暂时无法取消订单，请稍后再试。");
     od.status = "cancelled";
     auLog("取消订单", `${od.text} · ${od.no}`, "license");
     auSave();
@@ -81448,7 +81603,14 @@ defineActions({
     render();
     msg("订单已取消");
   }),
-  auOrderDoc: () => msg("单据由订单服务生成，暂时无法下载。"),
+  // 2.46 账户第 414 条：单据由订单服务生成；“暂时无法下载”只在服务失败时出现（演示层另行生成）
+  auOrderDoc: async (a) => {
+    const od = auOrderOf(a.id || U.tab);
+    if (AU_LIC_HOOK.doc) return AU_LIC_HOOK.doc(od, a.doc);
+    const r = await auRequest("orderDoc", { org: AUTH.org, no: od?.no, doc: a.doc || "agreement" });
+    if (r.status !== "ok" || !r.url) return msg("暂时无法下载，请稍后再试。", "error");
+    window.open(r.url, "_blank", "noopener");
+  },
   auBillSave: withPolicy({ busy: "modal" }, async () => {
     if (!auCanManage()) throw Error("只有机构管理员可以修改开票信息");
     const mail = value("auBillMail").trim();
@@ -81459,7 +81621,7 @@ defineActions({
     const miss = type === "special" ? [["auBillAddr", "请输入注册地址"], ["auBillTel", "请输入注册电话"], ["auBillBank", "请输入开户银行"], ["auBillAcct", "请输入银行账号"]].filter(([id]) => !value(id).trim()) : [];
     if (miss.length) return auFieldErrs(miss);
     const r = await auRequest("saveBilling", { org: AUTH.org, ...b });
-    if (r.status !== "ok") throw Error("暂时无法连接订单服务，请稍后再试。");
+    if (r.status !== "ok") throw Error("暂时无法保存，请稍后再试。");
     auLic().billing = b;
     auLog("修改开票信息", `${auBillTypeName(b)} · ${auMask(mail)}`, "license");
     auSave();
@@ -81548,7 +81710,7 @@ defineActions({
     const term = value("auKeyTerm"),
       scope = some ? picked : "all";
     const r = await auRequest("issueApiKey", { org: AUTH.org, name, scope, term });
-    if (r.status !== "ok" || !r.key) throw Error("暂时无法连接接口服务，请稍后再试。");
+    if (r.status !== "ok" || !r.key) throw Error("暂时无法签发密钥，请稍后再试。");
     const l = auLic();
     l.keys.push({ id: "key-" + Math.random().toString(36).slice(2, 8), name, scope, until: term ? auYmdAdd(auCstYmd(), +term) : "", mask: r.key.slice(0, 7) + "…" + r.key.slice(-4), at: auNow() });
     auLog("签发接口密钥", `${name} · ${auScopeText(scope)}`, "security");
@@ -81581,7 +81743,7 @@ defineActions({
     const k = auLic().keys.find((x) => x.id === a.id);
     if (!k) return closeModal(true);
     const r = await auRequest("revokeApiKey", { org: AUTH.org, id: k.id });
-    if (r.status !== "ok") throw Error("暂时无法连接接口服务，请稍后再试。");
+    if (r.status !== "ok") throw Error("暂时无法吊销密钥，请稍后再试。");
     k.revoked = true;
     auLog("吊销接口密钥", k.name, "security");
     auSave();
@@ -81662,7 +81824,7 @@ const AU_ACC_PAGES = {
           "",
           sole.length ? auDisBtn(del, "需先指定另一位机构管理员") : del,
           sole.length
-            ? `<span class="au-why">你是${sole.map((o) => zhSub(esc(o.name))).join("、")}唯一的机构管理员，需先指定另一位</span>`
+            ? `<span class="au-why">你是${sole.map((o) => zhSub(esc(o.name))).join("、")}唯一的机构管理员。请先在<button type="button" class="au-inline" data-act="auSoleMembers" data-org="${esc(sole[0].id)}">成员</button>中把另一位成员设为机构管理员，或删除机构。</span>`
             : "注销后退出全部机构并删除个人资料，不能恢复；审计日志保留操作事实，不再显示你的姓名。",
         ],
       ]),
@@ -81767,7 +81929,7 @@ const AU_ACC_PAGES = {
           const share = !o.suspended && auJoinCodeOf(o.id).on ? btn("邀请同事", "auInviteColleague", { org: o.id }, "sm") : "";
           return `<div class="au-row"><div class="au-row-l au-orgline">${auMark(o, 32)}<span><b>${esc(o.name)}${cur ? `<span class="chip info au-ml">当前</span>` : ""}${o.suspended ? `<span class="chip au-ml">已暂停</span>` : ""}</b><small>${auRole(o.role)} · ${esc(o.code)}</small></span></div><div class="au-row-a">${share}${cur ? "" : btn("切换到此机构", "auSwitchOrg", { org: o.id }, "sm")}${leave}</div></div>`;
         })
-        .join("")}${auDeletedOrgs().map((o) => `<div class="au-row"><div class="au-row-l au-orgline">${auMark(o, 32)}<span><b>${esc(o.name)}<span class="chip au-ml">已删除</span></b><small>${auDate(o.deleted.until)} 前可恢复，期满彻底删除</small></span></div><div class="au-row-a">${btn("恢复", "auOrgRestore", { org: o.id }, "sm")}</div></div>`).join("")}</div>`,
+        .join("")}${auDeletedOrgs().map((o) => `<div class="au-row"><div class="au-row-l au-orgline">${auMark(o, 32)}<span><b>${esc(o.name)}<span class="chip au-ml">已删除</span></b><small>${auDate(o.deleted.until)}前可恢复，期满彻底删除</small></span></div><div class="au-row-a">${btn("恢复", "auOrgRestore", { org: o.id }, "sm")}</div></div>`).join("")}</div>`,
     );
   },
 };
@@ -81812,7 +81974,7 @@ function auAccessLostPage(pid) {
 
 /* ---------- 联系支持（GLOBAL05，2026-10-08 下一批第 2 轮） ---------- */
 // 由“帮助”中“联系支持”一行打开：问题说明，加上由用户选择的当前对象、日志与截图；当前对象、日志与截图文件名中的可识别信息会隐藏，截图本身不处理，请用户发送前自行遮盖。
-// 支持服务尚未接入（见第12章）：不能在页面中直接提交，“复制内容”后发到支持邮箱，截图在邮件中作为附件添加。
+// 2.46 账户第 428 条：底部“发送”，由支持服务接收；服务不可用时提示稍后再试或发邮件到支持邮箱。
 const AU_SUPPORT_MAIL = "support@pacom.cn";
 function auSupportClean(s) {
   return String(s ?? "")
@@ -81839,7 +82001,7 @@ function auSupportText(desc) {
     const lines = auSupportLog();
     parts.push(`日志（最近 ${lines.length} 条，中国标准时间，已去掉个人信息与密钥）：\n${lines.join("\n")}`);
   }
-  if (AUX.supportShot) parts.push(`截图：${AUX.supportShot.name}（${AUX.supportShot.size}，作为邮件附件添加）`);
+  if (AUX.supportShot) parts.push(`截图：${AUX.supportShot.name}（${AUX.supportShot.size}）`);
   return parts.join("\n\n");
 }
 function auSupportShotErr(text) {
@@ -81859,7 +82021,7 @@ function auSupportShotShow() {
   $("#supShotPick").textContent = s ? "更换截图…" : "选择截图…";
 }
 function auSupportOpen(fromHelp = false) {
-  AUX.supportShot = null;
+  AUX.supportShot = AUX.supportShotFile = null;
   // 每次打开记一个新编号：之前的复制回执晚到时不影响这次的草稿（交互核查第 12 条）
   AUX.supportCopy = (AUX.supportCopy || 0) + 1;
   const object = auSupportObject(), lines = auSupportLog();
@@ -81876,10 +82038,9 @@ function auSupportOpen(fromHelp = false) {
     }</small></span></label>${
       lines.length ? `<details class="au-sup-log"><summary>查看将附带的日志</summary><pre>${esc(lines.join("\n"))}</pre></details>` : ""
     }<div class="au-sup-shot"><span class="au-sup-shot-l">截图<span id="supShotInfo"></span></span><button type="button" class="btn sm" id="supShotPick" data-act="auSupportPick">选择截图…</button><input type="file" id="supShot" accept="image/png,image/jpeg" hidden></div><small id="supShotErr" class="ws-field-err" role="alert" hidden></small></fieldset>${
-      // 用全站的灰色信息提示条（Lovable 核查第 152 条，2026-10-11 用户确认：原为偏蓝的灰底说明框，没有图标）
-      wsNotice(`支持服务尚未接入，暂不能在页面中直接提交。点“复制内容”后，粘贴到发给 <a href="mailto:${AU_SUPPORT_MAIL}">${AU_SUPPORT_MAIL}</a> 的邮件中；截图请在邮件中作为附件添加。`, "info", false).replace('class="ws-notice ', 'class="ws-notice au-sup-send ')
-    }<div class="au-sup-status" id="supStatus" role="status"></div><textarea id="supOut" class="input au-sup-out" rows="8" readonly hidden aria-label="要发送的内容" data-resize-readonly="1"></textarea>`,
-    (fromHelp ? btn("返回帮助", "auHelpBack") : "") + btn("关闭", "close") + btn("复制内容", "auSupportCopy", {}, "primary"),
+      ""
+    }<div class="au-sup-status" id="supStatus" role="status"></div>`,
+    (fromHelp ? btn("返回帮助", "auHelpBack") : "") + btn("关闭", "close") + btn("发送", "auSupportSend", {}, "primary"),
     "au-help-dlg",
   );
   // 两个多行框用 8×8 灰色弧形手柄，只能纵向拉（Lovable 核查第 155 条，2026-10-11 用户确认：原为浏览器的斜线手柄，能横向拉宽）
@@ -81896,6 +82057,7 @@ function auSupportOpen(fromHelp = false) {
     auSupportShotErr("");
     const kb = f.size / 1024;
     // 文件名同样经过文本脱敏后才写进要发送的内容（交互核查第 11 条）
+    AUX.supportShotFile = f;
     AUX.supportShot = { name: auSupportClean(f.name), size: kb < 1024 ? `${Math.max(1, Math.round(kb))} KB` : `${(kb / 1024).toFixed(1)} MB` };
     auSupportShotShow();
     $("#supShotPick")?.focus();
@@ -89658,10 +89820,60 @@ function demoOrgs() {
 // 付款弹窗：二维码为演示图样；“模拟到账”代替实际到账。
 Object.assign(AU_LIC_HOOK, {
   qr: () => `${auFakeQr()}<span class="au-sample">演示</span>`,
-  payFoot: (od) => btn("模拟到账", "demoPaid", { id: od.id }, "sm ghost"),
+  // 2.46 账户第 429 条：“模拟到账”前加“演示”标记，四种付款方式共用
+  payFoot: (od) => `<span class="au-sample">演示</span>${btn("模拟到账", "demoPaid", { id: od.id }, "sm ghost")}`,
 });
 // 邀请码弹窗的二维码为演示图样（2.17 账户第 154 条）
 AU_JOIN_QR.html = () => `${auFakeQr()}<span class="au-sample">演示</span>`;
+// 2.46 账户第 414 条：演示中“下载二维码”下载弹窗里的图样（PNG，512×512）
+AU_JOIN_QR.download = () => {
+  const svg = document.querySelector("#dlg .au-jc svg, #dlg svg");
+  if (!svg) return msg("没有可下载的二维码", "error");
+  const src = new XMLSerializer().serializeToString(svg),
+    img = new Image();
+  img.onload = () => {
+    const c = Object.assign(document.createElement("canvas"), { width: 512, height: 512 }),
+      g2 = c.getContext("2d");
+    g2.fillStyle = "#fff";
+    g2.fillRect(0, 0, 512, 512);
+    g2.drawImage(img, 32, 32, 448, 448);
+    c.toBlob((b) => b && b.arrayBuffer().then((buf) => downloadBlob("PACOM-邀请二维码（演示）.png", new Uint8Array(buf), "image/png")), "image/png");
+  };
+  img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(src.includes("xmlns=") ? src : src.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"'));
+};
+// 2.46 账户第 414 条：演示中报价单、电子合同、发票与服务协议下载标“演示”的 PDF，内容取订单数据
+AU_LIC_HOOK.doc = (od, doc = "agreement") => {
+  const l = auLic(),
+    o = auOrg(),
+    b = l.billing || {},
+    title = { quote: "报价单", contract: "电子合同", invoice: "发票" }[doc] || "PACOM Station 服务协议";
+  const lines = od
+    ? [
+        `订单号：${od.no}`,
+        `机构：${o.fullName || l.fullName || o.name}`,
+        `统一社会信用代码：${l.uscc || "—"}`,
+        `内容：${od.text}`,
+        `金额（含税）：${auYuan(od.amount)}`,
+        ...(doc === "invoice" || doc === "quote" ? [`发票类型：${b.type === "special" ? "电子发票（增值税专用发票）" : "电子发票（普通发票）"}`, `收票邮箱：${b.email || "—"}`] : []),
+        `下单时间：${od.at ? new Date(od.at).toLocaleString("zh-CN", { hour12: false }) : "—"}`,
+      ]
+    : AU_LEGAL.service[1];
+  downloadPdf(`PACOM-${title}${od ? "-" + od.no : ""}（演示）`, title, lines, "演示");
+  msg(`已下载${title}（演示）`);
+};
+// 2.46 账户第 414 条：演示中“前往网银付款”在新标签页打开演示付款页，页上“模拟到账”后订单页按到账处理
+AU_LIC_HOOK.ebank = (od) => {
+  if (!od) return;
+  const w = window.open("", "_blank");
+  if (!w) return msg("浏览器阻止了新标签页，请允许后再试", "error");
+  const e = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  w.document.write(`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>网银付款（演示）</title><style>body{margin:0;font:14px/24px -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:#030303;background:#f7f7f5}main{max-width:420px;margin:64px auto;padding:24px;background:#fff;border-radius:24px;box-shadow:0 1px 3px rgb(0 0 0/.08)}h1{margin:0 0 16px;font-size:20px;line-height:30px;font-weight:480}dl{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;margin:0 0 24px}dt{color:#636363}dd{margin:0}span.tag{margin-left:8px;padding:0 8px;border-radius:999px;background:#ebebeb;font-size:12px;line-height:18px}button{height:36px;padding:0 16px;border:0;border-radius:999px;background:#202a44;color:#fff;font:inherit;cursor:pointer}p{margin:16px 0 0;color:#636363}</style></head><body><main><h1>网银付款<span class="tag">演示</span></h1><dl><dt>收款方</dt><dd>${e(auLic().account?.name || "PACOM")}</dd><dt>订单号</dt><dd>${e(od.no)}</dd><dt>金额</dt><dd>${e(auYuan(od.amount))}</dd></dl><button id="paid">模拟到账</button><p id="note">演示页面，不发生实际付款。</p></main><script>document.getElementById("paid").onclick=function(){if(window.opener)window.opener.postMessage({demoEbankPaid:${JSON.stringify(od.id)}},"*");this.disabled=true;document.getElementById("note").textContent="已模拟到账，可关闭此页。";};<\/script></body></html>`);
+  w.document.close();
+};
+addEventListener("message", (e) => {
+  const id = e.data?.demoEbankPaid;
+  if (id && auOrderOf(id)?.status === "pending") auOrderPaid(id, "ebank");
+});
 defineActions({ demoPaid: (a) => auOrderPaid(a.id, document.querySelector('input[name="auPayWay"]:checked')?.value) });
 // 示例机构“广州国家实验室”的订阅：500 台、2026 年 7 月 1 日至 2027 年 6 月 30 日（PACOM 按合同代为下单）；本月 AI 用量约为额度的 aiPct%，
 // 另有一个 AI 用量包（剩余 packLeft 万词元）；已生效的订单与发票。统一社会信用代码、专属汇款账号与客户经理为标明“演示”的占位。
@@ -90140,8 +90352,9 @@ function demoMakeOrder(paid) {
   Object.assign(o, { fullName: DEMO_QUAL.sb_org });
   l.uscc = DEMO_QUAL.sb_uscc;
   l.verified = { how: "auto", at: auNow() - 36e5 };
-  l.billing = { type: "normal", email: "zhang.hua@example.test", addr: "", tel: "", bank: "", acct: "" };
-  const od = { id: "od-open", no: `PS${auCstYmd().replace(/-/g, "")}-0001`, kind: "sub", text: "订阅 · 500 台 · 1 年", quota: 500, years: 1, amount: auCents(30000), status: "pending", at: auNow() - 36e5, until: auYmdAdd(auCstYmd(), 14), by: "张华", pay: "", contract: "pacom" };
+  // 2.46 账户第 424 条：与订阅第 4 步提交的内容一致（100 台 · 1 年 · ¥15,600.00，增值税专用发票）
+  l.billing = { type: "special", email: "zhang.hua@example.test", addr: "广州市黄埔区科学大道 18 号", tel: "020 8000 0109", bank: "招商银行广州科学城支行", acct: "1209 0000 0000 0109" };
+  const od = { id: "od-open", no: `PS${auCstYmd().replace(/-/g, "")}-0001`, kind: "sub", text: "订阅 · 100 台 · 1 年", quota: 100, years: 1, amount: auCents(15600), status: "pending", at: auNow() - 36e5, until: auYmdAdd(auCstYmd(), 14), by: "张华", pay: "", contract: "pacom" };
   l.orders.push(od);
   auSave();
   if (paid) auOrderPaid(od.id, "bank");
@@ -90261,6 +90474,11 @@ const demoConnHash = () => `#devices?p=${DEMO_IDS.project}&tab=connections`;
 const demoSetHash = (tab) => `#settings?p=${DEMO_IDS.project}&tab=${tab}`;
 const demoDepHash = () => `#deployment?p=${DEMO_IDS.project}`;
 const demoOpsHash = (tab) => `#overview?tab=${tab}&f=${DEMO_IDS.floor}`;
+// 2.46（V202、E464）：按设备编号找示例数据里的设备（设备 id 每次生成示例数据都不同）；点页面上的按钮（弹层需要按钮的位置）
+const demoPt = (name) => data().points.find((x) => x.name === name)?.id;
+const demoTap = (sel) => $(sel)?.click();
+const demoNetHash = (extra = "") => `#devices?p=${DEMO_IDS.project}&tab=networks&net=${DEMO_IDS.network}${extra}`;
+const demoMember = (fn) => () => ((U.role = "member"), render(), fn && demoAfter(fn));
 // 上传楼层图：演示不能代选本机文件，用画出的一张示意图片（PNG）打开上传弹窗
 function demoPlanFile() {
   const c = document.createElement("canvas");
@@ -90642,7 +90860,7 @@ const DEMO_ITEMS = [
   ["配置", "cfg-net-new", "规划设备网络", "设备网络", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=networks`, () => actions.networkForm({}))],
   ["配置", "cfg-conn-new", "新建系统连接", "系统接入", demoX(demoConnHash, () => actions.connectionForm({}))],
   ["配置", "cfg-conn-detail", "连接详情", "7F 配电计量（Modbus RTU）", demoX(demoConnHash, () => actions.connectionInfo({ id: "connection-demo-meter" }))],
-  ["配置", "cfg-set-standard", "登记适用条件", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.v13ProfileEdit())],
+  ["配置", "cfg-set-standard", "修改适用标准", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.v13ProfileEdit())],
   ["配置", "cfg-set-holiday", "节假日表", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.holidaysOpen({ p: DEMO_IDS.project, year: hdYearNow() }))],
   ["配置", "cfg-set-meter", "计量点", "应用设置 › 能源", demoX(() => demoSetHash("energy"), () => actions.applicationSettings({ kind: "能耗", project: DEMO_IDS.project, part: "points" }))],
   ["配置", "cfg-tpl-diff", "参数模板新版本", "应用设置 › 查看变化", demoX(() => demoSetHash("general"), () => actions.v13TplDiff())],
@@ -90653,6 +90871,28 @@ const DEMO_ITEMS = [
   ["配置", "cfg-dep-redeliver", "重新交付", "配置进度", demoX(demoDepHash, () => actions.deliveryCheck({ id: DEMO_IDS.project }))],
   ["配置", "cfg-group-new", "新建设备分组", "设备分组", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=groups`, () => actions.groupForm({}))],
   ["配置", "cfg-fw-new", "新建升级任务", "固件", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=firmware`, () => actions.firmwareGuide())],
+  // 2.46 配置复核 E464：配置导图漏掉的 21 个弹窗
+  ["配置", "cfg-project-export", "导出项目资料", "全部项目", demoX("#projects?view=grid", () => actions.exAllOpen({}))],
+  ["配置", "cfg-changes", "修改记录", "广实2号园", demoX(() => `#projects?p=${DEMO_IDS.project}`, () => actions.changes())],
+  ["配置", "cfg-dev-info", "设备信息", "设备列表 › E-7F-LC20-04", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=inventory`, () => actions.deviceInfo({ id: demoPt("E-7F-LC20-04") }))],
+  ["配置", "cfg-dev-filter", "筛选设备", "设备列表", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=inventory`, () => actions.deviceFilters())],
+  ["配置", "cfg-net-gateway", "网关信息", "网络详情 › E栋 7F 网络", demoX(() => demoNetHash(), () => demoTap('.flow-section-head [data-act="deviceInfo"]'))],
+  ["配置", "cfg-net-params", "网络参数", "网络详情 › 上报参数", demoX(() => demoNetHash(), () => actions.networkParameters({ id: DEMO_IDS.network }))],
+  ["配置", "cfg-net-config", "逐项配置", "网络详情 › 查看逐项配置", demoX(() => demoNetHash(), () => actions.configurationList({ id: DEMO_IDS.network }))],
+  ["配置", "cfg-net-health", "网络检测", "网络详情 › 局部检测", demoX(() => demoNetHash("&ntab=health"), () => actions.healthForm({ id: DEMO_IDS.network, scope: "near" }))],
+  ["配置", "cfg-net-health-record", "网络检测记录", "网络详情 › 一次检测的结果", demoX(() => demoNetHash("&ntab=health"), () => actions.healthRecord({ id: "health-demo-1" }))],
+  ["配置", "cfg-net-snapshot", "交付快照", "网络详情 › 记录", demoX(() => demoNetHash("&ntab=records"), () => actions.v13Snapshot({ id: "delivery-demo-1" }))],
+  ["配置", "cfg-fw-task", "升级任务详情", "固件 › FC20 升级到 1.1.1", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=firmware`, () => actions.firmwareDetail({ id: "fw-demo-fc-111" }))],
+  ["配置", "cfg-set-hours", "工作时间", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.workHoursOpen({ p: DEMO_IDS.project }))],
+  ["配置", "cfg-set-outdoor", "室外温湿度来源", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.outdoorSource({ project: DEMO_IDS.project }))],
+  ["配置", "cfg-set-lighting", "按空间类型的默认值", "应用设置 › 照明 › 开放办公", demoX(() => demoSetHash("lighting"), () => actions.lightingSettings({ type: "开放办公" }))],
+  ["配置", "cfg-set-design", "设计条件", "应用设置 › 暖通空调", demoX(() => demoSetHash("hvac"), () => actions.v13DesignEdit())],
+  ["配置", "cfg-set-range", "用户可调范围", "应用设置 › 暖通空调", demoX(() => demoSetHash("hvac"), () => demoTap('[data-act="v13Edit"][data-id$="-H-02"]'))],
+  ["配置", "cfg-set-baseline", "节能基线", "应用设置 › 能源", demoX(() => demoSetHash("energy"), () => actions.applicationSettings({ kind: "能耗", project: DEMO_IDS.project, part: "baseline" }))],
+  ["配置", "cfg-set-bill", "电费账单", "应用设置 › 能源", demoX(() => demoSetHash("energy"), () => actions.applicationSettings({ kind: "能耗", project: DEMO_IDS.project, part: "bills" }))],
+  ["配置", "cfg-set-carbon", "排放因子", "应用设置 › 能源 › 碳排放", demoX(() => demoSetHash("energy"), () => actions.applicationSettings({ kind: "碳排放", project: DEMO_IDS.project, part: "factor" }))],
+  ["配置", "cfg-rule-detail", "告警规则详情", "CO₂ 偏高", demoX(() => demoSetHash("rules"), () => actions.alarmRuleDetail({ id: "rule-demo-co2" }))],
+  ["配置", "cfg-rule-fixed", "固定规则", "网关离线", demoX(() => demoSetHash("rules"), () => actions.alarmFixedDetail({ id: "net-0" }))],
 
   // 2.44 运营核查 V195：运营导图的弹窗、面板与提示入口
   ["运营", "ops-zone", "功能区面板", "总览 · 办公室 705", demoX(() => demoOpsHash("general"), () => actions.opsZone({ id: "zone-demo-o705" }))],
@@ -90679,6 +90919,19 @@ const DEMO_ITEMS = [
   ["运营", "sch-new", "新建定时", "定时", demoX("#scenes?tab=schedule", () => actions.sceneForm({}))],
   ["运营", "lk-detail", "联动详情", "加班走廊照明", demoX("#scenes?tab=link", () => actions.opsSceneInfo({ id: "scene-demo-l-path" }))],
   ["运营", "lk-new", "新建联动", "联动", demoX("#scenes?tab=link", () => actions.sceneForm({}))],
+  // 2.46 运营核查 V202：运营导图漏掉的 12 处
+  ["运营", "ops-member", "我的区域（普通成员）", "办公室 701、702、会议室 7-1", demoX("#overview", demoMember())],
+  ["运营", "ops-repair", "报修", "普通成员 · 办公室 701", demoX("#overview", demoMember(() => (actions.opsZone({ id: "zone-demo-o701" }), demoAfter(() => actions.opsZoneRepair({ id: "zone-demo-o701" })))))],
+  ["运营", "ops-member-today", "今日变化", "普通成员 · 办公室 701", demoX("#overview", demoMember(() => actions.opsEnvToday({ id: "zone-demo-o701" })))],
+  ["运营", "ops-dev", "单台设备", "照明 · E-7F-LC20-04", demoX(() => demoOpsHash("lighting"), () => demoTap(`[data-act="opsDev"][data-id="${demoPt("E-7F-LC20-04")}"]`))],
+  ["运营", "ops-dev-fc", "空调", "暖通空调 · E-7F-FC20-03", demoX(() => demoOpsHash("hvac"), () => demoTap(`[data-act="opsDev"][data-id="${demoPt("E-7F-FC20-03")}"]`))],
+  ["运营", "ops-dev-aq", "空气质量", "室内环境 · E-7F-AQ20-01", demoX(() => demoOpsHash("environment"), () => demoTap(`[data-act="opsDev"][data-id="${demoPt("E-7F-AQ20-01")}"]`))],
+  ["运营", "dev-info", "设备信息", "办公室 705 · 详情", demoX(() => demoOpsHash("general"), () => (actions.opsZone({ id: "zone-demo-o705" }), demoAfter(() => demoTap('.ops-zp [data-act="deviceInfo"]'))))],
+  ["运营", "ops-params", "照明控制参数", "办公室 705 · 修改", demoX(() => demoOpsHash("general"), () => (actions.opsZone({ id: "zone-demo-o705" }), demoAfter(() => actions.opsParams({ zone: "zone-demo-o705" }))))],
+  ["运营", "ops-sel", "多选控制", "选中办公室 703、会议室 7-1", demoX(() => demoOpsHash("lighting"), () => (selApply("zone", ["zone-demo-o703", "zone-demo-meet"]), render()))],
+  ["运营", "an-table", "数据表", "能源 · 用电趋势", demoX("#analysis?tab=energy", () => actions.opsTable({ key: "daily" }))],
+  ["运营", "an-note", "加备注", "能源 · 9 月 16 日", demoX("#analysis?tab=energy", () => actions.anNoteAdd({ t: Demo.TODAY - 8 * Demo.DAY, step: Demo.DAY }))],
+  ["运营", "task-reassign", "改派工单", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => actions.opsTaskReassign({ id: "task-demo-1" }))],
   ["运营", "ai-explain", "解释这张图", "数据分析 › 能源", demoX("#analysis?tab=energy", () => actions.anAskAi({ tab: "energy", k: "use" }))],
   ["运营", "ai-suggest", "AI 建议", "实验室 B 重新下发配置", demoX("#analysis?tab=energy", () => actions.aiAdopt({ id: "labb-hold" }))],
 ];
