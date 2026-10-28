@@ -7676,6 +7676,8 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 /* 2.14 E251：名称占三列网格的两列（672 宽弹窗中 445），类型或主要用途一列（219）；室外区域没有主要用途时名称占满。 */
 .ws-form-row.ws-name-row > .field:first-child { grid-column:span 2; }
 .ws-form-row.ws-name-row:has(> .ws-usage-field[hidden]) > .field:first-child { grid-column:auto; }
+/* 2.47 E465：窄于 600 时名称、类型（主要用途）各占一整行，类型选择框不再挤成“科…” */
+@media (max-width: 599.98px) { .ws-form-row.ws-name-row { grid-template-columns:minmax(0, 1fr); } .ws-form-row.ws-name-row > .field:first-child { grid-column:auto; } }
 /* 选填下拉框的清除按钮：箭头左边 4，图标 16、点击范围 24；未选时“请选择”为占位灰色。 */
 .ws-select { position:relative; }
 .ws-select > button > span.ph { color:var(--text3); }
@@ -8284,6 +8286,15 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
    点击区 44 照旧；菜单项、缩放条、账户页、演示层、部署 App 与运营后台按各自规格。放在层外，压过各页按钮 40 的触屏规则。 */
 @media (pointer: coarse) {
   :is(#app, #dlg, #discard):not([data-page=console], [data-page=app], [data-page=admin]) .btn:not(.sm, .popitem, .ws-zoom > *, .t td .btn, .au .btn, [class*="demo-"], #demo .btn) { height: 44px; min-height: 44px; }
+}
+/* 2.47 E476：触屏只分两档。普通控件（按钮、输入、选择框、位置选择器、画布上的“检查”“图层”）44；小号按钮 40；
+   表格行内按钮 28 外观不变、点击区 44；缩放条按自身规格（窄屏 44 轨道、36 按钮）。 */
+@media (pointer: coarse) {
+  :is(#app, #dlg, #discard):not([data-page=console], [data-page=app], [data-page=admin]) .btn.sm:not(.popitem, .ws-zoom > *, .t td .btn, .au .btn, [class*="demo-"], #demo .btn) { height: 40px; min-height: 40px; }
+  :is(#app, #dlg, #discard):not([data-page=console], [data-page=app], [data-page=admin]) .ws-location { height: 44px; min-height: 44px; }
+  #app[data-page] .spatial-layer-controls .btn.sm.sp-layer-btn:not(#demo .btn) { height: 44px; min-height: 44px; } /* 压过上一行小号 40 */
+  #app .mk-pill { height: 44px; }
+  #app .mk-pill::before { inset: 0; }
 }
 /* 2.46 账户第 430 条（取代第 399 条的按钮部分）：形状按用途分。主要、次要、透明、小号、危险按钮，提示条和表格行里的按钮一律胶囊
    （圆角为高的一半）；没有底色的文字按钮，悬停和按下的底色也是胶囊；只有图标的按钮为圆形；输入框、选择框里的按钮（获取验证码、
@@ -14460,7 +14471,8 @@ button.ops-zbadge:active {
 }
 .ops-hd-row {
   display: grid;
-  grid-template-columns: minmax(72px, 1fr) 140px 140px minmax(120px, 1.4fr) auto;
+  /* 2.47 E474：放假开始、结束各 128，调休上班放得下两个日期 */
+  grid-template-columns: minmax(72px, 1fr) 128px 128px minmax(208px, 1.6fr) auto;
   gap: 8px;
   align-items: end;
 }
@@ -14468,6 +14480,8 @@ button.ops-zbadge:active {
 .ops-hd-row > .btn {
   margin-bottom: 10px;
 }
+/* 2.47 E474：来源写通知全名，多行换行，不左右滚动 */
+#dlg textarea.ops-hd-src { resize: vertical; min-height: 64px; }
 #hdRows + .btn {
   margin: 2px 0 14px;
 }
@@ -16328,18 +16342,22 @@ p.ops-work .ops-link {
   transform: rotate(90deg);
 }
 
-/* 灰色标签“估算”（2.08 全平台优化 Y15 第 1 条）：跟在数值后，点按显示依据 */
+/* 灰色标签“估算”（2.08 全平台优化 Y15 第 1 条）：跟在数值后，点按显示依据。
+   2.47 V223：按状态标签规格，高 20、胶囊、左右 8、12/18、字重 480；颜色不变 */
 .ops-est {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
   margin-left: 6px;
-  padding: 0 6px;
+  padding: 0 8px;
   border: 0;
-  border-radius: 4px;
+  border-radius: 999px;
   background: var(--sel);
   color: var(--text3);
   font: inherit;
   font-size: 12px;
   line-height: 18px;
-  font-weight: 400;
+  font-weight: 480;
   vertical-align: 1px;
   cursor: pointer;
 }
@@ -17415,8 +17433,13 @@ ol.ai-ritems > .ai-ritem > span::before {
 /* 所有账户页面的标志都在邀请页的位置：图形左边与标题左边对齐，距顶 80px，到标题 24px；标志不可点击，不另加外框
    （2026-10-09 用户确认，Account 核查 K9：原先登录、重置、申请、机构与服务状态等页面另有 116×30 的外框，图形偏右 3px、偏下 2.5px）。 */
 /* 2.45 账户第 400 条：已登录的账户整页，标识同一行右侧为当前账户（14/24 #636363 单行省略）与“退出登录”（14/24 #030303），间距 12；触屏点击范围 44 */
-.au-logo-line > .au-logo { flex: none; }
-.au-logo-line { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-width: 0; }
+/* 2.47 账户第 447 条：账户一行在窗口右上角，与标识（高 25）垂直居中同一行，距窗口右边 32（手机 24）；不占文档流，
+   标识和标题位置与未登录页相同（电脑标识距顶 80，手机 48，矮屏 24）。左边至少留出标识的位置，邮箱过长先省略。 */
+.au-auth-shell { position: relative; }
+.au-auth-shell > .au-top-acct { position: absolute; z-index: 2; top: 80px; right: 32px; height: 25px; max-width: calc(50% - 64px); }
+@media (max-width: 850px) { .au-auth-shell > .au-top-acct { max-width: calc(100% - 190px); } }
+@media (max-width: 600px) { .au-auth-shell > .au-top-acct { top: 48px; right: 24px; max-width: calc(100% - 174px); } }
+@media (max-width: 1023.98px) and (max-height: 500px) { .au-auth-shell > .au-top-acct { top: 24px; } }
 .au-top-acct { display: flex; align-items: center; gap: 12px; min-width: 0; font: 400 14px/24px var(--ff); }
 .au-top-id { min-width: 0; overflow: hidden; color: #636363; white-space: nowrap; text-overflow: ellipsis; }
 .au .au-top-out { position: relative; flex: none; color: #030303; white-space: nowrap; }
@@ -18453,6 +18476,23 @@ fieldset:disabled .au-primary {
   gap: 8px;
   flex: none;
 }
+/* 2.47 账户第 437 条：有待付款的订单时“续期”“增加设备额度”下方的原因 */
+.au-lic-acts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.au-lic-acts > div {
+  display: flex;
+  gap: 8px;
+}
+.au-lic-acts small {
+  color: var(--text3);
+  font-size: 14px;
+  line-height: 24px;
+  text-align: right;
+}
 .au-box {
   background: #fff;
   border-radius: 12px;
@@ -19232,8 +19272,41 @@ fieldset:disabled .au-primary {
   font-size: 13px;
   line-height: 20px;
 }
-.au-dlgcode {
-  flex: none;
+/* 2.47 账户第 441 条：更换电子邮箱、更换手机号码弹窗的“获取验证码”在输入框里，28 高、距右 2、圆角 8（共用输入框内按钮的规则）；触屏随输入框 44 高、距右 0 */
+.au-idctl > .input {
+  flex: 1;
+  min-width: 0;
+  padding-right: 116px;
+}
+.au-idctl > .au-getcode {
+  height: 28px;
+  min-height: 28px;
+  right: 2px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  font: 400 14px/24px var(--ff) !important;
+}
+.au-idctl > .au-getcode:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: #0000000a;
+}
+.au-idctl > .au-getcode:active:not(:disabled):not([aria-disabled="true"]) {
+  background: #00000014;
+}
+.au-idctl > .au-getcode[aria-disabled="true"] {
+  color: var(--text3);
+  cursor: default;
+}
+.au-idctl > .au-getcode:focus-visible {
+  outline: 2px solid #00aeef;
+  outline-offset: 2px;
+}
+@media (pointer: coarse) {
+  .au-idctl > .au-getcode {
+    height: 44px;
+    min-height: 44px;
+    right: 0;
+  }
 }
 /* 我的账户的字号（Lovable 核查第 457 条，2026-10-11 用户确认；补做第 132 条，同第 431 条）：通知偏好的表头 14/21 #636363（第 185 条），
    单元格 14/24；各行下面的说明（“用于登录、接收邀请和重置邮件”“广州 · 昨天 21:04”、免打扰的说明、机构的角色与编号）12/18（第 298 条）。
@@ -21102,7 +21175,8 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .au .au-sb-consent, .au .au-sb-agent { margin: 0; color: #636363; }
 .au .au-cf-note { margin: 8px 0 0; color: #636363; }
 /* 订单详情：标题与“联系 PACOM”一行；状态行（徽章、说明、主按钮）；各块间隔 24，块标题 16/24 */
-.au .au-od-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+/* 2.47 账户第 449 条：订单页标题行距标志 24，与其他页相同；“联系支持”移到底部，与“返回订单与发票”同一行 */
+.au .au-od-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-top: 24px; }
 .au .au-od-top > .au-h1 { min-width: 0; margin: 0; }
 .au .au-od-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 16px 0; font: 400 14px/24px var(--ff); color: #636363; }
 .au .au-od-status > .btn { margin-left: auto; }
@@ -21261,7 +21335,6 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 @media (max-width: 850px) {
   .au-split { grid-template-columns: minmax(0, 1fr); }
   .au-left, .au-center, .au-group { min-width: 0; }
-  .au-logo-line > .au-top-acct { flex: 0 1 auto; }
 }
 
 }
@@ -26594,6 +26667,19 @@ body:has(#app.bare-console) #dlg .db > .note:first-child { margin: 0 0 16px; }
 }
 .phead > .demo-in-head {
   margin-left: auto;
+}
+/* 2.47 V225：页头放不下时（如从演示目录打开总览条目、宽 600–800），演示切换条与“演示”换到标题下一行，页面不横向滚动 */
+.phead:has(> .v13-head .demo-cap) {
+  flex-wrap: wrap;
+  height: auto;
+  row-gap: 8px;
+}
+.phead:has(> .v13-head .demo-cap) > :not(.v13-head) {
+  flex-shrink: 0;
+}
+.phead > .v13-head:has(.demo-cap) {
+  margin-left: auto;
+  min-width: 0;
 }
 /* 工作区与运营后台的演示条在页头里：弹窗或“搜索或提问”打开时同样提到遮罩之上（K13） */
 body:has(> :is(#dlg, #ai-pal)) .phead .v13-head:has(.demo-cap) {
@@ -37490,7 +37576,7 @@ function modal(title, body, foot = "", wide = true, options = {}) {
   el.id = "dlg";
   el.dataset.page=U.page;
   // wide 为 "xl" 时是整块设置和目录用的 1200 宽（Lovable 核查第 359 条）
-  el.innerHTML = `<section class="dialog ${wide ? "wide" : ""}${wide === "xl" ? " xl" : ""}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="dh"><h2>${wsTitleHtml(title)}</h2>${options.noClose ? "" : iconBtn("关闭", "x", "close")}</div><div class="db" id="dlgBody">${body}<div class="form-error" id="formError" role="alert"></div></div>${options.footer === false ? "" : `<div class="df">${foot || btn("关闭", "close")}</div>`}</section>`;
+  el.innerHTML = `<section class="dialog ${wide ? "wide" : ""}${wide === "xl" ? " xl" : ""}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="dh"><h2>${wsTitleHtml(title)}${options.titleInfo || ""}</h2>${options.noClose ? "" : iconBtn("关闭", "x", "close")}</div><div class="db" id="dlgBody">${body}<div class="form-error" id="formError" role="alert"></div></div>${options.footer === false ? "" : `<div class="df">${foot || btn("关闭", "close")}</div>`}</section>`;
   document.body.append(el);
   wsGateSync(el);
   if (typeof wsProjectTextareas === "function") wsProjectTextareas(el); // 2.40：全站多行输入框同一组件
@@ -48849,7 +48935,8 @@ function deviceRelations(db, p) {
       follows = (p.followIds || []).map((fid) => g("points", fid)).filter(Boolean);
     rows.push(
       ["照明分区", cg ? `${esc(cg.name)} · ${cg.controllerIds.length > 1 ? `${cg.controllerIds.length} 台 LC20` : "单独控制"}` : "—"],
-      ["主照度传感器", src ? "★ " + esc(src.name) : "无（按感应调光或时间表运行）"],
+      // 2.47 E466：没有 MS20 时，跟随了占用写“按跟随的占用感应调光”，没有跟随写“按时间表运行”
+      ["主照度传感器", src ? "★ " + esc(src.name) : follows.length ? "无（按跟随的占用感应调光）" : "无（按时间表运行）"],
       [
         "接线传感器",
         (own.length ? `${own.length} 台：${names(own)}` : p.localSensorPlan === "none" ? "本照明控制器不安装传感器" : "尚无已确认接线的 MS20") +
@@ -50447,10 +50534,10 @@ function showFirmwareDetail(id) {
         : rs.some((r) => r.status === "failed") && canEdit()
           ? execBtn("重试失败的设备", "firmwareControl", { id, op: "retry" })
           : "";
+  // 2.47 E470：标题写对象名称（如“FC20 升级到 1.1.1”），不再另起“任务”一行
   modal(
-    "升级任务",
+    esc(t.name),
     `${kv([
-      ["任务", esc(t.name)],
       ["型号", esc(M.catalog[t.type]?.model || "—")],
       ["版本", esc(t.targetVersion || "待取得发布版本")],
       ["时段", esc(fwWindowText(t))],
@@ -50767,8 +50854,9 @@ function showRoleSuggestions(id) {
 function showConfigurationList(id) {
   const n = g("networks", id);
   if (!n) return;
+  // 2.47 E468：标题与打开它的按钮“查看逐项配置”“逐项配置”一致
   modal(
-    "配置同步",
+    "逐项配置",
     `${infoRows([
       ["设备网络", n.name],
       ["网络版本", "v" + n.version],
@@ -52808,7 +52896,8 @@ function mkLcEditor(p) {
             )
           : ""
       }`
-    : `<p class="mk-lead">本照明分区没有 MS20：按感应调光或时间表运行。并入有 MS20 的照明分区即可共用主照度传感器。</p>`;
+    : // 2.47 E466：没有 MS20 时分两种写：跟随了其他回路的占用才能感应调光，否则按时间表运行
+      `<p class="mk-lead">本照明分区没有 MS20：${members.some((m) => (m.followIds || []).length) ? "按跟随的占用感应调光" : "按时间表运行"}。并入有 MS20 的照明分区即可共用主照度传感器。</p>`;
   // 单独控制时只写“单独控制”和“加入照明分区”，并入后才有名称（2026-10-17 用户确认，设备核查 E153：原先单独控制也有名称输入框）
   const single = members.length < 2,
     join = canEdit() ? `<div class="mk-actions">${U.joinFrom === p.id ? btn("取消并入", "cgPickCancel", {}, "ghost sm") : menuTrigger(btn("加入照明分区", "cgJoinMenu", { lc: p.id }, "ghost sm"))}${single ? "" : btn("移出照明分区", "cgLeave", { lc: p.id }, "ghost sm")}</div>` : "";
@@ -52964,7 +53053,8 @@ function renderContinuousMarking(n) {
     selTop = !type && markSelected().length > 0;
   if (!type)
     // 设备模式只放置与登记（E148）；接线只在照明分区模式里做，去掉“按接线标记”和“传感器接线”（2026-10-17 用户确认，设备核查 E149）
-    return `<h3 class="mk-title">标记设备</h3>${selTop ? selection : ""}<p class="mk-lead">选择类型，在图上点击放置。</p>${markingPalette()}${selTop ? "" : selection}${canEdit() ? `<div class="mk-actions mk-batch">${btn("框选设备", "selectPoints", {}, "ghost sm").replace("<button ", `<button aria-pressed="${!!U.selectingPoints}" `)}</div>` : ""}`;
+    // 2.47 E467：画布中间已写“在右侧选设备类型，再在图上点击放置”，面板不再重复
+    return `<h3 class="mk-title">标记设备</h3>${selTop ? selection : ""}${markingPalette()}${selTop ? "" : selection}${canEdit() ? `<div class="mk-actions mk-batch">${btn("框选设备", "selectPoints", {}, "ghost sm").replace("<button ", `<button aria-pressed="${!!U.selectingPoints}" `)}</div>` : ""}`;
   // 放置只放位置，不填表（2026-10-17 用户确认，设备核查 E150：原先放下 LC20 后立刻要求填照明负载）；照明负载在规划检查里“批量填写”。
   let session = "";
   if (last && last.floorId === U.f && last.type === type)
@@ -54548,6 +54638,15 @@ function wsInfoWords(root) {
 // 2.46 账户第 407 条：全平台正文按词换行（大屏除外）。页面、弹窗与菜单的内容变化后，下一帧对新增的文字按 wsInfoWords 加 <wbr>，
 // 所在元素加 ws-words（keep-all）：机构名称、人名、词不在中间断开，标点不在行首。按钮、链接、输入、图表与大屏、运营后台、部署 App 不处理。
 const WS_WORDS_SKIP = "button,a,input,textarea,select,option,svg,script,style,code,pre,[contenteditable],.scr-stage,[data-page=console],[data-page=app],.ws-words-off";
+// 2.47 账户第 444 条：整块可点的卡片（如选择卡）里的多行说明（small、p、.au-why）同样按词换行；单行的按钮文字仍不处理
+const WS_WORDS_CARD = "small,p,.au-why";
+function wsWordsSkip(el) {
+  const s = el?.closest?.(WS_WORDS_SKIP);
+  if (!s) return false;
+  if (!/^(BUTTON|A)$/.test(s.tagName) || s.parentElement?.closest(WS_WORDS_SKIP)) return true;
+  const d = el.closest(WS_WORDS_CARD);
+  return !(d && d !== s && s.contains(d));
+}
 let wsWordsQueue = null;
 function wsWordsRun() {
   const roots = wsWordsQueue;
@@ -54555,11 +54654,12 @@ function wsWordsRun() {
   if (!roots || typeof Intl === "undefined" || !Intl.Segmenter) return;
   const seg = new Intl.Segmenter("zh", { granularity: "word" });
   for (const root of roots) {
-    if (!root.isConnected || root.closest?.(WS_WORDS_SKIP)) continue;
+    const rs = root.isConnected && root.closest?.(WS_WORDS_SKIP);
+    if (!root.isConnected || (rs && (!/^(BUTTON|A)$/.test(rs.tagName) || rs.parentElement?.closest(WS_WORDS_SKIP)))) continue;
     const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [];
     while (walk.nextNode()) {
       const n = walk.currentNode;
-      if (n.nodeValue.length > 1 && WS_CJK.test(n.nodeValue) && !n.parentElement?.closest(WS_WORDS_SKIP)) nodes.push(n);
+      if (n.nodeValue.length > 1 && WS_CJK.test(n.nodeValue) && n.parentElement && !wsWordsSkip(n.parentElement)) nodes.push(n);
     }
     for (const n of nodes) {
       const parts = [...seg.segment(n.nodeValue)].map((x) => x.segment);
@@ -56253,6 +56353,7 @@ const ymList = (from, to) => {
   for (let ym = from; ym <= to && out.length < 240; ym = ymNext(ym)) out.push(ym);
   return out;
 };
+const BASE_INFO = "基期至少12个月，按同样日期比较实际用电。度日采用逐小时室外温度，来源为项目地图位置的天气服务或指定室外传感器；缺失超过30分钟按X-05处理，不做基线气候修正。未经气候及工作日修正的差值不是节能量。";
 const BILL_INFO = "按月登记计量边界内的总用电量与电费。平台计量不足的月份用电费账单补齐同比、节能基线、年度能耗强度与对标；两者都有的月份以计量为准。";
 const billRow = (b, i, ro) =>
   `<div class="app-bill-row">${input("appBillM" + i, b.month || "", "", "month").replace("<input ", '<input aria-label="月份" ')}<div class="ops-unit-in">${input("appBillK" + i, b.kWh ?? "", "用电量", "number").replace("<input ", '<input aria-label="用电量" ')}<span>kWh</span></div><div class="ops-unit-in">${input("appBillY" + i, b.yuan ?? "", "电费（选填）", "number").replace("<input ", '<input aria-label="电费" ')}<span>元</span></div>${ro ? "" : btn("删除", "appBillDel", { i }, "ghost sm")}</div>`;
@@ -56406,7 +56507,7 @@ function energyForm(pid, entries, v, ro) {
       "折标系数",
     ),
   )}<div${show("coal", v.coal?.basis === "equiv")}>${fld("等价值（kgce/kWh）", "appCoalFactor", input("appCoalFactor", v.coal?.factor ?? "", "按省份统计部门公布的火电供电煤耗", "number"))}</div></div>${fld(
-    "节能基线" + opsInfo("节能基线", esc("基期至少12个月，按同样日期比较实际用电。度日采用逐小时室外温度，来源为项目地图位置的天气服务或指定室外传感器；缺失超过30分钟按X-05处理，不做基线气候修正。未经气候及工作日修正的差值不是节能量。")),
+    "节能基线" + opsInfo("节能基线", esc(BASE_INFO)),
     "appBaseline",
     select(
       "appBaseline",
@@ -56627,13 +56728,21 @@ function applicationForm(kind, project, part = "") {
     pt ? verb + pt[2] : kind + "设置",
     (pt ? "" : sub) + (ro ? wsNotice("需要配置权限才能修改。", "info", false) : "") + `<div id="appParts">${kind === "能耗" ? energyForm(pid, entries, v, ro) : carbonForm(pid, entries, v, ro)}</div>`,
     // 保存按钮写“保存”，与照明控制参数相同（全面设计核查第 95 条，2026-10-12 用户确认：原为“保存设置”）
-    ro ? btn("关闭", "close") : btn("取消", "close") + btn("保存", "saveApplication", {}, "primary"),
+    // 2.47 E473：没有修改时“保存”不可点（悬停“没有修改”），与其他应用设置弹窗相同；电费账单未添加月份时同样不可点
+    ro ? btn("关闭", "close") : btn("取消", "close") + sameBtn(btn("保存", "saveApplication", {}, "primary")),
     // 计量点用 672 宽，其余各项 512
     !pt || pt[0] === "points",
+    // 2.47 E471：只打开节能基线或电费账单时，说明 ⓘ 放在弹窗标题后，字段内的 ⓘ 去掉
+    pt?.[0] === "baseline" ? { titleInfo: opsInfo("节能基线", esc(BASE_INFO)) } : pt?.[0] === "bills" ? { titleInfo: opsInfo("电费账单", esc(BILL_INFO)) } : {},
   );
   if (pt) appPartApply(kind, pt[0]);
   // 2.46 E458：只打开节能基线或电费账单时，去掉与标题重复的字段名（读屏仍读出）
-  if (pt && ["baseline", "bills"].includes(pt[0])) $("#appParts").classList.add("app-one-" + pt[0]);
+  if (pt && ["baseline", "bills"].includes(pt[0])) {
+    $("#appParts").classList.add("app-one-" + pt[0]);
+    $("#appParts")
+      .querySelectorAll(pt[0] === "bills" ? ".app-bills > legend .ops-info-wrap" : 'label[for="appBaseline-control"] .ops-info-wrap')
+      .forEach((x) => x.remove());
+  }
   if (pt?.[0] === "coal" && part === "coal" && U.appCoalPick) {
     $("#appCoalBasis").value = U.appCoalPick;
     document.querySelectorAll('#dlg [data-show="coal"]').forEach((x) => (x.hidden = U.appCoalPick !== "equiv"));
@@ -57164,8 +57273,9 @@ function showWorkHours(pid, edit = false) {
       btn("关闭", "close") + (canOperate() ? btn("修改", "workHoursEdit", {}) : ""),
       false,
     );
+  // 2.47 E472：弹窗标题与打开它的按钮一致，带动词
   modal(
-    "工作时间",
+    "修改工作时间",
     `<p class="ops-modal-sub">${esc(p.name)}${opsInfo("工作时间", esc("所有工作日相同，不跨午夜；保存后照明与空调的时间表、按工作时间执行的定时随之改变。"))}</p><div class="ws-form-row">${fld("开始", "whFrom", input("whFrom", w.from, "如 08:00", "time"))}${fld("结束", "whTo", input("whTo", w.to, "", "time"))}</div>`,
     btn("取消", calDirect ? "close" : "workHours", { p: pid }) + sameBtn(btn("保存", "workHoursSave", {}, "primary")),
     // 内容短（几行说明、两个时刻），用 512 宽（Lovable 核查第 300 条（2026-10-11 用户确认）；原为 720）
@@ -57222,13 +57332,14 @@ function showHolidays(pid, year, edit = false, rows = null, source = null) {
   }
   rows = rows || (t ? M.copy(t.items) : []).map((h) => ({ ...h, work: (h.work || []).join("、") }));
   formState = { kind: "holidays", pid, year, edit: true, n: rows.length };
+  const hdTitle = t ? "修改节假日表" : "登记节假日表"; // 2.47 E472
   const row = (h, i) =>
     `<div class="ops-hd-row">${fld("节日", "hdName" + i, input("hdName" + i, h.name || "", "如 国庆节"))}${fld("放假开始", "hdFrom" + i, input("hdFrom" + i, h.from || "", "", "date"))}${fld("放假结束", "hdTo" + i, input("hdTo" + i, h.to || "", "", "date"))}${fld("调休上班", "hdWork" + i, input("hdWork" + i, h.work || "", "如 2026-09-20"))}${btn("删除", "holidayRow", { del: i }, "ghost sm danger")}</div>`;
   modal(
-    "节假日表",
+    hdTitle,
     `${
       ref ? `<p class="ops-hd-ref"><span>${esc(ref.source)}</span>${btn("按通知填入", "holidayFill", {}, "ghost sm")}</p>` : `<p class="ops-hd-ref"><span>尚未收录 ${year} 年的国务院办公厅安排，请按当年通知逐个登记。</span></p>`
-    }<div id="hdRows">${rows.map(row).join("") || `<p class="ops-hd-none">还没有节日。</p>`}</div>${btn("添加节日", "holidayRow", {}, "ghost sm")}${fld("来源", "hdSource", input("hdSource", source ?? t?.source ?? "", "如 国务院办公厅通知"))}`,
+    }<div id="hdRows">${rows.map(row).join("") || `<p class="ops-hd-none">还没有节日。</p>`}</div>${btn("添加节日", "holidayRow", {}, "ghost sm")}${fld("来源", "hdSource", `<textarea class="input ops-hd-src" id="hdSource" rows="2" placeholder="如 国务院办公厅通知">${esc(source ?? t?.source ?? "")}</textarea>`)}`,
     btn("取消", calDirect ? "close" : "holidays", { p: pid, year }) + sameBtn(btn("保存", "holidaySave", {}, "primary")),
   );
 }
@@ -57876,16 +57987,16 @@ defineActions({
       temps = outdoorPoints(pid, "℃"),
       hums = outdoorPoints(pid, "%");
     formState = { kind: "outdoor", projectId: pid };
+    // 2.47 E472：未指定时“指定室外温湿度来源”，已指定时“修改室外温湿度来源”；只读时为名称
     modal(
-      "室外温湿度来源",
+      ro ? "室外温湿度来源" : outdoorText(pid) === "未指定室外传感器" ? "指定室外温湿度来源" : "修改室外温湿度来源",
       `<fieldset class="ws-checks outdoor-src"><legend>来源${infoTip("节能基线用逐小时室外温度算采暖、制冷度日；经济器高限另用室外湿度。数据缺失时不做基线气候修正，恢复后自动恢复。", "室外温湿度用途")}</legend>${wx ? `<label><input type="radio" name="outSrc" value="weather" ${src === "weather" ? "checked" : ""}${ro ? " disabled" : ""}>按项目地图位置（天气服务，逐小时）<small class="muted">${p.location ? "按项目的地图位置取逐小时室外温度与湿度" : "项目暂未定位：在项目资料中定位后才能取得"}</small></label>` : ""}<label><input type="radio" name="outSrc" value="sensor" ${src === "sensor" ? "checked" : ""}${ro ? " disabled" : ""}>指定室外传感器<small class="muted">从系统接入的数据点中选择室外温度与湿度</small></label></fieldset>` +
         // 两个数据点只在“指定室外传感器”时显示（BP123）
         `<div class="ws-form-row" data-out-sensor${src === "sensor" ? "" : " hidden"}>${fld("室外温度数据点", "outTemp", select("outTemp", [["", temps.length ? "请选择" : "没有单位为 ℃ 的数据点"], ...temps], o.temp || "", "室外温度数据点"))}${fld("室外湿度数据点（选填）", "outHum", select("outHum", [["", hums.length ? "不选" : "没有单位为 % 的数据点"], ...hums], o.hum || "", "室外湿度数据点"))}</div>` +
         // 2.25 E417：常显只留一句，用途说明移入“来源”旁的 ⓘ。
         note("缺失超过 30 分钟时，相关联动按安全默认运行。") +
         (ro ? note("只有配置人员和机构管理员可以修改室外温湿度来源。") : ""),
-      ro ? btn("关闭", "close") : btn("取消", "close") + btn("保存", "saveOutdoorSource", {}, "primary"),
-      // 短任务弹窗 512 宽（Lovable 核查第 373 条）
+      ro ? btn("关闭", "close") : btn("取消", "close") + sameBtn(btn("保存", "saveOutdoorSource", {}, "primary")), // 短任务弹窗 512 宽（Lovable 核查第 373 条）；2.47 E473 没有修改时“保存”不可点
       false,
     );
   },
@@ -61181,8 +61292,9 @@ function v13DesignModal() {
       ...(admin || locked ? [["exempt", "豁免（医院、经批准的工艺要求）"]] : []),
       ["none", "不适用（非公共建筑）"],
     ];
+  // 2.47 E472：标题带动词，与“修改”按钮一致
   modal(
-    "设计条件",
+    "修改设计条件",
     `${fld("温度限制依据", "v13Temp", select("v13Temp", opts, basis, "温度限制依据"), locked ? "由机构管理员修改" : admin ? "单个空间的豁免在该空间覆盖中登记" : "选择“豁免”由机构管理员修改")}${fld("豁免依据", "v13TempNote", input("v13TempNote", P.tempNote, "单位类型或批准文件编号"), "选择“豁免”时必填")}
     <fieldset class="v13-fs"><legend>设计室内温度</legend><div class="v13-form2">${fld("供冷（℃）", "v13DesignCool", v13DesignInput("v13DesignCool", P.designCool))}${fld("供热（℃）", "v13DesignHeat", v13DesignInput("v13DesignHeat", P.designHeat))}</div><small class="muted" id="v13DesignHint">${esc(v13DesignHint(basis))}</small></fieldset>
     <fieldset class="v13-fs"><legend>季节</legend><div class="v13-form2">${v13SeasonField("Cool", "供冷季", P.coolSeason)}${v13SeasonField("Heat", "供暖季", P.heatSeason)}</div><small class="muted" id="v13SeasonHint">其余日期为过渡季；月日写成“05-01”，起止可跨年，不设时留空。</small></fieldset>`,
@@ -61852,8 +61964,10 @@ function v13SnapshotModal(id) {
       ["偏离模板的记录", s.deviations != null ? s.deviations + " 项" : "未记录"],
       ["参数", s.params ? s.params : "本次交付未记录参数明细"],
     ])}<details class="ws-details"><summary>技术明细</summary>${infoRows([["中继表与跳数设置", s.ttl ? "已记录" : "未记录"]])}</details>${s.devices ? `<details><summary>冻结的设备身份与版本 · ${s.devices.length} 台</summary><div class="tw v13-mini"><table class="t"><thead><tr><th>设备</th><th>身份与绑定回执</th><th>固件 / 配置</th><th>功能测试回执</th></tr></thead><tbody>${s.devices.map(p => `<tr><td>${esc(p.name || p.id)}</td><td>${esc(p.serial || p.deviceUuid || p.hardwareId || "未记录")}<div class="v13-meta">${esc(p.bindingReceiptId || "未记录")}</div></td><td>${esc(p.firmwareVersion || "未记录")} / ${p.desiredVersion != null ? `第 ${esc(p.desiredVersion)} 版` : "未记录"}</td><td>${v13TestCell(s, p)}</td></tr>`).join("")}</tbody></table></div></details>` : wsNotice("该历史记录未冻结设备身份、固件与配置版本，不能用当前资料代替。", "warning")}${s.parameters ? `<details><summary>冻结的参数值 · ${s.parameters.length} 项</summary><div class="tw v13-mini"><table class="t"><thead><tr><th>配置项</th><th>当时的值 / 范围</th><th>版本与依据</th><th>生效记录</th></tr></thead><tbody>${s.parameters.map(p => `<tr><td>${esc(p.item || p.code)}</td><td>${esc(p.value)}<div class="v13-meta">${esc(p.scopeLabel || p.scopeId)}</div></td><td>v${p.parameterVersion}<div class="v13-meta">${esc("clause" in p ? p.clause || "没有外部标准依据" : "未记录")}</div></td><td>${esc(p.approver || "未记录")}<div class="v13-meta">${esc(p.approvedAt ? v13Date(p.approvedAt) : "未记录")}</div></td></tr>`).join("")}</tbody></table></div></details>` : wsNotice("该历史记录未冻结逐项参数值与依据。", "warning")}`,
-    btn("关闭", "close"),
+    // 2.47 E469：只读弹窗不放底部“关闭”，用右上角关闭
+    "",
     false,
+    { footer: false },
   );
 }
 // 项目的交付记录（2026-10-05 核查 P13）：配置参数、配置进度与“交付”弹窗的“交付记录”都打开这一个弹窗，列与配置进度“验证与交付”相同
@@ -66247,7 +66361,7 @@ function zonePanel(zid, mode = "inline") {
     pm24 = aqFresh && (!pmNow || s.aq?.pm25WindowValid === false) ? null : s.aq?.pm25,
     aqHot = (v, lim, txt) => (Number.isFinite(v) && Number.isFinite(lim) && v > lim ? `<span class="ops-warn-t">${txt}</span>` : txt),
     aqBody = s.aq
-      ? `<p class="ops-zp-sub ops-aqh">${esc(aqStatus)} · ${aqNow || pmNow ? agoText(s.aq.age) : `最后读数 ${aqTime(s.aq.lastAt)}`}</p><div class="ops-metrics">${m("CO₂", `${aqHot(s.aq.co2h, ref.co2, nf(s.aq.co2h))} <small>ppm</small>`, `1 小时滚动均值，需完整 60 个有效分钟。参考上限 ${nf(ref.co2)} ppm，来源：${aqRefSrc(z)}。1 分钟值见“今日变化”。`, Number.isFinite(s.aq.co2h) ? `1 小时均值 · 上限 ${nf(ref.co2)}` : "1 小时数据不足")}${m("PM2.5", `${aqHot(pm24, ref.pm, nf(pm24, 1))} <small>μg/m³</small>`, `24 小时滚动均值，需完整 1440 个有效分钟。参考上限 ${nf(ref.pm)} μg/m³，来源：${aqRefSrc(z)}。1 分钟值与空气质量分见“今日变化”。`, Number.isFinite(pm24) ? `24 小时均值 · 上限 ${nf(ref.pm)}` : "24 小时数据不足")}</div><p class="ops-zp-sub">监测来源${opsInfo("监测来源", esc("逐台登记采集位置与代表性；多个监测点的平均值不自动代表整个功能区。只有全部有效点均确认代表整个功能区时才作区域摘要。"))} · ${s.aq.representative ? "已登记功能区代表性" : "仅代表监测点"}</p>${aqSources.map((q) => `<p class="ops-zp-sub"><b>${esc(q.name || q.id)}</b> · ${q.online ? q.valid ? "在线" : q.quality === "stale" ? "数据未更新" : q.quality === "partial" ? "部分指标不可用" : "读数不可用" : s.gwUnknown ? "状态未知" : "离线"} · ${aqTime(q.lastAt)}<br>${
+      ? `<p class="ops-zp-sub ops-aqh">${esc(aqStatus)} · ${aqNow || pmNow ? agoText(s.aq.age) : `最后读数 ${aqTime(s.aq.lastAt)}`}</p><div class="ops-metrics">${m("CO₂", `${aqHot(s.aq.co2h, ref.co2, nf(s.aq.co2h))} <small>ppm</small>`, `1 小时滚动均值，需完整 60 个有效分钟。参考上限 ${nf(ref.co2)} ppm，来源：${aqRefSrc(z)}。1 分钟值见“今日变化”。`, Number.isFinite(s.aq.co2h) ? `1 小时均值 · 上限 ${nf(ref.co2)}` : "1 小时数据不足")}${m("PM2.5", `${aqHot(pm24, ref.pm, nf(pm24, 1))} <small>μg/m³</small>`, `24 小时滚动均值，需完整 1,440 个有效分钟，不足时不计算。参考上限 ${nf(ref.pm)} μg/m³，来源：${aqRefSrc(z)}。1 分钟值与空气质量分见“今日变化”。`, Number.isFinite(pm24) ? `24 小时均值 · 上限 ${nf(ref.pm)}` : "24 小时数据不足")}</div><p class="ops-zp-sub">监测来源${opsInfo("监测来源", esc("逐台登记采集位置与代表性；多个监测点的平均值不自动代表整个功能区。只有全部有效点均确认代表整个功能区时才作区域摘要。"))} · ${s.aq.representative ? "已登记功能区代表性" : "仅代表监测点"}</p>${aqSources.map((q) => `<p class="ops-zp-sub"><b>${esc(q.name || q.id)}</b> · ${q.online ? q.valid ? "在线" : q.quality === "stale" ? "数据未更新" : q.quality === "partial" ? "部分指标不可用" : "读数不可用" : s.gwUnknown ? "状态未知" : "离线"} · ${aqTime(q.lastAt)}<br>${
         // 都未登记时合成一句，配置人员与机构管理员有“在设备中登记”，打开设备标记并选中这台 AQ20（2.05 总览核查 V123，按 2.01 运营核查 V109；原为“采集位置未登记 · 代表性未登记”，没有入口）
         !AQ_POS[q.pos] && !AQ_REP[q.rep] ? `采集位置与代表性未登记${canEdit() && q.id && g("points", q.id) ? ` · <button class="ops-link ops-zp-reg" data-act="locatePoint" data-id="${q.id}">在设备中登记</button>` : ""}` : `${esc(AQ_POS[q.pos] || "采集位置未登记")} · ${esc(AQ_REP[q.rep] || "代表性未登记")}`
       }</p>`).join("")}`
@@ -66486,7 +66600,7 @@ function devicePop(el, pid) {
       valid = fresh && d.valid !== false,
       metric = (name, value, explain) => `<dt>${name}${opsInfo(name, esc(explain))}</dt><dd>${value}</dd>`,
       score = valid && Number.isFinite(d.iaqs), time = Number.isFinite(d.lastAt) ? `${Demo.dayStart(d.lastAt) === Demo.TODAY ? "" : opsDay(d.lastAt) + " "}${Demo.hm(d.lastAt)}` : "—";
-    body += `<p class="ops-zp-sub">${co2Valid || pm25Valid ? `${d.quality === "partial" ? "部分指标不可用 · " : ""}数据截至 ${time}` : `${d.unknown ? "状态未知 · 网关离线" : !d.online ? "设备离线" : d.quality === "stale" ? "数据未更新" : "读数不可用"} · 最后读数 ${time}`}</p><dl class="ops-kv">${metric("CO₂", `${nf(co2Valid || !fresh ? d.co2 : null)} ppm · ${co2Valid ? "1 分钟均值" : fresh ? "当前值不可用" : "最后记录"}`, "空气质量传感器当前监测点的CO₂读数；完整1小时均值用于参考范围评价，告警按独立规则判断。")}${metric("PM2.5", `${nf(pm25Valid || !fresh ? d.pm25Now : null, 1)} μg/m³ · ${pm25Valid ? "1 分钟均值" : fresh ? "当前值不可用" : "最后记录"}`, "当前颗粒物读数与完整24小时均值分别记录；短时读数不能冒充24小时评价。")}${metric("PM2.5 · 24 小时", Number.isFinite(d.pm25_24h) && (!fresh || pm25Valid && d.pm25WindowValid !== false) ? `${nf(d.pm25_24h, 1)} μg/m³${pm25Valid ? "" : " · 最后均值"}` : "— · 24 小时数据不足", "完整1440个有效分钟的滚动均值，不足或缺测时不生成该窗口结果。")}${metric("VOC 指数", Number.isFinite(d.voc) ? nf(d.voc) : "—", "无量纲的相对变化指标，不是VOC浓度，不使用μg/m³，也不参与空气质量分计算。")}${metric("空气质量分", score ? `${nf(d.iaqs)}/100 · ${Demo.iaqsBand(d.iaqs).replace("极好", "优")}` : "—", "空气质量分按同一分钟有效CO₂和PM2.5计算，越高越好：优90–100、良80–89、一般50–79、差10–49、极差0–9。不包含温湿度，不代表完整室内空气质量或合规结果。")}</dl>`;
+    body += `<p class="ops-zp-sub">${co2Valid || pm25Valid ? `${d.quality === "partial" ? "部分指标不可用 · " : ""}数据截至 ${time}` : `${d.unknown ? "状态未知 · 网关离线" : !d.online ? "设备离线" : d.quality === "stale" ? "数据未更新" : "读数不可用"} · 最后读数 ${time}`}</p><dl class="ops-kv">${metric("CO₂", `${nf(co2Valid || !fresh ? d.co2 : null)} ppm · ${co2Valid ? "1 分钟均值" : fresh ? "当前值不可用" : "最后记录"}`, "空气质量传感器当前监测点的CO₂读数；完整1小时均值用于参考范围评价，告警按独立规则判断。")}${metric("PM2.5", `${nf(pm25Valid || !fresh ? d.pm25Now : null, 1)} μg/m³ · ${pm25Valid ? "1 分钟均值" : fresh ? "当前值不可用" : "最后记录"}`, "当前颗粒物读数与完整24小时均值分别记录；短时读数不能冒充24小时评价。")}${metric("PM2.5 · 24 小时", Number.isFinite(d.pm25_24h) && (!fresh || pm25Valid && d.pm25WindowValid !== false) ? `${nf(d.pm25_24h, 1)} μg/m³${pm25Valid ? "" : " · 最后均值"}` : "— · 24 小时数据不足", "24 小时滚动均值，需完整 1,440 个有效分钟，不足时不计算。")}${metric("VOC 指数", Number.isFinite(d.voc) ? nf(d.voc) : "—", "无量纲的相对变化指标，不是VOC浓度，不使用μg/m³，也不参与空气质量分计算。")}${metric("空气质量分", score ? `${nf(d.iaqs)}/100 · ${Demo.iaqsBand(d.iaqs).replace("极好", "优")}` : "—", "空气质量分按同一分钟有效CO₂和PM2.5计算，越高越好：优90–100、良80–89、一般50–79、差10–49、极差0–9。不包含温湿度，不代表完整室内空气质量或合规结果。")}</dl>`;
   }
   const ctl = p.type === "lc" || isHv(p);
   body += (ctl ? ctlWhy("p", [pid]) : "") + (r ? rcpt(r) : "") + `<div class="ops-devpop-f">${btn("设备信息", "deviceInfo", { id: pid }, "ghost sm")}${ctl ? `<span class="ops-dim">单台控制 · 逐台确认</span>` : hvacSplit(p) ? `<span class="ops-dim">只计量，不接入控制</span>` : ""}</div></div>`;
@@ -70267,7 +70381,7 @@ function alRules() {
     of = (type) => rs.filter((r) => r.type === type),
     // 安全与保护的触发写配置参数的值（项目层的当前值）；操作为“查看参数”，打开配置参数中的该行
     sp = (code) => (code ? ruleParams(OPS_SCOPE.project, [code])[0] : null),
-    net = NET_RULES.map(([n, l, c, m]) => [n, l, c, m === "—" ? "" : `合并与抑制：${m === "同上" ? NET_RULES[0][3] : m}`, "随网络模板启用，由网络模板决定"]),
+    net = NET_RULES.map(([n, l, c, m]) => [n, l, c, m === "—" ? "" : `合并与抑制：${m === "同上" ? NET_RULES[0][3] : m}`, "由网络模板决定"]),
     safety = SAFETY_RULES.map(([n, code, c, m]) => {
       const p = sp(code),
         trig = typeof c === "function" ? c(p?.s?.value) : c || p?.s?.value || "—";
@@ -72308,7 +72422,8 @@ defineActions({
     closeModal(true);
     U.opsDrawer = { page: "alarms", kind: "task", id };
     route("alarms", { tab: "tasks" });
-    msg(`${acked ? "已创建工单，并确认了来源告警" : "已创建工单"}；已按通知偏好通知${who}`);
+    // 2.47 V227：负责人是当前用户时不通知自己，提示只写结果
+    msg(`${acked ? "已创建工单，并确认了来源告警" : "已创建工单"}${who !== OPS_WHO() ? `；已按通知偏好通知${who}` : ""}`);
   },
   // 改派（全面设计核查第 112 条（2026-10-12 用户确认）：原先工单建好后不能改负责人和计划时间）：改负责人和计划时间，
   // 记入排查记录（不算处理进展）与来源告警的时间线；负责人同“创建工单”，从有运营权限且授权范围含本项目的成员中选
@@ -72349,7 +72464,7 @@ defineActions({
     closeModal(true);
     render();
     $(".ops-drawer-h h3")?.focus({ preventScroll: true });
-    msg(`已改派：${text}${who !== was ? `；已按通知偏好通知${who}` : ""}`);
+    msg(`已改派：${text}${who !== was && who !== OPS_WHO() ? `；已按通知偏好通知${who}` : ""}`); // 2.47 V227
   },
   // 功能区面板的“报修”（Y4）：快捷选项与选填说明，提交后生成来源为“报修”的工单，进入概况“需要处理”，并按通知偏好告知运营人员
   opsZoneRepair: (a) => {
@@ -72482,7 +72597,7 @@ defineActions({
     closeModal(true);
     U.opsDrawer = { page: "alarms", kind: "task", id };
     route("alarms", { tab: "tasks" });
-    msg(`已新建工单；已按通知偏好通知${who}`);
+    msg(`已新建工单${who !== OPS_WHO() ? `；已按通知偏好通知${who}` : ""}`); // 2.47 V227
   },
   // 追加记录：处理记录或未响应（写明原因）；完成工单写结论；已完成的工单可“需返工”（写明原因，回到处理中）。记录写操作人（V46，ALARM02 待实现第2条）
   opsTaskKindSeg: (a) => {
@@ -73015,6 +73130,8 @@ function aiAnomalyCard(cls = "") {
 // 已发布的内置报告保留1.95的正文、图与章节集合，不随新主题或新数据算法重新生成。
 // 2.44 运营核查 V197：第 38 周周报改为已结束的 AI 草稿，可审阅后发布，去掉它的已发布快照；8 月运行月报仍保留
 const AI_REPORT_PUBLISHED_SNAPSHOTS = {"r-2608":{"id":"r-2608","sectionOrder":[["summary","摘要"],["energy","能耗"],["carbon","碳排放"],["env","室内环境"],["devices","设备健康"],["advice","建议"]],"snapshot":{"rg":{"from":1787155200000,"to":1788192000000,"end":1788192000000,"days":12,"label":"所选期间","span":"8/20–8/31","custom":true,"key":"2026-08-20~2026-08-31"},"cutTxt":"8 月 31 日 24:00","ce":{"kg":1303.8198559999998,"light":1061.8709906,"hvac":241.94886539999996,"kwh":3225.68,"missing":0,"days":12,"configs":[{"id":"config-demo-carbon","projectId":"project-3989b2e6-da39-4723-aff1-f1618e396cc5","kind":"碳排放","version":1,"at":"2026-08-19T08:00:00.000Z","by":"李工","values":{"method":"CO2","factor":0.4042,"unit":"kg/kWh","year":2023,"region":"南方区域","source":"生态环境部公告 2025 年第 47 号","purpose":"内部管理与节能评估","from":"2026-01-01","to":"2026-12-31","boundary":"E栋 7F 外购电力间接排放（照明插座与空调末端两块楼层电表，不含冷热源分摊）"}}],"last":{"id":"config-demo-carbon","projectId":"project-3989b2e6-da39-4723-aff1-f1618e396cc5","kind":"碳排放","version":1,"at":"2026-08-19T08:00:00.000Z","by":"李工","values":{"method":"CO2","factor":0.4042,"unit":"kg/kWh","year":2023,"region":"南方区域","source":"生态环境部公告 2025 年第 47 号","purpose":"内部管理与节能评估","from":"2026-01-01","to":"2026-12-31","boundary":"E栋 7F 外购电力间接排放（照明插座与空调末端两块楼层电表，不含冷热源分摊）"}},"gas":"CO₂","mixed":false,"byGas":{"CO₂":1303.8198559999998},"spans":[{"c":{"id":"config-demo-carbon","projectId":"project-3989b2e6-da39-4723-aff1-f1618e396cc5","kind":"碳排放","version":1,"at":"2026-08-19T08:00:00.000Z","by":"李工","values":{"method":"CO2","factor":0.4042,"unit":"kg/kWh","year":2023,"region":"南方区域","source":"生态环境部公告 2025 年第 47 号","purpose":"内部管理与节能评估","from":"2026-01-01","to":"2026-12-31","boundary":"E栋 7F 外购电力间接排放（照明插座与空调末端两块楼层电表，不含冷热源分摊）"}},"from":1787155200000,"to":1788192000000,"kwh":3225.68,"kg":1303.8198559999998}],"act":[]},"summary":{"html":"<p class=\"ai-p\">试运行期间本层用电 <b>3,226 kWh</b>，排放 <b>1.30 tCO₂</b>；夜间及非工作日用电占 29.7%。工作时间 CO₂ 在参考范围内平均 97.5%，会议室 7-1 最低。期内没有告警。</p>","ev":"<button class=\"ai-ev\" data-act=\"opsReportBasis\" data-tab=\"energy\" data-from=\"2026-08-20\" data-to=\"2026-08-31\">能耗<svg class=\"ic ic16\" aria-hidden=\"true\" viewBox=\"0 0 24 24\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M11.5263 15.582C11.8209 15.8223 12.2556 15.8049 12.5302 15.5303L17.5302 10.5303C17.8231 10.2374 17.8231 9.76263 17.5302 9.46973C17.2373 9.17684 16.7626 9.17684 16.4697 9.46973L11.9999 13.9395L7.53022 9.46973C7.23732 9.17684 6.76256 9.17684 6.46967 9.46973C6.17678 9.76263 6.17678 10.2374 6.46967 10.5303L11.4697 15.5303L11.5263 15.582Z\" fill=\"currentColor\"></path></svg></button><button class=\"ai-ev\" data-act=\"opsReportBasis\" data-tab=\"environment\" data-from=\"2026-08-20\" data-to=\"2026-08-31\">室内环境<svg class=\"ic ic16\" aria-hidden=\"true\" viewBox=\"0 0 24 24\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M11.5263 15.582C11.8209 15.8223 12.2556 15.8049 12.5302 15.5303L17.5302 10.5303C17.8231 10.2374 17.8231 9.76263 17.5302 9.46973C17.2373 9.17684 16.7626 9.17684 16.4697 9.46973L11.9999 13.9395L7.53022 9.46973C7.23732 9.17684 6.76256 9.17684 6.46967 9.46973C6.17678 9.76263 6.17678 10.2374 6.46967 10.5303L11.4697 15.5303L11.5263 15.582Z\" fill=\"currentColor\"></path></svg></button>","fig":"","text":"试运行期间本层用电 3,226 kWh，排放 1.30 tCO₂；夜间及非工作日用电占 29.7%。工作时间 CO₂ 在参考范围内平均 97.5%，会议室 7-1 最低。期内没有告警。"},"energy":{"html":"<p class=\"ai-p\">试运行期间用电 3,226 kWh，折标 0.40 tce：照明插座 2,627 kWh（81%），空调 599 kWh（空调末端；冷热源未计量）；未登记分时电价，不统计峰谷时段。期内两块电表数据完整。</p>","ev":"<button class=\"ai-ev\" data-act=\"opsReportBasis\" data-tab=\"energy\" data-from=\"2026-08-20\" data-to=\"2026-08-31\">能耗<svg class=\"ic ic16\" aria-hidden=\"true\" viewBox=\"0 0 24 24\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M11.5263 15.582C11.8209 15.8223 12.2556 15.8049 12.5302 15.5303L17.5302 10.5303C17.8231 10.2374 17.8231 9.76263 17.5302 9.46973C17.2373 9.17684 16.7626 9.17684 16.4697 9.46973L11.9999 13.9395L7.53022 9.46973C7.23732 9.17684 6.76256 9.17684 6.46967 9.46973C6.17678 9.76263 6.17678 10.2374 6.46967 10.5303L11.4697 15.5303L11.5263 15.582Z\" fill=\"currentColor\"></path></svg></button>","fig":"<figure class=\"ai-rfig\"><figcaption>8/20–8/31 日用电（kWh，按分项）</figcaption><div class=\"ops-legend\"><span><i class=\"sq\" style=\"--c:#2a78d6\"></i>照明插座</span><span><i class=\"sq\" style=\"--c:#17928f\"></i>空调末端</span></div><svg width=\"740\" height=\"200\" style=\"display:block;max-width:100%;height:auto\" viewBox=\"0 0 740 200\"><defs><pattern id=\"opsHatch\" width=\"6\" height=\"6\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(45)\"><rect width=\"6\" height=\"6\" fill=\"#fafafa\"/><line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"6\" stroke=\"#c9c9c9\" stroke-width=\"1.2\"/></pattern></defs><line class=\"ops-grid\" x1=\"48\" x2=\"728\" y1=\"174\" y2=\"174\"/><text class=\"ops-tick\" x=\"40\" y=\"178\" text-anchor=\"end\">0</text><line class=\"ops-grid\" x1=\"48\" x2=\"728\" y1=\"135\" y2=\"135\"/><text class=\"ops-tick\" x=\"40\" y=\"139\" text-anchor=\"end\">100</text><line class=\"ops-grid\" x1=\"48\" x2=\"728\" y1=\"96\" y2=\"96\"/><text class=\"ops-tick\" x=\"40\" y=\"100\" text-anchor=\"end\">200</text><line class=\"ops-grid\" x1=\"48\" x2=\"728\" y1=\"57\" y2=\"57\"/><text class=\"ops-tick\" x=\"40\" y=\"61\" text-anchor=\"end\">300</text><line class=\"ops-grid\" x1=\"48\" x2=\"728\" y1=\"18\" y2=\"18\"/><text class=\"ops-tick\" x=\"40\" y=\"22\" text-anchor=\"end\">400</text><text class=\"ops-unit\" x=\"40\" y=\"10\" text-anchor=\"end\">kWh</text><g class=\"ops-bar\"><rect x=\"64.33333333333333\" y=\"73.57539000000001\" width=\"24\" height=\"100.42460999999999\" fill=\"#2a78d6\"/><path d=\"M64.33333333333333,71.57539000000001 L64.33333333333333,49.46380000000002 Q64.33333333333333,45.46380000000002 68.33333333333333,45.46380000000002 L84.33333333333333,45.46380000000002 Q88.33333333333333,45.46380000000002 88.33333333333333,49.46380000000002 L88.33333333333333,71.57539000000001 Z\" fill=\"#17928f\"/><rect class=\"ops-hit\" x=\"48\" y=\"18\" width=\"56.666666666666664\" height=\"156\"/></g><g class=\"ops-bar\"><rect x=\"120.99999999999999\" y=\"78.38682\" width=\"24\" height=\"95.61318\" fill=\"#2a78d6\"/><path d=\"M120.99999999999999,76.38682 L120.99999999999999,56.64681999999999 Q120.99999999999999,52.64681999999999 124.99999999999999,52.64681999999999 L141,52.64681999999999 Q145,52.64681999999999 145,56.64681999999999 L145,76.38682 Z\" fill=\"#17928f\"/><rect class=\"ops-hit\" x=\"104.66666666666666\" y=\"18\" width=\"56.666666666666664\" height=\"156\"/></g><g class=\"ops-bar\"><rect x=\"177.66666666666666\" y=\"116.72772\" width=\"24\" height=\"57.272279999999995\" fill=\"#2a78d6\"/><path d=\"M177.66666666666666,114.72772 L177.66666666666666,114.72772 Q177.66666666666666,112.13391 180.26047666666665,112.13391 L199.07285666666667,112.13391 Q201.66666666666666,112.13391 201.66666666666666,114.72772 L201.66666666666666,114.72772 Z\" fill=\"#17928f\"/><rect class=\"ops-hit\" x=\"161.33333333333331\" y=\"18\" width=\"56.666666666666664\" height=\"156\"/><text class=\"ops-tick\" x=\"189.66666666666666\" y=\"192\" text-anchor=\"middle\">8/22</text></g><g class=\"ops-bar\"><rect x=\"234.33333333333334\" y=\"118.76235000000001\" width=\"24\" height=\"55.23764999999999\" fill=\"#2a78d6\"/><path d=\"M234.33333333333334,116.76235000000001 L234.33333333333334,116.76235000000001 Q234.33333333333334,113.80662000000002 237.28906333333333,113.80662000000002 L255.37760333333338,113.80662000000002 Q258.33333333333337,113.80662000000002 258.33333333333337,116.76235000000001 L258.33333333333337,116.76235000000001 Z\" fill=\"#17928f\"/><rect class=\"ops-hit\" x=\"218\" y=\"18\" width=\"56.666666666666664\" height=\"156\"/></g><g class=\"ops-bar\"><rect x=\"290.99999999999994\" y=\"72.65654999999998\" width=\"24\" height=\"101.34345000000002\" fill=\"#2a78d6\"/><path d=\"M290.99999999999994,70.65654999999998 L290.99999999999994,50.59440999999998 Q290.99999999999994,46.59440999999998 294.99999999999994,46.59440999999998 L310.99999999999994,46.59440999999998 Q314.99999999999994,46.59440999999998 314.99999999999994,50.59440999999998 L314.99999999999994,70.65654999999998 Z\" fill=\"#17928f\"/><rect class=\"ops-hit\" x=\"274.66666666666663\" y=\"18\" width=\"56.666666666666664\" height=\"156\"/></g><g class=\"ops-bar\"><rect x=\"347.66666666666663\" y=\"76.68486\" width=\"24\" height=\"97.31514\" fill=\"#2a78d6\"/><path d=\"M347.66666666666663,74.68486 L347.66666666666663,56.645649999999996 Q347.66666666666663,52.645649999999996 351.66666666666663,52.645649999999996 L367.66666666666663,52.645649999999996 Q371.66666666666663,52.645649999999996 371.66666666666663,56.645649999999996 L371.66666666666663,74.68486 Z\" fill=\"#17928f\"/><rect class=\"ops-hit\" x=\"331.3333333333333\" y=\"18\" width=\"56.666666666666664\" height=\"156\"/><text class=\"ops-tick\" x=\"359.66666666666663\" y=\"192\" text-anchor=\"middle\">8/25</text></g><g class=\"ops-bar\"><rect x=\"404.3333333333333\" y=\"76.74102\" width=\"24\" height=\"97.25898\" fill=\"#2a78d6\"/><path d=\"M404.3333333333333,74.74102 L404.3333333333333,55.05952000000002 Q404.3333333333333,51.05952000000002 408.3333333333333,51.05952000000002 L424.3333333333333,51.05952000000002 Q428.3333333333333,51.05952000000002 428.3333333333333,55.05952000000002 L428.3333333333333,74.74102 Z\" fill=\"#17928f\"/><rect class=\"ops-hit\" x=\"388\" y=\"18\" width=\"56.666666666666664\" height=\"156\"/></g><g class=\"ops-bar\"><rect x=\"460.99999999999994\" y=\"70.53222000000001\" width=\"24\" height=\"103.46777999999999\" fill=\"#2a78d6\"/><path d=\"M460.99999999999994,68.53222000000001 L460.99999999999994,47.116780000000006 Q460.99999999999994,43.116780000000006 464.99999999999994,43.116780000000006 L480.99999999999994,43.116780000000006 Q484.99999999999994,43.116780000000006 484.99999999999994,47.116780000000006 L484.99999999999994,68.53222000000001 Z\" fill=\"#17928f\"/><rect class=\"ops-hit\" x=\"444.66666666666663\" y=\"18\" width=\"56.666666666666664\" height=\"156\"/></g><g class=\"ops-bar\"><rect x=\"517.6666666666666\" y=\"71.61251999999999\" width=\"24\" height=\"102.38748000000001\" fill=\"#2a78d6\"/><path d=\"M517.6666666666666,69.61251999999999 L517.6666666666666,49.103049999999996 Q517.6666666666666,45.103049999999996 521.6666666666666,45.103049999999996 L537.6666666666666,45.103049999999996 Q541.6666666666666,45.103049999999996 541.6666666666666,49.103049999999996 L541.6666666666666,69.61251999999999 Z\" fill=\"#17928f\"/><rect class=\"ops-hit\" x=\"501.3333333333333\" y=\"18\" width=\"56.666666666666664\" height=\"156\"/><text class=\"ops-tick\" x=\"529.6666666666666\" y=\"192\" text-anchor=\"middle\">8/28</text></g><g class=\"ops-bar\"><rect x=\"574.3333333333334\" y=\"118.45854\" width=\"24\" height=\"55.54146\" fill=\"#2a78d6\"/><path d=\"M574.3333333333334,116.45854 L574.3333333333334,116.45854 Q574.3333333333334,113.51412000000002 577.2777533333333,113.51412000000002 L595.3889133333334,113.51412000000002 Q598.3333333333334,113.51412000000002 598.3333333333334,116.45854 L598.3333333333334,116.45854 Z\" fill=\"#17928f\"/><rect class=\"ops-hit\" x=\"558\" y=\"18\" width=\"56.666666666666664\" height=\"156\"/></g><g class=\"ops-bar\"><rect x=\"631\" y=\"117.67308\" width=\"24\" height=\"56.32692\" fill=\"#2a78d6\"/><path d=\"M631,115.67308 L631,115.67308 Q631,113.09994 633.57314,113.09994 L652.42686,113.09994 Q655,113.09994 655,115.67308 L655,115.67308 Z\" fill=\"#17928f\"/><rect class=\"ops-hit\" x=\"614.6666666666666\" y=\"18\" width=\"56.666666666666664\" height=\"156\"/></g><g class=\"ops-bar\"><rect x=\"687.6666666666666\" y=\"71.62266000000002\" width=\"24\" height=\"102.37733999999998\" fill=\"#2a78d6\"/><path d=\"M687.6666666666666,69.62266000000002 L687.6666666666666,44.800180000000026 Q687.6666666666666,40.800180000000026 691.6666666666666,40.800180000000026 L707.6666666666666,40.800180000000026 Q711.6666666666666,40.800180000000026 711.6666666666666,44.800180000000026 L711.6666666666666,69.62266000000002 Z\" fill=\"#17928f\"/><rect class=\"ops-hit\" x=\"671.3333333333333\" y=\"18\" width=\"56.666666666666664\" height=\"156\"/><text class=\"ops-tick\" x=\"699.6666666666666\" y=\"192\" text-anchor=\"middle\">8/31</text></g><line class=\"ops-axis\" x1=\"48\" x2=\"728\" y1=\"174\" y2=\"174\"/></svg><p class=\"ops-foot\">与“数据分析 › 能耗”同一张图，按本报告的期间与数据截止固定。</p></figure>","text":"试运行期间用电 3,226 kWh，折标 0.40 tce：照明插座 2,627 kWh（81%），空调 599 kWh（空调末端；冷热源未计量）；未登记分时电价，不统计峰谷时段。期内两块电表数据完整。"},"carbon":{"html":"<p class=\"ai-p\">试运行期间排放 1.30 tCO₂（外购电力），按碳排放设置 v1，因子 0.4042 kgCO₂/kWh · 南方区域 2023。</p>","ev":"<button class=\"ai-ev\" data-act=\"opsReportBasis\" data-tab=\"carbon\" data-from=\"2026-08-20\" data-to=\"2026-08-31\">碳排放<svg class=\"ic ic16\" aria-hidden=\"true\" viewBox=\"0 0 24 24\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M11.5263 15.582C11.8209 15.8223 12.2556 15.8049 12.5302 15.5303L17.5302 10.5303C17.8231 10.2374 17.8231 9.76263 17.5302 9.46973C17.2373 9.17684 16.7626 9.17684 16.4697 9.46973L11.9999 13.9395L7.53022 9.46973C7.23732 9.17684 6.76256 9.17684 6.46967 9.46973C6.17678 9.76263 6.17678 10.2374 6.46967 10.5303L11.4697 15.5303L11.5263 15.582Z\" fill=\"currentColor\"></path></svg></button>","fig":"","text":"试运行期间排放 1.30 tCO₂（外购电力），按碳排放设置 v1，因子 0.4042 kgCO₂/kWh · 南方区域 2023。"},"env":{"html":"<p class=\"ai-p\">工作时间监测点 CO₂ 在参考范围内的平均比例为 97.5%，会议室 7-1 最低（81.7%）。工作日 10 个功能区高峰有人占比超过 90%，会议室 7-1 白天平均仅 33%。</p>","ev":"<button class=\"ai-ev\" data-act=\"opsReportBasis\" data-tab=\"environment\" data-from=\"2026-08-20\" data-to=\"2026-08-31\">室内环境<svg class=\"ic ic16\" aria-hidden=\"true\" viewBox=\"0 0 24 24\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M11.5263 15.582C11.8209 15.8223 12.2556 15.8049 12.5302 15.5303L17.5302 10.5303C17.8231 10.2374 17.8231 9.76263 17.5302 9.46973C17.2373 9.17684 16.7626 9.17684 16.4697 9.46973L11.9999 13.9395L7.53022 9.46973C7.23732 9.17684 6.76256 9.17684 6.46967 9.46973C6.17678 9.76263 6.17678 10.2374 6.46967 10.5303L11.4697 15.5303L11.5263 15.582Z\" fill=\"currentColor\"></path></svg></button>","fig":"<figure class=\"ai-rfig\"><figcaption>工作时间监测点在参考范围内的时长 · 需关注的功能区</figcaption><div class=\"ops-legend\"><span><i class=\"sq\" style=\"--c:#b9b9b5\"></i>≥ 95%</span><span><i class=\"sq\" style=\"--c:#eb6834\"></i>&lt; 95%</span></div><div class=\"ops-tw\"><table class=\"t ops-t ops-comp\"><thead><tr><th>功能区</th><th>CO₂</th><th>PM2.5</th><th>温度</th></tr></thead><tbody><tr><td>会议室 7-1</td><td data-l=\"CO₂\"><span class=\"ops-cbar\"><i style=\"width:81.7%;background:#eb6834\"></i></span><b class=\"ops-num\">81.7%</b></td><td data-l=\"PM2.5\"><span class=\"ops-cbar\"><i style=\"width:100%;background:#b9b9b5\"></i></span><b class=\"ops-num\">100%</b></td><td data-l=\"温度\"><span class=\"ops-cbar\"><i style=\"width:89.4%;background:#eb6834\"></i></span><b class=\"ops-num\">89.4%</b><small class=\"ops-cbasis\"><span class=\"nwj\"><span class=\"nw\">供热设定 −2 K</span> <span class=\"nw\">至供冷设定 +2 K</span></span></small></td></tr><tr><td>开放办公区 A</td><td data-l=\"CO₂\"><span class=\"ops-cbar\"><i style=\"width:98.5%;background:#b9b9b5\"></i></span><b class=\"ops-num\">98.5%</b></td><td data-l=\"PM2.5\"><span class=\"ops-cbar\"><i style=\"width:100%;background:#b9b9b5\"></i></span><b class=\"ops-num\">100%</b></td><td data-l=\"温度\"><span class=\"ops-cbar\"><i style=\"width:94.1%;background:#eb6834\"></i></span><b class=\"ops-num\">94.1%</b><small class=\"ops-cbasis\"><span class=\"nwj\"><span class=\"nw\">供热设定 −2 K</span> <span class=\"nw\">至供冷设定 +2 K</span></span></small></td></tr></tbody></table></div><p class=\"ops-foot\">按 AQ20、MS20 监测点的在线读数，读数代表的范围见室内环境设置中的采集位置与代表性；不是 GB/T 18883 的检测结论。</p><p class=\"ops-foot\">与“数据分析 › 室内环境”同一张表，只列需关注的功能区。</p></figure>","text":"工作时间监测点 CO₂ 在参考范围内的平均比例为 97.5%，会议室 7-1 最低（81.7%）。工作日 10 个功能区高峰有人占比超过 90%，会议室 7-1 白天平均仅 33%。"},"devices":{"html":"<p class=\"ai-p\">期内没有告警。期内没有全网体检记录。</p>","ev":"<button class=\"ai-ev\" data-act=\"opsGo\" data-page=\"alarms\" data-tab=\"history\">告警记录<svg class=\"ic ic16\" aria-hidden=\"true\" viewBox=\"0 0 24 24\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M11.5263 15.582C11.8209 15.8223 12.2556 15.8049 12.5302 15.5303L17.5302 10.5303C17.8231 10.2374 17.8231 9.76263 17.5302 9.46973C17.2373 9.17684 16.7626 9.17684 16.4697 9.46973L11.9999 13.9395L7.53022 9.46973C7.23732 9.17684 6.76256 9.17684 6.46967 9.46973C6.17678 9.76263 6.17678 10.2374 6.46967 10.5303L11.4697 15.5303L11.5263 15.582Z\" fill=\"currentColor\"></path></svg></button><button class=\"ai-ev\" data-act=\"opsReportBasis\" data-tab=\"health\" data-from=\"2026-08-20\" data-to=\"2026-08-31\">设备健康<svg class=\"ic ic16\" aria-hidden=\"true\" viewBox=\"0 0 24 24\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M11.5263 15.582C11.8209 15.8223 12.2556 15.8049 12.5302 15.5303L17.5302 10.5303C17.8231 10.2374 17.8231 9.76263 17.5302 9.46973C17.2373 9.17684 16.7626 9.17684 16.4697 9.46973L11.9999 13.9395L7.53022 9.46973C7.23732 9.17684 6.76256 9.17684 6.46967 9.46973C6.17678 9.76263 6.17678 10.2374 6.46967 10.5303L11.4697 15.5303L11.5263 15.582Z\" fill=\"currentColor\"></path></svg></button>","fig":"","text":"期内没有告警。期内没有全网体检记录。"},"advice":{"html":"<ol class=\"ai-steps\"><li>评估会议室 7-1 的新风量（工作时间 CO₂ 在参考范围内 81.7%）</li></ol>","ev":"<button class=\"ai-ev\" data-act=\"opsOpenZone\" data-id=\"zone-demo-meet\" data-tab=\"environment\">会议室 7-1 · 环境<svg class=\"ic ic16\" aria-hidden=\"true\" viewBox=\"0 0 24 24\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M11.5263 15.582C11.8209 15.8223 12.2556 15.8049 12.5302 15.5303L17.5302 10.5303C17.8231 10.2374 17.8231 9.76263 17.5302 9.46973C17.2373 9.17684 16.7626 9.17684 16.4697 9.46973L11.9999 13.9395L7.53022 9.46973C7.23732 9.17684 6.76256 9.17684 6.46967 9.46973C6.17678 9.76263 6.17678 10.2374 6.46967 10.5303L11.4697 15.5303L11.5263 15.582Z\" fill=\"currentColor\"></path></svg></button>","text":"1. 评估会议室 7-1 的新风量（工作时间 CO₂ 在参考范围内 81.7%）"}}}};
+// 2.47 V226：上面快照保存时还没有图的逐行数据，导出 PDF 用这里按快照中的图形还原的数值（合计与正文一致），快照本身不改
+const AI_REPORT_SNAPSHOT_LINES = {"r-2608": {"energy": ["8/20 周四：照明插座 257.5 kWh，空调末端 72.1 kWh", "8/21 周五：照明插座 245.2 kWh，空调末端 66.0 kWh", "8/22 周六：照明插座 146.9 kWh，空调末端 11.8 kWh", "8/23 周日：照明插座 141.6 kWh，空调末端 12.7 kWh", "8/24 周一：照明插座 259.9 kWh，空调末端 66.8 kWh", "8/25 周二：照明插座 249.5 kWh，空调末端 61.6 kWh", "8/26 周三：照明插座 249.4 kWh，空调末端 65.8 kWh", "8/27 周四：照明插座 265.3 kWh，空调末端 70.3 kWh", "8/28 周五：照明插座 262.5 kWh，空调末端 68.0 kWh", "8/29 周六：照明插座 142.4 kWh，空调末端 12.7 kWh", "8/30 周日：照明插座 144.4 kWh，空调末端 11.7 kWh", "8/31 周一：照明插座 262.5 kWh，空调末端 79.0 kWh"]}};
 const AI_REPORT_SECS = [
   ["summary", "摘要"],
   ["energy", "能耗"],
@@ -73218,13 +73335,23 @@ function aiReportSections(r) {
   };
 }
 // 发布保存本次所选章节、数值与静态图；以后换主题、配置或数据算法都不重算快照。
+// 图的数据逐行写出（2.47 V226）：每个日期或类别一行，各分项写数值与单位
+function aiChartLines(spec) {
+  const unit = spec.unitShort || spec.unit || "",
+    names = (spec.series || []).map((x) => x.name);
+  return (spec.rows || []).map((row) => {
+    const vals = (row.values || []).map((v, i) => `${names[i] ? names[i] + " " : ""}${v == null ? "无数据" : `${nf(v, 1)}${unit ? " " + unit : ""}`}`);
+    return `${row.title || row.label}：${vals.join("，")}${row.note ? `（${row.note}）` : ""}`;
+  });
+}
 function aiReportSnapshot(sections, order) {
   const out = { rg: M.copy(sections.rg), cutTxt: sections.cutTxt, ce: M.copy(sections.ce) };
   for (const [key] of order) {
     const section = M.copy(sections[key]);
     section.fig = (section.fig || "").replace(/<div class="ops-chart" data-cid="([^"]+)"[^>]*><\/div>/g, (_, id) => {
       const spec = OPS.charts[id];
-      return spec ? DRAW[spec.type](spec, 740, spec.height || 200).replace(/ data-i="[^"]*"/g, "").replace(/<svg (width="\d+" height="\d+")/, '<svg $1 style="display:block;max-width:100%;height:auto"') : "";
+      // 2.47 V226：静态图带上逐行数据（data-lines），导出 PDF 写数值
+      return spec ? DRAW[spec.type](spec, 740, spec.height || 200).replace(/ data-i="[^"]*"/g, "").replace(/<svg (width="\d+" height="\d+")/, `<svg data-lines="${esc(JSON.stringify(aiChartLines(spec)))}" $1 style="display:block;max-width:100%;height:auto"`) : "";
     });
     out[key] = section;
   }
@@ -74173,10 +74300,56 @@ defineActions({
   aiReportPdf: (a) => {
     const r = REPORTS.find((x) => x.id === a.id);
     if (!r || aiReportEff(r).state !== "已发布") return;
+    // 2.47 V226：标题；期间与数据截至；各节标题、正文、图名与数据（逐行写数值，表格逐行）；末尾审阅发布一行
     const card = $(".ai-report"),
-      sub = card?.querySelector(".ai-report-h")?.nextElementSibling?.innerText?.trim() || "",
-      lines = [sub, "", ...[...(card?.querySelectorAll(".ai-rsec") || [])].flatMap((sec) => [sec.querySelector("h4")?.innerText.trim() || "", ...[...sec.querySelectorAll("p, li")].map((x) => x.innerText.trim()).filter(Boolean), ""])];
-    downloadPdf(r.name, r.name, lines);
+      txt = (el) => (el?.innerText ?? el?.textContent ?? "").replace(/\s+/g, " ").trim(),
+      cell = (el) => {
+        const c = el.cloneNode(true);
+        c.querySelectorAll("button, .ops-info-wrap").forEach((x) => x.remove());
+        return [...c.childNodes].map((n) => n.textContent.replace(/\s+/g, " ").trim()).filter(Boolean).join(" ");
+      },
+      tipLines = (html) => {
+        const ls = String(html).split(/<br\s*\/?>|<\/div>/).map((x) => x.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").trim()).filter(Boolean);
+        return ls.length ? [`${ls[0]}：${ls.slice(1).join("；")}`] : [];
+      },
+      figLines = (fig, key) => {
+        const out = [`图：${txt(fig.querySelector("figcaption"))}`];
+        fig.querySelectorAll(".ops-chart[data-cid]").forEach((el) => OPS.charts[el.dataset.cid] && out.push(...aiChartLines(OPS.charts[el.dataset.cid])));
+        fig.querySelectorAll("svg[data-lines]").forEach((el) => out.push(...JSON.parse(el.getAttribute("data-lines"))));
+        if (key && !fig.querySelector(".ops-chart[data-cid], svg[data-lines]") && fig.querySelector("svg")) out.push(...(AI_REPORT_SNAPSHOT_LINES[r.id]?.[key] || []));
+        fig.querySelectorAll(".ai-aday").forEach((el) => {
+          out.push(el.getAttribute("aria-label") || "");
+          el.querySelectorAll("[data-otip]").forEach((d) => out.push(...tipLines(d.getAttribute("data-otip"))));
+        });
+        fig.querySelectorAll("table").forEach((t) => {
+          const head = [...t.querySelectorAll("thead th")].map(cell);
+          t.querySelectorAll("tbody tr").forEach((tr) => {
+            const cs = [...tr.children].map(cell);
+            out.push(head.length === cs.length ? `${cs[0]}：${cs.slice(1).map((c, i) => `${head[i + 1]} ${c}`).join("，")}` : cs.join(" · "));
+          });
+        });
+        fig.querySelectorAll(".ops-basis, .ops-foot").forEach((p) => !/^与“/.test(txt(p)) && out.push(txt(p)));
+        return out.filter(Boolean);
+      },
+      secLines = (sec, i) => {
+        const h = sec.querySelector("h4")?.cloneNode(true);
+        h?.querySelectorAll(".ai-redit").forEach((x) => x.remove());
+        const body = [...sec.children].filter((el) => !/^(H4|FIGURE)$/.test(el.tagName) && !el.matches(".ai-rev, .ai-rq")).flatMap((el) => (el.matches("ol, ul") ? [...el.children].map((li, i) => `${el.tagName === "OL" ? i + 1 + ". " : ""}${txt(li)}`) : [txt(el)]));
+        return [txt(h), ...body, ...[...sec.querySelectorAll("figure")].flatMap((f) => figLines(f, keys[i])), ...[...sec.querySelectorAll(".ai-rq")].map(txt), ""].filter((x, i, a) => x || i === a.length - 1);
+      },
+      keys = aiReportSecs(aiReportEff(r)).map(([k]) => k),
+      lines = [txt(card?.querySelector(".ai-report-sub .ops-meta")), "", ...[...(card?.querySelectorAll(".ai-rsec") || [])].flatMap(secLines), txt(card?.querySelector(".ai-report-f .ai-foot"))],
+      d = new Date(Date.now() + 8 * 3600e3),
+      p2 = (n) => String(n).padStart(2, "0"),
+      stamp = `${d.getUTCFullYear()}${p2(d.getUTCMonth() + 1)}${p2(d.getUTCDate())}-${p2(d.getUTCHours())}${p2(d.getUTCMinutes())}`,
+      demo = typeof DEMO_EXPORT_MARK !== "undefined" ? DEMO_EXPORT_MARK.tag : "",
+      name = `PACOM-报告-${String(r.name).replace(/\s+/g, "").replace(/[\\/:*?"<>|·]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 40)}-${stamp}${demo ? "-" + demo : ""}.pdf`;
+    downloadPdf(name, r.name, lines, demo);
+    // 与导出数据表 CSV 一样写入审计日志
+    if (typeof auLog === "function") {
+      auLog("导出报告", `${r.name} · PDF${demo ? " · " + demo : ""}`, "security");
+      if (typeof auSave === "function") auSave();
+    }
     msg(`已导出“${r.name}”PDF`);
   },
   aiReportEdit: (a) => {
@@ -74994,6 +75167,16 @@ const auSoleAdminOrgs = () =>
     const admins = auMembers(o.id).filter((x) => x.role === "admin");
     return admins.length === 1 && admins[0].uid === AUTH.uid;
   });
+// 2.47 账户第 440 条：注销账户不可执行的原因按机构逐句写；有其他成员时请先设另一位机构管理员，没有时请先邀请成员；
+// 已订阅（含待付款）的机构末尾改为申请注销机构。link 为 true 时“成员”为进入该机构成员页的链接
+function auSoleText(o, link = false) {
+  const others = auMembers(o.id).some((x) => x.uid !== AUTH.uid),
+    l = auLic(o.id),
+    tail = l.state === "active" || auLicPending(l) ? "或在“数据导出与删除”中申请注销机构。" : "或删除机构。",
+    name = link ? zhSub(esc(o.name)) : zhSub(o.name),
+    mem = link ? `<button type="button" class="au-inline" data-act="auSoleMembers" data-org="${esc(o.id)}">成员</button>` : "成员";
+  return others ? `你是${name}唯一的机构管理员。请先在${mem}中把另一位成员设为机构管理员，${tail}` : `你是${name}唯一的成员。请先邀请${mem}并设为机构管理员，${tail}`;
+}
 const auInvites = (id = AUTH.org) => (AUTH.invites[id] ||= []);
 const auCanManage = () => U.role === "admin";
 const auProjects = () =>
@@ -75403,8 +75586,10 @@ const auTopAcct = () => {
   const me = AUTH.session === "in" ? auMe() : null, id = me && (me.email || me.phone);
   return id ? `<div class="au-top-acct"><span class="au-top-id" title="${esc(id)}">${esc(id)}</span><button type="button" class="au-textbtn au-top-out" data-act="auSignOut">退出登录</button></div>` : "";
 };
+// 2.47 账户第 447 条（取代第 400 条放进标识行的写法）：当前账户与“退出登录”在窗口右上角，与标识同一行，不占文档流；
+// 标识和标题的位置与未登录页相同，登录前后不跳。
 const auAuthShell = (inner, top = auTopAcct()) =>
-  `<div class="au au-split au-auth-shell"><section class="au-left"><div class="au-center"><main class="au-group">${top ? `<div class="au-logo-line">${auLogo()}${top}</div>` : auLogo()}${inner}</main></div>${auFooter()}</section><aside class="au-art" aria-hidden="true"><img src="${A.img_auth}" alt=""></aside></div>`;
+  `<div class="au au-split au-auth-shell">${top}<section class="au-left"><div class="au-center"><main class="au-group">${auLogo()}${inner}</main></div>${auFooter()}</section><aside class="au-art" aria-hidden="true"><img src="${A.img_auth}" alt=""></aside></div>`;
 // 选择机构、尚未加入机构、机构已暂停使用、服务暂时不可用、系统维护中用登录页的两栏外框
 // （2026-10-08 用户确认，Account 核查第 29–33、35、36 点）：与“无法加载”页相同，#app 另带 bare-login，尺寸与登录页一致。
 function auStatusShell(inner) {
@@ -75746,17 +75931,14 @@ const sAUfirst = () => (AUX.sms ? "#au-sphone" : auIdKind(AUX.v.id) && auIdKind(
 // 机构多于 5 个时在列表上方提供搜索；搜索与列表都只含本账户的机构（AUTH14）。
 const AU_ORG_SEARCH_FROM = 6;
 const auOrgMatch = (o, q) => !q || [o.name, o.code].some((v) => String(v || "").toLowerCase().includes(q));
-// 2.38 账户第 337、338 条：加入申请未获批准或已过期时，登录后“尚未加入机构”页顶的提示条（只显示一次）；已过期的带“重新申请”。
-// 2.42 账户第 371 条：被移出机构后进入“选择机构”或“尚未加入机构”，页顶用同一种提示条写“你已被移出{机构}。”
+// 2.38 账户第 337、338 条：加入申请已过期时，登录后“尚未加入机构”页顶的提示条（只显示一次），带“重新申请”。
+// 2.47 账户第 450 条：删去未获批准（第 369 条）和被移出机构（第 371 条）两条提示：被移出后直接显示可访问的机构，
+// 没有可访问的机构时为“尚未加入机构”，都不加提示条；只留已过期这一条（2.45 第 394 条：只写“你加入{机构}的申请已过期。”）。
 function auJoinNoticeBar() {
-  const gone = AUX.removedOrg && AUTH.orgs?.[AUX.removedOrg];
-  if (gone) return `<div class="au-notice au-join-notice" data-tone="warning" role="status"><span class="au-notice-icon" aria-hidden="true">${ico("alert", "ic16")}</span><span class="au-notice-text">你已被移出${zhSub(`<b>${esc(gone.name)}</b>`)}。</span></div>`;
-  const n = AUX.joinNotice, org = n && AUTH.orgs?.[n.org];
+  const n = AUX.joinNotice, org = n && n.kind === "expired" && AUTH.orgs?.[n.org];
   if (!org) return "";
-  // 2.42 账户第 369 条：未获批准写“{机构}的机构管理员未批准你的加入申请。”；2.45 第 394 条：已过期只写“你加入{机构}的申请已过期。”
-  const name = `<b>${esc(org.name)}</b>`, expired = n.kind === "expired";
-  const text = expired ? `你加入${zhSub(name)}的申请已过期。` : `${zhSub(name, "r")}的机构管理员未批准你的加入申请。`;
-  return `<div class="au-notice au-join-notice" data-tone="warning" role="status"><span class="au-notice-icon" aria-hidden="true">${ico("alert", "ic16")}</span><span class="au-notice-text">${text}</span>${expired ? btn("重新申请", "auJoinResend", {}, "sm") : ""}</div>`;
+  const name = `<b>${esc(org.name)}</b>`, text = `你加入${zhSub(name)}的申请已过期。`;
+  return `<div class="au-notice au-join-notice" data-tone="warning" role="status"><span class="au-notice-icon" aria-hidden="true">${ico("alert", "ic16")}</span><span class="au-notice-text">${text}</span>${btn("重新申请", "auJoinResend", {}, "sm")}</div>`;
 }
 BARE.orgs = () => {
   const me = auMe(), orgs = auMyOrgs();
@@ -75865,11 +76047,11 @@ BARE.suspended = () => {
     : others
       ? auStBtn("选择其他机构", "auGo", ' data-page="orgs"', true)
       : admin
-        ? auStBtn("联系支持", "auContact", "", true)
+        ? auStBtn("联系支持", "auStSupport", ` data-org="${id}"`, true)
         : "";
   // 2.41 第 366 条：原主按钮下居中的“选择其他机构 · 联系支持 · 退出登录”改为主按钮右侧的次要按钮。
   const more2 = renew
-    ? [others && auStBtn("选择其他机构", "auGo", ' data-page="orgs"'), auStBtn("联系支持", "auContact")]
+    ? [others && auStBtn("选择其他机构", "auGo", ' data-page="orgs"'), auStBtn("联系支持", "auStSupport", ` data-org="${id}"`)]
     : [];
   // 2.03 账户第 18 条（2026-10-16 用户确认）：展开后每句一行，不加段间距；机构管理员的导出一句另起一行。
   const data = expiry ? (admin ? "删除前运行数据继续保存。" : "运行数据继续保存。") : "运行数据继续保存，不会删除。";
@@ -75883,7 +76065,7 @@ BARE_AFTER.suspended = () => (document.title = "机构已暂停使用 · PACOM S
 // 2.03 账户第 20 条（2026-10-16 用户确认）：正文两行，标题已说明状态，不再重复；现场一句统一为“现场设备按最后下发的配置运行。”
 BARE.unavailable = () =>
   auStatusShell(
-    `<h1 class="au-h1">服务暂时不可用</h1><p class="au-lead">请稍后再试。现场设备按最后下发的配置运行。</p>${auStActs(auStBtn("重新加载", "auRetry", "", true), auStBtn("联系支持", "auContact"))}<p class="au-hint" id="au-retry-status" role="status"></p>`,
+    `<h1 class="au-h1">服务暂时不可用</h1><p class="au-lead">请稍后再试。现场设备按最后下发的配置运行。</p>${auStActs(auStBtn("重新加载", "auRetry", "", true), auStBtn("联系支持", "auStSupport"))}<p class="au-hint" id="au-retry-status" role="status"></p>`,
   );
 // 2.45 账户第 405、406 条：三个状态页的按钮同叫“重新加载”；说明按词换行，词不拆开。
 const auStWords = () => typeof wsInfoWords === "function" && wsInfoWords(document.querySelector("#app .au-lead"));
@@ -76652,7 +76834,8 @@ function auSubPrice() {
 // 方案的合计（各步之间没有输入框时按已填的内容算）
 const auSbCalc = () => { const q = Number(AUX.v.sb_qty) || 0, years = Number(AUX.v.sb_years || 1) || 1, ok = q >= AU_PRICE.min && q <= AU_PRICE.max && q % AU_PRICE.step === 0; return { q, years, ok, total: ok ? auYearFee(q) * years : 0 }; };
 // 已规划的点位与已绑定或接入的设备（第 303 条“现有规模”）
-const auSbScale = (kind) => { const u = auDevUse(); return kind === "sub" ? `已规划 ${fmt(u.used + u.planned)} 个点位` : `当前已绑定或接入 ${fmt(u.used)} 台设备`; };
+// 2.47 账户第 438 条：订阅时没有规划点位不写“已规划 0 个点位”
+const auSbScale = (kind) => { const u = auDevUse(), n = u.used + u.planned; return kind === "sub" ? (n ? `已规划 ${fmt(n)} 个点位` : "") : `当前已绑定或接入 ${fmt(u.used)} 台设备`; };
 // 首次订阅的默认额度：规划点位数向上取整到 100，最少 100
 const auSbDefaultQty = () => { const u = auDevUse(); return Math.min(AU_PRICE.max, Math.max(AU_PRICE.min, Math.ceil((u.used + u.planned) / AU_PRICE.step) * AU_PRICE.step)); };
 // 同一统一社会信用代码已有其他已订阅机构时写出其名称，不阻止（第 304 条）
@@ -76661,7 +76844,8 @@ function auSbPlan(kind) {
   const l = auLic(), used = auDevUse().used;
   if (kind === "add")
     return `<p class="au-sb-scale">${auSbScale(kind)} · 设备额度 ${fmt(l.quota)} 台</p>${fld("增加台数", "auLicAddQty", input("auLicAddQty", AUX.v.sb_add ?? AU_PRICE.step, "", "number"), "100 的整数倍")}<div id="auAddCalc">${auAddCalc().html}</div><p class="au-dlead">到账当天生效，当月 AI 额度随之增加。</p>`;
-  return `<p class="au-sb-scale">${auSbScale(kind)}</p>${auQtyField(AUX.v.sb_qty ?? AU_PRICE.min, kind === "renew" ? `不低于已绑定或已接入的 ${fmt(used)} 台` : AU_QTY_HINT)}${auYearsSeg(String(AUX.v.sb_years || "1"))}<div id="auBuyCalc" data-kind="${kind}">${auBuyCalc(kind).html}</div><p class="au-apply-quote">${btn(ico("download", "ic16") + "下载报价单", "auOrderDoc", { doc: "quote" })}</p>`;
+  const sc = auSbScale(kind);
+  return `${sc ? `<p class="au-sb-scale">${sc}</p>` : ""}${auQtyField(AUX.v.sb_qty ?? AU_PRICE.min, kind === "renew" ? `不低于已绑定或已接入的 ${fmt(used)} 台` : AU_QTY_HINT)}${auYearsSeg(String(AUX.v.sb_years || "1"))}<div id="auBuyCalc" data-kind="${kind}">${auBuyCalc(kind).html}</div><p class="au-apply-quote">${btn(ico("download", "ic16") + "下载报价单", "auOrderDoc", { doc: "quote" })}</p>`;
 }
 // 第 1 步的核对：[字段, 提示]，没有问题时为空
 function auSbPlanErr(kind) {
@@ -76818,10 +77002,12 @@ function auOrderContract(od) {
   if (st === "pacom") acts.push(btn("在线签署", "auOrderSign", { id: od.id }, "sm"), btn("申请纸质合同", "auOrderPaper", { id: od.id }, "sm"));
   return `<section class="au-od-block" aria-labelledby="auOdContract-h"><h2 class="au-od-h" id="auOdContract-h">合同</h2><p class="au-od-st">${badge(AU_CONTRACT_ST[st] || AU_CONTRACT_ST.pacom, st === "both" ? "good" : "")}${st === "pacom" ? `<small>可用于单位内部审批；需要双方盖章的，可在线签署或申请纸质合同。</small>` : st === "paper" ? `<small>${esc(od.paperTo || "")}</small>` : ""}</p><div class="au-od-acts">${acts.join("")}</div></section>`;
 }
+// 2.47 账户第 436 条：每笔订单保存下单时的开票信息；没有保存的旧订单按机构当前的开票信息显示
+const auOrderBilling = (od) => od?.billing || auLic().billing || {};
 function auOrderInvoice(od) {
-  const b = auLic().billing || {}, o = auOrg();
+  const b = auOrderBilling(od), o = auOrg();
   const st = od.status === "paid" ? (od.invoice === "issued" ? ["已开具", "good"] : ["开票中", ""]) : od.status === "pending" ? ["到账后开具", ""] : ["不开具", ""];
-  return `<section class="au-od-block" aria-labelledby="auOdInv-h"><div class="au-od-hrow"><h2 class="au-od-h" id="auOdInv-h">发票</h2>${od.invoice !== "issued" && od.status !== "cancelled" ? btn("修改开票信息", "auBillEdit", {}, "sm ghost") : ""}</div><p class="au-od-st">${badge(...st)}</p>${auRows([["发票类型", esc(auBillTypeName(b))], ["发票抬头", esc(o.fullName || o.name)], ["收票邮箱", b.email ? esc(b.email) : `<span class="muted">—</span>`]])}${od.invoice === "issued" ? `<div class="au-od-acts">${btn(ico("download", "ic16") + "下载发票", "auOrderDoc", { doc: "invoice" }, "sm ghost au-docbtn")}</div>` : ""}</section>`;
+  return `<section class="au-od-block" aria-labelledby="auOdInv-h"><div class="au-od-hrow"><h2 class="au-od-h" id="auOdInv-h">发票</h2>${od.status === "pending" ? btn("修改开票信息", "auBillEdit", { id: od.id }, "sm ghost") : ""}</div><p class="au-od-st">${badge(...st)}</p>${auRows([["发票类型", esc(auBillTypeName(b))], ["发票抬头", esc(o.fullName || o.name)], ["收票邮箱", b.email ? esc(b.email) : `<span class="muted">—</span>`]])}${od.invoice === "issued" ? `<div class="au-od-acts">${btn(ico("download", "ic16") + "下载发票", "auOrderDoc", { doc: "invoice" }, "sm ghost au-docbtn")}</div>` : ""}</section>`;
 }
 BARE.order = () => {
   const od = AUTH.session === "in" && auMe().orgs?.[AUTH.org] === "admin" ? auOrderOf(U.tab) : null;
@@ -76841,7 +77027,8 @@ BARE.order = () => {
     ["订单号", `<span class="au-code-v"><span class="num">${esc(od.no)}</span><button type="button" class="au-copy" data-act="auOrderNoCopy" data-id="${od.id}" aria-label="复制订单号" data-tip="复制">${ico("copy", "ic16")}</button></span>`],
     ...(od.status === "pending" ? [["付款期限", `${auDate(od.until)} 24:00`]] : []),
   ]);
-  return auApplyShell(`<div class="au-od-top"><h1 class="au-h1">${esc(od.text)}</h1>${btn("联系支持", "auSupport", {}, "sm ghost")}</div><div class="au-od-status">${badge(stText, tone)}<span>${esc(sub)}</span>${main}</div>${info}${od.status === "pending" ? auOrderPayBlock(od) : ""}${od.kind === "ai" ? "" : auOrderContract(od)}${od.status === "cancelled" ? "" : auOrderInvoice(od)}<div class="au-links"><button type="button" class="au-textbtn" data-act="auOrderBack">返回订单与发票</button></div>`);
+  // 2.47 账户第 449 条：标题行只有标题；“联系支持”在底部，与“返回订单与发票”同一行（仍带这笔订单的信息）
+  return auApplyShell(`<div class="au-od-top"><h1 class="au-h1">${esc(od.text)}</h1></div><div class="au-od-status">${badge(stText, tone)}<span>${esc(sub)}</span>${main}</div>${info}${od.status === "pending" ? auOrderPayBlock(od) : ""}${od.kind === "ai" ? "" : auOrderContract(od)}${od.status === "cancelled" ? "" : auOrderInvoice(od)}<div class="au-links au-od-foot"><button type="button" class="au-textbtn" data-act="auOrderBack">返回订单与发票</button><button type="button" class="au-textbtn" data-act="auSupport">联系支持</button></div>`);
 };
 BARE_AFTER.order = () => {
   document.title = "订单 · PACOM Station";
@@ -77286,7 +77473,7 @@ const AU_SUBMIT = {
     l.uscc = code;
     if (s.check) l.verified = { how: s.check, at: auCstYmd() };
     l.billing = billing;
-    const x = { id: "od-" + Math.random().toString(36).slice(2, 8), no: r.orderNo || auOrderNo(l), kind, ...od, amount: auCents(od.amount), status: "pending", at: auNow(), until: auYmdAdd(auCstYmd(), 14), by: auMe().name, pay: "", contract: "pacom" };
+    const x = { id: "od-" + Math.random().toString(36).slice(2, 8), no: r.orderNo || auOrderNo(l), kind, ...od, amount: auCents(od.amount), status: "pending", at: auNow(), until: auYmdAdd(auCstYmd(), 14), by: auMe().name, pay: "", contract: "pacom", billing: { ...billing } };
     l.orders.push(x);
     auLog("提交订单", `${x.text} · ${auYuan(x.amount)} · ${x.no}`, "license");
     for (const k of Object.keys(AUX.v)) if (k.startsWith("sb_")) delete AUX.v[k];
@@ -77746,12 +77933,23 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "2.47",
+    date: "2026-10-28",
+    notes: [
+      "改进：有待付款的订单时，续期和增加设备额度先进入该订单；开票信息按订单记录，付款前可以修改。",
+      "改进：审计日志按当前页签和筛选导出 CSV 文件。",
+      "改进：已登录时状态页的“联系支持”可以直接发送问题；当前账户和“退出登录”移到窗口右上角。",
+      "改进：触屏上的按钮、输入和选择框统一为 44 高，小号按钮 40 高。",
+      "修复已知问题，优化界面细节。",
+    ],
+  },
+  {
     version: "2.46",
     date: "2026-10-28",
     notes: [
-      "新增：在“联系支持”里直接发送问题说明和截图；订阅时的服务协议可以打开阅读。",
-      "改进：订阅第 4 步只留合计、付款与单据和确认；订单页去掉重复内容。",
-      "改进：放置第一台设备时自动建立本层网络；连接验证、启用告警规则和维护任务不能执行时写明原因。",
+      // 2.47 账户第 445 条：四行
+      "新增：在“联系支持”里直接发送问题说明和截图；订阅时可以打开阅读服务协议。",
+      "改进：连接验证、启用告警规则和维护任务不能执行时写明原因。",
       "改进：报告可以导出 PDF；工单按负责人的通知偏好通知。",
       "修复已知问题，优化界面细节。",
     ],
@@ -77812,7 +78010,7 @@ const AU_RELEASES = [
     version: "2.39",
     date: "2026-10-27",
     notes: [
-      "新增：配置导图和运营导图，各节点链接到对应页面。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
@@ -78513,7 +78711,7 @@ const HELP_ARTICLES = [
     steps: ["在登录页点“申请访问”，选“加入已开通的机构”，先验证电子邮箱。机构管理员按这个邮箱邀请过你时直接加入；没有邀请时填写邀请码，设置密码后提交，打开邀请链接或扫邀请二维码时邀请码已填好。邀请码在工作群里的邀请链接或二维码中，或请已加入的同事发给你。还没有邀请码时点“没有邀请码？”查看做法，或选“创建新机构”。", "已有账户的，登录后打开邀请链接或扫二维码；或在“我的账户 › 我的机构”点“加入机构”，填写邀请码。发给你的邀请列在“我的机构”最上面，点“加入”即加入。", "机构管理员直接邀请：点邀请邮件中的链接，没有账户的设置姓名和密码即可加入，已有账户的登录后直接加入；邀请 7 天内有效。", "申请发出后等待机构管理员批准，7 天内有效，可以撤回；批准后收到邮件，登录即可进入。"],
     faq: [["换了工作怎么办？", "离职前在“我的账户 › 账户”把登录邮箱换成你能长期使用的邮箱，原机构的邮箱停用后就收不到验证码。原机构的机构管理员会将你移出，你用同一个账户加入新的机构。"], ["同事能共用一个账户吗？", "不能。每人用自己的电子邮箱注册，角色、授权和操作记录都按账户区分。"], ["申请未获批准或过期了怎么办？", "你会收到邮件或短信，登录后“尚未加入机构”页顶部有提示。过期的可以点“重新申请”；未获批准的请向该机构的同事确认后重新申请。"]], rel: ["login", "acct-admin"] },
   { id: "login", topic: "account", title: "登录与验证", roles: "所有角色", sum: "登录方式、保持登录、输错暂停和定期验证的规则。",
-    steps: ["账户是电子邮箱；手机号码绑定并验证后也可以登录。", "提示账户或密码不正确时，核对后重试，或点“忘记密码？”用验证码重置。", "多次输错后会暂停登录一段时间，期间登录按钮不可用；连续输错过多，只能重置密码后再登录。", "机构管理员在新设备或新浏览器上登录，须验证手机号码；没有绑定手机号码的，登录时先绑定。", "勾选“保持登录”后，关闭浏览器也不会退出，最长 30 天；修改或重置密码后需要重新登录。", "登录时会定期要求输入发到电子邮箱的验证码，确认邮箱仍可使用；没有电子邮箱的账户输入发到手机号码的验证码。", "能登录但看不到机构：显示“尚未加入机构”时，按《加入已开通的机构》申请；页顶提示“你已被移出……”，表示你已被移出该机构。"],
+    steps: ["账户是电子邮箱；手机号码绑定并验证后也可以登录。", "提示账户或密码不正确时，核对后重试，或点“忘记密码？”用验证码重置。", "多次输错后会暂停登录一段时间，期间登录按钮不可用；连续输错过多，只能重置密码后再登录。", "机构管理员在新设备或新浏览器上登录，须验证手机号码；没有绑定手机号码的，登录时先绑定。", "勾选“保持登录”后，关闭浏览器也不会退出，最长 30 天；修改或重置密码后需要重新登录。", "登录时会定期要求输入发到电子邮箱的验证码，确认邮箱仍可使用；没有电子邮箱的账户输入发到手机号码的验证码。", "能登录但看不到机构：显示“尚未加入机构”时，按《加入已开通的机构》申请；原来的机构不在列表中，表示你已被移出该机构。"],
     faq: [["电子邮箱已不能使用怎么办？", "用已绑定的手机号码登录或重置密码，再在“我的账户 › 账户”更换电子邮箱；都不能使用时联系 PACOM 支持核验身份。"], ["看不到某个项目怎么办？", "请联系本机构的机构管理员修改你的项目授权范围，修改后立即生效。"]], rel: ["acct-mail", "acct-profile"] },
   { id: "acct-mail", topic: "account", title: "收不到邮件或短信", roles: "所有角色", sum: "验证码、邀请和通知邮件收不到时，先查垃圾邮件，再放行发件地址。",
     steps: ["查看垃圾邮件、广告邮件和隔离区。", "把发件地址 noreply@pacom.cn 加入联系人；工作邮箱请 IT 管理员放行 pacom.cn 域名。", "短信：核对手机号码，查看手机是否拦截了短信。", "稍后重新发送；仍收不到时联系 PACOM 支持。"],
@@ -79008,6 +79206,8 @@ Object.assign(actions, {
   },
   // 从帮助打开的子页面有“返回帮助”，右上关闭仍退出整个帮助；联系支持有未复制的内容时先确认是否放弃（交互核查第 10 条）
   auSupport: (a) => auSupportOpen(a?.from === "help"),
+  // 2.47 账户第 446 条：状态页的“联系支持”：已登录时打开联系支持弹窗（直接发送，当前对象为该机构），未登录时打开“联系我们”
+  auStSupport: (a = {}) => (AUTH.session === "in" && AUTH.uid ? auSupportOpen(false, a.org) : actions.auContact()),
   auTerms: (a) => auTermsOpen(a?.from === "help"),
   auHelpCenter: (a) => auHelpCenterOpen(a?.from === "help"),
   auHelpTopic: (a) => auHelpTopicOpen(a.id),
@@ -79051,7 +79251,8 @@ Object.assign(actions, {
     }
     modalDirty = false;
     closeModal(true);
-    msg("已发送，回复会发到你的电子邮箱。");
+    // 2.47 账户第 442 条：没有电子邮箱的账户由 PACOM 支持致电手机号码
+    msg(auMe()?.email ? "已发送，回复会发到你的电子邮箱。" : "已发送，PACOM 支持会致电你的手机号码。");
   }),
   /* 机构设置 */
   // “行业”不再编辑，已有值只读显示（ORG01，Account B6）；预览中的标识随保存生效并写入审计日志（03 第 2 条）。
@@ -79211,14 +79412,17 @@ Object.assign(actions, {
     auSave();
     msg("已导出成员名单");
   },
-  auBillEdit: () => {
+  // 2.47 账户第 436 条：订单页（a.id）改这笔待付款订单的开票信息，同时更新机构的；“订单与发票”页改机构的，用于以后的订单
+  auBillEdit: (a = {}) => {
     if (!auCanManage()) throw Error("只有机构管理员可以修改开票信息");
-    const b = auLic().billing;
+    const od = a.id ? auOrderOf(a.id) : null;
+    if (a.id && od?.status !== "pending") return;
+    const b = od ? auOrderBilling(od) : auLic().billing;
     auDialog(
       "修改开票信息",
       // 2.33 账户第 263 条：同申请开通第 4 步的规则：两种数电发票；增值税专用发票的四项必填，普通发票不显示
       `<div class="au-form"><div class="field"><label id="auBillType-l">发票类型</label><div class="au-radios col" role="radiogroup" aria-labelledby="auBillType-l">${AU_INV_TYPES.map(([v, n]) => `<label class="au-radio"><input type="radio" name="auBillType" value="${v}" ${v === auBillKind(b) ? "checked" : ""}><span>${n}</span></label>`).join("")}</div></div>${fld("收票邮箱", "auBillMail", auInAttrs(input("auBillMail", b.email, "", "email"), AU_EMAIL_INPUT))}<div class="au-bill-special"${auBillKind(b) === "special" ? "" : " hidden"}>${fld("注册地址", "auBillAddr", input("auBillAddr", b.addr))}${fld("注册电话", "auBillTel", input("auBillTel", b.tel || ""))}${fld("开户银行", "auBillBank", input("auBillBank", b.bank))}${fld("银行账号", "auBillAcct", input("auBillAcct", b.acct || ""))}</div></div>`,
-      btn("取消", "close") + btn("保存", "auBillSave", {}, "primary"),
+      btn("取消", "close") + btn("保存", "auBillSave", od ? { id: od.id } : {}, "primary"),
     );
   },
   auCopyOrgCode: async (a, el) => {
@@ -79330,9 +79534,15 @@ Object.assign(actions, {
     auJoinCodeOf();
     auDialog("邀请码", auJoinCodeBody(), btn("关闭", "close", {}, "primary"), "nodirty au-jc-dlg");
   },
-  auJcCopy: (a) => {
-    try { navigator.clipboard?.writeText(a?.org ? auColleagueLink(a.org) : auJoinLink(AUTH.org)); } catch {}
-    msg("已复制邀请链接");
+  // 2.47 账户第 434、435 条：等复制结果；成功时按钮变勾、上方“已复制”，不成功时打开“复制链接”小弹窗
+  auJcCopy: async (a, el) => {
+    const url = a?.org ? auColleagueLink(a.org) : auJoinLink(AUTH.org);
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      return auCopyLinkDialog("邀请链接", url);
+    }
+    wsCopied(el);
   },
   // 2.21 账户第 186 条：PNG 图片，含机构名称和二维码，用于发到工作群或在会上投屏
   auJcQr: async () => {
@@ -79750,17 +79960,19 @@ Object.assign(actions, {
     AUX.auditKind = a.value;
     render();
   },
+  // 2.47 账户第 439 条：导出 CSV（同导出成员名单），列与页面列表相同，按当前页签和筛选；文件名中的日期与时间按中国标准时间（ORG07）
   auAuditExport: () => {
     if (!auCanManage()) throw Error("只有机构管理员可以导出审计日志");
-    auLog("导出审计日志", `${auOrg().name} · ${auAuditEvents().length} 条`, "security");
+    if (!AUX.auditPool) AU_ORG_PAGES.audit();
+    const q = String(AUX.auditQ || "").trim().toLowerCase();
+    const rows = (AUX.auditPool || [])
+      .filter((e) => !q || String(e.object || "").toLowerCase().includes(q))
+      .sort((a, b) => b.at - a.at)
+      .map((e) => [auCstIso(e.at).slice(0, 16).replace("T", " "), e.actor || "", e.action || "", e.object || "", e.result || ""]);
+    downloadBlob(`PACOM-审计日志-${auCstYmd()}.csv`, F.csvText({ name: "审计日志", cols: ["时间", "操作人", "操作", "对象", "结果"].map((h) => ({ h })), rows }), "text/csv;charset=utf-8");
+    auLog("导出审计日志", `${auOrg().name} · ${rows.length} 条`, "security");
     auSave();
-    // 审计日志自己的导出：文件名中的日期与文件中的时间按中国标准时间（ORG07，2026-10-08 用户确认，Account B14）
-    downloadJson("PACOM-审计日志-" + auCstIso(auNow()).slice(0, 10) + ".json", {
-      org: auOrg().name,
-      timeZone: "中国标准时间（UTC+08:00）",
-      events: auAuditEvents().map((e) => ({ ...e, at: auCstIso(e.at) })),
-      changes: data().records.map((r) => ({ ...r, at: auCstIso(Date.parse(r.at)) })),
-    });
+    msg("已导出审计日志");
   },
   /* 我的账户 */
   // 姓名在“修改”弹窗里改（2.07 第 61 条，取代第 453 条的整页表单与离页保护）
@@ -79787,8 +79999,9 @@ Object.assign(actions, {
         bind ? "手机号码" : phone ? "新手机号码" : "新电子邮箱",
         "auNewId",
         // 手机号码按电话号码类型：手机上弹出数字键盘、可自动填入本机号码，外观不变（全面设计核查第 71 条，2026-10-12 用户确认：原为普通文本框）
-        phone ? auInAttrs(input("auNewId", "", "例如 139 0000 0199", "tel"), 'inputmode="tel" autocomplete="tel"') : auInAttrs(input("auNewId", "", "name@example.com", "email"), AU_EMAIL_INPUT),
-      )}<div class="field"><label for="auNewCode">验证码</label><div class="au-inrow">${auInAttrs(input("auNewCode", "", "6 位数字"), AU_OTP)}${btn("获取验证码", "auDlgCode", { kind: a.kind }, "au-dlgcode")}</div><small class="muted" id="auNewCode-hint" aria-live="polite" hidden></small><span class="au-dlg-nocode" hidden>${auNoCodeHtml(phone ? "sms" : "mail", "au-dlg-nocode")}</span></div>`,
+        // 2.47 账户第 441 条：“获取验证码”放在新电子邮箱、新手机号码输入框里（同登录、重置密码），验证码框旁不再单独放按钮
+        `<div class="au-ctl au-idctl">${phone ? auInAttrs(input("auNewId", "", "例如 139 0000 0199", "tel"), 'inputmode="tel" autocomplete="tel"') : auInAttrs(input("auNewId", "", "name@example.com", "email"), AU_EMAIL_INPUT)}<button type="button" class="au-suffix au-getcode" data-act="auDlgCode" data-kind="${a.kind}">获取验证码</button></div>`,
+      )}<div class="field"><label for="auNewCode">验证码</label>${auInAttrs(input("auNewCode", "", "6 位数字"), AU_OTP)}<small class="muted" id="auNewCode-hint" aria-live="polite" hidden></small><span class="au-dlg-nocode" hidden>${auNoCodeHtml(phone ? "sms" : "mail", "au-dlg-nocode")}</span></div>`,
       btn("取消", "close") + btn(bind ? "绑定" : "确认更换", "auChangeIdSave", { kind: a.kind }, "primary"),
     );
   },
@@ -79891,7 +80104,7 @@ Object.assign(actions, {
   auDeleteAccount: () => {
     // 唯一的机构管理员时按钮不可用（第 66 条）；这里只作兜底。确认框读作警示对话框（第 84 条）
     const sole = auSoleAdminOrgs();
-    if (sole.length) throw Error(`你是${zhSub(sole[0].name, "r")}唯一的机构管理员。请先在成员中把另一位成员设为机构管理员，或删除机构。`);
+    if (sole.length) throw Error(sole.map((o) => auSoleText(o)).join(""));
     auDialog(
       "注销账户？",
       `<p class="au-dlead">注销后，你将退出全部机构（${auMyOrgs().length} 个），姓名、电子邮箱和手机号码随即删除，不能恢复。审计日志保留操作事实，不再显示你的姓名。</p>${fld("当前密码", "auDelPwd", auInAttrs(input("auDelPwd", "", "", "password"), AU_CUR_PWD), "高风险操作，需再次验证身份")}`,
@@ -79903,7 +80116,7 @@ Object.assign(actions, {
     if (!value("auDelPwd")) return auFieldErrs([["auDelPwd", "请输入当前密码"]]);
     if (value("auDelPwd") === "wrong") return auFieldErrs([["auDelPwd", "密码不正确"]]);
     const sole = auSoleAdminOrgs();
-    if (sole.length) throw Error(`你是${zhSub(sole[0].name, "r")}唯一的机构管理员。请先把另一位成员设为机构管理员。`);
+    if (sole.length) throw Error(sole.map((o) => auSoleText(o)).join(""));
     const uid = AUTH.uid,
       me = auMe(),
       name = me.name,
@@ -80830,6 +81043,8 @@ const AU_ORG_PAGES = {
     const filtered = !!(span || who !== "all" || act !== "all" || q);
     const shown = list.filter(keep),
       shownRecent = recent.filter(keep).slice(0, 20);
+    // 2.47 账户第 439 条：导出按当前页签和筛选（对象搜索在导出时再按输入过滤）
+    AUX.auditPool = [...shown, ...recent.filter(keep)];
     const cell = (x) => (x ? esc(x) : "—");
     // 结果的各项（如“成功 · 设备网络已建立”）整体不换行，只在“ · ”处换行（E8；K5 固定列宽后原先在“密钥”与“更新”之间断开）。
     // 时间与对象为附属信息，#636363（全面设计核查第 65 条，2026-10-12 用户确认：时间原为 #030303）
@@ -80907,16 +81122,32 @@ const auTotalText = (n) => `${auYuan(n)}（含税，其中增值税 ${auYuan(auV
 // “万”字的数字不加千分位（2 6）
 // 2.46 账户第 410 条：数量加千分位（“2,250 万词元”“1,000 万词元”）
 // 2.46 账户第 411 条：复制失败时先选中页面上的这段文字，再提示“无法自动复制，已选中，请手动复制。”（机构编号、订单号、收款信息同一句）
-function auCopyFail(text) {
+// 2.47 账户第 433 条：可传入要选中的元素；找不到与复制内容相同的文字时不说“已选中”
+const AU_COPY_FAIL = "无法自动复制，已选中，请手动复制。";
+function auSelectNode(el) {
+  if (!el || typeof getSelection !== "function") return false;
+  if (el.select) { el.focus?.(); el.select(); return true; }
+  const r = document.createRange();
+  r.selectNodeContents(el);
+  getSelection().removeAllRanges();
+  getSelection().addRange(r);
+  return true;
+}
+function auCopyFail(text, target) {
   const t = String(text || "").trim(),
-    el = t && [...document.querySelectorAll("#dlg *, #app *")].find((x) => x.childElementCount === 0 && x.textContent.trim() === t);
-  if (el && typeof getSelection === "function") {
-    const r = document.createRange();
-    r.selectNodeContents(el);
-    getSelection().removeAllRanges();
-    getSelection().addRange(r);
-  }
-  msg("无法自动复制，已选中，请手动复制。", "error");
+    el = target || (t && [...document.querySelectorAll("#dlg *, #app *")].find((x) => x.childElementCount === 0 && x.textContent.trim() === t));
+  msg(auSelectNode(el) ? AU_COPY_FAIL : "无法自动复制，请手动复制。", "error");
+}
+// 2.47 账户第 432、434 条：链接复制不成功时打开“复制链接”小弹窗，链接已选中（展示链接、邀请链接共用）
+function auCopyLinkDialog(name, url) {
+  auDialog(
+    "复制链接",
+    `<p class="au-dlead">${AU_COPY_FAIL}</p><div class="au-field scr-copy-field"><div class="au-lab"><label for="scrCopyUrl">${esc(name)}</label></div><div class="au-ctl"><input id="scrCopyUrl" class="au-in" readonly value="${esc(url)}" spellcheck="false"></div></div>`,
+    btn("完成", "close", {}, "primary"),
+  );
+  const input = $("#scrCopyUrl");
+  input?.focus();
+  input?.select();
 }
 const auWan = (n) => `${Math.round(n).toLocaleString("en-US")} 万`;
 const auPackName = (size) => (size >= 10000 ? `${(size / 10000).toLocaleString("en-US")} 亿词元` : `${size.toLocaleString("en-US")} 万词元`);
@@ -80975,6 +81206,7 @@ function auLicEff(l = auLic()) {
 // 暂停页、续期时机构设置页头的提示条与提醒邮件用同一个值。
 const auLicLastRenewDay = (l) => auYmdAdd(l.end, 90);
 const auLicPending = (l) => l.orders.find((x) => x.status === "pending" && x.kind !== "ai");
+const AU_LIC_HOLD = "有一笔待付款的订单，付款或取消后才能再下单。";
 function auLogBy(actor, action, object, kind = "license", result = "成功", org = AUTH.org) {
   AUTH.audit.unshift({ at: auNow(), actor, action, object, kind, result, org });
   AUTH.audit = AUTH.audit.slice(0, 80);
@@ -81349,7 +81581,10 @@ AU_ORG_PAGES.license = () => {
     body = `<div class="au-plan au-plan3"><div><span class="au-plan-k">状态</span><b>${left > 0 ? "已订阅" : "已到期"}</b>${left > 0 ? "" : `<small>${auDate(auYmdAdd(l.end, 1))}起已暂停使用，续期后自动恢复</small>`}</div><div><span class="au-plan-k">设备额度</span><b class="num">${fmt(l.quota)} 台</b></div><div><span class="au-plan-k">有效期${auFieldInfo("licRules", "有效期", AU_LIC_RULES)}</span><b class="num">至 ${auDate(l.end, true)}</b>${left > 0 ? `<small>剩 ${left} 天</small>` : ""}</div></div><p class="au-plan-more">${auApiLine(l)}</p>`;
   }
   // 已到期的只能续期，不能增加设备额度
-  const right = admin && l.state === "active" ? btn("续期", "auLicBuy", { kind: "renew" }) + (l.end >= today ? btn("增加设备额度", "auLicAdd") : "") : "";
+  // 2.47 账户第 437 条：有待付款的订阅、续期或增加设备额度订单时两个按钮不可点，下方写原因
+  const hold = admin && auLicPending(l), dis = hold ? { disabled: true } : {};
+  const acts = admin && l.state === "active" ? btn("续期", "auLicBuy", { kind: "renew", ...dis }) + (l.end >= today ? btn("增加设备额度", "auLicAdd", dis) : "") : "";
+  const right = acts && hold ? `<div class="au-lic-acts"><div>${acts}</div><small>${AU_LIC_HOLD}</small></div>` : acts;
   const sub = auSec("订阅", "", right, `${admin ? "" : auReadonlyNote("订阅、续期和增加设备额度")}${pendNote}${body}`);
   // 接口密钥：开放接口按合同开通后才显示，只给机构管理员（BP39、ED2）
   const keys = l.keys || [];
@@ -81463,8 +81698,9 @@ defineActions({
     render();
   },
   // 2.37 账户第 302 条：订阅、续期、增加设备额度进入订阅页（整页四步），不再用弹窗。
-  auLicBuy: (a) => auSubOpen(a.kind === "renew" && auLic().state === "active" ? "renew" : "sub"),
-  auLicAdd: () => auSubOpen("add"),
+  // 2.47 账户第 437 条：有待付款的订阅、续期或增加设备额度订单时，其他入口先进入该订单，不再开新的下单流程
+  auLicBuy: (a) => { const od = auLicPending(auLic()); if (od && auCanManage()) return actions.auPay({ id: od.id }); auSubOpen(a.kind === "renew" && auLic().state === "active" ? "renew" : "sub"); },
+  auLicAdd: () => { const od = auLicPending(auLic()); if (od && auCanManage()) return actions.auPay({ id: od.id }); auSubOpen("add"); },
   auLicDevAll: () => { AUX.licDevAll = !AUX.licDevAll; render(); },
   auSubBack: () => {
     if (AUX.sub?.dirty) return auDialog("放弃填写的内容？", "", btn("继续填写", "close") + btn("放弃", "auSubLeave", {}, "danger"), "au-alert");
@@ -81500,7 +81736,7 @@ defineActions({
     const od = { size: c.size, count: c.count, amount: c.total, text: `AI 用量包 · ${auPackName(c.size)} × ${c.count}` };
     const r = await auRequest("submitOrder", { org: AUTH.org, kind: "ai", ...od });
     if (r.status !== "ok") throw Error("暂时无法提交订单，请稍后再试。");
-    const x = { id: "od-" + Math.random().toString(36).slice(2, 8), no: r.orderNo || auOrderNo(l), kind: "ai", ...od, amount: auCents(od.amount), status: "pending", at: auNow(), until: auYmdAdd(auCstYmd(), 14), by: auMe().name, pay: "" };
+    const x = { id: "od-" + Math.random().toString(36).slice(2, 8), no: r.orderNo || auOrderNo(l), kind: "ai", ...od, amount: auCents(od.amount), status: "pending", at: auNow(), until: auYmdAdd(auCstYmd(), 14), by: auMe().name, pay: "", billing: { ...(l.billing || {}) } };
     l.orders.push(x);
     auLog("提交订单", `${x.text} · ${auYuan(x.amount)} · ${x.no}`, "license");
     auSave();
@@ -81530,10 +81766,12 @@ defineActions({
     if (r.status !== "ok" || !r.url) return msg("暂时无法打开网银页面，请稍后再试。", "error");
     window.open(r.url, "_blank", "noopener");
   },
-  auOrderNoCopy: async (a) => {
+  auOrderNoCopy: async (a, el) => {
     const od = auOrderOf(a.id);
     if (!od) return;
-    try { await navigator.clipboard.writeText(od.no); msg("已复制订单号"); } catch { auCopyFail(od.no); }
+    // 2.47 账户第 435 条：成功时按钮变勾、上方“已复制”，不弹消息提示
+    try { await navigator.clipboard.writeText(od.no); } catch { return auCopyFail(od.no); }
+    wsCopied(el);
   },
   // 合同（第 311 条）：在线签署、申请纸质合同
   auOrderSign: async (a) => {
@@ -81572,17 +81810,18 @@ defineActions({
   auOrderAgain: (a) => { const od = auOrderOf(a.id); if (od && od.kind !== "ai") auSubOpen(od.kind, od); },
   auOrderBack: () => { document.title = "PACOM Station"; route("org", { tab: "orders" }); },
   // 对公转账：一次复制户名、开户银行、账号和应付金额（第 309 条）
-  auAccCopy: async (a) => {
+  auAccCopy: async (a, el) => {
     const acc = auLic().account, od = a.id ? auOrderOf(a.id) : null;
     if (!acc) return;
     const t = a.k ? acc[a.k] : [`户名：${acc.name}`, `开户银行：${acc.bank}`, `账号：${acc.no}`, ...(od ? [`应付金额：${auYuan(od.amount)}`] : [])].join("\n");
     if (!t) return;
+    // 2.47 账户第 433、435 条：成功时按钮变勾、上方“已复制”；不成功时选中收款信息整块（单项复制选中该项）
     try {
       await navigator.clipboard.writeText(t);
-      msg(a.k ? `已复制${{ name: "户名", bank: "开户银行", no: "账号" }[a.k]}` : "已复制收款信息");
     } catch {
-      auCopyFail(t);
+      return auCopyFail(t, a.k ? null : $('[data-pay="bank"] > :first-child'));
     }
+    wsCopied(el);
   },
   auOrderCancel: (a) => {
     // 标题写出是哪一笔订单（参考组件核查第 438 条，同第 410 条）；读作警示对话框（第 443 条）。2026-10-11 用户确认
@@ -81611,7 +81850,7 @@ defineActions({
     if (r.status !== "ok" || !r.url) return msg("暂时无法下载，请稍后再试。", "error");
     window.open(r.url, "_blank", "noopener");
   },
-  auBillSave: withPolicy({ busy: "modal" }, async () => {
+  auBillSave: withPolicy({ busy: "modal" }, async (a = {}) => {
     if (!auCanManage()) throw Error("只有机构管理员可以修改开票信息");
     const mail = value("auBillMail").trim();
     if (!mail) return auFieldErrs([["auBillMail", "请输入收票邮箱"]]);
@@ -81620,9 +81859,12 @@ defineActions({
     const b = { type, email: mail, ...(type === "special" ? { addr: value("auBillAddr").trim(), tel: value("auBillTel").trim(), bank: value("auBillBank").trim(), acct: value("auBillAcct").trim() } : { addr: "", tel: "", bank: "", acct: "" }) };
     const miss = type === "special" ? [["auBillAddr", "请输入注册地址"], ["auBillTel", "请输入注册电话"], ["auBillBank", "请输入开户银行"], ["auBillAcct", "请输入银行账号"]].filter(([id]) => !value(id).trim()) : [];
     if (miss.length) return auFieldErrs(miss);
-    const r = await auRequest("saveBilling", { org: AUTH.org, ...b });
+    const od = a.id ? auOrderOf(a.id) : null;
+    if (a.id && od?.status !== "pending") return closeModal(true);
+    const r = await auRequest("saveBilling", { org: AUTH.org, ...(od ? { no: od.no } : {}), ...b });
     if (r.status !== "ok") throw Error("暂时无法保存，请稍后再试。");
     auLic().billing = b;
+    if (od) od.billing = { ...b };
     auLog("修改开票信息", `${auBillTypeName(b)} · ${auMask(mail)}`, "license");
     auSave();
     closeModal(true);
@@ -81723,13 +81965,14 @@ defineActions({
     $("#dlg .dialog")?.classList.add("nodirty");
     modalDirty = false;
   }),
-  // 复制成功：图标变勾、按钮上方“已复制”约 2 秒，不弹消息提示（Lovable 核查第 177 条，2026-10-11 用户确认）；不成功的提示不变。
+  // 复制成功：图标变勾、按钮上方“已复制”约 2 秒，不弹消息提示（Lovable 核查第 177 条，2026-10-11 用户确认）。
+  // 2.47 账户第 432 条：不成功时先选中弹窗里的密钥，再提示
   auKeyCopy: async (a, el) => {
     try {
       await navigator.clipboard.writeText(AUX.keyShown || "");
       wsCopied(el);
     } catch {
-      msg("无法复制，请手动选择密钥后复制");
+      auCopyFail(AUX.keyShown, $("#dlg .au-key code"));
     }
   },
   auKeyRevoke: (a) => {
@@ -81764,7 +82007,8 @@ defineActions({
     document.title = "PACOM Station";
     route("org", { tab: "license" });
     // 2.36 S7：订单逾期未付款时“去付款”直接打开付款：有待付款的订单打开其付款，没有时打开订阅下单
-    if (AUTH.orgs[id].suspended.reason === "订单逾期未付款") {
+    // 2.47 账户第 437 条：许可到期时“续期”遇到待付款的订单也先进入该订单
+    if (AUTH.orgs[id].suspended.reason === "订单逾期未付款" || auLicPending(auLic(id))) {
       const od = auLicPending(auLic(id));
       od ? actions.auPay({ id: od.id }) : actions.auLicBuy({ kind: "sub" });
     }
@@ -81824,7 +82068,7 @@ const AU_ACC_PAGES = {
           "",
           sole.length ? auDisBtn(del, "需先指定另一位机构管理员") : del,
           sole.length
-            ? `<span class="au-why">你是${sole.map((o) => zhSub(esc(o.name))).join("、")}唯一的机构管理员。请先在<button type="button" class="au-inline" data-act="auSoleMembers" data-org="${esc(sole[0].id)}">成员</button>中把另一位成员设为机构管理员，或删除机构。</span>`
+            ? `<span class="au-why">${sole.map((o) => auSoleText(o, true)).join("")}</span>`
             : "注销后退出全部机构并删除个人资料，不能恢复；审计日志保留操作事实，不再显示你的姓名。",
         ],
       ]),
@@ -81935,7 +82179,7 @@ const AU_ACC_PAGES = {
 };
 
 /* ---------- 权限与成员状态变化（GLOBAL02，2026-10-08 下一批第 2 轮） ---------- */
-// 成员状态：已被移出当前机构时进入“选择机构”或“尚未加入机构”并在页顶提示（2.42 账户第 371 条），机构暂停时进入“机构已暂停使用”（AUTH15），不显示“不存在或已删除”。
+// 成员状态：已被移出当前机构时进入“选择机构”或“尚未加入机构”，不加提示条（2.47 账户第 450 条），机构暂停时进入“机构已暂停使用”（AUTH15），不显示“不存在或已删除”。
 // 在工作区内换页（route）与打开或返回到工作区地址（readRoute）时按账户服务核对。
 // 许可到期暂停后机构管理员点了“续期”（AUTH15）：只能打开机构设置的“订阅与用量”和“订单与发票”，其他页面回到订阅与用量（"renew"）。
 function auMemberGate(page = U.page) {
@@ -81985,8 +82229,12 @@ function auSupportClean(s) {
     .replace(/[A-Za-z0-9+/_]{32,}={0,2}/g, "[已去除]");
 }
 // 当前对象：机构与角色、页面（与浏览器标签页标题相同，含项目、楼宇、楼层与功能区）和页面地址。
-const auSupportObject = () =>
-  auSupportClean(`机构：${auOrg().name} · ${auRole(U.role)}\n页面：${document.title.replace(/ · PACOM Station$/, "") || "PACOM Station"}\n地址：${location.hash || "#"}`);
+// 2.47 账户第 443 条：地址写完整页面链接（不带演示参数），不按网址去掉路径
+const auSupportObject = () => {
+  const id = AUX.supportOrg && AUTH.orgs[AUX.supportOrg] ? AUX.supportOrg : AUTH.org,
+    role = id === AUTH.org ? U.role : auMe().orgs?.[id] || U.role;
+  return `${auSupportClean(`机构：${auOrg(id).name} · ${auRole(role)}\n页面：${document.title.replace(/ · PACOM Station$/, "") || "PACOM Station"}`)}\n地址：${String(location.href || "").split(/[?#]/)[0]}${auSupportClean(location.hash)}`;
+};
 // 日志的时间按中国标准时间写，与账户页面的时间相同（2026-10-09 用户确认，ABB 对比 BP10）。
 const auSupportLog = () =>
   (typeof wsLog === "undefined" ? [] : wsLog).map((l) => {
@@ -82020,15 +82268,17 @@ function auSupportShotShow() {
     : `<small>页面不会自动截屏；可选择你保存的截图（PNG 或 JPG）。</small>`;
   $("#supShotPick").textContent = s ? "更换截图…" : "选择截图…";
 }
-function auSupportOpen(fromHelp = false) {
+function auSupportOpen(fromHelp = false, org = "") {
   AUX.supportShot = AUX.supportShotFile = null;
+  AUX.supportOrg = org;
   // 每次打开记一个新编号：之前的复制回执晚到时不影响这次的草稿（交互核查第 12 条）
   AUX.supportCopy = (AUX.supportCopy || 0) + 1;
   const object = auSupportObject(), lines = auSupportLog();
   auDialog(
     "联系支持",
     // 脱敏说明写清范围（交互核查第 11 条：原为“附带内容先去掉电子邮箱、手机号码、网址路径和密钥”，读来像截图也会处理）
-    `<p class="au-dlead">说明遇到的问题，并选择是否附带下列内容。当前对象和日志中的可识别信息会隐藏。截图不会自动脱敏，请在发送前遮盖个人信息、密码和密钥。</p>${fld(
+    // 2.47 账户第 443 条：去掉重复下方字段的第一句；底部次要按钮为“取消”
+    `<p class="au-dlead">当前对象和日志中的可识别信息会隐藏；截图请在发送前遮盖个人信息、密码和密钥。</p>${fld(
       "问题说明",
       "supText",
       `<textarea id="supText" class="input" rows="4"></textarea>`,
@@ -82040,7 +82290,7 @@ function auSupportOpen(fromHelp = false) {
     }<div class="au-sup-shot"><span class="au-sup-shot-l">截图<span id="supShotInfo"></span></span><button type="button" class="btn sm" id="supShotPick" data-act="auSupportPick">选择截图…</button><input type="file" id="supShot" accept="image/png,image/jpeg" hidden></div><small id="supShotErr" class="ws-field-err" role="alert" hidden></small></fieldset>${
       ""
     }<div class="au-sup-status" id="supStatus" role="status"></div>`,
-    (fromHelp ? btn("返回帮助", "auHelpBack") : "") + btn("关闭", "close") + btn("发送", "auSupportSend", {}, "primary"),
+    (fromHelp ? btn("返回帮助", "auHelpBack") : "") + btn("取消", "close") + btn("发送", "auSupportSend", {}, "primary"),
     "au-help-dlg",
   );
   // 两个多行框用 8×8 灰色弧形手柄，只能纵向拉（Lovable 核查第 155 条，2026-10-11 用户确认：原为浏览器的斜线手柄，能横向拉宽）
@@ -82282,7 +82532,8 @@ Object.assign(actions, {
     const settle = copied => {
       if (button) button.innerHTML = ico(copied ? 'check' : 'copy', 'ic16');
       if (done) done.textContent = copied ? '已复制' : '';
-      if (status) status.textContent = copied ? '' : '无法复制，请选中电子邮箱复制。';
+      // 2.47 账户第 432 条：不成功时先选中支持邮箱，再写同一句
+      if (status) status.textContent = copied ? '' : (auSelectNode(document.querySelector('.au-support-address a')), AU_COPY_FAIL);
     };
     if (done) done.textContent = '';
     try { await navigator.clipboard.writeText('support@pacom.cn'); }
@@ -83158,7 +83409,7 @@ defineActions({
     msg(old ? "已保存，屏上 1 分钟内换成新内容" : "已新建展示链接；复制链接后在屏上的浏览器中打开");
   },
   // 复制成功：图标变勾、按钮上方“已复制”约 2 秒，不弹消息提示；不成功：打开“复制链接”小弹窗，链接已选中，
-  // 按 Ctrl+C（Mac 上 ⌘C）复制（Lovable 核查第 177 条，2026-10-11 用户确认）。
+  // 写“无法自动复制，已选中，请手动复制。”（Lovable 核查第 177 条；2.47 账户第 432 条统一说明）。
   scrLinkCopy: async (a, el) => {
     const l = scrLinks().find((x) => x.id === a.id);
     if (!l || !auCanManage()) return;
@@ -83167,15 +83418,8 @@ defineActions({
       await navigator.clipboard.writeText(url);
       wsCopied(el);
     } catch {
-      const how = matchMedia("(pointer: coarse)").matches ? "长按链接后选择“复制”" : /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "按 ⌘C 复制" : "按 Ctrl+C 复制";
-      auDialog(
-        "复制链接",
-        `<p class="au-dlead">无法自动复制。链接已选中，请${how}。</p><div class="au-field scr-copy-field"><div class="au-lab"><label for="scrCopyUrl">${esc(l.name)}</label></div><div class="au-ctl"><input id="scrCopyUrl" class="au-in" readonly value="${esc(url)}" spellcheck="false"></div></div>`,
-        btn("完成", "close", {}, "primary"),
-      );
-      const input = $("#scrCopyUrl");
-      input?.focus();
-      input?.select();
+      // 2.47 账户第 432 条：说明统一为“无法自动复制，已选中，请手动复制。”，不再按设备写按键
+      auCopyLinkDialog(l.name, url);
     }
   },
   scrLinkRevoke: (a) => {
@@ -89845,7 +90089,7 @@ AU_JOIN_QR.download = () => {
 AU_LIC_HOOK.doc = (od, doc = "agreement") => {
   const l = auLic(),
     o = auOrg(),
-    b = l.billing || {},
+    b = (od && od.billing) || l.billing || {},
     title = { quote: "报价单", contract: "电子合同", invoice: "发票" }[doc] || "PACOM Station 服务协议";
   const lines = od
     ? [
@@ -89920,6 +90164,8 @@ function demoLicSeed(aiPct = 34, packLeft = 640) {
       projects: [["广实2号园", 0.64], ["广实1号园", 0.36]],
     },
   };
+  // 2.47 账户第 436 条：开票信息记在每笔订单上
+  for (const od of AUTH.licBy.gzlab.orders) od.billing ||= { ...AUTH.licBy.gzlab.billing };
   return AUTH.licBy.gzlab;
 }
 // 示例展示链接：[令牌, 演示菜单名称, 说明] 与链接内容；“展示链接已停用”打开一个不存在的链接
@@ -90355,6 +90601,7 @@ function demoMakeOrder(paid) {
   // 2.46 账户第 424 条：与订阅第 4 步提交的内容一致（100 台 · 1 年 · ¥15,600.00，增值税专用发票）
   l.billing = { type: "special", email: "zhang.hua@example.test", addr: "广州市黄埔区科学大道 18 号", tel: "020 8000 0109", bank: "招商银行广州科学城支行", acct: "1209 0000 0000 0109" };
   const od = { id: "od-open", no: `PS${auCstYmd().replace(/-/g, "")}-0001`, kind: "sub", text: "订阅 · 100 台 · 1 年", quota: 100, years: 1, amount: auCents(15600), status: "pending", at: auNow() - 36e5, until: auYmdAdd(auCstYmd(), 14), by: "张华", pay: "", contract: "pacom" };
+  od.billing = { ...l.billing };
   l.orders.push(od);
   auSave();
   if (paid) auOrderPaid(od.id, "bank");
@@ -90612,7 +90859,7 @@ const DEMO_ITEMS = [
   ["申请访问：加入", "join-in", "已登录：申请加入", "尚未加入机构的账户", () => (demoNoOrg(), (AUX.v.jn_code = auJoinCodeText("386204517")), demoShow("join"))],
   ["申请访问：加入", "join-wait", "申请已提交", "", () => (demoJoin("pending"), demoShow("join", "wait"))],
   // 2.38 账户第 337、338 条：未获批准、已过期不再有单独页面，登录后在“尚未加入机构”页顶提示
-  ["申请访问：加入", "join-rejected", "申请未获批准", "登录后在尚未加入机构页提示", () => demoJoinNotice("rejected")],
+  ["申请访问：加入", "join-rejected", "申请未获批准", "登录后进入尚未加入机构，不另提示", () => demoJoinNotice("rejected")],
   ["申请访问：加入", "join-expired", "申请已过期", "7 天没有处理", () => demoJoinNotice("expired")],
 
   // 申请访问：创建新机构（2.38 账户第 339 条：三步，提交即创建）
@@ -90644,7 +90891,7 @@ const DEMO_ITEMS = [
     () => (demoIn(), (AUTH.orgs[DEMO_PM].suspended = { reason: "客户申请" }), (AUX.suspendedOrg = DEMO_PM), demoShow("suspended")),
   ],
   // 2.42 账户第 371 条：没有单独页面，进入“选择机构”（没有其他机构时“尚未加入机构”），页顶提示
-  ["机构", "removed", "被移出机构", "页顶提示“你已被移出……”", () => (demoIn(), delete AUTH.people.wm.orgs[DEMO_PM], delete AUTH.lastOrg.wm, (AUTH.resume = {}), (AUX.removedOrg = DEMO_PM), demoShow("orgs"))],
+  ["机构", "removed", "被移出机构", "直接列出仍可访问的机构，不另提示", () => (demoIn(), delete AUTH.people.wm.orgs[DEMO_PM], delete AUTH.lastOrg.wm, (AUTH.resume = {}), (AUX.removedOrg = DEMO_PM), demoShow("orgs"))],
   // 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 154 条）：成员页的待批准与邀请码
   ["机构", "mem-requests", "成员：待批准的加入申请", "批准时选择角色和授权范围", () => {
     demoIn();
@@ -90674,7 +90921,7 @@ const DEMO_ITEMS = [
     () => {
       demoIn();
       const l = demoLicSeed();
-      l.orders.push({ id: "od-demo-3", no: `PS${auYmdAdd(auCstYmd(), -2).replace(/-/g, "")}-0003`, kind: "renew", text: "续期 · 500 台 · 1 年", quota: 500, years: 1, amount: 30000, status: "pending", at: auNow() - 2 * auDay, until: auYmdAdd(auCstYmd(), 12), by: "王敏", pay: "", stamp: false });
+      l.orders.push({ id: "od-demo-3", no: `PS${auYmdAdd(auCstYmd(), -2).replace(/-/g, "")}-0003`, kind: "renew", text: "续期 · 500 台 · 1 年", quota: 500, years: 1, amount: 30000, status: "pending", at: auNow() - 2 * auDay, until: auYmdAdd(auCstYmd(), 12), by: "王敏", pay: "", stamp: false, billing: { ...(l.billing || {}) } });
       demoHash("#org?tab=license");
     },
   ],
