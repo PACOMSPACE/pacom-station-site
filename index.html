@@ -76185,22 +76185,25 @@ const AU_EC = {
 };
 // “收不到验证码？”点开才显示（HONG 10-25 06:31Z）；“联系 PACOM 支持”打开“联系我们”。
 // 2.40 账户第 343 条：用户自己输入地址的（mail、sms）请核对输入；发到账户已有地址的（mailOwn 验证电子邮箱，smsOwn 验证手机号码、
-// 重置密码验证手机号码）不能核对也不能改，写清已停用或已更换时的去处。“骚扰拦截”统一为“手机是否拦截了短信”。
+// 重置密码验证手机号码）不能核对也不能改，写清已停用或已更换时的去处。
+// 2.49 账户第 488、489 条：只留最常见的一项排查，句式统一；放行发件地址的说明只在帮助里。
 const AU_NOCODE = {
-  mail: "请查看垃圾邮件；工作邮箱请 IT 管理员放行 noreply@pacom.cn。仍收不到，请{s}。",
-  mailOwn: "请查看垃圾邮件；工作邮箱请 IT 管理员放行 noreply@pacom.cn。仍收不到或邮箱已停用，请{s}。",
-  sms: "请核对手机号码，并查看手机是否拦截了短信。仍收不到，请{s}。",
-  smsOwn: "请查看手机是否拦截了短信。仍收不到或已更换号码，请{s}。",
-  // 2.30 账户第 225 条：先请用户核对输入（覆盖账户不存在的情况，不透露账户是否存在）。
-  rs: "请确认输入的是账户的电子邮箱或手机号码。请查看垃圾邮件，以及手机是否拦截了短信；工作邮箱请 IT 管理员放行 noreply@pacom.cn。电子邮箱或手机号码已不能使用时，改用另一种重置；都不能使用时，请{s}核验身份。",
+  mail: "请核对邮箱地址并查看垃圾邮件。仍未收到，请{s}。",
+  mailOwn: "请查看垃圾邮件。仍未收到或邮箱已停用，请{s}。",
+  sms: "请核对手机号码并查看短信是否被拦截。仍未收到，请{s}。",
+  smsOwn: "请查看短信是否被拦截。仍未收到或已更换号码，请{s}。",
+  // 重置密码按“电子邮箱或手机号码”框输入的格式显示其一（只看格式，不透露账户是否存在）。
+  rsMail: "请核对邮箱地址并查看垃圾邮件。仍未收到，可改用手机号码重置或{s}。",
+  rsSms: "请核对手机号码并查看短信是否被拦截。仍未收到，可改用电子邮箱重置或{s}。",
   // 2.21 账户第 178 条：加入页邀请码框下“没有邀请码？”，与“收不到验证码？”同一组件。
   // 2.40 账户第 347 条（HONG 2026-10-28 04:37Z 按推荐）：一句话说明找谁、要什么。
   join: "请联系机构管理员或已加入的同事获取邀请码。",
 };
 // 2.40 账户第 344 条：“联系 PACOM 支持”是句中的文字链接（不套用说明框底部按钮的样式），与其后的“。”不分开。
+const auNoCodeKind = (kind) => (kind !== "rs" ? kind : auPhoneKind(auEcTarget("rs")) ? "rsSms" : "rsMail");
 const auNoCodeBody = (kind) => {
   const link = `<button type="button" class="au-inline au-info-link" data-act="${kind === "rs" ? "auResetSupport" : "auContact"}">联系 PACOM 支持</button>`;
-  return esc(AU_NOCODE[kind]).replace("{s}。", `<span class="au-keep">${link}。</span>`).replace("{s}", link);
+  return esc(AU_NOCODE[auNoCodeKind(kind)]).replace("{s}。", `<span class="au-keep">${link}。</span>`).replace("{s}", link);
 };
 const auNoCodeHtml = (kind, id, label = "收不到验证码？") =>
   `<button type="button" class="au-inline au-nocode-btn" data-act="auNoCode" aria-expanded="false" aria-controls="${id}">${label}</button><span class="au-nocode" id="${id}" hidden>${auNoCodeBody(kind)}</span>`;
@@ -76208,7 +76211,7 @@ const auNoCodeHtml = (kind, id, label = "收不到验证码？") =>
 // 样式同“忘记密码？”，发送后才出现；点开的说明用 ⓘ 说明框组件在它上方弹出，不推动下方内容。
 // 2.38 账户第 332 条：“没有邀请码？”用同一组件（label）。
 const auNoCodeRight = (kind, id, shown, label = "收不到验证码？") =>
-  `<button type="button" class="au-textbtn au-login-forgot au-nocode-right" data-act="auNoCode" aria-expanded="false" aria-haspopup="dialog" aria-controls="${id}"${shown ? "" : " hidden"}><span>${label}</span></button><span id="${id}" class="ws-info-popover au-field-info-popover" role="dialog" aria-modal="false" tabindex="-1" aria-label="${label}" hidden><span class="ws-info-text">${auNoCodeBody(kind)}</span></span>`;
+  `<button type="button" class="au-textbtn au-login-forgot au-nocode-right" data-act="auNoCode" aria-expanded="false" aria-haspopup="dialog" aria-controls="${id}"${shown ? "" : " hidden"}><span>${label}</span></button><span id="${id}" class="ws-info-popover au-field-info-popover" role="dialog" aria-modal="false" tabindex="-1" aria-label="${label}" hidden><span class="ws-info-text" data-k="${auNoCodeKind(kind)}">${auNoCodeBody(kind)}</span></span>`;
 // 发送状态变化时显示或收起；收起时关闭已打开的说明。
 function auNoCodeShow(id, shown) {
   const b = document.querySelector(`.au-nocode-right[aria-controls="${id}"]`);
@@ -76260,6 +76263,9 @@ function auEcSync() {
     if (el.dataset.ec !== html) { el.innerHTML = html; el.dataset.ec = html; }
     auNoCodeShow(`au-${key}-nocode`, !!auEcSent(key));
   }
+  // 2.49 账户第 488 条：发送后改成另一种格式时，重置密码的说明随之切换。
+  const rsBox = document.querySelector("#au-rs-nocode .ws-info-text");
+  if (rsBox && rsBox.dataset.k !== auNoCodeKind("rs")) { rsBox.innerHTML = auNoCodeBody("rs"); rsBox.dataset.k = auNoCodeKind("rs"); }
   const live = document.getElementById("au-rs-live"), said = auEcSent("rs") ? "验证码已发送" : "";
   if (live && live.textContent !== said) live.textContent = said;
   auMeasureCodePadding();
@@ -78058,6 +78064,11 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "2.49",
+    date: "2026-10-29",
+    notes: ["改进：“收不到验证码？”的说明更简洁；重置密码时按输入的电子邮箱或手机号码给出对应的说明。", "修复已知问题，优化界面细节。"],
+  },
+  {
     version: "2.48",
     date: "2026-10-28",
     notes: [
@@ -78850,7 +78861,7 @@ const HELP_ARTICLES = [
     steps: ["账户是电子邮箱；手机号码绑定并验证后也可以登录。", "提示账户或密码不正确时，核对后重试，或点“忘记密码？”用验证码重置。", "多次输错后会暂停登录一段时间，期间登录按钮不可用；连续输错过多，只能重置密码后再登录。", "机构管理员在新设备或新浏览器上登录，须验证手机号码；没有绑定手机号码的，登录时先绑定。", "勾选“保持登录”后，关闭浏览器也不会退出，最长 30 天；修改或重置密码后需要重新登录。", "登录时会定期要求输入发到电子邮箱的验证码，确认邮箱仍可使用；没有电子邮箱的账户输入发到手机号码的验证码。", "能登录但看不到机构：显示“尚未加入机构”时，按《加入已开通的机构》申请；原来的机构不在列表中，表示你已被移出该机构。"],
     faq: [["电子邮箱已不能使用怎么办？", "用已绑定的手机号码登录或重置密码，再在“我的账户 › 账户”更换电子邮箱；都不能使用时联系 PACOM 支持核验身份。"], ["看不到某个项目怎么办？", "请联系本机构的机构管理员修改你的项目授权范围，修改后立即生效。"]], rel: ["acct-mail", "acct-profile"] },
   { id: "acct-mail", topic: "account", title: "收不到邮件或短信", roles: "所有角色", sum: "验证码、邀请和通知邮件收不到时，先查垃圾邮件，再放行发件地址。",
-    steps: ["查看垃圾邮件、广告邮件和隔离区。", "把发件地址 noreply@pacom.cn 加入联系人；工作邮箱请 IT 管理员放行 pacom.cn 域名。", "短信：核对手机号码，查看手机是否拦截了短信。", "稍后重新发送；仍收不到时联系 PACOM 支持。"],
+    steps: ["查看垃圾邮件、广告邮件和隔离区。", "把发件地址 noreply@pacom.cn 加入联系人；工作邮箱请 IT 管理员放行 pacom.cn 域名。", "短信：核对手机号码，查看短信是否被拦截。", "稍后重新发送；仍收不到时联系 PACOM 支持。"],
     faq: [["验证码过期了怎么办？", "验证码 10 分钟内有效，过期后重新发送。"], ["通知邮件能关闭吗？", "告警通知可以在“我的账户 › 通知偏好”中关闭部分渠道；订阅到期与用量提醒不能关闭。"]], rel: ["login"] },
   { id: "acct-profile", topic: "account", title: "个人资料与登录方式", roles: "所有角色", sum: "在“我的账户 › 账户”修改姓名、电子邮箱、手机号码和密码。",
     steps: ["打开侧栏左下角的机构入口，点姓名一行进入我的账户。", "更换电子邮箱或手机号码须输入当前密码，并填写发到新地址的验证码。", "修改密码后，其他设备上的登录会退出。", "在“登录设备”中可以让其他设备退出，手机丢失时使用。", "属于多个机构时，点侧栏左下角的机构入口切换。"],
