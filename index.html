@@ -7605,6 +7605,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 #dlg[data-page=projects] .ws-form-map ~ label.row { font-weight:400; }
 .ws-textarea-shell { display:grid; min-height:80px; min-width:0; width:100%; }
 .ws-textarea-shell > textarea.input { grid-area:1/1; display:block; width:100%; resize:none; }
+.ws-textarea-shell:has(> textarea[hidden]) { display:none; }
 .ws-resize { position:relative; z-index:1; grid-area:1/1; align-self:end; justify-self:end; width:24px; height:24px; padding:0; border:0; box-shadow:none; background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M6.75.25A.75.75 0 0 1 7.5 1v2.75A3.75 3.75 0 0 1 3.75 7.5H1A.75.75 0 0 1 1 6h2.75A2.25 2.25 0 0 0 6 3.75V1a.75.75 0 0 1 .75-.75Z' fill='%23a3a3a3'/%3E%3C/svg%3E") no-repeat right 4px bottom 4px/8px 8px; border-radius:4px; cursor:ns-resize; touch-action:none; }
 .ws-resize:hover { background-color:transparent; }
 .ws-resize:focus-visible { outline:2px solid #00AEEF; outline-offset:2px; }
@@ -16143,8 +16144,8 @@ p.ops-work .ops-link {
 .ws-info-text > .ws-info-title { display:block; margin-bottom:4px; }
 .ws-info-text p:last-child { margin-bottom:0; }
 .ws-info-text .ops-explain-part + .ops-explain-part { margin-top:8px; padding-top:8px; border-top:1px solid #ebebeb; }
-.ws-info-text > :is(a[href],button,.btn), .ws-info-text > :is(.row,.ops-ctl-row):has(> :is(a,button)) { margin-top:12px; }
-.ws-info-text > :is(a[href],button,.btn), .ws-info-text :is(.row,.ops-ctl-row) > :is(a,button) { display:flex; align-items:center; justify-content:center; position:relative; width:100%; min-height:32px; padding:6px 10px; border:0; border-radius:8px; background:transparent; box-shadow:none; font:400 14px/21px var(--ff); color:#030303; text-decoration:none; }
+.ws-info-text > :is(a[href],button,.btn):not(.au-inline), .ws-info-text > :is(.row,.ops-ctl-row):has(> :is(a,button)) { margin-top:12px; }
+.ws-info-text > :is(a[href],button,.btn):not(.au-inline), .ws-info-text :is(.row,.ops-ctl-row) > :is(a,button) { display:flex; align-items:center; justify-content:center; position:relative; width:100%; min-height:32px; padding:6px 10px; border:0; border-radius:8px; background:transparent; box-shadow:none; font:400 14px/21px var(--ff); color:#030303; text-decoration:none; }
 .ws-info-popover.ws-info-exit { pointer-events:none; animation:ws-info-exit 150ms ease both; }
 @keyframes ws-info-enter { from { opacity:0; transform:translateY(2px) scale(.97); } to { opacity:1; transform:none; } }
 @keyframes ws-info-exit { from { opacity:1; transform:none; } to { opacity:0; transform:scale(.97); } }
@@ -16321,6 +16322,8 @@ p.ops-work .ops-link {
 .ops-t :is(th, td).ops-r { text-align: right; }
 .ops-t td.ops-r .ops-cmp-v { justify-content: flex-end; }
 .ops-t td.ops-r .ops-cmp-v + .ops-cmp-sub { padding-left: 0; }
+/* 2.40 账户第 344 条：说明框按词换行：打开时在词与词之间加断行点（wsInfoWords），词不在中间断开，标点不在行首，其余照常排满整行。 */
+.ws-info-text.ws-words { word-break:keep-all; line-break:strict; overflow-wrap:anywhere; }
 
 }
 @layer base {
@@ -21513,8 +21516,9 @@ form > .au-subhead:first-child, fieldset > .au-subhead:first-child { margin-top:
 .au-meter-note { margin: 8px 0 0; font: 400 14px/24px var(--ff); color: #636363; }
 .au-meter-note.warn { color: var(--warn, #b45309); }
 .au-mem-tools .au-search { width: 320px; max-width: 100%; }
-/* 2.38 账户第 331 条：同意句中的“客户隐私声明”“使用条款”与“申请访问”“登录”等问句链接 480 字重，平时无下划线，电脑悬停时出现。 */
-.au .au-check .au-legal-link, .au .au-noacct .au-inline { font-weight: 480; text-decoration: none; }
+/* 2.38 账户第 331 条：同意句中的“客户隐私声明”“使用条款”与“申请访问”“登录”等问句链接平时无下划线，电脑悬停时出现；
+   2.40（HONG 2026-10-28 04:33Z）字重 400，颜色不变。 */
+.au .au-check .au-legal-link, .au .au-noacct .au-inline { font-weight: 400; text-decoration: none; }
 @media (hover: hover) { .au .au-check .au-legal-link:hover { text-decoration: underline; } }
 /* 2.38 账户第 333 条：申请说明用全站的多行输入框：底色、描边、悬停、聚焦同本页单行框，圆角 8，3 行高，可往下拉高，文字大小同本页其他框。 */
 #app .au .au-in.au-ta.au-ta-std {
@@ -21527,6 +21531,22 @@ form > .au-subhead:first-child, fieldset > .au-subhead:first-child { margin-top:
 /* 2.38 账户第 337、338 条：“尚未加入机构”页顶的加入申请提示条，标题下 16。 */
 .au .au-join-notice { margin: 16px 0 0; }
 .au .au-join-notice > .btn { margin-left: auto; flex: none; align-self: center; }
+/* 2.40 账户第 344 条：说明框里的“联系 PACOM 支持”是句中的文字链接：与正文同字号同行高，颜色、字重同登录页其他链接（400），电脑悬停出现下划线，链接本身不断开。 */
+.ws-info-text .au-inline.au-info-link { display:inline; min-height:0; margin:0; padding:0; font:inherit; font-weight:400; line-height:inherit; color:var(--text); text-decoration:none; white-space:nowrap; background:none; border:0; }
+@media (hover: hover) { .ws-info-text .au-inline.au-info-link:hover { text-decoration:underline; text-underline-offset:3px; } }
+.ws-info-text .au-keep { white-space:nowrap; }
+/* 2.40 账户第 346 条：号码已绑定另一个账户时，提示后的“改绑到此账户”（不能改绑时为“联系 PACOM 支持”）是句后的文字链接，颜色同登录页其他链接，电脑悬停出现下划线。 */
+:is(.au .au-err, .ws-field-err) .au-rebind { display:inline; min-height:0; margin:0 0 0 4px; padding:0; font:inherit; font-weight:400; color:var(--text); text-decoration:none; white-space:nowrap; background:none; border:0; }
+:is(.au .au-err, .ws-field-err) .au-keep .au-rebind { margin-left:0; }
+@media (hover: hover) { :is(.au .au-err, .ws-field-err) .au-rebind:hover { text-decoration:underline; text-underline-offset:3px; } }
+:is(.au .au-err, .ws-field-err) .au-keep { white-space:nowrap; }
+/* 2.40（HONG 2026-10-28 04:44Z 按推荐）：申请说明用“项目说明”同一多行输入组件：高 80、下方不留空白；文字、底色、描边同本页“邀请码”框；
+   悬停、聚焦只改描边颜色，不改尺寸（原外壳悬停时去掉 8 的空白，“申请加入”上移 8）。拖动标志与方向键调整见 ws-resize。 */
+#app .au .ws-textarea-shell.au-note-shell { min-height:80px; margin:0; }
+#app .au .ws-textarea-shell.au-note-shell > .au-in.au-ta.au-ta-std { grid-area:1/1; height:80px; min-height:80px !important; max-height:none; margin:0; padding:8px 12px; border:0; border-radius:8px; resize:none; font:400 16px/24px var(--ff); background:var(--au-input-fill); box-shadow:var(--au-input-shade), inset var(--au-in-rim); }
+@media (hover: hover) { #app .au .ws-textarea-shell.au-note-shell > .au-in.au-ta.au-ta-std:not(:focus):hover { box-shadow:var(--au-input-shade), inset var(--au-in-hover); } }
+#app .au .ws-textarea-shell.au-note-shell > .au-in.au-ta.au-ta-std:focus { box-shadow:var(--au-input-shade), inset 0 0 0 1px #00AEEF; }
+#app .au .au-field.bad .ws-textarea-shell.au-note-shell > .au-in.au-ta.au-ta-std, #app .au .ws-textarea-shell.au-note-shell > .au-in.au-ta.au-ta-std[aria-invalid="true"] { box-shadow:var(--au-input-shade), inset 0 0 0 1px var(--au-in-err); }
 
 }
 @layer base {
@@ -37681,7 +37701,7 @@ function modal(title, body, foot = "", wide = true, options = {}) {
   el.innerHTML = `<section class="dialog ${wide ? "wide" : ""}${wide === "xl" ? " xl" : ""}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="dh"><h2>${wsTitleHtml(title)}</h2>${options.noClose ? "" : iconBtn("关闭", "x", "close")}</div><div class="db" id="dlgBody">${body}<div class="form-error" id="formError" role="alert"></div></div>${options.footer === false ? "" : `<div class="df">${foot || btn("关闭", "close")}</div>`}</section>`;
   document.body.append(el);
   wsGateSync(el);
-  if (U.page === "projects") wsProjectTextareas(el);
+  if (typeof wsProjectTextareas === "function") wsProjectTextareas(el); // 2.40：全站多行输入框同一组件
   // 聚焦第一个字段；没有字段或触屏（避免弹出键盘）时聚焦标题
   el.querySelectorAll(".field").forEach(field => {
     const hint = field.querySelector("small[id]"), ctl = field.querySelector("input:not([type=hidden]),textarea,select,[role=combobox]");
@@ -38391,7 +38411,7 @@ function wsSideHtml() {
 }
 const wsHeadHtml = () => `<button class="iconbtn mobnav" data-act="mobnav" aria-label="打开菜单" aria-controls="side" aria-expanded="false">${ico("menu")}</button>${headTitle()}${sourceBack()}${pageCategoryTitleActions()}${typeof headerRight === "function" ? headerRight() : ""}`;
 // 比对前在新内容上先做绘制后处理的结构调整（说明框外壳），不必每次绘制都拆装。
-const wsMorphPrepare = (frag) => { if (U.page === "projects" && typeof wsProjectTextareas === "function") wsProjectTextareas(frag); };
+const wsMorphPrepare = (frag) => { if (typeof wsProjectTextareas === "function") wsProjectTextareas(frag); };
 // 普通成员只有总览中的“我的区域”与“我的账户”（2026-10-09 用户确认，角色权限方案第 4 条）：其他页面与页签（含浏览器地址）一律回到总览；未知地址仍显示“页面不存在”。
 // 只在这一处判断：每次绘制前核对，换页、读地址与切换角色都经过这里。
 function memberGuard() {
@@ -54662,6 +54682,26 @@ function opsExplainCloseTip(restoreFocus = false) {
   } else tip.remove();
   if (restoreFocus && anchor?.isConnected) anchor.focus({ preventScroll: true });
 }
+// 2.40 账户第 344 条：说明框按词换行。按词切分（Intl.Segmenter）后在中文词与词之间加 <wbr>，配合 keep-all，词不在中间断开；
+// 闭合标点前、开括号后不加，标点不在行首；英文、数字、邮箱地址内部不加。没有 Intl.Segmenter 时不处理，照常断行。可重复调用。
+const WS_CJK = /[\u3400-\u9fff\uf900-\ufaff]/, WS_NO_BEFORE = /^[。，、；：！？）」』”’》〉】…%]/, WS_NO_AFTER = /[（「『“‘《〈【]$/;
+function wsInfoWords(root) {
+  if (!root || typeof Intl === "undefined" || !Intl.Segmenter) return;
+  const seg = new Intl.Segmenter("zh", { granularity: "word" }), walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [];
+  while (walk.nextNode()) if (WS_CJK.test(walk.currentNode.nodeValue) && !walk.currentNode.parentElement?.closest("button,a")) nodes.push(walk.currentNode);
+  for (const n of nodes) {
+    const parts = [...seg.segment(n.nodeValue)].map((x) => x.segment);
+    if (parts.length < 2) continue;
+    const frag = document.createDocumentFragment();
+    parts.forEach((p, i) => {
+      const prev = parts[i - 1];
+      if (prev && !/\s$/.test(prev) && !/^\s/.test(p) && (WS_CJK.test(prev.slice(-1)) || WS_CJK.test(p[0])) && !WS_NO_BEFORE.test(p) && !WS_NO_AFTER.test(prev)) frag.append(document.createElement("wbr"));
+      frag.append(p);
+    });
+    n.replaceWith(frag);
+  }
+  root.classList.add("ws-words");
+}
 function opsExplainOpenTip(anchor, content, existing = null) {
   if (opsExplainTip?.anchor === anchor) return opsExplainCloseTip(true);
   opsExplainCloseTip();
@@ -54683,6 +54723,7 @@ function opsExplainOpenTip(anchor, content, existing = null) {
     tip.infoClickGuard = true;
   }
   document.body.append(tip); opsExplainTip = tip;
+  wsInfoWords(tip.querySelector(".ws-info-text"));
   if (!wsPlaceInfo(anchor, tip)) return opsExplainCloseTip();
   anchor.setAttribute("aria-expanded", "true"); anchor.setAttribute("aria-controls", tip.id); anchor.removeAttribute("aria-describedby");
   (wsFocusables(tip)[0] || tip).focus({ preventScroll: true });
@@ -75736,14 +75777,14 @@ for (const ev of ["pointerdown", "keydown"])
 /* ---------- 登录验证（2.33（2026-10-27 HONG 06:24Z 按推荐，账户第 264–268 条，取代第 73、151 条的单独页面和第 169 条的短信验证页）） ---------- */
 // 账户、密码（或短信验证码）核对通过后还需验证的，在登录页上打开“登录验证”弹窗，登录页留在后面；验证通过才建立登录（之前没有登录状态）。
 // 规则不变：机构管理员在新设备或新浏览器上验证手机号码（第 73 条：用短信验证码登录的不再验证，验证过的浏览器记在 AUTH.trustedDev）；
-// 每 90 天验证电子邮箱，没有电子邮箱的验证手机号码（第 151、235 条）；机构管理员没有绑定手机号码的先绑定。同一次登录有两项时，先手机号码、再电子邮箱。
+// 定期验证电子邮箱（服务端规定周期，现为 90 天），没有电子邮箱的验证手机号码（第 151、235 条）；2.40 账户第 345 条：界面不写周期。机构管理员没有绑定手机号码的先绑定。同一次登录有两项时，先手机号码、再电子邮箱。
 // 短信验证码的回执（登录页“短信验证码登录”）
 const auSmsReceiptHtml = (sent) => (sent ? `验证码${auCodeReceiptHtml(sent)}` : "");
 const AU_LV = {
   phone: { title: "验证手机号码", lead: "在新设备上登录机构管理员账户，需验证手机号码。", key: "lp", label: "短信验证码", btn: "验证并登录" },
-  tel: { title: "验证手机号码", lead: "每 90 天验证一次，确认你仍在使用此号码。", key: "lp", label: "短信验证码", btn: "验证并登录" },
-  mail: { title: "验证电子邮箱", lead: "每 90 天验证一次，确认你仍在使用此邮箱。", key: "lm", label: "邮件验证码", btn: "验证并登录" },
-  bind: { title: "绑定手机号码", lead: "机构管理员须绑定手机号码，用于在新设备上登录时验证。", key: "lb", label: "短信验证码", btn: "绑定并登录" },
+  tel: { title: "验证手机号码", lead: "为保障账户安全，需定期确认此号码仍可正常使用。", key: "lp", label: "短信验证码", btn: "验证并登录" },
+  mail: { title: "验证电子邮箱", lead: "为保障账户安全，需定期确认此邮箱仍可正常使用。", key: "lm", label: "邮件验证码", btn: "验证并登录" },
+  bind: { title: "绑定手机号码", lead: "用于在新设备上登录和重置密码时验证身份。", key: "lb", label: "短信验证码", btn: "绑定并登录" },
 };
 const auLvPerson = () => AUTH.people[AUX.lv?.uid];
 function auLoginChecks(uid, sms) {
@@ -75771,7 +75812,7 @@ function auLoginGate(uid, sms) {
 function auLvBody(kind) {
   const c = AU_LV[kind], bind = kind === "bind";
   const tel = bind ? auField({ name: "lb_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", suffix: auEcBtn("lb"), hint: auEcLine("lb"), hintRole: "status" }) : "";
-  const code = auField({ name: `${c.key}_code`, label: c.label, right: auNoCodeRight(c.key === "lm" ? "mail" : "sms", `au-${c.key}-nocode`, !!auEcSent(c.key)), auto: "one-time-code", inputmode: "numeric", maxlength: 6, ...(bind ? {} : { suffix: auEcBtn(c.key), hint: auEcLine(c.key), hintRole: "status" }) });
+  const code = auField({ name: `${c.key}_code`, label: c.label, right: auNoCodeRight(c.key === "lm" ? "mailOwn" : c.key === "lb" ? "sms" : "smsOwn", `au-${c.key}-nocode`, !!auEcSent(c.key)), auto: "one-time-code", inputmode: "numeric", maxlength: 6, ...(bind ? {} : { suffix: auEcBtn(c.key), hint: auEcLine(c.key), hintRole: "status" }) });
   return `<p class="au-dlead">${c.lead}</p><form id="au-lv-form" data-form="loginVerify" data-kind="${kind}" novalidate><fieldset>${tel}${code}<p class="au-ferr" role="alert" hidden></p></fieldset></form>`;
 }
 // 只剩一项时主按钮为“验证并登录”（绑定为“绑定并登录”）；前面还有一项时为“继续”。
@@ -76010,16 +76051,24 @@ const AU_EC = {
   rp: { field: "", to: () => AUTH.people[AUX.resetAdmin?.uid]?.phone || "", code: "rp_code", help: "sms", resend: "重新获取" },
 };
 // “收不到验证码？”点开才显示（HONG 10-25 06:31Z）；“联系 PACOM 支持”打开“联系我们”。
+// 2.40 账户第 343 条：用户自己输入地址的（mail、sms）请核对输入；发到账户已有地址的（mailOwn 验证电子邮箱，smsOwn 验证手机号码、
+// 重置密码验证手机号码）不能核对也不能改，写清已停用或已更换时的去处。“骚扰拦截”统一为“手机是否拦截了短信”。
 const AU_NOCODE = {
   mail: "请查看垃圾邮件；工作邮箱请 IT 管理员放行 noreply@pacom.cn。仍收不到，请{s}。",
-  sms: "请核对手机号码，并查看手机的骚扰拦截。仍收不到，请{s}。",
+  mailOwn: "请查看垃圾邮件；工作邮箱请 IT 管理员放行 noreply@pacom.cn。仍收不到或邮箱已停用，请{s}。",
+  sms: "请核对手机号码，并查看手机是否拦截了短信。仍收不到，请{s}。",
+  smsOwn: "请查看手机是否拦截了短信。仍收不到或已更换号码，请{s}。",
   // 2.30 账户第 225 条：先请用户核对输入（覆盖账户不存在的情况，不透露账户是否存在）。
-  rs: "请确认输入的是账户的电子邮箱或手机号码。请查看垃圾邮件或手机的骚扰拦截；工作邮箱请 IT 管理员放行 noreply@pacom.cn。电子邮箱或手机号码已不能使用时，改用另一种重置；都不能使用时，请{s}核验身份。",
-  ve: "请查看垃圾邮件；工作邮箱请 IT 管理员放行 noreply@pacom.cn。邮箱已停用时，请{s}更换。",
+  rs: "请确认输入的是账户的电子邮箱或手机号码。请查看垃圾邮件，以及手机是否拦截了短信；工作邮箱请 IT 管理员放行 noreply@pacom.cn。电子邮箱或手机号码已不能使用时，改用另一种重置；都不能使用时，请{s}核验身份。",
   // 2.21 账户第 178 条：加入页邀请码框下“没有邀请码？”，与“收不到验证码？”同一组件。
-  join: "请已加入的同事在“我的账户 › 我的机构”点“邀请同事”发给你，或请机构管理员按这个电子邮箱邀请你。被邀请后，点邀请邮件中的链接或回到这一页，即可直接加入。",
+  // 2.40 账户第 347 条（HONG 2026-10-28 04:37Z 按推荐）：一句话说明找谁、要什么。
+  join: "请联系机构管理员或已加入的同事获取邀请码。",
 };
-const auNoCodeBody = (kind) => esc(AU_NOCODE[kind]).replace("{s}", `<button type="button" class="au-inline" data-act="${kind === "rs" ? "auResetSupport" : "auContact"}">联系 PACOM 支持</button>`);
+// 2.40 账户第 344 条：“联系 PACOM 支持”是句中的文字链接（不套用说明框底部按钮的样式），与其后的“。”不分开。
+const auNoCodeBody = (kind) => {
+  const link = `<button type="button" class="au-inline au-info-link" data-act="${kind === "rs" ? "auResetSupport" : "auContact"}">联系 PACOM 支持</button>`;
+  return esc(AU_NOCODE[kind]).replace("{s}。", `<span class="au-keep">${link}。</span>`).replace("{s}", link);
+};
 const auNoCodeHtml = (kind, id, label = "收不到验证码？") =>
   `<button type="button" class="au-inline au-nocode-btn" data-act="auNoCode" aria-expanded="false" aria-controls="${id}">${label}</button><span class="au-nocode" id="${id}" hidden>${auNoCodeBody(kind)}</span>`;
 // 2.29（2026-10-26 HONG 05:29Z 按推荐，账户第 213 条，取代第 193 条和第 211 条“放在下一行”）：“收不到验证码？”放在“验证码”框字段名一行右侧，
@@ -76096,8 +76145,8 @@ async function auEcIssue(key, to) {
   if (st === "ok") Object.assign(s, { to, cool: Math.min(r.retryAt || auNow() + 6e4, auNow() + 6e4), exp: r.expiresAt || auNow() + AU_CODE_LIFE, maybe: "" });
   else {
     const limited = ["limit", "frequent", "rate-limited"].includes(st), retryAt = limited ? r?.retryAt || auNow() + 36e5 : 0;
-    // 发送提示两句（第 142 条）：“发送次数过多，请 {时长}后再试。”“暂时无法发送，请稍后再试。”
-    s.limit = { to, retryAt, text: limited ? `发送次数过多，请 ${auWaitText(retryAt - auNow())}后再试。` : "暂时无法发送，请稍后再试。" };
+    // 发送提示两句（第 142 条；2.40 账户第 341 条不写时长）：“发送次数过多，请稍后再试。”“暂时无法发送，请稍后再试。”
+    s.limit = { to, retryAt, text: limited ? "发送次数过多，请稍后再试。" : "暂时无法发送，请稍后再试。" };
     if (st === "unknown") s.maybe = to;
   }
   auEcSync();
@@ -76308,7 +76357,7 @@ function auResetDone(f, r, id, kind, smsOk) {
 }
 // 第二部分：标题不变，说明一行，短信验证码（自动发送），“返回”和“重置并登录”。
 function auResetPhoneOpen() {
-  $("#dlg .db").innerHTML = `<p class="au-dlead">重置机构管理员账户的密码，还需验证手机号码。</p><form id="au-rp-form" data-form="resetPhone" novalidate><fieldset>${auField({ name: "rp_code", label: "短信验证码", right: auNoCodeRight("sms", "au-rp-nocode", !!auEcSent("rp")), auto: "one-time-code", inputmode: "numeric", maxlength: 6, suffix: auEcBtn("rp"), hint: auEcLine("rp"), hintRole: "status" })}<p class="au-ferr" role="alert" hidden></p></fieldset></form>`;
+  $("#dlg .db").innerHTML = `<p class="au-dlead">重置机构管理员账户的密码，需验证手机号码。</p><form id="au-rp-form" data-form="resetPhone" novalidate><fieldset>${auField({ name: "rp_code", label: "短信验证码", right: auNoCodeRight("smsOwn", "au-rp-nocode", !!auEcSent("rp")), auto: "one-time-code", inputmode: "numeric", maxlength: 6, suffix: auEcBtn("rp"), hint: auEcLine("rp"), hintRole: "status" })}<p class="au-ferr" role="alert" hidden></p></fieldset></form>`;
   $("#dlg .df").innerHTML = `<button type="button" class="btn" data-act="auResetBack">返回</button><button type="submit" class="btn primary au-reset-submit" form="au-rp-form"><span class="au-button-content">重置并登录</span></button>`;
   auEnhance($("#dlg"));
   delete AUX.v.rp_code;
@@ -76362,7 +76411,7 @@ const auMyJoin = (uid = AUTH.uid) => {
 function auJoinCodeErr(v) {
   const d = String(v || "").replace(/\D/g, "");
   if (d.length !== 9) return "请输入 9 位邀请码";
-  if ((AUX.joinLockUntil || 0) > auNow()) return `尝试次数过多，请 ${auWaitText(AUX.joinLockUntil - auNow())}后再试。`;
+  if ((AUX.joinLockUntil || 0) > auNow()) return "尝试次数过多，请稍后再试。"; // 2.40 账户第 341 条
   return auJoinOrgOf(d) ? "" : "邀请码不正确或已失效，请向机构管理员确认。";
 }
 function auJoinMiss() {
@@ -76402,9 +76451,10 @@ const auJoinInForm = () => {
   const me = auMe();
   return `<p class="au-lead">${AU_JOIN_LEAD_IN}</p><form class="au-compact-form" data-form="joinIn" novalidate><fieldset>${auRoRow("申请人", `${me.name} · ${me.email || me.phone || ""}`)}${auJoinCodeField()}${auJoinNote()}<p class="au-ferr" role="alert" hidden></p>${auPrimary("申请加入", true)}</fieldset></form>`;
 };
-// 2.38 账户第 333 条：申请说明用全站的多行输入框（au-ta-std：底色、描边、悬停、聚焦同本页单行框，圆角 8，3 行高，可往下拉高）。
+// 2.38 账户第 333 条：申请说明用全站的多行输入框（au-ta-std：底色、描边、悬停、聚焦同本页单行框，圆角 8，可往下拉高）。
+// 2.40（HONG 2026-10-28 04:44Z 按推荐）：外壳与拖动标志同“项目说明”（ws-textarea-shell、ws-resize，可用方向键调整），高 80，下方不留空白。
 const auJoinNote = () =>
-  `<div class="au-field" data-f="jn_note"><div class="au-lab"><label for="au-jn_note">申请说明</label></div><div class="au-textarea-shell"><textarea id="au-jn_note" name="jn_note" class="au-in au-ta au-ta-std" rows="3" maxlength="200" aria-describedby="au-jn_note-err au-jn_note-count" placeholder="例如所在部门、职务和负责的楼宇">${esc(AUX.v.jn_note || "")}</textarea></div><p class="au-err" id="au-jn_note-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-jn_note-count" ${PACOM_AUTH_FLOW.charCount("jn_note", AUX.v.jn_note) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("jn_note", AUX.v.jn_note)}</p></div>`;
+  `<div class="au-field" data-f="jn_note"><div class="au-lab"><label for="au-jn_note">申请说明</label></div><div class="ws-textarea-shell au-note-shell"><textarea id="au-jn_note" name="jn_note" class="au-in au-ta au-ta-std" rows="3" maxlength="200" aria-describedby="au-jn_note-err au-jn_note-count" placeholder="例如所在部门、职务和负责的楼宇">${esc(AUX.v.jn_note || "")}</textarea><button type="button" class="ws-resize" data-space-resize="au-jn_note" aria-label="调整申请说明输入框高度；按上下方向键调整"></button></div><p class="au-err" id="au-jn_note-err" aria-live="polite"></p><p class="au-hint au-char-count" id="au-jn_note-count" ${PACOM_AUTH_FLOW.charCount("jn_note", AUX.v.jn_note) ? "" : "hidden"}>${PACOM_AUTH_FLOW.charCount("jn_note", AUX.v.jn_note)}</p></div>`;
 const auWayOut = () =>
   AUTH.session === "in" && auMyOrgs().length
     ? `<div class="au-links"><button type="button" class="au-textbtn" data-act="auApplyBack">返回工作区</button></div>`
@@ -76415,8 +76465,10 @@ BARE.join = () => {
   // 2.21 账户第 185 条：同事“邀请同事”发出的链接带推荐人，申请时一并提交，“待批准”显示“推荐人：{姓名}”。
   if (code && q.get("ref")) AUX.joinRef = { code: String(code).replace(/\D/g, ""), uid: q.get("ref") };
   const mine = AUTH.session === "in" ? auMyJoin() : null, st = mine && auJoinState(mine.r), name = mine ? esc(auOrg(mine.org).name) : "";
+  // 2.40（HONG 2026-10-28 04:54Z 按推荐）：标题“申请已提交”，说明一行，不写有效期（过期另发通知，“尚未加入机构”页顶部也提示）；
+  // 没有主按钮，“撤回申请”与“退出登录”（有机构时“返回工作区”）同一行居中，撤回前确认。
   if (U.tab === "wait" && st === "pending")
-    return auStatusShell(`<h1 class="au-h1">等待批准</h1><p class="au-lead">加入申请已发送给 <b>${name}</b> 的机构管理员，${auDate(auCstYmd(mine.r.at + 7 * auDay))} 前有效。批准后你会收到${auMe().email ? "邮件" : "短信"}。</p><p class="au-done-more au-done-solo"><button type="button" class="au-textbtn" data-act="auJoinWithdraw">撤回申请</button></p>${auWayOut()}`);
+    return auStatusShell(`<h1 class="au-h1">申请已提交</h1><p class="au-lead">${name}的机构管理员批准后，你会收到${auMe().email ? "邮件" : "短信"}通知。</p>${auWayOut().replace('<div class="au-links">', '<div class="au-links"><button type="button" class="au-textbtn" data-act="auJoinWithdrawAsk">撤回申请</button>')}`);
   if (U.tab) { U.tab = ""; history.replaceState(null, "", "#join"); }
   AUX.accessSeg = false;
   // 2.38 账户第 335 条：已登录、尚未加入机构时页底为“返回”（回“尚未加入机构”页），不再有“使用其他账户登录”。
@@ -76465,18 +76517,51 @@ function auStepEntryFocus() {
   el.focus({ preventScroll: !moved });
 }
 // 2.33 账户第 268 条：受邀为机构管理员时，注册表单加手机号码和短信验证码（必填），注册后不再另进“绑定手机号码”页。
-const auInvPhoneFields = () => `${auField({ name: "iv_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", info: "机构管理员须绑定手机号码，用于在新设备上登录时验证。", suffix: auEcBtn("iv"), hint: auEcLine("iv"), hintRole: "status" })}${auField({ name: "iv_sms", label: "短信验证码", right: auNoCodeRight("sms", "au-iv-nocode", !!auEcSent("iv")), auto: "one-time-code", inputmode: "numeric", maxlength: 6 })}`;
+const auInvPhoneFields = () => `${auField({ name: "iv_tel", label: "手机号码", type: "tel", auto: "tel", inputmode: "tel", info: "用于在新设备上登录和重置密码时验证身份。", suffix: auEcBtn("iv"), hint: auEcLine("iv"), hintRole: "status" })}${auField({ name: "iv_sms", label: "短信验证码", right: auNoCodeRight("sms", "au-iv-nocode", !!auEcSent("iv")), auto: "one-time-code", inputmode: "numeric", maxlength: 6 })}`;
 const auInvPhoneChecks = () => [["iv_tel", auPhoneCheck], ["iv_sms", auEcCheck("iv")]];
 const auJoinInvPick = (invs) => invs.find((y) => y.i.id === AUX.v.jn_inv) || invs[0];
 const auJoinInvAdmin = (invs) => auJoinInvPick(invs)?.i.role === "admin" && !auRegState("join").tel;
 const auJoinInvPhone = (invs) => `<div class="au-inv-phone"${auJoinInvAdmin(invs) ? "" : " hidden"}>${auInvPhoneFields()}</div>`;
-// 核对手机号码的验证码，号码已绑定其他账户的写明；通过时返回号码。
+/* ---------- 手机号码已绑定另一个账户（2.40 账户第 346 条） ---------- */
+// 一个号码只绑定一个账户（号码可登录、收验证码，对应两个账户时无法确定登录或重置哪个）。验证码证明持有号码后才说明：
+// 原账户有电子邮箱的，可“改绑到此账户”：确认后原账户不能再用此号码，邮件通知原账户，原账户的操作记录写“手机号码已改绑到其他账户”；
+// 原账户没有电子邮箱（号码是它唯一的登录账户）的不能改绑。原账户是机构管理员的，下次登录先绑定手机号码（auLoginChecks）。
+const AU_TAKEN = "该号码已绑定另一个账户。";
+const AU_TAKEN_LOGIN = "该号码是另一个账户的登录账户，不能改绑。是你的账户，请用此号码登录；不是，请{s}。";
+const auPhoneHolder = (phone, except = "") => Object.entries(AUTH.people).find(([uid, p]) => uid !== except && p.phone && auPhoneIdentity(p.phone) === auPhoneIdentity(phone))?.[0] || "";
+// 写在号码字段下：name 为账户页字段（au-err），dlg 为“我的账户”弹窗字段；retry 在改绑后重新提交原来的操作。
+function auPhoneTaken(name, holder, phone, retry, dlg = false) {
+  const can = !!AUTH.people[holder]?.email, text = can ? AU_TAKEN : AU_TAKEN_LOGIN.replace("{s}", "联系 PACOM 支持");
+  AUX.rebind = can ? { name, holder, phone, retry } : null;
+  if (dlg) auFieldErr(name, text);
+  else { auHeldErr(name, text); $(`#au-${name}`)?.focus(); }
+  const el = dlg ? document.getElementById(`${name}-error`) : document.querySelector(`.au-field[data-f="${name}"] .au-err`) || $(`#au-${name}-err`);
+  if (el)
+    el.innerHTML = can
+      ? `${esc(AU_TAKEN)}<button type="button" class="au-inline au-rebind" data-act="auRebindAsk">改绑到此账户</button>`
+      : esc(AU_TAKEN_LOGIN).replace("{s}。", `<span class="au-keep"><button type="button" class="au-inline au-rebind" data-act="auContact">联系 PACOM 支持</button>。</span>`);
+}
+// 确认弹窗叠在当前页面或弹窗上（同“是否放弃修改？”的层）：“取消”回到原处，确认后执行 fn。
+function auAskConfirm(title, text, ok, fn) {
+  if ($("#discard")) return;
+  U.discardFocus = wsRememberFocus($("#dlg") || $("#app"));
+  const el = document.createElement("div");
+  el.id = "discard";
+  el.dataset.page = U.page;
+  el.className = "scrim ws-dlg-enter";
+  el.innerHTML = `<section class="dialog" role="alertdialog" aria-modal="true" aria-label="${esc(title)}"><div class="dh"><h2>${esc(title)}</h2></div><div class="db"><p>${esc(text)}</p></div><div class="df">${btn("取消", "keep")}${btn(ok, "discard", {}, "primary")}</div></section>`;
+  document.body.append(el);
+  el.querySelector("[data-act=keep]").focus();
+  U.discard = fn;
+}
+// 核对手机号码的验证码，号码已绑定另一个账户的写明（第 346 条）；通过时返回号码。
 async function auInvPhoneVerify(f, exceptUid = "") {
   const phone = auTelStore(PACOM_AUTH_FLOW.identifier(AUX.v.iv_tel));
   const r = await auRequest("verifyPhoneCode", { phone, code: auVal("iv_sms").trim(), purpose: "bind" });
   if (r.status === "invalid-credentials") { auErr("iv_sms", "验证码不正确或已过期"); $("#au-iv_sms")?.focus(); return ""; }
   if (r.status !== "ok") { auFormErr(f, "暂时无法验证，请稍后再试。", true, "error"); return ""; }
-  if (Object.entries(AUTH.people).some(([uid, p]) => uid !== exceptUid && p.phone && auPhoneIdentity(p.phone) === auPhoneIdentity(phone))) { auHeldErr("iv_tel", "该号码已绑定其他账户，请更换号码。"); $("#au-iv_tel")?.focus(); return ""; }
+  const holder = auPhoneHolder(phone, exceptUid);
+  if (holder) { auPhoneTaken("iv_tel", holder, phone, () => f.requestSubmit()); return ""; }
   return phone;
 }
 // 申请发出后：全部机构管理员收到“新的加入申请”邮件（第 153 条）。已有待批准的申请时直接显示“等待批准”，不会重复。
@@ -76507,7 +76592,8 @@ const auApplyNeedSms = () => { const known = auRegState(auApplyFlow()).tel; retu
 const auApplyPhoneChecks = () => [["ap_tel", auPhoneCheck], ...(auApplyNeedSms() ? [["ap_sms", auEcCheck("ap")]] : [])];
 // 已登录、还没有绑定手机号码时先绑定（第 340 条）
 const auApplyNeedPhone = () => AUTH.session === "in" && !auMe().phone;
-const AU_APPLY_PHONE_NOTE = "机构管理员须绑定手机号码，用于在新设备上登录时验证。";
+// 2.40（HONG 2026-10-28 04:56Z 按推荐）：不重复标题“绑定手机号码”，只写用途；登录弹窗、受邀注册的手机号码说明同句。
+const AU_APPLY_PHONE_NOTE = "用于在新设备上登录和重置密码时验证身份。";
 // 创建机构的人是机构管理员，须绑定手机号码（同受邀为机构管理员，第 268 条）；说明写在“绑定手机号码”一步的标题下
 function auApplyPhoneFields() {
   const sms = auApplyNeedSms();
@@ -76527,7 +76613,7 @@ const auApplyOrgChecks = () => [
 const auApplyTitles = (signed) => [...(signed ? [] : ["创建账户"]), "绑定手机号码", "填写机构信息"];
 // 各步的编号：未登录 1 创建账户、2 绑定手机号码、3 填写机构信息；已登录未绑定 1 绑定手机号码、2 填写机构信息
 const auApplyPhoneStep = (flow) => (flow === "in" ? 1 : 2);
-// 第 2 步（已登录为第 1 步）“继续”：核对短信验证码；号码已绑定其他账户的写明（不向他人透露）。
+// 第 2 步（已登录为第 1 步）“继续”：核对短信验证码；号码已绑定另一个账户的写明（不向他人透露），可改绑（第 346 条）。
 async function auApplyPhoneVerify(f, flow) {
   const r = auRegState(flow);
   if (!auValidate(f, auApplyPhoneChecks())) return;
@@ -76538,10 +76624,8 @@ async function auApplyPhoneVerify(f, flow) {
   if (b.status === "invalid-credentials") { auErr("ap_sms", "验证码不正确或已过期"); return $("#au-ap_sms")?.focus(); }
   if (b.status !== "ok") return auFormErr(f, "暂时无法验证，请稍后再试。", true, "error");
   const self = flow === "in" ? AUTH.uid : "";
-  if (Object.entries(AUTH.people).some(([uid, p]) => uid !== self && p.phone && auPhoneIdentity(p.phone) === auPhoneIdentity(phone))) {
-    auHeldErr("ap_tel", "该号码已绑定其他账户，请更换号码。");
-    return $("#au-ap_tel")?.focus();
-  }
+  const holder = auPhoneHolder(phone, self);
+  if (holder) return auPhoneTaken("ap_tel", holder, phone, () => f.requestSubmit());
   r.tel = phone;
   auStepNext(flow);
 }
@@ -77387,8 +77471,9 @@ const AU_SUBMIT = {
     if (r.status === "invalid-credentials") { auErr(code, "验证码不正确或已过期"); const i = $(`#au-${code}`); i?.focus(); i?.select(); return; }
     if (r.status !== "ok") return auFormErr(f, "暂时无法验证，请稍后再试。", true, "error");
     const uid = AUX.lv.uid, today = auCstYmd();
-    // 一个号码只绑定一个账户；验证码证明持有后才说明，不向他人透露
-    if (bind && Object.entries(AUTH.people).some(([id, x]) => id !== uid && x.phone && auPhoneIdentity(x.phone) === auPhoneIdentity(phone))) { auHeldErr("lb_tel", "该号码已绑定其他账户，请更换号码。"); return $("#au-lb_tel")?.focus(); }
+    // 一个号码只绑定一个账户；验证码证明持有后才说明，不向他人透露，可改绑（第 346 条）
+    const holder = bind ? auPhoneHolder(phone, uid) : "";
+    if (holder) return auPhoneTaken("lb_tel", holder, phone, () => f.requestSubmit());
     if (bind) { p.phone = phone; AUX.afterLoginNote ||= "手机号码已绑定"; }
     if (kind === "mail") p.mailAt = today;
     else { (AUTH.trustedDev ||= {})[uid] = 1; if (!p.email) p.telAt = today; }
@@ -77868,6 +77953,18 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写用户看得到的变化，每条一两句并写明页面，不写内部核查编号（规范 1 4）。
 const AU_RELEASES = [
+  {
+    version: "2.40",
+    date: "2026-10-28",
+    notes: [
+      "登录、邀请码和验证码的限次提示不再写等待时长；连续输错过多时提示重置密码后再登录。",
+      "“收不到验证码？”按发送到的地址给出不同说明；定期验证不再写天数。",
+      "绑定或更换手机号码时，号码已绑定另一个账户的，确认后可改绑到当前账户。",
+      "同意句中的链接和说明框中的“联系 PACOM 支持”改为常规字重。",
+      "“没有邀请码？”说明改为一句；加入申请提交后的页面改为“申请已提交”，撤回前先确认。",
+      "全站多行输入框用同一组件和拖动标志；申请说明高度与其他多行输入框一致，悬停时下方按钮不再移动。",
+    ],
+  },
   {
     version: "2.39",
     date: "2026-10-27",
@@ -78763,10 +78860,10 @@ const HELP_ARTICLES = [
     steps: ["在登录页点“申请访问”，选“加入已开通的机构”，先验证电子邮箱。机构管理员按这个邮箱邀请过你时直接加入；没有邀请时填写邀请码，设置密码后提交，打开邀请链接或扫邀请二维码时邀请码已填好。邀请码在工作群里的邀请链接或二维码中，或请已加入的同事发给你。还没有邀请码时点“没有邀请码？”查看做法，或选“创建新机构”。", "已有账户的，登录后打开邀请链接或扫二维码；或在“我的账户 › 我的机构”点“加入机构”，填写邀请码。发给你的邀请列在“我的机构”最上面，点“接受”即加入。", "机构管理员直接邀请：打开邀请邮件，设置姓名和密码即可加入，邀请 7 天内有效。", "申请发出后等待机构管理员批准，7 天内有效，可以撤回；批准后收到邮件，登录即可进入。"],
     faq: [["换了工作怎么办？", "离职前在“我的账户 › 账户”把登录邮箱换成你能长期使用的邮箱，原机构的邮箱停用后就收不到验证码。原机构的机构管理员会将你移出，你用同一个账户加入新的机构。"], ["同事能共用一个账户吗？", "不能。每人用自己的电子邮箱注册，角色、授权和操作记录都按账户区分。"], ["申请未获批准或过期了怎么办？", "你会收到邮件或短信，登录后“尚未加入机构”页顶部有提示。过期的可以点“重新申请”；未获批准的请向该机构的同事确认后重新申请。"]], rel: ["login", "acct-admin"] },
   { id: "login", topic: "account", title: "登录与验证", roles: "所有角色", sum: "登录方式、保持登录、输错暂停和定期验证的规则。",
-    steps: ["账户是电子邮箱；手机号码绑定并验证后也可以登录。", "提示账户或密码不正确时，核对后重试，或点“忘记密码？”用验证码重置。", "连续输错 10 次暂停 1 分钟，之后每错一次暂停时间加倍，最长 30 分钟；连续 100 次后只能重置密码再登录。", "机构管理员在新设备或新浏览器上登录，须验证手机号码；没有绑定手机号码的，登录时先绑定。", "勾选“保持登录”后，关闭浏览器也不会退出，最长 30 天；修改或重置密码后需要重新登录。", "每 90 天登录时须输入发到电子邮箱的验证码；没有电子邮箱的账户输入发到手机号码的验证码。", "能登录但看不到机构：显示“尚未加入机构”时，按《加入已开通的机构》申请；显示“你已不在该机构中”，表示你已被移出该机构。"],
+    steps: ["账户是电子邮箱；手机号码绑定并验证后也可以登录。", "提示账户或密码不正确时，核对后重试，或点“忘记密码？”用验证码重置。", "多次输错后会暂停登录一段时间，期间登录按钮不可用；连续输错过多，只能重置密码后再登录。", "机构管理员在新设备或新浏览器上登录，须验证手机号码；没有绑定手机号码的，登录时先绑定。", "勾选“保持登录”后，关闭浏览器也不会退出，最长 30 天；修改或重置密码后需要重新登录。", "登录时会定期要求输入发到电子邮箱的验证码，确认邮箱仍可使用；没有电子邮箱的账户输入发到手机号码的验证码。", "能登录但看不到机构：显示“尚未加入机构”时，按《加入已开通的机构》申请；显示“你已不在该机构中”，表示你已被移出该机构。"],
     faq: [["电子邮箱已不能使用怎么办？", "用已绑定的手机号码登录或重置密码，再在“我的账户 › 账户”更换电子邮箱；都不能使用时联系 PACOM 支持核验身份。"], ["看不到某个项目怎么办？", "请联系本机构的机构管理员修改你的项目授权范围，修改后立即生效。"]], rel: ["acct-mail", "acct-profile"] },
   { id: "acct-mail", topic: "account", title: "收不到邮件或短信", roles: "所有角色", sum: "验证码、邀请和通知邮件收不到时，先查垃圾邮件，再放行发件地址。",
-    steps: ["查看垃圾邮件、广告邮件和隔离区。", "把发件地址 noreply@pacom.cn 加入联系人；工作邮箱请 IT 管理员放行 pacom.cn 域名。", "短信：核对手机号码，查看手机的骚扰拦截。", "按页面提示的时间重新发送；仍收不到时联系 PACOM 支持。"],
+    steps: ["查看垃圾邮件、广告邮件和隔离区。", "把发件地址 noreply@pacom.cn 加入联系人；工作邮箱请 IT 管理员放行 pacom.cn 域名。", "短信：核对手机号码，查看手机是否拦截了短信。", "稍后重新发送；仍收不到时联系 PACOM 支持。"],
     faq: [["验证码过期了怎么办？", "验证码 10 分钟内有效，过期后重新发送。"], ["通知邮件能关闭吗？", "告警通知可以在“我的账户 › 通知偏好”中关闭部分渠道；订阅到期与用量提醒不能关闭。"]], rel: ["login"] },
   { id: "acct-profile", topic: "account", title: "个人资料与登录方式", roles: "所有角色", sum: "在“我的账户 › 账户”修改姓名、电子邮箱、手机号码和密码。",
     steps: ["打开侧栏左下角的机构入口，点姓名一行进入我的账户。", "更换电子邮箱或手机号码须输入当前密码，并填写发到新地址的验证码。", "修改密码后，其他设备上的登录会退出。", "在“登录设备”中可以让其他设备退出，手机丢失时使用。", "属于多个机构时，点侧栏左下角的机构入口切换。"],
@@ -79034,8 +79131,22 @@ Object.assign(actions, {
   },
   // Each opening records its own origin: only a dialog opened from the invitation page returns there when closed.
   // 短信登录受限时的“重置密码”：用验证码重置，带入当前手机号码（账户核查第 19 条）
-  auForgotPhone: () => actions.auForgot({ account: AUX.v.sphone || "" }),
   // 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 142–148、151 条）
+  // 2.40 账户第 346 条：“改绑到此账户”先确认；改绑后重新提交原来的操作（验证码已通过）。
+  auRebindAsk: () => {
+    const r = AUX.rebind;
+    if (!r) return;
+    auAskConfirm("改绑手机号码", "改绑后，原账户不能再用此号码登录和接收验证码，并会收到邮件通知。原账户是你的，可取消并用此号码登录。", "改绑", () => {
+      const p = AUTH.people[r.holder];
+      if (!p) return;
+      p.phone = "";
+      AUTH.audit.unshift({ at: auNow(), actor: p.name, action: "手机号码已改绑到其他账户", object: auMask(r.phone), kind: "security", result: "成功", org: Object.keys(p.orgs || {})[0] || "" });
+      AUX.rebind = null;
+      if (AUX.heldErrors) delete AUX.heldErrors[r.name];
+      auSave();
+      r.retry?.();
+    });
+  },
   auNoCode: (a, el) => {
     if (el.classList.contains("au-nocode-right")) return actions.auFieldInfo(a, el);
     const open = el.getAttribute("aria-expanded") !== "true", panel = document.getElementById(el.getAttribute("aria-controls"));
@@ -79075,6 +79186,7 @@ Object.assign(actions, {
     if (auIdKind(AUX.v.rg_mail || "") === "email") AUX.v.id = AUX.v.rg_mail;
     auRoute("login");
   },
+  auJoinWithdrawAsk: () => auAskConfirm("撤回申请？", "撤回后，如需加入请重新申请。", "撤回", () => actions.auJoinWithdraw()),
   auJoinWithdraw: () => {
     const mine = auMyJoin();
     if (!mine) return;
@@ -80090,6 +80202,9 @@ Object.assign(actions, {
     const me = auMe();
     const bind = phone && !me.phone;
     const nv = phone ? (auIdKind(v) === "cn" ? auNormPhone(v) : v) : v;
+    // 2.40 账户第 346 条：更换、绑定手机号码同样检查号码是否已绑定另一个账户（原先不检查）
+    const holder = phone ? auPhoneHolder(nv, AUTH.uid) : "";
+    if (holder) return auPhoneTaken("auNewId", holder, nv, () => actions.auChangeIdSave(a), true);
     if (phone) me.phone = nv;
     else me.email = nv;
     AUX.dlgCode = {};
@@ -82449,10 +82564,6 @@ function auSendHint(key) {
   }
 }
 const auLoginIdentity = v => PACOM_AUTH_FLOW.loginIdentity(v);
-function auWaitText(ms) {
-  const minutes = Math.ceil(ms / 60000), hours = Math.floor(minutes / 60), rest = minutes % 60;
-  return hours ? `${hours} 小时${rest ? ` ${rest} 分钟` : ''}` : `${minutes} 分钟`;
-}
 // The password (code in SMS mode) is focused and selected only while focus is still on this form or has dropped to the page,
 // and no dialog is open over it; otherwise focus stays where the person moved it and only the button is disabled.
 function auFocusSecret(form) {
@@ -82462,16 +82573,12 @@ function auFocusSecret(form) {
   secret?.focus(); secret?.select();
 }
 function auCurrentLock() { return AUX.loginLocks[auLoginIdentity(auVal(AUX.sms ? 'sphone' : 'id'))] || 0; }
-function auLockText(ms, sms = AUX.sms) {
-  // SMS mode has no “忘记密码？” on the page: the message offers “重置密码” directly, with the number already filled in
-  // (手机号码已能用验证码重置；账户核查第 19 条，原为“切换到密码登录后通过“忘记密码”重置”). Waits and failure counts are unchanged.
-  // 2.04 账户第 24 条：密码和短信方式相同，只写一行，不再写重置的去处。
-  return `尝试次数过多，请 ${auWaitText(ms)}后再试。`;
-}
+// 2.04 账户第 24 条：密码和短信方式相同，只写一行，不再写重置的去处。
+// 2.40 账户第 341 条：不写时长（由服务决定且逐次加长）；暂停期间登录按钮不可用，结束后提示消失。
+const AU_LOCK_TEXT = '尝试次数过多，请稍后再试。';
 // After 100 failures in a row only a password reset lets the account sign in again (Account 核查第 4、5 点).
-// 2.21 账户第 171 条：被锁的是账户的登录，密码与短信方式同一句，开头与暂停提示一致；“重置密码”是按钮，打开重置密码（短信方式带入当前手机号码）。
+// 2.40 账户第 342 条（取代第 171 条“重置密码是按钮”）：整句同一红色纯文字；密码登录用“忘记密码？”重置，短信登录先切换到密码登录。
 const AU_LOGIN_RESET_TEXT = '尝试次数过多，请重置密码后再登录。';
-const auLockMarkup = text => esc(text).replace('重置密码', `<button type="button" class="au-inline" data-act="${AUX.sms ? "auForgotPhone" : "auForgot"}">重置密码</button>`);
 function auLockUI() {
   const form = document.querySelector('form[data-form="login"]');
   if (!form || form.getAttribute('aria-busy') === 'true') return;
@@ -82480,11 +82587,11 @@ function auLockUI() {
   const next = !locked && AUX.loginNext[identity];
   if (button.disabled !== locked) button.disabled = locked;
   if (locked) {
-    const text = blocked ? AU_LOGIN_RESET_TEXT : auLockText(until - auNow());
-    // Announced once when the pause appears; later minute updates change only the text, outside any live region.
+    const text = blocked ? AU_LOGIN_RESET_TEXT : AU_LOCK_TEXT;
+    // Announced once when the pause appears; a later change to the reset sentence replaces the text outside any live region.
     if (el?.dataset.lock === '1' && !el.hidden) {
-      if (el.textContent !== text) { if (el.hasAttribute('role')) el.removeAttribute('role'); el.innerHTML = auLockMarkup(text); }
-    } else if (el) { auFormErr(form, text, 'keep'); el.innerHTML = auLockMarkup(text); el.dataset.lock = '1'; }
+      if (el.textContent !== text) { if (el.hasAttribute('role')) el.removeAttribute('role'); el.textContent = text; }
+    } else if (el) { auFormErr(form, text, 'keep'); el.dataset.lock = '1'; }
   // 2.04 账户第 22、37 条（2026-10-17 用户确认，取代 2026-10-08 的失败提醒）：暂停结束后不显示提示，也不再提醒“再错 N 次将暂停”。
   } else if (el?.dataset.lock) auFormErr(form, '');
   // Focusing a login field reads the current wait.
@@ -89932,7 +90039,7 @@ Object.assign(AU_SVC, {
     if (s === "failed") return { status: "unavailable", message: "暂时无法发送，请稍后再试。" };
     const retryAt = s === "limit" ? demoNextDay() : auNow() + 36e5;
     // 2.17 账户第 142 条：“发送过于频繁”和“今日发送次数已达上限”合为一句。
-    return { status: s, retryAt, message: `发送次数过多，请 ${auWaitText(retryAt - auNow())}后再试。` };
+    return { status: s, retryAt, message: "发送次数过多，请稍后再试。" };
   },
   request: async (operation, payload) => {
     if (DEMO_FAIL.operation === operation) { DEMO_FAIL.operation = ""; return { status: "unavailable" }; }
@@ -90717,13 +90824,13 @@ const DEMO_ITEMS = [
 
   // 登录验证（第 264–268 条）：输完账户和密码后，在登录页上打开“登录验证”弹窗
   ["登录验证", "lv-phone", "新设备登录：验证手机号码", "机构管理员 · 王敏", () => demoMfa()],
-  ["登录验证", "lv-mail", "每 90 天：验证电子邮箱", "距上次验证满 90 天 · 王敏", () => (demoOut(), ((AUTH.trustedDev ||= {}).wm = 1), (AUTH.people.wm.mailAt = auYmdAdd(auCstYmd(), -91)), demoLv("wang.min@example.test"))],
-  ["登录验证", "lv-tel", "每 90 天：验证手机号码（没有电子邮箱的账户）", "运营人员 · 邓志", () => (demoOut(), (AUTH.people.dz.telAt = auYmdAdd(auCstYmd(), -91)), demoLv("139 0000 0131"))],
+  ["登录验证", "lv-mail", "定期验证电子邮箱", "距上次验证满 90 天 · 王敏", () => (demoOut(), ((AUTH.trustedDev ||= {}).wm = 1), (AUTH.people.wm.mailAt = auYmdAdd(auCstYmd(), -91)), demoLv("wang.min@example.test"))],
+  ["登录验证", "lv-tel", "定期验证手机号码（没有电子邮箱的账户）", "运营人员 · 邓志", () => (demoOut(), (AUTH.people.dz.telAt = auYmdAdd(auCstYmd(), -91)), demoLv("139 0000 0131"))],
   ["登录验证", "lv-bind", "机构管理员：绑定手机号码", "还没有绑定手机号码 · 刘静", () => (demoOut(), demoLv("liu.jing@example.test"))],
   [
     "登录验证",
     "lv-bind-taken",
-    "绑定：号码已绑定其他账户",
+    "绑定：号码已绑定另一个账户",
     "",
     () => {
       demoOut();
@@ -90758,7 +90865,7 @@ const DEMO_ITEMS = [
   ["申请访问：加入", "join-bad", "邀请码不正确", "", () => (demoOut(), demoJoinAt("周宁", "zhou.ning@example.test"), Object.assign(AUX.v, { jn_code: "123 456 789", jn_note: "广实2号园物业工程部。" }), demoShow("access"), demoSubmit("join"))],
   ["申请访问：加入", "join-link", "打开邀请链接", "邀请码已带入", () => (demoOut(), (AUX.v.jn_code = auJoinCodeText("386204517")), demoShow("join"))],
   ["申请访问：加入", "join-in", "已登录：申请加入", "尚未加入机构的账户", () => (demoNoOrg(), (AUX.v.jn_code = auJoinCodeText("386204517")), demoShow("join"))],
-  ["申请访问：加入", "join-wait", "等待批准", "", () => (demoJoin("pending"), demoShow("join", "wait"))],
+  ["申请访问：加入", "join-wait", "申请已提交", "", () => (demoJoin("pending"), demoShow("join", "wait"))],
   // 2.38 账户第 337、338 条：未获批准、已过期不再有单独页面，登录后在“尚未加入机构”页顶提示
   ["申请访问：加入", "join-rejected", "申请未获批准", "登录后在尚未加入机构页提示", () => demoJoinNotice("rejected")],
   ["申请访问：加入", "join-expired", "申请已过期", "7 天没有处理", () => demoJoinNotice("expired")],
@@ -91925,8 +92032,10 @@ function spatialDraftError(error){formError(Error(error));const fe=$('#spFormErr
 // 只读的框不能调整高度；标了 data-resize-readonly 的只读框（联系支持“无法自动复制”时显示的全部内容）可以纵向拉（Lovable 核查第 155 条）。
 const wsResizeLocked=(input)=>input.disabled||(input.readOnly&&!input.dataset.resizeReadonly);
 // root 可以是页面中的节点，也可以是增量更新前的新内容片段（D4）：外壳在比对前加上，页面中的说明框不必每次拆装。
+// 2.40（HONG 2026-10-28 04:44Z 按推荐）：全站多行输入框都用此组件（原只在项目页）；自动增高的单行框（au-multi）与运营后台不套。
 function wsProjectTextareas(root) {
   for (const input of root.querySelectorAll('textarea.input')) {
+    if(input.classList.contains('au-multi')||input.id.startsWith('adm'))continue;
     if(!input.id||!input.parentElement||input.parentElement.classList.contains('ws-textarea-shell'))continue;
     const doc=input.ownerDocument||document,shell=doc.createElement('div');shell.className='ws-textarea-shell';
     input.before(shell);shell.append(input);
@@ -91936,7 +92045,7 @@ function wsProjectTextareas(root) {
   }
 }
 // 每次绘制后：重新放置绘制入口，项目页的说明框加上高度调整柄（2026-10-03 D2：登记为绘制后处理，取代对 afterRender 的覆盖）。
-onAfterRender(()=>{spatialPlaceControls();if(U.page==='projects')wsProjectTextareas($('#app'))});
+onAfterRender(()=>{spatialPlaceControls();wsProjectTextareas($('#app'))});
 document.addEventListener('pointerdown',e=>{
   const handle=e.target.closest?.('[data-space-resize]');if(!handle||handle.disabled)return;
   const input=document.getElementById(handle.dataset.spaceResize);if(!input||wsResizeLocked(input))return;
