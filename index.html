@@ -5536,13 +5536,6 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 #dlg #bnPreview { max-height:260px; overflow:auto; border-radius:12px; box-shadow:var(--field); }
 #dlg #bnWhy { margin:8px 0 0; font-size: 14px; line-height: 24px; color:#8a5a00; }
 #dlg #bnWhy:empty { display:none; }
-#dlg .ws-bkind { display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; margin:0 0 12px; padding:0; border:0; }
-#dlg .ws-bkind > legend { float:left; margin-right:8px; padding:0; font-size: 14px; line-height: 24px; color:var(--text2); }
-#dlg .ws-bkind > label { display:inline-flex; align-items:center; gap:6px; font-size:14px; line-height: 24px; min-height:32px; }
-@media (max-width:850px), (pointer:coarse) {
- #dlg .ws-bkind > label { min-height:44px; }
-}
-#dlg p.ws-bkind { display:block; }
 /* 照明控制参数各屏宽统一两列（2.01 运营核查 V88，2026-10-16 用户确认；原为延时时间、待机亮度、待机时间三项并列，ABB 对比 BP75 续）。
    字段名换行时，同一行各字段的输入框仍对齐：字段按子网格分为字段名、输入框、说明、错误四行（.aligned 用于两列的行）。 */
 .ws-form-row.aligned { grid-template-rows:repeat(4, auto); row-gap:4px; padding-bottom:16px; }
@@ -5707,11 +5700,6 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   color: #b5b5b5;
 }
 /* 2.14 E264：没有图片时只留 24 的图标 */
-/* 2.14 E273：创建楼宇的“类型”为字段标题，下 8 两个横排单选，间隔 24，文字 14/24 */
-#dlg .ws-bkind { display: block; margin: 0 0 16px; border: 0; padding: 0; }
-#dlg .ws-bkind > legend { float: none; margin: 0 0 8px; padding: 0; font-size: 14px; line-height: 24px; font-weight: 480; color: #030303; }
-#dlg .ws-bkind-opts { display: flex; flex-wrap: wrap; gap: 8px 24px; }
-#dlg .ws-bkind-opts > label { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; line-height: 24px; color: #030303; }
 /* 2.14 E268：删除确认正文一句 14/21 #636363 */
 .dialog .ws-del-text {
   margin: 0;
@@ -7408,8 +7396,12 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 #pbody.ws-info-closing:has(> .ws-space-info.docked) > :is(.ws-dir, .ws-space-page), .panel:has(> #pbody.ws-info-closing > .ws-space-info.docked) > .phead { margin-right:0; }
 /* E365：标题写对象名称 20/30 字重 480，与页面标题同一高度（卡片顶下 21）；下一行 14/24 #636363 写类别与要点。 */
 .ws-space-info.docked .v13-dh { padding:21px 24px 16px; }
-.ws-space-info.named .v13-dh h2 { font-size:20px; line-height:30px; font-weight:480; color:#030303; }
-.ws-space-info .v13-dh .ws-info-meta { margin:0; font-size:14px; line-height:24px; color:#636363; }
+/* 2.56 E550：项目、楼宇与全部项目面板的标题 16/24 字重 480，标题区放在内容里随内容滚动，下面不加横线；与页面标题同一行垂直居中 */
+.ws-space-info .ws-info-head { display:flex; align-items:flex-start; gap:8px; padding-top:var(--info-head-top, 20px); margin-bottom:16px; }
+.ws-space-info .ws-info-head > div { flex:1; min-width:0; }
+.ws-space-info .ws-info-head h2 { margin:0; font-size:16px; line-height:24px; font-weight:480; color:#030303; }
+.ws-space-info .ws-info-head .ws-info-meta { margin:4px 0 0; font-size:14px; line-height:24px; color:#636363; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ws-space-info .ws-info-sub { display:block; }
 /* E366：概要数字，每个 32 高，1px #EBEBEB 边，圆角 12，左右 10，16 的图标，数字 14/24 #030303 字重 480，单位 14/24 #636363，间隔 8，放不下时换行。 */
 .ws-info-sum { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 0; }
 .ws-info-chip { display:inline-flex; align-items:center; gap:4px; height:32px; padding:0 10px; border:1px solid #ebebeb; background:#fff; border-radius:12px; font-size:14px; line-height:24px; color:#636363; white-space:nowrap; }
@@ -7467,7 +7459,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .ws-space-info .ws-info-warn { color:#8a5a00; }
 #pbody:has(> .ws-space-info.docked) > :is(.ws-dir, .ws-space-page) { margin-right:400px; }
 /* 2.14 E246：工具栏不随面板变窄，信息开关右缘与面板右缘对齐。 */
-@media (min-width:851px) { .ws-space-info.docked .v13-dh > [data-act="spacePanelInfoClose"] { display:none; } }
+@media (min-width:851px) { .ws-space-info.docked :is(.v13-dh, .ws-info-head) > [data-act="spacePanelInfoClose"] { display:none; } }
 @keyframes wsInfoDock { from { clip-path:inset(0 0 0 100%); } }
 @media (prefers-reduced-motion:reduce) { .v13-drawer.ws-space-info.docked { animation:none; transition:none; } #pbody > :is(.ws-dir, .ws-space-page), .panel > .phead { transition:none; } }
 .ws-space-info .kv { grid-template-columns:88px 1fr; line-height:24px; }
@@ -8189,26 +8181,33 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 #dlg[data-page=projects] .ws-label-row > .ws-info-tip { width:24px; height:24px; min-width:24px; padding:0; background:transparent; box-shadow:none; color:#636363; }
 #dlg[data-page=projects] .ws-form-map .map-search { width:240px; height:32px; left:12px; top:12px; border-radius:12px; background:#fff; backdrop-filter:none; box-shadow:var(--floating-sm, 0 1px 3px rgba(0,0,0,.12)); }
 #dlg[data-page=projects] .ws-form-map .map-search > .ic { color:#636363; }
-/* 2.14 E254：拖放区最小高 128、内边距 24、2px 虚线 #636363 25%（悬停 50%），无底色；拖入文件时边线加深并加 4% 底色。
-   图标 24、间距 8、“拖放图片或选择文件”、间距 4、格式说明 12/18 #636363。有图片时为缩略图行。原为白底、悬停 #FAFAFA，说明在拖放区下方。 */
-#dlg[data-page=projects] .ws-image-drop { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; width:100%; min-height:128px; padding:24px; border:2px dashed color-mix(in srgb, #636363 25%, transparent); border-radius:12px; background:transparent; color:#636363; font-size:14px; line-height:24px; text-align:center; cursor:pointer; }
-#dlg[data-page=projects] .ws-image-drop:hover { background:transparent; border-color:color-mix(in srgb, #636363 50%, transparent); }
-#dlg[data-page=projects] .ws-image-drop.dragging { border-color:#636363; background:rgba(0,0,0,.04); }
-#dlg[data-page=projects] .ws-image-drop > .ws-drop-l { margin-top:8px; }
-#dlg[data-page=projects] .ws-image-drop > small { display:block; margin-top:4px; font-size:12px; line-height:18px; color:#636363; }
+/* 2.56 E541（取代 E229、E254 的拖放区）：没有图片时为描边按钮“上传图片”（32 高，上传图标 16），下 6 一行 12/18 #636363 的说明；
+   有图片时 160×90 缩略图（圆角 12，1px 黑 16% 内描边）本身是更换按钮，右侧文字按钮“移除”，说明照旧在下方。
+   整个字段可拖放：拖入时外围 2px #636363 虚线、4% 灰底。悬停、按下或键盘聚焦缩略图时 60% 黑色遮罩、10px 背景模糊、白色上传图标 16，150ms 淡入淡出。 */
+#dlg[data-page=projects] .ws-image-zone { border-radius:12px; }
+#dlg[data-page=projects] .ws-image-zone.dragging { outline:2px dashed #636363; outline-offset:4px; background:rgba(0,0,0,.04); }
+#dlg[data-page=projects] .ws-image-note { display:block; margin-top:6px; font-size:12px; line-height:18px; color:#636363; }
 #dlg[data-page=projects] .ws-image-row { display:flex; align-items:center; gap:16px; }
 #dlg[data-page=projects] .ws-image-thumbbtn { position:relative; display:block; width:160px; height:90px; padding:0; border:0; border-radius:12px; background:#f0f0f0; overflow:hidden; cursor:pointer; flex-shrink:0; }
 #dlg[data-page=projects] .ws-image-thumbbtn::after { content:""; position:absolute; inset:0; border-radius:inherit; box-shadow:inset 0 0 0 1px rgba(0,0,0,.16); pointer-events:none; }
 #dlg[data-page=projects] .ws-image-thumbbtn > .ws-image-thumb { width:100%; height:100%; aspect-ratio:auto; border-radius:0; background:none; }
-#dlg[data-page=projects] .ws-image-ov { position:absolute; inset:0; display:grid; place-items:center; background:rgba(0,0,0,.6); backdrop-filter:blur(4px); color:#fff; opacity:0; transition:opacity .15s; }
-#dlg[data-page=projects] .ws-image-ov > .ic { width:24px; height:24px; }
-#dlg[data-page=projects] .ws-image-thumbbtn:is(:hover, :focus-visible, .dragging) > .ws-image-ov { opacity:1; }
+#dlg[data-page=projects] .ws-image-ov { position:absolute; inset:0; display:grid; place-items:center; background:rgba(0,0,0,.6); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:#fff; opacity:0; transition:opacity .15s; }
+#dlg[data-page=projects] .ws-image-ov > .ic { width:16px; height:16px; }
+#dlg[data-page=projects] .ws-image-thumbbtn:is(:hover, :active, :focus-visible) > .ws-image-ov,
+#dlg[data-page=projects] .ws-image-zone.dragging .ws-image-ov { opacity:1; }
 #dlg[data-page=projects] .ws-image-thumbbtn:focus-visible { outline:0; box-shadow:0 0 0 2px #00aeef; }
 @media (prefers-reduced-motion: reduce) { #dlg[data-page=projects] .ws-image-ov { transition:none; } }
-#dlg[data-page=projects] .ws-image-drop:focus-visible { outline:0; box-shadow:0 0 0 2px #00aeef; }
-#dlg[data-page=projects] .ws-image-drop .ws-image-thumb { width:24px; aspect-ratio:auto; background:none; color:#636363; }
-#dlg[data-page=projects] .ws-image-drop .ws-image-thumb > .ic { width:24px; height:24px; }
-#dlg[data-page=projects] .ws-drop-l > b { font-weight:480; color:#030303; }
+/* 2.56 E543：创建楼宇的类型为分段切换（项目页局部普通分段：轨道 36、内缩 2，选中块 32，每项左右 12，14/24），左对齐，下 16 接名称一行；选中块 150ms 滑动 */
+#dlg .ws-kind-seg { display:flex; width:fit-content; margin:0 0 16px; }
+#dlg .ws-kind-seg > button { font-size:14px; line-height:24px; padding:0 12px; }
+#dlg .ws-kind-seg.anim > .seg-thumb { transition-duration:150ms; }
+@media (prefers-reduced-motion: reduce) { #dlg .ws-kind-seg.anim > .seg-thumb { transition:none; } }
+/* 2.56 E536、E538：字数计数右对齐 12/18 #636363，超出时提醒色 */
+#dlg[data-page=projects] .field > small.ws-char-count { display:block; margin-top:4px; text-align:right; font-size:12px; line-height:18px; color:#636363; font-variant-numeric:tabular-nums; }
+#dlg[data-page=projects] .field > small.ws-char-count[hidden] { display:none; }
+#dlg[data-page=projects] .field > small.ws-char-count.over { color:#b42318; }
+/* 2.56 E537：地图服务未开通时创建项目只写一行“时区：中国标准时间（UTC+08:00）”，12/18 #636363 */
+#dlg[data-page=projects] .ws-tz-line { display:block; margin:0 0 16px; font-size:12px; line-height:18px; color:var(--text3); }
 /* 面板说明文字 #636363（对比度 ≥ 4.5）。 */
 #app[data-page=projects] .kv dt { color:var(--text3); }
 /* 可见40px选中胶囊在48px轨道内；透明命中上下各扩2px，仍在轨道内，不裁掉也不覆盖材质。 */
@@ -30055,38 +30054,37 @@ td .ops-lvl.sq {
   }
 }
 
-/* Ledger adaptation is local: access remains available in device details and
-   the action column stays reachable while necessary columns can still scroll. */
-.dev-ledger-frame { container: dev-ledger / inline-size; }
-@container dev-ledger (max-width: 1180px) {
-  .dev-ledger-frame th:has(.dev-access-heading),
-  .dev-ledger-frame td[data-label="接入方式"] { display: none; }
+/* 2.56 E549 设备列表（参考 Lovable People 页）：工具栏左边搜索 320、“状态”下拉 144、“筛选”，间距 8；右边 32 圆形描边图标按钮“选择”。
+   表格卡片里每行两行文字（14/24 与 12/18），上下内边距 7，等高 56；整行可点，悬停叠 4% 灰底；
+   行尾一列 56 宽，只有 28 透明圆形“在图上查看”，行悬停或键盘聚焦时显示（150ms），触屏一直显示；卡片底部一行 40 高写总数与翻页。
+   原为接入方式在 1180 以下隐藏、操作列固定在右边（2.53 E485），列已合并，不再需要。 */
+.ws-inventory-tools { gap: 8px; }
+.ws-inventory-tools > .ws-search { width: 320px; }
+.dev-status-sel { flex: none; min-width: 144px; }
+.dev-status-sel > .ws-select { width: 100%; }
+.dev-tools-end { display: flex; margin-left: auto; }
+.dev-select-btn[aria-pressed="true"] { background: var(--sel); }
+.dev-ledger-frame { overflow: hidden; border-radius: 12px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line2); }
+.dev-ledger-frame > .tw { border-radius: 0; background: transparent; box-shadow: none; }
+.dev-ledger-table > tbody > tr:not(.flow-group) > :is(th, td) { box-sizing: border-box; height: 56px; padding-block: 7px; }
+.dev-ledger-table > tbody > tr:last-child > :is(th, td) { border-bottom: 0; }
+#app[data-page=devices] .dev-ledger-table .flow-sub { display: block; margin-top: 0; font-size: 12px; line-height: 18px; }
+.flow-table .dev-ledger-table :is(th, td).act { box-sizing: border-box; width: 56px; min-width: 56px; padding: 0 12px 0 16px; }
+.dev-tags { display: inline-flex; gap: 4px; vertical-align: middle; white-space: nowrap; }
+.dev-ledger-table .iconbtn.round.dev-locate {
+  width: 28px; height: 28px; background: none; box-shadow: none; color: var(--text3);
+  opacity: 0; transition: opacity 150ms ease, background-color 150ms ease;
 }
-@media (min-width: 851px) {
-  /* A whole-scroller fade would also erase the fixed action text. The
-     action column's divider is the edge affordance for this table. */
-  .dev-ledger-frame > .tw.x-more { mask-image: none; -webkit-mask-image: none; }
-  .dev-ledger-frame > .tw > .t:not(.fold) > :is(thead, tbody) > tr > .act {
-    position: sticky; right: 0; z-index: 2; background: #fff;
-    box-shadow: -1px 0 0 #ebebeb;
-  }
-  .dev-ledger-frame > .tw > .t:not(.fold) > thead > tr > .act { z-index: 3; }
-  /* 2.53 E485：固定列的白底盖住了表格框（.tw 的内阴影），在固定列上补画框线与右侧圆角，外框不再断开 */
-  .dev-ledger-frame > .tw > .t:not(.fold) > :is(thead, tbody) > tr > .act {
-    box-shadow: -1px 0 0 #ebebeb, inset -1px 0 0 var(--line2);
-  }
-  .dev-ledger-frame > .tw > .t:not(.fold) > thead > tr > .act {
-    box-shadow: -1px 0 0 #ebebeb, inset -1px 0 0 var(--line2), inset 0 1px 0 var(--line2);
-    border-top-right-radius: 12px;
-  }
-  .dev-ledger-frame > .tw > .t:not(.fold) > tbody > tr:last-child > .act {
-    box-shadow: -1px 0 0 #ebebeb, inset -1px 0 0 var(--line2), inset 0 -1px 0 var(--line2);
-    border-bottom-right-radius: 12px;
-  }
-  .dev-ledger-frame > .tw > .t:not(.fold) > tbody > tr:hover > .act {
-    background: linear-gradient(var(--hover), var(--hover)), #fff;
-  }
+.dev-ledger-table tr:is(:hover, :focus-within) .dev-locate { opacity: 1; }
+.dev-ledger-table .iconbtn.round.dev-locate:hover { background: var(--sel); color: var(--text); }
+@media (hover: none) { .dev-ledger-table .iconbtn.round.dev-locate { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .dev-ledger-table .iconbtn.round.dev-locate { transition: none; } }
+.dev-ledger-foot {
+  display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px;
+  border-top: 1px solid var(--line2); font-size: 14px; line-height: 24px; color: #636363;
 }
+.dev-ledger-foot > p { margin: 0 auto 0 0; }
+.dev-ledger-foot > .flow-pager { margin: 0; }
 
 /* ---------- 2.53 运营全面深入核查（V228–V294） ---------- */
 /* V229：楼层图标签一律在功能区左上，第一行名称、第二行数值，12/18；放不下名称时只写数值（narrow），数值也放不下时只填色（bare） */
@@ -30454,37 +30452,31 @@ textarea.rpt-auto {
   margin: 8px 0 0;
 }
 
+/* ---------- 2.56 楼层画布（E544、E545） ---------- */
+/* E544：画布顶部一排与“全部楼层”40 圆垂直居中（32 高的按钮下移 4，36 高的分段下移 2），项目楼层图与设备标记的楼层画布相同 */
+:is(.ws-workbench.viewing, .mk-bench) .ws-canvas-top { height: 40px; }
+:is(.ws-workbench.viewing, .mk-bench) .ws-canvas-top > :is(.spatial-drawing-controls, .spatial-layer-controls) { top: 0; bottom: 0; }
+/* E545：缩放胶囊到头的按钮置灰，用全站禁用样式 */
+.ws-zoom .iconbtn[aria-disabled="true"] { opacity: var(--disabled-opacity); cursor: not-allowed; }
+.ws-zoom .iconbtn[aria-disabled="true"]:hover { background: none; color: inherit; }
+
 }
 @layer base {
 /* Device ledger only. A single table, selection set and original actions serve
    both the desktop columns and phone summaries; no duplicate mobile rows. */
 .dev-ledger-label,
-.dev-ledger-type,
-.dev-ledger-more,
 .dev-ledger-select-text { display: none; }
 .dev-ledger-check { display: contents; }
-.dev-ledger-comm-main,
-.dev-ledger-comm-details { display: contents; }
-.dev-ledger-filter-scroll { display: contents; }
-.dev-ledger-filter-scroll > .seg { height: 30px; padding: 2px; }
-.dev-ledger-filter-scroll > .seg > button { height: 26px; min-width: 40px; padding: 0 10px; font-size: 14px; line-height: 24px; }
-.dev-ledger-filter-scroll > .seg > .seg-thumb { top: 0; height: 26px; }
 .dev-ledger-frame .t :is(th, td):has(> .dev-ledger-check) { width: 1%; min-width: 0; padding-right: 0; }
 
 @media (max-width: 599.98px) {
-  /* The search and filter stay together; the complete status filter occupies
-     its own scrollable line instead of shrinking labels or losing a category. */
-  .ws-inventory-tools { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
-  .ws-inventory-tools > .ws-search { grid-column: 1; grid-row: 1; width: auto; min-width: 0; }
-  .ws-inventory-tools > .btn.ghost { grid-column: 2; grid-row: 1; min-height: 44px; }
-  .ws-inventory-tools > .dev-ledger-filter-scroll {
-    display: block; grid-column: 1 / -1; grid-row: 2; min-width: 0; overflow-x: auto;
-    padding: 6px 0; scrollbar-width: none;
-  }
-  .dev-ledger-filter-scroll::-webkit-scrollbar { display: none; }
-  .dev-ledger-filter-scroll > .seg { width: max-content; max-width: none; overflow: visible; }
-  .dev-ledger-filter-scroll > .seg > button { flex: none; min-width: 44px; padding-inline: 8px; }
-  .dev-ledger-filter-scroll > .seg > button::after { content: ""; position: absolute; inset: -9px 0; }
+  /* 2.56 E549：搜索占第一行；“状态”下拉、“筛选”与“选择”在第二行 */
+  .ws-inventory-tools { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; }
+  .ws-inventory-tools > .ws-search { grid-column: 1 / -1; grid-row: 1; width: auto; min-width: 0; }
+  .ws-inventory-tools > .dev-status-sel { grid-column: 1; grid-row: 2; min-width: 0; }
+  .ws-inventory-tools > .btn.ghost { grid-column: 2; grid-row: 2; min-height: 44px; }
+  .ws-inventory-tools > .dev-tools-end { grid-column: 3; grid-row: 2; margin: 0; }
+  .ws-inventory-tools .dev-select-btn { width: 44px; height: 44px; }
 
   .dev-ledger-frame { min-width: 0; }
   .dev-ledger-frame > .tw { overflow: visible; mask-image: none; -webkit-mask-image: none; }
@@ -30510,7 +30502,7 @@ textarea.rpt-auto {
   }
   .dev-ledger-frame .dev-ledger-table > tbody > tr:last-child { border-bottom: 0; }
   .dev-ledger-frame .dev-ledger-table > tbody > tr > :is(th[scope=row], td) {
-    width: auto; min-width: 0; max-width: 100%; height: auto; padding: 0; border: 0;
+    box-sizing: border-box; width: auto; min-width: 0; max-width: 100%; height: auto; padding: 0; border: 0;
     background: none; box-shadow: none; white-space: normal;
     font-size: 14px; line-height: 24px; text-align: left; overflow-wrap: anywhere;
   }
@@ -30523,7 +30515,7 @@ textarea.rpt-auto {
     display: inline-flex; align-items: center; justify-content: center;
     width: 44px; height: 44px; flex: none; cursor: pointer;
   }
-  .dev-ledger-frame .dev-ledger-table > tbody > tr > th[scope=row] { grid-column: 1 / -1; order: 1; }
+  .dev-ledger-frame .dev-ledger-table > tbody > tr > th[scope=row] { grid-column: 1 / -1; order: 1; padding-right: 40px; }
   .dev-ledger-frame .dev-ledger-table > tbody > tr:has(input[name=devSel]) > th[scope=row] { padding-left: 0; }
   .dev-ledger-frame .dev-ledger-table > tbody > tr > th[scope=row] > .btn.ghost {
     display: flex; width: fit-content; max-width: 100%; min-width: 44px; min-height: 24px; margin: 0;
@@ -30532,7 +30524,6 @@ textarea.rpt-auto {
   .dev-ledger-frame .dev-ledger-table > tbody > tr > th[scope=row] > .flow-sub {
     display: block; margin: 0; font-size: 12px; line-height: 18px;
   }
-  .dev-ledger-type { display: inline; }
   /* Names remain complete even when one identifier exceeds the available row. */
   .dev-ledger-frame .dev-ledger-table :is(.nw, .nwj) { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
   #app[data-page=devices] .dev-ledger-frame .dev-ledger-table .btn { max-width: 100%; margin: 0; padding-inline: 0; }
@@ -30542,25 +30533,15 @@ textarea.rpt-auto {
     grid-column: 1 / -1; order: 2; color: var(--text3); font-size: 12px; line-height: 18px;
   }
   .dev-ledger-label { display: block; color: var(--text3); font-size: 12px; line-height: 18px; margin-bottom: 2px; }
-  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="绑定 / 接入"] { grid-column: span 2; order: 3; }
-  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="配置同步"] { grid-column: span 2; order: 4; }
-  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="通信"] { display: contents; }
-  .dev-ledger-comm-main { display: block; grid-column: span 2; order: 5; min-width: 0; font-size: 14px; line-height: 24px; }
-  .dev-ledger-comm-details { display: flex; flex-wrap: wrap; gap: 0 12px; grid-column: 1 / -1; order: 6; min-width: 0; }
-  .dev-ledger-comm-details > .flow-sub { margin: 0; }
-  .dev-ledger-frame .dev-ledger-table .flow-sub { font-size: 12px; line-height: 18px; color: var(--text3); }
-  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="设备网络"] { grid-column: 1 / 3; order: 8; align-self: center; }
-  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="设备网络"]::before {
-    content: "网络"; margin-right: 8px; color: var(--text3); font-size: 12px; line-height: 18px;
-  }
-  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="设备网络"] .btn.ghost { min-height: 44px; }
-  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="接入方式"] { display: none; }
+  /* 2.56 E549：状态合为一项，与设备网络各占半行；“在图上查看”在右上角，44 触控区域 */
+  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="状态"] { grid-column: 1 / 4; order: 3; }
+  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="设备网络"] { grid-column: 4 / -1; order: 4; }
+  .dev-ledger-frame .dev-ledger-table .flow-sub { display: block; margin: 0; font-size: 12px; line-height: 18px; color: var(--text3); }
   .dev-ledger-frame .dev-ledger-table > tbody > tr > td.act {
-    grid-column: 3 / -1; order: 9; display: flex; align-items: center; justify-content: flex-end;
-    flex-wrap: wrap; gap: 0 8px; min-height: 44px; padding: 0;
+    position: absolute; top: 2px; right: 4px; display: flex; width: 44px; height: 44px; min-width: 0; padding: 0;
+    align-items: center; justify-content: center;
   }
-  .dev-ledger-more { display: inline-flex; }
-  .dev-ledger-frame .dev-ledger-table > tbody > tr > td.act .btn.ghost { min-height: 44px; }
+  .dev-ledger-frame .dev-ledger-table .iconbtn.round.dev-locate { width: 44px; height: 44px; opacity: 1; }
   .dev-ledger-frame .dev-ledger-table > tbody > tr.flow-group { display: block; padding-top: 12px; }
   .dev-ledger-frame .dev-ledger-table > tbody > tr.flow-group > th {
     display: block; width: auto; height: auto; padding: 8px 12px; border: 0; border-radius: 12px;
@@ -30568,10 +30549,11 @@ textarea.rpt-auto {
     color: var(--text2); white-space: normal;
   }
   .dev-ledger-frame .dev-ledger-table > tbody > tr > td.flow-no-rows { grid-column: 1 / -1; padding: 20px 0; }
+  .dev-ledger-foot { flex-wrap: wrap; padding: 8px 16px; }
 }
 
 @media (max-width: 374.98px) {
-  .dev-ledger-frame .dev-ledger-table > tbody > tr > td:is([data-label="设备网络"], .act) { grid-column: 1 / -1; }
+  .dev-ledger-frame .dev-ledger-table > tbody > tr > td:is([data-label="状态"], [data-label="设备网络"]) { grid-column: 1 / -1; }
 }
 
 }
@@ -30803,6 +30785,8 @@ const XI = {
   zone: '<rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 3"/>',
   copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
+  // 2.56 E549、E551：表格与功能区列表的“选择”（点后出现勾选）
+  "square-check": '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="m9 12 2 2 4-4"/>',
   alert:
     '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
   edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
@@ -37393,14 +37377,16 @@ const data = () => D || W,
 // Project pages edit space only. Configuration tasks link to the owning workspace without duplicating data.
 // 设备页签（2026-10-17 用户确认，配置区核查 E138：设备标记放回设备，做第一个页签；原为 E81 的五个列表页签，设备标记并入项目 › 楼层）；
 // 名称按 E121、E122（原为“设备台账”“分组”）。
-// 2.53 E482：楼层图只在“项目 › 楼宇 › 楼层”一处，顶部切换“功能区 / 设备 / 照明分区 / 网络”；设备导航去掉“设备标记”页签与楼层目录。
-// 设备三种模式内部仍为 devices · mark（保存规划、撤销重做等不变），地址写 #projects?…&mode=…，侧栏与页面标题为“项目”。
+// 2.56 E547：“设备标记”页签恢复（取代 E482 的“楼层图只在项目一处”），内容就是楼层图，顶部切换“设备 | 照明分区 | 网络”；
+// 项目楼层图只做功能区。E482 去掉的“全部楼层”目录不恢复：范围是项目或楼宇时打开上次看的楼层或第一个有楼层图的楼层。
+// E548：六个页签按工作先后排（先看全貌，再规划、接入、维护）；“固件”改名“固件升级”。
 const DEVICE_CATEGORY_ITEMS = [
   ["inventory", "设备列表"],
+  ["mark", "设备标记"],
   ["groups", "设备分组"],
   ["networks", "设备网络"],
   ["connections", "系统接入"],
-  ["firmware", "固件"],
+  ["firmware", "固件升级"],
 ];
 const deviceTabs = () => pageCategorySwitch("devices", U.tab || deviceDefaultTab());
 // 设备页的默认页签（2026-10-17 用户确认，配置区核查 E138）：地址没有带页签时，范围是楼层打开“设备标记”，范围是项目或楼宇打开“设备列表”；
@@ -37415,10 +37401,11 @@ function floorModeTabs() {
   const edit = canEdit(),
     space = U.page === "projects",
     // 2.14 E263：项目楼层去掉“查看 | 功能区”切换（原为编辑者两个模式），楼层图只有一种状态；“创建功能区”一直在画布左上。
-    items = [["view", "功能区"], [edit ? "mark" : "dview", "设备"], ...(edit ? [["relations", "照明分区"]] : []), ["roles", "网络"]],
+    // 2.56 E547：项目楼层图只做功能区，没有模式切换（设备在“图层 › 设备”只读显示）；设备标记为“设备 | 照明分区 | 网络”。
+    items = space ? [] : [[edit ? "mark" : "dview", "设备"], ...(edit ? [["relations", "照明分区"]] : []), ["roles", "网络"]],
     cur = space ? "view" : U.mode === "health" ? "roles" : U.mode === "view" ? (edit ? "mark" : "dview") : U.mode;
   if (!items.length) return "";
-  return `<div class="seg sm ws-floor-modes" role="tablist" aria-label="${planWord(U.b)}模式">${items
+  return `<div class="seg sm ws-floor-modes" role="tablist" aria-label="设备标记模式">${items
     .map(([v, l]) => `<button role="tab" class="${v === cur ? "on" : ""}" aria-selected="${v === cur}" data-act="floorMode" data-value="${v}">${l}</button>`)
     .join("")}</div>`;
 }
@@ -38341,7 +38328,8 @@ function route(page, scope = {}, opts = {}) {
       else { U.opsHealthAlarm = null; U.opsAlType = "all"; }
     }
     U.mode = normalizeDeviceMode(page, U.mode);
-    if (page === "devices" && (!U.tab || (U.tab === "mark" && !U.f))) U.tab = deviceDefaultTab();
+    // 2.56 E547：设备标记没有楼层时由页面打开上次看的楼层或第一个有楼层图的楼层，不再退回设备列表
+    if (page === "devices" && !U.tab) U.tab = deviceDefaultTab();
     if (page === "deployment") Object.assign(U, { b: null, f: null, zone: null, net: null, view: "cards", mode: "view", tab: "status" });
     if (page === "settings") Object.assign(U, { b: null, f: null, zone: null, net: null, view: "cards", mode: "view" });
     // 来源返回：从配置进度、配置参数、设备、总览进入项目空间时记住来源；回到来源、离开项目、换项目或上行到全部项目时清除。
@@ -38373,14 +38361,14 @@ function syncRoute(replace = false) {
   }
   // 来源返回记在本历史项里（2026-10-05 核查 C1）：浏览器后退、前进回到哪一项，就恢复那一项进入时的来源。
   const canvas = devCanvas();
-  for (const k of ["p", "b", "f", "tab", "net", "ntab"]) if (U[k] && !(k === "ntab" && U[k] === "summary") && !(canvas && k === "tab")) q.set(k, U[k]);
+  for (const k of ["p", "b", "f", "tab", "net", "ntab"]) if (U[k] && !(k === "ntab" && U[k] === "summary")) q.set(k, U[k]);
   if (["projects", "devices"].includes(U.page) && U.f && U.zone) q.set("z", U.zone);
   if (U.view !== "cards") q.set("view", U.view);
-  // 2.53 E482：楼层图的设备、照明分区、网络模式写成项目楼层的地址（只读的“设备”写 dview）
-  if (canvas || U.mode !== floorDefaultMode(U.page)) q.set("mode", canvas && U.mode === "view" ? "dview" : U.mode);
+  // 2.56 E547：设备标记写回 #devices?tab=mark…（2.53–2.55 写成项目楼层的地址，读地址时照旧认得）
+  if (canvas || U.mode !== floorDefaultMode(U.page)) q.set("mode", U.mode);
   const state = { source: U.source || null }, ops = typeof opsRouteState === "function" ? opsRouteState() : null;
   if (ops) state.ops = ops;
-  history[replace ? "replaceState" : "pushState"](state, "", "#" + (canvas ? "projects" : U.page) + (q.size ? "?" + q : ""));
+  history[replace ? "replaceState" : "pushState"](state, "", "#" + U.page + (q.size ? "?" + q : ""));
 }
 function readRoute() {
   // A standalone document has no workspace loaded; entering the app starts its normal boot.
@@ -38408,11 +38396,10 @@ function readRoute() {
     U.mode = "mark";
   }
   // 2.04 的项目楼层“设备”“照明分区”“网络”模式地址改开设备 › 设备标记（E138）。
-  // 2.53 E482：旧的“设备 › 设备标记”楼层目录地址改开项目（楼宇或项目页）；dview 为只读的“设备”模式
+  // 2.53–2.55 的项目楼层设备模式地址（只读的“设备”为 dview）同样改开设备 › 设备标记（2.56 E547）
   if (U.page === "projects" && U.f && U.mode === "dview") (U.page = "devices"), (U.tab = "mark"), (U.mode = "view");
   else if (U.page === "projects" && U.f && FLOOR_DEVICE_MODES.includes(U.mode)) (U.page = "devices"), (U.tab = "mark");
   else if (U.page === "projects") U.mode = U.mode === "zones" ? "zones" : "view";
-  if (U.page === "devices" && U.tab === "mark" && !U.f) (U.page = "projects"), (U.tab = ""), (U.mode = "view");
   // 功能区地址：只有 z 时直接进入其所在楼层；z 不属于当前楼层时忽略，不跳到别的楼层。
   U.zone = q.get("z") || null;
   const routeZone = U.zone ? g("zones", U.zone) : null;
@@ -38791,7 +38778,7 @@ const BARE = {},
   BARE_AFTER = {};
 // 导航链接保留原有点击行为，同时支持复制地址和在新标签页打开。
 function wsNavHref(page) {
-  const s = page === "projects" ? {} : page === "devices" && devCanvas() ? { p: U.p } : U.page === page ? snapshot() : U.memory[page] || {},
+  const s = page === "projects" ? {} : U.page === page ? snapshot() : U.memory[page] || {},
     q = new URLSearchParams();
   for (const k of ["p", "b", "f", "tab", "net", "ntab"]) {
     if (s[k] && !(k === "ntab" && s[k] === "summary")) q.set(k, s[k]);
@@ -38866,8 +38853,7 @@ function wsNavItem(k, l, i) {
   const al = k === "alarms" ? wsAlarmCount() : null,
     name = al ? `${l} · ${al.n} 条重要及以上待确认` : l;
   // 侧栏图标统一 1.5 线宽（规范第 61 行）：线条图标（XI，默认 1.6）在这里改为 1.5（2.01 配置区核查 E54）
-  // 2.53 E482：楼层图的设备模式属于项目
-  const on = devCanvas() ? k === "projects" : U.page === k;
+  const on = U.page === k;
   return `<a href="${esc(wsNavHref(k))}" class="navitem ${on ? "on" : ""}" data-act="nav" data-page="${k}" aria-label="${esc(name)}" ${on ? 'aria-current="page"' : ""} data-tip="${esc(name)}"><span class="ib">${ico(i).replace('stroke-width="1.6"', 'stroke-width="1.5"')}</span><span class="navlabel">${esc(l)}</span>${al ? `<span class="ws-nav-count l${al.lvl}" aria-hidden="true">${al.n > 99 ? "99+" : al.n}</span>` : ""}</a>`;
 }
 function wsSideHtml() {
@@ -38889,7 +38875,7 @@ function render() {
   if (normalizedMode !== U.mode) { U.mode = normalizedMode; syncRoute(true); }
   // 无效主类地址统一回当前页默认项；碳明细是能源的合法深链，不被主类归一化移除。
   const categoryItems = pageCategoryItems(U.page);
-  if (categoryItems.length && U.tab && !(U.page === "analysis" && U.tab === "carbon") && !devCanvas() && !categoryItems.some(([id]) => id === U.tab)) {
+  if (categoryItems.length && U.tab && !(U.page === "analysis" && U.tab === "carbon") && !categoryItems.some(([id]) => id === U.tab)) {
     U.tab = U.page === "devices" ? deviceDefaultTab() : categoryItems[0][0];
     syncRoute(true);
   }
@@ -39310,7 +39296,7 @@ function buildingPage() {
   // 楼层标记时提示放在标记工具条内、所有控件之后：控件换行时提示随之下移，不压住任何控件（与楼层页一致）。
   const markTop = canEdit() && b.image && !isMobile() && U.buildingMark;
   return bar + `<div class="ws-building-stage">${floorRail()}${markTop ? `<div class="spatial-building-top">${spatialControl("楼层标记",true)}${noteHtml}</div>` : noteHtml}${b.image
-    ? `<img id="buildingImage" style="transform:scale(${U.buildingZoom})" src="${esc(b.image)}" alt="${zhSub(esc(b.name), "r")}楼宇图"><div id="buildingCanvas" class="ws-building-canvas ${U.buildingMark ? "marking" : ""} ${split?.ids && !split.sel ? "split-pick" : ""}">${spatialBuildingRegions(b.id)}</div><div class="ws-building-bottom">${floorPick()}${zoomPill("楼宇图", U.buildingZoom, "buildingZoom", "buildingFit", "ws-building-zoom ")}</div>`
+    ? `<img id="buildingImage" style="transform:scale(${U.buildingZoom})" src="${esc(b.image)}" alt="${zhSub(esc(b.name), "r")}楼宇图"><div id="buildingCanvas" class="ws-building-canvas ${U.buildingMark ? "marking" : ""} ${split?.ids && !split.sel ? "split-pick" : ""}">${spatialBuildingRegions(b.id)}</div><div class="ws-building-bottom">${floorPick()}${zoomPill("楼宇图", U.buildingZoom, "buildingZoom", "buildingFit", "ws-building-zoom ", ZOOM_STEPS.building)}</div>`
     : `<div class="ws-building-bottom">${floorPick()}</div>` + buildingNoImage(b)}</div>`;
 }
 // D8（2026-10-03 用户确认）：从楼层返回楼宇时，刚离开的楼层在轨道和楼宇图片上显示浅色底（不是选中态）；
@@ -39323,9 +39309,14 @@ const floorRecent = (id) => U.page === "projects" && !U.f && !U.buildingMark && 
 const railFloors = () => sortedFloors(U.b).filter((f) => !["roles", "health"].includes(U.mode) || !U.net || g("networks", U.net)?.floorIds.includes(f.id));
 // 缩放胶囊（楼宇图、项目楼层图与设备标记的楼层图共用）：胶囊 role="group"，名称“缩放”；中间显示当前比例，点按适应窗口，
 // 读屏名称“适应窗口，当前 100%”，提示气泡“适应窗口”，字 14（Lovable 核查第 348 条，2026-10-11 用户确认）。
-function zoomPill(word, zoom, act, fit, cls = "") {
-  const pct = Math.round(zoom * 100) + "%";
-  return `<div class="${cls}ws-zoom" role="group" aria-label="缩放">${iconBtn("缩小" + word, "minus", act, { delta: "-.2" })}${btn(pct, fit, {}, "ghost sm").replace("<button ", `<button aria-label="适应窗口，当前 ${pct}" data-tip="适应窗口" `)}${iconBtn("放大" + word, "plus", act, { delta: ".2" })}</div>`;
+// 2.56 E545：放大、缩小按固定档位跳（楼层图 100%～400%，楼宇图 100%～300%），从任意比例跳到最近的下一档；滚轮、触控板与双指缩放照旧连续。
+// 到头的按钮置灰（aria-disabled，全站禁用样式），提示照旧；胶囊贴着画布底边，提示气泡显示在按钮上方 4。
+const ZOOM_STEPS = { plan: [1, 1.25, 1.5, 2, 3, 4], building: [1, 1.25, 1.5, 2, 3] };
+const zoomStep = (steps, z, dir) => (dir > 0 ? steps.find((x) => x > z + 1e-6) ?? steps.at(-1) : [...steps].reverse().find((x) => x < z - 1e-6) ?? steps[0]);
+function zoomPill(word, zoom, act, fit, cls = "", steps = ZOOM_STEPS.plan) {
+  const pct = Math.round(zoom * 100) + "%",
+    end = (b, off) => b.replace("<button ", `<button data-tip-at="top"${off ? ' aria-disabled="true"' : ""} `);
+  return `<div class="${cls}ws-zoom" role="group" aria-label="缩放">${end(iconBtn("缩小" + word, "minus", act, { dir: -1 }), zoom <= steps[0] + 1e-6)}${btn(pct, fit, {}, "ghost sm").replace("<button ", `<button aria-label="适应窗口，当前 ${pct}" data-tip="适应窗口" data-tip-at="top" `)}${end(iconBtn("放大" + word, "plus", act, { dir: 1 }), zoom >= steps.at(-1) - 1e-6)}</div>`;
 }
 function floorRail() {
   if (isOutdoor(U.b)) return "";
@@ -39340,7 +39331,7 @@ function floorRail() {
   // 2.14 E260（2026-10-21 HONG 按建议）：“全部楼层”移出导航条，改为导航条正上方 8 的单独 40 圆按钮，不随楼层滚动、单独一个 Tab 停留；
   // 与导航条同一轨道外观，在楼宇图时整个 40 圆为白色凸起底。导航条里只留楼层号与上下滚动箭头（取代 E242 放进导航条第一项的做法）。
   const home = `<button class="ws-rail-home ${!U.f ? "on" : ""}" data-act="buildingHome" aria-label="全部楼层" aria-current="${!U.f ? "location" : "false"}" data-tip="全部楼层">${ico("layers")}</button>`;
-  return `<div class="ws-rail">${home}<div class="ws-rail-track"><button class="rail-arrow" data-act="railUp" aria-label="向上滚动楼层">${ico("chevron", "ic16")}</button><nav class="ws-rail-scroll" aria-label="楼层选择器"><span class="ws-rail-ind" aria-hidden="true"></span>${fs.map((f) => `<button aria-label="进入${floorSpeak(f)}${todo(f) ? "，本次范围内有待处理项" : ""}${!f.image ? "，未上传楼层图" : ""}${floorRecent(f.id) ? "，刚离开的楼层" : ""}" aria-current="${f.id === U.f ? "location" : "false"}" class="${f.id === U.f ? "on" : ""} ${todo(f) ? "todo" : ""} ${floorRecent(f.id) ? "recent" : ""}" data-act="floor" data-id="${f.id}" title="${f.name}${todo(f) ? " · 待处理" : ""}${!f.image ? " · 未上传楼层图" : ""}">${f.name === "RF" ? "RF" : f.name.replace(/F$/, "")}</button>`).join("")}</nav><button class="rail-arrow" data-act="railDown" aria-label="向下滚动楼层">${ico("chevron", "ic16")}</button></div></div>`;
+  return `<div class="ws-rail">${home}<div class="ws-rail-track"><button class="rail-arrow" data-act="railUp" aria-label="向上滚动楼层">${ico("chevron", "ic16")}</button><nav class="ws-rail-scroll" aria-label="楼层选择器"><span class="ws-rail-ind" aria-hidden="true"></span>${fs.map((f) => `<button aria-label="进入${floorSpeak(f)}${todo(f) ? "，本次范围内有待处理项" : ""}${!f.image ? "，未上传楼层图" : ""}${floorRecent(f.id) ? "，刚离开的楼层" : ""}" aria-current="${f.id === U.f ? "location" : "false"}" class="${f.id === U.f ? "on" : ""} ${todo(f) ? "todo" : ""} ${floorRecent(f.id) ? "recent" : ""}" data-act="floor" data-id="${f.id}" data-tip="${esc(f.name)}${!f.image ? " · 未上传楼层图" : ""}${todo(f) ? " · 空间资料待处理" : ""}" data-tip-at="right">${f.name === "RF" ? "RF" : f.name.replace(/F$/, "")}</button>`).join("")}</nav><button class="rail-arrow" data-act="railDown" aria-label="向下滚动楼层">${ico("chevron", "ic16")}</button></div></div>`;
 }
 // 楼层导航的选中底块滑动（E243，同 Lovable 视图切换与 E228）：150ms ease-out 上下滑到新楼层，距离远时一次滑过去；文字颜色同时过渡 150ms。
 // 新楼层在可视范围外时，渲染后先把导航条滚到该层（见 wsAfterRender），底块随内容一起滚动，再从上一次的位置滑过去。
@@ -39439,6 +39430,8 @@ function floorPage() {
   if (!canEdit() && ["mark", "relations"].includes(U.mode)) U.mode = "view";
   const f = currentFloor(),
     b = currentBuilding();
+  // 2.56 E547：记住每栋楼与每个项目上次在设备标记里看的楼层
+  Object.assign((U.markFloor ||= {}), { [f.buildingId]: f.id, [b.projectId]: f.id });
   // 室外区域（第 8 步 F2f）：“总平面资料”“上传总平面图”，说明不写“楼层”。
   const out = isOutdoor(f.buildingId);
   // 选中新的对象时，收起过的面板重新展开（第 31 条）
@@ -39451,14 +39444,15 @@ function floorPage() {
   // 收起按钮只在面板上（原先页头和面板各有一个“收起面板”）。宽度 ≤850px 时面板排在画布下方，没有这个按钮。
   // 2.16 E372：面板位置不变，开关改为面板左缘的把手（与项目信息、楼层页同一种），取代面板上的“收起面板”与收起后顶栏的“展开面板”（E146）。
   if (f.image && !mkStacked()) rpHandle("面板", panelOpen, "mkPanel", {}, ".ws-planning-panel", "mk-panel-btn");
-  const body = mkTopBar(f, f.image ? F.planChecks(data(), { floorId: f.id }) : null);
+  // 2.56 E547：设备标记是“设备”的页签，页签行在上（位置选择器在页签行左端），楼层图的工具行在下
+  const body = pageCategoryHeader("devices", "mark", { actions: btn("修改记录", "changes") }) + mkTopBar(f, f.image ? F.planChecks(data(), { floorId: f.id }) : null);
   // 没有图纸时指向项目楼层（2026-10-17 用户确认，配置区核查 E141）；查看人员与运营人员不给上传指导（第14章；2026-10-05 核查 D16）。
   if (!f.image)
     return (
       body +
       `<div class="ws-workbench no-plan mk-bench">${floorRail()}${out
-        ? empty(zhSub(f.name, "r") + "尚未上传总平面图", canEdit() ? "上传总平面图后可标记设备。" : "尚无总平面图，暂不能查看设备。", canEdit() ? btn("上传总平面图", "markDirSpace", { id: f.id }, "primary") : "")
-        : empty(zhSub(f.name, "r") + "尚未上传楼层图", canEdit() ? "上传本层楼层图后可标记设备。" : "本层尚无楼层图，暂不能查看设备。", canEdit() ? btn("上传楼层图", "markDirSpace", { id: f.id }, "primary") : "")}${floorPick()}</div>`
+        ? empty(zhSub(f.name, "r") + "尚未上传总平面图", canEdit() ? "上传总平面图后可标记设备。" : "尚无总平面图，暂不能查看设备。", canEdit() ? btn("上传总平面图", "uploadPlan", { f: f.id }, "primary") : "")
+        : empty(zhSub(f.name, "r") + "尚未上传楼层图", canEdit() ? "上传本层楼层图后可标记设备。" : "本层尚无楼层图，暂不能查看设备。", canEdit() ? btn("上传楼层图", "uploadPlan", { f: f.id }, "primary") : "")}${floorPick()}</div>`
     );
   const net = M.networks(data(), f.id).find((n) => n.id === U.net) || M.networks(data(), f.id)[0];
   U.net = net?.id || null;
@@ -39506,7 +39500,7 @@ function mkTopBar(f, checks, panelBtn = false) {
     panel = "";
   // 2.15 E306（2026-10-21 HONG 按建议）：去掉“返回楼层目录”按钮，换层级用位置选择器（选楼宇或项目即打开楼层目录），与项目楼层页一致。
   // E309：有阻止项时“现场绑定”不可点，提示气泡写“阻止项清零后才能现场绑定”。
-  return `<div class="mk-topbar" role="toolbar" aria-label="楼层图">${scopeControl()}${f.image ? floorModeTabs() + checkPill(checks) : ""}${
+  return `<div class="mk-topbar" role="toolbar" aria-label="楼层图">${f.image ? floorModeTabs() + checkPill(checks) : ""}${
     edit ? `<span class="mk-hist">${hist("撤销", "undo", "undo", U.undo.length)}${hist("重做", "redo", "redo", U.redo.length)}</span>` : ""
   }<span class="sp"></span>${menuTrigger(iconBtn("更多", "more", "mkMore"))}${panel}${
     edit
@@ -39526,7 +39520,9 @@ function mkMoreItems() {
   return (
     btn(ico("info", "ic16") + (out ? "总平面信息" : "楼层信息"), "spaceInfo", { kind: "floors", id: f.id }, "popitem") +
     (canEdit() && f.image && !out ? btn(ico("copy", "ic16") + "复制设备到其他楼层", "dcForm", {}, "popitem") : "") +
-    (canEdit() && f.image && n ? btn(ico("download", "ic16") + "现场安装资料", "installKit", { id: n.id }, "popitem") : "")
+    (canEdit() && f.image && n ? btn(ico("download", "ic16") + "现场安装资料", "installKit", { id: n.id }, "popitem") : "") +
+    // 2.56 E547：回到项目的同一层编辑功能区，缩放与位置保持
+    (canEdit() ? btn(ico("edit", "ic16") + "编辑功能区", "toSpace", {}, "popitem") : "")
   );
 }
 function progressBar(n) {
@@ -39666,9 +39662,20 @@ pages.devices = () => {
   const tab = U.tab || "inventory";
   if (tab === "networks" && U.net) return networkPage();
   if (tab === "mark" && U.f) return floorPage();
-  // 范围是全部项目、项目或楼宇时“设备标记”为楼层目录（2026-10-17 用户确认，设备核查 E145：原先仍显示设备列表）
-  // 2.53 E482：没有“设备标记”楼层目录；旧地址在读地址时已改开项目
-  if (tab === "mark") return (U.page = "projects"), (U.tab = ""), (U.mode = "view"), syncRoute(true), pages.projects();
+  // 2.56 E547：范围是项目或楼宇时打开这栋楼（项目为本项目）上次看的楼层，没有则打开第一个有楼层图的楼层，用左侧轨道换层；
+  // 全部项目时写“选择项目后标记设备”。不恢复 E482 之前的“全部楼层”目录。
+  if (tab === "mark") {
+    const head = pageCategoryHeader("devices", "mark", { actions: btn("修改记录", "changes") });
+    if (!U.p) return head + empty("选择项目后标记设备", "", "", "map-pin");
+    const fs = F.scopedFloors(data(), { p: U.p, b: U.b }),
+      last = g("floors", (U.markFloor || {})[U.b || U.p]),
+      fl = (last && fs.includes(last) ? last : null) || fs.find((f) => f.image) || fs[0];
+    if (!fl) return head + empty("还没有楼层", canEdit() ? "先在项目中建立楼宇和楼层并上传楼层图" : "", canEdit() ? btn("前往项目", "markDirProjects", {}, "primary") : "", "map-pin");
+    U.f = fl.id;
+    U.b = fl.buildingId;
+    syncRoute(true);
+    return floorPage();
+  }
   // 页头右侧只放管整页的“修改记录”；各页签的新建在页签下第一行右端，是本页签唯一的主要按钮（2026-10-10 用户确认，ABB 对比 IA4：
   // 原先这五个页签的页头都有黑色“+ 标记设备”）。标记设备在“设备标记”页签和项目楼层图的“标记设备”进行。
   // “修改记录”用全站默认浅色按钮（Lovable 核查第 104 条，2026-10-11 用户确认：原为透明按钮）
@@ -39766,16 +39773,16 @@ const usages = ["办公", "商业", "酒店", "医疗", "教育", "科研", "文
 let formState = null,
   geoMap = null,
   listMap = null;
-// 2.13 E229：整块拖放区就是选择按钮（Lovable 拖放区：2px 虚线、圆角 12、内边距 24，居中上传图标 24 加“拖放图片或选择文件”）。
-// 2.14 E254：格式说明“PNG、JPEG 或 WebP”放进拖放区（去掉“保留原图”）；有图片时换成缩略图行：160×90 缩略图本身就是更换按钮
-// （悬停 60% 黑色遮罩加白色上传图标，也可拖放到缩略图上），右侧只有“移除”文字按钮；原为拖放区下方一行说明加“更换图片”“移除图片”。
+// 2.56 E541（取代 E229 的整行拖放区、E254 的缩略图行）：选填的图片用描边按钮“上传图片”（32 高，上传图标 16），按钮下 6 一行
+// 12/18 #636363 的说明“PNG、JPEG 或 WebP，横向 16:9 效果最好”；有图片时为 160×90 缩略图（本身是更换按钮）加文字按钮“移除”，说明照旧在下方。
+// 整个字段仍可拖放图片（拖入时外围 2px #636363 虚线、4% 灰底）。项目、楼宇与室外区域同一组件。
 function imageUpInner(image) {
-  return image
-    ? `<div class="ws-image-row"><button type="button" class="ws-image-field ws-image-thumbbtn" data-act="selectImage" aria-label="更换图片，也可拖放图片到这里"><span class="ws-image-thumb" id="imageThumb"><img src="${esc(image)}" alt="已选图片"></span><span class="ws-image-ov" aria-hidden="true">${ico("upload")}</span></button>${btn("移除", "removeSpaceImage", {}, "ghost sm ws-image-remove")}</div>`
-    : `<button type="button" class="ws-image-field ws-image-drop" data-act="selectImage" aria-label="选择图片，也可拖放图片到这里"><span class="ws-image-thumb" id="imageThumb">${ico("upload")}</span><span class="ws-drop-l">拖放图片或<b>选择文件</b></span><small>PNG、JPEG 或 WebP</small></button>`;
+  return (image
+    ? `<div class="ws-image-row"><button type="button" class="ws-image-field ws-image-thumbbtn" data-act="selectImage" aria-label="更换图片，也可拖放图片到这里"><span class="ws-image-thumb" id="imageThumb"><img src="${esc(image)}" alt="已选图片"></span><span class="ws-image-ov" aria-hidden="true">${ico("upload", "ic16")}</span></button>${btn("移除", "removeSpaceImage", {}, "ghost sm ws-image-remove")}</div>`
+    : `<div class="ws-image-row">${btn(ico("upload", "ic16") + "上传图片", "selectImage", {}, "ws-image-pick").replace("<button ", '<button type="button" aria-label="上传图片，也可拖放图片到这里" ')}</div>`) + '<small class="ws-image-note">PNG、JPEG 或 WebP，横向 16:9 效果最好</small>';
 }
 function imageField(image) {
-  return `<div class="ws-image-up" id="imageUp">${imageUpInner(image)}</div><input type="file" id="spaceImage" accept="image/png,image/jpeg,image/webp" hidden><div id="spaceImageStatus" hidden></div>`;
+  return `<div class="ws-image-up ws-image-zone" id="imageUp">${imageUpInner(image)}</div><input type="file" id="spaceImage" accept="image/png,image/jpeg,image/webp" hidden><div id="spaceImageStatus" hidden></div>`;
 }
 // 地图位置字段（2026-10-03 用户确认 C1、C3）：选中检索结果或地图落点即视为核对，不另设“已核对”勾选。
 // 2.14 E257：楼宇也只有一张地图（原先先选“与项目同一位置 / 单独定位”）：新建时标记在项目位置，移动标记即单独定位，地图下一行写当前状态。
@@ -39865,6 +39872,19 @@ function formAutoZone() {
   if (b) b.textContent = zoneText(tz);
   clearFieldErr($("#spaceTimezone-control")?.closest(".field"));
 }
+// 2.56 E536、E538：字数计数，到 from 字起显示“N / max”，超出时变为提醒色；保存时报错，不截断（写法同申请说明）。
+const charCountEl = (id, max, from, v = "") => {
+  const n = [...String(v || "")].length;
+  return `<small class="ws-char-count${n > max ? " over" : ""}" id="${id}-count" data-max="${max}" data-from="${from}" aria-live="polite"${n >= from ? "" : " hidden"}>${n} / ${max}</small>`;
+};
+document.addEventListener("input", (e) => {
+  const c = e.target.id ? document.getElementById(e.target.id + "-count") : null;
+  if (!c || !c.classList.contains("ws-char-count")) return;
+  const n = [...e.target.value].length;
+  c.hidden = n < +c.dataset.from;
+  c.textContent = `${n} / ${c.dataset.max}`;
+  c.classList.toggle("over", n > +c.dataset.max);
+});
 function spaceForm(kind, id) {
   const o = g(kind, id) || {},
     isB = kind === "buildings",
@@ -39893,11 +39913,11 @@ function spaceForm(kind, id) {
   };
   const outdoor = isB && o.kind === "outdoor";
   // 创建楼宇时可选类型“室外区域”（B7）：不设层数，自动建一个楼层“总平面”（名称可改）；已创建的不能互相转换。
-  // 2.14 E273（2026-10-21 HONG 按建议）：“类型”是字段标题（14/24、字重 480），下 8 两个横排单选、间隔 24（原为 13/20 与单选同一行）；
-  // E279：编辑时不再写“类型：楼宇”一行（类型创建后不能改，标题已写“编辑楼宇”或“编辑室外区域”）。
+  // 2.56 E543（取代 E273）：类型改用分段切换“楼宇 | 室外区域”，在弹窗主体最上面、左对齐，下 16 接名称一行；不写“类型”标题。
+  // 读屏为一组单选，名称“类型”，左右方向键切换；内部仍保留单选的表单值（name=spaceKind）。编辑时不显示（E279）。
   const kindField =
     isB && !o.id
-      ? `<fieldset class="ws-checks ws-bkind"><legend>类型</legend><div class="ws-bkind-opts"><label><input type="radio" name="spaceKind" value="building" checked>楼宇</label><label><input type="radio" name="spaceKind" value="outdoor">室外区域</label></div></fieldset>`
+      ? `<div class="seg ws-kind-seg" role="radiogroup" aria-label="类型">${[["building", "楼宇"], ["outdoor", "室外区域"]].map(([v, l], i) => `<button type="button" role="radio" aria-checked="${!i}" class="${i ? "" : "on"}" tabindex="${i ? -1 : 0}" data-act="spaceKindPick" data-value="${v}">${l}</button>`).join("")}</div><span class="ws-kind-values" hidden>${["building", "outdoor"].map((v, i) => `<input type="radio" name="spaceKind" value="${v}" tabindex="-1"${i ? "" : " checked"}>`).join("")}</span>`
       : "";
   // 2.13 E229：项目名称与项目类型同一行，两列各占一半、间隔 8（原为各占一行）；楼宇名称与主要用途同样（E240）。
   // E240：楼宇的面积单位 m² 放进输入框内右端，去掉“单位 m²；手工登记值。”；创建时地上层数、地下层数、建筑面积三列一行，
@@ -39911,23 +39931,30 @@ function spaceForm(kind, id) {
     fld(
       (isB ? (outdoor ? "区域" : "楼宇") : isF ? (isOutdoor(o.buildingId) ? "总平面" : "楼层") : "项目") + "名称",
       "spaceName",
-      input("spaceName", o.name || "", isB ? (outdoor ? "例如：室外停车场" : "例如：E栋") : isF ? "例如：7F" : "填写项目名称"),
+      // 2.56 E538：项目名称提示“例如：科学城创新园”（原“填写项目名称”重复字段标题）；项目、楼宇、区域名称最多 40 字，到 32 字起显示计数
+      isF
+        ? input("spaceName", o.name || "", "例如：7F")
+        : input("spaceName", o.name || "", isB ? (outdoor ? "例如：室外停车场" : "例如：E栋") : "例如：科学城创新园").replace("<input ", '<input aria-describedby="spaceName-count" ') + charCountEl("spaceName", 40, 32, o.name),
     ) +
     (isF
       ? isOutdoor(o.buildingId)
         ? "" // 室外区域的面积只在区域资料中登记一处（“占地面积”），总平面不另设面积。
         : fld("楼层面积（选填）", "spaceArea", input("spaceArea", o.area ?? "", "", "number"), "单位 m²；手工登记的楼层面积，不覆盖功能区图面估算面积。")
-      : `${fld(isB ? "主要用途（选填）" : "项目类型（选填）", "spaceUsage", select("spaceUsage", usages.map((s) => [s, s]), o.usage || "", isB ? "主要用途" : "项目类型", true)).replace('<div class="field"', `<div class="field ws-usage-field"${outdoor ? " hidden" : ""}`)}${isP || isB ? "</div>" : ""}${
+      : `${fld(isB ? "主要用途（选填）" : "项目类型（选填）", "spaceUsage", select("spaceUsage", usages.map((s) => [s, s]), o.usage || (isB && !o.id && p?.usage && !["混合用途", "其他"].includes(p.usage) ? p.usage : ""), isB ? "主要用途" : "项目类型", true)).replace('<div class="field"', `<div class="field ws-usage-field"${outdoor ? " hidden" : ""}`)}${isP || isB ? "</div>" : ""}${
           !isB ? "" : outdoor ? areaFld() : `<div class="ws-form-row ws-form-row3">${fld("地上层数", "spaceAbove", input("spaceAbove", o.above ?? "", "", "number")).replace('<div class="field"', '<div class="field ws-bfloor"')}${fld("地下层数", "spaceBelow", input("spaceBelow", o.below ?? 0, "", "number")).replace('<div class="field"', '<div class="field ws-bfloor"')}${areaFld()}</div><div class="ws-bstruct"><label class="row small"><input id="spaceRoof" type="checkbox" ${o.roof ? "checked" : ""}>包含屋顶层 RF</label>${o.id ? editSpecialHtml(o) + '<div class="ws-struct-change" id="structPreview" aria-live="polite"></div>' : `<p class="ws-struct-preview" id="structPreview" aria-live="polite">${esc(structText(structPlan(null, o.above, o.below ?? 0, o.roof), true))}</p>`}</div>`
-        }${fld("详细地址", "spaceAddress", `<div class="ws-addr-row">${input("spaceAddress", o.address || p?.address || "", "输入可识别的详细地址")}${mapConfigured() ? `<button type="button" class="iconbtn ws-addr-locate" data-act="geoAddress" aria-label="定位已填地址" data-tip="定位已填地址">${ico("crosshair", "ic16")}</button>` : ""}</div>`)}${locationField(o, p, isB, same, outdoor)}${!isB ? tzField(formState.timezone) : ""}${fld((isB ? (outdoor ? "区域" : "楼宇") : "项目") + "图片（选填）", "spaceImage", imageField(o.image))}`) +
-    // 2.14 E275：创建项目和楼宇不填说明，编辑时再填（原创建楼宇也有“楼宇说明（选填）”）。
-    (o.id || isF
-      ? fld(
-          (isF ? (isOutdoor(o.buildingId) ? "总平面" : "楼层") : isB ? (outdoor ? "区域" : "楼宇") : "项目") + "说明（选填）",
-          "spaceDescription",
-          `<textarea class="input" id="spaceDescription" rows="3" placeholder="补充必要说明">${esc(o.description || "")}</textarea>`,
-        )
-      : "");
+        }${fld("详细地址", "spaceAddress", `<div class="ws-addr-row">${input("spaceAddress", o.address || p?.address || "", "输入可识别的详细地址")}${mapConfigured() ? `<button type="button" class="iconbtn ws-addr-locate" data-act="geoAddress" aria-label="定位已填地址" data-tip="定位已填地址">${ico("crosshair", "ic16")}</button>` : ""}</div>`)}${locationField(o, p, isB, same, outdoor)}${
+          // 2.56 E537：创建项目不单列时区（按地图位置确定，写在所在地一行）；地图服务未开通时写一行“时区：…”。编辑项目照旧有“项目时区”。
+          isB ? "" : o.id ? tzField(formState.timezone) : mapConfigured() ? "" : `<small class="ws-region ws-tz-line" id="tzLine">时区：${esc(zoneText(formState.timezone))}</small>`
+        }${fld((isB ? (outdoor ? "区域" : "楼宇") : "项目") + "图片（选填）", "spaceImage", imageField(o.image))}`) +
+    // 2.56 E536（取代 E275）：创建项目、楼宇与室外区域时也有“说明（选填）”，放在最后：3 行，最多 200 字，到 160 字起显示“N / 200”，
+    // 超出时保存报错，不截断（写法同申请说明）。
+    fld(
+      (isF ? (isOutdoor(o.buildingId) ? "总平面" : "楼层") : isB ? (outdoor ? "区域" : "楼宇") : "项目") + "说明（选填）",
+      "spaceDescription",
+      isF
+        ? `<textarea class="input" id="spaceDescription" rows="3" placeholder="补充必要说明">${esc(o.description || "")}</textarea>`
+        : `<textarea class="input" id="spaceDescription" rows="3" placeholder="例如：改造范围、使用要求" aria-describedby="spaceDescription-count">${esc(o.description || "")}</textarea>${charCountEl("spaceDescription", 200, 160, o.description)}`,
+    );
   modal(
     (id ? "编辑" : "创建") + (isB ? (outdoor ? "室外区域" : "楼宇") : isF ? (isOutdoor(o.buildingId) ? "总平面" : "楼层") : "项目"),
     body,
@@ -41124,13 +41151,13 @@ function downloadJson(name, content) {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-// 2.53 E482：没有楼层的入口（配置进度“标记设备”、场景“去标记设备”）打开本项目第一个有楼层图的楼层的“设备”模式；
-// 都没有楼层图时打开项目页（原为设备 › 设备标记的楼层目录）。
+// 没有楼层的入口（配置进度“标记设备”、场景“去标记设备”）打开设备 › 设备标记：上次看的楼层，没有则第一个有楼层图的楼层（2.56 E547，原 E482 打开项目页）。
 function openMarkFloor(pid = U.p) {
   const db = data(),
-    fl = db.buildings.filter((b) => b.projectId === pid).flatMap((b) => sortedFloors(b.id)).find((f) => f.image);
+    last = g("floors", (U.markFloor || {})[pid]),
+    fl = last || db.buildings.filter((b) => b.projectId === pid).flatMap((b) => sortedFloors(b.id)).find((f) => f.image);
   if (fl) return goFloor(fl.id, canEdit() ? "mark" : "view", null, "devices");
-  route("projects", { p: pid || null, b: null, f: null, tab: "", net: null }, { remember: true });
+  route("devices", { p: pid || null, b: null, f: null, tab: "mark", net: null }, { remember: true });
 }
 function goFloor(fid, mode = null, point = null, page = U.page === "devices" ? "devices" : "projects") {
   const f = g("floors", fid);
@@ -41424,6 +41451,10 @@ async function saveSpaceForm() {
   const errors = [];
   const invalid = (id, message) => errors.push([id, message]);
   if (!v.name) invalid("spaceName", `请填写${noun}名称`);
+  // 2.56 E538、E536：名称最多 40 字，说明最多 200 字（项目、楼宇、室外区域）
+  const word = noun === "室外区域" ? "区域" : noun;
+  if (!isF && [...v.name].length > 40) invalid("spaceName", `${word}名称不超过 40 个字`);
+  if (!isF && [...v.description].length > 200) invalid("spaceDescription", `${word}说明不超过 200 个字`);
   const parentId = isB ? o.projectId || U.p : isF ? o.buildingId : null;
   if (v.name && data()[s.kind].some(x => x.id !== s.id && x.name === v.name && (!parentId || (isB ? x.projectId : x.buildingId) === parentId))) invalid("spaceName", `已有同名${noun}，请换一个名称`);
   if (isF) {
@@ -41472,7 +41503,8 @@ async function saveSpaceForm() {
         country: r?.country || (later ? o.country || "" : ""),
         province: r?.province || (later ? o.province || "" : ""),
         city: r?.city || r?.province || (later ? o.city || "" : ""),
-        timezone: value("spaceTimezone"),
+        // 2.56 E537：创建时没有时区字段，用按地图位置确定（或预填）的时区
+        timezone: $("#spaceTimezone") ? value("spaceTimezone") : s.timezone,
       });
     }
   }
@@ -41726,12 +41758,12 @@ defineActions({
     }
   },
   removeSpaceImage: () => {
-    if (!formState || !$("#imageThumb")) return;
+    if (!formState || !$("#imageUp")) return;
     formState.imageToken = (formState.imageToken || 0) + 1; formState.imageLoading = false;
     if ($("#spaceImageStatus")) $("#spaceImageStatus").hidden = true;
     formState.image = ""; $("#imageUp").innerHTML = imageUpInner("");
     const file = $("#spaceImage"); if (file) file.value = "";
-    $("#imageUp [data-act=selectImage]")?.focus({ preventScroll: true }); // 移除后焦点留在拖放区（选择图片）上
+    $("#imageUp [data-act=selectImage]")?.focus({ preventScroll: true }); // 移除后焦点回到“上传图片”（E541）
     modalDirty = true;
   },
   discard: () => {
@@ -41926,7 +41958,7 @@ defineActions({
     $("#floorCanvas")?.focus({ preventScroll: true });
   },
   zoom: (a) => {
-    U.zoom = Math.max(1, Math.min(4, U.zoom + Number(a.delta)));
+    U.zoom = zoomStep(ZOOM_STEPS.plan, U.zoom, Number(a.dir));
     render();
   },
   fit: () => {
@@ -41934,7 +41966,7 @@ defineActions({
     render();
   },
   buildingZoom: (a) => {
-    U.buildingZoom = Math.max(1, Math.min(3, U.buildingZoom + Number(a.delta)));
+    U.buildingZoom = zoomStep(ZOOM_STEPS.building, U.buildingZoom, Number(a.dir));
     render();
   },
   buildingFit: () => {
@@ -42416,7 +42448,9 @@ document.addEventListener("click", async (e) => {
     e.preventDefault();
     return;
   }
-  const target = e.target.closest("[data-act]");
+  const hit = e.target.closest("[data-act]"),
+    // 2.56 E549：设备列表整行可点，点勾选框（或它的标签）时只勾选
+    target = hit?.matches("tr.click") && e.target.closest("input, label") ? null : hit;
   if (target) {
     if (target.matches("#side a.navitem") && (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)) return;
     const fn = actions[target.dataset.act];
@@ -42580,6 +42614,8 @@ defineLayer({
 // 功能区多选（B5）：Esc 退出多选，焦点回到“多选”按钮（核查 R23）。层级 19：绘制与选中（20）先退；多选是在展开的面板里进入的，
 // 先退出多选、再收起覆盖面板（18）。焦点在勾选框上时同样退出；在文字输入框、多行文字或下拉中时不处理。
 const escTextTarget = (e) => !!(e && (/TEXTAREA|SELECT/.test(e.target?.tagName) || (e.target?.tagName === "INPUT" && !/^(checkbox|radio|button|submit)$/.test(e.target.type))));
+// 2.56 E549：设备列表的选择模式，Esc 退出（与再点“选择”相同）
+defineLayer({ name: "devSelect", level: 19, prevent: true, open: (e) => U.page === "devices" && U.tab === "inventory" && !!U.devSelMode && canEdit() && !escTextTarget(e), close: () => actions.devSelMode() });
 defineLayer({ name: "zoneMulti", level: 19, prevent: true, open: (e) => U.page === "projects" && !!U.f && !!U.zoneMulti && U.zoneMulti.fid === U.f && !escTextTarget(e), close: () => actions.spMultiDone() });
 // 覆盖展开的楼层面板（2026-10-03 用户确认“Esc 也收起”；2026-10-04 扩到所有覆盖面板，含 ≤850px 的窗口）：面板覆盖画布、由面板按钮展开（U.spPanel 为 true）时，
 // 绘制与选中、半屏卡片、弹窗、弹出菜单与提示先退，选中的功能区先取消选中（回到列表），再按 Esc 收起面板，焦点回到面板按钮。
@@ -43083,7 +43119,8 @@ async function reverseComp(lat, lng) {
 const regionOf = (c) => (c?.province ? { country: c.nation || "中国", province: c.province, city: c.city || c.province } : null);
 function regionLine() {
   const r = formState?.region;
-  if (r) return "所在地：" + regionText(r) + "（按地图位置识别）";
+  // 2.56 E537：创建项目时时区接在所在地后面（“所在地：广东省 广州市 黄埔区 · 中国标准时间（UTC+08:00）”）
+  if (r) return "所在地：" + regionText(r) + (formState && !formState.id && formState.kind === "projects" ? " · " + zoneText(formState.timezone) : "（按地图位置识别）");
   if (formState?.regionPending) return "所在地：识别中…";
   if (!mapConfigured()) return "所在地：地图服务尚未配置，暂不能识别";
   return formState?.location ? "所在地：未能识别，可重新选点" : "所在地：在地图上选点后自动识别";
@@ -43872,12 +43909,13 @@ function wsTipAllowed(el, keyboard) {
 }
 // 提示气泡的位置（Lovable 核查第 111 条，2026-10-11 用户确认）：离触发处 4，默认在下方居中（侧栏在右侧），下方放不下时放到上方；
 // 靠近窗口边时整体往里移，离边 8，不压窄。尺寸用 offsetWidth/offsetHeight 量，不受出现动画的缩放影响。
-function wsPlaceTip(tip, el, side = false, above = false) {
+// 2.56 E544、E545：data-tip-at="right" 放在右侧（楼层轨道：离轨道 4，edge 为轨道右边），"top" 放在上方（画布底部的缩放胶囊）。
+function wsPlaceTip(tip, el, side = false, above = false, edge = null) {
   const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
   if (!side && !above && r.bottom + 4 + h > innerHeight - 8 && r.top - 4 - h >= 8) above = true;
   tip.classList.toggle("ws-tip-up", !side && above);
   Object.assign(tip.style, {
-    left: Math.max(8, Math.min(innerWidth - w - 8, side ? r.right + 4 : r.left + (r.width - w) / 2)) + "px",
+    left: Math.max(8, Math.min(innerWidth - w - 8, side ? (edge ?? r.right) + 4 : r.left + (r.width - w) / 2)) + "px",
     top: Math.max(8, Math.min(innerHeight - h - 8, side ? r.top + (r.height - h) / 2 : above ? r.top - 4 - h : r.bottom + 4)) + "px",
   });
 }
@@ -43896,7 +43934,8 @@ function wsShowTip(el, keyboard = false) {
     if (el.dataset.tipShortcut) tip.innerHTML = `<span>${esc(el.dataset.tip)}</span>${searchKbd()}`;
     else tip.textContent = el.dataset.tip;
     document.body.append(tip);
-    wsPlaceTip(tip, el.querySelector("[data-trunc]") || el, side);
+    const at = el.dataset.tipAt;
+    wsPlaceTip(tip, el.querySelector("[data-trunc]") || el, side || at === "right", at === "top", at === "right" ? el.closest(".ws-rail-track")?.getBoundingClientRect().right : null);
     wsTipAnchor = el;
     const ids = new Set((el.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
     ids.add("tip");
@@ -43988,18 +44027,18 @@ document.addEventListener("pointerdown", (e) => {
   wsHideTip(true);
 });
 document.addEventListener("dragover", (e) => {
-  const box = e.target.closest(".ws-image-field");
+  const box = e.target.closest(".ws-image-zone");
   if (box) {
     e.preventDefault();
     box.classList.add("dragging");
   }
 });
 document.addEventListener("dragleave", (e) => {
-  const box = e.target.closest(".ws-image-field");
+  const box = e.target.closest(".ws-image-zone");
   if (box && !box.contains(e.relatedTarget)) box.classList.remove("dragging");
 });
 document.addEventListener("drop", async (e) => {
-  const box = e.target.closest(".ws-image-field");
+  const box = e.target.closest(".ws-image-zone");
   if (!box) return;
   e.preventDefault();
   box.classList.remove("dragging");
@@ -44016,7 +44055,7 @@ async function loadSpaceImage(file) {
   const token = target.imageToken = (target.imageToken || 0) + 1;
   target.imageLoading = true;
   modalDirty = true;
-  const current = () => formState === target && target.imageToken === token && $("#imageThumb");
+  const current = () => formState === target && target.imageToken === token && $("#imageUp");
   const status = (text, type = "info") => { const el = $("#spaceImageStatus"); if (el) { el.hidden = !text; el.innerHTML = text ? wsNotice(esc(text), type) : ""; } };
   status("正在处理图片；原图片保留到新图片就绪");
   try {
@@ -44246,7 +44285,7 @@ function sourceBack() {
 // 标题区路径：项目 / 广实2号园 / E栋 / 7F。祖先为链接；当前对象为标题，点按打开同级切换与四级搜索。
 function headTitle() {
   // 2.16 E374：总览、告警、场景、我的区域的实时标签跟在标题后面（ops-demo.js liveHead）
-  return `<h1>${memberHome() ? MEMBER_HOME : TITLES[devCanvas() ? "projects" : U.page] || "PACOM Station"}</h1>${typeof opsHeadLive !== "undefined" ? opsHeadLive : ""}`;
+  return `<h1>${memberHome() ? MEMBER_HOME : TITLES[U.page] || "PACOM Station"}</h1>${typeof opsHeadLive !== "undefined" ? opsHeadLive : ""}`;
 }
 // 室外区域只有一张总平面：选择器在楼宇与室外区域之间切换（2026-10-05 核查 S8：原先展开只有这一张总平面，切不到其他室外区域）。
 const switchKind = () => (U.page === "deployment" ? "projects" : U.f && U.zone && g("zones", U.zone) ? "zones" : U.f && !isOutdoor(U.b) ? "floors" : U.b ? "buildings" : "projects");
@@ -44522,10 +44561,9 @@ function spaceInformationBody(o, isBuilding = false) {
   // “本次范围”改名“本次部署范围”，与新的“配置进度”一行（六段细条，悬停写完成数和下一步）放在小标题“部署”下；不在范围的楼宇写“未纳入本次部署”，
   // 不显示配置进度一行。原夹在“地图坐标”与“修改记录”之间的“查看配置进度”按钮删除。“空间数量按全部授权空间统计”只在成员只被授权部分空间时
   // 显示在“全部空间”下方；原型没有部分空间授权，因此不显示。
-  const typeOrder = (t) => { const i = SPACE_TYPE_TABLE.findIndex((x) => x[0] === t); return i < 0 ? 999 : i; },
-    typeN = (t) => zs.filter(z => (z.spaceType || "未设类型") === t).length,
-    types = [...new Set(zs.map(z => z.spaceType || "未设类型"))].sort((a, b) => typeN(b) - typeN(a) || typeOrder(a) - typeOrder(b)).map(t => `${t} ${typeN(t)} 个`),
-    out = isBuilding && !scope.whole && !inScope.length;
+  // 2.56 E551：面板依次回答这是什么、进行到哪一步、关键资料、改过什么；同一件事只写一处。去掉“空间类型”“地图坐标”，
+  // 基本资料不再写副标题已有的类型与主要用途，楼宇不再写与项目相同的所在地与时区（取代 E239 的空间类型一行与 E368 的分组）。
+  const out = isBuilding && !scope.whole && !inScope.length;
   // 2.14 E267：去掉名称行（面板标题下已写名称）；没有楼宇的项目只写“全部空间 尚未创建楼宇”；没填说明时不显示“说明”；位置已核对时不显示
   // “位置核对”，待核对写提醒色“位置待核对”；坐标下不再写坐标系说明；没有修改记录时只写一行灰字。楼宇面板相同。
   const none = !isBuilding && !bs.length,
@@ -44535,17 +44573,24 @@ function spaceInformationBody(o, isBuilding = false) {
   // 2.16 E366（2026-10-22 HONG 07:20Z 按推荐）：标题下一排概要数字，基本资料里的“全部空间”与楼宇的“楼层结构”两行删去（取代 E239、E267 这两行）。
   // E367：配置进度做成一张卡片（第一行“配置进度 N / 6”，六段细条，“下一步：…”与“N 台需处理”，最后一行本次部署范围），小标题“部署”删去。
   // E368：顺序为照片、概要数字、配置进度卡片、基本资料、位置与说明、地图坐标与修改记录（仍折叠）。
-  const flat = isBuilding ? fs : fs.filter((f) => db.buildings.find((b) => b.id === f.buildingId)?.kind !== "outdoor"),
-    outs = bs.filter((b) => b.kind === "outdoor").length,
+  // 2.56 E551：项目不写“N 个楼层”（E250：项目与全部项目一律不写楼层合计）
+  const outs = bs.filter((b) => b.kind === "outdoor").length,
     chips = none ? [infoChip("building", "", "尚未创建楼宇")]
       : outdoor ? [infoChip("zone", zs.length, "个功能区")]
       : isBuilding ? [o.above || o.below ? infoChip("layers", o.above || 0, "层", "地上") : infoChip("layers", "", "尚无楼层"), ...(o.below ? [infoChip("layers", o.below, "层", "地下")] : []), infoChip("zone", zs.length, "个功能区")]
-      : [infoChip("building", bs.length - outs, "栋楼宇"), ...(outs ? [infoChip("map", outs, "个室外区域")] : []), infoChip("layers", flat.length, "个楼层"), infoChip("zone", zs.length, "个功能区")];
+      : [infoChip("building", bs.length - outs, "栋楼宇"), ...(outs ? [infoChip("map", outs, "个室外区域")] : []), infoChip("zone", zs.length, "个功能区")];
   const scopeText = scope.whole ? "整个项目" : outdoor ? "总平面" : isBuilding ? `${inScope.length} 个楼层` : scopeWords(inScope),
     card = out
       ? `<div class="ws-info-card"><div class="ws-info-card-x"><span>未纳入本次部署</span>${scopeAdjustLink(p.id, o.id)}</div></div>`
       : progressCard(o, isBuilding, none ? "" : `<div class="ws-info-card-x">本次部署范围 ${nwSeps(scopeText)}${scopeAdjustLink(p.id, isBuilding ? o.id : null)}</div>`);
-  return `${o.image ? `<img class="ws-info-image" src="${esc(o.image)}" alt="${esc(o.name)}">` : ""}<div class="ws-info-sum">${chips.join("")}</div>${card}<h3>基本资料</h3>${infoRows([...(outdoor ? [["类型", "室外区域"]] : [[isBuilding ? "主要用途" : "类型", o.usage || "未填写"]]), ...(isBuilding ? [[outdoor ? "占地面积" : "建筑面积", F.areaText(o.area)]] : []), ...(none ? [] : [outdoor ? ["总平面图", fs[0]?.image ? "已上传" : "未上传"] : ["楼层图", { html: nwSeps(planCountText(bs, fs)) }], ["空间类型", types.length ? { html: nwJoin(types) } : "未划分"]])])}<h3>位置与说明</h3>${infoRows([["详细地址", o.address || "未填写"], ["所在地", regionText(p)], ...(pending ? [["位置核对", { html: '<span class="ws-info-warn">位置待核对</span>' }]] : []), ["时区", zoneText(p.timezone)], ...(o.description ? [["说明", o.description]] : [])])}${mapConfigured() ? `<details class="ws-details"><summary>地图坐标</summary>${infoRows([["坐标", coordinate(o.location)]])}</details>` : ""}<details class="ws-details"><summary>修改记录</summary>${recs.length ? recordsTable(recs) : '<p class="ws-info-none">尚无修改记录</p>'}</details>`;
+  // 位置未核对时在所在地（楼宇为位置；与项目同一位置时看项目的核对状态）下一行写提醒色“地图位置待核对”
+  const warn = pending ? '<span class="ws-info-warn ws-info-sub">地图位置待核对</span>' : "",
+    plan = none ? [] : [outdoor ? ["总平面图", fs[0]?.image ? "已上传" : "未上传"] : ["楼层图", { html: nwSeps(planCountText(bs, fs)) }]],
+    desc = o.description ? [["说明", o.description]] : [],
+    rows = isBuilding
+      ? [[outdoor ? "占地面积" : "建筑面积", F.areaText(o.area)], ...plan, ["位置", { html: (o.sameLocation ? "与项目同一位置" : esc(o.address || "未填写")) + warn }], ...desc]
+      : [...plan, ["详细地址", o.address || "未填写"], ["所在地", { html: esc(regionText(p)) + warn }], ["时区", zoneText(p.timezone)], ...desc];
+  return `${o.image ? `<img class="ws-info-image" src="${esc(o.image)}" alt="${esc(o.name)}">` : ""}<div class="ws-info-sum">${chips.join("")}</div>${card}<h3>基本资料</h3>${infoRows(rows)}<details class="ws-details"><summary>修改记录</summary>${recs.length ? recordsTable(recs) : '<p class="ws-info-none">尚无修改记录</p>'}</details>`;
 }
 // 部署范围只在配置进度中编辑（2026-10-03 用户确认 C6）：项目里只读显示，附此入口；进入配置进度并打开“本次部署范围”，标题旁有来源返回。
 // “本次范围”行后的“在配置进度中调整”是信息面板中唯一的范围入口，底部不再重复同名按钮（2026-10-03 小修）。
@@ -44612,10 +44657,13 @@ function projectInformationPanel() {
   // 2.16 E362：停靠的面板贴在页面卡片右侧，从卡片顶到底整高，宽 400，仍挤开内容（不盖住），左侧 1px #EBEBEB 线，不加阴影；页面标题行与工具栏只占左栏。
   // E365：标题写对象名称（20/30 字重 480，与页面标题同一行高度），下一行 14/24 #636363 写“项目 · 广州 · 科研”“楼宇 · 广实2号园 · 办公”，
   // 全部项目标题“全部项目”，不写下一行；面板的读屏名称仍叫“项目信息”“楼宇信息”。楼层信息（设备页）照旧。原为标题“项目信息”、下一行写所看范围（E246）。
+  // 2.56 E550：标题 16/24 字重 480（与楼层面板等所有面板标题相同），标题区下不加横线，随内容一起滚动；副标题不写“项目”“楼宇”，
+  // 项目为“广州 · 科研”，楼宇为“广实2号园 · 科研”（室外区域为“广实2号园 · 室外区域”）。取代 E365 的 20/30 标题与固定标题区。
   const docked = infoDocked(), named = !isF,
-    meta = all ? "" : isB ? [o.kind === "outdoor" ? "室外区域" : "楼宇", g("projects", o.projectId)?.name, o.kind === "outdoor" ? "" : o.usage].filter(Boolean).join(" · ") : ["项目", cityShort(o), o.usage].filter(Boolean).join(" · "),
-    head = named ? `<h2>${esc(all ? "全部项目" : o.name)}</h2>${meta ? `<p class="ws-info-meta">${nwSeps(meta)}</p>` : ""}` : `<h2>${noun}信息</h2><p class="ws-info-scope">${esc(o.name)}</p>`;
-  return `<aside class="v13-drawer ws-space-info${docked ? " docked" : ""}${named ? " named" : ""}" id="wsSpaceInfo" ${docked ? 'role="region"' : 'role="dialog" aria-modal="false"'} aria-label="${noun}信息"><div class="v13-dh"><div>${head}</div>${iconBtn("关闭信息面板", "x", "spacePanelInfoClose")}</div><div class="v13-db" data-key="${esc(all ? "info|all" : `info|${target.kind}|${o.id}`)}">${summary}</div>${foot}</aside>`;
+    meta = all ? "" : isB ? [g("projects", o.projectId)?.name, o.kind === "outdoor" ? "室外区域" : o.usage].filter(Boolean).join(" · ") : [cityShort(o), o.usage].filter(Boolean).join(" · "),
+    close = iconBtn("关闭信息面板", "x", "spacePanelInfoClose"),
+    head = named ? `<div class="ws-info-head"><div><h2>${esc(all ? "全部项目" : o.name)}</h2>${meta ? `<p class="ws-info-meta">${nwSeps(meta)}</p>` : ""}</div>${close}</div>` : `<div class="v13-dh"><div><h2>${noun}信息</h2><p class="ws-info-scope">${esc(o.name)}</p></div>${close}</div>`;
+  return `<aside class="v13-drawer ws-space-info${docked ? " docked" : ""}${named ? " named" : ""}" id="wsSpaceInfo" ${docked ? 'role="region"' : 'role="dialog" aria-modal="false"'} aria-label="${noun}信息">${named ? "" : head}<div class="v13-db" data-key="${esc(all ? "info|all" : `info|${target.kind}|${o.id}`)}">${named ? head : ""}${summary}</div>${foot}</aside>`;
 }
 function initInfoMap() {
   const el = $("#infoMap"),
@@ -44856,9 +44904,16 @@ function editStructRefresh(b) {
   const save = $("#dlg .df .primary");
   if (save) save.disabled = !!ed.blocked.length;
 }
+// 2.56 E542：创建楼宇的结构预览按范围写全，楼层数只写一次：地上、地下、屋顶层，如“1F～12F、B1～B2、RF”；只有 1 层时写单个名称。
+function structRange(names) {
+  const up = names.filter((n) => /^\d+F$/.test(n)).sort((a, b) => parseInt(a) - parseInt(b)),
+    down = names.filter((n) => /^B\d+$/.test(n)).sort((a, b) => a.slice(1) - b.slice(1)),
+    span = (xs) => (xs.length > 1 ? `${xs[0]}～${xs.at(-1)}` : xs[0]);
+  return [up.length && span(up), down.length && span(down), names.includes("RF") && "RF"].filter(Boolean).join("、");
+}
 function structText(plan, isNew) {
   if (!plan) return "";
-  if (isNew) return plan.want.length ? `将生成 ${plan.want.length} 个楼层：${floorNames(plan.want)}` : "地上、地下层数不能都为 0";
+  if (isNew) return plan.want.length ? `将生成 ${plan.want.length} 个楼层：${structRange(plan.want)}` : "地上、地下层数不能都为 0";
   const t = [];
   if (plan.add.length) t.push(`新增${zhSub(floorNames(plan.add), "l")}`);
   if (plan.trashed.length) t.push(`${zhSub(floorNames(plan.trashed), "r")}在“已删除”中，保存后不会新建，请从“已删除”恢复原楼层`);
@@ -45257,7 +45312,11 @@ function spaceFloorPage() {
     drawing = U.drawZone || U.zoneDraft || U.spatialEdit || U.scalePoints;
   // 2.53 E482：去掉工具栏“标记设备 / 查看设备”，设备、照明分区、网络是楼层图顶部的模式（原为跳到设备 › 设备标记）。
   // 2.06（项目核查第 7 条）：楼层资料的操作只在面板“楼层”页签各自的行里，工具栏不再有“图纸与比例尺”菜单。
-  const bar = toolbar(`<div class="ws-tb-actions">${isMobile() ? `<button class="iconbtn round sp-panel-btn" data-act="spPanel" aria-pressed="${open}" aria-label="${open ? "收起面板" : "展开面板"}" data-tip="${open ? "收起面板" : "展开面板"}">${ico("collapse", "sp-panel-ic")}</button>` : rpHandle("面板", open, "spPanel", {}, ".sp-panel", "sp-panel-btn")}</div>`);
+  // 2.56 E552：楼层层工具栏与项目层、楼宇层同一排法：［编辑］［⋯］，不设主按钮（“创建功能区”是画图工具，在画布左上）；
+  // 没有编辑权限时不显示编辑图标，“⋯”只留查看类的项。≤599 时随页头操作收进工具栏“更多”。
+  const fNoun = isOutdoor(U.b) ? "总平面" : "楼层",
+    fActs = `<span id="pageCategoryTitleActions" class="ws-proj-acts">${edit ? iconBtn("编辑" + fNoun, "edit", "spaceForm", { kind: "floors", id: f.id }) : ""}${menuTrigger(iconBtn("更多", "more", "floorMore"))}</span>${menuTrigger(iconBtn("更多", "more", "pageMore", { pageactions: "pageCategoryTitleActions" })).replace('class="iconbtn round"', 'class="iconbtn round ws-page-more"')}`;
+  const bar = toolbar(`<div class="ws-tb-actions">${fActs}${isMobile() ? `<button class="iconbtn round sp-panel-btn" data-act="spPanel" aria-pressed="${open}" aria-label="${open ? "收起面板" : "展开面板"}" data-tip="${open ? "收起面板" : "展开面板"}">${ico("collapse", "sp-panel-ic")}</button>` : rpHandle("面板", open, "spPanel", {}, ".sp-panel", "sp-panel-btn")}</div>`);
   // 没有楼层图时仍有右侧面板：“楼层”页签照常（资料、待补原因、编辑楼层、修改记录），“功能区”页签提示先上传楼层图（SPACE04）。
   if (!f.image)
     return (
@@ -45425,7 +45484,10 @@ function spZoneList(f) {
   const q = (U.zoneQ || "").trim().toLowerCase(), types = [...new Set(zs.map(z => z.spaceType || "未设类型"))].sort();
   const visible = zs.filter(z => (!q || (z.name + " " + (z.spaceType || "")).toLowerCase().includes(q)) && (!U.zoneType || (z.spaceType || "未设类型") === U.zoneType));
   // 搜索行为“搜索功能区”“类型”和“更多”（多选、复制功能区到其他楼层、已删除的功能区），列表之后不再放按钮（E210：原先“多选”单独一行，两个按钮排在列表之后）
-  const more = spMultiOn(f) ? "" : menuTrigger(iconBtn("更多", "more", "spZoneMore"));
+  // 2.56 E551：“⋯”去掉，右边为 32 圆形图标按钮“选择”（取代“⋯”里的“多选”，与设备列表同一做法），再点或按 Esc 退出；
+  // “复制功能区到其他楼层”“查看已删除”移到工具栏的楼层“⋯”（E552）。
+  const on = spMultiOn(f),
+    more = canEdit() && zs.length >= 2 && (!U.zoneDraft || on) ? iconBtn("选择", "square-check", on ? "spMultiDone" : "spMulti").replace("<button ", `<button aria-pressed="${on}" `).replace('class="iconbtn round"', 'class="iconbtn round sp-select-btn"') : "";
   return `${untyped && zs.length ? `<div class="sp-review warn"><span>${untyped} 个未设类型</span></div>` : ""}<div class="sp-zone-tools">${zs.length ? `<div class="ws-search sp-zone-search">${ico("search", "ic16")}<input id="spaceZoneQuery" value="${esc(U.zoneQ || "")}" aria-label="${isOutdoor(f.buildingId) ? "搜索功能区" : "搜索本层功能区"}" placeholder="搜索功能区"></div>${zs.length > SP_TYPE_CHIPS ? "" : spTypeDropdown(zs, types)}` : `<span class="sp"></span>`}${spUndoButton()}${more}</div>${zs.length ? `${zs.length > SP_TYPE_CHIPS ? `<div class="sp-type-filters">${btn(`全部 ${zs.length}`, "spZoneFilter", { value: "" }, U.zoneType ? "sm" : "sm on").replace("<button ", `<button aria-pressed="${!U.zoneType}" `)}${types.map(t => btn(`${esc(t)} ${zs.filter(z => (z.spaceType || "未设类型") === t).length}`, "spZoneFilter", { value: t }, U.zoneType === t ? "sm on" : "sm").replace("<button ", `<button aria-pressed="${U.zoneType === t}" `)).join("")}</div>` : ""}` : ""}${spMultiBar(f, zs)}<div class="mk-zone-list sp-zone-list ${spMultiOn(f) ? "multi" : ""}">${visible.map(z => { const sub = `<small class="${z.spaceType ? "" : "warn"}">${esc(z.spaceType || "未设类型")}</small>`; return spMultiOn(f) ? `<label class="sp-zone-check"><input type="checkbox" name="spMulti" value="${z.id}" ${U.zoneMulti.ids.includes(z.id) ? "checked" : ""}><span>${esc(z.name)}</span>${sub}</label>` : `<button data-act="spZone" data-id="${z.id}"><span>${esc(z.name)}</span>${sub}</button>`; }).join("") || `<p class="mk-lead">${zs.length ? "没有匹配的功能区；修改搜索或类型筛选。" : canEdit() && !isMobile() ? (isOutdoor(f.buildingId) ? "点击“创建功能区”，在图上画出停车场、道路、广场等范围；画完一个可继续画下一个。" : "点击“创建功能区”，在图上画出功能区范围；画完一个可继续画下一个。") : isOutdoor(f.buildingId) ? "尚未划分功能区。" : "本层尚未划分功能区。"}</p>`}</div>`;
 }
 // ---------- 楼层内多选批量编辑（2026-10-03 用户确认 B5） ----------
@@ -45569,7 +45631,9 @@ function spFloorBody(f) {
     up = f.image ? F.planOrigin(data(), f)?.upload : null;
   const ed = canEdit(),
     act = (label, a, args = {}) => (ed ? btn(label, a, args, "sm kv-act") : "");
-  return `<div class="mk-row sp-floor-head"><h3 class="mk-title">${esc(f.name)}</h3>${act("编辑", "spaceForm", { kind: "floors", id: f.id })}</div>${infoRows([
+  // 2.56 E551：标题旁的“编辑”移到工具栏（E552）；补“设备 N 台”（点开为设备标记的该层）与说明（有才显示）。
+  const nDev = M.points(data(), f.id).length;
+  return `<div class="mk-row sp-floor-head"><h3 class="mk-title">${esc(f.name)}</h3></div>${infoRows([
     [planWord(f.buildingId), f.image ? spRow(up?.at ? `${projectDate(up.at, U.p, false)}上传` : "已上传", act("更换", "replacePlan")) : "未上传"],
     // 下载原件（ORG03、第14章 §17；2026-10-08 用户确认 G-3）：只给机构管理员，在“原件”一行行尾，每次下载写入审计日志。
     // 原件只保存在上传它的浏览器中，本机没有原件时不显示入口。
@@ -45579,6 +45643,8 @@ function spFloorBody(f) {
     // 室外区域的面积只在区域资料中写“占地面积”一处，总平面不重复显示（2026-10-04 用户确认“室外区域用语”）。
     ...(isOutdoor(f.buildingId) ? [] : [["楼层面积", F.areaText(f.area)]]),
     ["功能区", zs.length ? `${zs.length} 个${untyped ? `，${untyped} 个未设空间类型` : ""}` : "尚未划分"],
+    ["设备", nDev ? { html: `<button class="lk" data-act="toDevices" aria-label="设备 ${nDev} 台，在设备标记中查看">${nDev} 台</button>` } : "尚未标记"],
+    ...(f.description ? [["说明", f.description]] : []),
     // 部署范围只在配置进度中编辑（2026-10-03 用户确认 C6）：不在范围时行尾“调整”进入配置进度（带来源返回）。
     ...(S.inScope.has(f.id) ? [] : [["部署范围", spRow("不在本次范围", ed && data().buildings.some((b) => b.projectId === U.p) ? btn("调整", "scopeAdjust", { p: U.p }, "sm kv-act").replace("<button ", '<button aria-haspopup="dialog" ') : "")]]),
   ])}${its.length ? `<div class="v13-todos sp-todos">${spaceTodoRows(its)}</div>` : ""}${recs.length ? `<details class="ws-details sp-records"><summary>修改记录</summary>${recordsTable(recs)}</details>` : ""}`;
@@ -45766,6 +45832,25 @@ defineActions({
   },
   spBack: withPolicy({ guard: true }, () => spSelect(null)),
   // 功能区面板搜索行的“更多”（E210）：多选、复制功能区到其他楼层、已删除的功能区
+  // 2.56 E552：楼层层工具栏的“⋯”：标记设备（查看人员为“查看设备”）、复制功能区到其他楼层 │ 查看已删除 │ 删除楼层（危险色，最后一组）。
+  // “复制功能区到其他楼层”“查看已删除”原在面板“功能区”页签的“⋯”（E551 去掉）。
+  floorMore: (a, el) => {
+    const f = g("floors", U.f),
+      out = isOutdoor(f?.buildingId),
+      zs = data().zones.filter((z) => z.floorId === U.f);
+    pop(
+      el,
+      menuBox(
+        f?.name || "楼层",
+        btn(ico("cpu", "ic16") + (canEdit() ? "标记设备" : "查看设备"), "toDevices", {}, "popitem") +
+          (canEdit() && zs.length && !out ? btn(ico("copy", "ic16") + "复制功能区到其他楼层", "zcForm", {}, "popitem") : "") +
+          "<hr>" +
+          btn(ico("trash-restore", "ic16") + "查看已删除", "spTrash", {}, "popitem") +
+          (canEdit() && !out ? "<hr>" + btn(ico("trash", "ic16") + "删除楼层", "deleteSpace", { kind: "floors", id: U.f }, "popitem danger") : ""),
+      ),
+    );
+    $("#pop").querySelectorAll(".popitem").forEach((x) => x.setAttribute("role", "menuitem"));
+  },
   spZoneMore: (a, el) => {
     const f = g("floors", U.f),
       zs = data().zones.filter((z) => z.floorId === U.f);
@@ -45781,7 +45866,7 @@ defineActions({
   },
   spMulti: withPolicy({ guard: true }, () => { U.zoneMulti = { fid: U.f, ids: [] }; U.zone = null; syncRoute(true); render(); requestAnimationFrame(() => $("input[name=spMulti]")?.focus()); }),
   // 2.36 S15：“多选”在“更多”菜单里，退出多选后焦点回到“更多”按钮（原回到菜单项，菜单已关闭，焦点没有落点）。
-  spMultiDone: () => { U.zoneMulti = null; render(); requestAnimationFrame(() => $("[data-act=spZoneMore]")?.focus()); },
+  spMultiDone: () => { U.zoneMulti = null; render(); requestAnimationFrame(() => $(".sp-select-btn")?.focus()); },
   spMultiAll: () => {
     const boxes = [...document.querySelectorAll("input[name=spMulti]")], all = boxes.every((x) => x.checked);
     boxes.forEach((x) => (x.checked = !all));
@@ -48625,6 +48710,30 @@ document.addEventListener("change", (e) => {
   // 弹窗的读屏名称随标题改写（第 8 步 F2g）；编辑时标题由 modal() 按对象类型给出，aria-label 与之相同。
   dlg?.querySelector(".dialog")?.setAttribute("aria-label", outdoor ? "创建室外区域" : "创建楼宇");
 });
+// 2.56 E543：分段切换选中一项即选中对应的单选，照上面的规则切换字段；已填的名称、图片与说明保留。左右方向键、Home、End 切换。
+defineActions({
+  spaceKindPick: (a, el) => {
+    const r = $(`#dlg input[name=spaceKind][value="${a.value}"]`);
+    if (!r || r.checked) return;
+    r.checked = true;
+    el.parentElement.querySelectorAll("button").forEach((b) => {
+      const on = b === el;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-checked", on);
+      b.tabIndex = on ? 0 : -1;
+    });
+    r.dispatchEvent(new Event("change", { bubbles: true }));
+  },
+});
+document.addEventListener("keydown", (e) => {
+  const b = e.target.closest?.(".ws-kind-seg > button");
+  if (!b || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)) return;
+  e.preventDefault();
+  const bs = [...b.parentElement.querySelectorAll(":scope > button")], i = bs.indexOf(b),
+    n = e.key === "Home" ? 0 : e.key === "End" ? bs.length - 1 : (i + (["ArrowLeft", "ArrowUp"].includes(e.key) ? -1 : 1) + bs.length) % bs.length;
+  bs[n].click();
+  bs[n].focus();
+});
 
 /* Shared, scope-aware deployment interactions. Execution remains gated on real services. */
 // 2.44 配置核查 E438：不再写“执行服务尚未接入”，演示按真实流程显示结果
@@ -48702,6 +48811,9 @@ const STATE_TONE = {
     "待并入",
     "现场改动待并入",
     "待重新绑定（已恢复出厂）",
+    // 2.56 E549：设备列表“状态”列的标签只写状态，括号里的细节在下一行灰字，提醒色不变
+    "待重新绑定",
+    "待接入",
     "已清除（已恢复出厂）",
   ],
   crit: ["同步失败", "失败", "不一致", "离线", "未通过", "不达标", "无应答"],
@@ -49036,13 +49148,11 @@ function devRows(ps, rows, start, attention, cells) {
   });
   return out;
 }
-// 翻页：表格上下各一条，写本页是第几台到第几台；可上一页、下一页或选页码。
-function devPager(n, pages, total, at = "") {
+// 翻页：2.56 E549 只在表格卡片底部一行（左边“第 201–400 台，共 2,000 台”，翻页放在右边），去掉表格上方的翻页条。
+function devPager(n, pages) {
   if (pages < 2) return "";
-  const from = n * DEV_PAGE + 1,
-    to = Math.min(total, from + DEV_PAGE - 1);
-  return `<div class="flow-pager${at ? " top" : ""}"><p${at ? ' role="status"' : ""}>第 ${fmt(from)}–${fmt(to)} 台，共 ${fmt(total)} 台</p>${btn("上一页", "devPage", { to: n - 1, disabled: n <= 0 }, "ghost sm")}${select(
-    "devPageSel" + at,
+  return `<div class="flow-pager">${btn("上一页", "devPage", { to: n - 1, disabled: n <= 0 }, "ghost sm")}${select(
+    "devPageSel",
     Array.from({ length: pages }, (_, i) => [String(i), `第 ${i + 1} / ${pages} 页`]),
     String(n),
     "页码",
@@ -49051,110 +49161,123 @@ function devPager(n, pages, total, at = "") {
 const devPageTop = () => requestAnimationFrame(() => $(".ws-inventory-tools")?.scrollIntoView({ block: "start" }));
 // The ledger keeps one set of rows/controls at every width. Only its own table
 // is arranged as labelled summaries on phones; shared table rendering is unchanged.
+// 2.56 E549：整行可点（打开设备信息），行尾只有“在图上查看”，不写表格默认的右箭头。
 function devLedgerTable(headers, rows, message) {
   return table(headers, rows, message)
     .replace('<table class="t">', '<table class="t dev-ledger-table" role="table">')
     .replace('<tbody>', '<tbody role="rowgroup">')
     .replace(/<tr>(?=<td|<th scope="row")/g, '<tr role="row">')
-    .replace(/<td data-label="通信">/g, '<td role="cell" data-label="通信">')
+    .replace(/<tr class="click"/g, '<tr role="row" class="click"')
+    .replace(/<span class="flow-chev">[\s\S]*?<\/span>/g, "")
     .replace(/<input\b[^>]*(?:id="devSelAll"|name="devSel")[^>]*>/g, (input) => `<label class="dev-ledger-check">${input}</label>`);
 }
 const devLedgerLabel = (text) => `<span class="dev-ledger-label" aria-hidden="true">${text}</span>`;
-function devLedgerCommCell(db, p) {
-  const html = devCommCell(db, p), at = html.indexOf('<small');
-  return `<span class="dev-ledger-comm-main">${devLedgerLabel("通信")}${at < 0 ? html : html.slice(0, at)}</span>${at < 0 ? "" : `<span class="dev-ledger-comm-details">${html.slice(at)}</span>`}`;
-}
 const devAccessHtml = (p) => nwJoin({
   mesh: ["Mesh"],
   gateway: ["网关上联"],
   system: p.type === "aq" ? ["RS485", "系统接入"] : ["系统接入"],
   pending: [p.type === "ls" ? "适配节点" : "非 Mesh"],
 }[M.access(p)]);
+// 2.56 E549：“设备”列两行，名称与“LC20 · 照明控制器”；第三方设备没有型号，只写类型。
+function devNameCell(p) {
+  const t = M.catalog[p.type];
+  return btn(nwText(p.name), "deviceInfo", { id: p.id }, "ghost flow-lk") + `<small class="flow-sub">${esc(t.model ? `${t.model} · ${t.name}` : t.name)}</small>`;
+}
 function renderInventory() {
   const { db, all, pending, bound, needs, ps } = inventoryView(),
     edit = canEdit(),
-    sel = edit ? new Set(devSelection(all)) : new Set(),
+    picking = edit && !!U.devSelMode,
+    sel = picking ? new Set(devSelection(all)) : new Set(),
     inView = ps.filter((p) => sel.has(p.id)).length,
     { n, pages } = devPaging(ps.length),
     start = n * DEV_PAGE,
     rows = ps.slice(start, start + DEV_PAGE),
     attention = new Set(needs.map((p) => p.id));
   devView = { ids: ps.map((p) => p.id) };
-  // 没有设备时用空状态（2026-10-17 用户确认，设备核查 E158：原为表格里的一行字）；“开始标记设备”打开设备标记的楼层目录（E145）
+  // 没有设备时用空状态（2026-10-17 用户确认，设备核查 E158：原为表格里的一行字）；“开始标记设备”打开设备标记的楼层（E145、E547）
   if (!all.length) return empty("还没有设备", edit ? "在楼层图上标记设备后，这里列出全部设备。" : "", edit ? btn("开始标记设备", "startMark", {}, "primary") : "", "map-pin");
-  // 筛选页签以设备列表命名，其下的结果（筛选说明、批量操作、翻页与表格）标为它控制的页签面板（Lovable 核查第 321 条，2026-10-11 用户确认）
+  // 2.56 E549（参考 Lovable People 页）：状态分段改为“状态”下拉，计数写在选项里；与搜索 320、“筛选”同一行，间距 8。
+  // 右边 32 圆形描边图标按钮“选择”（只给能编辑部署规划的角色）：点后左边出现勾选列，勾选后底部浮出操作条，再点或按 Esc 退出。
   const filters = [
-    ["all", "全部 " + fmt(all.length)], // 2.53 E487
+    ["all", "全部状态 " + fmt(all.length)],
+    ["issues", "需处理 " + fmt(needs.length)],
     ["pending", "待绑定 " + fmt(pending.length)],
     ["bound", "已绑定 / 已接入 " + fmt(bound.length)],
-    ["issues", "需处理 " + fmt(needs.length)],
-  ];
-  return `<div class="ws-inventory-tools"><div class="ws-search">${ico("search", "ic16")}<input id="deviceQuery" aria-label="搜索设备" placeholder="名称、UUID 或序列号" value="${esc(U.q)}"></div><div class="dev-ledger-filter-scroll">${tabs(filters, U.filter, "filter", "devFilterPanel", "设备列表页签").replace('data-value="issues"', 'data-value="issues" data-tip="含通信离线的设备。"')}</div>${btn("筛选" + (devFiltered() ? ` · ${devFilterCount()} 项` : ""), "deviceFilters", {}, "ghost")}</div><div class="ws-tabpanel" ${tabPanelAttrs("devFilterPanel", "filter", filters, U.filter)}>${devFilterSummary(all)}${
-    ""
-  }${devPager(n, pages, ps.length, "Top")}<div class="dev-ledger-frame">${devLedgerTable(
+  ],
+    pick = edit ? iconBtn("选择", "square-check", "devSelMode").replace('class="iconbtn round"', `class="iconbtn round dev-select-btn" aria-pressed="${picking}"`) : "",
+    // 卡片底部一行：共 N 台；筛选后“108 台中的 6 台”；超过一页时写本页范围，翻页在右边。
+    count = pages > 1 ? `第 ${fmt(start + 1)}–${fmt(Math.min(ps.length, start + DEV_PAGE))} 台，共 ${fmt(ps.length)} 台` : ps.length < all.length ? `${fmt(all.length)} 台中的 ${fmt(ps.length)} 台` : `共 ${fmt(all.length)} 台`,
+    foot = `<div class="dev-ledger-foot"><p role="status">${count}</p>${devPager(n, pages)}</div>`;
+  return `<div class="ws-inventory-tools"><div class="ws-search">${ico("search", "ic16")}<input id="deviceQuery" aria-label="搜索设备" placeholder="名称、UUID 或序列号" value="${esc(U.q)}"></div><div class="dev-status-sel">${select("devStatusSel", filters, filters.some(([v]) => v === U.filter) ? U.filter : "all", "按状态筛选设备")}</div>${btn("筛选" + (devFiltered() ? ` · ${devFilterCount()} 项` : ""), "deviceFilters", {}, "ghost")}${pick ? `<span class="dev-tools-end">${pick}</span>` : ""}</div><div class="ws-tabpanel" id="devFilterPanel">${devFilterSummary(all)}<div class="dev-ledger-frame">${devLedgerTable(
     [
-      ...(edit
+      ...(picking
         ? [`<input type="checkbox" class="ws-ck" id="devSelAll" aria-label="${pages > 1 ? "选择本页" : "选择当前结果"}" ${rows.length && rows.every((p) => sel.has(p.id)) ? "checked" : ""}><label class="dev-ledger-select-text" for="devSelAll">${pages > 1 ? "选择本页" : "选择当前结果"}</label>`]
         : []),
-      "设备 / 点位",
+      "设备",
       // “位置”改为功能区（楼层已在分组行），“配置版本”移到设备信息（2.04 配置区全面核查 E106，2026-10-17 用户确认）
       "功能区",
+      // 2.56 E549：接入方式并入“设备网络”的第二行；绑定 / 接入、配置同步、通信合成一列“状态”，表头不再有 ⓘ
       "设备网络",
-      '<span class="dev-access-heading">接入方式</span>',
-      // 各列的计数口径放在列名旁的 ⓘ（2.04 配置区全面核查 E104，2026-10-17 用户确认；原为表下约 170 字的一段说明）
-      "绑定 / 接入" + opsInfo("绑定 / 接入", "待绑定只统计网关与 Mesh 点位，含已恢复出厂、需要重新绑定的设备；系统接入设备按接入状态单独记录。"),
-      "配置同步" + opsInfo("配置同步", "只对 Mesh 设备和网关；系统接入设备按系统接入的连接与映射核对。"),
-      "通信",
-      // 2.15 E316：去掉“需处理”列（它重复前面状态列的标签），说明挪到“需处理”筛选页签的提示气泡
+      "状态",
       "",
     ],
-    devRows(ps, rows, start, attention, (p) => [
-      ...(edit ? [`<input type="checkbox" class="ws-ck" name="devSel" value="${p.id}" aria-label="选择${zhSub(esc(p.name), "l")}" ${sel.has(p.id) ? "checked" : ""}>`] : []),
-      btn(nwText(p.name), "deviceInfo", { id: p.id }, "ghost flow-lk") + `<small class="flow-sub">${M.catalog[p.type].model}<span class="dev-ledger-type"> · ${esc(M.catalog[p.type].name)}</span></small>`,
-      p.zoneId && g("zones", p.zoneId) ? nwText(g("zones", p.zoneId).name) : `<span class="muted">未归属功能区</span>`,
-      devNetworkCell(p),
-      devAccessHtml(p),
-      devLedgerLabel(M.access(p) === "system" ? "接入" : "绑定") + devState(F.bindingLabel(p)),
-      devLedgerLabel("配置同步") + devConfigCells(db, p)[0],
-      devLedgerCommCell(db, p),
-      // 2.25 E400：去掉按问题命名的按钮（“通信离线”“不一致”“已恢复出厂”等，与同行状态标签重复），操作列只留“在图上查看”。
-      `<span class="dev-ledger-more">${btn("全部信息", "deviceInfo", { id: p.id }, "ghost sm")}</span>${btn("在图上查看", "locatePoint", { id: p.id }, "ghost sm")}`,
-    ]),
+    devRows(ps, rows, start, attention, (p) => ({
+      act: "deviceInfo",
+      args: { id: p.id },
+      cells: [
+        ...(picking ? [`<input type="checkbox" class="ws-ck" name="devSel" value="${p.id}" aria-label="选择${zhSub(esc(p.name), "l")}" ${sel.has(p.id) ? "checked" : ""}>`] : []),
+        devNameCell(p),
+        p.zoneId && g("zones", p.zoneId) ? nwText(g("zones", p.zoneId).name) : `<span class="muted">未归属功能区</span>`,
+        devNetworkCell(db, p),
+        devStatusCell(db, p),
+        // 行尾只有“在图上查看”（28 透明圆形图标按钮）：打开设备标记的该层并选中该设备；行悬停或键盘聚焦时显示，触屏一直显示。
+        iconBtn("在图上查看", "map-pin", "locatePoint", { id: p.id }).replace('class="iconbtn round"', 'class="iconbtn round dev-locate"'),
+      ],
+    })),
     // 查看人员与运营人员不给无法执行的指导（第14章“查看人员、运营人员不给创建或上传指导”；第四批遗留）。
     "没有匹配的设备",
-  )}</div>${devPager(n, pages, ps.length)}${edit && all.length ? `<div class="ops-cmp-bar dev-selfloat" id="devSelBar">${devSelBar(ps.length, inView, sel.size)}</div>` : ""}</div>`;
+  )}${foot}</div>${picking && all.length ? `<div class="ops-cmp-bar dev-selfloat" id="devSelBar">${devSelBar(ps.length, inView, sel.size)}</div>` : ""}</div>`;
 }
 // 设备列表、分组、设备网络与固件表格里的状态（全面设计核查第 155 条，2026-10-12 用户确认，方案 A）：正常状态（已绑定、已同步、在线、
 // 已交付、已完成等 STATE_TONE.good）写成普通文字，只有需要处理的状态才用标签；原为每行一个绿色标签，要处理的几行淹没在一列绿色里。
 const devState = (text) => (STATE_TONE.good.includes(text) ? esc(text) : stateBadge(text));
-// 设备列表“设备网络”列：所属网络，点开为网络详情；系统接入设备不属于设备网络（规范 DEVICE02）。
-function devNetworkCell(p) {
-  const n = p.networkId && g("networks", p.networkId);
-  return n ? btn(nwText(n.name), "networkInfo", { id: n.id }, "ghost flow-lk flow-lk-ref") : "—";
+// 设备列表“设备网络”列（2.56 E549）：第一行所属网络，点开为网络详情；系统接入设备写“系统接入”，未规划写“尚未规划”（表里不再有“—”）；
+// 第二行灰字接入方式（Mesh、网关上联；系统接入设备写连接的协议）。
+function devNetworkCell(db, p) {
+  const n = p.networkId && g("networks", p.networkId),
+    sys = M.access(p) === "system",
+    conn = sys && p.connectionId && g("connections", p.connectionId),
+    via = sys ? esc(conn?.protocol || (p.type === "aq" ? "RS485" : "")) : devAccessHtml(p);
+  return devLedgerLabel("设备网络") + (sys ? "系统接入" : n ? btn(nwText(n.name), "networkInfo", { id: n.id }, "ghost flow-lk flow-lk-ref") : `<span class="muted">尚未规划</span>`) + (via ? `<small class="flow-sub">${via}</small>` : "");
 }
-// “配置同步”“配置版本”两列（规范 DEVICE02）：Mesh 设备按当前目标配置的回执，版本为目标配置版本，设备上完整应用的是较早版本时下注；
-// 网关按配置库副本与云端主本是否一致；系统接入设备写“—”。
-function devConfigCells(db, p) {
+// 配置同步（规范 DEVICE02）：Mesh 设备按当前目标配置的回执；网关按配置库副本与云端主本是否一致；其他设备没有。
+function devSyncText(db, p) {
   const access = M.access(p);
   if (access === "gateway") {
     const mine = p.libraryVersion,
       cloud = g("networks", p.networkId)?.libraryVersion;
-    return [M.bound(p) && mine && cloud ? devState(mine === cloud ? "已同步" : "待同步") : "—", mine ? `配置库 ${esc(mine)}` : "—"];
+    return M.bound(p) && mine && cloud ? (mine === cloud ? "已同步" : "待同步") : "";
   }
-  if (access !== "mesh") return ["—", "—"];
-  const d = F.desired(db, p.id),
-    done = M.bound(p) ? F.appliedVersion(db, p) : null;
-  // 点位的目标配置写“第 N 版”，“v”只用于网络版本（Editor 核查 E21）
-  return [devState(F.syncState(db, p)), d ? `第 ${d.version} 版${done != null && done !== d.version ? `<small class="flow-sub">设备上第 ${done} 版</small>` : ""}` : "—"];
+  return access === "mesh" ? F.syncState(db, p) : "";
 }
-// “通信”列：离线或状态未知（网关离线时下游设备）时下注最近已知的通信时间（规范 DEVICE02）。
-// 检修中的设备下注“检修中（至 …）”（BP92）
-function devCommCell(db, p) {
+// “状态”列（2.56 E549）：只把要处理的写成标签，按离线 / 状态未知、同步失败 / 不一致、待重新绑定、待绑定 / 待接入、待同步的先后最多两个；
+// 下一行灰字写细节（最近通信时间、恢复出厂或更换中、检修中至何时）。都正常时写“在线”。三项完整状态在设备信息里。
+function devStatusCell(db, p) {
   const c = F.communication(db, p),
-    mt = maintSub(maintOf(p));
-  if (!["离线", "状态未知"].includes(c)) return devState(c) + mt;
-  const t = F.lastSeen(db, p);
-  return stateBadge(c) + `<small class="flow-sub">${t ? "最近通信 " + esc(shortDate(t, objectProjectId(p.id, db))) : "尚无上报"}</small>` + mt;
+    off = ["离线", "状态未知"].includes(c),
+    s = devSyncText(db, p),
+    [b, note] = /^(.+?)（(.+)）$/.exec(F.bindingLabel(p))?.slice(1) || [F.bindingLabel(p), ""],
+    tags = [
+      off && c,
+      ["同步失败", "不一致", "现场改动待并入"].includes(s) && s,
+      b === "待重新绑定" && b,
+      ["待绑定", "待接入", "暂不支持绑定", "接入待确认"].includes(b) && b,
+      s === "待同步" && !p.fieldReset && s,
+    ].filter(Boolean).slice(0, 2),
+    t = off ? F.lastSeen(db, p) : null,
+    m = maintOf(p),
+    sub = [off && (t ? "最近通信 " + shortDate(t, objectProjectId(p.id, db)) : "尚无上报"), note, m && maintText(m)].filter(Boolean);
+  return devLedgerLabel("状态") + (tags.length ? `<span class="dev-tags">${tags.map(stateBadge).join("")}</span>` : "在线") + (sub.length ? `<small class="flow-sub">${esc(sub.join(" · "))}</small>` : "");
 }
 function renderNetworkList() {
   const db = data(), projects = db.projects.filter((p) => mayViewProject(p.id, db)), allowed = new Set(projects.map((p) => p.id)),
@@ -52160,6 +52283,13 @@ defineActions({
     render();
     devPageTop();
   },
+  // 2.56 E549：“选择”打开或关闭勾选列；关闭时清除所选，焦点回到按钮
+  devSelMode: () => {
+    U.devSelMode = !U.devSelMode;
+    if (!U.devSelMode) U.devSel = [];
+    render();
+    $(".dev-select-btn")?.focus();
+  },
   devSelClear: () => {
     U.devSel = [];
     document.querySelectorAll("input[name=devSel]").forEach((x) => (x.checked = false));
@@ -52210,7 +52340,7 @@ defineActions({
       if (a.f) return goFloor(a.f, "view", null, "projects");
       return route("projects", { p: a.p || null, b: a.b || null, f: null, tab: "", view: U.view });
     }
-    // 2.53 E482：选好楼层后打开楼层图的“设备”模式
+    // 选好楼层后打开设备 › 设备标记的“设备”模式
     if (intent === "mark") {
       scope.mode = "mark";
       scope.tab = "mark";
@@ -52966,7 +53096,9 @@ document.addEventListener("input", (e) => {
     modalDirty = true;
   }
   if (e.target.id?.startsWith("batch-")) batchPreview();
-  if (e.target.id === "devPageSel" || e.target.id === "devPageSelTop") {
+  // 2.56 E549：“状态”下拉与原状态分段同一动作
+  if (e.target.id === "devStatusSel") actions.filter({ value: e.target.value });
+  if (e.target.id === "devPageSel") {
     U.devPage = +e.target.value || 0;
     render();
     devPageTop();
@@ -78998,6 +79130,16 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "2.56",
+    date: "2026-10-29",
+    notes: [
+      "改进：设备页恢复“设备标记”页签，在楼层图上标记设备、划分照明分区和规划网络；“固件”改名“固件升级”。",
+      "改进：设备列表的状态合为一列，整行点开设备信息，底部写出设备总数；需要时点“选择”再勾选设备。",
+      "改进：创建项目和楼宇时可以填写说明，名称限 40 字；楼宇类型改用分段切换，图片改用上传按钮。",
+      "改进：缩放按固定档位放大缩小；项目、楼宇和楼层的信息面板更简洁。",
+    ],
+  },
   {
     version: "2.55",
     date: "2026-10-29",
