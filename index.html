@@ -5774,6 +5774,10 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .leaflet-container {
   font-family: var(--ff);
 }
+/* 2.54 E527：OpenStreetMap 底图色彩较多，降低饱和度让 #00AEEF 项目标记醒目；天地图底图不变 */
+[data-map-provider="osm"] .leaflet-tile-pane {
+  filter: saturate(0.4);
+}
 .leaflet-control-attribution {
   font-size: 10px;
   line-height: 14px;
@@ -42873,11 +42877,13 @@ async function readImage(file) {
   });
   return { url, ...size };
 }
-// 地图服务集中配置（2026-10-03 用户确认 C1）：天地图矢量底图与注记（WMTS 球面墨卡托），地址检索与反查用天地图地理编码。
-// key 为天地图浏览器端 Key；为空或请求失败时按“底图未加载”处理：不能在地图上落点，弹窗中的地图隐藏，保存后在空间检查记“位置待核对”（2.14 E258）。
-// 坐标按 CGCS2000 记录，与 WGS 84 相差在厘米级，不做转换；approval 为需要随底图显示的审图号（取得后填写）。
-const PACOM_MAP = { provider: "tianditu", key: "", approval: "" };
-const mapConfigured = () => !!(PACOM_MAP.provider === "tianditu" && PACOM_MAP.key);
+// 地图服务集中配置（2.54 E527）：provider 为 "osm" 时用 OpenStreetMap 标准瓦片（一层）与 Nominatim 地址检索、反查，坐标按 WGS 84 记录，不需要 Key；
+// 为 "tianditu" 时用天地图矢量底图与注记（WMTS 球面墨卡托）与天地图地理编码，key 为天地图浏览器端 Key（为空时按“地图服务尚未配置”处理），坐标按 CGCS2000 记录，
+// approval 为随底图显示的审图号。两种坐标相差在厘米级，不做转换：接天地图只改 provider、key、approval 三项，已存的位置照用。
+// 请求失败时按“底图未加载”处理：不能在地图上落点，弹窗中的地图隐藏，保存后在空间检查记“位置待核对”（2.14 E258）。
+const PACOM_MAP = { provider: "osm", key: "", approval: "" };
+const mapConfigured = () => PACOM_MAP.provider === "osm" || !!(PACOM_MAP.provider === "tianditu" && PACOM_MAP.key);
+const mapCrs = () => (PACOM_MAP.provider === "osm" ? "WGS84" : "CGCS2000");
 // 天气数据服务（2.44 配置核查 E442）：与天地图一样上线前开通，key 为空时室外温湿度只能指定室外传感器；示例数据模拟已开通（与执行服务相同）
 const PACOM_WEATHER = { key: "" };
 // 2.53 E506：天气服务开通前（示例数据同样）室外温湿度只能指定室外传感器
@@ -42888,7 +42894,14 @@ const tdtTiles = (layer) =>
   `https://t{s}.tianditu.gov.cn/${layer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${layer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${encodeURIComponent(PACOM_MAP.key)}`;
 const tdtGeocodeUrl = (q) => `https://api.tianditu.gov.cn/geocoder?ds=${encodeURIComponent(JSON.stringify({ keyWord: q }))}&tk=${encodeURIComponent(PACOM_MAP.key)}`;
 const tdtReverseUrl = (lat, lng) => `https://api.tianditu.gov.cn/geocoder?postStr=${encodeURIComponent(JSON.stringify({ lon: lng, lat, ver: 1 }))}&type=geocode&tk=${encodeURIComponent(PACOM_MAP.key)}`;
-const MAP_ATTRIBUTION = () => `© <a href="https://www.tianditu.gov.cn/" target="_blank" rel="noopener">天地图</a>${PACOM_MAP.approval ? " · " + esc(PACOM_MAP.approval) : ""}`;
+const OSM_TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+// Nominatim 只在点检索或落点后请求，不做边输入边检索（使用规定每秒不超过 1 次）。
+const osmSearchUrl = (q) => `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(q)}&countrycodes=cn&accept-language=zh-CN&limit=1&addressdetails=1`;
+const osmReverseUrl = (lat, lng) => `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=zh-CN&zoom=18&addressdetails=1`;
+const MAP_ATTRIBUTION = () =>
+  PACOM_MAP.provider === "osm"
+    ? '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> 贡献者'
+    : `© <a href="https://www.tianditu.gov.cn/" target="_blank" rel="noopener">天地图</a>${PACOM_MAP.approval ? " · " + esc(PACOM_MAP.approval) : ""}`;
 function mapBase(el, center, zoom, onOff) {
   if (!window.L) {
     el.innerHTML = '<div class="ws-empty"><h3>地图组件暂不可用</h3><p>原有坐标仍保留，请稍后再试。</p></div>';
@@ -42896,6 +42909,7 @@ function mapBase(el, center, zoom, onOff) {
     return null;
   }
   const m = L.map(el, { zoomControl: false, attributionControl: true, maxZoom: 18 }).setView(center, zoom);
+  el.dataset.mapProvider = PACOM_MAP.provider;
   m.attributionControl.setPosition("bottomright");
   m.attributionControl.setPrefix(false);
   const form = el.id === "formLeaflet";
@@ -42920,20 +42934,25 @@ function mapBase(el, center, zoom, onOff) {
     off("unset");
     return m;
   }
-  const opts = { subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"], maxZoom: 18 };
-  L.tileLayer(tdtTiles("vec"), { ...opts, attribution: MAP_ATTRIBUTION() }).addTo(m);
-  L.tileLayer(tdtTiles("cva"), opts)
+  const tileError = () => {
+    if (!el.dataset.tileOk) return off("error");
+    el.dataset.tileError = "true";
+    if (el.parentElement.querySelector(".ws-tile-note") || el.dataset.marks === "0") return;
+    const n = document.createElement("div");
+    n.className = "ws-tile-note";
+    n.textContent = "部分底图未能加载，已确认的位置仍保留";
+    el.parentElement.append(n);
+  };
+  // OpenStreetMap 一层瓦片（底图与注记在一起）；天地图为底图与注记两层，按注记层判断是否加载。
+  const top =
+    PACOM_MAP.provider === "osm"
+      ? L.tileLayer(OSM_TILES, { maxZoom: 18, attribution: MAP_ATTRIBUTION() })
+      : (L.tileLayer(tdtTiles("vec"), { subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"], maxZoom: 18, attribution: MAP_ATTRIBUTION() }).addTo(m),
+        L.tileLayer(tdtTiles("cva"), { subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"], maxZoom: 18 }));
+  top
     .addTo(m)
     .on("tileload", () => (el.dataset.tileOk = "true"))
-    .on("tileerror", () => {
-      if (!el.dataset.tileOk) return off("error");
-      el.dataset.tileError = "true";
-      if (el.parentElement.querySelector(".ws-tile-note") || el.dataset.marks === "0") return;
-      const n = document.createElement("div");
-      n.className = "ws-tile-note";
-      n.textContent = "部分底图未能加载，已确认的位置仍保留";
-      el.parentElement.append(n);
-    });
+    .on("tileerror", tileError);
   return m;
 }
 function blueMarker(lat, lng, m) {
@@ -42977,7 +42996,7 @@ function setGeoPosition(lat, lng, label, comp) {
   if (!formState || !geoMap) return;
   U.regionRequest = (U.regionRequest || 0) + 1;
   clearFieldErr($("#formMap")?.closest(".field"));
-  formState.location = { lat, lng, crs: "CGCS2000", confirmed: true, confirmedAt: M.now(), source: label ? "search" : "map" };
+  formState.location = { lat, lng, crs: mapCrs(), confirmed: true, confirmedAt: M.now(), source: label ? "search" : "map" };
   formState.verifiedAddress = value("spaceAddress").trim();
   formState.verifiedLocation = M.copy(formState.location);
   if (formState.kind === "projects") {
@@ -43021,7 +43040,26 @@ function geoStatus(html) {
     return (el.innerHTML = s.sameLocation ? esc(sameLocationCheck(g("projects", g(s.kind, s.id)?.projectId || U.p))) : `已单独定位${btn("恢复为项目位置", "geoSameProject", {}, "ghost sm")}`);
   el.innerHTML = !l || l.confirmed || s.mapOff ? "" : `位置待核对：${geoRecheckHint()}${btn("位置无需调整", "geoKeep", {}, "ghost sm")}`;
 }
-// 天地图逆地理编码的行政区：国家、省、市（直辖市的市与省相同）。
+// 2.54 E527：Nominatim 的地址字段换成天地图逆地理编码的字段（province、city、county、road、address），直辖市没有 city 时取 state。
+const osmComp = (a) =>
+  a && (a.state || a.city)
+    ? { nation: a.country || "中国", province: a.state || a.city, city: a.city || a.state, county: a.district || a.county || a.city_district || a.suburb || "", road: a.road || "", address: a.house_number || "" }
+    : null;
+// 反查地图位置：返回天地图字段的行政区与按从大到小拼好的地址，取不到时抛错。
+async function reverseComp(lat, lng) {
+  const osm = PACOM_MAP.provider === "osm",
+    r = await fetch(osm ? osmReverseUrl(lat, lng) : tdtReverseUrl(lat, lng));
+  if (!r.ok) throw Error();
+  const j = await r.json();
+  if (osm) {
+    const comp = osmComp(j?.address);
+    if (!comp) throw Error();
+    return { comp, label: geoLabel({ addressComponent: comp }) };
+  }
+  if (String(j.status) !== "0") throw Error();
+  return { comp: j.result?.addressComponent || null, label: geoLabel(j.result) };
+}
+// 逆地理编码的行政区：国家、省、市（直辖市的市与省相同）。
 const regionOf = (c) => (c?.province ? { country: c.nation || "中国", province: c.province, city: c.city || c.province } : null);
 function regionLine() {
   const r = formState?.region;
@@ -43030,18 +43068,15 @@ function regionLine() {
   if (!mapConfigured()) return "所在地：地图服务尚未配置，暂不能识别";
   return formState?.location ? "所在地：未能识别，可重新选点" : "所在地：在地图上选点后自动识别";
 }
-// 地图落点没有地址：向天地图反查所在的省、市；固定原表单与请求，旧结果不覆盖新的选择。
+// 地图落点没有地址：向地图服务反查所在的省、市；固定原表单与请求，旧结果不覆盖新的选择。
 async function reverseRegion(lat, lng) {
   const target = formState;
   if (!target) return;
   const token = (U.regionRequest = (U.regionRequest || 0) + 1);
   target.regionPending = true;
   try {
-    const r = await fetch(tdtReverseUrl(lat, lng));
-    if (!r.ok) throw Error();
-    const j = await r.json();
-    if (String(j.status) !== "0") throw Error();
-    if (token === U.regionRequest && formState === target) target.region = regionOf(j.result?.addressComponent);
+    const { comp } = await reverseComp(lat, lng);
+    if (token === U.regionRequest && formState === target) target.region = regionOf(comp);
   } catch {
     // 所在地保持未识别；保存为“未取得”，不猜测城市。
   }
@@ -43050,7 +43085,7 @@ async function reverseRegion(lat, lng) {
   formAutoZone();
   if ($("#regionText")) $("#regionText").textContent = regionLine();
 }
-// 地址检索（天地图地理编码）：返回地址对应的一个位置，再反查行政区与标准地址。
+// 地址检索：返回地址对应的一个位置。天地图地理编码不带行政区，再反查行政区与标准地址；Nominatim 结果自带地址字段（2.54 E527）。
 async function searchGeo() {
   const q = value("mapSearch").trim(),
     el = $("#geoResults"), target = formState;
@@ -43064,23 +43099,28 @@ async function searchGeo() {
   }
   el.innerHTML = '<p class="muted">正在检索…</p>';
   try {
-    const r = await fetch(tdtGeocodeUrl(q));
+    const osm = PACOM_MAP.provider === "osm",
+      r = await fetch(osm ? osmSearchUrl(q) : tdtGeocodeUrl(q));
     if (!r.ok) throw Error("检索服务暂不可用");
     const j = await r.json();
     if (!same()) return;
-    const loc = String(j.status) === "0" && j.location && Number.isFinite(+j.location.lat) && Number.isFinite(+j.location.lon) ? j.location : null;
     let item = null;
-    if (loc) {
-      item = { lat: +loc.lat, lng: +loc.lon, label: loc.keyWord || q, comp: null };
-      try {
-        const rr = await fetch(tdtReverseUrl(item.lat, item.lng));
-        const jr = rr.ok ? await rr.json() : null;
-        if (jr && String(jr.status) === "0") {
-          item.comp = jr.result?.addressComponent || null;
-          item.label = geoLabel(jr.result) || item.label;
-        }
-      } catch {}
-      if (!same()) return;
+    if (osm) {
+      const f = Array.isArray(j) ? j.find((x) => Number.isFinite(+x?.lat) && Number.isFinite(+x?.lon)) : null,
+        comp = f ? osmComp(f.address) : null;
+      // 地点名称（如楼宇、园区）接在道路门牌之后
+      if (f) item = { lat: +f.lat, lng: +f.lon, label: (comp ? [...new Set([comp.province, comp.city, comp.county, comp.road, comp.address, f.name].filter(Boolean))].join("") : "") || q, comp };
+    } else {
+      const loc = String(j.status) === "0" && j.location && Number.isFinite(+j.location.lat) && Number.isFinite(+j.location.lon) ? j.location : null;
+      if (loc) {
+        item = { lat: +loc.lat, lng: +loc.lon, label: loc.keyWord || q, comp: null };
+        try {
+          const rv = await reverseComp(item.lat, item.lng);
+          item.comp = rv.comp;
+          item.label = rv.label || item.label;
+        } catch {}
+        if (!same()) return;
+      }
     }
     U.geoResults = item ? [item] : [];
     el.innerHTML = item
@@ -43090,7 +43130,7 @@ async function searchGeo() {
     if (same()) el.innerHTML = '<p class="muted">地址检索暂不可用，请在地图选择。详细地址不会丢失。</p>';
   }
 }
-// 中文地址从大到小书写、不加分隔点（广东省广州市黄埔区……寰宇一路）；天地图已按此顺序给出标准地址。
+// 中文地址从大到小书写、不加分隔点（广东省广州市黄埔区……寰宇一路）；天地图已按此顺序给出标准地址，Nominatim 按字段拼（不用 display_name：它从小到大、带逗号和邮编）。
 function geoLabel(res) {
   const c = res?.addressComponent || {};
   if (res?.formatted_address) return String(res.formatted_address).replace(/\s+/g, "");
@@ -78921,6 +78961,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "2.54",
+    date: "2026-10-29",
+    notes: ["新增：项目与楼宇可以在地图上查看和定位，支持检索地址。"],
+  },
   {
     version: "2.53",
     date: "2026-10-29",
