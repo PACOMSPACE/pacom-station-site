@@ -77261,9 +77261,10 @@ BARE.invite = () => {
     );
   const { inv, org, expiresAt: expires } = context;
   const meNow = AUTH.session === "in" ? auMe() : null;
+  // 2.51 账户第 494–496 条：标题“当前账户不是受邀账户”，说明写邀请人、打码的受邀邮箱和机构；“切换账户”退出后按未登录打开同一邀请（有账户到登录页，没有到注册页）。
   if (meNow?.email && inv?.email && meNow.email.toLowerCase() !== inv.email.toLowerCase())
     return auAuthShell(
-      `<h1 class="au-h1">此邀请发给其他账户</h1><p class="au-lead">受邀账户：<b>${esc(auMask(inv.email))}</b></p>${auStActs(auStBtn("退出并继续", "auInviteSwitch", "", true), auStBtn("返回工作区", "auApplyBack"))}`,
+      `<h1 class="au-h1">当前账户不是受邀账户</h1><p class="au-lead">${zhSub(esc(inv.by), "r")}邀请 ${esc(auMask(inv.email))} 加入${zhSub(esc(org.name), "l")}。</p>${auStActs(auStBtn("切换账户", "auInviteSwitch", "", true), auStBtn("返回工作区", "auApplyBack"))}`,
     );
   // 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 145 条）：只有成员邀请。受邀邮箱没有账户时“注册”；已有账户、未登录时到登录页登录后回到邀请。
   // 2.41 账户第 365 条：没有“接受邀请”页：已登录的受邀账户打开邀请链接（或登录后回到邀请）即加入，进入该机构并提示“已加入…”。
@@ -78064,6 +78065,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "2.51",
+    date: "2026-10-29",
+    notes: ["改进：登录的不是受邀账户时，页面写明邀请人和机构，“切换账户”后直接到受邀邮箱的登录或注册页。", "修复已知问题，优化界面细节。"],
+  },
   {
     version: "2.50",
     date: "2026-10-29",
@@ -79126,7 +79132,7 @@ Object.assign(actions, {
     const back = AUX.retryHash || auEntryHash(); AUX.retryHash = '';
     history.replaceState(null, '', back); readRoute(); render();
   },
-  // 邀请发给其他账户：退出当前账户后停留在邀请页
+  // 当前账户不是受邀账户时，“切换账户”退出当前账户，按未登录打开同一邀请（BARE_AFTER.invite 决定去登录页或注册页）
   auInviteSwitch: () => {
     AUTH.session = "out";
     AUX.sms = false;
@@ -91004,7 +91010,7 @@ const DEMO_ITEMS = [
   ["受邀注册", "inv-admin", "受邀注册：机构管理员（含手机号码）", "注册时绑定手机号码", () => (demoInvite("member", "new", "admin"), demoShow("invite", "member"))],
   ["受邀注册", "inv-new-err", "受邀注册：需要核对", "未填写直接注册", () => (demoInvite("member", "new"), (AUX.v.iv_name = ""), demoShow("invite", "member"), demoSubmit("invite"))],
   ["受邀注册", "inv-existing", "受邀登录", "已有账户、未登录：登录后直接加入", () => (demoInvite("member", "existing"), demoShow("invite", "member"))],
-  ["受邀注册", "inv-other", "邀请发给其他账户", "已登录其他账户时打开邀请", () => (demoInvite("member", "new"), demoIn(), demoShow("invite", "member"))],
+  ["受邀注册", "inv-other", "当前账户不是受邀账户", "已登录其他账户时打开邀请", () => (demoInvite("member", "new"), demoIn(), demoShow("invite", "member"))],
   ["受邀注册", "inv-expired", "邀请已失效", "", () => demoInvitationState("expired")],
 
   ["机构", "orgs", "选择机构", "属于多个机构、没有上次记录", () => (demoIn(), delete AUTH.lastOrg.wm, (AUTH.resume = {}), demoShow("orgs"))],
