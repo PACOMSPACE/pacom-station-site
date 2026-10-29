@@ -7385,7 +7385,8 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 /* 2.16 E362（2026-10-22 HONG 按推荐）：贴在页面卡片右侧，从卡片顶到底整高（top、right、bottom 由 wsPlaceSpaceInfo 按卡片计算），宽 400，内边距 24；
    仍挤开内容，不加阴影，保留左侧 1px #EBEBEB 线，右侧两角随卡片圆 16。页面标题行与工具栏只占左栏，与内容同宽，内容右边与面板之间留 28。
    E370：展开收起 200ms cubic-bezier(.4,0,.2,1)，面板从右侧展开（clip-path，不越出卡片），内容宽度同时变化。取代 E246 的宽 320、从工具栏下 8 开始。 */
-.v13-drawer.ws-space-info.docked { width:400px; bottom:0; border:0; border-left:1px solid #ebebeb; box-shadow:none; border-radius:0 16px 16px 0; z-index:5; animation:wsInfoDock 200ms cubic-bezier(.4,0,.2,1); transition:clip-path 200ms cubic-bezier(.4,0,.2,1); }
+/* 2.52 E481：并排的项目信息面板底色 #FAFAFA，与左侧内容同一底色，保留分隔线；手机上滑出的面板（≤850）仍为白色加阴影。原为白色。 */
+.v13-drawer.ws-space-info.docked { width:400px; bottom:0; border:0; border-left:1px solid #ebebeb; box-shadow:none; background:#fafafa; border-radius:0 16px 16px 0; z-index:5; animation:wsInfoDock 200ms cubic-bezier(.4,0,.2,1); transition:clip-path 200ms cubic-bezier(.4,0,.2,1); }
 #pbody.ws-info-closing > .ws-space-info.docked { clip-path:inset(0 0 0 100%); }
 #pbody > :is(.ws-dir, .ws-space-page), .panel > .phead { transition:margin-right 200ms cubic-bezier(.4,0,.2,1); }
 @media (min-width:851px) { .panel:has(> #pbody > .ws-space-info.docked) > .phead { margin-right:400px; } }
@@ -7396,7 +7397,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .ws-space-info .v13-dh .ws-info-meta { margin:0; font-size:14px; line-height:24px; color:#636363; }
 /* E366：概要数字，每个 32 高，1px #EBEBEB 边，圆角 12，左右 10，16 的图标，数字 14/24 #030303 字重 480，单位 14/24 #636363，间隔 8，放不下时换行。 */
 .ws-info-sum { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 0; }
-.ws-info-chip { display:inline-flex; align-items:center; gap:4px; height:32px; padding:0 10px; border:1px solid #ebebeb; border-radius:12px; font-size:14px; line-height:24px; color:#636363; white-space:nowrap; }
+.ws-info-chip { display:inline-flex; align-items:center; gap:4px; height:32px; padding:0 10px; border:1px solid #ebebeb; background:#fff; border-radius:12px; font-size:14px; line-height:24px; color:#636363; white-space:nowrap; }
 .ws-info-chip > .ic { flex:none; margin-right:2px; color:#636363; }
 .ws-info-chip > b { font-weight:480; color:#030303; font-variant-numeric:tabular-nums; }
 /* E367：配置进度卡片，1px #DEDEDE 边，圆角 12，上下 12、左右 16。 */
@@ -7412,6 +7413,31 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .ws-tb-actions > .ws-page-more { display:none; }
 /* 2.16 E371：手机上（≤850）工具栏的“更多”第一项是项目信息或楼宇信息，原为 ≤599 才有“更多”、另有信息图标按钮 */
 @media (max-width:850px) { .ws-tb-actions > .ws-page-more { display:grid; } }
+/* 2.52 E478：导出与“创建项目”（项目层 ⋯ 与“创建楼宇”，楼宇层 ⋯ 与“上传楼层图”）在选择器一行右端，间隔 8，原在标题行右侧。
+   选择器宽度照旧，放不下时选择器先变窄（最窄 216），不换行；≤599 时隐藏，收进工具栏“更多”。触屏上导出按钮 44×44 圆形。 */
+.ws-proj-acts { display:flex; align-items:center; gap:8px; }
+@media (min-width:600px) {
+ .ws-toolbar:has(> .ws-tb-actions > .ws-proj-acts) { flex-wrap:nowrap; }
+ .ws-toolbar:has(> .ws-tb-actions > .ws-proj-acts) > .ws-space-nav { flex-shrink:1; min-width:auto; }
+ .ws-toolbar:has(> .ws-tb-actions > .ws-proj-acts) > .ws-space-nav .ws-project-picker { min-width:216px; }
+ .ws-toolbar:has(> .ws-tb-actions > .ws-proj-acts) > .ws-tb-actions { flex:none; flex-wrap:nowrap; }
+}
+@media (max-width:850px), (pointer:coarse) {
+ .ws-proj-acts > .iconbtn.round { width:44px; height:44px; }
+}
+@media (max-width:599.98px) {
+ .ws-proj-acts { display:none; }
+}
+/* 2.52 E480：楼层图与设备标记的开关在工作台右上角（距边 12，与画布按钮同一行）；开关在画布上时，右上角的“图层”左移让出开关宽加 8；
+   面板展开且在工作台内（设备标记并排、楼层页覆盖）时开关在面板右上角，面板第一行右侧让出同样宽度。 */
+#pbody:has(> .ws-rp-handle.on-canvas) :is(.sp-bench, .mk-bench):not(.with-panel) .ws-canvas-top > .spatial-layer-controls { margin-right:40px; }
+#pbody:has(> .ws-rp-handle.on-canvas) .mk-bench.with-panel .ws-planning-panel > .ws-network-context { padding-right:56px; }
+#pbody:has(> .ws-rp-handle.on-canvas) .sp-bench.with-panel.sp-overlay .sp-panel > :first-child { margin-right:44px; }
+@media (pointer:coarse) {
+ #pbody:has(> .ws-rp-handle.on-canvas) :is(.sp-bench, .mk-bench):not(.with-panel) .ws-canvas-top > .spatial-layer-controls { margin-right:52px; }
+ #pbody:has(> .ws-rp-handle.on-canvas) .mk-bench.with-panel .ws-planning-panel > .ws-network-context { padding-right:68px; }
+ #pbody:has(> .ws-rp-handle.on-canvas) .sp-bench.with-panel.sp-overlay .sp-panel > :first-child { margin-right:56px; }
+}
 .ws-space-info .v13-dh .ws-info-scope { margin:0; font-size:12px; line-height:18px; color:#636363; }
 /* 2.14 E266：键值行 14/24（标签 #636363、值 #030303）；分组标题 14/24、字重 480；折叠行 14/24 #030303，末尾 6 的下箭头。
    原为键值 13/24、分组标题 16/24 字重 500、折叠行 13/21 #636363。 */
@@ -7436,7 +7462,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .ws-space-info .ws-info-image { width:100%; height:198px; object-fit:cover; border-radius:12px; }
 /* 只在窄屏占满宽度；触屏平板与告警详情、参数详情一样 400 宽（全面设计核查第 20 条，2026-10-12 用户确认：原先触屏上也占满宽度） */
 @media (max-width:850px) {
- .v13-drawer.ws-space-info, .v13-drawer.ws-space-info.docked { top:8px; right:8px; bottom:8px; width:calc(100% - 16px); max-width:calc(100% - 16px); box-shadow:var(--pop); border:0; z-index:60; }
+ .v13-drawer.ws-space-info, .v13-drawer.ws-space-info.docked { top:8px; right:8px; bottom:8px; width:calc(100% - 16px); max-width:calc(100% - 16px); box-shadow:var(--pop); border:0; z-index:60; background:#fff; }
  #pbody:has(> .ws-space-info.docked) > :is(.ws-dir, .ws-space-page) { margin-right:0; }
 }
 @media (prefers-reduced-motion:reduce) {
@@ -7449,15 +7475,21 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 /* 信息面板首图距标题线 16px。 */
 .ws-space-info .v13-db > .ws-info-image:first-child { margin-top:12px; }
 
-/* 2.16 E363、E372：右侧面板的把手（项目信息、楼层页功能区面板、设备标记面板共用）：24×48，白底，左侧两角圆 8，1px #EBEBEB 边，浮层阴影，
-   16 的箭头（展开时指向右）；位置由 wsPlaceRpHandle 计算；手机上不显示。 */
-.ws-rp-handle { position:fixed; left:0; top:0; z-index:7; display:grid; place-items:center; width:24px; height:48px; padding:0; border:1px solid #ebebeb; border-right:0; border-radius:12px 0 0 12px; background:#fff; box-shadow:var(--pop); color:#030303; cursor:pointer; }
-.ws-rp-handle:hover { background:#f5f5f5; }
-.ws-rp-handle .ic { width:16px; height:16px; }
-.ws-rp-handle.open .ic { transform:scaleX(-1); }
-.ws-rp-handle.moving { transition:left 200ms cubic-bezier(.4,0,.2,1); }
+/* 2.52 E480：右侧面板的开关（项目信息、楼层页功能区面板、设备标记面板共用）：与“收起侧栏”同一种 32 圆形图标按钮（触屏 44），
+   图标为右侧栏（左侧栏图标的镜像）；项目页为透明底（平时 #636363，悬停 #030303、叠黑 8%），画布上为“图层”同一材质的白底按钮。
+   位置由 wsPlaceRpHandle 计算，展开、收起不移动；手机上不显示。取代 2.16 E363 的 24×48 半圆角把手。 */
+.ws-rp-handle { position:fixed; left:0; top:0; z-index:7; display:grid; place-items:center; width:32px; height:32px; min-width:32px; padding:0; border-radius:50%; }
+.ws-rp-handle.iconbtn { color:var(--text3); }
+.ws-rp-handle.iconbtn:hover { background:var(--sel); color:var(--text); }
+.ws-rp-handle.iconbtn:active { background:rgba(0,0,0,.1); }
+.ws-rp-handle .ws-rp-ic { width:16px; height:16px; transform:scaleX(-1); }
+@media (pointer:coarse) { .ws-rp-handle { width:44px; height:44px; min-width:44px; min-height:44px; } }
 @media (max-width:850px) { .ws-rp-handle { display:none; } }
-@media (prefers-reduced-motion:reduce) { .ws-rp-handle.moving { transition:none; } }
+/* 收起时按钮在标题行右端：标题行右侧留出按钮位置，演示切换不被压住；展开时面板标题为按钮留出位置。 */
+@media (min-width:851px) {
+ .panel:has(> #pbody > .ws-rp-handle.iconbtn) > .phead { padding-right:64px; }
+ .ws-space-info.docked .v13-dh { padding-right:64px; }
+}
 
 /* ========== 8. 表单：创建与编辑项目、楼宇（地图位置、地址检索、时区、楼层结构预览、说明框） ========== */
 .ws-image-field {
@@ -11301,7 +11333,8 @@ details.v13-tech>summary{cursor:pointer;color:var(--text2)}
 /* 2.14 E245：所有步骤线段高 3、两端全圆；已完成 #202A44，其余 #EBEBEB。紧凑型每段 16、段距 3（六段 111，五段 92），长度固定；
    概览型六列各 96、列距 6，步骤名在段下方 8。原为高 4–8、段距 2–4，长度随容器拉伸。 */
 .v13-seg{display:flex;gap:3px;flex:none}
-.v13-seg i{flex:none;width:16px;height:3px;border-radius:1.5px;background:#EBEBEB}
+/* 2.52 E479：紧凑型（卡片、列表、悬停弹层、网络列表）高 2、圆角 1，未完成 #DEDEDE；段长与段距不变。原为高 3、未完成 #EBEBEB。概览型仍为高 3。 */
+.v13-seg i{flex:none;width:16px;height:2px;border-radius:1px;background:#DEDEDE}
 .v13-seg i.done{background:#202A44}
 /* 当前环节与未完成同为 #EBEBEB，不用需关注色（项目页核查 E216，2026-10-21 用户确认；原为需关注色 #8A5A00） */
 .v13-ov-n{font-variant-numeric:tabular-nums;color:var(--text2);white-space:nowrap}
@@ -11337,7 +11370,7 @@ span.v13-step-n{cursor:default}
 .v13-nets-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .v13-nets-h h2{margin:0;font-size:16px;font-weight: 480}
 .v13-mini{display:inline-flex;gap:3px;margin-right:8px;vertical-align:middle}
-.v13-mini i{flex:none;width:16px;height:3px;border-radius:1.5px;background:#EBEBEB}
+.v13-mini i{flex:none;width:16px;height:2px;border-radius:1px;background:#DEDEDE}
 .v13-mini i.on{background:#202A44}
 .v13-net-t .num{font-variant-numeric:tabular-nums}
 .v13-net-op{text-align:right;white-space:nowrap}
@@ -18192,6 +18225,12 @@ fieldset:disabled .au-primary {
   flex-direction: column;
   gap: 8px;
 }
+/* 2.52 账户第 503–507 条：创建机构两张卡片间距 16（同选择机构）；左侧图标对齐标题一行，右侧 16 的“›”垂直居中；没有页脚，卡片到弹窗底 24 */
+.au-choice.au-neworg { gap: 16px; }
+.au-neworg .au-choice-i { align-items: flex-start; }
+.au-neworg .au-choice-i > .ic:first-child { margin-top: 3px; }
+.au-neworg .au-choice-i > .au-neworg-chevron { align-self: center; transform: rotate(-90deg); }
+#dlg .dialog.au-neworg-dlg .db:last-child { padding-bottom: 24px; }
 /* 说明是对话框里最后一段 <p> 时，.dialog .db > p:last-of-type 会去掉它的下边距，选项卡片紧贴文字（切换角色、开通新机构） */
 .au-dlead + .au-choice {
   margin-top: 20px;
@@ -20614,13 +20653,6 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 #app.bare-suspended .au-lead { color: var(--au-muted); font: 400 14px/24px var(--ff); }
 #app.bare-suspended .au-group > .au-lead { margin-bottom: 16px; }
 #app.bare-suspended .au-notice.au-susp-notice { margin: 0; }
-#app.bare-suspended .au-susp-more { margin: 16px 0 0; color: var(--au-muted); font: 400 14px/24px var(--ff); }
-#app.bare-suspended .au-susp-more summary { min-height: 28px; }
-#app.bare-suspended .au-susp-more summary:focus-visible { outline: 2px solid #00AEEF; outline-offset: 2px; border-radius: 4px; }
-#app.bare-suspended .au-susp-more p { margin: 8px 0 0; font: 400 14px/24px var(--ff); }
-@media (max-width: 850px), (pointer: coarse) {
-  #app.bare-suspended .au-susp-more summary { min-height: 44px; }
-}
 .ws-select > button > span.au-select-ph { color: var(--text3); }
 /* 第 92 条：机构设置“邀请成员”“修改权限”与“签发接口密钥”的项目授权范围同一排法：单选上下排，不画选项卡片，
    项目勾选框缩进 24、不放灰底，只在选了“指定项目”时出现。 */
@@ -26966,6 +26998,10 @@ body:has(.demo-cap) > #ai-pal > .ai-pal {
 .demo-cat-i .ic {
   flex: none;
   color: var(--text3);
+}
+/* 2.52 账户第 504 条：行尾与“选择机构”相同的“›”折角（原“→”） */
+.demo-cat-i .demo-cat-chev {
+  transform: rotate(-90deg);
 }
 .demo-cat-none {
   padding: 16px 10px;
@@ -38273,13 +38309,14 @@ function projectActions(kind, id, primary = "") {
   // 信息按钮是开关：面板打开时 aria-expanded=true，再点一次收起（面板从工具栏下方开始，不盖住本组）。
   const infoOpen = !!U.spaceInfo && U.spaceInfo.kind === kind && (U.spaceInfo.id || "") === (id || "");
   const acts = `${kind === "projects" || kind === "buildings" ? menuTrigger(iconBtn("更多", "more", "spaceMore", { kind, id, tb: 1 })) : canExportAny() ? (kind === "all" && !data().projects.length ? `<button class="iconbtn round" aria-disabled="true" aria-label="导出项目资料：尚无项目可导出" data-tip="尚无项目可导出" data-act="exAllOpen">${ico("download")}</button>` : iconBtn("导出项目资料", "download", kind === "all" ? "exAllOpen" : "exOpen", { p: kind === "projects" ? id : U.p, ...(kind === "buildings" ? { b: id } : {}) })) : ""}${primary}`;
-  PAGE_CATEGORY_HEADERS.set(U.page, { actions: acts });
+  // 2.52 E478：这组操作放在选择器一行右端（作用于选择器选中的范围），标题行只留页面名称；≤599 时隐藏，收进工具栏“更多”。
+  PAGE_CATEGORY_HEADERS.delete(U.page);
   // 2.16 E371：手机上（≤850）去掉工具栏的信息图标按钮，“项目信息”“楼宇信息”放进工具栏“更多”的第一项（图标 ⓘ，与卡片“⋯”菜单同一项）；
   // 只读的人也有这个“更多”，里面只有这一项。标题行的操作只在标题行收起时（≤599）才进这个菜单。
   const more = menuTrigger(iconBtn("更多", "more", "pageMore", { pageactions: "pageCategoryTitleActions", infokind: kind, ...(id ? { infoid: id } : {}) })).replace('class="iconbtn round"', 'class="iconbtn round ws-page-more"');
   // 2.16 E363：电脑上的开关是面板左缘的把手（rpHandle），取代 2.13 E225 工具栏右端的“右侧面板”图标按钮。
   rpHandle(noun + "信息", infoOpen, "spacePanelInfo", { kind, ...(id ? { id } : {}) }, ".ws-space-info");
-  return `<div class="ws-tb-actions">${more}</div>`;
+  return `<div class="ws-tb-actions">${acts ? `<span id="pageCategoryTitleActions" class="ws-proj-acts">${acts}</span>` : ""}${more}</div>`;
 }
 function openLocation(anchor, intent) {
   const r = showLocationPicker(anchor, intent),
@@ -42738,29 +42775,25 @@ function wsPlaceSpaceInfo() {
     if (top > base && innerHeight - top - base >= 240) d.style.top = top + "px";
   });
 }
-// 2.16 E363：把手的位置。展开时贴在面板左缘：整高的面板与工具栏同高居中（卡片顶下 64，48 高），工作台里的面板在面板顶下 8；
-// 收起后留在页面卡片右边缘的同一高度。把手在内容之后（内容区是尺寸容器，放在工具栏里会被裁切），用 fixed 定位，按实际包含块校正。
-let wsInfoWas = false, rpLast = null;
+// 2.52 E480：开关的位置，展开、收起相同：项目信息在卡片右上角，距右 24、与标题行垂直居中（卡片顶下 35）；
+// 设备标记与楼层页的面板在工作台（画布）右上角，距边 8。按钮在内容之后（内容区是尺寸容器），用 fixed 定位，按实际包含块校正。
+// 取代 2.16 E363 展开时贴面板左缘、收起后滑到卡片右边缘的做法。
+let wsInfoWas = false, rpRO = null, rpSeen = null;
 function wsPlaceRpHandle(closing = false) {
   const h = $("#pbody > .ws-rp-handle"), pb = $("#pbody");
   if (!h || !pb || isMobile()) return;
   const card = pb.closest(".panel")?.getBoundingClientRect() || pb.getBoundingClientRect(),
-    sel = h.dataset.panel, p = sel && !closing ? $(sel) : null, pr = p?.getClientRects().length ? p.getBoundingClientRect() : null,
-    // 项目信息与并排的楼层页面板：与工具栏同高居中（卡片顶下 64）；设备标记与覆盖方式的楼层页面板在工作台里：工作台顶下 8。展开收起同一高度。
+    sel = h.dataset.panel, p = sel && !closing ? $(sel) : null, open = !!p?.getClientRects().length,
     bench = sel === ".ws-space-info" ? null : $(sel === ".ws-planning-panel" ? ".mk-bench" : ".sp-bench"),
-    inBench = bench && (sel === ".ws-planning-panel" || bench.classList.contains("sp-overlay")),
-    top = inBench ? bench.getBoundingClientRect().top + 8 : card.top + 64,
-    right = pr ? pr.left : card.right;
-  h.classList.toggle("open", !!pr);
-  h.classList.remove("moving");
+    br = bench?.getBoundingClientRect(), w = h.offsetWidth, hh = h.offsetHeight,
+    x = Math.round(br ? br.right - 13 - w : card.right - 24 - w), y = Math.round(br ? br.top + 13 : card.top + 35 - hh / 2);
+  // 工作台随面板展开、收起改变宽度（并排或覆盖由页面按宽度决定），宽度变了再放一次。
+  if (bench !== rpSeen && typeof ResizeObserver === "function") { rpRO ||= new ResizeObserver(() => wsPlaceRpHandle()); rpRO.disconnect(); if (bench) rpRO.observe(bench); rpSeen = bench; }
+  h.classList.toggle("open", open);
   h.style.left = "0px"; h.style.top = "0px";
-  const o = h.getBoundingClientRect(), x = Math.round(right - h.offsetWidth), y = Math.round(top);
-  // 展开、收起时从原来的位置滑到新位置（与面板同步 200ms），滚动时直接跟随；减少动态效果时不滑动（CSS）。
-  const prev = rpLast && rpLast.sel === sel && rpLast.y === y && rpLast.x !== x ? rpLast : null;
-  if (prev) { h.style.left = prev.x - o.left + "px"; h.style.top = y - o.top + "px"; void h.offsetWidth; h.classList.add("moving"); setTimeout(() => h.classList.remove("moving"), 220); }
+  const o = h.getBoundingClientRect();
   h.style.left = x - o.left + "px";
   h.style.top = y - o.top + "px";
-  rpLast = { sel, x, y };
 }
 document.addEventListener("scroll", (e) => { if (e.target === document || e.target?.id === "pbody") { wsPlaceSpaceInfo(); wsPlaceRpHandle(); } }, true);
 window.addEventListener("resize", () => { wsPlaceSpaceInfo(); wsPlaceRpHandle(); });
@@ -43992,13 +44025,14 @@ function infoAutoOpen() {
   if (!infoDocked() || isMobile() || U.spaceInfo || U.infoShut) return;
   if (infoPref() ?? (typeof innerWidth === "number" && innerWidth >= 1440)) U.spaceInfo = infoLevel();
 }
-// 2.16 E363、E372：右侧面板的展开收起把手（取代工具栏右端的图标按钮），24×48，白底，左侧两角圆 8，1px #EBEBEB 边，浮层阴影，16 的箭头：
-// 展开时指向右（收起），收起时指向左（展开）。展开时贴在面板左缘，收起后留在页面卡片右边缘的同一高度（在 28 的页边距里，不压内容）。
-// 项目页、楼层页与设备标记共用；手机上不显示（E371）。位置由 wsPlaceRpHandle 计算。
+// 2.52 E480：右侧面板的开关改为与“收起侧栏”同一种 32 圆形图标按钮（触屏 44），图标为右侧栏（左侧栏图标的镜像），放在面板右上角，
+// 展开、收起时位置不变：项目页在卡片右上角（与标题行同高），楼层图上在画布右上角，用画布按钮的白底（与“图层”同一材质）。
+// 取代 2.16 E363、E372 贴在面板左缘、收起后滑到卡片右边缘的 24×48 把手。项目页、楼层页与设备标记共用；手机上不显示（E371）。位置由 wsPlaceRpHandle 计算。
 let rpHandleHtml = "";
 function rpHandle(label, open, act, args = {}, panel = "", cls = "") {
   const tip = (open ? "收起" : "展开") + label;
-  rpHandleHtml = `<button class="ws-rp-handle${cls ? " " + cls : ""}${open ? " open" : ""}" data-act="${act}" ${Object.entries(args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")} data-panel="${panel}" aria-expanded="${open}"${open && panel === ".ws-space-info" ? ' aria-controls="wsSpaceInfo"' : ""} aria-label="${tip}" data-tip="${tip}">${ico("back", "ic16")}</button>`;
+  const canvas = panel !== ".ws-space-info";
+  rpHandleHtml = `<button class="${canvas ? "btn" : "iconbtn round"} ws-rp-handle${canvas ? " on-canvas" : ""}${cls ? " " + cls : ""}${open ? " open" : ""}" data-act="${act}" ${Object.entries(args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")} data-panel="${panel}" aria-expanded="${open}"${open && panel === ".ws-space-info" ? ' aria-controls="wsSpaceInfo"' : ""} aria-label="${tip}" data-tip="${tip}">${ico("collapse", "ws-rp-ic")}</button>`;
   return "";
 }
 const infoDocked = () => U.page === "projects" && !U.f;
@@ -74944,7 +74978,6 @@ Object.assign(XI, {
   "au-logout": '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
   "au-user": '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   "au-lock": '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
-  "au-arrow": '<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>',
   // 机构入口右端与“成员”表未排序列头的上下箭头（2.33 账户第 295 条；2.42 账户第 384 条删去重复的一份）
   "au-updown": '<path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/>',
   "au-sortup": '<path d="M12 19V5"/><path d="m6 11 6-6 6 6"/>',
@@ -75096,7 +75129,7 @@ function auSeed() {
       ],
     },
     sessions: [
-      { id: "s1", dev: "Chrome · macOS", where: "广州", at: "当前会话", cur: true },
+      { id: "s1", dev: "Chrome · macOS", where: "广州", at: "本设备", cur: true },
       { id: "s2", dev: "Safari · iPhone", where: "广州", at: "昨天 21:04" },
       { id: "s3", dev: "Chrome · Android", where: "深圳", at: "9 月 20 日 16:22" },
       // 部署 App 凭账户登录，会话单独一行（2026-10-09 用户确认，ABB 对比 BP21）
@@ -76085,7 +76118,7 @@ BARE_AFTER.orgs = () => {
 // 默认尺寸（轨道 40、选项 32、14/21），撑满表单宽度、两项各占一半；默认选中加入，切换立即生效，两边填过的内容各自保留。
 // 未登录时两项就是加入页与创建页（地址带上所选一项），标题都是“申请访问”；从邀请链接或二维码打开的加入页不显示切换器。
 // 已登录、还没有机构的“尚未加入机构”页同样用它，地址为 #orgs 或 #orgs?tab=apply。
-const AU_ACCESS_WAYS = [["join", "加入已开通的机构"], ["apply", "创建新机构"]];
+const AU_ACCESS_WAYS = [["join", "加入已有机构"], ["apply", "创建新机构"]];
 const auAccessSeg = (cur) =>
   `<div class="seg au-access-seg" role="group" aria-label="申请访问">${AU_ACCESS_WAYS.map(([v, t]) => `<button type="button" class="${v === cur ? "on" : ""}" aria-pressed="${v === cur}" data-act="auAccessTab" data-value="${v}">${t}</button>`).join("")}</div>`;
 const auOrgsTab = () => (U.tab === "apply" ? "apply" : "join");
@@ -76103,8 +76136,7 @@ const auOtherOrgs = (except) => auMyOrgs().filter((o) => o.id !== except && !AUT
 // 说明只写结论与告警通知已停发（第 2 处）；机构管理员、许可到期时，说明下是浅黄提示条“请于 {最后续费日} 24:00 前完成续费……”（第 1 处，日期取许可服务；
 // 账户核查第 29 条曾改为“最晚请在 {日期}（含当天）”，2.03 账户第 19 条改为“请于 {日期} 24:00 前”，既专业又不会读成不含当天），
 // 主按钮“续费”（仍进入机构设置 › 订阅与用量），下方居中“选择其他机构 · 联系支持 · 退出登录”（没有其他可用机构时不写前一项和圆点）。
-// 其余说明收进默认收起的“暂停期间的功能与数据说明”，所有角色都有（第 4 处），只有机构管理员看到导出那句（第 3、4 处）。
-// 2026-10-14 用户确认：折叠说明放在说明／期限提示之后、原主按钮与辅助入口之前；原文、角色与去处不变。
+// 2.52 账户第 497–502 条：去掉折叠“暂停期间的功能与数据说明”和数据句，现场一句并入说明，导出一句并入许可到期的提示条，“续费付款到账后”改为“续费后”。
 // 非机构管理员不写原因和日期，有其他机构时主按钮“选择其他机构”，没有时只有“退出登录”（第 5 处）；机构管理员其他原因写原因、指向 PACOM 支持，
 // 不承诺自动恢复，不提删除，主按钮“选择其他机构”或“联系支持”。机构名称取数据，不加粗。
 BARE.suspended = () => {
@@ -76119,15 +76151,15 @@ BARE.suspended = () => {
     renew = admin && (expiry || overdue);
   const lead = !admin
     ? overdue
-      ? `${name}已暂停使用，平台已停止发送告警通知。请联系本机构的机构管理员付款。`
-      : `${name}已暂停使用，平台已停止发送告警通知。如有疑问，请联系本机构的机构管理员。`
+      ? `${name}已暂停使用。平台已停止发送告警通知，现场设备按最后下发的配置继续运行。请联系本机构的机构管理员付款。`
+      : `${name}已暂停使用。平台已停止发送告警通知，现场设备按最后下发的配置继续运行。如有疑问，请联系本机构的机构管理员。`
     : expiry
-      ? `${name}的许可已到期，平台已停止发送告警通知。续费付款到账后将自动恢复使用。`
+      ? `${name}的许可已到期，平台已停止发送告警通知，现场设备按最后下发的配置继续运行。续费后将自动恢复使用。`
       : overdue
-        ? `${name}已暂停使用：订单逾期未付款。平台已停止发送告警通知。重新下单并付款，到账后自动恢复使用。`
-        : `${name}已暂停使用${o.suspended?.reason ? `：${esc(o.suspended.reason)}` : ""}。平台已停止发送告警通知。如需恢复使用，请联系 PACOM 支持。`;
+        ? `${name}已暂停使用：订单逾期未付款。平台已停止发送告警通知，现场设备按最后下发的配置继续运行。重新下单并付款后将自动恢复使用。`
+        : `${name}已暂停使用${o.suspended?.reason ? `：${esc(o.suspended.reason)}` : ""}。平台已停止发送告警通知，现场设备按最后下发的配置继续运行。如需恢复使用，请联系 PACOM 支持。`;
   const notice = renew && expiry
-    ? `<div class="au-notice au-susp-notice" data-tone="warning">${auNoticeContent("warning", `请于 ${auDate(auLicLastRenewDay(auLic(id)))} 24:00 前完成续费，逾期将删除本机构全部数据。`)}</div>`
+    ? `<div class="au-notice au-susp-notice" data-tone="warning">${auNoticeContent("warning", `请于 ${auDate(auLicLastRenewDay(auLic(id)))} 24:00 前完成续费，逾期将删除本机构全部数据。如需导出数据，请联系 PACOM 支持。`)}</div>`
     : "";
   const primary = renew
     ? auStBtn(overdue ? "去付款" : "续费", "auRenewEnter", ` data-org="${id}"`, true)
@@ -76137,13 +76169,14 @@ BARE.suspended = () => {
         ? auStBtn("联系支持", "auStSupport", ` data-org="${id}"`, true)
         : "";
   // 2.41 第 366 条：原主按钮下居中的“选择其他机构 · 联系支持 · 退出登录”改为主按钮右侧的次要按钮。
+  // 2.52 账户第 500 条：机构管理员、其他原因、有其他可用机构时，主按钮“选择其他机构”右侧加“联系支持”。
   const more2 = renew
     ? [others && auStBtn("选择其他机构", "auGo", ' data-page="orgs"'), auStBtn("联系支持", "auStSupport", ` data-org="${id}"`)]
-    : [];
-  // 2.03 账户第 18 条（2026-10-16 用户确认）：展开后每句一行，不加段间距；机构管理员的导出一句另起一行。
-  const data = expiry ? (admin ? "删除前运行数据继续保存。" : "运行数据继续保存。") : "运行数据继续保存，不会删除。";
-  const more = `<details class="au-help au-susp-more"><summary tabindex="0">暂停期间的功能与数据说明</summary><p>暂停期间，平台远程功能不可用。现场设备按最后下发的配置运行。${data}${admin ? "如需导出，请联系 PACOM 支持。" : ""}</p></details>`;
-  return auStatusShell(`<h1 class="au-h1">机构已暂停使用</h1><p class="au-lead">${lead}</p>${notice}${more}${auStActs(primary, ...more2)}`);
+    : admin && others
+      ? [auStBtn("联系支持", "auStSupport", ` data-org="${id}"`)]
+      : [];
+  // 2.52 账户第 497–499 条：不设折叠说明，也不写数据句；现场一句并入说明，导出一句只在许可到期的提示条里。
+  return auStatusShell(`<h1 class="au-h1">机构已暂停使用</h1><p class="au-lead">${lead}</p>${notice}${auStActs(primary, ...more2)}`);
 };
 BARE_AFTER.suspended = () => (document.title = "机构已暂停使用 · PACOM Station");
 
@@ -76510,7 +76543,7 @@ function auResetPhoneOpen() {
   auEntryFocus("#au-rp_code");
 }
 
-/* ---------- 加入已开通的机构（第 144 条）：邀请码、注册申请与等待批准 ---------- */
+/* ---------- 加入已有机构（第 144 条，2.52 第 509 条改名）：邀请码、注册申请与等待批准 ---------- */
 // 邀请码每个机构一个，9 位数字，按 3 位分组显示；邀请链接和二维码就是带着邀请码的地址（#join?code=…），三者同时有效、同时失效。
 // 同一网络 1 小时内输错 10 次，暂停 1 小时（由服务判断；演示在本页记次数）。
 const auJoinCodeText = (c) => String(c || "").replace(/\D/g, "").replace(/(\d{3})(?=\d)/g, "$1 ");
@@ -76569,9 +76602,9 @@ const auJoinCodeField = () => { const org = auJoinOrgOf(AUX.v.jn_code); return a
 // 2.21 账户第 177 条：加入页说明，未登录和已登录同一句（HONG 17:24Z 定）。
 // 2.25 账户第 195 条取代第 177 条：收到邀请的直接加入，其他用邀请码申请。
 // 2.27 账户第 203 条取代第 195 条（HONG 2026-10-26 03:55Z 两句原文）：两个选项的说明让客户分清该填哪个表单；未登录与已登录“尚未加入机构”页相同。
-const AU_JOIN_LEAD = `所在机构已开通 <span class="au-keep">PACOM Station</span>？创建个人账户并申请加入，<span class="au-keep">机构管理员</span>批准后，可访问授权的项目。`;
+const AU_JOIN_LEAD = `所在机构已在使用 <span class="au-keep">PACOM Station</span>？创建个人账户并申请加入，<span class="au-keep">机构管理员</span>批准后，可访问授权的项目。`;
 // 2.32 账户第 248 条：已登录的加入表单不写“创建个人账户并”（取代第 203 条已登录与未登录相同中加入表单这一句）。
-const AU_JOIN_LEAD_IN = `所在机构已开通 <span class="au-keep">PACOM Station</span>？申请加入，<span class="au-keep">机构管理员</span>批准后，可访问授权的项目。`;
+const AU_JOIN_LEAD_IN = `所在机构已在使用 <span class="au-keep">PACOM Station</span>？申请加入，<span class="au-keep">机构管理员</span>批准后，可访问授权的项目。`;
 // 2.42 账户第 374 条：从同事的加入链接打开（机构已确定）时的说明；已登录时去掉“创建账户并”。
 const AU_JOIN_LEAD_LINK = `创建账户并提交申请，<span class="au-keep">机构管理员</span>批准后，可访问授权的项目。`;
 const AU_JOIN_LEAD_LINK_IN = `提交申请，<span class="au-keep">机构管理员</span>批准后，可访问授权的项目。`;
@@ -76619,7 +76652,7 @@ BARE.join = () => {
   // 2.38 账户第 335 条：已登录、尚未加入机构时为“返回”（回“尚未加入机构”页），不再有“使用其他账户登录”；2.41 第 363 条：在主按钮右侧。
   if (AUTH.session === "in") {
     const lo = code && AUX.joinLinkOrg && AUTH.orgs?.[AUX.joinLinkOrg];
-    return auStatusShell(`<h1 class="au-h1">${lo ? `加入${zhSub(esc(lo.name), "l")}` : "加入已开通的机构"}</h1>${auWithBack(auJoinInForm(lo ? AU_JOIN_LEAD_LINK_IN : ""))}`);
+    return auStatusShell(`<h1 class="au-h1">${lo ? `加入${zhSub(esc(lo.name), "l")}` : "加入已有机构"}</h1>${auWithBack(auJoinInForm(lo ? AU_JOIN_LEAD_LINK_IN : ""))}`);
   }
   // 2.33 账户第 251、252、256、257 条：两步逐步填写。1 创建账户（姓名、电子邮箱或手机号码、验证码、设置密码、同意）→ 继续；
   // 2 这个电子邮箱有未过期的邀请时“确认邀请”（几个时选一个）→ 加入；没有时“填写邀请码”（从链接或二维码打开时已填好）和申请说明 → 申请加入，
@@ -76643,7 +76676,7 @@ BARE.join = () => {
       : `${auJoinCodeField()}${auJoinNote()}${auStepFoot("申请加入")}`;
   const form = r.step === 1 ? "regStep" : invs.length ? "joinInv" : "join";
   const steps = auStepList("join", ["创建账户", invs.length ? "确认邀请" : lo ? "提交申请" : "填写邀请码"], body, () => auRegSum1("join"));
-  return auAuthShell(`${AUX.accessSeg ? `<h1 class="au-h1">申请访问</h1>${auAccessSeg("join")}` : `<h1 class="au-h1">${lo ? `加入${zhSub(esc(lo.name), "l")}` : "加入已开通的机构"}</h1>`}<p class="au-lead">${lo ? AU_JOIN_LEAD_LINK : AU_JOIN_LEAD}</p>${r.max > 1 ? "" : auLoginLink("#join")}<form class="au-compact-form au-step-form" data-form="${form}" data-flow="join" novalidate><fieldset>${steps}</fieldset></form>`);
+  return auAuthShell(`${AUX.accessSeg ? `<h1 class="au-h1">申请访问</h1>${auAccessSeg("join")}` : `<h1 class="au-h1">${lo ? `加入${zhSub(esc(lo.name), "l")}` : "加入已有机构"}</h1>`}<p class="au-lead">${lo ? AU_JOIN_LEAD_LINK : AU_JOIN_LEAD}</p>${r.max > 1 ? "" : auLoginLink("#join")}<form class="au-compact-form au-step-form" data-form="${form}" data-flow="join" novalidate><fieldset>${steps}</fieldset></form>`);
 };
 BARE_AFTER.join = () => {
   auEcSync();
@@ -76676,7 +76709,7 @@ const auJoinInvPhone = (invs) => `<div class="au-inv-phone"${auJoinInvAdmin(invs
 // 原账户有电子邮箱的，可“改绑到此账户”：确认后原账户不能再用此号码，邮件通知原账户，原账户的操作记录写“手机号码已改绑到其他账户”；
 // 原账户没有电子邮箱（号码是它唯一的登录账户）的不能改绑。原账户是机构管理员的，下次登录先绑定手机号码（auLoginChecks）。
 const AU_TAKEN = "该号码已绑定另一个账户。";
-const AU_TAKEN_LOGIN = "该号码是另一个账户的登录账户，不能改绑。是你的账户，请用此号码登录；不是，请{s}。";
+const AU_TAKEN_LOGIN = "此号码是另一个账户唯一的登录方式，不能改绑。如果那是你的账户，请用此号码登录；如果不是，请{s}。";
 const auPhoneHolder = (phone, except = "") => Object.entries(AUTH.people).find(([uid, p]) => uid !== except && p.phone && auPhoneIdentity(p.phone) === auPhoneIdentity(phone))?.[0] || "";
 // 写在号码字段下：name 为账户页字段（au-err），dlg 为“我的账户”弹窗字段；retry 在改绑后重新提交原来的操作。
 function auPhoneTaken(name, holder, phone, retry, dlg = false) {
@@ -76925,7 +76958,7 @@ const auYearsField = (cur = "1") =>
 function auSubPrice() {
   let from = 0;
   const rows = [["基础服务费（每个机构）", `${fmt(AU_PRICE.base)} 元`], ...AU_PRICE.tiers.map(([to, unit]) => { const r = [`设备服务费（${auTierName(from, to)}）`, `每台 ${fmt(unit)} 元`]; from = to; return r; })];
-  return `<div class="au-sub-price"><h3 class="au-sub-h">价格（每年，含 ${Math.round(AU_PRICE.vat * 100)}% 增值税）</h3><table class="au-price au-price-list"><thead><tr><th>项目</th><th class="num">单价</th></tr></thead><tbody>${rows.map(([a, b]) => `<tr><td>${a}</td><td class="num">${b}</td></tr>`).join("")}</tbody></table><p class="au-sub-note">需要按合同订阅的，请联系 PACOM。</p></div>`;
+  return `<div class="au-sub-price"><h3 class="au-sub-h">价格（每年，含 ${Math.round(AU_PRICE.vat * 100)}% 增值税）</h3><table class="au-price au-price-list"><thead><tr><th>项目</th><th class="num">单价</th></tr></thead><tbody>${rows.map(([a, b]) => `<tr><td>${a}</td><td class="num">${b}</td></tr>`).join("")}</tbody></table><p class="au-sub-note">需要另行商定合同条款的，请联系 PACOM。</p></div>`;
 }
 // 设备数量为 100 的整数倍，至少 100 台，不设上限（第 471 条）
 const auSbQtyOk = (q) => q >= AU_PRICE.min && q % AU_PRICE.step === 0;
@@ -78066,6 +78099,11 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "2.52",
+    date: "2026-10-29",
+    notes: ["改进：机构暂停使用页写明现场设备照常运行，许可到期时可联系 PACOM 支持导出数据；账户与机构设置中多处说明改得更明确。", "改进：项目页的导出与创建按钮移到位置选择器一行，右侧面板改用圆形开关，配置进度细条更细。", "修复已知问题，优化界面细节。"],
+  },
+  {
     version: "2.51",
     date: "2026-10-29",
     notes: ["改进：登录的不是受邀账户时，页面写明邀请人和机构，“切换账户”后直接到受邀邮箱的登录或注册页。", "修复已知问题，优化界面细节。"],
@@ -78772,42 +78810,42 @@ const auReleaseDate = (r) => auDate(r.date).replace(/\u00a0/g, " ");
 const AU_RELEASE_TEXT = `${AU_RELEASES[0].version} · ${auReleaseDate(AU_RELEASES[0])}`;
 // 术语按拼音排列（同音字按词典顺序，字母开头的词排在最后，与 Intl.Collator 的 zh 拼音排序一致），每个词一两句话并写出现的页面，用 1.67 的名称（2026-10-09 用户确认，ABB 对比 BP16）。
 const AU_TERMS = [
-  ["查看人员", "只能查看授权项目资料和状态的角色，可以下载报告和数据表，不能控制设备、确认告警或修改配置。", "机构设置 → 成员、角色与权限"],
-  ["代理节点", "部署 App 在现场通过它连接设备网络的设备，每层 1–2 台常开，交付后保留；在点位面板的“节点类型”中勾选，不与中继同台，没有手机连接时慢速广播。", "项目 → 楼层（“网络”模式与点位面板的“节点类型”）、交付（核对代理）"],
-  ["地址块", "地址分配服务为设备分配的一段 Mesh 地址；更换设备、远程重新绑定或现场绑回时分配新的地址块。", "设备信息 → 高级信息"],
-  ["点位", "楼层图上规划的设备位置，标记设备时生成；绑定后对应一台实际设备，未绑定的点位不占用节点额度。", "项目 → 楼层，设备 → 设备列表"],
-  ["点位名称", "点位的名称，默认按“楼宇-楼层-型号-序号”生成，如“E-7F-LC20-09”，可以改名；平时在页面和现场安装资料中都用它称呼设备。", "项目 → 楼层，设备 → 设备列表，现场安装资料"],
+  ["查看人员", "只能查看授权项目资料和状态的角色，可以下载报告和数据表，不能控制设备、确认告警或修改配置。", "机构设置 › 成员、角色与权限"],
+  ["代理节点", "部署 App 在现场通过它连接设备网络的设备，每层 1–2 台常开，交付后保留；在点位面板的“节点类型”中勾选，不与中继同台，没有手机连接时慢速广播。", "项目 › 楼层（“网络”模式与点位面板的“节点类型”）、交付（核对代理）"],
+  ["地址块", "地址分配服务为设备分配的一段 Mesh 地址；更换设备、远程重新绑定或现场绑回时分配新的地址块。", "设备信息 › 高级信息"],
+  ["点位", "楼层图上规划的设备位置，标记设备时生成；绑定后对应一台实际设备，未绑定的点位不计入设备数量。", "项目 › 楼层，设备 › 设备列表"],
+  ["点位名称", "点位的名称，默认按“楼宇-楼层-型号-序号”生成，如“E-7F-LC20-09”，可以改名；平时在页面和现场安装资料中都用它称呼设备。", "项目 › 楼层，设备 › 设备列表，现场安装资料"],
   // “复位”的两种含义分开写（2026-10-09 用户确认，ABB 对比 71-4）
-  ["复位", "设备复位指在现场把设备恢复出厂，设备离开设备网络，显示为“待绑定（现场恢复出厂）”，可远程重新绑定或用部署 App 绑回原点位。电能表复位指电能表读数归零，能耗图的日用电柱上标“复”，复位前后的读数分开计算，不算作负的用电。", "设备复位：设备 → 设备列表、设备信息；电能表复位：数据分析 → 能源"],
-  ["工作日历", "项目的工作时间与节假日表，定时中的“工作日”“工作时间”按它计算；保存即生效。", "应用设置 → 通用，场景 → 定时"],
-  ["公共区域", "走廊、电梯厅、楼梯间、卫生间、门厅、车库和机房这类功能区，由运营人员管理，不能授权给普通成员。", "项目 → 楼层，机构设置 → 成员"],
-  ["功能区", "楼层中按用途划分的区域，如办公室、实验室或会议室；灯光与空调按功能区控制，普通成员也按功能区授权。", "项目 → 楼层，总览"],
-  ["恢复自动", "结束手动控制，回到按占用与照度的自动控制。开灯、关灯不退出自动控制；调光后进入手动，到“手动后恢复自动”的时长或下一次定时执行时自动恢复，以先到者为准。", "总览 → 照明、功能区面板，场景"],
+  ["复位", "设备复位指在现场把设备恢复出厂，设备离开设备网络，显示为“待绑定（现场恢复出厂）”，可远程重新绑定或用部署 App 绑回原点位。电能表复位指电能表读数归零，能耗图的日用电柱上标“复”，复位前后的读数分开计算，不算作负的用电。", "设备复位：设备 › 设备列表、设备信息；电能表复位：数据分析 › 能源"],
+  ["工作日历", "项目的工作时间与节假日表，定时中的“工作日”“工作时间”按它计算；保存即生效。", "应用设置 › 通用，场景 › 定时"],
+  ["公共区域", "走廊、电梯厅、楼梯间、卫生间、门厅、车库和机房这类功能区，由运营人员管理，不能授权给普通成员。", "项目 › 楼层，机构设置 › 成员"],
+  ["功能区", "楼层中按用途划分的区域，如办公室、实验室或会议室；灯光与空调按功能区控制，普通成员也按功能区授权。", "项目 › 楼层，总览"],
+  ["恢复自动", "结束手动控制，回到按占用与照度的自动控制。开灯、关灯不退出自动控制；调光后进入手动，到“手动后恢复自动”的时长或下一次定时执行时自动恢复，以先到者为准。", "总览 › 照明、功能区面板，场景"],
   ["回执", "设备、网关或部署 App 执行后返回的确认。“已绑定”“已应用”“已生效”都以回执为准，没有回执不算完成。", "总览（控制结果）、设备、配置进度"],
-  ["计量边界", "能耗设置中写明用电统计包括的范围，如“E栋全楼，含空调”；必须填写，能耗分析按它说明统计口径。", "应用设置 → 能源"],
-  ["计入方式", "能耗设置中每个计量点的用法：“计入总量”“仅作分项（已含在总表内）”或“不使用”，避免总表和分表重复计算。", "应用设置 → 能源"],
+  ["计量边界", "能耗设置中写明用电统计包括的范围，如“E栋全楼，含空调”；必须填写，能耗分析按它说明统计口径。", "应用设置 › 能源"],
+  ["计入方式", "能耗设置中每个计量点的用法：“计入总量”“仅作分项（已含在总表内）”或“不使用”，避免总表和分表重复计算。", "应用设置 › 能源"],
   ["空气质量", "室内空气中各项污染物的状态，分别查看 CO₂、PM2.5 等指标及其统计时段；不以综合档名代替单项读数或检测结论。", "总览与数据分析的室内环境"],
   ["空气质量分", "按同台同分钟有效 CO₂ 与 PM2.5 计算的 0–100 辅助评分，越高越好；不替代单项浓度、参考范围或检测结论。", "设备信息、总览与数据分析的室内环境"],
-  ["楼层图", "楼层的平面图，上传后在上面规划功能区、标记设备，总览在上面显示设备状态和告警。", "项目 → 楼层，总览"],
-  ["目标配置", "平台按规划、网络模板和应用设置为每台设备生成的配置，按版本写作“第 N 版”；设备回执确认后才算已应用。", "设备 → 设备列表，设备信息"],
-  ["内部标识", "平台给每个点位的内部编号，改名或更换设备都不变；只在联系技术支持时提供，平时用点位名称。", "设备信息 → 高级信息，现场安装资料"],
-  ["配置来源", "生成设备目标配置所用的网络模板及版本，写作“模板名称 · vN”。", "设备信息 → 高级信息"],
-  ["普通成员", "按功能区授权的角色，只看到“我的区域”，可以控制授权功能区的灯光与空调；没有搜索、导出和告警通知。", "机构设置 → 成员、角色与权限，我的区域"],
-  ["设备网络", "一个网关和它连接的 Mesh 设备组成一个设备网络，服务范围可以跨楼层；网络版本、网络检测和交付都按网络进行。", "设备 → 设备网络"],
-  ["网关", "楼内的边缘网关，连接设备网络和平台；控制、场景和联动由网关在楼内执行。", "设备 → 设备网络，设备信息（网关信息）"],
+  ["楼层图", "楼层的平面图，上传后在上面规划功能区、标记设备，总览在上面显示设备状态和告警。", "项目 › 楼层，总览"],
+  ["目标配置", "平台按规划、网络模板和应用设置为每台设备生成的配置，按版本写作“第 N 版”；设备回执确认后才算已应用。", "设备 › 设备列表，设备信息"],
+  ["内部标识", "平台给每个点位的内部编号，改名或更换设备都不变；只在联系技术支持时提供，平时用点位名称。", "设备信息 › 高级信息，现场安装资料"],
+  ["配置来源", "生成设备目标配置所用的网络模板及版本，写作“模板名称 · vN”。", "设备信息 › 高级信息"],
+  ["普通成员", "按功能区授权的角色，只看到“我的区域”，可以控制授权功能区的灯光与空调；没有搜索、导出和告警通知。", "机构设置 › 成员、角色与权限，我的区域"],
+  ["设备网络", "一个网关和它连接的 Mesh 设备组成一个设备网络，服务范围可以跨楼层；网络版本、网络检测和交付都按网络进行。", "设备 › 设备网络"],
+  ["网关", "楼内的边缘网关，连接设备网络和平台；控制、场景和联动由网关在楼内执行。", "设备 › 设备网络，设备信息（网关信息）"],
   // 2.08 全平台优化 Y3：多联机内机的温控状态
-  ["未达设定 / 已达设定", "多联机内机的温控状态，对应原厂 Thermo ON / OFF：未达设定时内机在供冷或供热，已达设定时暂停供冷或供热。", "总览 → 暖通空调、功能区面板"],
+  ["未达设定 / 已达设定", "多联机内机的温控状态，对应原厂 Thermo ON / OFF：未达设定时内机在供冷或供热，已达设定时暂停供冷或供热。", "总览 › 暖通空调、功能区面板"],
   ["下发", "把已生效的配置或控制经网关发到设备；收到设备回执才算已应用或已生效。", "配置进度，应用设置，总览"],
-  ["序列号", "设备的出厂序列号，现场核对设备和报修时使用；可以用它搜索设备。", "设备信息 → 高级信息，搜索，设备列表"],
-  ["应用设置", "各应用参数唯一的设置处，分通用、照明、暖通空调、室内环境、能源、告警规则六个页签；每个值只在一处设置，在可调范围内修改保存即生效。", "配置 → 应用设置"],
-  ["硬件身份", "绑定时记录的实际设备身份，须有部署 App 回执；更换设备后改为新设备的身份。", "设备信息 → 高级信息"],
+  ["序列号", "设备的出厂序列号，现场核对设备和报修时使用；可以用它搜索设备。", "设备信息 › 高级信息，搜索，设备列表"],
+  ["应用设置", "各应用参数唯一的设置处，分通用、照明、暖通空调、室内环境、能源、告警规则六个页签；每个值只在一处设置，在可调范围内修改保存即生效。", "配置 › 应用设置"],
+  ["硬件身份", "绑定时记录的实际设备身份，须有部署 App 回执；更换设备后改为新设备的身份。", "设备信息 › 高级信息"],
   // 占用（2.08 全平台优化 Y15）：“不是人数”只在这里写一次，页面与 i 中不再重复
-  ["占用", "占用传感器检测到的有人 / 无人状态，用于自动开关灯和空间使用统计；只表示是否有人，不是人数。", "总览 → 照明、功能区面板、数据分析 → 空间使用"],
-  ["照明分区", "同一楼层、同一设备网络中共用占用输入和一个主照度传感器的几台照明控制器，在 LC20 面板中“加入照明分区…”或“移出照明分区”。", "项目 → 楼层（“照明分区”模式）"],
-  ["照明控制参数", "功能区灯光自动运行的参数，如无人后自动关灯、有人亮度、待机亮度与手动后恢复自动；楼层设默认值，功能区可以覆盖。", "总览 → 照明、功能区面板"],
-  ["照明控制器", "一台照明控制器（LC20）所控制的灯具，连同接在它上面的 MS20；接线传感器的占用自动用于这一照明控制器。", "项目 → 楼层（“照明分区”模式）"],
-  ["主照度传感器", "照明分区中用来按照度调光的那台 MS20，图上标 ★；每个照明分区只有一个，其余 MS20 的照度只作诊断。", "项目 → 楼层（“照明分区”模式）"],
-  ["UUID", "设备出厂时的唯一标识（Mesh 设备 UUID），绑定时由部署 App 读取；可以用它搜索设备。", "设备信息 → 高级信息，搜索，设备列表"],
+  ["占用", "占用传感器检测到的有人 / 无人状态，用于自动开关灯和空间使用统计；只表示是否有人，不是人数。", "总览 › 照明、功能区面板、数据分析 › 空间使用"],
+  ["照明分区", "同一楼层、同一设备网络中共用占用输入和一个主照度传感器的几台照明控制器，在 LC20 面板中“加入照明分区…”或“移出照明分区”。", "项目 › 楼层（“照明分区”模式）"],
+  ["照明控制参数", "功能区灯光自动运行的参数，如无人后自动关灯、有人亮度、待机亮度与手动后恢复自动；楼层设默认值，功能区可以覆盖。", "总览 › 照明、功能区面板"],
+  ["照明控制器", "一台照明控制器（LC20）所控制的灯具，连同接在它上面的 MS20；接线传感器的占用自动用于这一照明控制器。", "项目 › 楼层（“照明分区”模式）"],
+  ["主照度传感器", "照明分区中用来按照度调光的那台 MS20，图上标 ★；每个照明分区只有一个，其余 MS20 的照度只作诊断。", "项目 › 楼层（“照明分区”模式）"],
+  ["UUID", "设备出厂时的唯一标识（Mesh 设备 UUID），绑定时由部署 App 读取；可以用它搜索设备。", "设备信息 › 高级信息，搜索，设备列表"],
 ];
 // “更新说明”“术语”与“联系支持”一样替换“帮助”弹窗打开，关闭后焦点回到机构入口。
 // 2.03 账户第 16 条（2026-10-16 用户确认）：只有关闭作用的弹窗（联系我们、隐私政策、服务条款、帮助、更新说明、术语、AI 用量明细）不再有底部“关闭”，
@@ -78865,27 +78903,27 @@ const HELP_UPDATED = "2026-10-27";
 const HELP_ARTICLES = [
   { id: "acct-apply", topic: "account", title: "创建机构", roles: "要创建新机构的人", sum: "填写机构名称、行业和所在地区即可创建，你是机构管理员；规划和配置不需要订阅，绑定设备和使用 AI 前订阅。",
     steps: ["在登录页点“申请访问”，选“创建新机构”，先创建账户，再绑定手机号码。已有账户的，在“尚未加入机构”页选“创建新机构”；已加入其他机构的，在机构菜单点“创建机构”；账户还没有绑定手机号码的先绑定。", "填写机构名称、行业和所在地区，点“创建机构”。机构名称请填写营业执照等登记证书上的完整名称。", "创建后进入新机构的“项目”页，即可创建项目、上传楼层图和规划设备；在“机构设置 › 成员”邀请成员。", "要绑定设备和使用 AI 时，在“机构设置 › 订阅与用量”订阅，见《订阅、续费与付款》。"],
-    faq: [["个人可以创建机构吗？", "可以创建并规划；订阅时须填写机构全称和统一社会信用代码，由平台核对工商登记信息。"], ["机构已经在用了怎么办？", "不要重复创建，在登录页点“申请访问”，选“加入已开通的机构”。"], ["同一个统一社会信用代码能订阅几个机构？", "可以订阅多个，如各园区分开管理，机构之间数据完全隔离。"], ["建错了机构怎么办？", "未订阅的机构可以在“机构信息”最后删除，30 天内可在“我的账户 › 我的机构”恢复。"]], rel: ["acct-join", "acct-sub"] },
-  { id: "acct-join", topic: "account", title: "加入已开通的机构", roles: "所有要加入的人", sum: "用机构的邀请码、邀请链接、二维码或邮件邀请加入，角色由机构管理员确定。",
-    steps: ["在登录页点“申请访问”，选“加入已开通的机构”，先验证电子邮箱。机构管理员按这个邮箱邀请过你时直接加入；没有邀请时填写邀请码，设置密码后提交，打开邀请链接或扫邀请二维码时邀请码已填好。邀请码在工作群里的邀请链接或二维码中，或请已加入的同事发给你。还没有邀请码时点“没有邀请码？”查看做法，或选“创建新机构”。", "已有账户的，登录后打开邀请链接或扫二维码；或在“我的账户 › 我的机构”点“加入机构”，填写邀请码。发给你的邀请列在“我的机构”最上面，点“加入”即加入。", "机构管理员直接邀请：点邀请邮件中的链接，没有账户的设置姓名和密码即可加入，已有账户的登录后直接加入；邀请 7 天内有效。", "申请发出后等待机构管理员批准，7 天内有效，可以撤回；批准后收到邮件，登录即可进入。"],
+    faq: [["个人可以创建机构吗？", "可以创建并规划；订阅时须填写机构全称和统一社会信用代码，由平台核对工商登记信息。"], ["机构已经在用了怎么办？", "不要重复创建，在登录页点“申请访问”，选“加入已有机构”。"], ["同一个统一社会信用代码能订阅几个机构？", "可以订阅多个，如各园区分开管理，机构之间数据完全隔离。"], ["建错了机构怎么办？", "未订阅的机构可以在“机构信息”最后删除，30 天内可在“我的账户 › 我的机构”恢复。"]], rel: ["acct-join", "acct-sub"] },
+  { id: "acct-join", topic: "account", title: "加入已有机构", roles: "所有要加入的人", sum: "用机构的邀请码、邀请链接、二维码或邮件邀请加入，角色由机构管理员确定。",
+    steps: ["在登录页点“申请访问”，选“加入已有机构”，先验证电子邮箱。机构管理员按这个邮箱邀请过你时直接加入；没有邀请时填写邀请码，设置密码后提交，打开邀请链接或扫邀请二维码时邀请码已填好。邀请码在工作群里的邀请链接或二维码中，或请已加入的同事发给你。还没有邀请码时点“没有邀请码？”查看做法，或选“创建新机构”。", "已有账户的，登录后打开邀请链接或扫二维码；或在“我的账户 › 我的机构”点“加入机构”，填写邀请码。发给你的邀请列在“我的机构”最上面，点“加入”即加入。", "机构管理员直接邀请：点邀请邮件中的链接，没有账户的设置姓名和密码即可加入，已有账户的登录后直接加入；邀请 7 天内有效。", "申请发出后等待机构管理员批准，7 天内有效，可以撤回；批准后收到邮件，登录即可进入。"],
     faq: [["换了工作怎么办？", "离职前在“我的账户 › 账户”把登录邮箱换成你能长期使用的邮箱，原机构的邮箱停用后就收不到验证码。原机构的机构管理员会将你移出，你用同一个账户加入新的机构。"], ["同事能共用一个账户吗？", "不能。每人用自己的电子邮箱注册，角色、授权和操作记录都按账户区分。"], ["申请未获批准或过期了怎么办？", "你会收到邮件或短信，登录后“尚未加入机构”页顶部有提示。过期的可以点“重新申请”；未获批准的请向该机构的同事确认后重新申请。"]], rel: ["login", "acct-admin"] },
   { id: "login", topic: "account", title: "登录与验证", roles: "所有角色", sum: "登录方式、保持登录、输错暂停和定期验证的规则。",
-    steps: ["账户是电子邮箱；手机号码绑定并验证后也可以登录。", "提示账户或密码不正确时，核对后重试，或点“忘记密码？”用验证码重置。", "多次输错后会暂停登录一段时间，期间登录按钮不可用；连续输错过多，只能重置密码后再登录。", "机构管理员在新设备或新浏览器上登录，须验证手机号码；没有绑定手机号码的，登录时先绑定。", "勾选“保持登录”后，关闭浏览器也不会退出，最长 30 天；修改或重置密码后需要重新登录。", "登录时会定期要求输入发到电子邮箱的验证码，确认邮箱仍可使用；没有电子邮箱的账户输入发到手机号码的验证码。", "能登录但看不到机构：显示“尚未加入机构”时，按《加入已开通的机构》申请；原来的机构不在列表中，表示你已被移出该机构。"],
+    steps: ["账户是电子邮箱；手机号码绑定并验证后也可以登录。", "提示账户或密码不正确时，核对后重试，或点“忘记密码？”用验证码重置。", "多次输错后会暂停登录一段时间，期间登录按钮不可用；连续输错过多，只能重置密码后再登录。", "机构管理员在新设备或新浏览器上登录，须验证手机号码；没有绑定手机号码的，登录时先绑定。", "勾选“保持登录”后，关闭浏览器也不会退出，最长 30 天；修改或重置密码后需要重新登录。", "登录时会定期要求输入发到电子邮箱的验证码，确认邮箱仍可使用；没有电子邮箱的账户输入发到手机号码的验证码。", "能登录但看不到机构：显示“尚未加入机构”时，按《加入已有机构》申请；原来的机构不在列表中，表示你已被移出该机构。"],
     faq: [["电子邮箱已不能使用怎么办？", "用已绑定的手机号码登录或重置密码，再在“我的账户 › 账户”更换电子邮箱；都不能使用时联系 PACOM 支持核验身份。"], ["看不到某个项目怎么办？", "请联系本机构的机构管理员修改你的项目授权范围，修改后立即生效。"]], rel: ["acct-mail", "acct-profile"] },
   { id: "acct-mail", topic: "account", title: "收不到邮件或短信", roles: "所有角色", sum: "验证码、邀请和通知邮件收不到时，先查垃圾邮件，再放行发件地址。",
     steps: ["查看垃圾邮件、广告邮件和隔离区。", "把发件地址 noreply@pacom.cn 加入联系人；工作邮箱请 IT 管理员放行 pacom.cn 域名。", "短信：核对手机号码，查看短信是否被拦截。", "稍后重新发送；仍收不到时联系 PACOM 支持。"],
     faq: [["验证码过期了怎么办？", "验证码 10 分钟内有效，过期后重新发送。"], ["通知邮件能关闭吗？", "告警通知可以在“我的账户 › 通知偏好”中关闭部分渠道；订阅到期与用量提醒不能关闭。"]], rel: ["login"] },
   { id: "acct-profile", topic: "account", title: "个人资料与登录方式", roles: "所有角色", sum: "在“我的账户 › 账户”修改姓名、电子邮箱、手机号码和密码。",
-    steps: ["打开侧栏左下角的机构入口，点姓名一行进入我的账户。", "更换电子邮箱或手机号码须输入当前密码，并填写发到新地址的验证码。", "修改密码后，其他设备上的登录会退出。", "在“登录设备”中可以让其他设备退出，手机丢失时使用。", "属于多个机构时，点侧栏左下角的机构入口切换。"],
+    steps: ["打开侧栏左下角的机构入口，点姓名一行进入我的账户。", "更换电子邮箱或手机号码须输入当前密码，并填写发到新电子邮箱或新号码的验证码。", "修改密码后，其他设备上的登录会退出。", "在“登录设备”中可以让其他设备退出，手机丢失时使用。", "属于多个机构时，点侧栏左下角的机构入口切换。"],
     faq: [["怎样注销账户？", "在“账户”最后的“注销账户”；你是某个机构唯一的机构管理员时，须先把另一位成员设为机构管理员。"]], rel: ["login", "security"] },
   { id: "acct-admin", topic: "account", title: "机构管理员与联系人", roles: "机构管理员", sum: "机构管理员管理成员、邀请码、机构信息和订阅，所有机构管理员权限相同。",
     steps: ["在“机构设置 › 成员 › 邀请码”复制邀请链接或下载二维码，发到工作群里；成员也可以在“我的账户 › 我的机构”点“邀请同事”转发。申请在“待批准”中处理，批准时选择角色和授权范围，可多选一起批准。邀请码外传时点“重置”。", "设新的机构管理员：在“成员”点该成员的角色，选“机构管理员”。", "每个机构至少一位机构管理员；唯一的机构管理员退出本机构时，先选一位成员设为机构管理员。", "“机构信息”的联系邮箱接收订阅到期、付款到账和数据删除的邮件，可以填本机构的公共邮箱。", "机构管理员都已离职或联系不上时，由本机构出具加盖公章的书面申请，联系 PACOM 支持；PACOM 核验后指定新的机构管理员，并写入本机构的审计日志。"],
-    faq: [["机构改名怎么办？", "机构名称可在“机构信息”中直接修改；单位更名时在“资质”点机构全称旁的“变更”，核验后生效。统一社会信用代码变了的，请联系 PACOM。"]], rel: ["acct-remove", "acct-sub"] },
+    faq: [["机构改名怎么办？", "机构名称可在“机构信息”中直接修改；单位更名时在“资质”点机构全称旁的“变更”，核验后生效。统一社会信用代码变更的，请联系 PACOM。"]], rel: ["acct-remove", "acct-sub"] },
   { id: "acct-remove", topic: "account", title: "移除成员与退出机构", roles: "机构管理员，退出适用所有角色", sum: "移除后该成员立即不能访问本机构，账户和在其他机构的成员资格不受影响。",
     steps: ["在“机构设置 › 成员”点该成员行尾的“…”，选“移除成员”。", "该成员建的场景和定时照常运行；其负责的工单和以其为责任对象的告警规则改为“未指定”。", "退出本机构：在“我的账户 › 我的机构”点“退出机构”；你是唯一的机构管理员时，先选一位成员设为机构管理员。", "需要再次加入时，重新邀请或重新申请。"],
     faq: [], rel: ["acct-admin"] },
   { id: "acct-sub", topic: "account", title: "订阅、续费与付款", roles: "机构管理员", sum: "在“订阅与用量”订阅和续费，在“订单与发票”付款和下载单据。",
-    steps: ["在“机构设置 › 订阅与用量”点“订阅”，按四步填写：选择方案（设备数量和订阅期限）、机构资质（机构全称和统一社会信用代码，平台当场核对工商登记信息）、开票信息、确认并提交。", "提交后进入订单详情，14 天内付款，到账即生效。付款方式为微信支付、支付宝或对公转账（汇入本机构专属汇款账号）；到账后自动确认，以邮件告知。收款账户以平台和电子合同为准，PACOM 不会通过邮件、短信或电话通知更改。", "提交订单即可下载 PACOM 已盖章的电子合同；需要双方盖章的，在订单详情点“在线签署”或“申请纸质合同”。", "续费和增加设备数量在“订阅与用量”办理；资质和开票信息已有的，选好方案后直接确认。", "到期前 60 天向联系邮箱和机构管理员发送提醒；到期次日起暂停使用，续费付款到账后自动恢复。", "设备按已接入计，规划点位不占用；用量达到 80% 时以邮件提醒机构管理员，达到额度后不能再绑定或接入新设备，已有设备照常运行。", "AI 每月额度为 1,000 万词元加每台设备 2.5 万词元，每月 1 日 0:00 重置；用完后可购买用量包。", "在订单详情或“订单与发票”下载报价单、电子合同和发票；发票为数电发票，付款到账后开票，同时发到收票邮箱。"],
+    steps: ["在“机构设置 › 订阅与用量”点“订阅”，按四步填写：选择方案（设备数量和订阅期限）、机构资质（机构全称和统一社会信用代码，平台当场核对工商登记信息）、开票信息、确认并提交。", "提交后进入订单详情，14 天内付款，到账即生效。付款方式为微信支付、支付宝或对公转账（汇入本机构专属汇款账号）；到账后自动确认，以邮件告知。收款账户以平台和电子合同为准，PACOM 不会通过邮件、短信或电话通知更改。", "提交订单即可下载 PACOM 已盖章的电子合同；需要双方盖章的，在订单详情点“在线签署”或“申请纸质合同”。", "续费和增加设备数量在“订阅与用量”办理；资质和开票信息已有的，选好方案后直接确认。", "到期前 60 天向联系邮箱和机构管理员发送提醒；到期次日起暂停使用，续费后自动恢复。", "已绑定或接入的设备计入，规划点位不计入；已绑定或接入的设备达到设备数量的 80% 时以邮件提醒机构管理员，达到设备数量后不能再绑定或接入新设备，已有设备照常运行。", "AI 每月额度为 1,000 万词元，另按设备数量每台加 2.5 万词元，每月 1 日 0:00 重置；用完后可购买用量包。", "在订单详情或“订单与发票”下载报价单、电子合同和发票；发票为数电发票，付款到账后开票，同时发到收票邮箱。"],
     faq: [["到期后多久删除数据？", "到期满 90 天仍未续费，合同终止，删除本机构全部数据；删除前 60 天、30 天、7 天再次提醒。"], ["采购需要 PACOM 的营业执照等供应商资料怎么办？", "请联系 PACOM 支持。"], ["价格会调整吗？", "调整前至少 30 天以邮件通知，已提交的订单按原价。"]], rel: ["acct-apply", "acct-admin"] },
   { id: "control", topic: "ops", title: "控制照明与空调", roles: "运营人员及以上；普通成员只控制授权的功能区", sum: "单个功能区与单台设备点按即下发，回执显示在原位并写入操作记录。",
     steps: ["在总览选到楼层，点功能区打开面板。", "在面板中开关灯、调光，或设定空调的运行模式、温度与风速。", "整层或多个功能区：在楼层图上点选、框选或圈选，用底部控制条下发，下发前确认。", "手动控制后到设定的时长恢复自动，也可在面板点“恢复自动”。"],
@@ -79152,7 +79190,7 @@ Object.assign(actions, {
   auRebindAsk: () => {
     const r = AUX.rebind;
     if (!r) return;
-    auAskConfirm("改绑手机号码", "改绑后，原账户不能再用此号码登录和接收验证码，并会收到邮件通知。原账户是你的，可取消并用此号码登录。", "改绑", () => {
+    auAskConfirm("改绑手机号码", "改绑后，原账户不能再用此号码登录和接收验证码，原账户会收到邮件通知。如果原账户是你的，请取消并用此号码登录。", "改绑", () => {
       const p = AUTH.people[r.holder];
       if (!p) return;
       p.phone = "";
@@ -79306,16 +79344,17 @@ Object.assign(actions, {
     closePop();
     auDialog(
       "创建机构",
-      `<p class="au-dlead">要管理的是本机构的另一处园区或楼宇吗？</p><div class="au-choice au-neworg">${
+      `<p class="au-dlead">要管理的是当前机构的另一处园区或楼宇吗？</p><div class="au-choice au-neworg">${
+        // 2.52 账户第 503–508 条：卡片间距 16，右侧为“›”折角，图标对齐标题，“当前机构”“新机构”不拆开，不设只能关闭的“取消”
         // 不能创建项目的角色第一项不可用，并写明原因（2.07 第 87 条）
         canCreateProject()
-          ? `<button class="au-choice-i" data-act="auNewOrgProject">${ico("building-2")}<span><b>是，在当前机构中创建项目</b><small>同一机构内的多个项目共用成员、订阅和报告。</small></span>${ico("au-arrow", "ic16")}</button>`
+          ? `<button class="au-choice-i" data-act="auNewOrgProject">${ico("building-2")}<span><b>是，在当前机构中创建项目</b><small>同一机构内的多个项目共用成员、订阅和报告。</small></span>${ico("chevron", "ic16 au-neworg-chevron")}</button>`
           : `<button class="au-choice-i" aria-disabled="true" aria-describedby="auNewOrgWhy">${ico("building-2")}<span><b>是，在当前机构中创建项目</b><small>同一机构内的多个项目共用成员、订阅和报告。</small><small class="au-why" id="auNewOrgWhy">只有机构管理员和授权全部项目的配置人员可以创建项目</small></span></button>`
-      }<button class="au-choice-i" data-act="auGo" data-page="apply" data-mode="new-org">${ico("au-bldg")}<span><b>否，创建另一个机构</b><small>数据与当前机构完全隔离，不继承项目或管理员权限；新机构另行订阅。</small></span>${ico("au-arrow", "ic16")}</button></div>`,
-      btn("取消", "close"),
+      }<button class="au-choice-i" data-act="auGo" data-page="apply" data-mode="new-org">${ico("au-bldg")}<span><b>否，创建另一个机构</b><small>数据与<span class="nw">当前机构</span>完全隔离，不继承项目或管理员权限；<span class="nw">新机构</span>另行订阅。</small></span>${ico("chevron", "ic16 au-neworg-chevron")}</button></div>`,
+      "",
       // 用机构菜单其他弹窗的工作区外框（512 宽，“取消”为 32 高胶囊）；浏览器后退、前进或改地址时仍立即关闭（AUTH02、9 6）
       // （Lovable 核查第 147 条，2026-10-11 用户确认：原为 600 宽的账户弹窗外框）
-      "nodirty au-route-close",
+      "nodirty au-route-close au-neworg-dlg",
     );
   },
   auNewOrgProject: () => {
@@ -79410,7 +79449,7 @@ Object.assign(actions, {
   auOrgSave: () => {
     if (!auOrgFormCanManage()) {
       auOrgFormDiscard();
-      return msg("机构管理权限已变更，请重新进入。", "error");
+      return msg("你已不是本机构的机构管理员，修改未保存。", "error");
     }
     // 联系邮箱必填，接收服务通知和许可到期提醒；联系电话选填（2026-10-09 用户确认，ABB 对比 BP24）。几处同时有误时各自提示，焦点在第一处
     const n = value("auOrgName").trim(),
@@ -79476,7 +79515,7 @@ Object.assign(actions, {
     const l = auLic();
     auDialog(
       "变更机构全称",
-      `<div class="au-form">${fld("新的机构全称", "auOrgFull", input("auOrgFull", ""), "请填写营业执照等登记证书上的完整名称。")}${fld("统一社会信用代码", "auOrgUscc", `<div class="au-ro num">${esc(l.uscc)}</div>`, "代码变了的，请联系 PACOM")}</div>`,
+      `<div class="au-form">${fld("新的机构全称", "auOrgFull", input("auOrgFull", ""), "请填写营业执照等登记证书上的完整名称。")}${fld("统一社会信用代码", "auOrgUscc", `<div class="au-ro num">${esc(l.uscc)}</div>`, "统一社会信用代码变更的，请联系 PACOM。")}</div>`,
       btn("取消", "close") + btn("核验并变更", "auOrgFullSave", {}, "primary"),
     );
   },
@@ -79660,7 +79699,7 @@ Object.assign(actions, {
     if (!list.length || !auCanManage()) return;
     auDialog(
       `移除 ${list.length} 位成员？`,
-      `<p class="au-dlead">所选成员将立即失去<b>${zhSub(esc(auOrg().name))}</b>的全部项目和数据。个人账户及其在其他机构的成员资格不受影响，操作记录保留在审计日志中。他们建的场景和定时照常运行；负责的工单和以其为责任对象的告警规则改为“未指定”。</p>`,
+      `<p class="au-dlead">所选成员将立即无法访问<b>${zhSub(esc(auOrg().name))}</b>的全部项目和数据。个人账户及其在其他机构的成员资格不受影响，操作记录保留在审计日志中。他们建的场景和定时照常运行；负责的工单和以其为责任对象的告警规则改为“未指定”。</p>`,
       btn("取消", "close") + btn("移除成员", "auMemRemoveSelDo", {}, "danger"),
       "au-alert",
     );
@@ -79855,7 +79894,7 @@ Object.assign(actions, {
     auDialog(
       // 标题写受邀人（只有邮箱时写邮箱），说明只留两句（2.07 Account 核查第 70 条；机构管理员看完整邮箱，第 64 条）
       `撤销给${zhSub(i.name || i.account)}的邀请？`,
-      `<p class="au-dlead">邀请链接将立即失效。之后如需加入，可以重新邀请。</p>`,
+      `<p class="au-dlead">邀请链接将立即失效。如对方仍需加入，可重新邀请。</p>`,
       btn("取消", "close") + btn("撤销邀请", "auInvRevokeDo", { id: a.id }, "danger"),
       "au-alert",
     );
@@ -79971,7 +80010,7 @@ Object.assign(actions, {
     // 在“我的机构”退出非当前机构时标题写机构名称（ACCOUNT04，Account B4）；移除成员时写明其场景、工单与告警规则的去向（规则 7）
     auDialog(
       me ? (a.other ? `退出${zhSub(auOrg().name, "l")}？` : "退出本机构？") : `移除${zhSub(m.name, "l")}？`,
-      `<p class="au-dlead">${me ? "退出后你将无法访问" : `${zhSub(esc(m.name), "r")}将立即失去`}<b>${zhSub(esc(auOrg().name))}</b>的全部项目和数据。个人账户${me ? "" : "及其在其他机构的成员资格"}不受影响，操作记录保留在审计日志中。${me ? "" : "该成员建的场景和定时照常运行；其负责的工单和以其为责任对象的告警规则改为“未指定”。"}</p>`,
+      `<p class="au-dlead">${me ? "退出后你将无法访问" : `${zhSub(esc(m.name), "r")}将立即无法访问`}<b>${zhSub(esc(auOrg().name))}</b>的全部项目和数据。个人账户${me ? "" : "及其在其他机构的成员资格"}不受影响，操作记录保留在审计日志中。${me ? "" : "该成员建的场景和定时照常运行；其负责的工单和以其为责任对象的告警规则改为“未指定”。"}</p>`,
       btn("取消", "close") + btn(me ? "退出机构" : "移除成员", "auMemRemoveDo", { uid: m.uid }, "danger"),
       "au-alert",
     );
@@ -79999,7 +80038,7 @@ Object.assign(actions, {
       // 全量导出的内容（2026-10-09 用户确认，商业许可方案“照方案补上”）
       full: `${note("包含项目、楼宇、楼层、功能区、设备及其关系、配置及版本、运行数据及质量标记、告警、报告、图纸和附件，附数据字典和文件清单；不含其他机构的数据、密码和密钥。文件较大，生成后分卷发送。")}${pwd}`,
       // 影响预览与再次验证身份（ORG08，03 第 3 条）
-      pii: `${fld("涉及的成员", "auReqWho", `<textarea id="auReqWho" class="input" rows="2" placeholder="已移除成员的姓名或账户，每行一位"></textarea>`, "只能删除已移除成员的个人信息；在职成员请先移除。")}<div class="au-preview" id="auReqWhoPrev" aria-live="polite"></div>${pwd}`,
+      pii: `${fld("涉及的成员", "auReqWho", `<textarea id="auReqWho" class="input" rows="2" placeholder="已移除成员的姓名或账户，每行一位"></textarea>`, "只能删除已移除成员的个人信息；仍在本机构的成员请先移除。")}<div class="au-preview" id="auReqWhoPrev" aria-live="polite"></div>${pwd}`,
       // 网关的说法与申请列表一致；确认输入框不放占位文字（Account B7、A15）
       close: `<div class="au-warnbox">${ico("alert", "ic16")}<span>批准后本机构进入 30 天导出窗口，成员不能再修改配置；窗口结束后删除全部数据，不可恢复。网关不再向平台上报，现场按最后下发的配置继续运行。未用的 AI 用量包按未用比例退款，尚未开始的服务年度可退，经 PACOM 支持办理。</span></div>${fld(`输入机构名称“${auOrg().name}”以确认`, "auReqName", input("auReqName", ""))}${pwd}`,
     }[a.kind];
@@ -80147,7 +80186,7 @@ Object.assign(actions, {
     AUX.dlgCode = {}; AUX.dlgSending = {}; AUX.dlgSendLimits = {};
     auDialog(
       bind ? "绑定手机号码" : phone ? "更换手机号码" : "更换电子邮箱",
-      `<p class="au-dlead">${bind ? "验证后，可使用此号码和账户密码登录，也可以通过短信验证码重置密码。" : phone ? "验证后，可使用新号码和账户密码登录，也可以通过短信验证码重置密码；原号码不再用于登录和重置密码。" : "验证后，新电子邮箱用于登录、接收邀请和重置邮件；原邮箱不再可用。"}</p>${fld("当前密码", "auCurPwd", auInAttrs(input("auCurPwd", "", "", "password"), AU_CUR_PWD), "用于确认是你本人操作")}${fld(
+      `<p class="au-dlead">${bind ? "验证后，可使用此号码和账户密码登录，也可以通过短信验证码重置密码。" : phone ? "验证后，可使用新号码和账户密码登录，也可以通过短信验证码重置密码；原号码不再用于登录和重置密码。" : "验证后，新电子邮箱用于登录、接收邀请和重置密码邮件；原电子邮箱不再用于登录和接收邮件。"}</p>${fld("当前密码", "auCurPwd", auInAttrs(input("auCurPwd", "", "", "password"), AU_CUR_PWD), "用于确认是你本人操作")}${fld(
         bind ? "手机号码" : phone ? "新手机号码" : "新电子邮箱",
         "auNewId",
         // 手机号码按电话号码类型：手机上弹出数字键盘、可自动填入本机号码，外观不变（全面设计核查第 71 条，2026-10-12 用户确认：原为普通文本框）
@@ -80208,7 +80247,7 @@ Object.assign(actions, {
   auChangePwd: () =>
     auDialog(
       "修改密码",
-      `${fld("当前密码", "auPwd0", auInAttrs(input("auPwd0", "", "", "password"), AU_CUR_PWD))}<div class="field"><div class="au-label-row au-info-host"><label for="auPwd1">新密码</label>${auFieldInfo("auPwd1", "新密码", PACOM_PASSWORD_POLICY.hint)}</div>${auInAttrs(input("auPwd1", "", "", "password"), AU_NEW_PWD).replace("<input ", '<input aria-describedby="auPwd1-req au-auPwd1-info" ')}${auPwdReq("auPwd1")}</div>${note("保存后，其他设备上的登录会退出；当前会话保留。")}`,
+      `${fld("当前密码", "auPwd0", auInAttrs(input("auPwd0", "", "", "password"), AU_CUR_PWD))}<div class="field"><div class="au-label-row au-info-host"><label for="auPwd1">新密码</label>${auFieldInfo("auPwd1", "新密码", PACOM_PASSWORD_POLICY.hint)}</div>${auInAttrs(input("auPwd1", "", "", "password"), AU_NEW_PWD).replace("<input ", '<input aria-describedby="auPwd1-req au-auPwd1-info" ')}${auPwdReq("auPwd1")}</div>${note("保存后，其他设备上的登录会退出；本设备保持登录。")}`,
       btn("取消", "close") + btn("保存新密码", "auChangePwdSave", {}, "primary"),
     ),
   auChangePwdSave: () => {
@@ -80537,7 +80576,7 @@ function auZoneField(p, picked = [], show = false) {
           .join("")}</div>`,
     )
     .join("");
-  return `<div class="field" id="${p}ZoneField" ${show ? "" : "hidden"}><label id="${p}ZoneLabel">功能区授权</label><div class="au-zonetree" id="${p}Zones" role="group" aria-labelledby="${p}ZoneLabel">${body || `<p class="muted">还没有划分功能区。</p>`}</div><small class="muted">勾选楼层或楼宇即勾上其中现有的功能区，可再去掉个别；以后新建的功能区不自动包含。</small></div>`;
+  return `<div class="field" id="${p}ZoneField" ${show ? "" : "hidden"}><label id="${p}ZoneLabel">功能区授权</label><div class="au-zonetree" id="${p}Zones" role="group" aria-labelledby="${p}ZoneLabel">${body || `<p class="muted">还没有划分功能区。</p>`}</div><small class="muted">勾选楼宇或楼层会选中其中现有的全部功能区，可再取消个别功能区；以后新建的功能区不会自动加入授权。</small></div>`;
 }
 // 楼层与楼宇的勾选随其中功能区更新：全部勾选为勾选，部分勾选为半选
 function auZoneSync(p) {
@@ -80634,7 +80673,7 @@ function auInviteDialog() {
   if (!auCanManage()) return;
   auDialog(
     "邀请成员",
-    `<div class="field"><div class="au-label-row au-info-host"><label for="auInvAcct">电子邮箱或手机号码</label>${auFieldInfo("invAcct", "电子邮箱或手机号码", "每行一个，可混填。电子邮箱收到邀请邮件，手机号码收到邀请短信。")}</div><textarea id="auInvAcct" class="input au-multi" rows="1" placeholder="name@example.com" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="au-invAcct-info"></textarea></div>${fld("角色", "auInvRole", auRoleSelect("auInvRole", AU_ROLE_OPTS, "", "角色"), `<span id="invRoleHint"></span><a class="au-link au-roles-link" href="#org?tab=roles" target="_blank" rel="noopener">查看角色与权限</a>`)}<div class="field" id="invScopeField"><label>项目授权范围</label>${auScopeCtl("inv", [])}<small class="muted" id="invScopeNote"></small></div>${auZoneField("inv")}${note("邀请 7 天内有效。")}`,
+    `<div class="field"><div class="au-label-row au-info-host"><label for="auInvAcct">电子邮箱或手机号码</label>${auFieldInfo("invAcct", "电子邮箱或手机号码", "每行填一个。电子邮箱收到邀请邮件，手机号码收到邀请短信。")}</div><textarea id="auInvAcct" class="input au-multi" rows="1" placeholder="name@example.com" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="au-invAcct-info"></textarea></div>${fld("角色", "auInvRole", auRoleSelect("auInvRole", AU_ROLE_OPTS, "", "角色"), `<span id="invRoleHint"></span><a class="au-link au-roles-link" href="#org?tab=roles" target="_blank" rel="noopener">查看角色与权限</a>`)}<div class="field" id="invScopeField"><label>项目授权范围</label>${auScopeCtl("inv", [])}<small class="muted" id="invScopeNote"></small></div>${auZoneField("inv")}${note("邀请 7 天内有效。")}`,
     btn("取消", "close") + btn(ico("au-send", "ic16") + "发送邀请", "auInviteSend", {}, "primary"),
     "wide-form",
   );
@@ -80754,13 +80793,13 @@ function auMemFilter() {
 const AU_REQ_KINDS = {
   run: ["运行数据导出", "能耗、环境与告警记录（CSV），可按项目和时间段选择"],
   full: ["全量数据导出", "空间资料、楼层图、设备列表、配置版本、运行数据与审计日志"],
-  pii: ["离职成员个人信息删除", "删除已移除成员的手机号与邮箱；审计记录保留操作事实并去标识"],
+  pii: ["已移除成员的个人信息删除", "删除已移除成员的手机号码和电子邮箱；审计日志保留操作记录，不再显示其姓名。"],
   close: ["注销机构并删除数据", "合同终止后执行；网关不再向平台上报，现场按最后下发的配置继续运行；全部数据在导出窗口结束后删除，不可恢复"],
 };
 // 各申请的可撤回阶段与完成后行为（ORG08，03 第 4 条），写在申请弹窗底部。
 // 两类导出为自助，没有审核和撤回（2.07 第 79 条）；注销机构的弹窗不另写注文（第 80 条）
 const AU_REQ_AFTER = {
-  pii: "PACOM 审核中可在“申请记录”中撤回，批准后不能撤回。完成后这些成员的手机号与邮箱即被删除，不可恢复；审计记录保留操作事实并去标识。",
+  pii: "PACOM 审核中可在“申请记录”中撤回，批准后不能撤回。完成后这些成员的手机号码和电子邮箱即被删除，不可恢复；审计日志保留操作记录，不再显示其姓名。",
 };
 const auReqSelf = (k) => k === "run" || k === "full";
 // 离职成员个人信息删除的影响预览（ORG08，03 第 3 条）：逐行写出是否为已离开本机构的成员（按审计日志中的移除与退出记录）及将删除的内容；
@@ -80782,7 +80821,7 @@ function auPiiPreview(text) {
     r.state === "member"
       ? `<li class="bad"><b>${esc(r.n)}</b>：仍是本机构成员，请先移除。</li>`
       : r.state === "removed"
-        ? `<li><b>${esc(r.n)}</b>：于 ${auFmtY(r.at)} 离开本机构。将删除其手机号与邮箱，审计记录保留操作事实并去标识。</li>`
+        ? `<li><b>${esc(r.n)}</b>：于 ${auFmtY(r.at)} 离开本机构。将删除其手机号码和电子邮箱；审计日志保留操作记录，不再显示其姓名。</li>`
         : `<li><b>${esc(r.n)}</b>：审计日志中没有此人离开本机构的记录，由 PACOM 审核时核对。</li>`;
   return `<b class="au-preview-h">删除影响</b><ul>${rows.map(line).join("")}</ul>`;
 }
@@ -80798,12 +80837,12 @@ const AU_REQ_ST = {
   rejected: ["未通过", ""],
 };
 // 订阅的到期规则原文，收进“有效期”旁的 ⓘ，所有角色都能点开（2.07 第 75 条）
-const AU_LIC_RULES = "到期前 60 天向联系邮箱和机构管理员发送提醒。到期次日 0:00 起由许可服务自动暂停本机构，续费付款到账后自动恢复；到期前续的接着原到期日，到期后才续的从恢复之日起算。到期后运行数据照常保存；到期满 90 天仍未续费，合同终止，删除本机构全部数据，删除前 60 天、30 天、7 天再次提醒。";
+const AU_LIC_RULES = "到期前 60 天向联系邮箱和机构管理员发送提醒。到期次日 0:00 起自动暂停本机构，续费后自动恢复；到期前续的接着原到期日，到期后才续的从恢复之日起算。暂停期间平台仍接收并保存现场数据；到期满 90 天仍未续费，合同终止，删除本机构全部数据，删除前 60 天、30 天、7 天再次提醒。";
 // “数据导出与删除”中的“数据保存”（2026-10-09 用户确认，ABB 对比 BP4）：逐类写保存期限，由许可服务按合同提供，合同另有约定的以合同为准；
 // 机构设置的审计日志、数据导出与删除和“已删除”都引用这一处。期限为有效期内的；到期满 90 天仍未续费的按订阅的规定删除全部数据。
 const AU_RETENTION = [
-  ["能耗数据", "15 分钟数据保存 5 年，汇总数据保存至合同终止"],
-  ["室内环境数据", "15 分钟数据保存 5 年，汇总数据保存至合同终止"],
+  ["能耗数据", "15 分钟间隔数据保存 5 年，汇总数据保存至合同终止"],
+  ["室内环境数据", "15 分钟间隔数据保存 5 年，汇总数据保存至合同终止"],
   ["告警与通知记录", "5 年"],
   ["场景与控制的操作记录", "5 年"],
   ["AI 对话", "12 个月"],
@@ -80814,10 +80853,10 @@ const AU_RETENTION = [
 const auRetentionSec = () =>
   auSec(
     "数据保存",
-    "以下期限由许可服务按合同提供；合同另有约定的，以合同为准。",
+    "以下为订阅有效期内的保存期限；合同另有约定的，以合同为准。",
     "",
     // 删去与“订阅”注文重复的“到期满 90 天仍未续费的，合同终止，删除本机构全部数据。”（全面设计核查第 69 条，2026-10-12 用户确认）
-    `${auRows(AU_RETENTION.map(([k, v]) => [`<span class="au-nowrap">${k}</span>`, v]))}${note("以上为有效期内的期限。")}`,
+    `${auRows(AU_RETENTION.map(([k, v]) => [`<span class="au-nowrap">${k}</span>`, v]))}`,
   );
 const AU_ORG_PAGES = {
   data: () => {
@@ -80840,7 +80879,7 @@ const AU_ORG_PAGES = {
     // 2.37 账户第 330 条：“数据保存”从订阅与用量移到本页最后（2026-10-09 用户确认，ABB 对比 BP4）；申请记录只给机构管理员（BP30）
     return `${auSec(
       "申请导出或删除",
-      "机构数据归属于本机构。导出由数据服务生成，删除由 PACOM 审核后执行，都写入审计日志。",
+      "机构数据归属于本机构。导出文件由平台生成，删除由 PACOM 审核后执行，都写入审计日志。",
       "",
       `${edit ? "" : auReadonlyNote("提交数据导出与删除申请和查看申请记录")}<div class="au-box">${kinds}</div>`,
       // 一页只放一条只读提示，在第一个分节说明下面；“申请记录”只给机构管理员，其他角色不显示这一节（全面设计核查第 61 条，2026-10-12 用户确认：
@@ -80896,7 +80935,7 @@ const AU_ORG_PAGES = {
     const full = o.fullName || (l.uscc ? o.name : ""), later = `<span class="muted">订阅时填写</span>`;
     const qual = auSec(
       "资质",
-      "机构全称是合同和发票的主体。",
+      "合同和发票使用机构全称。",
       "",
       auRows([
         ["机构全称", full ? esc(full) : later, admin && full && l.uscc ? btn("变更", "auOrgFullEdit", {}, "sm ghost") : ""],
@@ -81096,13 +81135,13 @@ const AU_ORG_PAGES = {
       `<div class="au-row"><div class="au-row-l">${title}<small>${sub}</small></div><div class="au-row-a">${auSwitch("auChannel", n.channels[c], { ch: c }, !edit, title)}</div></div>`;
     return `${auSec(
       "通知渠道",
-      "机构统一的告警通知去向。个人可在“我的账户 → 通知偏好”关闭部分渠道，不影响告警本身。",
+      "设置本机构告警通知使用的渠道。成员可在“我的账户 › 通知偏好”关闭部分渠道，不影响告警本身。",
       "",
       `${edit ? "" : auReadonlyNote("修改通知设置")}<div class="au-box">${chRow("sms", "短信", "发送到接收人已验证的手机号码")}${chRow("mail", "邮件", "发送到接收人的登录电子邮箱")}</div>`,
     )}${auSec(
       // 分节名与恢复时的通知（2026-10-09 用户确认，ABB 对比 BP99、BP101）
       // 升级再通知、30 分钟催办、10 分钟合并、查看人员与部署期的规则收进标题旁的 ⓘ，表下只留一句（2.07 第 72 条）
-      `按事件通知${auFieldInfo("notifyRules", "按事件通知", "查看人员不收告警短信，告警邮件由本人在通知偏好中选择。告警升到更高级别时按新级别再通知一次。紧急告警发生 30 分钟后仍未确认也未恢复，再给项目授权范围内的机构管理员发一次短信，不受免打扰限制。每个项目每 10 分钟最多发一条告警通知，其间的新告警合成一条；紧急告警立即发出。部署期尚未交付的设备网络，其告警只进入配置进度的待办，不发送通知。")}`,
+      `按事件通知${auFieldInfo("notifyRules", "按事件通知", "告警升到更高级别时按新级别再通知一次。紧急告警发生 30 分钟后仍未确认也未恢复，再给项目授权范围内的机构管理员发一次短信，不受免打扰限制。每个项目每 10 分钟最多发一条告警通知，其间的新告警合成一条；紧急告警立即发出。部署期尚未交付的设备网络，其告警只进入配置进度的待办，不发送通知。")}`,
       "告警级别与合并规则见告警规则；一个根因只通知一次，紧急告警恢复时再告知一次。",
       "",
       `<div class="tw"><table class="t au-matrix au-notify"><thead><tr><th>事件</th>${chs.map(([c, l]) => (n.channels[c] ? `<th class="c">${l}</th>` : `<th class="c au-ch-off"><span>${l}</span><small>已关闭</small></th>`)).join("")}</tr></thead><tbody>${rows
@@ -81114,7 +81153,7 @@ const AU_ORG_PAGES = {
           "",
         )}</tbody></table></div>${note(
         // 发给谁（BP100）
-        "告警通知发给项目授权范围内的机构管理员、配置人员和运营人员；普通成员不收告警通知。修改即时保存并写入审计日志。",
+        "告警通知发给项目授权范围内的机构管理员、配置人员和运营人员；查看人员可在通知偏好中选择接收告警邮件，普通成员不收告警通知。修改即时保存并写入审计日志。",
       )}`,
     )}`;
   },
@@ -81139,9 +81178,9 @@ const AU_ORG_PAGES = {
       "",
       `${edit ? "" : auReadonlyNote("查看进入本机构的记录")}${auRows([
         // 2.07 第 73、74 条
-        ["会话", "空闲 8 小时自动退出，一次登录最长 30 天"],
+        ["登录有效期", "空闲 8 小时自动退出，一次登录最长 30 天"],
         ["机构管理员登录", "新设备需短信验证"],
-        ["高风险操作", "全量数据导出、离职成员个人信息删除、注销机构前输入当前密码"],
+        ["高风险操作", "全量数据导出、已移除成员的个人信息删除、注销机构前输入当前密码"],
       ])}`,
     )}${
       edit
@@ -81210,7 +81249,7 @@ const AU_ORG_PAGES = {
     const main = list.length
       ? table(shown)
       : k === "security"
-        ? none("尚无安全事件", "网关绑定、密钥更新、部署 App 的下载与现场连接等事件由网关服务和部署 App 回传后记录。")
+        ? none("尚无安全事件", "网关绑定、密钥更新、部署 App 的下载与现场连接等事件由网关和部署 App 回传后记录。")
         : none("尚无记录", k === "changes" ? "每次保存、删除和恢复都保留记录。" : "邀请、角色变更和切换机构都会记录在这里。");
     // “导出”放在筛选工具栏右端，同成员页的“邀请成员”；没有记录、不显示工具栏时放在分节标题旁（全面设计核查第 60 条，2026-10-12 用户确认：原在页签那一行）
     const exp = btn(ico("download", "ic16") + "导出", "auAuditExport", { disabled: !auCanManage() }),
@@ -81404,11 +81443,11 @@ function auQuotaText(where, need = 0) {
     quota = od ? od.quota : l.quota;
   if (l.state === "none" && !od)
     return where === "plan"
-      ? "本机构尚未订阅：部署 App 不能绑定，系统接入设备不能接入。请机构管理员在机构设置 › 订阅与用量订阅。"
-      : "本机构尚未订阅，系统接入设备不能接入。请机构管理员在机构设置 › 订阅与用量订阅。";
-  if (where === "system" && used >= quota) return `本机构的设备已达额度（${fmt(quota)} 台），新的系统接入设备不能接入。请机构管理员在机构设置 › 订阅与用量增加设备数量。`;
+      ? "本机构尚未订阅：部署 App 不能绑定，系统接入设备不能接入。请机构管理员在“机构设置 › 订阅与用量”中订阅。"
+      : "本机构尚未订阅，系统接入设备不能接入。请机构管理员在“机构设置 › 订阅与用量”中订阅。";
+  if (where === "system" && used >= quota) return `本机构已达订阅的设备数量（${fmt(quota)} 台），新的系统接入设备不能接入。请机构管理员在“机构设置 › 订阅与用量”中增加设备数量。`;
   if (where === "plan" && need > 0 && used + need > quota)
-    return `按规划还要绑定或接入 ${fmt(need)} 台，本机构还可接入 ${fmt(Math.max(0, quota - used))} 台。达到额度后部署 App 不能绑定、系统接入不能接入新设备，请机构管理员在机构设置 › 订阅与用量增加设备数量。`;
+    return `按规划还要绑定或接入 ${fmt(need)} 台，本机构还可绑定或接入 ${fmt(Math.max(0, quota - used))} 台。达到设备数量后部署 App 不能绑定、系统接入不能接入新设备，请机构管理员在“机构设置 › 订阅与用量”中增加设备数量。`;
   return "";
 }
 // AI 每月额度 = 1000 万词元 + 每台设备 2.5 万词元（第 2 条）；每月 1 日 0:00（中国标准时间）重置。
@@ -81473,8 +81512,8 @@ function auLicBarText() {
     l = auLic(),
     admin = auCanManage();
   // 续费时的提示条带最后续费日（全面设计核查第 141 条第 6 处）
-  if (o.suspended?.reason === "订单逾期未付款") return auRenewOnly() ? { text: `${zhSub(esc(o.name), "r")}已暂停使用：订单逾期未付款。重新下单并付款，到账后自动恢复。` } : null;
-  if (o.suspended) return auRenewOnly() ? { text: `${zhSub(esc(o.name), "r")}已暂停使用：许可到期。请于 ${auDate(auLicLastRenewDay(l))} 24:00 前完成续费，续费付款到账后自动恢复。` } : null;
+  if (o.suspended?.reason === "订单逾期未付款") return auRenewOnly() ? { text: `${zhSub(esc(o.name), "r")}已暂停使用：订单逾期未付款。重新下单并付款后自动恢复使用。` } : null;
+  if (o.suspended) return auRenewOnly() ? { text: `${zhSub(esc(o.name), "r")}已暂停使用：许可到期。请于 ${auDate(auLicLastRenewDay(l))} 24:00 前完成续费，完成后自动恢复使用。` } : null;
   // 未订阅只向机构管理员提示首次订阅截止及删除影响，期限由许可服务给出。
   if (l.state === "none") { const od = auLicPending(l); return admin ? { text: auLicUnsubscribedText(l), act: od ? btn("去付款", "auPay", { id: od.id }, "sm") : btn("订阅", "auLicBuy", { kind: "sub" }, "sm") } : null; }
   const left = auYmdDiff(auCstYmd(), l.end);
@@ -81670,7 +81709,7 @@ const AU_SUB_FAQ = [
   ["发票何时开？", "到账后自动开具电子发票，发到收票邮箱。"],
   ["能否退款？", "不自动续费；已开始的服务年度不退款。"],
 ];
-const AU_DEV_RULE = "Mesh 设备与网关按已绑定计（EG20 与配套的 WA20 合计 1 台），系统接入设备按已接入计；规划点位不占用额度。用量达到 80% 时以邮件提醒机构管理员；达到额度后部署 App 不能绑定、系统接入不能接入新设备，已有设备照常运行。";
+const AU_DEV_RULE = "Mesh 设备与网关按已绑定计（EG20 与配套的 WA20 合计 1 台），系统接入设备按已接入计；规划点位不计入。已绑定或接入的设备达到设备数量的 80% 时，以邮件提醒机构管理员；达到设备数量后，部署 App 不能再绑定、系统接入不能再接入新设备，已有设备照常运行。";
 const AU_AI_RULE = "每次向 AI 提问按实际处理的词元（token）计入：问题、引用的数据和回答越长，用量越大。服务出错、没有得到回答的不计；搜索、今日要点、异常解释、根因分析和报告草稿不计。用到 80% 和用完时以邮件告知机构管理员。先用本月额度，再用用量包；用量包不设有效期，订阅有效时都能用。";
 // 未订阅：订阅说明（第 301 条）
 function auSubIntro(admin, pendNote) {
@@ -81695,7 +81734,7 @@ function auDevCard(cap) {
   }
   const rows = Object.entries(by).sort((a, b) => b[1] - a[1]), all = !!AUX.licDevAll, shown = all ? rows : rows.slice(0, 5);
   const list = rows.length ? `<ul class="au-meter-list">${shown.map(([n, k]) => `<li><span>${esc(n)}</span><b class="num">${fmt(k)} 台</b></li>`).join("")}</ul>${rows.length > 5 ? btn(all ? "收起" : "全部", "auLicDevAll", {}, "sm ghost") : ""}` : "";
-  return `<div class="au-meter au-devq"><div class="au-meter-h"><span>设备${auFieldInfo("licDev", "设备", AU_DEV_RULE)}</span><b class="num">${fmt(use.used)}<span class="muted"> / ${fmt(cap)} 台</span></b></div>${auBar(pct, "设备数量用量", `已绑定或已接入 ${fmt(use.used)} / ${fmt(cap)} 台`)}<small>设备按已接入计；规划点位不占用。${use.planned ? `另有 ${fmt(use.planned)} 个规划点位未绑定。` : ""}</small>${list}</div>`;
+  return `<div class="au-meter au-devq"><div class="au-meter-h"><span>设备${auFieldInfo("licDev", "设备", AU_DEV_RULE)}</span><b class="num">${fmt(use.used)}<span class="muted"> / ${fmt(cap)} 台</span></b></div>${auBar(pct, "设备数量用量", `已绑定或已接入 ${fmt(use.used)} / ${fmt(cap)} 台`)}<small>已绑定或接入的设备计入，规划点位不计入。${use.planned ? `另有 ${fmt(use.planned)} 个规划点位未绑定。` : ""}</small>${list}</div>`;
 }
 // AI 卡（第 328 条）：本月已用、用量条、重置时间；机构管理员另有用量包余额和“购买用量包”、近 30 天合计和“用量明细”
 function auAiCard() {
@@ -81811,7 +81850,7 @@ AU_ORG_PAGES.orders = () => {
   const acc = l.account;
   const account = auSec(
     "专属汇款账号",
-    "请用本机构的对公账户汇款。到账后自动对上待付款的订单。",
+    "请用本机构的对公账户汇款。到账后自动匹配待付款的订单。",
     "",
     auRows([
       ["户名", acc ? `<span class="au-nowrap">${esc(acc.name)}</span>` : `<span class="muted">未取得</span>`],
@@ -82189,13 +82228,13 @@ const AU_ACC_PAGES = {
           "电子邮箱",
           me.email ? `${esc(me.email)}<span class="chip good au-ml">已验证</span>` : `<span class="muted">—</span>`,
           btn("更换", "auChangeId", { kind: "email" }, "sm"),
-          "用于登录、接收邀请和重置邮件",
+          "用于登录、接收邀请和重置密码邮件",
         ],
         [
           "手机号码",
           me.phone ? `${esc(auMask(me.phone))}<span class="chip good au-ml">已绑定</span>` : `<span class="muted">未绑定</span>`,
           btn(me.phone ? "更换" : "绑定", "auChangeId", { kind: "phone" }, "sm"),
-          me.phone ? "用于登录和接收重置短信" : "选填。绑定后可用于登录和接收重置短信",
+          me.phone ? "用于登录和接收重置密码短信" : "选填。绑定后可用于登录和接收重置密码短信",
         ],
         // 写“上次修改 8 月 12 日”，不是当年时加年份（ACCOUNT02，Account A14）
         ["密码", "", btn("修改密码", "auChangePwd", {}, "sm"), `上次修改 ${auDate(me.pwdAt)}`],
@@ -82278,10 +82317,9 @@ const AU_ACC_PAGES = {
     const reasons = rows.flatMap(([r]) => chs.map(([c]) => why(r, c)));
     const notes = [
       // 表下的角色说明删去（第 86 条）
-      U.role === "member" ? "" : "前五项与“机构设置 → 通知”的分类相同，安全事件为必需通知、不能在此关闭；工单、邀请与成员变更、报告只在此设置。",
-      !org.sms || !org.mail ? "机构已关闭部分渠道，相应选项不可用。" : "",
-      reasons.some((x) => x.startsWith("机构未对此事件启用")) ? "灰色的格子：机构未对该事件启用此渠道，可请机构管理员在“机构设置 → 通知”中开启。" : "",
-      reasons.includes("尚未绑定手机号码") ? "短信不可选：尚未绑定手机号码，可在“账户”中绑定。" : "",
+            !org.sms || !org.mail ? "机构已关闭部分渠道，相应选项不可用。" : "",
+      reasons.some((x) => x.startsWith("机构未对此事件启用")) ? "灰色的选项表示机构未对该事件启用此渠道，可请机构管理员在“机构设置 › 通知”中开启。" : "",
+      reasons.includes("尚未绑定手机号码") ? "尚未绑定手机号码，短信不可选，可在“账户”中绑定。" : "",
     ];
     return `${auSec(
       `${zhSub(esc(auOrg().name), "r")}的通知`,
@@ -91372,7 +91410,7 @@ function demoCatalogHtml(q = "") {
         ? `<section class="demo-cat-g"><h3>${grp}</h3>${rows
             .map(
               ([, id, title, desc]) =>
-                `<button type="button" class="demo-cat-i ${id === DEMO.cur ? "cur" : ""}" data-act="demoGo" data-id="${id}" ${id === DEMO.cur ? 'aria-current="true"' : ""}><span><b>${esc(title)}</b>${desc ? `<small>${esc(desc)}</small>` : ""}</span>${id === DEMO.cur ? `<small class="demo-cat-cur">上次打开</small>` : ""}${ico("au-arrow", "ic16")}</button>`,
+                `<button type="button" class="demo-cat-i ${id === DEMO.cur ? "cur" : ""}" data-act="demoGo" data-id="${id}" ${id === DEMO.cur ? 'aria-current="true"' : ""}><span><b>${esc(title)}</b>${desc ? `<small>${esc(desc)}</small>` : ""}</span>${id === DEMO.cur ? `<small class="demo-cat-cur">上次打开</small>` : ""}${ico("chevron", "ic16 demo-cat-chev")}</button>`,
             )
             .join("")}</section>`
         : "";
