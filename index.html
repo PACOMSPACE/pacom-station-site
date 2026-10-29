@@ -74689,7 +74689,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = PACOM_PASS
   // Digits after the country code for common regions (2026-10-02 用户确认).
   const PHONE_DIGITS = Object.freeze([['+852', 8], ['+853', 8], ['+65', 8], ['+886', 9], ['+44', 10]]);
   // Character limits counted by character (code point), never by UTF-16 unit; values past the limit are kept and reported, not cut.
-  const LIMITS = Object.freeze({ ap_org: 100, ap_name: 50, ap_need: 1000, w_name: 100, jn_note: 200 });
+  const LIMITS = Object.freeze({ org_name: 110, ap_org: 100, ap_name: 50, ap_need: 1000, w_name: 100, jn_note: 200 });
   const chars = value => Array.from(String(value ?? '')).length;
   // Names are checked trimmed; the overview counts every character as typed.
   const fieldLength = (name, value) => chars(name === 'ap_need' ? value : String(value ?? '').trim());
@@ -75603,8 +75603,8 @@ function auField(o) {
   const { name, label, type = "text", auto = "", hint = "", info = "", hintRole = "", right = "", rightAfter = false, suffix = "", inputmode = "", ph = "", maxlength = "", required = true, count = false } = o;
   const val = AUX.v[name] ?? o.value ?? "";
   // A counted field is never cut at its limit: the count appears from 80% and a longer value is reported as an error.
-  const counter = count ? PACOM_AUTH_FLOW.charCount(name, val) : "";
-  return `<div class="au-field ${rightAfter ? "au-field-right-after" : ""}" data-f="${name}"><div class="au-lab${info ? " au-label-row" : ""}"><label for="au-${name}">${label}</label>${info ? auFieldInfo(name, label, info) : ""}${rightAfter ? "" : right}</div><div class="au-ctl"><input id="au-${name}" name="${name}" class="au-in ${suffix ? "has-suffix" : ""}" type="${type}" value="${esc(val)}" ${auto ? `autocomplete="${auto}"` : ""} ${inputmode ? `inputmode="${inputmode}"` : ""} ${ph ? `placeholder="${esc(ph)}"` : ""} ${maxlength ? `maxlength="${maxlength}"` : ""} ${required ? 'required aria-required="true"' : ""} aria-describedby="au-${name}-err au-${name}-hint${info ? ` au-${name}-info` : ""}${count ? ` au-${name}-count` : ""}" spellcheck="false" ${type === "password" || ["email", "tel", "username", "one-time-code"].includes(auto) ? 'autocapitalize="none" autocorrect="off"' : ""}><label class="au-input-hit" for="au-${name}" aria-hidden="true"></label>${suffix}</div>${rightAfter ? `<div class="au-field-right">${right}</div>` : ""}<p class="au-err" id="au-${name}-err" aria-live="polite"></p><p class="au-hint" id="au-${name}-hint" ${hintRole ? `role="${hintRole}" aria-live="polite"` : ""}>${hint}</p>${count ? `<p class="au-hint au-char-count" id="au-${name}-count" ${counter ? "" : "hidden"}>${counter}</p>` : ""}</div>`;
+  const counter = count ? PACOM_AUTH_FLOW.charCount(o.limitKey || name, val) : "";
+  return `<div class="au-field ${rightAfter ? "au-field-right-after" : ""}" data-f="${name}"><div class="au-lab${info ? " au-label-row" : ""}"><label for="au-${name}">${label}</label>${info ? auFieldInfo(name, label, info) : ""}${rightAfter ? "" : right}</div><div class="au-ctl"><input id="au-${name}" name="${name}" class="au-in ${suffix ? "has-suffix" : ""}" type="${type}" value="${esc(val)}" ${auto ? `autocomplete="${auto}"` : ""} ${inputmode ? `inputmode="${inputmode}"` : ""} ${ph ? `placeholder="${esc(ph)}"` : ""} ${maxlength ? `maxlength="${maxlength}"` : ""} ${o.limitKey ? `data-limit-key="${o.limitKey}"` : ""} ${required ? 'required aria-required="true"' : ""} aria-describedby="au-${name}-err au-${name}-hint${info ? ` au-${name}-info` : ""}${count ? ` au-${name}-count` : ""}" spellcheck="false" ${type === "password" || ["email", "tel", "username", "one-time-code"].includes(auto) ? 'autocapitalize="none" autocorrect="off"' : ""}><label class="au-input-hit" for="au-${name}" aria-hidden="true"></label>${suffix}</div>${rightAfter ? `<div class="au-field-right">${right}</div>` : ""}<p class="au-err" id="au-${name}-err" aria-live="polite"></p><p class="au-hint" id="au-${name}-hint" ${hintRole ? `role="${hintRole}" aria-live="polite"` : ""}>${hint}</p>${count ? `<p class="au-hint au-char-count" id="au-${name}-count" ${counter ? "" : "hidden"}>${counter}</p>` : ""}</div>`;
 }
 // 显示密码按钮按所在字段命名并关联输入框：“显示新密码”“显示确认新密码”，切换后为“隐藏……”（账户核查第 15 条：原先都叫“显示密码”）。
 const AU_EYE_NAME = { rs_pwd: "新密码" };
@@ -76797,7 +76797,7 @@ function auApplyPhoneFields() {
 // 机构名称、行业、所在地区；行业用全站下拉框，值记在 AUX.v.ap_ind
 function auApplyOrgFields() {
   const ind = select("auApInd", AU_INDUSTRIES, AUX.v.ap_ind || "", "行业").replace('role="combobox"', 'name="ap_ind" role="combobox" aria-describedby="au-ap_ind-err"');
-  return `${auField({ name: "ap_name", label: "机构名称", auto: "organization", count: true, maxlength: 60, info: "用于平台内显示，可随时修改；合同和发票用订阅时填写的机构全称。" })}<div class="au-field au-select-field" data-f="ap_ind"><div class="au-lab"><label for="auApInd-control">行业</label></div>${ind}<p class="au-err" id="au-ap_ind-err" aria-live="polite"></p></div>${auApplyRegionField()}`;
+  return `${auField({ name: "ap_name", label: "机构名称", auto: "organization", count: true, limitKey: "org_name", info: "请填写营业执照等登记证书上的完整名称。" })}<div class="au-field au-select-field" data-f="ap_ind"><div class="au-lab"><label for="auApInd-control">行业</label></div>${ind}<p class="au-err" id="au-ap_ind-err" aria-live="polite"></p></div>${auApplyRegionField()}`;
 }
 // 所在地区：省份、城市两个选择框，值记在 AUX.v.ap_prov、ap_city，拼好的记在 ap_region；有误时焦点到第一个没选的框
 function auApplyRegionField() {
@@ -76807,7 +76807,7 @@ function auApplyRegionField() {
 const auRegionNamed = (html, prov) => html.replace(`id="${prov ? "auApCity" : "auApProv"}-control"`, (m) => `${m} name="ap_region" aria-describedby="au-ap_region-err"`);
 const auApplyOrgChecks = () => [
   // 机构名称最多 50 个字，按字计数，超过时提示，不截断
-  ["ap_name", (v) => (!String(v ?? "").trim() ? "请输入机构名称" : [...String(v).trim()].length > PACOM_AUTH_FLOW.LIMITS.ap_name ? `机构名称不超过 ${PACOM_AUTH_FLOW.LIMITS.ap_name} 个字` : "")],
+  ["ap_name", (v) => (!String(v ?? "").trim() ? "请输入机构名称" : [...String(v).trim()].length > PACOM_AUTH_FLOW.LIMITS.org_name ? `机构名称不超过 ${PACOM_AUTH_FLOW.LIMITS.org_name} 个字` : "")],
   ["ap_ind", (v) => (v ? "" : "请选择行业")],
   ["ap_region", (v) => (v ? "" : "请选择所在地区")],
 ];
@@ -76951,7 +76951,7 @@ function auSbPlanErr(kind) {
 // 第 2 步：机构全称、统一社会信用代码（GB 32100 校验码当场核对）。2.48 账户第 474、475 条：核对工商登记的约定写在使用条款，
 // 点“继续”记入审计日志；不再有授权一句和只读的经办人。
 function auSbQual() {
-  return `${auField({ name: "sb_org", label: "机构全称", auto: "organization", count: true, maxlength: 110, info: "与营业执照或其他登记证书上的名称完全一致。" })}${auField({ name: "sb_uscc", label: "统一社会信用代码", auto: "off", maxlength: 18, info: "营业执照或其他登记证书上的 18 位代码。" })}`;
+  return `${auField({ name: "sb_org", label: "机构全称", auto: "organization", count: true, maxlength: 110, info: "请填写营业执照等登记证书上的完整名称。" })}${auField({ name: "sb_uscc", label: "统一社会信用代码", auto: "off", maxlength: 18, info: "营业执照或其他登记证书上的 18 位代码。" })}`;
 }
 const auSbQualChecks = () => [
   ["sb_org", auReq("请输入机构全称")],
@@ -77021,11 +77021,12 @@ function auSubOpen(kind, from = null) {
   for (const k of Object.keys(AUX.v)) if (k.startsWith("sb_")) delete AUX.v[k];
   // 已订阅的机构：资质为上次订阅时所填（旧数据没有全称的用机构名称）
   const full = o.fullName || (l.uscc ? o.name : ""), known = !!(full && l.uscc);
+  // 2.50 账户第 493 条：首次订阅（没有已核验的全称）时机构全称预填机构名称，可修改，核验照旧。
   Object.assign(AUX.v, {
     sb_qty: from?.quota || (kind === "renew" ? l.quota : auSbDefaultQty()),
     sb_years: String(from?.years || 1),
     sb_add: from?.kind === "add" ? from.to - from.from : AU_PRICE.step,
-    sb_org: full,
+    sb_org: full || o.name || "",
     sb_uscc: l.uscc || "",
     sb_invt: auBillKind(b),
     sb_imail: b.email || auMe().email || "",
@@ -78064,6 +78065,11 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "2.50",
+    date: "2026-10-29",
+    notes: ["改进：首次订阅时“机构全称”自动填入机构名称；机构名称最多可填 110 个字。", "修复已知问题，优化界面细节。"],
+  },
+  {
     version: "2.49",
     date: "2026-10-29",
     notes: ["改进：“收不到验证码？”的说明更简洁；重置密码时按输入的电子邮箱或手机号码给出对应的说明。", "修复已知问题，优化界面细节。"],
@@ -78852,7 +78858,7 @@ const HELP_TOPICS = [
 const HELP_UPDATED = "2026-10-27";
 const HELP_ARTICLES = [
   { id: "acct-apply", topic: "account", title: "创建机构", roles: "要创建新机构的人", sum: "填写机构名称、行业和所在地区即可创建，你是机构管理员；规划和配置不需要订阅，绑定设备和使用 AI 前订阅。",
-    steps: ["在登录页点“申请访问”，选“创建新机构”，先创建账户，再绑定手机号码。已有账户的，在“尚未加入机构”页选“创建新机构”；已加入其他机构的，在机构菜单点“创建机构”；账户还没有绑定手机号码的先绑定。", "填写机构名称、行业和所在地区，点“创建机构”。机构名称用于平台内显示，可随时修改。", "创建后进入新机构的“项目”页，即可创建项目、上传楼层图和规划设备；在“机构设置 › 成员”邀请成员。", "要绑定设备和使用 AI 时，在“机构设置 › 订阅与用量”订阅，见《订阅、续费与付款》。"],
+    steps: ["在登录页点“申请访问”，选“创建新机构”，先创建账户，再绑定手机号码。已有账户的，在“尚未加入机构”页选“创建新机构”；已加入其他机构的，在机构菜单点“创建机构”；账户还没有绑定手机号码的先绑定。", "填写机构名称、行业和所在地区，点“创建机构”。机构名称请填写营业执照等登记证书上的完整名称。", "创建后进入新机构的“项目”页，即可创建项目、上传楼层图和规划设备；在“机构设置 › 成员”邀请成员。", "要绑定设备和使用 AI 时，在“机构设置 › 订阅与用量”订阅，见《订阅、续费与付款》。"],
     faq: [["个人可以创建机构吗？", "可以创建并规划；订阅时须填写机构全称和统一社会信用代码，由平台核对工商登记信息。"], ["机构已经在用了怎么办？", "不要重复创建，在登录页点“申请访问”，选“加入已开通的机构”。"], ["同一个统一社会信用代码能订阅几个机构？", "可以订阅多个，如各园区分开管理，机构之间数据完全隔离。"], ["建错了机构怎么办？", "未订阅的机构可以在“机构信息”最后删除，30 天内可在“我的账户 › 我的机构”恢复。"]], rel: ["acct-join", "acct-sub"] },
   { id: "acct-join", topic: "account", title: "加入已开通的机构", roles: "所有要加入的人", sum: "用机构的邀请码、邀请链接、二维码或邮件邀请加入，角色由机构管理员确定。",
     steps: ["在登录页点“申请访问”，选“加入已开通的机构”，先验证电子邮箱。机构管理员按这个邮箱邀请过你时直接加入；没有邀请时填写邀请码，设置密码后提交，打开邀请链接或扫邀请二维码时邀请码已填好。邀请码在工作群里的邀请链接或二维码中，或请已加入的同事发给你。还没有邀请码时点“没有邀请码？”查看做法，或选“创建新机构”。", "已有账户的，登录后打开邀请链接或扫二维码；或在“我的账户 › 我的机构”点“加入机构”，填写邀请码。发给你的邀请列在“我的机构”最上面，点“加入”即加入。", "机构管理员直接邀请：点邀请邮件中的链接，没有账户的设置姓名和密码即可加入，已有账户的登录后直接加入；邀请 7 天内有效。", "申请发出后等待机构管理员批准，7 天内有效，可以撤回；批准后收到邮件，登录即可进入。"],
@@ -79405,6 +79411,7 @@ Object.assign(actions, {
       mail = value("auOrgContactMail").trim();
     const errs = [];
     if (!n) errs.push(["auOrgName", "请输入机构名称"]);
+    else if ([...n].length > PACOM_AUTH_FLOW.LIMITS.org_name) errs.push(["auOrgName", `机构名称不超过 ${PACOM_AUTH_FLOW.LIMITS.org_name} 个字`]);
     if ($("#auOrgProv")?.value && !$("#auOrgCity")?.value) errs.push(["auOrgCity-control", "请选择所在地区"]);
     if (!mail) errs.push(["auOrgContactMail", "请输入联系邮箱"]);
     else if (!AU_EMAIL.test(mail)) errs.push(["auOrgContactMail", "请输入有效的电子邮箱"]);
@@ -79463,7 +79470,7 @@ Object.assign(actions, {
     const l = auLic();
     auDialog(
       "变更机构全称",
-      `<div class="au-form">${fld("新的机构全称", "auOrgFull", input("auOrgFull", ""), "与营业执照或其他登记证书上的名称完全一致")}${fld("统一社会信用代码", "auOrgUscc", `<div class="au-ro num">${esc(l.uscc)}</div>`, "代码变了的，请联系 PACOM")}</div>`,
+      `<div class="au-form">${fld("新的机构全称", "auOrgFull", input("auOrgFull", ""), "请填写营业执照等登记证书上的完整名称。")}${fld("统一社会信用代码", "auOrgUscc", `<div class="au-ro num">${esc(l.uscc)}</div>`, "代码变了的，请联系 PACOM")}</div>`,
       btn("取消", "close") + btn("核验并变更", "auOrgFullSave", {}, "primary"),
     );
   },
@@ -80867,7 +80874,7 @@ const AU_ORG_PAGES = {
     const addr = [o.region, o.address].filter(Boolean).join(" ");
     const basic = auSec(
       "基本信息",
-      "机构名称用于平台内显示，可随时修改，不改变机构编号和成员身份。",
+      "",
       edit ? btn("修改", "auOrgEdit", {}, "sm") : "",
       `${edit ? "" : auReadonlyNote("修改机构信息")}${auRows([
         ["机构标识", mark, "", edit ? "建议使用正方形 PNG 或 SVG" : ""],
@@ -82840,9 +82847,9 @@ document.addEventListener('keydown', e => {
   if (e.key === ' ' && e.target.matches?.('input[aria-disabled="true"]')) e.preventDefault();
 }, true);
 document.addEventListener('input', e => {
-  const name = e.target.name;
-  if (!PACOM_AUTH_FLOW.LIMITS[name]) return;
-  const count = document.getElementById(`au-${name}-count`), text = PACOM_AUTH_FLOW.charCount(name, e.target.value);
+  const name = e.target.name, key = e.target.dataset?.limitKey || name;
+  if (!PACOM_AUTH_FLOW.LIMITS[key]) return;
+  const count = document.getElementById(`au-${name}-count`), text = PACOM_AUTH_FLOW.charCount(key, e.target.value);
   if (count) { if (count.textContent !== text) count.textContent = text; if (count.hidden !== !text) count.hidden = !text; }
   // A value past its limit is kept and reported at once (项目概况 too, by character); going back under the limit clears only that report.
   if (name !== 'w_name') return;
