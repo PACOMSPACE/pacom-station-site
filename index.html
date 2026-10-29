@@ -5215,6 +5215,13 @@ details[open] > summary::before {
   background: rgba(0, 0, 0, 0.1);
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
 }
+/* 2.55 E540：细圈为 1 个物理像素，高分屏（如 Mac）上 0.5px，与普通屏同样细 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
+  :is(.ws-toolbar, .ops-overview-location) .iconbtn.round:where(:not([data-page=console] *, [data-page=app] *)),
+  :is(.ws-toolbar, .ops-overview-location) .iconbtn.round:where(:not([data-page=console] *, [data-page=app] *, :disabled, [aria-disabled="true"])):active {
+    box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.25);
+  }
+}
 .ws-toolbar .iconbtn.round[data-act="spacePanelInfo"][aria-expanded="true"] {
   background: color-mix(in srgb, var(--accent) 16%, #fff);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 80%, #000);
@@ -5849,12 +5856,17 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 }
 
 /* 地图名称标签按全站提示气泡（项目页核查 E231，2026-10-21 用户确认；原为白色胶囊 12/18 字重 500、带尖角、透明度 0.9）：
-   白底不透明、圆角 6、12/16 #030303、上下 4 左右 8、小浮层阴影，没有尖角，离圆点 4。 */
+   白底不透明、圆角 6、12/16 #030303、上下 4 左右 8、小浮层阴影，没有尖角，离圆点 4。
+   2.55 E533：标签一行、宽度按内容（不随宽度为 0 的图层压窄），最宽 200，超出以省略号结尾，全名在悬停卡片里。 */
 .leaflet-tooltip.ws-map-label {
   margin-left: 0;
   padding: 4px 8px;
   border: 0;
   border-radius: 6px;
+  width: max-content;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   background: #fff;
   box-shadow: var(--floating-sm);
   color: #030303;
@@ -6376,8 +6388,9 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   flex: none;
 }
 /* 切换器：同级列表与四级搜索；首行显示完整路径（长名称可经键盘与触屏取得全文）。 */
+/* 2.55 E529：宽度由 place() 按切换按钮设置（同宽，至少 240），这里只限制不超出视口 */
 #pop.ws-switch-pop {
-  width: min(360px, calc(100vw - 16px));
+  max-width: calc(100vw - 16px);
 }
 .ws-switch-rows .nm {
   display: block;
@@ -6781,8 +6794,6 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
  .ws-rail-scroll > button::before, .rail-arrow::before, .ws-rail-home::before { content:""; position:absolute; left:50%; top:50%; width:max(100%, 44px); height:max(100%, 44px); transform:translate(-50%, -50%); }
 }
 /* 2.13 E244：“楼层标记”入口在楼宇图右上角，离上、右各 12；白底 32 高胶囊、左右 16，与缩放按钮同一表面与投影。 */
-.ws-building-stage > .ws-bmark-entry { position:absolute; top:12px; right:12px; z-index:12; }
-.ws-bmark-entry .ws-bmark-btn { height:32px; min-height:32px; padding:0 16px; border:0; border-radius:12px; background:linear-gradient(#fff, #f6f6f6); box-shadow:var(--btn); }
 .spatial-building-top { position:absolute; top:12px; left:0; right:0; z-index:8; pointer-events:none; }
 /* 楼宇页：入口以楼宇图片区域（标记工具条）居中，不另设让出。 */
 .spatial-building-top .spatial-drawing-controls { --ws-to-l:0px; --ws-to-r:0px; --ctl-l:0px; --ctl-r:0px; --ctl-wrap-r:0px; }
@@ -7432,15 +7443,14 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 @media (max-width:599.98px) {
  .ws-proj-acts { display:none; }
 }
-/* 2.52 E480：楼层图与设备标记的开关在工作台右上角（距边 12，与画布按钮同一行）；开关在画布上时，右上角的“图层”左移让出开关宽加 8；
-   面板展开且在工作台内（设备标记并排、楼层页覆盖）时开关在面板右上角，面板第一行右侧让出同样宽度。 */
-#pbody:has(> .ws-rp-handle.on-canvas) :is(.sp-bench, .mk-bench):not(.with-panel) .ws-canvas-top > .spatial-layer-controls { margin-right:40px; }
-#pbody:has(> .ws-rp-handle.on-canvas) .mk-bench.with-panel .ws-planning-panel > .ws-network-context { padding-right:56px; }
-#pbody:has(> .ws-rp-handle.on-canvas) .sp-bench.with-panel.sp-overlay .sp-panel > :first-child { margin-right:44px; }
+/* 2.55 E531：楼层图与设备标记的把手收起时在画布右边缘内侧 8、与画布顶部按钮同高，右上角的“图层”左移为它让位；
+   展开时把手压在面板左缘：楼层页面板并排时把手在画布与面板之间，覆盖时“图层”已移到面板左边的第二行，都不需要让位；
+   设备标记面板在工作台里，画布右上角的按钮让出把手的左半。E480 在面板第一行右侧的让位去掉。 */
+#pbody:has(> .ws-rp-handle.on-canvas:not(.open)) :is(.sp-bench, .mk-bench):not(.with-panel) .ws-canvas-top > .spatial-layer-controls { margin-right:40px; }
+#pbody:has(> .ws-rp-handle.on-canvas.open) .mk-bench.with-panel .ws-canvas-top > .spatial-layer-controls { margin-right:12px; }
 @media (pointer:coarse) {
- #pbody:has(> .ws-rp-handle.on-canvas) :is(.sp-bench, .mk-bench):not(.with-panel) .ws-canvas-top > .spatial-layer-controls { margin-right:52px; }
- #pbody:has(> .ws-rp-handle.on-canvas) .mk-bench.with-panel .ws-planning-panel > .ws-network-context { padding-right:68px; }
- #pbody:has(> .ws-rp-handle.on-canvas) .sp-bench.with-panel.sp-overlay .sp-panel > :first-child { margin-right:56px; }
+ #pbody:has(> .ws-rp-handle.on-canvas:not(.open)) :is(.sp-bench, .mk-bench):not(.with-panel) .ws-canvas-top > .spatial-layer-controls { margin-right:52px; }
+ #pbody:has(> .ws-rp-handle.on-canvas.open) .mk-bench.with-panel .ws-canvas-top > .spatial-layer-controls { margin-right:20px; }
 }
 .ws-space-info .v13-dh .ws-info-scope { margin:0; font-size:12px; line-height:18px; color:#636363; }
 /* 2.14 E266：键值行 14/24（标签 #636363、值 #030303）；分组标题 14/24、字重 480；折叠行 14/24 #030303，末尾 6 的下箭头。
@@ -7479,21 +7489,18 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 /* 信息面板首图距标题线 16px。 */
 .ws-space-info .v13-db > .ws-info-image:first-child { margin-top:12px; }
 
-/* 2.52 E480：右侧面板的开关（项目信息、楼层页功能区面板、设备标记面板共用）：与“收起侧栏”同一种 32 圆形图标按钮（触屏 44），
-   图标为右侧栏（左侧栏图标的镜像）；项目页为透明底（平时 #636363，悬停 #030303、叠黑 8%），画布上为“图层”同一材质的白底按钮。
-   位置由 wsPlaceRpHandle 计算，展开、收起不移动；手机上不显示。取代 2.16 E363 的 24×48 半圆角把手。 */
-.ws-rp-handle { position:fixed; left:0; top:0; z-index:7; display:grid; place-items:center; width:32px; height:32px; min-width:32px; padding:0; border-radius:50%; }
-.ws-rp-handle.iconbtn { color:var(--text3); }
-.ws-rp-handle.iconbtn:hover { background:var(--sel); color:var(--text); }
-.ws-rp-handle.iconbtn:active { background:rgba(0,0,0,.1); }
-.ws-rp-handle .ws-rp-ic { width:16px; height:16px; transform:scaleX(-1); }
-@media (pointer:coarse) { .ws-rp-handle { width:44px; height:44px; min-width:44px; min-height:44px; } }
+/* 2.55 E531：右侧面板的把手（项目信息、楼层页面板、设备标记面板共用），IQAir 的方式，形状为 28 圆形：白底、1px #EBEBEB 边、小浮层阴影，
+   16 箭头 #636363，悬停 #030303 并叠 4% 灰底；触屏可见 28、命中 44。展开时压在面板左边的分隔线上，箭头向右；收起后贴在页面卡片或画布右边缘内侧，
+   箭头向左。层级 21：楼层页面板覆盖画布时（z-index 20）把手仍在面板之上。位置由 wsPlaceRpHandle 计算；手机上不显示。
+   取代 2.52 E480 面板右上角的 32 圆形图标按钮，标题行不再为它留右内边距。 */
+.ws-rp-handle { position:fixed; left:0; top:0; z-index:21; display:grid; place-items:center; width:28px; height:28px; min-width:28px; padding:0; border:1px solid #ebebeb; border-radius:50%; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,.06); color:#636363; cursor:pointer; }
+.ws-rp-handle:hover { background:#f5f5f5; color:#030303; }
+.ws-rp-handle .ws-rp-ic { width:16px; height:16px; }
+.ws-rp-handle.open .ws-rp-ic { transform:scaleX(-1); }
+.ws-rp-handle.moving { transition:left 200ms cubic-bezier(.4,0,.2,1); }
+@media (pointer:coarse) { .ws-rp-handle::after { content:""; position:absolute; inset:-9px; border-radius:50%; } }
 @media (max-width:850px) { .ws-rp-handle { display:none; } }
-/* 收起时按钮在标题行右端：标题行右侧留出按钮位置，演示切换不被压住；展开时面板标题为按钮留出位置。 */
-@media (min-width:851px) {
- .panel:has(> #pbody > .ws-rp-handle.iconbtn) > .phead { padding-right:64px; }
- .ws-space-info.docked .v13-dh { padding-right:64px; }
-}
+@media (prefers-reduced-motion:reduce) { .ws-rp-handle.moving { transition:none; } }
 
 /* ========== 8. 表单：创建与编辑项目、楼宇（地图位置、地址检索、时区、楼层结构预览、说明框） ========== */
 .ws-image-field {
@@ -8224,14 +8231,16 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 }
 }
 
-/* 2.14 E248：项目、楼宇列表同一套列宽规则（行用网格排列，读屏仍为表格）：配置进度 160、更多 56 固定，其余按 名称 3 : 属性 1.5 : 规模 2 分，
-   最小 名称 200、属性 96、规模 160；行高 52，单元格上下 8、左右 12；名称 14/21 字重 480，属性 14/21 #636363，规模等宽数字；表头“更多”只给读屏。
-   表格窄于 900 时隐藏“城市”列，城市回到名称下第二行灰字。原为名称列占剩余全部宽度、规模 200、配置进度 140、行高 69。 */
+/* 2.14 E248：项目、楼宇列表同一套列宽规则（行用网格排列，读屏仍为表格）；行高 52，单元格上下 8、左右 12；名称 14/21 字重 480，
+   属性 14/21 #636363，规模等宽数字；表头“更多”只给读屏。
+   2.55 E532：名称列占其余全部宽度（最少 200），其他列按最长的内容定宽、不随表格变宽：全部项目为城市 80、类型 88、规模 120、配置进度 160、更多 56，
+   长规模按“ · ”换到第二行；楼宇列表为主要用途 88、规模 168、配置进度 160、更多 56。表格窄于 704（200 + 504）时才隐藏“城市”列，城市回到名称下第二行灰字。
+   原（2.14）为名称 3 : 属性 1.5 : 规模 2 按比例分（最小 200、96、160），窄于 900 就隐藏“城市”。 */
 .ws-dir .t.ws-dir-t { display:block; width:100%; }
 .ws-dir .t.ws-dir-t > :is(thead, tbody) { display:block; }
 .ws-dir .t.ws-dir-t tr { display:grid; grid-template-columns:var(--ws-cols); align-items:stretch; min-height:52px; }
-.ws-dir .t.ws-dir-t.ws-proj-t { --ws-cols:minmax(200px, 3fr) minmax(96px, 1.5fr) minmax(96px, 1.5fr) minmax(160px, 2fr) 160px 56px; }
-.ws-dir .t.ws-dir-t.ws-bld-t { --ws-cols:minmax(200px, 3fr) minmax(96px, 1.5fr) minmax(160px, 2fr) 160px 56px; }
+.ws-dir .t.ws-dir-t.ws-proj-t { --ws-cols:minmax(200px, 1fr) 80px 88px 120px 160px 56px; }
+.ws-dir .t.ws-dir-t.ws-bld-t { --ws-cols:minmax(200px, 1fr) 88px 168px 160px 56px; }
 .ws-dir .t.ws-dir-t :is(th, td) { display:flex; align-items:center; min-width:0; width:auto; height:auto; padding:8px 12px; }
 .ws-dir .t.ws-dir-t td { font-size:14px; line-height:24px; color:#030303; }
 .ws-dir .t.ws-dir-t td.ws-dir-attr { color:#636363; }
@@ -8240,8 +8249,8 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 .ws-dir .t.ws-dir-t td.ws-dir-name .lk { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; line-height:24px; font-weight:480; color:#030303; }
 .ws-dir .t.ws-dir-t td.ws-dir-more { justify-content:flex-end; }
 .ws-dir .t.ws-dir-t :is(.ws-dir-city2, td.ws-dir-meta) { display:none; }
-@container (max-width:899.98px) {
- .ws-dir .t.ws-dir-t.ws-proj-t { --ws-cols:minmax(200px, 3fr) minmax(96px, 1.5fr) minmax(160px, 2fr) 160px 56px; }
+@container (max-width:703.98px) {
+ .ws-dir .t.ws-dir-t.ws-proj-t { --ws-cols:minmax(200px, 1fr) 88px 120px 160px 56px; }
  .ws-dir .t.ws-dir-t.ws-proj-t :is(th, td):nth-child(2) { display:none; }
  .ws-dir .t.ws-dir-t td.ws-dir-name > .ws-dir-city2 { display:block; margin:0; font-size:12px; line-height:18px; color:#636363; }
 }
@@ -8277,9 +8286,14 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 .ws-mpop-b { padding:24px; }
 .ws-mpop-b > .ws-mpop-n { margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:18px; line-height:23.4px; font-weight: 480; color:#030303; }
 .ws-mpop-b > .ws-mpop-s { margin:8px 0 0; font-size:14px; line-height:24px; color:#636363; }
-.ws-mpop-b > .ws-mpop-k { margin:16px 0 8px; font-size:14px; line-height:24px; color:#636363; }
-.ws-mpop-b > .ws-mpop-seg.v13-seg { display:flex; width:100%; }
-.ws-mpop-b > .ws-mpop-seg.v13-seg i { flex:1; width:auto; }
+.ws-mpop-b > .ws-mpop-k { margin:16px 0 0; font-size:14px; line-height:24px; color:#636363; }
+/* 2.55 E534：六段短进度条加“N / 6”（同列表），下一行“下一步：…”14/24 #636363，“需处理 N 台”提醒色 */
+.ws-mpop-b > .ws-mpop-prog { display:grid; gap:8px; margin:16px 0 0; }
+.ws-mpop-prog-h { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:14px; line-height:24px; font-weight:480; color:#030303; }
+.ws-mpop-prog-h > .ws-mpop-n6 { font-weight:400; font-variant-numeric:tabular-nums; }
+.ws-mpop-prog > .ws-mpop-next { margin:0; font-size:14px; line-height:24px; color:#636363; }
+.ws-mpop-next > .pc-sep { font-size:14px; line-height:24px; }
+.ws-mpop-next > .warn { color:var(--warn); }
 .ws-mpop-rows { display:grid; gap:0; margin:16px -8px 0; }
 .ws-mpop-row { display:flex; align-items:center; justify-content:space-between; gap:12px; height:36px; padding:0 8px; border:0; border-radius:12px; background:transparent; font:inherit; font-size:14px; line-height:24px; color:#030303; text-align:left; cursor:pointer; }
 .ws-mpop-row > span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -8421,12 +8435,13 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
    项目和楼宇左侧 16 的展开箭头 #636363，收起时指向右、展开时转 90° 指向下。 */
 .ws-loc-tree .flow-location-project { margin-top: 0; }
 .ws-loc-tree .ws-loc-line { display: flex; align-items: center; gap: 0; }
-/* 2.14 E247：展开箭头 28×32 透明按钮（悬停浅灰底），点中范围向左覆盖缩进区；项目、楼宇行悬停时箭头加深。原为 16×32。 */
+/* 2.14 E247：展开箭头透明按钮（悬停浅灰底），点中范围向左覆盖缩进区；项目、楼宇行悬停时箭头加深。原为 16×32。
+   2.55 E530：箭头按钮 24×32（两侧各 4），名称行左内边距 4，箭头到名称 8；名称从弹层内边起项目 28、楼宇 44、楼层 60（原 28 宽、36/52/68）。 */
 .ws-loc-tree .ws-loc-line.lv1 { padding-left: 16px; }
-.ws-loc-tree .ws-loc-line.lv2 { padding-left: 60px; }
-.ws-loc-tree .ws-loc-all { padding-left: 28px; }
+.ws-loc-tree .ws-loc-line.lv2 { padding-left: 56px; }
+.ws-loc-tree .ws-loc-all { padding-left: 24px; }
 .ws-loc-tree.ws-loc-flat .ws-loc-all { padding-left: 0; }
-.ws-loc-tree .ws-loc-tog { position: relative; flex: none; display: grid; place-items: center; width: 28px; height: 32px; padding: 0; color: #636363; background: transparent; border: 0; border-radius: 6px; }
+.ws-loc-tree .ws-loc-tog { position: relative; flex: none; display: grid; place-items: center; width: 24px; height: 32px; padding: 0; color: #636363; background: transparent; border: 0; border-radius: 6px; }
 .ws-loc-tree .ws-loc-line.lv1 > .ws-loc-tog::before { content: ""; position: absolute; inset: 0 0 0 -16px; }
 .ws-loc-tree button.ws-loc-tog:hover { background: rgba(0, 0, 0, 0.04); }
 .ws-loc-tree .ws-loc-line:hover > .ws-loc-tog { color: #030303; }
@@ -8437,6 +8452,8 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
 .ws-loc-tree .ws-loc-tog:hover { color: #030303; }
 .ws-loc-tree .ws-loc-tog:focus-visible { outline: 0; box-shadow: inset 0 0 0 1px #00aeef; }
 .ws-loc-tree .location-row { flex: 1; min-width: 0; height: 32px; min-height: 32px; padding: 0 8px; }
+/* E530：有展开箭头的树里，名称行左内边距 4（箭头到名称 8）；写成 (0,4,0) 才压过通用弹层按钮 .pop button:not(…) 的 0 8px */
+.ws-loc-tree:not(.ws-loc-flat) :is(.ws-loc-line, .ws-loc-all) > .location-row { padding-left: 4px; }
 .ws-loc-tree .location-row > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ws-loc-tree .location-row > .ic { flex: none; }
 .ws-pop .ws-locations.ws-loc-tree { max-height: 720px; }
@@ -26772,16 +26789,12 @@ body:has(#app.bare-console) #dlg .db > .note:first-child { margin: 0 0 16px; }
 
 }
 @layer base {
-/* demo.css — 演示层样式（正式版不包含）。“演示”胶囊用 .btn 材质（高 32、14px、16px 箭头）；查看演示数据或状态时圆点为 #00AEEF。 */
-.demo-cap.btn {
-  /* 2.45：按钮改圆角 12 后，“演示”胶囊仍为胶囊（它是演示层的开关） */
-  border-radius: 9999px;
-  gap: 8px;
-  padding: 0 10px 0 14px;
-}
+/* demo.css — 演示层样式（正式版不包含）。2.55 E528：演示圆点为 32×32 圆形按钮，只有 8px 圆点（提示“演示”）；查看演示数据或状态时圆点为 #00AEEF。 */
+/* 2.45：按钮改圆角 12 后，演示开关仍为圆形（它是演示层的开关） */
+.demo-cap.btn { border-radius: 9999px; width: 32px; padding: 0; justify-content: center; }
 .demo-cap .dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #9a9a96;
   flex: none;
@@ -26789,9 +26802,6 @@ body:has(#app.bare-console) #dlg .db > .note:first-child { margin: 0 0 16px; }
 .demo-cap.on .dot {
   background: #00aeef;
   box-shadow: 0 0 0 3px #00aeef24;
-}
-.demo-cap .ic {
-  color: var(--text3);
 }
 /* 整页页面（登录、邀请、错误页、部署 App、运营后台）：固定在右上角。层级在弹窗遮罩（80）之上，弹窗打开时也可点；
    低于弹出菜单（110）与放弃确认（120）（2026-10-09 用户确认，Account 核查 K13） */
@@ -27150,6 +27160,8 @@ body:has(.demo-cap) > #ai-pal > .ai-pal {
     border-radius: 20px;
   }
 }
+/* E528：触屏与窄屏上演示圆点可见 40×40，透明命中 44×44 */
+@media (max-width: 850px), (pointer: coarse) { .demo-cap.btn { width: 40px; position: relative; } .demo-cap.btn::after { content: ""; position: absolute; inset: -2px; border-radius: 9999px; } }
 /* 大屏（OPS07）：画面右上是时钟，胶囊放在距视口左下角 16px 处（2026-10-09 用户确认，大屏显示方案 DP1） */
 .demo-fixed.demo-fixed-screen,
 .demo-fixed.demo-fixed-display {
@@ -27169,25 +27181,30 @@ body:has(.scr-public) .demo-fixed.demo-fixed-display {
   body:has(.demo-cap) > #ai-pal { padding-top: 80px; }
   body:has(.demo-cap) > #ai-pal > .ai-pal { height: calc(var(--ai-viewport-height, 100dvh) - 88px); max-height: none; }
 }
-/* 2.53 V294：工作区宽度 >850px 时，“演示”与逐个切换在左侧导航标志下方排成两行，层级与页头里的演示条相同（在面板和弹窗遮罩之上），
-   不再占页头；导航从演示条下方开始。逐个切换的“上一个”“下一个”只留箭头，名称见提示；侧栏收起时只留圆点与箭头，上下排列。
-   宽度 ≤850px 侧栏为抽屉，演示条照旧在页头（V225）。 */
+/* 2.55 E528：工作区宽度 >850px、侧栏展开时，演示圆点在标志一行，紧挨“收起侧栏”左侧 4px、上下居中，不另占一行；
+   逐个切换只在从“页面与状态”打开条目后出现，在标志下方占一行，导航只在这时下移。“上一个”“下一个”只留箭头，名称见提示。
+   侧栏收起时圆点在“展开侧栏”正下方，逐个切换的箭头在圆点下方上下排列。侧栏里的圆点与“收起侧栏”同一材质（透明底，悬停叠黑 8%、按下 10%）。
+   层级与页头里的演示条相同（在面板和弹窗遮罩之上）。宽度 ≤850px 侧栏为抽屉，圆点照旧在页头（V225）。 */
 #demoSide { position: fixed; top: 52px; left: 8px; z-index: 100; width: 240px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+#demoSide > .demo-cap.btn { background: none; box-shadow: none; }
+#demoSide > .demo-cap.btn:hover { background: var(--sel); }
+#demoSide > .demo-cap.btn:active { background: rgba(0, 0, 0, 0.1); }
+body:has(> #app:not(.collapsed)) > #demoSide > .demo-cap.btn { position: absolute; top: -42px; right: 36px; }
 #demoSide .demo-step { width: 100%; }
 #demoSide .demo-step-n { flex: 1; min-width: 0; max-width: none; }
 #demoSide .demo-step-b span { display: none; }
 #demoSide .demo-step-b.btn, #demoSide .demo-step-b.btn:first-child, #demoSide .demo-step-b.btn:last-child { justify-content: center; padding: 0 8px; }
-body:has(> #demoSide) #side > .brand { margin-bottom: 56px; }
-body:has(> #demoSide.has-step) #side > .brand { margin-bottom: 96px; }
-body:has(> #app.collapsed) > #demoSide { width: 40px; }
+body:has(> #demoSide.has-step) #side > .brand { margin-bottom: 56px; }
+body:has(> #app.collapsed) > #demoSide { width: 40px; align-items: center; }
 body:has(> #app.collapsed) > #demoSide .demo-step { flex-direction: column; }
 body:has(> #app.collapsed) > #demoSide .demo-step-n { display: none; }
-body:has(> #app.collapsed) > #demoSide .demo-cap.btn { width: 40px; padding: 0; gap: 4px; justify-content: center; font-size: 0; }
 body:has(> #app.collapsed) > #demoSide .demo-step-b.btn { width: 40px; padding: 0; }
+body:has(> #app.collapsed):has(> #demoSide) #side > .brand { margin-bottom: 56px; }
 body:has(> #app.collapsed):has(> #demoSide.has-step) #side > .brand { margin-bottom: 132px; }
 @media (pointer: coarse) {
-  body:has(> #demoSide) #side > .brand { margin-bottom: 64px; }
-  body:has(> #demoSide.has-step) #side > .brand { margin-bottom: 112px; }
+  body:has(> #app:not(.collapsed)) > #demoSide > .demo-cap.btn { top: -46px; }
+  body:has(> #demoSide.has-step) #side > .brand { margin-bottom: 64px; }
+  body:has(> #app.collapsed):has(> #demoSide) #side > .brand { margin-bottom: 64px; }
   body:has(> #app.collapsed):has(> #demoSide.has-step) #side > .brand { margin-bottom: 156px; }
 }
 
@@ -38743,7 +38760,8 @@ function projectNavigation(showViews = false) {
   const s = U.source;
   return `<div class="ws-space-nav">${s ? `<button class="btn ws-parent-back" data-act="sourceBack" aria-label="返回${esc(s.label)}" data-tip="返回${esc(s.label)}">${ico("back", "ic16")}</button>` : ""}${dirSearch()}${showViews ? views() : ""}</div>`;
 }
-// 项目、楼宇页头的“导出…资料”收进“⋯”菜单（与卡片“更多”同一菜单），全部项目仍为导出按钮（2.04 配置区全面核查 E100，2026-10-17 用户确认）
+// 2.55 E535（取代 2.04 E100 把导出收进“⋯”）：项目层、楼宇层的导出与编辑放到“⋯”外面，与全部项目层的导出同一种 32 透明圆形图标按钮，
+// 顺序为［导出］［编辑］［⋯］［主按钮］；“⋯”只留跳转、少用和删除。没有编辑或导出权限时不显示对应的图标。
 // 2.14 E246：整页操作（全部项目为导出与“创建项目”，项目层为 ⋯ 与“创建楼宇”，楼宇层为 ⋯ 与“上传楼层图”）放到标题行右侧，
 // 工具栏右端只放信息开关（32 透明图标按钮），面板在它正下方展开；窄屏标题行操作收进工具栏的“更多”（全面设计核查第 9 条）。
 // 名称：全部项目与项目层都叫“项目信息”，楼宇层为“楼宇信息”。原为信息开关、导出与创建按钮都在工具栏右组，名称“全部项目信息”。
@@ -38751,7 +38769,7 @@ function projectActions(kind, id, primary = "") {
   const noun = kind === "all" || kind === "projects" ? "项目" : kind === "buildings" ? spaceNoun("buildings", g("buildings", id)) : "楼层";
   // 信息按钮是开关：面板打开时 aria-expanded=true，再点一次收起（面板从工具栏下方开始，不盖住本组）。
   const infoOpen = !!U.spaceInfo && U.spaceInfo.kind === kind && (U.spaceInfo.id || "") === (id || "");
-  const acts = `${kind === "projects" || kind === "buildings" ? menuTrigger(iconBtn("更多", "more", "spaceMore", { kind, id, tb: 1 })) : canExportAny() ? (kind === "all" && !data().projects.length ? `<button class="iconbtn round" aria-disabled="true" aria-label="导出项目资料：尚无项目可导出" data-tip="尚无项目可导出" data-act="exAllOpen">${ico("download")}</button>` : iconBtn("导出项目资料", "download", kind === "all" ? "exAllOpen" : "exOpen", { p: kind === "projects" ? id : U.p, ...(kind === "buildings" ? { b: id } : {}) })) : ""}${primary}`;
+  const acts = `${kind === "projects" || kind === "buildings" ? `${canExportAny() ? iconBtn(`导出${noun}资料`, "download", "exOpen", { p: kind === "projects" ? id : U.p, ...(kind === "buildings" ? { b: id } : {}) }) : ""}${canEdit() ? iconBtn("编辑" + noun, "edit", "spaceForm", { kind, id }) : ""}${menuTrigger(iconBtn("更多", "more", "spaceMore", { kind, id, tb: 1 }))}` : canExportAny() ? (kind === "all" && !data().projects.length ? `<button class="iconbtn round" aria-disabled="true" aria-label="导出项目资料：尚无项目可导出" data-tip="尚无项目可导出" data-act="exAllOpen">${ico("download")}</button>` : iconBtn("导出项目资料", "download", kind === "all" ? "exAllOpen" : "exOpen", { p: kind === "projects" ? id : U.p, ...(kind === "buildings" ? { b: id } : {}) })) : ""}${primary}`;
   // 2.52 E478：这组操作放在选择器一行右端（作用于选择器选中的范围），标题行只留页面名称；≤599 时隐藏，收进工具栏“更多”。
   PAGE_CATEGORY_HEADERS.delete(U.page);
   // 2.16 E371：手机上（≤850）去掉工具栏的信息图标按钮，“项目信息”“楼宇信息”放进工具栏“更多”的第一项（图标 ⓘ，与卡片“⋯”菜单同一项）；
@@ -39100,7 +39118,7 @@ async function buildingImageSave(bid, file) {
     if (!b) throw Error("楼宇不存在或已删除");
     M.saveSpace(db, "buildings", { ...M.copy(b), image: img.url });
   });
-  wsFocusBack({ data: { act: "markBuilding" } });
+  wsFocusBack({ data: { act: "spaceMore" } }); // 2.55 E546：“楼层标记”在工具栏“更多”里，焦点回到“更多”
   render();
   msg("楼宇图片已保存");
 }
@@ -39165,7 +39183,7 @@ pages.projects = () => {
     );
   else if (U.view === "list")
     // 2.14 E248：全部项目列为“项目、城市、类型、规模、配置进度、更多”，楼宇列表为“楼宇、主要用途、规模、配置进度、更多”；名称格只写名称一行。
-    // 配置进度 160、更多 56 固定，其余按 名称 3 : 属性 1.5 : 规模 2 分（最小 200、96、160）；表格窄于 900 时隐藏“城市”，城市回到名称下第二行灰字。
+    // 2.55 E532：名称列占其余宽度（最少 200），其他列按内容定宽（见 project.css）；表格窄于 704 时隐藏“城市”，城市回到名称下第二行灰字。
     // 2.14 E271：窄于 640 时每行两层、不显示表头：名称与“更多”一行，下面灰字“城市 · 类型 · 规模”和铺满行宽的配置进度细条。
     // 原为“名称（下一行城市 · 类型）、规模、配置进度、更多”四列，剩余宽度全给名称列，手机上要横向拖动。
     // 2.14 E276：表名（读屏）随列表写“项目”或“楼宇”（原楼宇列表也写“项目”）。
@@ -39281,9 +39299,8 @@ function buildingPage() {
   // 原选择器旁的“楼层操作”（查看人员为“定位楼层”）并入“更多”，“定位楼层”与选择器、楼层导航重复，删除。
   const primary = canEdit() ? btn("上传楼层图", "uploadPlan", { f: "" }, "ws-upload-plan primary") : "";
   const bar = toolbar(projectActions("buildings", b.id, primary));
-  // “楼层标记”（原“标注楼层位置”，E244）在楼宇图右上角：离上、右各 12，白底 32 高胶囊，与缩放按钮同一表面；打开绘制工具菜单
-  // （aria-haspopup="menu"，Lovable 核查第 344 条）。进入标记后由同一位置的标记工具条取代；没有楼宇图片或窄屏不能标记时不显示。
-  const markEntry = canEdit() && b.image && !isMobile() && !U.buildingMark ? `<div class="ws-bmark-entry">${menuTrigger(btn("楼层标记", "markBuilding", {}, "ws-bmark-btn"))}</div>` : "";
+  // 2.55 E546：“楼层标记”（原“标注楼层位置”，E244）从楼宇图右上角移到楼宇层工具栏“更多”的第一组（spaceMore），画布上只留看图用的
+  // 全部楼层、楼层轨道、缩放和图片；进入标记后画布上的标记工具条照旧。原为楼宇图右上角离上、右各 12 的白底 32 高按钮。
   const split = U.buildingSplit;
   const canvasNote = split ? (split.ids ? (split.sel ? "拖动范围或顶点调整本层；点击其他楼层的范围切换" : "点击某层范围或在“调整楼层”中选择后调整；保存前不改变已保存的标记") : "拖出整栋楼的上下范围，再选择上端与下端楼层") : U.buildingMark ? (U.buildingEditId ? "拖动范围或顶点调整本层；保存前不改变已保存的标记" : "画出范围后选择楼层；点已标注的楼层可调整范围") : isMobile() && canEdit() && b.image && !(COARSE_MQ?.matches && isPhone()) ? wideHint("进行楼层标记") : "";
   // 2.14 E296（2026-10-21 HONG 按建议）：手机不再显示“进行楼层标记需要更宽的屏幕”浮条：手机本来没有楼层标记入口，浮条只挡住楼宇图；
@@ -39292,7 +39309,7 @@ function buildingPage() {
   const noteHtml = canvasNote ? `<span class="ws-building-note" role="status">${canvasNote}</span>` : "";
   // 楼层标记时提示放在标记工具条内、所有控件之后：控件换行时提示随之下移，不压住任何控件（与楼层页一致）。
   const markTop = canEdit() && b.image && !isMobile() && U.buildingMark;
-  return bar + `<div class="ws-building-stage">${floorRail()}${markTop ? `<div class="spatial-building-top">${spatialControl("楼层标记",true)}${noteHtml}</div>` : noteHtml}${markEntry}${b.image
+  return bar + `<div class="ws-building-stage">${floorRail()}${markTop ? `<div class="spatial-building-top">${spatialControl("楼层标记",true)}${noteHtml}</div>` : noteHtml}${b.image
     ? `<img id="buildingImage" style="transform:scale(${U.buildingZoom})" src="${esc(b.image)}" alt="${zhSub(esc(b.name), "r")}楼宇图"><div id="buildingCanvas" class="ws-building-canvas ${U.buildingMark ? "marking" : ""} ${split?.ids && !split.sel ? "split-pick" : ""}">${spatialBuildingRegions(b.id)}</div><div class="ws-building-bottom">${floorPick()}${zoomPill("楼宇图", U.buildingZoom, "buildingZoom", "buildingFit", "ws-building-zoom ")}</div>`
     : `<div class="ws-building-bottom">${floorPick()}</div>` + buildingNoImage(b)}</div>`;
 }
@@ -42116,8 +42133,9 @@ defineActions({
   spaceMore: (a, el) => {
     const noun = spaceNoun(a.kind, g(a.kind, a.id)),
       scope = { p: a.kind === "projects" ? a.id : g("buildings", a.id).projectId, b: a.kind === "buildings" ? a.id : "" },
-      // 楼宇页工具栏的“更多”（2.13 E237）：原“楼层操作”菜单并入，分三组：编辑楼宇、复制功能区到其他楼层（2.14 E256 去掉“调整楼层结构”，层数在“编辑楼宇”中改） │ 导出项目资料、配置进度、查看总览 │
-      // 查看已删除、删除楼层、删除楼宇
+      // 楼宇页工具栏的“更多”（2.13 E237）：原“楼层操作”菜单并入（2.14 E256 去掉“调整楼层结构”，层数在“编辑楼宇”中改）。
+      // 2.55 E535、E546：工具栏的“更多”不放编辑与导出（已在它左边），楼宇层为 楼层标记、复制功能区到其他楼层 │ 配置进度、查看总览 │ 查看已删除、删除楼层 │ 删除楼宇，
+      // 项目层为 配置进度、查看总览 │ 查看已删除 │ 删除项目；卡片与列表行的“⋯”照旧从“…信息”“编辑…”“导出…资料”开始。
       floorOps = a.tb && a.kind === "buildings" && canEdit() && U.b === a.id,
       projTrash = a.tb && a.kind === "projects" && U.role !== "member";
     pop(
@@ -42128,16 +42146,18 @@ defineActions({
           : a.kind === "projects"
             ? btn(ico("info", "ic16") + "项目信息", "spacePanelInfo", { kind: a.kind, id: a.id }, "popitem")
             : btn(ico("info", "ic16") + noun + "信息", "spacePanelInfo", { kind: a.kind, id: a.id }, "popitem")) +
-        (canEdit() ? btn(ico("edit", "ic16") + "编辑" + noun, "spaceForm", { kind: a.kind, id: a.id }, "popitem") : "") +
+        (canEdit() && !a.tb ? btn(ico("edit", "ic16") + "编辑" + noun, "spaceForm", { kind: a.kind, id: a.id }, "popitem") : "") +
+        // 2.55 E546：“楼层标记”在第一组最前（有楼宇图片、宽度 >850、不在标记中时），打开同一个绘制工具菜单
+        (floorOps && g("buildings", a.id)?.image && !isMobile() && !U.buildingMark ? btn(ico("shape-polygon", "ic16") + "楼层标记", "markBuilding", { from: "more" }, "popitem") : "") +
         (floorOps ? btn(ico("copy", "ic16") + "复制功能区到其他楼层", "zcForm", {}, "popitem") + "<hr>" : "") +
-        (canExportAny() ? btn(ico("download", "ic16") + (a.kind === "buildings" ? `导出${noun}资料` : "导出项目资料"), "exOpen", { p: scope.p, b: scope.b }, "popitem") : "") +
-        (floorOps ? "" : "<hr>") +
+        (canExportAny() && !a.tb ? btn(ico("download", "ic16") + (a.kind === "buildings" ? `导出${noun}资料` : "导出项目资料"), "exOpen", { p: scope.p, b: scope.b }, "popitem") : "") +
+        (a.tb ? "" : "<hr>") +
         btn(ico("clipboard-check", "ic16") + "配置进度", "deployList", scope, "popitem") +
         btn(ico("home", "ic16") + "查看总览", "openOverview", scope, "popitem") +
         (floorOps ? "<hr>" + btn(ico("trash-restore", "ic16") + "查看已删除", "bTrash", {}, "popitem") + btn(ico("trash", "ic16") + "删除楼层", "floorBatchForm", { op: "delete" }, "popitem danger") : "") +
         // 2.33 账户第 286 条：项目页工具栏的“更多”最后一组加“查看已删除”（原在机构菜单，名称“已删除”），普通成员以外都能看到
         (projTrash ? "<hr>" + btn(ico("trash-restore", "ic16") + "查看已删除", "trash", {}, "popitem") : "") +
-        (canEdit() && (a.kind !== "projects" || U.role === "admin") ? (floorOps || projTrash ? "" : "<hr>") + btn(ico("trash", "ic16") + "删除" + noun, "deleteSpace", { kind: a.kind, id: a.id }, "popitem danger") : "") +
+        (canEdit() && (a.kind !== "projects" || U.role === "admin") ? "<hr>" + btn(ico("trash", "ic16") + "删除" + noun, "deleteSpace", { kind: a.kind, id: a.id }, "popitem danger") : "") +
         "</div>",
     );
     $("#pop").querySelectorAll(".popitem").forEach((x) => x.setAttribute("role", "menuitem"));
@@ -43259,10 +43279,17 @@ function mapPopMeta(kind, o) {
   if (kind === "buildings") return o.kind === "outdoor" ? "室外区域" : [o.usage, scaleText(kind, o)].filter(Boolean).join(" · ");
   return [cityShort(o), o.usage, scaleText(kind, o)].filter(Boolean).join(" · ");
 }
-const mapPopLabel = (kind, o) => { const P = projectProgress(o); return `${o.name}，${mapPopMeta(kind, o)}，${P.G.out ? "未纳入本次部署" : P.label}`; };
+const mapPopLabel = (kind, o) => { const P = projectProgress(o), att = P.G.attention; return `${o.name}，${mapPopMeta(kind, o)}，${P.G.out ? "未纳入本次部署" : P.label + (att.total ? `，${att.total} 台设备需处理` : "")}`; };
+// 2.55 E534：配置进度与信息面板的配置进度卡片同一写法（卡片本身就是悬停出来的，不能再靠悬停提示）：第一行“配置进度”、右端“N / 6”，
+// 六段细条（每段 16 × 2），下一行灰字“下一步：…”，全部完成写“已交付”，有需处理设备时同一行接提醒色“ · N 台需处理”；不写本次部署范围。
+// 整张卡片点击进入，行内不另设按钮。取代铺满卡片、不写完成数的六段条（E231）。
+function mapPopProg(P) {
+  const att = P.G.attention;
+  return `<div class="ws-mpop-prog"><div class="ws-mpop-prog-h"><span>配置进度</span><span class="ws-mpop-n6">${P.G.done} / ${P.G.total}</span></div>${v13Segs(P.G.rows, "pc-seg")}<p class="ws-mpop-next">${esc(P.word)}${att.total ? `<span class="pc-sep" aria-hidden="true"> · </span><span class="warn">${att.total} 台需处理</span>` : ""}</p></div>`;
+}
 function mapPopHtml(kind, o) {
   const P = projectProgress(o);
-  return `<div class="ws-mpop-card" data-act="spaceOpen" data-kind="${kind}" data-id="${o.id}">${o.image ? `<img class="ws-mpop-im" src="${esc(o.image)}" alt="">` : ""}<div class="ws-mpop-b"><p class="ws-mpop-n">${esc(o.name)}</p><p class="ws-mpop-s">${nwSeps(mapPopMeta(kind, o))}</p>${P.G.out ? '<p class="ws-mpop-k">未纳入本次部署</p>' : `<p class="ws-mpop-k">配置进度</p>${v13Segs(P.G.rows, "ws-mpop-seg")}`}</div></div>`;
+  return `<div class="ws-mpop-card" data-act="spaceOpen" data-kind="${kind}" data-id="${o.id}">${o.image ? `<img class="ws-mpop-im" src="${esc(o.image)}" alt="">` : ""}<div class="ws-mpop-b"><p class="ws-mpop-n">${esc(o.name)}</p><p class="ws-mpop-s">${nwSeps(mapPopMeta(kind, o))}</p>${P.G.out ? '<p class="ws-mpop-k">未纳入本次部署</p>' : mapPopProg(P)}</div></div>`;
 }
 function mapGroupHtml(kind, list) {
   return `<div class="ws-mpop-card ws-mpop-group"><div class="ws-mpop-b"><p class="ws-mpop-n">同一位置 ${kind === "buildings" ? buildingCountText(list) : `${list.length} 个项目`}</p><div class="ws-mpop-rows">${list.map((o) => `<button type="button" class="ws-mpop-row" data-act="spaceOpen" data-kind="${kind}" data-id="${o.id}"><span>${esc(o.name)}</span><small>${esc(scaleText(kind, o))}</small></button>`).join("")}</div></div></div>`;
@@ -43295,25 +43322,32 @@ function wsPlaceSpaceInfo() {
     if (top > base && innerHeight - top - base >= 240) d.style.top = top + "px";
   });
 }
-// 2.52 E480：开关的位置，展开、收起相同：项目信息在卡片右上角，距右 24、与标题行垂直居中（卡片顶下 35）；
-// 设备标记与楼层页的面板在工作台（画布）右上角，距边 8。按钮在内容之后（内容区是尺寸容器），用 fixed 定位，按实际包含块校正。
-// 取代 2.16 E363 展开时贴面板左缘、收起后滑到卡片右边缘的做法。
-let wsInfoWas = false, rpRO = null, rpSeen = null;
+// 2.55 E531：把手的位置。展开时圆心压在面板左边的分隔线上；收起后贴在页面卡片右边缘内侧，落在 28 的页边距里，
+// 楼层图与设备标记贴在画布右边缘内侧 8。高度展开、收起相同：项目页与工具栏第一行上下居中（不随内容滚动），画布上与画布顶部的按钮同高。
+// 展开、收起时从原位置滑到新位置（与面板同步 200ms），滚动时直接跟随。把手在内容之后（内容区是尺寸容器），用 fixed 定位，按实际包含块校正。
+let wsInfoWas = false, rpRO = null, rpSeen = null, rpLast = null;
 function wsPlaceRpHandle(closing = false) {
   const h = $("#pbody > .ws-rp-handle"), pb = $("#pbody");
   if (!h || !pb || isMobile()) return;
   const card = pb.closest(".panel")?.getBoundingClientRect() || pb.getBoundingClientRect(),
-    sel = h.dataset.panel, p = sel && !closing ? $(sel) : null, open = !!p?.getClientRects().length,
+    sel = h.dataset.panel, p = sel && !closing ? $(sel) : null, pr = p?.getClientRects().length ? p.getBoundingClientRect() : null,
     bench = sel === ".ws-space-info" ? null : $(sel === ".ws-planning-panel" ? ".mk-bench" : ".sp-bench"),
     br = bench?.getBoundingClientRect(), w = h.offsetWidth, hh = h.offsetHeight,
-    x = Math.round(br ? br.right - 13 - w : card.right - 24 - w), y = Math.round(br ? br.top + 13 : card.top + 35 - hh / 2);
+    cb = bench?.querySelector(".ws-canvas-top :is(.btn, .iconbtn)")?.getBoundingClientRect(),
+    t0 = bench ? null : pb.querySelector(".ws-toolbar")?.firstElementChild?.getBoundingClientRect(),
+    cy = br ? (cb?.height ? cb.top + cb.height / 2 : br.top + 29) : t0?.height ? t0.top + pb.scrollTop + t0.height / 2 : card.top + 88,
+    x = Math.round(pr ? pr.left - w / 2 : br ? br.right - 8 - w : card.right - w), y = Math.round(cy - hh / 2);
   // 工作台随面板展开、收起改变宽度（并排或覆盖由页面按宽度决定），宽度变了再放一次。
   if (bench !== rpSeen && typeof ResizeObserver === "function") { rpRO ||= new ResizeObserver(() => wsPlaceRpHandle()); rpRO.disconnect(); if (bench) rpRO.observe(bench); rpSeen = bench; }
-  h.classList.toggle("open", open);
+  h.classList.toggle("open", !!pr);
+  h.classList.remove("moving");
   h.style.left = "0px"; h.style.top = "0px";
-  const o = h.getBoundingClientRect();
+  const o = h.getBoundingClientRect(),
+    prev = rpLast && rpLast.sel === sel && rpLast.y === y && rpLast.x !== x ? rpLast : null;
+  if (prev) { h.style.left = prev.x - o.left + "px"; h.style.top = y - o.top + "px"; void h.offsetWidth; h.classList.add("moving"); setTimeout(() => h.classList.remove("moving"), 220); }
   h.style.left = x - o.left + "px";
   h.style.top = y - o.top + "px";
+  rpLast = { sel, x, y };
 }
 document.addEventListener("scroll", (e) => { if (e.target === document || e.target?.id === "pbody") { wsPlaceSpaceInfo(); wsPlaceRpHandle(); } }, true);
 window.addEventListener("resize", () => { wsPlaceSpaceInfo(); wsPlaceRpHandle(); });
@@ -44545,14 +44579,14 @@ function infoAutoOpen() {
   if (!infoDocked() || isMobile() || U.spaceInfo || U.infoShut) return;
   if (infoPref() ?? (typeof innerWidth === "number" && innerWidth >= 1440)) U.spaceInfo = infoLevel();
 }
-// 2.52 E480：右侧面板的开关改为与“收起侧栏”同一种 32 圆形图标按钮（触屏 44），图标为右侧栏（左侧栏图标的镜像），放在面板右上角，
-// 展开、收起时位置不变：项目页在卡片右上角（与标题行同高），楼层图上在画布右上角，用画布按钮的白底（与“图层”同一材质）。
-// 取代 2.16 E363、E372 贴在面板左缘、收起后滑到卡片右边缘的 24×48 把手。项目页、楼层页与设备标记共用；手机上不显示（E371）。位置由 wsPlaceRpHandle 计算。
+// 2.55 E531：右侧面板的开关回到 IQAir 的方式（2.16 E363 贴在面板边上、随面板移动），把手改为 28 圆形：白底、1px #EBEBEB 边、小浮层阴影、16 箭头。
+// 展开时压在面板左边的分隔线上，箭头向右（收起）；收起后贴在页面卡片（楼层图、设备标记为画布）右边缘内侧，箭头向左（展开）。
+// 取代 2.52 E480 放在面板右上角、展开收起都不动的 32 圆形图标按钮。项目页、楼层页与设备标记共用；手机上不显示（E371）。位置由 wsPlaceRpHandle 计算。
 let rpHandleHtml = "";
 function rpHandle(label, open, act, args = {}, panel = "", cls = "") {
   const tip = (open ? "收起" : "展开") + label;
   const canvas = panel !== ".ws-space-info";
-  rpHandleHtml = `<button class="${canvas ? "btn" : "iconbtn round"} ws-rp-handle${canvas ? " on-canvas" : ""}${cls ? " " + cls : ""}${open ? " open" : ""}" data-act="${act}" ${Object.entries(args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")} data-panel="${panel}" aria-expanded="${open}"${open && panel === ".ws-space-info" ? ' aria-controls="wsSpaceInfo"' : ""} aria-label="${tip}" data-tip="${tip}">${ico("collapse", "ws-rp-ic")}</button>`;
+  rpHandleHtml = `<button type="button" class="ws-rp-handle${canvas ? " on-canvas" : ""}${cls ? " " + cls : ""}${open ? " open" : ""}" data-act="${act}" ${Object.entries(args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")} data-panel="${panel}" aria-expanded="${open}"${open && panel === ".ws-space-info" ? ' aria-controls="wsSpaceInfo"' : ""} aria-label="${tip}" data-tip="${tip}">${ico("back", "ic16 ws-rp-ic")}</button>`;
   return "";
 }
 const infoDocked = () => U.page === "projects" && !U.f;
@@ -44569,9 +44603,10 @@ function projectInformationPanel() {
   const outN = db.buildings.filter((b) => b.kind === "outdoor").length,
     allChips = `<div class="ws-info-sum">${[infoChip("building-2", db.projects.length, "个项目"), infoChip("building", db.buildings.length - outN, "栋楼宇"), ...(outN ? [infoChip("map", outN, "个室外区域")] : []), infoChip("zone", db.zones.length, "个功能区")].join("")}</div>`;
   const summary = all ? (db.projects.length ? allChips + infoRows([["城市", { html: tally(db.projects.map((x) => cityShort(x) || "未取得")) }], ["类型", { html: tally(db.projects.map((x) => x.usage || "未填写")) }]]) : `<p class="ws-info-none">${canEdit() ? "尚未创建项目" : "当前没有可访问的项目"}</p>`) : isF ? `${infoRows(floorInfoRows(o, o.id, out))}<details class="ws-details"><summary>修改记录</summary>${recordsTable(db.records.filter((r) => r.objectId === o.id))}</details>` : spaceInformationBody(o, isB);
-  // 只读面板不放底部“关闭”，由右上角的关闭按钮关闭；底部只在能编辑时放“编辑项目”（全面设计核查第 20 条（2026-10-12 用户确认）：原先底部另有“关闭”）
+  // 只读面板不放底部“关闭”，由右上角的关闭按钮关闭（全面设计核查第 20 条（2026-10-12 用户确认）：原先底部另有“关闭”）。
+  // 2.55 E535：项目、楼宇面板底部不再放“编辑项目”“编辑楼宇”，编辑只在工具栏一处；楼层与总平面信息照旧。
   // 设备页里只看楼层信息，不编辑楼层：白色“在项目中修改”打开项目 › 楼层的同一层（2026-10-17 用户确认，设备核查 E155，按 E141）
-  const foot = o && canEdit() ? `<div class="v13-df"><span class="sp"></span>${isF && U.page === "devices" ? btn("在项目中修改", "markDirSpace", { id: o.id }) : btn("编辑" + noun, "spaceForm", { kind: target.kind, id: o.id })}</div>` : "";
+  const foot = o && canEdit() && isF ? `<div class="v13-df"><span class="sp"></span>${isF && U.page === "devices" ? btn("在项目中修改", "markDirSpace", { id: o.id }) : btn("编辑" + noun, "spaceForm", { kind: target.kind, id: o.id })}</div>` : "";
   // 2.13 E225：项目页（全部项目、项目、楼宇）的信息面板停靠在内容右侧，宽 320、与第一行卡片顶边对齐，内容随之变窄，不浮在内容上；
   // 面板里不放关闭按钮，用工具栏的同一个按钮或 Esc 收起（原为浮在页面上的 400 宽卡片，带自己的关闭按钮）；手机上仍为整屏面板，保留关闭按钮。
   // 2.16 E362：停靠的面板贴在页面卡片右侧，从卡片顶到底整高，宽 400，仍挤开内容（不盖住），左侧 1px #EBEBEB 线，不加阴影；页面标题行与工具栏只占左栏。
@@ -44634,7 +44669,8 @@ defineActions({
     p.place = () => {
       below();
       const r = el.getBoundingClientRect(), availableWidth = document.documentElement.clientWidth;
-      p.style.width = Math.min(360, availableWidth - 16) + "px";
+      // 2.55 E529：与切换按钮同宽、左边对齐，按钮窄于 240 时取 240；不超出视口，左右至少 8（原固定 360）
+      p.style.width = Math.min(Math.max(r.width, 240), availableWidth - 16) + "px";
       p.style.left = Math.max(8, Math.min(r.left, availableWidth - p.offsetWidth - 8)) + "px";
     };
     p.place();
@@ -48788,9 +48824,9 @@ function showLocationPicker(anchor, intent) {
     body += "</div></section>";
   }
   body += `</div><p id="locationEmpty" class="ws-location-empty ws-pop-empty muted" role="status"${projects.length ? " hidden" : ""}>${projects.length ? "没有匹配的位置" : "当前没有可访问的位置"}</p>`;
-  // 2.14 E247：弹层宽取按钮宽与 320 中较大者，最宽 400（原为最小 280）；列表最高到窗口底边留 16，超出时底部 16 高渐隐；
-  // 放不下的名称悬停或键盘聚焦时用全站提示显示全名。
-  pop(anchor, body, true, { minWidth: 320, maxWidth: 400 });
+  // 2.55 E529：弹层与按钮同宽、左边对齐，按钮窄于 240 时取 240，最宽 400（2.14 E247 为至少 320）；列表最高到窗口底边留 16，
+  // 超出时底部 16 高渐隐；放不下的名称悬停或键盘聚焦时用全站提示显示全名。
+  pop(anchor, body, true, { minWidth: 240, maxWidth: 400 });
   $("#pop").setAttribute("role", "dialog");
   $("#pop").setAttribute("aria-label", "选择位置");
   locFit();
@@ -55288,7 +55324,8 @@ function wsInfoWords(root) {
 }
 // 2.46 账户第 407 条：全平台正文按词换行（大屏除外）。页面、弹窗与菜单的内容变化后，下一帧对新增的文字按 wsInfoWords 加 <wbr>，
 // 所在元素加 ws-words（keep-all）：机构名称、人名、词不在中间断开，标点不在行首。按钮、链接、输入、图表与大屏、运营后台、部署 App 不处理。
-const WS_WORDS_SKIP = "button,a,input,textarea,select,option,svg,script,style,code,pre,[contenteditable],.scr-stage,[data-page=console],[data-page=app],.ws-words-off";
+// 2.55 E533：地图（.leaflet-container）也不处理：名称标签所在图层宽度为 0，加 <wbr> 后会一字一行，且在 Leaflet 定位之后改变宽度、位置偏移。
+const WS_WORDS_SKIP = "button,a,input,textarea,select,option,svg,script,style,code,pre,[contenteditable],.scr-stage,[data-page=console],[data-page=app],.ws-words-off,.leaflet-container";
 // 2.47 账户第 444 条：整块可点的卡片（如选择卡）里的多行说明（small、p、.au-why）同样按词换行；单行的按钮文字仍不处理
 const WS_WORDS_CARD = "small,p,.au-why";
 function wsWordsSkip(el) {
@@ -59171,7 +59208,7 @@ document.addEventListener("change", (e) => {
   if (e.target.name === "outSrc") document.querySelectorAll("#dlg [data-out-sensor]").forEach((x) => (x.hidden = e.target.value !== "sensor"));
 });
 
-/* 页头右侧：页面附加操作。演示层在此追加“演示”胶囊；正式版没有。 */
+/* 页头右侧：页面附加操作。演示层在此追加演示圆点；正式版没有。 */
 function headerRight() {
   return `<div class="v13-head">${typeof headerExtras === "function" ? headerExtras() : ""}</div>`;
 }
@@ -78962,6 +78999,16 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "2.55",
+    date: "2026-10-29",
+    notes: [
+      "改进：项目页右侧面板改用贴在面板边上的把手展开和收起；列表视图的名称列更宽，常用宽度下显示全部列。",
+      "改进：项目与楼宇的编辑、导出改为工具栏上的图标按钮，不用再打开“更多”；“楼层标记”移到楼宇的“更多”中。",
+      "改进：地图卡片写出配置进度的完成数与下一步。",
+      "修复已知问题，优化界面细节。",
+    ],
+  },
+  {
     version: "2.54",
     date: "2026-10-29",
     notes: ["新增：项目与楼宇可以在地图上查看和定位，支持检索地址。"],
@@ -90899,7 +90946,7 @@ window.addEventListener("popstate", () => {
 /* demo.js — 演示层（2026-09-29 与实际页面拆分）。
    只在演示版（index.html）中加载；正式版（release/pacom-station.html）不包含本文件、demo-data.js、demo-ops.js、
    demo.css，也不包含部署 App 与运营后台。实际页面不引用这里的内容；这里只通过实际页面公开的函数与状态驱动页面：
-   页头右上角“演示”胶囊 → 演示菜单（数据、身份、页面与状态、其他产品、演示说明）。 */
+   演示圆点（左侧导航标志一行或页头右端） → 演示菜单（数据、身份、页面与状态、其他产品、演示说明）。 */
 
 /* ---------- 演示数据的导出标注（实际页面导出不含任何标注） ---------- */
 F.setSampleMark({ source: "演示数据", tag: "演示", note: "演示数据，不代表现场实际情况" });
@@ -91283,7 +91330,7 @@ function demoReload(hash = location.hash, reopen = "") {
   }
 })();
 
-/* ---------- “演示”胶囊：工作区在页头右侧；其他页面固定在右上角 ---------- */
+/* ---------- 演示圆点：工作区宽度 >850px 时在标志一行，≤850px 时在页头右端；整页页面固定在右上角 ---------- */
 const demoAiDown = () => typeof AIP !== "undefined" && !!AIP.down;
 // “没有访问权限”：刘静把王敏在广实物业服务有限公司的项目授权改为只有广实2号园（GLOBAL02）；恢复前演示圆点保持蓝色。
 function demoAccessMember() {
@@ -91294,7 +91341,7 @@ const demoDot = () =>
   DEMO.stateOn || DEMO.offline || demoAiDown() || demoAccessLost() || !!Demo.ctl?.gwOffline || Demo.ctl?.staleFrom != null || ["app", "console"].includes(U.page) || ((!BARE[U.page] || ["screen", "display"].includes(U.page)) && U.dataMode === "demo");
 const demoCap = () => {
   const on = demoDot();
-  return `<button type="button" class="btn demo-cap ${on ? "on" : ""}" data-act="demoMenu" aria-haspopup="menu" aria-expanded="false" aria-label="${on ? "演示：正在查看演示数据或状态" : "演示"}"><span class="dot" aria-hidden="true"></span>演示${ico("chevron", "ic16")}</button>`;
+  return `<button type="button" class="btn demo-cap ${on ? "on" : ""}" data-act="demoMenu" aria-haspopup="menu" aria-expanded="false" aria-label="${on ? "演示：正在查看演示数据或状态" : "演示"}" data-tip="演示"><span class="dot" aria-hidden="true"></span></button>`;
 };
 // 从目录（或链接）打开过状态后，胶囊左侧为“上一个”、当前条目的名称与序号、“下一个”；按完整目录的顺序，不受搜索过滤影响，不循环。
 // 离开该状态后仍显示，指向最后打开的条目；窄屏只显示序号与两个按钮。
@@ -91306,7 +91353,7 @@ function demoStepHtml() {
     `<button type="button" class="btn demo-step-b" data-act="demoStep" data-dir="${dir}" ${it ? `aria-label="${label}：${esc(it[2])}" data-tip="${label}：${esc(it[2])}"` : `aria-label="${label}" disabled`}>${dir < 0 ? ico("chevron", "ic16 demo-step-l") : ""}<span>${label}</span>${dir > 0 ? ico("chevron", "ic16 demo-step-r") : ""}</button>`;
   return `<div class="demo-step" role="group" aria-label="逐个查看页面与状态">${b(-1, order[i - 1], "上一个")}<span class="demo-step-n" title="${esc(order[i][2])}"><b>${esc(order[i][2])}</b> ${i + 1}/${order.length}</span>${b(1, order[i + 1], "下一个")}</div>`;
 }
-// 2.53 V294：工作区宽度 >850px 时，“演示”与逐个切换在左侧导航标志下方排成两行（#demoSide），不占页头；
+// 2.55 E528：工作区宽度 >850px 时演示圆点在左侧导航标志一行（“收起侧栏”左侧），逐个切换在标志下方（#demoSide），都不占页头；
 // ≤850px 侧栏是抽屉，照旧放在页头（V225）。宽度跨过 850px 时在原处换位置，不重画页面。
 const demoInSide = () => !BARE[U.page] && !isMobile();
 function headerExtras() {
@@ -93329,7 +93376,10 @@ function spatialAfterCloseModal(editing,pg,building,splitAsking) {
 }
 defineActions({
   startZone:(a,el)=>spatialMenu(document.querySelector('[data-act=startZone]')||el),
-  markBuilding:(a,el)=>{if(!canEdit())throw Error('当前角色不能进行楼层标记');if(isMobile())throw Error(wideHint('进行楼层标记'));if(!g('buildings',U.b)?.image)return msg('先上传楼宇图片，再进行楼层标记');spatialMenu(document.querySelector('.spatial-drawing-trigger[data-act=markBuilding]')||el,true)},
+  markBuilding:(a,el)=>{if(!canEdit())throw Error('当前角色不能进行楼层标记');if(isMobile())throw Error(wideHint('进行楼层标记'));if(!g('buildings',U.b)?.image)return msg('先上传楼宇图片，再进行楼层标记');
+    // 2.55 E546：从工具栏“更多”打开时先收起“更多”，工具菜单在“更多”按钮下方
+    if(a.from==='more'){closePop();el=document.querySelector('#pageCategoryTitleActions [data-act=spaceMore]')||el}
+    spatialMenu(document.querySelector('.spatial-drawing-trigger[data-act=markBuilding]')||el,true)},
   spatialBuildingTool:withPolicy({guard:true},(a)=>{closePop();U.buildingMark=true;U.buildingSplit=null;U.buildingShape=a.shape;U.buildingDraft=null;U.buildingEditId=null;U.buildingContext=spatialCaptureBuilding();U.spatialCanUndo=false;render()}),
   spatialBuildingStop:withPolicy({guard:true},()=>{U.buildingMark=false;U.buildingSplit=null;U.buildingDraft=null;U.buildingEditId=null;render()}),
   spatialBuildingCancel:()=>closeModal(true),
