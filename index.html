@@ -13411,6 +13411,17 @@ button.ops-zbadge:active {
   position: absolute;
   inset: 0;
 }
+/* 2.63 V440、V410：整行点击层只盖本行（楼宇级各楼层表、告警记录时间线、定时列表、联动规则卡）；行内另有的开关、链接与胶囊放在点击层之上 */
+.ov-t tr:has(> td > .ops-rowbtn),
+.al-tl-r,
+.sc-sl-r,
+.sc-lk {
+  position: relative;
+}
+:is(.ov-t tr:has(> td > .ops-rowbtn), .al-tl-r, .sc-sl-r, .sc-lk) :is(button, a, input, label, select, [role="switch"], [data-tip]):not(.ops-rowbtn) {
+  position: relative;
+  z-index: 1;
+}
 /* 功能区表、对比表按所在区域的宽度判断，放不下时由脚本加 fold，折叠成和手机一样（Lovable 核查第 187、218 条，2026-10-11 用户确认） */
 .ops-tw > .ops-t.ops-t-fit.fold {
   min-width: 0;
@@ -74588,7 +74599,7 @@ function ovTwinSvg(bid) {
           ph = [96, 48, 60, 24][k],
           lab = `${z.name} · ${ovShortEvent(a)}`,
           w = [...lab].reduce((t, ch) => t + (/[\u0000-ɏ]/.test(ch) ? 7.2 : 12.2), 0) + 24;
-        s += `<g class="ov-pin" data-act="opsGoFloor" data-p="${esc(U.p || "")}" data-b="${esc(bid)}" data-f="${esc(fid)}"><line x1="${x}" y1="${y}" x2="${x}" y2="${y - ph}" stroke="${OV_LVC[rk]}" stroke-width="1.4"/><circle cx="${x}" cy="${y}" r="2.5" fill="${OV_LVC[rk]}"/><g transform="translate(${x - 9},${y - ph - 11})"><rect width="${w}" height="22" rx="11" fill="#fff" stroke="${OV_LVC[rk]}" stroke-width="1.2"/><circle cx="11" cy="11" r="4" fill="${OV_LVC[rk]}"/><text x="20" y="15" class="ov-twin-t ink">${esc(lab)}</text></g></g>`;
+        s += `<g class="ov-pin" data-act="opsGoFloor" data-id="${esc(fid)}" data-z="${esc(z.id)}"><line x1="${x}" y1="${y}" x2="${x}" y2="${y - ph}" stroke="${OV_LVC[rk]}" stroke-width="1.4"/><circle cx="${x}" cy="${y}" r="2.5" fill="${OV_LVC[rk]}"/><g transform="translate(${x - 9},${y - ph - 11})"><rect width="${w}" height="22" rx="11" fill="#fff" stroke="${OV_LVC[rk]}" stroke-width="1.2"/><circle cx="11" cy="11" r="4" fill="${OV_LVC[rk]}"/><text x="20" y="15" class="ov-twin-t ink">${esc(lab)}</text></g></g>`;
       });
     const [tx, ty] = isoP(ox2, oy2, 0, 0, 0);
     s += `<text x="${tx - 6}" y="${ty - 18}" text-anchor="middle" class="ov-twin-t b">${esc(fl.name)}</text>`;
@@ -75210,7 +75221,10 @@ defineActions({
   // 2.59 V304：楼层刻度上点已接入的楼层切换
   opsGoFloor: (a) => {
     const f = g("floors", a.id);
-    if (f) route(U.page, { p: g("buildings", f.buildingId)?.projectId || U.p, b: f.buildingId, f: f.id, tab: U.tab || "" });
+    if (!f) return;
+    route(U.page, { p: g("buildings", f.buildingId)?.projectId || U.p, b: f.buildingId, f: f.id, tab: U.tab || "" });
+    // 2.63 V410：楼宇模型的告警立柱进入该楼层并打开对应功能区检视器
+    if (a.z && g("zones", a.z)) { U.opsZone = a.z; OPS.zpFocus = "open"; render(); }
   },
   opsKpiF: (a) => {
     U.opsKpiF = U.opsKpiF?.tab === a.tab && U.opsKpiF.k === a.k ? null : { tab: a.tab, k: a.k };
@@ -81284,6 +81298,14 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "2.63",
+    date: "2026-10-31",
+    notes: [
+      "改进：告警记录、定时、联动和楼宇的各楼层表中，点页签、按钮或任一行都打开对应内容，不再总是打开同一条。",
+      "改进：楼宇模型上的告警标签可以点开，进入该楼层并打开对应功能区。",
+    ],
+  },
   {
     version: "2.62",
     date: "2026-10-30",
