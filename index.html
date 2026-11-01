@@ -20534,9 +20534,10 @@ fieldset:disabled .au-primary {
 .au-reset-submit > .au-button-content { grid-area: 1 / 1; }
 .au-reset-submit > .au-button-content { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 .au-reset-submit .au-spin { flex: 0 0 16px; }
-.au-account-dlg:not(.au-reset-dlg) .df .btn { background: linear-gradient(transparent,#00000005); box-shadow: inset 0 0 0 .5px #00000040, inset 0 .5px 0 #fff; transition: background-color var(--au-exit); }
-.au-account-dlg:not(.au-reset-dlg) .df .btn:hover { background-color: #00000014; transition-duration: 0s; }
-.au-account-dlg:not(.au-reset-dlg) .df .btn:active { background-color: #0000001a; transition-duration: 0s; }
+/* 2.68 账户第 834 条：浅色底只给次按钮；主按钮保持黑底白字（原规则盖掉主按钮黑底，“改绑”“撤回”成了透明底白字） */
+.au-account-dlg:not(.au-reset-dlg) .df .btn:not(.primary) { background: linear-gradient(transparent,#00000005); box-shadow: inset 0 0 0 .5px #00000040, inset 0 .5px 0 #fff; transition: background-color var(--au-exit); }
+.au-account-dlg:not(.au-reset-dlg) .df .btn:not(.primary):hover { background-color: #00000014; transition-duration: 0s; }
+.au-account-dlg:not(.au-reset-dlg) .df .btn:not(.primary):active { background-color: #0000001a; transition-duration: 0s; }
 .au-account-dlg .au-legal { font: 400 14px/22px var(--ff); }
 .au-account-dlg .au-legal li + li { margin-top: 8px; }
 .au-account-dlg .au-dlead { margin: 0; font: 400 14px/22px var(--ff); }
@@ -22072,13 +22073,12 @@ a.au-link:focus-visible { outline: 2px solid #00AEEF; outline-offset: 2px; borde
   #dlg .au-neworg-fdlg .au-in:not(textarea) { height: 44px; min-height: 44px; }
   #dlg .au-neworg-fdlg .au-getcode { height: 36px; min-height: 36px; }
 }
-/* 2.67 账户第 795 条：“我的机构”最上方的待批准申请一行 */
-.au-join-pend .au-row-l { font: 400 14px/22px var(--ff); color: var(--text); }
+/* 2.67 账户第 795 条：“我的机构”最上方的待批准申请一行（2.68 第 838 条起与机构行同样式） */
 
 /* 2.67 账户第 799 条：手机（600px 及以下）页顶右侧只放“退出登录”，账户在标识下 8px 单独一行，左对齐，14/22 #636363，完整显示、超过一行时行末折行；到标题 24px（标题上边距不变） */
 .au-acct-m { display: none; }
 @media (max-width: 600px) {
-  .au-auth-shell > .au-top-acct .au-top-id { display: none; }
+  .au-auth-shell > .au-top-acct .au-top-id, .au-auth-shell .au-logo-line > .au-top-acct .au-top-id { display: none; }
   .au-auth-shell .au-group > .au-acct-m { display: block; margin: 8px 0 0; color: #636363; font: 400 14px/22px var(--ff); overflow-wrap: anywhere; }
 }
 
@@ -22158,6 +22158,60 @@ a.au-link:focus-visible { outline: 2px solid #00AEEF; outline-offset: 2px; borde
 }
 /* 2.67 账户第 817 条：手机订单卡片的订单号固定在内容下一行，12/18 灰色，同电脑表格 */
 .tw > .au-table.au-orders.fold > tbody > tr > td[data-label] > small.au-sub { display: block; margin-left: 0; font-size: 12px; line-height: 18px; color: var(--text3); }
+
+/* 2.68 账户第 825–827 条：订单详情“文件”卡片，每份一行：名称（合同后为办理进度标签）、收件信息在名称下一行，右侧 28 小按钮；手机上按钮排在名称下方 */
+.au-od-files > .au-row > .au-row-l { color: var(--text); font: 400 14px/22px var(--ff); }
+.au-od-files > .au-row > .au-row-l > small { color: #636363; font-size: 12px; line-height: 18px; }
+.au-od-fname { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
+.au-od-files > .au-row > .au-row-a { flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 600px) {
+  .au-od-files > .au-row { flex-wrap: wrap; row-gap: 8px; }
+  .au-od-files > .au-row > .au-row-l { flex: 1 1 100%; }
+  .au-od-files > .au-row > .au-row-a { justify-content: flex-start; }
+}
+
+/* 2.68 账户第 831、832 条：应付金额、价税合计下两行“不含税金额”“增值税（6%）”，名称在左、金额在右，12/18 灰字；
+   设备数量、有效期等说明行名称不折行，值靠右，放不下时在“至”后折行 */
+.au .au-dt-tax { display: grid; gap: 0; margin: 4px 0 0; text-align: left; font: 400 12px/18px var(--ff); color: #636363; }
+.au .au-dt-tax > .au-dt-tr { display: flex; justify-content: space-between; gap: 16px; }
+.au .au-dt-tax > .au-dt-tr > .num { white-space: nowrap; }
+.au .au-dt-r.au-dt-i { grid-template-columns: auto minmax(0, 1fr); }
+.au .au-dt-r.au-dt-i > dt { white-space: nowrap; }
+
+/* 2.68 账户第 829 条：机构设置内的订阅、续费、增加设备数量按工作区尺寸（取代登录页尺寸 36、16/24）：输入框、选择框电脑 32、触屏 44，
+   字 14/22（触屏 16/24）；“继续”“提交订单”“下载报价单”同“邀请成员”：32 高、14/22、字重 400 */
+#app .au-task.au .au-in:not(.au-ta), #app .au-task.au .au-sub-form :is(.au-qty-field input.input, .au-years-field .ws-select > .input) { height: 32px !important; min-height: 32px; padding-left: 12px; font: 400 14px/22px var(--ff); }
+#app .au-task.au .au-in.au-ta { font: 400 14px/22px var(--ff); }
+#app .au-task.au .au-primary, #app .au-task.au .au-sub-card > .au-apply-quote > .btn.au-docbtn2 { height: 32px; min-height: 32px; padding: 0 16px; font: 400 14px/22px var(--ff) !important; }
+@media (max-width: 850px), (pointer: coarse) {
+  #app .au-task.au .au-in:not(.au-ta), #app .au-task.au .au-sub-form :is(.au-qty-field input.input, .au-years-field .ws-select > .input) { height: 44px !important; min-height: 44px; font-size: 16px; line-height: 24px; }
+  #app .au-task.au .au-in.au-ta { font-size: 16px; line-height: 24px; }
+  #app .au-task.au .au-primary, #app .au-task.au .au-sub-card > .au-apply-quote > .btn.au-docbtn2 { height: 44px; min-height: 44px; }
+}
+/* 2.68 账户第 830 条：三步放进一张白卡（同机构设置其他卡片，内边距 24），与订单摘要卡顶端对齐 */
+#app .au-task .au-sub-grid > fieldset { padding: 24px; border-radius: 16px; background: #fff; box-shadow: var(--an-sh-xs); }
+#app .au-task .au-sub-grid > fieldset > .au-step-list:first-child { margin-top: 0; }
+/* 2.68 账户第 833 条：开票信息字段之间一律 16（出错时提示撑开） */
+#app .au-task.au .au-sub-form .op-b > .au-field.au-locked:not(.au-ferr):not(.au-primary) { margin-bottom: 16px; }
+#app .au-task .au-sub-form .au-inv-special > .au-field { margin-bottom: 0; }
+
+/* 2.68 账户第 835 条：弹窗内换成确认内容时，原来的标题、内容与按钮暂时隐藏（填过的内容保留），确认内容沿用弹窗的标题、内容与按钮样式 */
+#dlg .dialog.au-in-confirm > :not(.au-cf-swap) { display: none !important; }
+#dlg .dialog > .au-cf-swap { display: contents; }
+
+/* 2.68 账户第 836 条：已登录的双栏页，账户与“退出登录”在左栏标志同一行，右对齐左侧 400 内容的右缘；账户单行，过长省略（悬停显示完整） */
+.au-auth-shell .au-logo-line { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-width: 0; }
+.au-auth-shell .au-logo-line > .au-logo { flex: none; }
+.au-auth-shell .au-logo-line > .au-top-acct { position: static; flex: 0 1 auto; min-width: 0; max-width: none; height: 25px; }
+.au-auth-shell .au-logo-line > .au-top-acct .au-top-id { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #636363; }
+.au-auth-shell .au-logo-line > .au-top-acct .au-top-out { flex: none; }
+
+/* 2.68 账户第 839 条：多行输入只在框右下角留一个手柄（全站同一手柄 ws-resize）：多行框与手柄叠在外壳同一格，框不再自带浏览器手柄；
+   弹窗里的“申请说明”框紧跟字段名（4，同邀请码），原先手柄占了框上方一行 */
+.ws-textarea-shell > textarea { grid-area: 1 / 1; resize: none; }
+/* 2.68 账户第 840 条：工作区的“创建机构”“加入机构”弹窗字段名统一 14/22、字重 600，到输入框 4，同配置区弹窗；ⓘ 紧跟名称后 4 */
+#dlg .au-neworg-fdlg .au-lab { justify-content: flex-start; gap: 4px; }
+#dlg .au-neworg-fdlg .au-lab :is(label, .au-lab-t) { font: 600 14px/22px var(--ff); }
 
 }
 @layer base {
@@ -27862,6 +27916,22 @@ body:has(> #app.collapsed):has(> #demoSide.has-step) #side > .brand { margin-bot
   body:has(> #demoSide.has-step) #side > .brand { margin-bottom: 64px; }
   body:has(> #app.collapsed):has(> #demoSide) #side > .brand { margin-bottom: 64px; }
   body:has(> #app.collapsed):has(> #demoSide.has-step) #side > .brand { margin-bottom: 156px; }
+}
+
+/* 2.68 账户第 843 条：演示名称单行，过长省略，悬停显示完整（title）；序号不缩 */
+.demo-step-n { overflow: hidden; }
+.demo-step-n b { min-width: 0; white-space: nowrap; }
+.demo-step-n b wbr { display: none; } /* 分词点在不折行时仍会断行，名称里不用 */
+/* 2.68 账户第 843 条：手机（宽度≤600px）上演示控件不占标题行，改为页面右下角浮动的一组小按钮（距右、下各 16）；
+   弹窗、“搜索或提问”或确认框打开时移到右上角，落在弹窗上方让出的 80px 里，不盖住弹窗底部的按钮 */
+@media (max-width: 600px) {
+  .phead .v13-head > :is(.demo-step, .demo-cap) { position: fixed; z-index: 100; top: auto; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+  .phead .v13-head > .demo-cap { right: 16px; }
+  .phead .v13-head > .demo-step { right: 64px; }
+  .phead .v13-head > .demo-step .demo-step-b.btn, .phead .v13-head > .demo-step .demo-step-n { background: #fff; }
+  body:has(#app) > .demo-fixed.demo-fixed:not(.demo-fixed-screen):not(.demo-fixed-display) { top: auto; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); right: 16px; }
+  body:has(> :is(#dlg, #ai-pal, #discard)) .phead .v13-head > :is(.demo-step, .demo-cap),
+  body:has(> :is(#dlg, #ai-pal, #discard)) > .demo-fixed.demo-fixed.demo-fixed:not(.demo-fixed-screen):not(.demo-fixed-display) { top: 20px; bottom: auto; }
 }
 
 }
@@ -83878,8 +83948,10 @@ const auTopAcct = () => {
 // 标识和标题的位置与未登录页相同，登录前后不跳。
 // 2.67 账户第 799 条：宽度 600px 及以下，标识一行只放标识和“退出登录”，账户在标识下 8px 单独一行（14/22 #636363，完整显示、行末折行），到标题 24px
 const auAcctLine = (top) => { const me = top && AUTH.session === "in" ? auMe() : null, id = me && (me.email || me.phone); return id ? `<p class="au-acct-m">${esc(id)}</p>` : ""; };
+// 2.68 账户第 836 条：账户与“退出登录”移到左栏，与 PACOM 标志同一行，右对齐左侧 400 内容的右缘（取代第 447 条窗口右上角、距右边 32，
+// 那里落在右侧照片上看不清）；字号颜色不变，账户过长省略、悬停显示完整。手机上不变（标志行右侧“退出登录”，账户在标志下）。
 const auAuthShell = (inner, top = auTopAcct()) =>
-  `<div class="au au-split au-auth-shell">${top}<section class="au-left"><div class="au-center"><main class="au-group">${auLogo()}${auAcctLine(top)}${inner}</main></div>${auFooter()}</section><aside class="au-art" aria-hidden="true"><img src="${A.img_auth}" alt=""></aside></div>`;
+  `<div class="au au-split au-auth-shell"><section class="au-left"><div class="au-center"><main class="au-group">${top ? `<div class="au-logo-line">${auLogo()}${top}</div>` : auLogo()}${auAcctLine(top)}${inner}</main></div>${auFooter()}</section><aside class="au-art" aria-hidden="true"><img src="${A.img_auth}" alt=""></aside></div>`;
 // 选择机构、尚未加入机构、机构已暂停使用、服务暂时不可用、系统维护中用登录页的两栏外框
 // （2026-10-08 用户确认，Account 核查第 29–33、35、36 点）：与“无法加载”页相同，#app 另带 bare-login，尺寸与登录页一致。
 function auStatusShell(inner) {
@@ -84983,6 +85055,22 @@ function auPhoneTaken(name, holder, phone, retry, dlg = false) {
 // 确认弹窗叠在当前页面或弹窗上（同“是否放弃修改？”的层）：“取消”回到原处，确认后执行 fn。
 function auAskConfirm(title, text, ok, fn) {
   if ($("#discard")) return;
+  // 2.68 账户第 835 条：从弹窗里发起的确认不再叠第二层，在同一个弹窗内换成确认内容：标题、说明、“取消”（回到填写）与确认按钮
+  // （取代确认框“叠在当前页面或弹窗上”中“弹窗上”的部分）
+  const host = $("#dlg .dialog");
+  if (host && !host.querySelector(":scope > .au-cf-swap")) {
+    U.cfFocus = document.activeElement;
+    const box = document.createElement("div");
+    box.className = "au-cf-swap";
+    box.setAttribute("role", "alertdialog");
+    box.setAttribute("aria-label", title);
+    box.innerHTML = `<div class="dh"><h2>${esc(title)}</h2></div><div class="db"><p>${esc(text)}</p></div><div class="df">${btn("取消", "auCfBack")}${btn(ok, "auCfOk", {}, "primary")}</div>`;
+    host.classList.add("au-in-confirm");
+    host.append(box);
+    U.cfSwap = fn;
+    box.querySelector("[data-act=auCfBack]").focus();
+    return;
+  }
   U.discardFocus = wsRememberFocus($("#dlg") || $("#app"));
   const el = document.createElement("div");
   el.id = "discard";
@@ -85294,10 +85382,10 @@ function auSbPlanRows(kind) {
 function auSbCardBody(kind) {
   const l = auLic();
   let rows, c;
-  if (kind === "add") { c = auAddCalc(); rows = [["设备数量", c.ok ? `${fmt(l.quota)} 台增加到 ${fmt(c.to)} 台` : "—"], ["有效期", `付款到账当天至 ${auDate(l.end)}`]]; }
-  else { c = auBuyCalc(kind); rows = [["设备数量", c.ok ? `${fmt(c.q)} 台` : "—"], ["有效期", esc(c.period)]]; }
+  if (kind === "add") { c = auAddCalc(); rows = [["设备数量", c.ok ? `${fmt(l.quota)} 台增加到 ${fmt(c.to)} 台` : "—"], ["有效期", auPeriodHtml(`付款到账当天至 ${auDate(l.end)}`)]]; }
+  else { c = auBuyCalc(kind); rows = [["设备数量", c.ok ? `${fmt(c.q)} 台` : "—"], ["有效期", auPeriodHtml(c.period)]]; }
   const vat = auVatOf(c.total);
-  return `<dl class="au-dt-l">${rows.map(([k, v]) => `<div class="au-dt-r"><dt>${k}</dt><dd>${v}</dd></div>`).join("")}${c.lines.map((x) => `<div class="au-dt-r"><dt>${esc(x.t)}</dt><dd class="num">${auYuan(x.v)}</dd>${x.s ? `<dd class="au-dt-s">${esc(x.s)}</dd>` : ""}</div>`).join("")}</dl><div class="au-dt-sum"><div class="au-dt-r"><span>应付金额（含税）</span><b class="num">${c.ok ? auYuan(c.total) : "—"}</b></div>${c.ok ? `<p class="au-dt-tax">不含税金额 ${auYuan(auCents(c.total - vat))}，增值税（${Math.round(AU_PRICE.vat * 100)}%）${auYuan(vat)}</p>` : ""}</div>`;
+  return `<dl class="au-dt-l">${rows.map(([k, v]) => `<div class="au-dt-r au-dt-i"><dt>${k}</dt><dd>${v}</dd></div>`).join("")}${c.lines.map((x) => `<div class="au-dt-r"><dt>${esc(x.t)}</dt><dd class="num">${auYuan(x.v)}</dd>${x.s ? `<dd class="au-dt-s">${esc(x.s)}</dd>` : ""}</div>`).join("")}</dl><div class="au-dt-sum"><div class="au-dt-r"><span>应付金额（含税）</span><b class="num">${c.ok ? auYuan(c.total) : "—"}</b></div>${c.ok ? auTaxRows(c.total, vat) : ""}</div>`;
 }
 function auSbCard(kind) {
   const s = AUX.sub, dup = auSbDup(AUX.v.sb_uscc);
@@ -85421,7 +85509,8 @@ const AU_PAY_WAYS = [["wx", "微信支付"], ["ali", "支付宝"], ["bank", "对
 // 2.67 账户第 792 条：各块为机构设置同样式的白色卡片（小标题与状态标签在卡片上方，同 auSec）；行内容直接排在卡片里，其他内容加内边距
 const auOdCard = (id, title, tag, inner, attrs = "") => `<section class="au-sec au-od-block"${attrs} aria-labelledby="${id}-h"><div class="au-sec-h"><div class="au-od-hrow"><h2 class="au-od-h" id="${id}-h">${title}</h2>${tag}</div></div><div class="au-box au-od-box">${inner}</div></section>`;
 const auRowsIn = (rows) => auRows(rows).replace(/^<div class="au-box">/, "").replace(/<\/div>$/, "");
-const AU_CONTRACT_ST = { pacom: "PACOM 已盖章", signing: "签署中", both: "双方已盖章", paper: "PACOM 已盖章", void: "已作废" };
+// 2.68 账户第 825 条：合同只在客户办理双方盖章时显示进度（取代 2.48 第 482 条“PACOM 已盖章”）；没有办理时不显示标签
+const AU_CONTRACT_ST = { signing: "签署中", both: "双方已盖章", paper: "纸质合同办理中", void: "已作废" };
 // 签约平台名称由电子签约服务提供
 const AU_SIGN = { platform: "电子签约平台" };
 const AU_ORDER_KINDS = { sub: "订阅", renew: "续费", add: "增加设备数量", ai: "AI 用量包" };
@@ -85476,22 +85565,31 @@ function auOrderDetail(od) {
   const info = [["提交时间", auFmtY(od.at)], ["提交人", esc(od.by || "")], ["订单类型", AU_ORDER_KINDS[od.kind] || ""]];
   if (od.kind === "add") info.push(["设备数量", `${fmt(od.from)} 台增加到 ${fmt(od.to)} 台`]);
   else if (od.kind !== "ai") info.push(["设备数量", `${fmt(od.quota)} 台`]);
-  info.push(["有效期", esc(auOrderPeriod(od))]);
+  info.push(["有效期", auPeriodHtml(auOrderPeriod(od))]);
   return auOdCard("auOdDetail", "订单明细", "", `<div class="au-od-in">${auDetailBody(info, auOrderLines(od), od.amount)}</div>`);
 }
-// 2.64 账户第 682 条：已付款订单可下载开通确认单，写服务期间和设备数量（或用量包规格），加盖 PACOM 电子章
-function auOrderConfirm(od) {
-  const rows = od.kind === "ai" ? [["用量包", esc(`${auPackName(od.size)} × ${od.count || 1} 个`)]] : [["服务期间", esc(auOrderPeriod(od))], ["设备数量", `${fmt(od.kind === "add" ? od.to : od.quota)} 台`]];
-  return auOdCard("auOdConfirm", "开通确认单", badge("PACOM 已盖章", "good"), `${auRowsIn(rows)}<div class="au-od-acts au-od-in">${btn(ico("download", "ic16") + "下载开通确认单", "auOrderDoc", { doc: "confirm" }, "au-docbtn au-docbtn2")}</div>`);
+// 2.68 账户第 825–827 条：合同与开通确认单合为一张“文件”卡片，每份一行（取代 2.67 第 792 条各一张卡片、2.64 第 682 条开通确认单列服务期间和设备数量）。
+// 合同：名称后为办理进度标签（没有办理时不显示），右侧“下载”“在线签署”“申请纸质合同”；已申请纸质合同时收件信息在名称下一行。
+// 开通确认单：付款后才有，不加标签，右侧“下载”。卡片里的按钮一律 28 小按钮，下载按钮保留图标；手机上按钮排在名称下方。
+const auOdDl = (doc, what) => btn(ico("download", "ic16") + "下载", "auOrderDoc", { doc }, "sm").replace("<button ", `<button aria-label="下载${what}" `);
+function auOrderContractSt(od) {
+  const st = od.contract || "pacom";
+  if (st === "signing") return [od.signer?.name ? `签署中 · ${od.signer.name}` : AU_CONTRACT_ST.signing, ""];
+  if (st === "both") return [AU_CONTRACT_ST.both, "good"];
+  if (st === "void") return [AU_CONTRACT_ST.void, ""];
+  return od.paper ? [AU_CONTRACT_ST.paper, ""] : null;
 }
-// 合同（第 482 条）：小标题后为状态标签；下面“下载电子合同”，PACOM 已盖章时加“在线签署”“申请纸质合同”；寄送中时按钮上方写收件地址
-function auOrderContract(od) {
-  const st = od.contract || "pacom", acts = [btn(ico("download", "ic16") + "下载电子合同", "auOrderDoc", { doc: "contract" }, "au-docbtn au-docbtn2")];
-  if (st === "pacom" && !od.paper) acts.push(btn("在线签署", "auOrderSign", { id: od.id }, "sm"), btn("申请纸质合同", "auOrderPaper", { id: od.id }, "sm"));
-  if (st === "signing") acts.push(btn("重新发送", "auOrderSign", { id: od.id }, "sm"));
-  const label = st === "signing" && od.signer?.name ? `签署中 · ${od.signer.name}` : AU_CONTRACT_ST[st] || AU_CONTRACT_ST.pacom;
-  const paper = od.paper && st !== "void" ? `<p class="au-od-p">${esc(`已申请纸质合同 · ${auDate(od.paper.at, true)} · 寄至 ${od.paper.name} · ${auMask(od.paper.tel)}`)}</p>` : "";
-  return auOdCard("auOdContract", "合同", badge(label, st === "both" ? "good" : ""), `<div class="au-od-in">${paper}<div class="au-od-acts">${acts.join("")}</div></div>`);
+function auOrderFiles(od) {
+  const rows = [];
+  if (od.kind !== "ai") {
+    const st = od.contract || "pacom", tag = auOrderContractSt(od), acts = [auOdDl("contract", "合同")];
+    if (st === "pacom" && !od.paper) acts.push(btn("在线签署", "auOrderSign", { id: od.id }, "sm"), btn("申请纸质合同", "auOrderPaper", { id: od.id }, "sm"));
+    if (st === "signing") acts.push(btn("重新发送", "auOrderSign", { id: od.id }, "sm"));
+    const sub = od.paper && st !== "void" ? esc(`寄至 ${od.paper.name} · ${auMask(od.paper.tel)}，${auDate(od.paper.at, true)}申请`) : "";
+    rows.push([`<span class="au-od-fname">合同${tag ? badge(...tag) : ""}</span>`, "", acts.join(""), sub]);
+  }
+  if (od.status === "paid") rows.push([`<span class="au-od-fname">开通确认单</span>`, "", auOdDl("confirm", "开通确认单")]);
+  return rows.length ? auOdCard("auOdFiles", "文件", "", `<div class="au-od-files">${auRowsIn(rows)}</div>`) : "";
 }
 // 2.47 账户第 436 条：每笔订单保存下单时的开票信息；没有保存的旧订单按机构当前的开票信息显示
 const auOrderBilling = (od) => od?.billing || auLic().billing || {};
@@ -85500,7 +85598,8 @@ function auOrderInvoice(od) {
   // 2.64 账户第 679–681 条：待付款写“付款后开具”；抬头取订单上的值；已开票时列发票号码、开票日期、开票内容和税率，可申请重开
   const b = auOrderBilling(od), o = auOrg(), code = od.uscc || auLic().uscc || "", issued = od.invoice === "issued" || (auPostpay(od) && od.status === "pending"), red = od.status === "refunded" && issued;
   const st = red ? ["已红冲", ""] : issued ? ["已开票", "good"] : od.status === "pending" ? ["付款后开具", ""] : ["开票中", ""];
-  const act = issued && !red ? btn(ico("download", "ic16") + "下载发票", "auOrderDoc", { doc: "invoice" }, "au-docbtn au-docbtn2") + btn("申请重开", "auInvReissue", { id: od.id }, "sm ghost au-textbtn") : od.status === "pending" ? btn("修改开票信息", "auBillEdit", { id: od.id }, "sm ghost") : "";
+  // 2.68 账户第 827、828 条：卡片里的按钮一律 28 小按钮；“修改开票信息”为与下载按钮同样的描边小按钮，左缘与各行名称对齐
+  const act = issued && !red ? btn(ico("download", "ic16") + "下载发票", "auOrderDoc", { doc: "invoice" }, "sm") + btn("申请重开", "auInvReissue", { id: od.id }, "sm ghost au-textbtn") : od.status === "pending" ? btn("修改开票信息", "auBillEdit", { id: od.id }, "sm") : "";
   const inv = issued ? [["发票号码", `<span class="num">${esc(od.invNo || auInvNoGen(od))}</span>`], ["开票日期", auDate(od.invAt || od.paidAt || od.at, true)], ["开票内容", esc(od.kind === "ai" ? "信息技术服务*AI 用量包" : "信息技术服务*平台服务费")], ["税率", `${Math.round((od.vat ?? AU_PRICE.vat) * 100)}%`]] : [];
   return auOdCard("auOdInv", "发票", badge(...st), `${auRowsIn([...inv, ["发票类型", esc(auBillTypeName(b))], ["发票抬头", esc(od.fullName || o.fullName || o.name)], ["纳税人识别号", code ? `<span class="num">${esc(code)}</span>` : `<span class="muted">—</span>`], ["收票邮箱", b.email ? esc(b.email) : `<span class="muted">—</span>`]])}${act ? `<div class="au-od-acts au-od-in">${act}</div>` : ""}`);
 }
@@ -85526,7 +85625,7 @@ pages.order = () => {
   const act = od.status === "cancelled" && od.kind !== "ai" ? btn("重新下单", "auOrderAgain", { id: od.id }, "sm") : "";
   // 2.67 账户第 792 条：标题下一行为订单号（可复制）与状态标签
   const meta = `<div class="au-od-meta">订单号 <span class="au-code-v"><span class="num">${esc(od.no)}</span><button type="button" class="au-copy" data-act="auOrderNoCopy" data-id="${od.id}" aria-label="复制订单号" data-tip="复制">${ico("copy", "ic16")}</button></span>${badge(stText, tone)}</div>`;
-  return auTaskPage("orders", "订单详情", "返回订单与发票", `${meta}<div class="au-od-status"><span>${esc(auOrderStatusText(od))}</span>${act}</div>${od.status === "pending" ? auOrderPayBlock(od) : ""}${auOrderDetail(od)}${od.status === "paid" ? auOrderConfirm(od) : ""}${od.kind === "ai" ? "" : auOrderContract(od)}${od.status === "cancelled" ? "" : auOrderInvoice(od)}<div class="au-links au-od-foot"><button type="button" class="au-textbtn" data-act="auSupport">联系支持</button>${od.status === "pending" ? `<button type="button" class="au-textbtn danger" data-act="auOrderCancel" data-id="${od.id}">取消订单</button>` : ""}</div>`);
+  return auTaskPage("orders", "订单详情", "返回订单与发票", `${meta}<div class="au-od-status"><span>${esc(auOrderStatusText(od))}</span>${act}</div>${od.status === "pending" ? auOrderPayBlock(od) : ""}${auOrderDetail(od)}${auOrderFiles(od)}${od.status === "cancelled" ? "" : auOrderInvoice(od)}<div class="au-links au-od-foot"><button type="button" class="au-textbtn" data-act="auSupport">联系支持</button>${od.status === "pending" ? `<button type="button" class="au-textbtn danger" data-act="auOrderCancel" data-id="${od.id}">取消订单</button>` : ""}</div>`);
 };
 TITLES.order = "机构设置";
 
@@ -85645,7 +85744,7 @@ BARE.invite = () => {
   const meNow = AUTH.session === "in" ? auMe() : null;
   // 2.51 账户第 494–496 条：标题“当前账户不是受邀账户”，说明写邀请人、打码的受邀邮箱和机构；“切换账户”退出后按未登录打开同一邀请（有账户到登录页，没有到注册页）。
   if (meNow && !auInviteMatches(meNow, inv) && inWs)
-    return toWs("当前账户不是受邀账户", `<b>${zhSub(esc(inv.by), "r")}</b>邀请 <b>${esc(auMask(inv.email || inv.phone))}</b> 加入${zhSub(`<b>${esc(org.name)}</b>`, "l")}。`, `<button type="button" class="btn" data-act="auInviteSwitch" data-hash="${esc(location.hash)}">切换账户</button>`);
+    return toWs("当前账户不是受邀账户", `<b>${zhSub(esc(inv.by), "r")}</b>邀请 <b>${esc(auMask(inv.email || inv.phone))}</b> 加入${zhSub(`<b>${esc(org.name)}</b>`, "l")}。`, `<button type="button" class="btn primary" data-act="auInviteSwitch" data-hash="${esc(location.hash)}">切换账户</button>`); // 2.68 账户第 841 条：唯一的操作为黑底主按钮
   if (meNow && !auInviteMatches(meNow, inv))
     return auAuthShell(
       `<h1 class="au-h1">当前账户不是受邀账户</h1><p class="au-lead"><b>${zhSub(esc(inv.by), "r")}</b>邀请 <b>${esc(auMask(inv.email || inv.phone))}</b> 加入${zhSub(`<b>${esc(org.name)}</b>`, "l")}。</p>${auStActs(auStBtn("切换账户", "auInviteSwitch", "", true), auMyOrgs().length ? auStBtn("返回工作区", "auApplyBack") : auStBtn("返回", "auGo", ' data-page="orgs"'))}`,
@@ -86540,6 +86639,16 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "2.68",
+    date: "2026-11-01",
+    notes: [
+      "改进：订单详情的合同与开通确认单合为“文件”卡片，合同只在办理双方盖章时显示进度。",
+      "改进：订阅表单改为工作区尺寸，三步放进卡片；税额分两行写明不含税金额与增值税。",
+      "改进：账户弹窗内的确认不再叠加第二层；选择机构等页面的当前账户移到左栏标志一行。",
+      "修复已知问题，优化界面细节。",
+    ],
+  },
   {
     version: "2.67",
     date: "2026-11-01",
@@ -87845,6 +87954,19 @@ Object.assign(actions, {
   // 短信登录受限时的“重置密码”：用验证码重置，带入当前手机号码（账户核查第 19 条）
   // 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 142–148、151 条）
   // 2.40 账户第 346 条：“改绑到此账户”先确认；改绑后重新提交原来的操作（验证码已通过）。
+  // 2.68 账户第 835 条：弹窗内的确认内容“取消”回到填写（填过的内容不变），确认后先回到填写再执行
+  auCfBack: () => {
+    const h = $("#dlg .dialog.au-in-confirm"), f = U.cfFocus;
+    h?.querySelector(":scope > .au-cf-swap")?.remove();
+    h?.classList.remove("au-in-confirm");
+    U.cfSwap = null; U.cfFocus = null;
+    if (f?.isConnected) f.focus(); else h?.querySelector(".df .btn")?.focus();
+  },
+  auCfOk: () => {
+    const fn = U.cfSwap;
+    actions.auCfBack();
+    fn?.();
+  },
   auRebindAsk: () => {
     const r = AUX.rebind;
     if (!r) return;
@@ -89840,7 +89962,8 @@ const AU_RETENTION = [
   ["场景与控制的操作记录", "5 年"],
   ["AI 对话", "12 个月"],
   ["审计日志", "12 个月"],
-  ["已删除的内容", "30 天，期满自动彻底删除"],
+  // 2.68 账户第 842 条：名称与配置区一致，叫“回收站”
+  ["回收站", "30 天，期满自动彻底删除"],
 ];
 // 类名整体不拆开（参考组件核查第 429 条）
 const auRetentionSec = () =>
@@ -90386,7 +90509,16 @@ function auFeeLines(q, years) {
 // info 为前面的说明行 [名称, 已转义的值]（有效期等）。
 function auDetailBody(info, lines, total) {
   const vat = auVatOf(total);
-  return `<dl class="au-dt-l">${info.map(([k, v]) => `<div class="au-dt-r"><dt>${k}</dt><dd>${v}</dd></div>`).join("")}${lines.map((x) => `<div class="au-dt-r"><dt>${esc(x.t)}</dt><dd class="num">${auYuan(x.v)}</dd>${x.s ? `<dd class="au-dt-s">${esc(x.s)}</dd>` : ""}</div>`).join("")}</dl><div class="au-dt-sum"><div class="au-dt-r"><span>价税合计</span><b class="num">${auYuan(total)}</b></div><p class="au-dt-tax">不含税金额 ${auYuan(auCents(total - vat))}，增值税（${Math.round(AU_PRICE.vat * 100)}%）${auYuan(vat)}</p></div>`;
+  return `<dl class="au-dt-l">${info.map(([k, v]) => `<div class="au-dt-r au-dt-i"><dt>${k}</dt><dd>${v}</dd></div>`).join("")}${lines.map((x) => `<div class="au-dt-r"><dt>${esc(x.t)}</dt><dd class="num">${auYuan(x.v)}</dd>${x.s ? `<dd class="au-dt-s">${esc(x.s)}</dd>` : ""}</div>`).join("")}</dl><div class="au-dt-sum"><div class="au-dt-r"><span>价税合计</span><b class="num">${auYuan(total)}</b></div>${auTaxRows(total, vat)}</div>`;
+}
+// 2.68 账户第 831 条：应付金额、价税合计下分两行，名称在左、金额在右：“不含税金额”“增值税（6%）”，12/18 灰字（取代一行“不含税金额 ¥…，增值税（6%）¥…”）
+function auTaxRows(total, vat) {
+  return `<div class="au-dt-tax">${[["不含税金额", auCents(total - vat)], [`增值税（${Math.round(AU_PRICE.vat * 100)}%）`, vat]].map(([k, v]) => `<div class="au-dt-tr"><span>${k}</span><span class="num">${auYuan(v)}</span></div>`).join("")}</div>`;
+}
+// 2.68 账户第 832 条：有效期的名称不折行；值放不下时在“至”后折行（各段不折行），右对齐
+function auPeriodHtml(s) {
+  const p = String(s).split("至");
+  return p.map((x, i) => `<span class="au-nowrap">${esc(x)}${i < p.length - 1 ? "至" : ""}</span>`).join("<wbr>");
 }
 // 本机构的订阅（许可服务的数据，首次使用时建立）：state 为 "none"（未订阅，2.37 第 296 条：创建机构即为未订阅，不限期限）或 "active"。
 function auLic(id = AUTH.org) {
@@ -90874,7 +91006,8 @@ AU_ORG_PAGES.orders = () => {
     filters = tabs(kinds, k, "auOrderKind", "auOrderPanel", "订单页签");
   // 单据在行尾“…”菜单里（第 60 条）；行内只留付款方式和“开票中”、合同状态
   // 2.37 账户第 312 条：合同签署中、双方已盖章或纸质合同寄送中时写出合同状态
-  const note = (x) => [x.status === "paid" && x.invoice !== "issued" ? "开票中" : "", x.contract === "signing" ? "签署中" : x.contract === "both" ? "双方已盖章" : x.paper ? "已申请纸质合同" : ""].filter(Boolean);
+  // 2.68 账户第 825 条：纸质合同办理中与订单详情同一说法
+  const note = (x) => [x.status === "paid" && x.invoice !== "issued" ? "开票中" : "", x.contract === "signing" ? "签署中" : x.contract === "both" ? "双方已盖章" : x.paper ? "纸质合同办理中" : ""].filter(Boolean);
   const rows = list.length
     ? `<div class="tw"><table class="t au-table au-wrap au-orders"><thead><tr><th>提交时间</th><th>内容</th><th class="num">金额</th><th>状态</th><th>付款方式</th><th class="au-th-act"><span class="sr-only">操作</span></th></tr></thead><tbody>${list
         .map(
@@ -91329,7 +91462,8 @@ const AU_ACC_PAGES = {
         ],
         // 写“上次修改 8 月 12 日”，不是当年时加年份（ACCOUNT02，Account A14）
         // 2.67 账户第 803 条：按钮写“修改”，弹窗标题仍为“修改密码”
-        ["密码", "", btn("修改", "auChangePwd", {}, "sm"), `上次修改 ${auDate(me.pwdAt)}`],
+        // 2.68 账户第 837 条：“上次修改 8 月 12 日”放到数值列，同姓名、电子邮箱、手机号码三行（取代第 802 条密码行说明延伸到按钮前）
+        ["密码", `上次修改 ${auDate(me.pwdAt)}`, btn("修改", "auChangePwd", {}, "sm")],
       ])}`,
     )}${auSec(
       // 2.64 账户第 746 条：本人可下载自己的个人信息
@@ -91452,7 +91586,9 @@ const AU_ACC_PAGES = {
       `${(() => { const rows = auMailInviteRows(); return rows ? `<div class="au-box au-mail-invs">${rows}</div>` : ""; })()}<div class="au-box">${(() => {
         // 2.67 账户第 795 条：待批准的加入申请在列表最上方一行，行右“撤回”
         const m = auMyJoin();
-        return m && auJoinState(m.r) === "pending" && !auMe().orgs?.[m.org] ? `<div class="au-row au-join-pend"><div class="au-row-l">你申请加入${zhSub(`<b>${esc(auOrg(m.org).name)}</b>`, "l")}，等待批准。</div><div class="au-row-a">${btn("撤回", "auJoinWithdrawAsk", {}, "sm")}</div></div>` : "";
+        // 2.68 账户第 838 条：同机构行样式：机构首字头像，名称加琥珀色标签“待批准”，下一行“申请于 11 月 1 日 15:20”，右侧“撤回”
+        const jo = m && auOrg(m.org);
+        return m && auJoinState(m.r) === "pending" && !auMe().orgs?.[m.org] ? `<div class="au-row au-join-pend"><div class="au-row-l au-orgline">${auMark({ name: jo.name }, 32)}<span><b>${esc(jo.name)}<span class="chip warn au-ml">待批准</span></b><small>申请于 ${auFmtY(m.r.at)}</small></span></div><div class="au-row-a">${btn("撤回", "auJoinWithdrawAsk", {}, "sm")}</div></div>` : "";
       })()}${orgs
         .map((o) => {
           const cur = o.id === AUTH.org;
