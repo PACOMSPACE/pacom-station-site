@@ -33576,6 +33576,284 @@ li.none .ov2-fr > small { font-size: 12px; line-height: 18px; }
   .sc-ask-ft { flex-wrap: wrap; }
 }
 
+/* ===== 2.74 运营界面第三版（V693–V708、V724）：四页一个框架，两种页签，一层卡片，颜色只表示状态和数据 ===== */
+:root { --v3-ink: #030303; --v3-ink-2: #2e2e2e; --v3-mute: #636363; --v3-line: #ebebeb; --v3-sel: #f5f5f5; --v3-navy: #202a44; }
+/* V693 页头行：距内容区顶 24、高 32；页签行距页头 16、高 40、底线 1px #EBEBEB；内容距页签行 16，左右各 24；没有页签的页面内容接在页头下 16 */
+#app:is([data-page="overview"], [data-page="analysis"], [data-page="alarms"], [data-page="scenes"]) .phead { height: auto; min-height: 56px; padding: 24px 24px 0; align-items: center; column-gap: 0; }
+#app:is([data-page="overview"], [data-page="analysis"], [data-page="alarms"], [data-page="scenes"]) .pbody { padding: 16px 24px 24px; }
+#app:is([data-page="analysis"], [data-page="alarms"], [data-page="scenes"]) .phead h1 { flex: none; margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: var(--v3-ink); }
+#app .phead > .ops-hscope { display: inline-flex; align-items: center; gap: 4px; flex: 0 1 auto; width: auto; min-width: 0; max-width: 320px; height: 32px; min-height: 32px; margin: 0 0 0 6px; padding: 0 6px; border: 0; border-radius: 6px; background: none; box-shadow: none; color: var(--v3-ink-2); font: inherit; font-size: 14px; line-height: 22px; font-weight: 500; cursor: pointer; }
+.phead > .ops-hscope:hover { background: rgba(0, 0, 0, 0.04); }
+.phead > .ops-hscope > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.phead > .ops-hscope > .ic { flex: none; width: 16px; height: 16px; color: var(--v3-mute); }
+.phead > .ops-hscope:not(:has(+ .ops-live)) { margin-right: auto; }
+/* 实时标记：6 px 绿点加“10:30”，12/18 #636363；数据超过 5 分钟没更新为琥珀点；回放为深蓝点加“回放 · 时刻” */
+.phead .ops-live,
+#app[data-page="overview"] .phead .ops-live { display: inline-flex; align-items: center; gap: 6px; height: auto; min-height: 18px; margin: 0 auto 0 12px; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: var(--v3-mute); font-size: 12px; line-height: 18px; font-weight: 400; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.phead .ops-live > i { position: static; flex: none; width: 6px; height: 6px; margin: 0; border-radius: 50%; background: #2e9461; }
+.phead .ops-live > i::after { display: none; }
+.phead .ops-live.stale > i { background: #d29a10; }
+.phead .ops-live.replay { color: var(--v3-ink-2); font-weight: 500; }
+.phead .ops-live.replay > i { background: var(--v3-navy); }
+/* V694 页面页签（数据分析、告警、场景）：文字页签 14/22，间隔 24，不带图标、灰底容器和竖分隔线；选中 600 #030303，下沿 2px #202A44 压在页签行底线上 */
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) { flex-wrap: nowrap; align-items: center; gap: 16px; min-height: 40px; margin: 0 0 16px; box-shadow: inset 0 -1px 0 var(--v3-line); }
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) > .ops-overview-tabs { align-self: stretch; flex: 0 1 auto; padding-block: 0; margin-block: 0; }
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) > .ops-overview-tools { margin-left: auto; flex-wrap: nowrap; }
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) :is(.ops-category-pill, .ops-category-separator, .ops-category-measure, .ops-category-content > .ic) { display: none; }
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) :is(.ops-category-switch, .ops-category-track) { width: auto; height: 40px; margin: 0; padding: 0; gap: 24px; border-radius: 0; background: none; box-shadow: none; transition: none; }
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) .ops-category-tab { width: auto; height: 40px; min-height: 40px; padding: 0; border-radius: 0; color: var(--v3-mute); font-size: 14px; line-height: 22px; font-weight: 500; transition: color 0.15s ease; }
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) .ops-category-tab:not(.on):hover { color: var(--v3-ink); }
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) .ops-category-tab.on { color: var(--v3-ink); font-weight: 600; }
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) .ops-category-tab.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--v3-navy); }
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) .ops-category-tab:active { transform: none; }
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) .ops-category-content { width: auto; height: 40px; overflow: visible; }
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) .ops-category-label { margin: 0; opacity: 1; }
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) .ops-category-note { margin-left: 4px; font-size: 12px; line-height: 18px; font-weight: 400; color: var(--v3-mute); }
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) .ops-category-tab:focus-visible { outline: 2px solid var(--v3-navy); outline-offset: -2px; }
+.ops-overview-nav:is([data-category-page="analysis"], [data-category-page="alarms"], [data-category-page="scenes"]) + .ws-tabpanel > .ops-overview-meta:first-child { margin-top: 0; }
+/* V698 按钮三级：主按钮深蓝实底；次按钮白底 1px #DEDEDE；文字按钮无底无框 #2E2E2E，悬停 4% 灰底 */
+:where(#app:is([data-page="overview"], [data-page="analysis"], [data-page="alarms"], [data-page="scenes"])) { --btn: inset 0 0 0 1px #dedede; }
+:where(#app:is([data-page="overview"], [data-page="analysis"], [data-page="alarms"], [data-page="scenes"])) .btn { color: var(--v3-ink-2); }
+:where(#app:is([data-page="overview"], [data-page="analysis"], [data-page="alarms"], [data-page="scenes"])) .btn.primary { background: var(--v3-navy); color: #fff; }
+:where(#app:is([data-page="overview"], [data-page="analysis"], [data-page="alarms"], [data-page="scenes"])) .btn.ghost { color: var(--v3-ink-2); }
+:where(#app:is([data-page="overview"], [data-page="analysis"], [data-page="alarms"], [data-page="scenes"])) .btn.ghost:hover { background: rgba(0, 0, 0, 0.04); }
+/* ===== 2.74 总览（V700–V708）：页头行 → 5 个指标页签 → 地图卡片 + 360 面板；1440×900 下整页不滚动 ===== */
+.ov3 { --ov2-mh: max(440px, calc(100vh - 212px)); gap: 16px; }
+.ov3 .ov2-main { gap: 16px; margin-top: 0; }
+/* V694 指标页签：图标 14 加名称 12/18 #636363；数值 24/32、字重 600；说明 12/18，只有异常用状态色；选中下沿 2px #202A44 */
+.ov3 .ov2-tabs { grid-template-columns: repeat(5, minmax(0, 1fr)); box-shadow: var(--an-sh-xs); }
+.ov3 .ov2-tab { height: 84px; padding: 8px 20px; }
+.ov3 .ov2-tab + .ov2-tab::before { background: var(--v3-line); }
+.ov3 .ov2-tab-k { gap: 6px; color: var(--v3-mute); }
+.ov3 .ov2-tab-k .ic16 { width: 14px; height: 14px; }
+.ov3 .ov2-tab-v b { font-size: 24px; line-height: 32px; color: var(--v3-ink); }
+.ov3 .ov2-tab-v small,
+.ov3 .ov2-tab-x { color: var(--v3-mute); }
+.ov3 .ov2-tab-x.warn { color: #8a5a00; }
+.ov3 .ov2-tab.on::after { background: var(--v3-navy); }
+/* 一层卡片：地图卡片与面板白底、圆角 16、阴影 --an-sh-xs */
+.ov3 :is(.ov2-map, .ov2-panel) { box-shadow: var(--an-sh-xs); overflow: hidden; }
+.ov3.replay .ov2-map { box-shadow: var(--an-sh-xs), 0 0 0 2px #c9d3e8; }
+.ov3 .ov2-map > .ov-gwbar { flex: none; margin: 0; border-radius: 0; }
+/* V702 楼层图：画布 #FAFAFA；楼层 #EFEFEF 实底、1px #D4D4D4 外轮廓，没有底板阴影；按画布居中缩放，四边留 40 */
+.ov3 .ov2-plan { background: #fafafa; border-radius: 0; }
+.ov3 .ov2-plan > .ops-plan-scroll { padding: 40px; }
+.ov3 .ov2-plan > .ops-plan-scroll > .ops-plan { width: calc(min(100cqw - 80px, (100cqh - 80px) * var(--ar, 2)) * var(--opsz, 1)); }
+.ov3 .ops-plan.ov { border-radius: 4px; background: #efefef; box-shadow: 0 0 0 1px #d4d4d4; }
+/* 功能区白底 1px #E5E5E5；名称左上（8、6）12/18、字重 500 #2E2E2E；页签值 14/22、字重 600 */
+.ov3 .ops-plan.ov > .ops-zone::before { inset: 1px; border-radius: 3px; background: var(--fill, #fff); box-shadow: inset 0 0 0 1px #e5e5e5; }
+.ov3 .ops-plan.ov > .ops-zone:hover::before { filter: none; box-shadow: inset 0 0 0 1px #c4c4c4; }
+.ov3 .ops-plan.ov > .ops-zone > .ops-zl { gap: 0; margin: 6px 0 0 8px; max-width: calc(100% - 12px); }
+.ov3 .ops-plan.ov > .ops-zone .ops-zn { font-size: 12px; line-height: 18px; font-weight: 500; color: var(--v3-ink-2); }
+.ov3 .ops-plan.ov > .ops-zone b,
+.ov3 .ops-plan.ov > .ops-zone.row b,
+.ov3 .ops-plan.ov > .ops-zone.v14 b { font-size: 14px; line-height: 22px; font-weight: 600; color: var(--v3-ink); }
+.ov3 .ops-plan.ov > .ops-zone.v12 b { font-size: 12px; line-height: 18px; }
+.ov3 .ops-plan.ov > .ops-zone:is(.over, .dim, .occ, .al0, .al1, .al2) b { color: var(--v3-ink); font-weight: 600; }
+/* 有问题：边线 1.5px 级别色，右上 16px 圆形“!”；选中 2px #202A44，没有投影 */
+.ov3 .ops-plan.ov > .ops-zone.al0::before { box-shadow: inset 0 0 0 1.5px #d0382b; }
+.ov3 .ops-plan.ov > .ops-zone.al1::before { box-shadow: inset 0 0 0 1.5px #db6a1e; }
+.ov3 .ops-plan.ov > .ops-zone.al2::before { box-shadow: inset 0 0 0 1.5px #d29a10; }
+.ov3 .ops-plan.ov > .ops-zone:is(.on, .sel, .hi, .need)::before { box-shadow: inset 0 0 0 2px var(--v3-navy); }
+.ov3 .ops-plan.ov > .ops-zbadge { width: 16px; height: 16px; left: calc(var(--zr) - 21px) !important; top: calc(var(--zy) + 5px) !important; font-size: 11px; line-height: 16px; box-shadow: none; }
+.ov3 .ops-plan.ov > .ops-zbadge.l0 { background: #d0382b; }
+.ov3 .ops-plan.ov > .ops-zbadge.l1 { background: #db6a1e; }
+.ov3 .ops-plan.ov > .ops-zbadge.l2 { background: #d29a10; }
+/* 悬停小卡：名称、当前页签的值、问题 */
+.ov3-tip-v { font-size: 14px; line-height: 22px; font-weight: 600; }
+.ov3-tip-a { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 18px; }
+.ov3-tip-a::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: #d29a10; }
+.ov3-tip-a.l0::before { background: #d0382b; }
+.ov3-tip-a.l1::before { background: #db6a1e; }
+.ov3-tip-l { font-size: 12px; line-height: 18px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* V703 图例：画布左下一行，没有边框和底色，12/18 #636363 */
+.ov3 .ov2-legend { left: 16px; right: auto; bottom: 12px; flex-wrap: nowrap; justify-content: flex-start; gap: 12px; max-width: calc(100% - 72px); padding: 0; border-radius: 0; background: none; box-shadow: none; font-size: 12px; line-height: 18px; color: var(--v3-mute); white-space: nowrap; }
+.ov3 .ov2-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.ov3 .ov2-legend i.sq { width: 10px; height: 10px; border-radius: 2px; background: var(--c, #fff); box-shadow: inset 0 0 0 1px rgba(20, 27, 45, 0.12); }
+.ov3 .ov2-legend i.sq.line { background: #fff; box-shadow: inset 0 0 0 1px #d4d4d4; }
+.ov3 .ov2-legend i.sq.ln { background: #fff; box-shadow: inset 0 0 0 1.5px #d29a10; }
+.ov3 .ov2-legend i.sq.ln.l0 { box-shadow: inset 0 0 0 1.5px #d0382b; }
+.ov3 .ov2-legend i.sq.ln.l1 { box-shadow: inset 0 0 0 1.5px #db6a1e; }
+.ov3 .ov2-legend i.sq.hatch { background: repeating-linear-gradient(45deg, #fff 0 2px, rgba(20, 27, 45, 0.18) 2px 3px); }
+.ov3 .ov2-legend i.sq.man { width: 10px; height: 10px; border: 1px dashed #2e2e2e; border-radius: 2px; background: none; box-shadow: none; }
+.ov3 .ov2-legend i.sq.waste { background: #fff; box-shadow: inset 0 0 0 1.5px #d29a10; }
+.ov3-lg-h { font-weight: 600; color: var(--v3-ink-2); }
+.ov3-lg-sep { width: 1px; height: 12px; background: #d4d4d4; }
+.ov3-grad { display: inline-flex; align-items: center; gap: 6px; }
+.ov3-grad small { font-size: 12px; line-height: 18px; }
+.ov3-grad > i { position: relative; width: 120px; height: 8px; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(20, 27, 45, 0.08); }
+.ov3-grad em { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--v3-ink-2); font-size: 0; }
+.ov3-grad em::after { content: "0"; position: absolute; left: 50%; bottom: calc(100% + 1px); transform: translateX(-50%); font-size: 10px; line-height: 10px; font-style: normal; color: var(--v3-mute); }
+.ov3 .ov2-envseg .seg { height: 24px; }
+/* V704 地图控件：画布右下一组竖排按钮 32×32，白底、圆角 12、阴影 --an-sh-xs，按钮之间 1px #EBEBEB */
+.ov3 .ov2-tools { left: auto; right: 12px; bottom: 12px; flex-direction: column; gap: 0; border-radius: 12px; background: #fff; box-shadow: var(--an-sh-xs); overflow: hidden; }
+.ov3 .ov2-tool { width: 32px; height: 32px; border-radius: 0; background: none; box-shadow: none; color: var(--v3-ink-2); }
+.ov3 .ov2-tool + .ov2-tool { border-top: 1px solid var(--v3-line); }
+.ov3 .ov2-tool:hover { background: var(--v3-sel); color: var(--v3-ink); }
+.ov3 .ov2-tool.on { background: var(--v3-sel); color: var(--v3-navy); box-shadow: none; }
+/* V705 时间轴：地图卡片底部 56，上面 1px #EBEBEB；工作时间 #EEF1F6；事件 6px 圆点在轨道上沿；“现在”1px #030303 竖线，上写时刻 */
+.ov3-tl { flex: none; height: 56px; padding: 0 16px 0 12px; border-top: 1px solid var(--v3-line); }
+.ov3-tl .ov2-tl-nav b { color: var(--v3-ink-2); }
+.ov3-tl .ov2-tl-track { height: 48px; }
+.ov3-rail { position: absolute; left: 0; right: 0; top: 20px; height: 12px; border-radius: 3px; background: #fff; box-shadow: inset 0 0 0 1px var(--v3-line); overflow: hidden; }
+.ov3-work { position: absolute; top: 0; bottom: 0; background: #eef1f6; }
+.ov3-rail > .ov2-fut { top: 0; bottom: 0; background: repeating-linear-gradient(45deg, #fafafa 0 3px, #ececec 3px 4px); }
+.ov3-tl .ov2-mks { top: 17px; bottom: auto; height: 6px; }
+.ov3-dot { position: absolute; width: 6px; height: 6px; margin: 0 0 0 -3px; padding: 0; border: 0; border-radius: 50%; background: #9ca3af; pointer-events: auto; cursor: pointer; }
+.ov3-dot::before { content: ""; position: absolute; inset: -6px; }
+.ov3-dot.al.l0 { background: #d0382b; }
+.ov3-dot.al.l1 { background: #db6a1e; }
+.ov3-dot.al.l2 { background: #d29a10; }
+.ov3-dot:hover,
+.ov3-dot:focus-visible { box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--v3-navy); outline: none; }
+.ov3-tl .ov2-mk.ov3-dot { top: 0; width: 6px; height: 6px; margin: 0 0 0 -3px; transform: none; }
+.ov3-tl .ov2-cur,
+.ov3-tl:not(.replay) .ov2-cur { top: 18px; bottom: 14px; width: 1px; margin-left: 0; background: var(--v3-ink); opacity: 1; }
+.ov3-tl .ov2-cur > span { top: -18px; bottom: auto; padding: 0; border-radius: 0; background: none; color: var(--v3-ink); font-weight: 600; }
+.ov3-tl.replay .ov2-cur > span { color: var(--v3-navy); }
+.ov3-tl .ov2-ax span { color: var(--v3-mute); }
+/* V701 用电页签：“今天的负荷”填满地图卡片；事件点在图顶 */
+.ov3-lh { display: flex; flex: none; align-items: center; gap: 16px; padding: 16px 20px 0; }
+.ov3-lh h3 { margin: 0; font-size: 14px; line-height: 22px; font-weight: 600; color: var(--v3-ink); }
+.ov3-lh small { font-size: 12px; line-height: 18px; color: var(--v3-mute); }
+.ov3-lg { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; line-height: 18px; color: var(--v3-mute); }
+.ov3-lg > span { display: inline-flex; align-items: center; gap: 6px; }
+.ov3-lg i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); }
+.ov3-lg i.band { background: #e5e7eb; }
+.ov3-lplot { position: relative; flex: 1; min-height: 0; padding: 8px 16px 12px 12px; }
+.ov3-lplot > .ops-chart.fill { height: 100%; }
+.ov3-ldots { position: absolute; inset: 8px 16px 12px 12px; pointer-events: none; }
+.ov3-ldots > .ov3-dot { top: 9px; width: 8px; height: 8px; margin-left: -4px; }
+/* V706 右侧面板：需要处理、接下来、手动控制，各节间隔 24，没有分隔线 */
+.ov3 .ov2-idle { padding: 20px; }
+.ov3 .ov2-psec > header { min-height: 28px; margin-bottom: 4px; }
+.ov3-n { font-size: 12px; line-height: 18px; font-weight: 400; color: var(--v3-mute); }
+.ov2-psec h3 .ov3-n { margin-left: -2px; }
+.ov3-tb { display: inline-flex; align-items: center; gap: 2px; flex: none; height: 28px; padding: 0 6px; border: 0; border-radius: 6px; background: none; color: var(--v3-ink-2); font: inherit; font-size: 14px; line-height: 22px; font-weight: 500; white-space: nowrap; cursor: pointer; }
+.ov3-tb:hover { background: rgba(0, 0, 0, 0.04); }
+.ov3-tb .ov-chev { width: 14px; height: 14px; transform: rotate(-90deg); color: var(--v3-mute); }
+.ov3-tb[aria-disabled="true"] { color: var(--v3-mute); cursor: default; background: none; }
+.ov3 .ov2-list > li + li { border-top: 0; }
+/* V699 事件行 56：左 3px 级别竖条贴满文字，标题 14/22、字重 500，第二行 12/18 #636363；悬停 #F5F5F5 */
+.ov3 .ov-list .ov-li { grid-template-columns: 3px minmax(0, 1fr) auto; align-items: stretch; gap: 12px; min-height: 56px; padding: 9px 12px 8px; border-radius: 6px; }
+.ov3 .ov-list li + li .ov-li,
+.ov3 .ov-list li + li .ov-li:hover { border-radius: 6px; }
+.ov3 .ov-list .ov-li:hover,
+.ov3 .ov-list .ov-li:focus-visible { background: var(--v3-sel); }
+.ov3 .ov-sv { width: 3px; border-radius: 2px; }
+.ov3 .ov-sv.l0 { background: #d0382b; }
+.ov3 .ov-sv.l1 { background: #db6a1e; }
+.ov3 .ov-sv.l2 { background: #d29a10; }
+.ov3 .ov-li-t b { color: var(--v3-ink); }
+.ov3 .ov-li-t small { color: var(--v3-mute); }
+.ov3-pend { color: #8a5a00; }
+/* 建议行：没有竖条，标题前 AI 小标“建议”，右侧次按钮 28 高 */
+.ov3 .ov-list .ov-li.ai { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+.ov3 .ov-list .ov-li.ai > .ov-sv { display: none; }
+.ov3-ai { display: inline-flex; align-items: center; height: 18px; margin-right: 6px; padding: 0 6px; border-radius: 6px; background: var(--ai-bg); color: var(--ai-text); font-size: 12px; line-height: 18px; font-weight: 600; vertical-align: 1px; }
+.ov3 .ov-li .btn.sm { height: 28px; min-height: 28px; }
+/* 接下来 36 高：时间 14/22 #636363 等宽数字、场景名、› */
+.ov3-nx .ov2-li { gap: 12px; min-height: 36px; padding: 7px 0; color: var(--v3-ink); }
+.ov3-hm { flex: none; min-width: 44px; color: var(--v3-mute); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ov3-nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 手动控制 40 高：名称加“照明 80% · 至 11:30”，右边“恢复” */
+.ov3-man .ov2-li { min-height: 40px; padding: 4px 0; }
+.ov3-man .ov2-li-t { flex-wrap: nowrap; column-gap: 8px; }
+.ov3-man .ov2-li-t b { width: auto; flex: none; max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov3-man .ov2-li-t small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--v3-mute); }
+.ov3-rest { margin: 4px 0 0; font-size: 12px; line-height: 18px; color: var(--v3-mute); }
+/* V707 检视器：名称 20/28、字重 600；下一行 12/18 #636363；告警为事件行；室内环境两列 */
+.ov3 .ov2-panel .ov-ih h3 { font-size: 20px; line-height: 28px; font-weight: 600; color: var(--v3-ink); }
+.ov3 .ov2-panel .ov-ih p { font-size: 12px; line-height: 18px; color: var(--v3-mute); }
+.ov3 .ov-ialert.ov3-ev { position: relative; align-items: flex-start; gap: 12px; padding: 9px 0 8px 15px; border-radius: 0; background: none; color: var(--v3-ink); }
+.ov3 .ov-ialert.ov3-ev::before { content: ""; position: absolute; left: 0; top: 9px; bottom: 8px; width: 3px; border-radius: 2px; background: #d29a10; }
+.ov3 .ov-ialert.ov3-ev.l0::before { background: #d0382b; }
+.ov3 .ov-ialert.ov3-ev.l1::before { background: #db6a1e; }
+.ov3 .ov-ialert.ov3-ev b { display: flex; align-items: baseline; gap: 8px; font-weight: 500; }
+.ov3 .ov-ialert.ov3-ev .ov3-pend { font-size: 12px; line-height: 18px; font-weight: 400; }
+.ov3 .ov-ialert.ov3-ev small { color: var(--v3-mute); }
+.ov3 .ov-ialert.ov3-ev .btn { align-self: center; height: 28px; min-height: 28px; background: #fff; }
+.ov3-env { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; margin: 0; }
+.ov3-env dt { font-size: 12px; line-height: 18px; color: var(--v3-mute); }
+.ov3-env dd { margin: 0; font-size: 14px; line-height: 22px; font-weight: 600; color: var(--v3-ink); font-variant-numeric: tabular-nums; }
+.ov3-env dd i { margin-left: 2px; font-size: 12px; font-style: normal; font-weight: 400; color: var(--v3-mute); }
+.ov3-env dd em { margin-left: 6px; font-size: 12px; line-height: 18px; font-style: normal; font-weight: 400; color: #8a5a00; }
+.ov3-env .over dd { color: #8a5a00; }
+.ov3-env .ov-na { font-size: 14px; font-weight: 400; color: var(--v3-mute); }
+.ov3-unmon { margin: 12px 0 0; font-size: 12px; line-height: 18px; color: var(--v3-mute); }
+/* V708 楼宇级楼层条 56、项目级与全部项目级每行 64；未接入的合成一行 */
+.ov3-rows ul { flex: 1; min-height: 0; margin: 0; padding: 4px 0; list-style: none; overflow-y: auto; }
+.ov3-rows li + li { border-top: 1px solid var(--v3-line); }
+.ov3-fr,
+.ov3-bi { display: grid; align-items: center; gap: 16px; width: 100%; padding: 0 20px; border: 0; background: none; color: var(--v3-ink); font: inherit; font-size: 14px; line-height: 22px; text-align: left; cursor: pointer; }
+.ov3-fr { grid-template-columns: 56px minmax(0, 1fr) auto 14px; height: 56px; }
+.ov3-bi { grid-template-columns: minmax(0, 1fr) auto 14px; height: 64px; }
+:is(.ov3-fr, .ov3-bi):hover { background: var(--v3-sel); }
+:is(.ov3-fr, .ov3-bi):focus-visible { outline: 2px solid var(--v3-navy); outline-offset: -2px; }
+.ov3-fr > b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.ov3-thumb { display: flex; align-items: center; min-width: 0; height: 40px; overflow: hidden; }
+.ov3-thumb .ops-plan { flex: none; width: auto; height: 40px; max-width: 100%; aspect-ratio: var(--ar, 3); margin: 0; border-radius: 3px; box-shadow: none; pointer-events: none; }
+.ov3-bn { display: flex; flex-direction: column; min-width: 0; }
+.ov3-bn b { font-size: 16px; line-height: 24px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov3-bn small { font-size: 12px; line-height: 18px; color: var(--v3-mute); }
+.ov3-bv { display: flex; align-items: center; gap: 16px; white-space: nowrap; }
+.ov3-v { font-size: 14px; line-height: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ov3-pr { display: inline-flex; align-items: center; font-size: 12px; line-height: 18px; color: var(--v3-mute); white-space: nowrap; }
+.ov3-pr > i { font-style: normal; }
+.ov3-lv { display: inline-flex; align-items: center; gap: 6px; color: var(--v3-ink-2); }
+.ov3-lv::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #d29a10; }
+.ov3-lv.l0::before { background: #d0382b; }
+.ov3-lv.l1::before { background: #db6a1e; }
+:is(.ov3-fr, .ov3-bi) .ov-chev { width: 14px; height: 14px; transform: rotate(-90deg); color: var(--v3-mute); }
+.ov3-none { display: flex; flex: none; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0; padding: 12px 20px; border-top: 1px solid var(--v3-line); font-size: 14px; line-height: 22px; color: var(--v3-mute); }
+.ov3-rows > .ov3-tl { margin-top: auto; }
+.ov3.ov2-bld .ov2-panel,
+.ov3.ov2-agg .ov2-panel { height: var(--ov2-mh); max-height: none; }
+#app[data-page="overview"]:has(.ov3) .phead { padding: 24px 24px 0; }
+.ov3 .btn.ov3-tb { min-height: 28px; box-shadow: none; background: none; }
+.ov3 .btn.ov3-tb:hover { background: rgba(0, 0, 0, 0.04); }
+.ov3-thumb > svg { flex: none; display: block; height: 40px; max-width: 100%; border-radius: 3px; background: #efefef; box-shadow: 0 0 0 1px #d4d4d4; }
+/* V724 手机（≤ 600）：指标页签两列，第 5 个占满一行；楼层图在上，面板三节排在下面；检视器与批量控制从底部弹出；触屏按钮 44 */
+@media (max-width: 600px) {
+  #app[data-page="overview"]:has(.ov3) .phead { padding: 16px 16px 0; }
+  .ov3 { --ov2-mh: 380px; gap: 12px; }
+  .ov3 .ov2-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ov3 .ov2-tab { height: 80px; padding: 8px 16px; }
+  .ov3 .ov2-tab:nth-child(odd)::before { display: none; }
+  .ov3 .ov2-tab:nth-child(2)::before { display: block; }
+  .ov3 .ov2-tab:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .ov3 .ov2-tab.on::after { display: block; }
+  .ov3 .ov2-main { display: flex; flex-direction: column; gap: 12px; }
+  .ov3 .ov2-map { display: flex; height: var(--ov2-mh); }
+  .ov3 .ov2-plan > .ops-plan-scroll { padding: 16px 16px 56px; }
+  .ov3 .ov2-plan > .ops-plan-scroll > .ops-plan { width: calc(max(100cqw - 32px, 640px) * var(--opsz, 1)); }
+  .ov3 .ov2-legend { display: flex; left: 12px; bottom: 10px; flex-wrap: wrap; row-gap: 2px; max-width: calc(100% - 72px); white-space: normal; }
+  .ov3 .ov2-tools { right: 8px; bottom: 8px; }
+  .ov3 .ov2-tool { width: 44px; height: 44px; }
+  .ov3 .ov2-popen { display: none; }
+  .ov3 .ov2-panel { height: auto; }
+  .ov3 .ov2-idle { padding: 16px; }
+  .ov3 :is(.ov3-tb, .btn.ov3-tb) { min-height: 44px; height: 44px; }
+  .ov3-fr { grid-template-columns: 40px minmax(0, 1fr) auto 14px; gap: 12px; height: auto; min-height: 56px; padding: 8px 16px; }
+  .ov3-bi { gap: 12px; padding: 0 16px; }
+  .ov3-bv { flex-direction: column; align-items: flex-end; gap: 0; }
+  .ov3-none { padding: 8px 16px; }
+  .ov3-lh { flex-wrap: wrap; row-gap: 4px; padding: 12px 16px 0; }
+  .ov3-lh .sp { display: none; }
+  .ov3-lplot { padding: 4px 8px 8px 4px; }
+  .ov3-ldots { inset: 4px 8px 8px 4px; }
+}
+@media (max-width: 600px) {
+  #app:is([data-page="overview"], [data-page="analysis"], [data-page="alarms"], [data-page="scenes"]) .pbody { padding: 12px 16px 24px; }
+  .ov3 .ov2-main { align-items: stretch; }
+}
+/* 宽 601–1439：项目级与全部项目级同楼宇级，面板排在主区下面（不做抽屉） */
+@media (min-width: 601px) and (max-width: 1439px) {
+  .ov3.ov2-agg .ov2-main { grid-template-columns: minmax(0, 1fr); }
+  .ov3.ov2-agg .ov2-panel { position: static; width: auto; height: auto; max-height: none; border-radius: 16px; box-shadow: var(--an-sh-xs); transform: none; visibility: visible; transition: none; }
+  .ov3:is(.ov2-bld, .ov2-agg) .ov2-panel { height: auto; }
+}
+
 }
 @layer base {
 /* ---------- 2.62 全站统一样式（运营的 V295–V297 用到配置、机构设置、我的账户与帮助；HONG 2026-10-30 04:34Z “全站统一”） ----------
@@ -42063,7 +42341,10 @@ const overviewCategorySwitch = active => pageCategorySwitch("overview", active);
 // tools：放在页签行右端的按钮（2.53 V233：总览的“查看设置”），放不下时随页签换行
 // 2.66 V441：告警、场景、数据分析的位置选择在标题行右端（opsHeadScope），页签行左端只有页签，右端为本页签的筛选与按钮（tools）
 const OPS_HEAD_SCOPE_PAGES = ["alarms", "scenes", "analysis"];
-const opsHeadScope = () => (OPS_HEAD_SCOPE_PAGES.includes(U.page) && !memberHome() && !U.missing && !(U.page === "scenes" && U.scEd) ? `<div class="ops-head-scope">${scopeControl()}</div>` : "");
+// 2.74 V693：范围按钮在页名右边隔 12（14/22、字重 500，写当前范围加 ▾），点开同一个位置选择器；右上 280 宽的下拉框去掉
+const opsHeadScopeOn = () => OPS_HEAD_SCOPE_PAGES.includes(U.page) && !memberHome() && !U.missing && !(U.page === "scenes" && U.scEd);
+const opsHeadScopeBtn = () => scopeControl().replace('class="scope ws-location"', 'class="ws-location ops-hscope"');
+const opsHeadScope = () => "";
 function pageCategoryHeader(page, active, { live = "", actions = "", meta = "", tools = "" } = {}) {
   PAGE_CATEGORY_HEADERS.set(page, { actions });
   const group = page === "overview" ? "overviewTitleActions" : "pageCategoryTitleActions";
@@ -42257,8 +42538,9 @@ function render() {
   const normalizedMode = normalizeDeviceMode();
   if (normalizedMode !== U.mode) { U.mode = normalizedMode; syncRoute(true); }
   // 无效主类地址统一回当前页默认项；碳明细、原节能页签与报告是数据分析的合法深链，不被主类归一化移除（2.71 V676）。
+  // 2.74 V701：总览的 tab=energy 是第 5 个指标页签“用电”，不在主类里，同样保留
   const categoryItems = pageCategoryItems(U.page);
-  if (categoryItems.length && U.tab && !(U.page === "analysis" && ["carbon", "saving", "reports"].includes(U.tab)) && !categoryItems.some(([id]) => id === U.tab)) {
+  if (categoryItems.length && U.tab && !(U.page === "analysis" && ["carbon", "saving", "reports"].includes(U.tab)) && !(U.page === "overview" && U.tab === "energy") && !categoryItems.some(([id]) => id === U.tab)) {
     U.tab = U.page === "devices" ? deviceDefaultTab() : categoryItems[0][0];
     syncRoute(true);
   }
@@ -48037,6 +48319,7 @@ function headTitle() {
   if (U.page === "overview" && !memberHome() && typeof ovHeadTitle === "function") return ovHeadTitle() + (typeof opsHeadLive !== "undefined" ? opsHeadLive : "") + ovHeadMore();
   // 2.66 V506：场景编辑页的页头标题为“新建场景”加位置灰字
   if (U.page === "scenes" && U.scEd && typeof scEdTitle === "function") return scEdTitle();
+  if (opsHeadScopeOn()) return `<h1>${TITLES[U.page]}</h1>${opsHeadScopeBtn()}${typeof opsHeadLive !== "undefined" ? opsHeadLive : ""}`;
   return `<h1>${memberHome() ? MEMBER_HOME : TITLES[U.page] || "PACOM Station"}</h1>${typeof opsHeadLive !== "undefined" ? opsHeadLive : ""}`;
 }
 // 目录显示全部授权对象；项目选择器负责进入空间，不同时充当筛选。
@@ -70305,7 +70588,8 @@ function chartSlot(spec) {
   // 2.71 V679：数据分析的折线图（2–3 条、没有右轴）在线末端写名称，图例不再重复这些名称
   if (U.page === "analysis" && spec.xs && spec.series?.length >= 2 && spec.series.length <= 3 && !spec.right && !("endLabels" in spec)) spec.endLabels = true;
   OPS.charts[id] = spec;
-  return `<div class="ops-chart" data-cid="${id}" style="height:${spec.height || 220}px" role="img" aria-label="${esc(spec.aria || "")}"></div>`;
+  // 2.74 V701：fill 为 true 时图高随容器（总览“今天的负荷”填满地图卡片）
+  return `<div class="ops-chart${spec.fill ? " fill" : ""}" data-cid="${id}" style="height:${spec.fill ? "100%" : `${spec.height || 220}px`}" role="img" aria-label="${esc(spec.aria || "")}"></div>`;
 }
 // opsHatchOn：画在有色柱段上的白色斜线（2.11 Y44 夜间及非工作日中高于基荷的部分），series 写 hatch: true
 const HATCH = `<defs><pattern id="opsHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#fafafa"/><line x1="0" y1="0" x2="0" y2="6" stroke="#c9c9c9" stroke-width="1.2"/></pattern><pattern id="opsHatchOn" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="#fff" stroke-width="1.6"/></pattern></defs>`;
@@ -70561,9 +70845,9 @@ function drawCharts() {
     const sp = OPS.charts[el.dataset.cid];
     if (!sp) return;
     const w = Math.max(200, Math.floor(el.clientWidth)),
-      h = sp.height || 220;
-    if (el.dataset.w === String(w)) return;
-    el.dataset.w = w;
+      h = sp.fill ? Math.max(160, Math.floor(el.clientHeight)) : sp.height || 220;
+    if (el.dataset.w === `${w}x${h}`) return;
+    el.dataset.w = `${w}x${h}`;
     el.innerHTML = DRAW[sp.type](sp, w, h);
   });
 }
@@ -70854,9 +71138,10 @@ function liveLine() {
   const at = typeof ovAt === "function" ? ovAt() : null;
   if (at != null) { const t = `回放 · ${ovDayName(at)} ${Demo.hm(at)}`; return `<span class="ops-live replay" tabindex="0" aria-label="${t}"><i aria-hidden="true"></i>${t}</span>`; }
   if (Demo.ctl.gwOffline) return "";
-  if (L.stale) { const t = `数据未更新 · 截至 ${hm}`; return `<span class="ops-live stale" tabindex="0" aria-label="${t}"><i aria-hidden="true"></i>${t}</span>`; }
+  // 2.74 V693：6 px 绿点加“10:30”（12/18 次要色），不再用绿色胶囊；超过 5 分钟没有新数据时为琥珀点，写“6 分钟没有新数据”
   const tip = `数据截至 ${hm}`;
-  return `<span class="ops-live" tabindex="0" aria-label="实时，${tip}" data-tip="${tip}"><i aria-hidden="true"></i>实时 · ${hm}</span>`;
+  if (L.stale) { const t = `${L.mins} 分钟没有新数据`; return `<span class="ops-live stale" tabindex="0" aria-label="${t}，${tip}" data-tip="${tip}"><i aria-hidden="true"></i>${t}</span>`; }
+  return `<span class="ops-live" tabindex="0" aria-label="实时，${tip}" data-tip="${tip}"><i aria-hidden="true"></i>${hm}</span>`;
 }
 // E374：标签放在页面标题后面（总览、告警、场景、我的区域），与标题垂直居中，间隔 12；总览原来单独的一行删去。由 headTitle 放进页头。
 var opsHeadLive = "";
@@ -71294,6 +71579,14 @@ function aqBand(p, layer) {
 // 图层上有代表性未确认的监测点时，图例下写一次（2.01 运营核查 V91：原先每个标签带“ · 监测点”）
 // 2.25 V172：代表性说明只在图层的 i 中（图例只留档位），不再在图例下另写一行
 const aqLocalNote = () => "";
+// 2.74 V701：总览空气页签只给超出参考的功能区着色（CO₂、PM2.5 第 3、4 档，湿度超出参考范围），其余白底
+const ovAirOnly = (layer, f) => ((layer === "co2" || layer === "pm") && OV_AQ.indexOf(f) >= 0 && OV_AQ.indexOf(f) < 2 ? "" : f);
+// 2.74 V702：悬停功能区浮出小卡：名称、当前页签的值、问题
+function ovZoneCard(z, s, layer, st, a) {
+  const occ = !s.sensor ? "" : s.occupied ? "有人" : "无人",
+    v = s.gwUnknown ? "状态未知" : layer === "status" ? occ : st;
+  return `<div class="ops-tip-h">${esc(z.name)}</div>${v ? `<div class="ov3-tip-v">${esc(v)}</div>` : ""}${a ? `<div class="ov3-tip-a l${Math.min(2, lvlRank(a.level))}">${esc(`${LV(a.level)} · ${ovShortEvent(a, true)}`)}</div>` : ""}`;
+}
 // alarms：false 时不画告警角标（2.25 V185、V189：告警详情与场景详情的小图只画本告警或本场景的位置）
 // plain：只画功能区轮廓与名称，不画实时数据颜色；选中或已在动作中的功能区填蓝（2.25 V190 场景编辑页）
 function opsPlan({ layer = "occ", tab = "general", mini = false, highlight = [], hiDevices = [], select = false, marks = null, alarms = true, plain = false, vec = false, cond = [], devTab = "" } = {}) {
@@ -71320,7 +71613,7 @@ function opsPlan({ layer = "occ", tab = "general", mini = false, highlight = [],
       const s = Demo.zoneState(z),
         // 网关离线时各图层都不按旧数据着色，占用图层同样用斜线（2026-10-08 Vision 核查 V4）
         // 网关离线时功能区不填色、不写数值，整张图加灰色斜线（2.53 V241；原为每个功能区斜线并写“状态未知”）
-        f = mini ? "" : plain ? (highlight.includes(z.id) || zsel.has(z.id) ? RAMP.blue[1] : "") : s.gwUnknown ? "" : L.fill(s),
+        f = mini ? "" : plain ? (highlight.includes(z.id) || zsel.has(z.id) ? RAMP.blue[1] : "") : s.gwUnknown ? "" : ovp ? ovAirOnly(layer, L.fill(s)) : L.fill(s),
         // CO₂、PM2.5、空气质量图层按档定填色深浅：优、良 20%，一般 45%，差 66%，颜色不变，超标的功能区更突出（全面设计核查第 86 条，
         // 2026-10-12 用户确认，改 VD1：原先各档都是 66%，整层一片黄橙）；其他图层仍为 66%
         // 2.09 全平台优化 Y34：一般 45% 改 30%，差 66% 改 40%，问题靠深色文字和角标突出
@@ -71342,7 +71635,8 @@ function opsPlan({ layer = "occ", tab = "general", mini = false, highlight = [],
         // 2.59 V303：总览楼层图只写数值，手动用虚线框（man）、离线用设备红点表示
         ovz = !mini && U.page === "overview" && U.role !== "member",
         // 2.66 V375：选设备时功能区只填色、不写数值
-        zv = s.gwUnknown || fk === "unmon" || (ovz && showDev) ? "" : ovz && layer === "light" ? L.short(s) : L.text(s),
+        // 2.74 V702：状态与占用视图不写数值，只写名称
+        zv = s.gwUnknown || fk === "unmon" || (ovz && (showDev || layer === "status" || layer === "occ")) ? "" : ovz && layer === "light" ? L.short(s) : L.text(s),
         // 2.66 V364：手动在数值下写 12px 灰字“手动”
         // 2.70 V669：手动虚线框只在照明、空调图层画（空调图层为本区有手动的空调），状态图层不画
         manz = ovz && !s.gwUnknown && ((layer === "light" && s.light.manual) || (layer === "temp" && s.snapAt == null && selAc(z).some((p) => Demo.device(p).manual))),
@@ -71350,8 +71644,10 @@ function opsPlan({ layer = "occ", tab = "general", mini = false, highlight = [],
         zsv = s.gwUnknown || fk === "unmon" ? "" : L.short(s),
         wasteOn = waste && waste(s);
       // 2.59 V302：状态图层有告警的功能区按最高级别描边（al0–al2）
-      const alz = layer === "status" && !mini && !s.gwUnknown ? AL.zones[z.id]?.[0] : null;
-      return `<button class="ops-zone ${fk} ${hi ? "hi" : ""}${cond.includes(z.id) ? " cond" : ""} ${active ? "on" : ""}${!mini && zsel.has(z.id) ? " sel" : ""}${wasteOn ? " waste" : ""}${need === z.id ? " need" : ""}${alz ? ` al${Math.min(2, lvlRank(alz.level))}` : ""}${manz ? " man" : ""}${xcls}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${f && !fk ? `--fill:${f};` : ""}${fa ? `--fa:${fa}%;` : ""}" ${mini ? "tabindex=-1" : `data-act="opsZone" data-id="${z.id}" data-morph-classes="narrow bare noname noval v14 v12 row" data-zv="${esc(zv)}" data-zs="${esc(zsv)}"`} data-tip="${esc(tip)}" aria-label="${esc(tip)}">${mini ? "" : `<span class="ops-zl"><span class="ops-zn">${esc(z.name)}</span>${plain || !zv ? "" : `<b>${esc(zv)}</b>`}${manz && zv ? '<small class="ops-zm">手动</small>' : ""}</span>`}${marks?.[z.id] ? `<span class="sc-actno">${esc(marks[z.id])}</span>` : ""}${ovp && zsel.has(z.id) ? '<i class="ov-zck" aria-hidden="true"></i>' : ""}</button>`;
+      // 2.74 V702：总览各页签有问题的功能区都按级别色描边 1.5px，右上角 16px 圆形“!”
+      const alz = (layer === "status" || ovz) && !mini && !s.gwUnknown ? AL.zones[z.id]?.[0] : null,
+        otip = ovz && !plain ? ovZoneCard(z, s, layer, st, alz) : "";
+      return `<button class="ops-zone ${fk} ${hi ? "hi" : ""}${cond.includes(z.id) ? " cond" : ""} ${active ? "on" : ""}${!mini && zsel.has(z.id) ? " sel" : ""}${wasteOn ? " waste" : ""}${need === z.id ? " need" : ""}${alz ? ` al${Math.min(2, lvlRank(alz.level))}` : ""}${manz ? " man" : ""}${xcls}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${f && !fk ? `--fill:${f};` : ""}${fa ? `--fa:${fa}%;` : ""}" ${mini ? "tabindex=-1" : `data-act="opsZone" data-id="${z.id}" data-morph-classes="narrow bare noname noval v14 v12 row" data-zv="${esc(zv)}" data-zs="${esc(zsv)}"`} ${otip ? `data-otip="${esc(otip)}"` : `data-tip="${esc(tip)}"`} aria-label="${esc(tip)}">${mini ? "" : `<span class="ops-zl"><span class="ops-zn">${esc(z.name)}</span>${plain || !zv ? "" : `<b>${esc(zv)}</b>`}${manz && zv ? '<small class="ops-zm">手动</small>' : ""}</span>`}${marks?.[z.id] ? `<span class="sc-actno">${esc(marks[z.id])}</span>` : ""}${ovp && zsel.has(z.id) ? '<i class="ov-zck" aria-hidden="true"></i>' : ""}</button>`;
     })
     .join("");
   // 2.66 V364、V372：总览楼层图（不选设备时）离线设备不画在设备位置，改在功能区右下角画一个圆点（告警级别色），不压字
@@ -73334,8 +73630,7 @@ function renderOpsOverview() {
   // 2.59 V299：总览不再有页签行，标题即位置（ovHeadTitle），图层按钮代替页签（V301）
   if (!Demo.on()) return outOfScope();
   opsReset();
-  // 总览的“能源”页签并入数据分析 › 能源（2.08 全平台优化 Y2）：旧地址打开数据分析 › 能源，期间为今日
-  if (U.tab === "energy") return Object.assign(U, { page: "analysis", tab: "energy", opsRange: "today" }), renderOpsAnalysis();
+  // 2.74 V701：“用电”是总览的第 5 个指标页签（取代 2.08 Y2 的旧地址转到数据分析 › 能源）
   if (!Demo.inScope()) return outOfScope();
   liveHead();
   if (U.f) return ovFloor();
@@ -78291,7 +78586,7 @@ function renderOpsScenes() {
   const ss = data().scenes.filter((s) => s.projectId === OPS_SCOPE.project),
     dr = sceneDrawerHtml(),
     body = tab === "manual" ? scManual(ss) + dr : tab === "schedule" ? scGwLine() + scSchedule(ss) + dr : tab === "link" ? scGwLine() + scLink(ss) + dr : scGwLine() + scRecords();
-  return scAskHtml() + pageCategoryHeader("scenes", tab, { live: liveHead(), tools: opsTabTools }) + body; // 2.72 V686
+  return scAskHtml() + pageCategoryHeader("scenes", tab, { tools: opsTabTools }) + body; // 2.72 V686；2.74 V693：实时标记只在总览和告警
 }
 // 场景作用的功能区（引用场景的定时、联动按被引用的场景）
 const sceneZoneIds = (s) => [...new Set(sceneTargets(s).map((p) => p.zoneId).filter(Boolean))];
@@ -79484,7 +79779,7 @@ const OV_LAYERS = [
   ["environment", "环境", "aq"],
   ["occupancy", "占用", "users"],
 ];
-const ovLayer = () => (OV_LAYERS.some(([k]) => k === U.tab) ? U.tab : "general");
+const ovLayer = () => (OV_LAYERS.some(([k]) => k === U.tab) || U.tab === "energy" ? U.tab : "general");
 // 环境图层在楼层图右上切 CO₂、PM2.5、湿度（V301）
 const OV_ENV = [
   ["co2", "CO₂"],
@@ -79508,14 +79803,9 @@ OPS_LAYERS.status = {
     const a = alarmIndex("").zones[s.z.id]?.[0];
     return a ? ovShortEvent(a) : "";
   },
-  fill: (s) => {
-    const a = alarmIndex("").zones[s.z.id]?.[0];
-    return a ? OV_LVF[Math.min(2, lvlRank(a.level))] : s.sensor && s.occupied ? "#eaf1fb" : "";
-  },
-  text: (s) => {
-    const a = alarmIndex("").zones[s.z.id]?.[0];
-    return a ? ovShortEvent(a) : "";
-  },
+  // 2.74 V701、V702：状态视图只画有人的浅蓝底和问题标记（级别色描边与“!”），不再铺级别浅底、不在格子里写问题
+  fill: (s) => (s.sensor && s.occupied ? "#eaf1fb" : ""),
+  text: () => "",
   // 悬停与读屏：没有告警时写占用（图上不写字）
   say: (s) => {
     const a = alarmIndex("").zones[s.z.id]?.[0];
@@ -79741,16 +80031,22 @@ const ovGwBar = () => {
 };
 // “需要处理”（V306）：标题后不写条数；每行左边级别色条，右边只写持续时长与状态（待确认为黄色标签）；指向一行时楼层图只亮对应功能区；
 // AI 建议与告警同一清单，用“AI 建议”标签区分
+// 2.74 V699：事件行高 56；左侧 3px 级别竖条（级别名在悬停提示与读屏文字里）；第一行标题 14/22、字重 500，放不下省略；
+// 第二行 12/18 依次写位置、已持续多久、处理人和状态（“实验室 E · 38 分钟 · 李工处理中”），只有“待确认”用琥珀色文字；右侧不再另起一列
 function ovNeedRow(n) {
-  const pend = n.state && n.state.endsWith("待确认"),
-    args = Object.entries(n.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ");
-  return `<li><button type="button" class="ov-li" data-act="${n.act}" ${args}><i class="ov-sv l${lvlRank(n.lvl)}" aria-hidden="true"></i><span class="ov-li-t"><b>${needTitle(n.title)}</b><small>${esc(n.sub)}</small></span><span class="ov-li-r"><span>${esc(n.dur)}</span>${pend ? `<span class="chip ov-chip-minor">待确认</span>` : n.state ? `<span class="ov-li-s">${esc(n.state.replace(/^已恢复 · /, "已恢复 · "))}</span>` : ""}</span></button></li>`;
+  const st = String(n.state || "").replace(/^(.+?) · (处理中|待处理|已派工)$/, "$1$2"),
+    pend = st.endsWith("待确认"),
+    lv = LV(n.lvl),
+    args = Object.entries(n.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" "),
+    sub = [n.sub, n.dur].filter(Boolean).map(esc).concat(st ? [pend ? `<span class="ov3-pend">${esc(st)}</span>` : esc(st)] : []).join(" · ");
+  return `<li><button type="button" class="ov-li ov3-ev" data-act="${n.act}" ${args}><i class="ov-sv l${lvlRank(n.lvl)}" data-tip="${lv}" aria-hidden="true"></i><span class="ov-li-t ws-words-off"><b><span class="sr-only">${lv}：</span>${needTitle(n.title)}</b><small>${sub}</small></span></button></li>`;
 }
 function ovAiNeed() {
   const s = typeof AI_SUGGESTIONS !== "undefined" ? AI_SUGGESTIONS["labb-hold"] : null;
   if (!s || typeof aiResyncPts !== "function" || !aiResyncPts(s).length || U.role === "viewer" || Demo.ctl.gwOffline) return "";
   const z = Demo.zoneOf(s.resync.zone);
-  return `<li><button type="button" class="ov-li ai" data-act="aiAdopt" data-id="labb-hold"${z ? ` data-zone="${esc(z.id)}"` : ""}><i class="ov-sv ai" aria-hidden="true"></i><span class="ov-li-t"><b><span class="chip ov-chip-ai">建议</span>${esc(s.title)}</b><small>每晚约省 2.1 kWh</small></span><span class="ov-li-r"><span class="btn sm">采用</span></span></button></li>`;
+  // 2.74 V699：建议行与事件行同高，没有竖条，第一行最前面是 AI 小标“建议”，右侧一个次按钮（28 高）
+  return `<li><button type="button" class="ov-li ai ov3-ev" data-act="aiAdopt" data-id="labb-hold"${z ? ` data-zone="${esc(z.id)}"` : ""}><span class="ov-li-t ws-words-off"><b><span class="ov3-ai">建议</span>${esc(s.title)}</b><small>每晚约省 2.1 kWh</small></span><span class="ov-li-r"><span class="btn sm">采用</span></span></button></li>`;
 }
 // 2.72 V685：同一条规则在同一功能区近 7 天触发 10 次以上、触发后平均 10 分钟内自行恢复、都没有派工时，建议加长这条规则的持续时间：
 // 原持续时间（规则另选的或配置参数的）加平均恢复时长的两倍，按 5 分钟向上取整，最长 60 分钟。规则已有待启用的修改时不再建议。
@@ -79847,11 +80143,13 @@ function ovTodayCard() {
 /* 自上而下：标题行（位置、实时或回放标签、执行场景）、摘要行（V667）、四个指标页签（V668）、主区：左为楼层图与时间轴（V669–V671、V674），
    右为常驻面板 360（V672）：什么都没选时为“需要处理”“接下来”“手动控制”，点一个功能区为检视器（V673），选多个为批量控制。
    不再有图层按钮行、指标条、楼层图下的近 6 小时轨道与两张卡、底部深色批量条（取代 2.59 V300–V312 的版式）。 */
+// 2.74 V701：第 5 个指标页签“用电”，选中时主区换成“今天的负荷”图
 const OV_TABS = [
   ["lighting", "照明", "bulb"],
   ["hvac", "空调", "ac"],
   ["environment", "空气", "aq"],
   ["occupancy", "占用", "users"],
+  ["energy", "用电", "meter"],
 ];
 const ovPhone = () => typeof matchMedia === "function" && matchMedia("(max-width: 600px)").matches;
 const ovArgs = (o) => Object.entries(o).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ");
@@ -79859,7 +80157,9 @@ const ovTabName = (k) => OV_TABS.find((x) => x[0] === k)?.[1] || "状态";
 
 /* ---------- 回放（V674）：拖动时间轴或翻到前几天，楼层图、页签与面板显示那一刻的状态；控制不可用 ---------- */
 const OVR = { key: "", cache: new Map(), ser: new Map(), serRev: null, ag: null };
-const ovAt = () => (typeof U !== "undefined" && U.page === "overview" && U.f && U.ovAt != null && U.ovAtF === U.f && U.role !== "member" && typeof Demo !== "undefined" && Demo.on() ? U.ovAt : null);
+// 2.74 V708：楼宇级也有时间轴，回放按“楼层或楼宇”记
+const ovAtKey = () => (typeof U === "undefined" ? null : U.f || (U.b ? `b:${U.b}` : null));
+const ovAt = () => (typeof U !== "undefined" && U.page === "overview" && ovAtKey() && U.ovAt != null && U.ovAtF === ovAtKey() && U.role !== "member" && typeof Demo !== "undefined" && Demo.on() ? U.ovAt : null);
 const ovDay0 = () => Demo.dayStart(opsNow());
 function ovDayName(t) {
   const d = Math.round((ovDay0() - Demo.dayStart(t)) / Demo.DAY),
@@ -79878,7 +80178,7 @@ function ovSetAt(t) {
     step = 5 * Demo.MIN;
   t = Math.max(ovDay0() - 7 * Demo.DAY, Math.round(t / step) * step);
   if (!(t < now - Demo.MIN)) Object.assign(U, { ovAt: null, ovAtF: null });
-  else Object.assign(U, { ovAt: t, ovAtF: U.f });
+  else Object.assign(U, { ovAt: t, ovAtF: ovAtKey() });
   if ($("#pop")) closePop();
   render();
 }
@@ -80005,7 +80305,7 @@ function ovSum() {
   return `<p class="ov2-sum">${[first, occS, kS].filter(Boolean).join('<i class="ov2-sep" aria-hidden="true"> · </i>')}</p>`;
 }
 
-/* ---------- 四个指标页签（V668、V690）：名称、数值、一行例外；选中下沿 2px 深色线；都不选时为状态图层 ---------- */
+/* ---------- 五个指标页签（V668、V690；2.74 V694、V701）：名称、数值、一行例外；选中下沿 2px #202A44；再点已选的取消选择，回到状态视图 ---------- */
 function ovTabVals(zs) {
   const live = ovAt() == null,
     gw = zs.length > 0 && zs.every((s) => s.gwUnknown),
@@ -80041,6 +80341,14 @@ function ovTabVals(zs) {
   if (gw) for (const k of Object.keys(out)) if (out[k]) out[k] = { ...out[k], v: "—", post: "", over: false, x: "状态未知", warn: false };
   // 数据未更新：数值保留最后值并变灰（CSS），没有例外时不写“全部正常”，改写截至时刻
   else if (live && opsLive().stale) for (const k of Object.keys(out)) if (out[k] && !out[k].warn) out[k] = { ...out[k], x: `截至 ${Demo.hm(opsLive().at)}` };
+  // 2.74 V701：用电写“今日 100 kWh”，说明行“比典型周四多 2.4%”；回放时写到那一刻；网关离线时照常写，说明行写离线时刻（电能表数据由网关取得）
+  const t = Demo.today(),
+    at = ovAt();
+  out.energy = at != null
+    ? { pre: ovDayName(at) === "今天" ? "今日" : ovDayName(at), v: nf(ovKwhUpTo(at)), post: "kWh", x: `截至 ${Demo.hm(at)}` }
+    : Demo.ctl.gwOffline
+      ? { pre: "今日", v: nf(t.kwh), post: "kWh", x: `截至 ${Demo.hm(Demo.ctl.gwOfflineAt || opsLive().at)}` }
+      : { pre: "今日", v: nf(t.kwh), post: "kWh", x: opsLive().stale ? `截至 ${Demo.hm(opsLive().at)}` : ovVsTyp(t) };
   return out;
 }
 function ovTabs(tab) {
@@ -80062,51 +80370,133 @@ const ovMapTab = (tab) => (tab === "lighting" || tab === "hvac" || tab === "envi
 // 选设备时画可选的设备：空调页签为空调，其余为照明控制器
 const ovDevTab = (tab) => (tab === "hvac" ? "hvac" : "lighting");
 const OV_FIT = `<svg class="ic16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>`;
+// 2.74 V704：画布右下一组竖排按钮 32×32：“⋯”“＋”“－”“适应”；不可用的不显示（适应大小时没有“－”“适应”，最大时没有“＋”）
 function ovTools(tab) {
   const z = planZoomIdx(),
-    base = !!U.opsBase,
-    pick = selTool() === "lasso" || selMode() === "dev",
-    b = (act, args, label, inner, extra = "") => `<button type="button" class="ov2-tool${extra}" data-act="${act}" ${ovArgs(args)} aria-label="${label}" data-tip="${label}">${inner}</button>`;
-  return `<div class="ov2-tools" role="toolbar" aria-label="楼层图工具">${b("ovSelMenu", { tab }, "选择", PICK_GLYPH, pick ? " on" : "").replace("<button ", '<button aria-haspopup="menu" aria-expanded="false" ')}${b("ovBase", {}, "底图", ico("layers", "ic16"), base ? " on" : "").replace("<button ", `<button aria-pressed="${base}" `)}<span class="ov2-tool-g">${b("opsPlanZoom", { delta: -1 }, "缩小", ico("minus", "ic16"), z ? "" : " dis").replace("<button ", z ? "<button " : '<button aria-disabled="true" ')}${b("opsPlanZoom", { delta: 1 }, "放大", ico("plus", "ic16"), z < PLAN_ZOOM.length - 1 ? "" : " dis").replace("<button ", z < PLAN_ZOOM.length - 1 ? "<button " : '<button aria-disabled="true" ')}${b("opsPlanZoom", { delta: 0 }, "适应", OV_FIT, z ? "" : " dis").replace("<button ", z ? "<button " : '<button aria-disabled="true" ')}</span></div>`;
+    on = selTool() === "lasso" || selMode() === "dev" || !!U.opsBase,
+    b = (act, args, label, inner, extra = "") => `<button type="button" class="ov2-tool${extra}" data-act="${act}" ${ovArgs(args)} aria-label="${label}" data-tip="${label}" data-tip-at="left">${inner}</button>`;
+  return `<div class="ov2-tools" role="toolbar" aria-label="楼层图工具" aria-orientation="vertical">${b("ovSelMenu", { tab }, "更多", ico("more", "ic16"), on ? " on" : "").replace("<button ", '<button aria-haspopup="menu" aria-expanded="false" ')}${z < PLAN_ZOOM.length - 1 ? b("opsPlanZoom", { delta: 1 }, "放大", ico("plus", "ic16")) : ""}${z ? b("opsPlanZoom", { delta: -1 }, "缩小", ico("minus", "ic16")) + b("opsPlanZoom", { delta: 0 }, "适应", OV_FIT) : ""}</div>`;
 }
 // “选择”菜单（向上弹出）：套索、选设备、快速选择（本层全部、全部有人、全部手动）；网关离线时套索与快速选择不可用
+// “⋯”菜单（向左弹出）：套索选择、选设备、快速选择（本层全部、全部有人、全部手动）、底图开关；网关离线时套索与快速选择不可用
 function ovSelMenu(el, tab) {
   if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
   const gw = !!Demo.ctl.gwOffline,
     las = selTool() === "lasso",
     dev = selMode() === "dev",
+    base = !!U.opsBase,
     dis = gw ? ' aria-disabled="true" data-tip="网关离线，不能控制"' : "",
     chk = (on, act, args, label, d = "") => `<button class="popitem${on ? " on" : ""}" role="menuitemcheckbox" aria-checked="${on}" data-act="${act}" ${ovArgs(args)}${d}><span>${label}</span>${on ? ico("check", "ic16 pop-check") : ""}</button>`,
     item = (k, label) => `<button class="popitem" role="menuitem" data-act="ovQuick" data-k="${k}" data-tab="${tab}"${dis}><span>${label}</span></button>`;
-  pop(el, `<div class="mk-draw-menu ops-selmenu ov2-selmenu" role="menu" aria-label="选择">${chk(las, "opsSelTool", { tool: las ? "pick" : "lasso" }, "套索", dis)}${chk(dev, "opsSelMode", { value: dev ? "zone" : "dev", tab }, "选设备")}<hr><div class="ops-menu-h"><b>快速选择</b></div>${item("all", "本层全部")}${item("occ", "全部有人")}${item("manual", "全部手动")}</div>`);
+  pop(el, `<div class="mk-draw-menu ops-selmenu ov2-selmenu" role="menu" aria-label="楼层图更多操作">${chk(las, "opsSelTool", { tool: las ? "pick" : "lasso" }, "套索选择", dis)}${chk(dev, "opsSelMode", { value: dev ? "zone" : "dev", tab }, "选设备")}<hr><div class="ops-menu-h"><b>快速选择</b></div>${item("all", "本层全部")}${item("occ", "全部有人")}${item("manual", "全部手动")}<hr>${chk(base, "ovBase", {}, "底图")}</div>`);
   const p = $("#pop"),
     r = el.getBoundingClientRect();
   p.classList.add("mk-draw-pop");
-  p.style.left = Math.max(12, Math.min(r.left, innerWidth - p.offsetWidth - 12)) + "px";
-  p.style.top = Math.max(12, r.top - p.offsetHeight - 8) + "px";
+  p.style.left = Math.max(12, r.left - p.offsetWidth - 8) + "px";
+  p.style.top = Math.max(12, Math.min(r.top, innerHeight - p.offsetHeight - 12)) + "px";
 }
 // 图例浮在右下角，只在有着色时出现：状态图层为“有人”与图上出现的告警级别；空气图层旁为小分段 CO₂ · PM2.5 · 湿度
+// 2.74 V703：图例在画布左下一行，没有边框和底色，12/18 #636363，只写名称；色阶画成 120 宽的渐变条，两端写数值
+const ovGrad = (cs, l, r, mid = "") => `<span class="ov3-grad"><small>${l}</small><i style="background:linear-gradient(90deg,${cs.join(",")})">${mid ? `<em>${mid}</em>` : ""}</i><small>${r}</small></span>`;
 function ovLegend2(tab, layer) {
-  if (Demo.zones().every((z) => Demo.zoneState(z).gwUnknown)) return `<div class="ov2-legend"><div class="ops-legend ops-plan-legend"><span><i class="sq hatch"></i>状态未知</span></div></div>`;
-  const env = tab === "environment" ? `<span class="ov2-envseg">${segSm(OV_ENV, ovEnvMetric(), "opsLayerTab", "opsPlanPanel", "空气指标")}</span>` : "";
-  if (tab !== "general") return `<div class="ov2-legend">${env}${planLegend(layer, tab === "occupancy" ? "general" : tab)}</div>`;
-  const ss = Demo.zones().map((z) => Demo.zoneState(z)),
-    occ = ss.some((s) => !s.gwUnknown && s.sensor && s.occupied),
-    ranks = [...new Set(Object.entries(alarmIndex("").zones).filter(([zid]) => Demo.zoneOf(zid)).map(([, as]) => Math.min(2, lvlRank(as[0].level))))].sort(),
-    items = [occ ? `<span><i class="sq" style="--c:#eaf1fb"></i>有人</span>` : "", ...ranks.map((i) => `<span><i class="ops-zbadge l${i}" aria-hidden="true">!</i>${["紧急", "重要", "提示"][i]}</span>`)].filter(Boolean);
-  return items.length ? `<div class="ov2-legend"><div class="ops-legend ops-plan-legend">${items.join("")}</div></div>` : "";
+  if (Demo.zones().every((z) => Demo.zoneState(z).gwUnknown)) return `<div class="ov2-legend"><span><i class="sq hatch"></i>状态未知</span></div>`;
+  const ss = Demo.zones().map((z) => Demo.zoneState(z)).filter((s) => !s.gwUnknown),
+    has = (fn) => ss.some(fn),
+    it = (cls, n, c = "") => `<span><i class="${cls}"${c ? ` style="--c:${c}"` : ""}></i>${n}</span>`,
+    L = opsLayerDef(layer, tab === "occupancy" ? "general" : tab),
+    hatch = (L.legend || []).filter(([c, , , f]) => c === "hatch" && typeof f === "function" && has(f)).map(([, n]) => it("sq hatch", n));
+  let items = [];
+  if (tab === "lighting") items = [ovGrad(["#eceef1", ...OV_LIGHT], "关", "100%"), has((s) => s.light.manual) ? it("sq man", "手动") : "", has(PLAN_WASTE.lighting[1]) ? it("sq waste", PLAN_WASTE.lighting[0]) : "", ...hatch];
+  else if (tab === "hvac") items = [ovGrad([OV_COLD[1], OV_COLD[0], "#fff", OV_HOT[0], OV_HOT[1]], "偏冷 2 ℃", "偏热 2 ℃", "0"), has((s) => selAc(s.z).some((p) => Demo.device(p).manual)) && ovAt() == null ? it("sq man", "手动") : "", ...hatch];
+  else if (tab === "environment") {
+    const lg = L.legend.filter(([c]) => c !== "hatch" && c !== "unmon");
+    items = [`<span class="ov2-envseg">${segSm(OV_ENV, ovEnvMetric(), "opsLayerTab", "opsPlanPanel", "空气指标")}</span>`, layer === "rh" ? lg.map(([c, n, k]) => it(k || "sq", n, c)).join("") : ovGrad(lg.map(([c]) => c), lg[0][1], lg.at(-1)[1]), ...hatch];
+  } else if (tab === "occupancy") items = [it("sq", "有人", "#d6e4f8"), it("sq line", "无人", "#fff"), has((s) => !s.sensor && !!s.ms?.count) ? it("sq hatch", "离线") : ""];
+  else {
+    const ranks = [...new Set(Object.entries(alarmIndex("").zones).filter(([zid]) => Demo.zoneOf(zid)).map(([, as]) => Math.min(2, lvlRank(as[0].level))))].sort();
+    items = [`<b class="ov3-lg-h">状态</b>`, it("sq", "有人", "#eaf1fb"), ranks.length ? `<i class="ov3-lg-sep" aria-hidden="true"></i>` : "", ...ranks.map((i) => it(`sq ln l${i}`, ["紧急", "重要", "提示"][i]))];
+  }
+  return `<div class="ov2-legend">${items.filter(Boolean).join("")}</div>`;
 }
+// 2.74 V700：网关离线的提示条在地图卡片顶部
 function ovMap(tab) {
   const layer = ovMapLayer(tab),
-    phone = ovPhone(),
     hi = (U.ovHi || []).filter((id) => Demo.zoneOf(id)),
     n = needItems().length + (ovAiOk() ? 1 : 0);
-  return `<section class="ov2-map" id="opsPlanPanel" aria-label="${esc(floorLabel())} 楼层图">${
-    phone ? `<header class="ov2-fh">${iconBtn("返回", "back", "ovFull", { v: 0 })}<b>${esc(ovTabName(tab))}</b><span class="sp"></span>${liveLine()}</header>` : ""
-  }<div class="ov2-plan">${opsPlan({ layer, tab: ovMapTab(tab), devTab: ovDevTab(tab), select: true, highlight: hi })}${ovTools(tab)}${ovLegend2(tab, layer)}<button type="button" class="btn sm ov2-popen" data-act="ovPanel" aria-expanded="${!!U.ovPanel}">${n ? `需要处理 ${n}` : "面板"}</button></div>${ovTimeline()}</section>`;
+  return `<section class="ov2-map" id="opsPlanPanel" aria-label="${esc(floorLabel())} 楼层图">${ovGwBar()}<div class="ov2-plan">${opsPlan({ layer, tab: ovMapTab(tab), devTab: ovDevTab(tab), select: true, highlight: hi })}${ovTools(tab)}${ovLegend2(tab, layer)}<button type="button" class="btn sm ov2-popen" data-act="ovPanel" aria-expanded="${!!U.ovPanel}">${n ? `需要处理 ${n}` : "面板"}</button></div>${ovTimeline()}</section>`;
 }
-
-/* ---------- 时间轴（V674）：‹ 今天 ›，00:00–24:00，背景为当天总功率，刻度上方为执行、告警与手动的标记 ---------- */
+// 2.74 V701：用电页签的主区为“今天的负荷”：15 分钟一点，从 0 点画到现在，按分项（照明插座、空调末端）堆叠；
+// 典型日（前 4 周同星期，至少 2 天有数据）为浅灰带，画满全天；事件标在图顶，同一个 15 分钟的合成一个点；悬停读出同一时刻的各分项。用电页签不显示时间轴
+const OV_Q = 15 * 60e3;
+function ovLoadKw(d0) {
+  const H = Demo.H,
+    rows = new Map(Demo.series().filter((r) => r.t >= d0 - H && r.t < d0 + Demo.DAY + H).map((r) => [r.t, r])),
+    v = (r, k) => (r ? (k === "light" ? r.light : (r.hvac ?? r.hvacTrue ?? 0)) / (r.partial ? Math.max(0.25, Math.min(1, (Demo.NOW - r.t) / H)) : 1) : null);
+  return (t, k) => {
+    const h0 = d0 + Math.floor((t - H / 2 - d0) / H) * H,
+      a = v(rows.get(h0), k),
+      b = v(rows.get(h0 + H), k),
+      f = (t - h0 - H / 2) / H;
+    return a == null ? b : b == null ? a : a + (b - a) * f;
+  };
+}
+const OV_LOAD = [["light", "照明插座", S1], ["hvac", "空调末端", SAC]];
+function ovLoadCard() {
+  const at = ovAt(),
+    end = at ?? opsNow(),
+    d0 = Demo.dayStart(end),
+    kw = ovLoadKw(d0),
+    wd = Demo.WEEK[Demo.loc(d0 + 12 * Demo.H).dow],
+    typ = [1, 2, 3, 4].map((k) => d0 - k * 7 * Demo.DAY).filter((d) => Demo.series().some((r) => r.t >= d && r.t < d + Demo.DAY && !r.partial)).map((d) => [d, ovLoadKw(d)]),
+    nq = Math.min(96, Math.ceil((end - d0) / OV_Q)),
+    qhm = ovQhm,
+    rows = Array.from({ length: 96 }, (_, q) => {
+      const mid = d0 + q * OV_Q + OV_Q / 2,
+        ty = typ.length >= 2 ? typ.map(([d, f]) => OV_LOAD.reduce((a, [k]) => a + (f(d + (mid - d0), k) ?? 0), 0)) : [],
+        band = ty.length ? `<div class="ops-tip-note">典型${wd} ${nf(Math.min(...ty), 1)}–${nf(Math.max(...ty), 1)} kW</div>` : "",
+        title = `${qhm(q)}–${qhm(q + 1)}`;
+      if (q >= nq) return { label: "", title, values: [null, null], ty, tip: band || `<div class="ops-tip-note">还没到这个时段</div>` };
+      const vals = OV_LOAD.map(([k]) => Math.max(0, kw(Math.min(mid, end), k) ?? 0));
+      return { label: "", title, values: vals, ty, tip: OV_LOAD.map(([, n, c], k) => tipBarRow(c, n, `${nf(vals[k], 1)} kW`)).join("") + `<div class="ops-tip-sum">合计 <b>${nf(vals[0] + vals[1], 1)} kW</b></div>` + band };
+    }),
+    dots = ovDots(d0, end, (f) => `calc(48px + (100% - 60px) * ${f.toFixed(4)})`),
+    title = d0 === ovDay0() ? "今天的负荷" : `${ovDayName(d0)}的负荷`;
+  return `<section class="ov2-map ov3-load" id="opsPlanPanel" aria-label="${esc(title)}">${ovGwBar()}<header class="ov3-lh"><h3>${esc(title)}</h3><span class="ov3-lg">${OV_LOAD.map(([, n, c]) => `<span><i style="--c:${c}"></i>${n}</span>`).join("")}${rows[0].ty.length ? `<span><i class="band"></i>典型${wd}</span>` : ""}</span><span class="sp"></span><small>kW · 每 15 分钟</small></header><div class="ov3-lplot">${chartSlot({
+    type: "bars",
+    fill: true,
+    unit: "kW",
+    unitShort: "kW",
+    digits: 1,
+    aria: `${title}，照明插座与空调末端分项堆叠，每 15 分钟一点`,
+    series: OV_LOAD.map(([, name, color]) => ({ name, color })),
+    rows,
+    range: rows[0].ty.length ? { lo: rows.map((r) => (r.ty.length ? Math.min(...r.ty) : null)), hi: rows.map((r) => (r.ty.length ? Math.max(...r.ty) : null)) } : null,
+    xLabel: (r, i) => (i % 24 === 0 ? qhm(i) : ""),
+  })}<div class="ov3-ldots">${dots}</div></div></section>`;
+}
+// 事件点的颜色取最严重的一条：紧急、重要、提示，然后手动、执行
+const ovMarkRank = (m) => (m.k.startsWith("al") ? +m.k.slice(-1) : m.k === "man" ? 3 : 4);
+/* ---------- 时间轴（V705）：‹ 今天 ›，00:00–24:00，工作时间浅底，事件为轨道上沿的 6px 圆点 ---------- */
+const ovScopeFloors = () => new Set(U.f ? [U.f] : data().floors.filter((f) => (U.b ? f.buildingId === U.b : !U.p || g("buildings", f.buildingId)?.projectId === U.p)).map((f) => f.id));
+const ovQhm = (q) => (q >= 96 ? "24:00" : `${String(Math.floor(q / 4)).padStart(2, "0")}:${String((q % 4) * 15).padStart(2, "0")}`);
+// 同一个 15 分钟的事件合成一个点，颜色取最严重的一条，悬停列出全部；pos 把 0–1 换成 left
+function ovDots(d0, end, pos, cls = "") {
+  const groups = new Map();
+  ovMarks(d0, d0 + Demo.DAY)
+    .filter((m) => m.t <= end)
+    .forEach((m) => {
+      const q = Math.floor((m.t - d0) / OV_Q);
+      groups.set(q, [...(groups.get(q) || []), m]);
+    });
+  return [...groups]
+    .map(([q, ms]) => {
+      const top = [...ms].sort((a, b) => ovMarkRank(a) - ovMarkRank(b))[0],
+        list = ms.map((m) => `${Demo.hm(m.t)} ${m.name}`),
+        tip = `<div class="ops-tip-h">${esc(`${ovQhm(q)}–${ovQhm(q + 1)}`)}</div>${list.map((x) => `<div class="ov3-tip-l">${esc(x)}</div>`).join("")}`;
+      return `<button type="button" class="ov3-dot ${cls} ${top.k}" style="left:${pos((q + 0.5) / 96)}" data-act="${top.act}" ${ovArgs(top.args)} data-otip="${esc(tip)}" aria-label="${esc(list.join("；"))}"></button>`;
+    })
+    .join("");
+}
 function ovMarks(d0, d1) {
   const now = opsNow(),
     end = Math.min(d1, now),
@@ -80116,7 +80506,8 @@ function ovMarks(d0, d1) {
     .filter((r) => r.at >= d0 && r.at <= end)
     .forEach((r) => out.push({ t: r.at, k: "run", name: `${r.scene || g("scenes", r.sceneId)?.name || "场景"}${r.ok < r.n ? " · 部分生效" : ""}`, act: "opsGo", args: { page: "scenes", tab: "records" } }));
   (Demo.ctl.runs || []).filter((r) => r.at >= d0 && r.at <= end).forEach((r) => out.push({ t: r.at, k: "run", name: g("scenes", r.sid)?.name || "场景", act: "opsGo", args: { page: "scenes", tab: "records" } }));
-  ag.filter((a) => alarmFloor(a) === U.f)
+  const fs = ovScopeFloors();
+  ag.filter((a) => fs.has(alarmFloor(a)))
     .forEach((a) => {
       const t = alarmStart(a);
       if (t >= d0 && t <= end) out.push({ t, k: "al l" + Math.min(2, lvlRank(a.level)), name: alarmTitle(a).title, act: "opsAlarm", args: { id: a.id } });
@@ -80138,21 +80529,14 @@ function ovTimeline() {
     at = ovAt(),
     t = at ?? now,
     d0 = Demo.dayStart(t),
-    d1 = d0 + Demo.DAY,
     today = d0 === ovDay0(),
     X = (x) => Math.max(0, Math.min(100, ((x - d0) / Demo.DAY) * 100)),
-    rows = Demo.series().filter((r) => r.t >= d0 && r.t < d1 && !r.partial),
-    kw = rows.map((r) => r.light + (r.hvacTrue ?? r.hvac ?? 0)),
-    mx = Math.max(1, ...kw),
-    area = rows.length ? `M${X(rows[0].t).toFixed(2)} 40 ${rows.map((r, i) => `L${X(r.t + Demo.H / 2).toFixed(2)} ${(40 - (kw[i] / mx) * 34).toFixed(1)}`).join(" ")} L${X(rows.at(-1).t + Demo.H).toFixed(2)} 40Z` : "",
-    marks = ovMarks(d0, d1)
-      .map((m) => `<button type="button" class="ov2-mk ${m.k}" style="left:${X(m.t).toFixed(2)}%" data-act="${m.act}" ${ovArgs(m.args)} data-tip="${esc(`${Demo.hm(m.t)} ${m.name}`)}" aria-label="${esc(`${Demo.hm(m.t)} ${m.name}`)}"></button>`)
-      .join(""),
+    [wf, wt] = anWork(),
+    work = workdayOn(OPS_SCOPE.project, ymdOf(d0 + 12 * Demo.H)) && wt > wf ? `<i class="ov3-work" style="left:${((wf / 24) * 100).toFixed(2)}%;width:${(((wt - wf) / 24) * 100).toFixed(2)}%" data-tip="${esc(`工作时间 ${anWorkText()}`)}"></i>` : "",
     back = d0 - Demo.DAY >= ovDay0() - 7 * Demo.DAY,
     nav = (d, label, ok, icon) => `<button type="button" class="ov2-day" data-act="ovDay" data-d="${d}" aria-label="${label}" data-tip="${label}"${ok ? "" : ' aria-disabled="true"'}>${ico("chevron", "ic16 " + icon)}</button>`;
-  return `<div class="ov2-tl${at != null ? " replay" : ""}"><div class="ov2-tl-nav">${nav(-1, "前一天", back, "ov2-chl")}<b>${ovDayName(d0)}</b>${nav(1, "后一天", !today, "ov2-chr")}</div><div class="ov2-tl-track" data-d0="${d0}" data-now="${now}"><svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">${area ? `<path class="ov2-pw" d="${area}"/>` : ""}</svg>${today ? `<i class="ov2-fut" style="left:${X(now).toFixed(2)}%"></i><i class="ov2-now" style="left:${X(now).toFixed(2)}%"></i>` : ""}<div class="ov2-mks">${marks}</div><div class="ov2-cur" role="slider" tabindex="0" aria-label="回放时刻" aria-valuemin="0" aria-valuemax="1440" aria-valuenow="${Math.round((t - d0) / Demo.MIN)}" aria-valuetext="${esc(`${ovDayName(t)} ${Demo.hm(t)}`)}" style="left:${X(t).toFixed(2)}%"><span>${Demo.hm(t)}</span></div><div class="ov2-ax" aria-hidden="true">${[0, 6, 12, 18, 24].map((h) => `<span style="left:${(h / 24) * 100}%">${String(h).padStart(2, "0")}:00</span>`).join("")}</div></div>${at != null ? btn("回到现在", "ovLive", {}, "sm") : ""}</div>`;
+  return `<div class="ov2-tl ov3-tl${at != null ? " replay" : ""}"><div class="ov2-tl-nav">${nav(-1, "前一天", back, "ov2-chl")}<b>${ovDayName(d0)}</b>${nav(1, "后一天", !today, "ov2-chr")}</div><div class="ov2-tl-track" data-d0="${d0}" data-now="${now}"><div class="ov3-rail">${work}${today ? `<i class="ov2-fut" style="left:${X(now).toFixed(2)}%"></i>` : ""}</div><div class="ov2-mks">${ovDots(d0, Math.min(d0 + Demo.DAY, now), (f) => `${(f * 100).toFixed(2)}%`, "ov2-mk")}</div><div class="ov2-cur" role="slider" tabindex="0" aria-label="回放时刻" aria-valuemin="0" aria-valuemax="1440" aria-valuenow="${Math.round((t - d0) / Demo.MIN)}" aria-valuetext="${esc(`${ovDayName(t)} ${Demo.hm(t)}`)}" style="left:${X(t).toFixed(2)}%"><span>${Demo.hm(t)}</span></div><div class="ov2-ax" aria-hidden="true">${[0, 6, 12, 18, 24].map((h) => `<span style="left:${(h / 24) * 100}%">${String(h).padStart(2, "0")}:00</span>`).join("")}</div></div>${at != null ? btn("回到现在", "ovLive", {}, "sm") : ""}</div>`;
 }
-
 /* ---------- 右侧面板（V672）：什么都没选、点一个功能区（检视器）、选了多个（批量控制）；所有控制都只在这里 ---------- */
 function ovNextRuns(pid, from, n = 3) {
   const out = [],
@@ -80167,39 +80551,46 @@ function ovNextRuns(pid, from, n = 3) {
   }
   return out.sort((a, b) => a.at - b.at).slice(0, n);
 }
-const ovPsec = (title, body, tools = "") => `<section class="ov2-psec"><header><h3>${title}</h3><span class="sp"></span>${tools}</header>${body}</section>`;
+// 2.74 V706：分节名 14/22、字重 600，后面的数量 12/18 #636363；右边可放文字按钮；各节间隔 24，没有分隔线
+const ovPsec = (title, body, tools = "", n = "") => `<section class="ov2-psec"><header><h3>${title}${n !== "" ? `<span class="ov3-n">${n}</span>` : ""}</h3><span class="sp"></span>${tools}</header>${body}</section>`;
 function ovIdle() {
   const at = ovAt(),
     need = needItems().filter((x) => at == null || x.act !== "opsTask" || x.t <= at),
     ai = at == null ? ovAiNeed() : "",
     tot = need.length + (ai ? 1 : 0),
-    shown = need.slice(0, ai ? 4 : 5).map((x) => (at == null ? x : { ...x, dur: "" })),
-    nx = ovNextRuns(OPS_SCOPE.project, at ?? opsNow()),
+    shown = need.slice(0, ai ? 3 : 4).map((x) => (at == null ? x : { ...x, dur: "" })),
+    nx = ovNextRuns(OPS_SCOPE.project, at ?? opsNow(), 3),
     zs = U.f ? Demo.zones().map((z) => Demo.zoneState(z)).filter((s) => !s.gwUnknown) : [],
-    man = at == null ? zs.filter((s) => s.light.manual || selAc(s.z).some((p) => Demo.device(p).manual)) : [];
+    man = at == null ? zs.filter((s) => s.light.manual || selAc(s.z).some((p) => Demo.device(p).manual)) : [],
+    tb = (label, act, args = {}) => `<button type="button" class="ov3-tb" data-act="${act}" ${ovArgs(args)}>${label}</button>`;
+  // 需要处理：最多 4 行（含建议行），多的用“全部 N 项 ›”转到告警页
   const needH = ovPsec(
     "需要处理",
-    tot ? `<ul class="ov-list ops-need-list" id="opsNeedList">${shown.map(ovNeedRow).join("")}${ai}</ul>` : `<p class="ov2-empty">没有需要处理的事项</p>`,
-    tot > 5 ? btn(`全部 ${tot} 条` + ico("chevron", "ic16 ov-chev"), "opsGo", { page: "alarms" }, "ghost sm") : "",
+    tot ? `<ul class="ov-list ops-need-list ov3-evs" id="opsNeedList">${shown.map(ovNeedRow).join("")}${ai}</ul>` : `<p class="ov2-empty">没有需要处理的事项</p>`,
+    tot > 4 ? tb(`全部 ${tot} 项${ico("chevron", "ic16 ov-chev")}`, "opsGo", { page: "alarms" }) : "",
+    tot || "",
   );
+  // 接下来：最多 3 行，每行 36 高：时间（等宽数字）、场景名、›
   const nextH = ovPsec(
     "接下来",
     nx.length
-      ? `<ul class="ov2-list">${nx.map((r) => `<li><button type="button" class="ov2-li" data-act="opsGo" data-page="scenes" data-tab="schedule"><span class="ov2-li-t"><span class="ov2-hm">${ovNextDay(r.at)}${Demo.hm(r.at)}</span>${esc(r.s.name)}</span>${ico("chevron", "ic16 ov-chev")}</button></li>`).join("")}</ul>`
+      ? `<ul class="ov2-list ov3-nx">${nx.map((r) => `<li><button type="button" class="ov2-li" data-act="opsGo" data-page="scenes" data-tab="schedule"><span class="ov3-hm">${ovNextDay(r.at)}${Demo.hm(r.at)}</span><span class="ov3-nm">${esc(r.s.name)}</span>${ico("chevron", "ic16 ov-chev")}</button></li>`).join("")}</ul>`
       : `<p class="ov2-empty">没有定时执行</p>`,
   );
+  // 手动控制：只在有手动时出现；每行 40 高，写“照明 80% · 至 11:30”，右边“恢复”；最多 2 行，多的写“另有 N 处”
   const manH = man.length
     ? ovPsec(
         "手动控制",
-        `<ul class="ov2-list">${man
+        `<ul class="ov2-list ov3-man">${man
+          .slice(0, 2)
           .map((s) => {
             const hv = selAc(s.z).filter((p) => Demo.device(p).manual),
               until = s.light.manual ? s.light.until : s.hvac?.manualUntil || null,
-              what = [s.light.manual && "照明", hv.length && "空调"].filter(Boolean).join("、");
-            return `<li class="ov2-li" data-zone="${esc(s.z.id)}"><span class="ov2-li-t"><b>${esc(s.z.name)}</b><small>${esc(what)}${until ? ` · 至 ${Demo.hm(until)}` : ""}</small></span>${ctlBtn("恢复自动", "ovZoneAuto", { id: s.z.id }, "sm", [...(s.light.manual ? zoneLcIds(s.z.id) : []), ...hv.map((p) => p.id)])}</li>`;
+              what = [s.light.manual && (s.light.on ? `照明 ${s.light.level || 100}%` : "照明 关"), hv.length && "空调"].filter(Boolean).join("、");
+            return `<li class="ov2-li" data-zone="${esc(s.z.id)}"><span class="ov2-li-t ws-words-off"><b>${esc(s.z.name)}</b><small>${esc(what)}${until ? ` · 至 ${Demo.hm(until)}` : ""}</small></span>${ctlBtn("恢复", "ovZoneAuto", { id: s.z.id }, "ov3-tb", [...(s.light.manual ? zoneLcIds(s.z.id) : []), ...hv.map((p) => p.id)])}</li>`;
           })
-          .join("")}</ul>`,
-        man.length > 1 ? ctlBtn("全部恢复自动", "ovAllAuto", {}, "ghost sm", man.flatMap((s) => zoneLcIds(s.z.id))) : "",
+          .join("")}</ul>${man.length > 2 ? `<p class="ov3-rest">另有 ${man.length - 2} 处</p>` : ""}`,
+        ctlBtn("全部恢复自动", "ovAllAuto", {}, "ov3-tb", man.flatMap((s) => zoneLcIds(s.z.id))),
       )
     : "";
   return needH + nextH + manH;
@@ -80248,7 +80639,8 @@ function ovFloor() {
     const tab = ovLayer(),
       m = ovPanelMode();
     if (m !== "zone" && U.opsZone && selZones().length >= 2) U.opsZone = null;
-    return `<div class="ov2${ovAt() != null ? " replay" : ""}${U.ovFull && ovPhone() ? " full" : ""}${m !== "idle" ? " has-sel" : ""}${U.ovPanel ? " popen" : ""}" data-layer="${tab}">${ovGwBar()}${ovSum()}${ovTabs(tab)}<div class="ov2-main">${ovMap(tab)}${ovPanel(tab)}</div></div>`;
+    // 2.74 V700：页头行 → 指标页签 → 主区（左地图卡片，右 360 面板）；去掉摘要行（V667），网关离线条在地图卡片顶部
+    return `<div class="ov2 ov3${ovAt() != null ? " replay" : ""}${m !== "idle" ? " has-sel" : ""}${U.ovPanel ? " popen" : ""}" data-layer="${tab}">${ovTabs(tab)}<div class="ov2-main">${tab === "energy" ? ovLoadCard() : ovMap(tab)}${ovPanel(tab)}</div></div>`;
   });
 }
 // V675：楼宇级每层一行（顶层在上，行高 48）：楼层号、按面积分段的功能区色条（跟随页签）、告警标签、有人、CO₂ 最高、今日用电；未接入整行浅灰
@@ -80266,33 +80658,89 @@ function ovFloorStrip(tab) {
     })
     .join("");
 }
+// 2.74 V708：楼宇级只为已接入运行数据的楼层画楼层条（56 高）：楼层名、按当前页签着色的功能区缩略图、问题数；
+// 未接入的楼层合成一行“另有 N 个楼层未接入运行数据”和“查看配置进度 ›”（E250：楼层数写“N 个楼层”）；下面是时间轴
 function ovFloorRows(tab) {
   const fs = sortedFloors(U.b),
     live = new Set(liveFloorIds()),
     c = cmpRows(),
-    unk = !!Demo.ctl.gwOffline;
-  return `<section class="ov2-floors${opsLive().stale ? " stale" : ""}" aria-label="各楼层"><ul>${fs
+    on = fs.filter((f) => live.has(f.id) && c.rows.some((x) => x.o.id === f.id)),
+    none = fs.length - on.length,
+    layer = ovMapLayer(tab);
+  return `<section class="ov2-map ov3-rows" id="opsPlanPanel" aria-label="各楼层">${ovGwBar()}<ul class="ov3-fl">${on
     .map((f) => {
-      const r = c.rows.find((x) => x.o.id === f.id);
-      if (!live.has(f.id) || !r) return `<li class="none"><span class="ov2-fr"><b>${esc(f.name)}</b><span class="ov2-strip none"></span><small>未接入</small></span></li>`;
-      const cs = cmpCols("general", r, c.kind),
-        v = (h) => cs.find((x) => x.h === h),
-        ch = ovAlChips(r.fids),
-        co2 = v("CO₂ 最高");
-      return `<li><button type="button" class="ov2-fr" data-act="opsGoFloor" data-id="${esc(f.id)}" aria-label="${esc(`进入 ${f.name}`)}"><b>${esc(f.name)}</b><span class="ov2-strip">${ovFloorStrip(tab)}</span><span class="ov2-fal">${ch === "0" ? "" : ch}</span><span class="ov2-fv">${unk ? "状态未知" : `有人 ${esc(v("有人功能区").t)}`}</span><span class="ov2-fv${co2.over ? " warn" : ""}">${unk ? "" : `CO₂ ${esc(String(co2.t).split(" · ")[0])}`}</span><span class="ov2-fv">${v("今日用电").html}</span></button></li>`;
+      const pr = ovProbs([f.id]);
+      return `<li><button type="button" class="ov3-fr" data-act="opsGoFloor" data-id="${esc(f.id)}" aria-label="${esc(`进入 ${f.name}`)}"><b>${esc(f.name)}</b><span class="ov3-thumb" aria-hidden="true">${ovThumb(layer, ovMapTab(tab))}</span><span class="ov3-pr">${pr || "无告警"}</span>${ico("chevron", "ic16 ov-chev")}</button></li>`;
     })
-    .join("")}</ul></section>`;
+    .join("")}</ul>${none ? ovNoneRow(`另有 ${none} 个楼层未接入运行数据`, { p: U.p }) : ""}${ovTimeline()}</section>`;
 }
-
+// 楼层条中间的功能区缩略图：按楼层图的宽高比画各功能区，颜色同当前页签（只给超标着色的空气页签同楼层图），有问题的按级别色描边
+function ovThumb(layer, tab) {
+  const fl = g("floors", OPS_SCOPE.floor),
+    ar = fl?.dimensions ? fl.dimensions.width / fl.dimensions.height : 2.5,
+    L = opsLayerDef(layer, tab),
+    AL = alarmIndex(""),
+    hgt = 100 / ar,
+    lc = ["#d0382b", "#db6a1e", "#d29a10"];
+  return `<svg viewBox="0 0 100 ${hgt.toFixed(2)}" preserveAspectRatio="xMinYMid meet" style="aspect-ratio:${ar.toFixed(4)}">${Demo.zones()
+    .map((z) => {
+      const s = Demo.zoneState(z),
+        f = s.gwUnknown ? "#f3f4f6" : ovAirOnly(layer, L.fill(s)) || "#fff",
+        a = s.gwUnknown ? null : AL.zones[z.id]?.[0],
+        y = (z.y / 100) * hgt,
+        h = (z.h / 100) * hgt;
+      return `<rect x="${z.x}" y="${y.toFixed(2)}" width="${z.w}" height="${h.toFixed(2)}" fill="${["hatch", "idle", "unmon"].includes(f) ? "#f3f4f6" : f}" stroke="${a ? lc[Math.min(2, lvlRank(a.level))] : "#d4d4d4"}" stroke-width="${a ? 0.9 : 0.35}"/>`;
+    })
+    .join("")}</svg>`;
+}
+// 问题数：本范围内未恢复的告警按级别计，“重要 2 · 提示 2”
+function ovProbs(fids) {
+  const set = new Set(fids),
+    as = F.alarmGroups(data()).filter((a) => a.state !== "recovered" && set.has(alarmFloor(a)));
+  return ["紧急", "重要", "提示"]
+    .map((l, i) => [l, i, as.filter((a) => LV(a.level) === l).length])
+    .filter(([, , n]) => n)
+    .map(([l, i, n]) => `<span class="ov3-lv l${i}">${l} ${n}</span>`)
+    .join('<i aria-hidden="true"> · </i>');
+}
+const ovNoneRow = (text, args) => `<p class="ov3-none"><span>${esc(text)}</span>${canEdit() ? `<button type="button" class="ov3-tb" data-act="deployList" ${ovArgs(args)}>查看配置进度${ico("chevron", "ic16 ov-chev")}</button>` : ""}</p>`;
+// 当前页签在一行（楼宇、项目）上的值，如“亮灯 25 / 28 台”；状态视图不写
+function ovRowVal(fids, tab) {
+  if (tab === "general" || tab === "energy") return "";
+  const zs = Demo.zones().filter((z) => fids.includes(z.floorId)).map((z) => Demo.zoneState(z)),
+    v = zs.length ? ovTabVals(zs)[tab] : null;
+  return v ? `${v.pre} ${v.v}${v.post ? ` ${v.post}` : ""}` : "";
+}
+// 项目级每栋楼宇一行、全部项目级每个项目一行（64 高）：名称 16/24、“已接入 1 / 23 层”；右边问题数和当前页签的值；未接入的合成一行
+function ovAggRows(c, tab) {
+  const has = (o) => c.rows.some((x) => x.o.id === o.id),
+    on = c.all.filter(has),
+    off = c.all.filter((o) => !has(o)),
+    unit = c.kind === "projects" ? "个项目" : "栋楼宇";
+  return `<section class="ov2-map ov3-rows" id="opsPlanPanel" aria-label="${c.kind === "projects" ? "各项目" : "各楼宇"}">${ovGwBar()}<ul class="ov3-br">${on
+    .map((o) => {
+      const r = c.rows.find((x) => x.o.id === o.id),
+        go = Object.entries(r.go)
+          .map(([k, x]) => `data-${k}="${esc(x)}"`)
+          .join(" "),
+        sub =
+          c.kind === "projects"
+            ? `已接入 ${new Set(r.fids.map((f) => g("floors", f)?.buildingId)).size} / ${data().buildings.filter((b) => b.projectId === o.id).length} 栋楼宇`
+            : `已接入 ${r.fids.length} / ${data().floors.filter((f) => f.buildingId === o.id).length} 个楼层`,
+        v = Demo.ctl.gwOffline ? "状态未知" : ovRowVal(r.fids, tab),
+        pr = ovProbs(r.fids);
+      return `<li><button type="button" class="ov3-bi" data-act="opsDrill" ${go} aria-label="${esc(`查看 ${o.name}`)}"><span class="ov3-bn ws-words-off"><b>${esc(o.name)}</b><small>${esc(sub)}</small></span><span class="ov3-bv">${pr ? `<span class="ov3-pr">${pr}</span>` : ""}${v ? `<span class="ov3-v">${esc(v)}</span>` : ""}</span>${ico("chevron", "ic16 ov-chev")}</button></li>`;
+    })
+    .join("")}</ul>${off.length ? ovNoneRow(`另有 ${off.length} ${unit}未接入运行数据`, c.kind === "projects" ? { p: off[0].id } : { p: U.p }) : ""}</section>`;
+}
 /* ---------- 总览第二版的操作 ---------- */
 defineActions({
   // 页签：再点已选的回到状态图层；摘要行的“有人”只切到占用；手机上点页签打开全屏楼层图（V692）
+  // 2.74 V724：手机上同样再点已选的页签取消选择（不再打开全屏楼层图）
   ovTab: (a) => {
-    const k = a.value,
-      phone = ovPhone();
-    U.tab = a.pick || phone ? k : U.tab === k ? "general" : k;
+    const k = a.value;
+    U.tab = a.pick ? k : U.tab === k ? "general" : k;
     U.opsKpiF = null;
-    if (phone && U.f) U.ovFull = true;
     syncRoute();
     render();
   },
@@ -80448,12 +80896,12 @@ document.addEventListener("pointerover", (e) => {
   OPS.ovZoneHover = z;
   document.querySelectorAll(".ov2-panel [data-zone]").forEach((el) => el.classList.toggle("zhi", !!z && el.dataset.zone === z));
 });
-/* 键盘（V691）：1–4 切换页签；← / → 时间轴前后 15 分钟（Shift 为 1 小时）；↑ / ↓ 在“需要处理”里上下移动。
+/* 键盘（V691）：1–5 切换页签（2.74 V701 加“用电”）；← / → 时间轴前后 15 分钟（Shift 为 1 小时）；↑ / ↓ 在“需要处理”里上下移动。
    输入框、滑块、弹层与弹窗里不处理 */
 document.addEventListener("keydown", (e) => {
   if (typeof U === "undefined" || U.page !== "overview" || U.role === "member" || e.metaKey || e.ctrlKey || e.altKey || !document.querySelector(".ov2-tabs")) return;
   if (e.target.closest?.("input, textarea, select, [contenteditable], [role=slider]:not(.ov2-cur), [role=menu], [role=dialog]") || $("#pop") || $("#dlg") || $("#ai-pal") || $("#discard")) return;
-  if (/^[1-4]$/.test(e.key)) {
+  if (/^[1-5]$/.test(e.key)) {
     e.preventDefault();
     return actions.ovTab({ value: OV_TABS[+e.key - 1][0] });
   }
@@ -80561,20 +81009,17 @@ function ovInspector(zid) {
     note = "";
     return n;
   };
-  const chips = [
-    gw ? ovChip("状态未知") : s.occUnknown || !s.sensor ? "" : s.occupied ? ovChip("有人", "occ") : ovChip("无人"),
-    // 2.66 V421：手动写“手动 · 至 11:30”
-    !gw && s.light.manual ? ovChip(`手动${s.light.until ? ` · 至 ${Demo.hm(s.light.until)}` : ""}`) : "",
-    top && !gw ? ovChip(`${LV(top.level)}告警`, "l" + rk) : "",
-  ].join("");
+  // 2.74 V707：名称下一行写“独立办公 · 51 m² · 无人”，有人、无人不再是单独一行的标签；手动写在照明一节，告警为下面的事件行
+  const occ = gw ? "状态未知" : s.occUnknown || !s.sensor ? "" : s.occupied ? "有人" : "无人";
   // 2.66 V382：起点为超过阈值的时刻（与需要处理相同），不在今天时带日期；写完整事件名（如“夜间照明偏高”）；
   // V377：已确认的告警写“李工 · 处理中”（有未完成工单）或“已确认”
   const st = top ? alarmStart(top) : 0,
     mins = top ? Math.max(0, Math.round((opsNow() - st) / Demo.MIN)) : 0,
     pend = top && !top.acknowledged,
     task = top && !pend ? alarmOpenTask(top) : null,
+    // 2.74 V699：告警为事件行：左侧 3px 级别竖条，标题 14/22，第二行起始、持续与状态，没有底色
     alert = top
-      ? `<div class="ov-ialert l${rk}">${ico("bell", "ic16")}<span><b>${esc(ovShortEvent(top, true))}${pend ? " · 待确认" : ""}</b><small>${ovMd(st)} 起 · ${durText(mins)}${pend ? "" : ` · ${esc(task ? alarmTaskText(task) : "已确认")}`}</small></span>${member ? "" : pend && canOperate() ? btn("确认", "opsAck", { id: top.id }, "sm") : btn("查看", "opsAlarm", { id: top.id }, "sm ghost")}</div>`
+      ? `<div class="ov-ialert ov3-ev l${rk}"><span class="ov3-ev-t ws-words-off"><b><span class="sr-only">${LV(top.level)}：</span>${esc(ovShortEvent(top, true))}${pend ? '<span class="ov3-pend">待确认</span>' : ""}</b><small>${ovMd(st)} 起 · ${durText(mins)}${pend ? "" : ` · ${esc(task ? alarmTaskText(task).replace(" · ", "") : "已确认")}`}</small></span>${member ? "" : pend && canOperate() ? btn("确认", "opsAck", { id: top.id }, "sm") : btn("查看", "opsAlarm", { id: top.id }, "sm ghost")}</div>`
       : "";
   // 照明：开灯、关灯、调光；手动时一行来源与“恢复自动”；标题右写功率（V385），有离线时写“· 1 台离线”（提示色，点按展开设备并定位）；
   // 有滑块时不写开关状态（V390）；末行“照明控制参数 ›”（V384，查看人员只读打开）
@@ -80608,10 +81053,16 @@ function ovInspector(zid) {
   const ref = zoneRef(s) || {},
     co2 = opsAqCurrent(s) ? co2Of(s) : null, // 5 分钟均值，与指标条、楼层图和告警同一口径（V228）
     pm = gw ? null : ovPm24(s),
-    tile = (k, v, u, over, none) => `<div class="ov-itile${over ? " over" : ""}"><small>${k}${over ? '<span class="ov-ichip hi">偏高</span>' : ""}</small><b>${none ? `<span class="ov-na">${none}</span>` : v == null ? "—" : `${v}<i>${u}</i>`}</b></div>`,
-    aqNone = !z.aqs.length ? "未监测" : "",
-    msNone = !z.mss.length ? "未监测" : "",
-    env = `<section class="ov-isec"><h4>${ico("aq", "ic16")}室内环境</h4><div class="ov-itiles">${tile("CO₂", co2 == null ? null : nf(co2), "ppm", co2 != null && ref.co2 && co2 > ref.co2, aqNone)}${tile("PM2.5 · 24 小时", pm == null ? null : nf(pm), "μg/m³", pm != null && ref.pm && pm > ref.pm, aqNone || (pm == null && !gw && s.aq ? "数据不足" : ""))}${tile("湿度", gw || s.rh == null ? null : s.rh, "%", false, msNone)}${tile("照度", gw || s.lux == null ? null : nf(s.lux), "lx", false, msNone)}</div></section>`;
+    // 2.74 V707：两列名称与数值（名称 12/18 #636363，数值 14/22、字重 600）；未监测的项不占格，最后一行写“未监测：CO₂、PM2.5”
+    items = [
+      ["CO₂", "CO₂", !z.aqs.length, co2 == null ? null : nf(co2), "ppm", co2 != null && ref.co2 && co2 > ref.co2, ""],
+      ["PM2.5 · 24 小时", "PM2.5", !z.aqs.length, pm == null ? null : nf(pm), "μg/m³", pm != null && ref.pm && pm > ref.pm, pm == null && !gw && s.aq ? "数据不足" : ""],
+      ["湿度", "湿度", !z.mss.length, gw || s.rh == null ? null : s.rh, "%", false, ""],
+      ["照度", "照度", !z.mss.length, gw || s.lux == null ? null : nf(s.lux), "lx", false, ""],
+    ],
+    mon = items.filter((x) => !x[2]),
+    un = items.filter((x) => x[2]).map((x) => x[1]),
+    env = `<section class="ov-isec"><h4>${ico("aq", "ic16")}室内环境</h4>${mon.length ? `<dl class="ov3-env">${mon.map(([k, , , v, u, over, na]) => `<div${over ? ' class="over"' : ""}><dt>${k}</dt><dd>${na ? `<span class="ov-na">${na}</span>` : v == null ? "—" : `${v}<i>${u}</i>`}${over ? "<em>偏高</em>" : ""}</dd></div>`).join("")}</dl>` : ""}${un.length ? `<p class="ov3-unmon">未监测：${un.join("、")}</p>` : ""}</section>`;
   // V391：设备每行第一行功能名称，第二行编号，右侧状态
   const all = [...z.lcs, ...z.mss, ...z.aqs, ...z.fcs, ...z.idus, ...z.splits],
     devs = U.ovDevs && !member
@@ -80623,7 +81074,7 @@ function ovInspector(zid) {
           .join("")}</ul>`
       : "";
   // V390：类型与名称相同时只写面积；V403：网关离线时只留名称、类型面积、“状态未知”、告警一行（照常确认或查看）与底部
-  return `<aside class="ov-insp${opsLive().stale ? " stale" : ""}" aria-label="${zhSub(esc(z.name), "r")}功能区"><header class="ov-ih"><div><h3 id="opsZpTitle" tabindex="-1">${esc(z.name)}</h3><p>${z.type && z.type !== z.name ? esc(z.type) + " · " : ""}${z.area} m²${!gw && opsLive().stale ? ` · 数据截至 ${Demo.hm(opsLive().at)}` : ""}</p></div>${iconBtn("关闭", "x", "opsZoneClose")}</header>${chips ? `<div class="ov-ichips">${chips}</div>` : ""}<div class="ov-ibody">${gw ? alert : alert + light + hv + env + ovZoneTracks(z.id)}${devs}</div><footer class="ov-ifoot">${member ? btn("报修", "opsZoneRepair", { id: z.id }, "sm") : `${btn(ico("cpu", "ic16") + `设备 ${all.length} 台`, "ovDevs", {}, `sm${U.ovDevs ? " on" : ""}`).replace("<button ", `<button aria-expanded="${U.ovDevs ? "true" : "false"}" `)}${btn(ico("dir-list", "ic16") + "操作记录", "opsRecords", { zone: z.id }, "sm")}${viewer ? btn("报修", "opsZoneRepair", { id: z.id }, "sm") : ""}`}</footer></aside>`;
+  return `<aside class="ov-insp${opsLive().stale ? " stale" : ""}" aria-label="${zhSub(esc(z.name), "r")}功能区"><header class="ov-ih"><div><h3 id="opsZpTitle" tabindex="-1">${esc(z.name)}</h3><p>${z.type && z.type !== z.name ? esc(z.type) + " · " : ""}${z.area} m²${occ ? ` · ${occ}` : ""}${!gw && opsLive().stale ? ` · 数据截至 ${Demo.hm(opsLive().at)}` : ""}</p></div>${iconBtn("关闭", "x", "opsZoneClose")}</header><div class="ov-ibody">${gw ? alert : alert + light + hv + env + ovZoneTracks(z.id)}${devs}</div><footer class="ov-ifoot">${member ? btn("报修", "opsZoneRepair", { id: z.id }, "sm") : `${btn(ico("cpu", "ic16") + `设备 ${all.length} 台`, "ovDevs", {}, `sm${U.ovDevs ? " on" : ""}`).replace("<button ", `<button aria-expanded="${U.ovDevs ? "true" : "false"}" `)}${btn(ico("dir-list", "ic16") + "操作记录", "opsRecords", { zone: z.id }, "sm")}${viewer ? btn("报修", "opsZoneRepair", { id: z.id }, "sm") : ""}`}</footer></aside>`;
 }
 // 2.70 V673：检视器内的“今天”图（312×160），横轴 00:00–24:00，现在之后浅灰；四条轨道：占用色块、照明面积、
 // 室温实线与设定阶梯虚线（下衬制冷浅蓝、制热浅橙，手动斜纹，非工作时间灰带）、CO₂ 与参考上限虚线。
@@ -81101,44 +81552,13 @@ function ovMini(bids, live) {
   const body = shown.map((bid, j) => ovMassing(x0 + j * w + B * 0.866 + 4, oy, A, B, h, fl[j], live, al, false)).join("");
   return `<svg class="ov-bmini" viewBox="0 0 150 230" width="150" height="230" aria-hidden="true">${body}${more > 0 ? `<text x="146" y="${oy + 40}" text-anchor="end" class="ov-twin-t">+${more}</text>` : ""}</svg>`;
 }
+// 2.74 V708：楼宇、项目、全部项目与楼层同一骨架：页头行 → 5 个指标页签 → 左主区 + 右面板；用电页签的主区为“今天的负荷”
 function ovAggregate() {
   const c = cmpRows(),
-    gw = !!Demo.ctl.gwOffline,
-    rows = ovStatRows("general").slice(0, 3),
-    t = Demo.today(),
-    area = c.rows.flatMap((r) => r.fids).reduce((a, id) => a + (g("floors", id)?.area || 0), 0);
-  if (!gw && area) rows[2][3] = `${nf(t.kwh / area, 3)} kWh/m²`;
-  // 2.66 V356：楼宇级以上“未恢复告警”进入 告警 › 当前告警（本范围），“设备在线率”进入设备列表（筛离线）
-  rows[0][6] = { page: "alarms", tab: "current" };
-  rows[1][6] = { page: "devices", tab: "inventory", devf: "issues" };
-  // 2.66 V415：楼宇级“已接入 1 / 23 个楼层”，项目级“1 / 2 栋”，全部项目级“1 / 3 个项目”
-  const conn =
-    c.kind === "floors"
-      ? ["已接入", `${c.rows.length} / ${c.all.length}`, "个楼层", "", "", "layers"]
-      : ["已接入", `${c.rows.length} / ${c.all.length}`, c.kind === "buildings" ? "栋" : "个项目", "", "", "building"];
-  // 2.66 V412：楼宇级以上在各楼层表（项目及以上为卡片）下方加“需要处理”，副文前写楼层（“7F · ”“E栋 7F · ”），点一条进入该楼层并打开检视器
-  const stats = ovGwBar() + ovStats("general", [...rows, conn]),
-    need = ovNeedCard();
-  if (c.kind === "floors") {
-    const tab = ovLayer();
-    return `<div class="ov2 ov2-bld" data-layer="${tab}">${ovGwBar()}${ovSum()}${ovTabs(tab)}<div class="ov2-main">${ovFloorRows(tab)}${ovPanel(tab)}</div></div>`;
-  }
-  // 2.66 V413：已接入的在前，未接入的在后，各自按名称
-  const has = (o) => c.rows.some((x) => x.o.id === o.id);
-  return `${stats}<div class="ov-bcards">${[...c.all]
-    .sort((a, b) => has(b) - has(a))
-    .map((o) => {
-      const r = c.rows.find((x) => x.o.id === o.id);
-      if (c.kind === "projects") {
-        const bs = data().buildings.filter((b) => b.projectId === o.id);
-        // 2.66 V415：写“已接入 1 / 2 栋楼宇”（原“已接入 1 个楼层 · 2 栋楼宇”会读成 2 栋都已接入）
-        const bids = [...bs].sort(M.byName).map((b) => b.id);
-        return r ? ovBcardLive(r, c.kind, `已接入 ${new Set(r.fids.map((f) => g("floors", f)?.buildingId)).size} / ${bs.length} 栋楼宇`, bids) : ovBcardNone(o, bids, { p: o.id });
-      }
-      const n = data().floors.filter((f) => f.buildingId === o.id).length;
-      return r ? ovBcardLive(r, c.kind, `已接入 ${r.fids.length} / ${n} 个楼层`, [o.id]) : ovBcardNone(o, [o.id], { p: U.p });
-    })
-    .join("")}</div>${need}`;
+    tab = ovLayer();
+  if (c.kind === "floors")
+    return ovWithReplay(() => `<div class="ov2 ov3 ov2-bld${ovAt() != null ? " replay" : ""}${U.ovPanel ? " popen" : ""}" data-layer="${tab}">${ovTabs(tab)}<div class="ov2-main">${tab === "energy" ? ovLoadCard() : ovFloorRows(tab)}${ovPanel(tab)}</div></div>`);
+  return `<div class="ov2 ov3 ov2-agg${U.ovPanel ? " popen" : ""}" data-layer="${tab}">${ovTabs(tab)}<div class="ov2-main">${tab === "energy" ? ovLoadCard() : ovAggRows(c, tab)}${ovPanel(tab)}</div></div>`;
 }
 const ovAlChips = (fids) => {
   const set = new Set(fids),
@@ -88844,6 +89264,17 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "2.74",
+    date: "2026-11-01",
+    notes: [
+      "改进：运营各页统一为页头行、页签行与内容三层；范围按钮放在页名旁，实时标记改为绿点加时刻。",
+      "新增：总览加“用电”页签，主区为今天的负荷，按照明插座与空调末端堆叠并画出典型同日范围。",
+      "改进：楼层图正常时只写名称，有问题的功能区画级别色边线和“!”；地图工具收进右下一组按钮。",
+      "改进：需要处理每条两行写清位置、持续多久与处理人；楼宇与项目改为每层、每栋一行。",
+      "修复已知问题，优化界面细节。",
+    ],
+  },
+  {
     version: "2.73",
     date: "2026-11-01",
     notes: [
@@ -89932,10 +90363,10 @@ const HELP_ARTICLES = [
   { id: "acct-audit", topic: "account", title: "审计日志", roles: "机构管理员", upd: "2026-10-31", sum: "查看本机构成员、安全与配置相关的操作记录。",
     steps: ["在“机构设置 › 审计日志”按“全部”“安全事件”“成员与授权”“配置与规划变更”查看，可按时间、人员和操作筛选，也可以搜索对象。", "PACOM 的操作写“PACOM”，如审核数据申请或在授权期限内只读查看数据。", "“导出”按当前筛选导出 CSV 文件。", "审计日志保存 12 个月，任何人都不能修改或删除。"],
     faq: [], rel: ["acct-data", "acct-admin"] },
-  // 2.70 V672、V691：总览的面板与快捷键
-  { id: "overview", topic: "ops", title: "总览", roles: "普通成员以外的角色", upd: "2026-11-01", sum: "摘要、四个页签、楼层图与右侧面板；拖动时间轴回放过去 7 天，按 1–4 切换页签。",
-    steps: ["摘要一行写需要处理的条数、有人比例与今日用电，点任一段查看详情。", "照明、空调、空气、占用四个页签各写一个数值与例外；点页签换楼层图的填色，再点一次回到状态图层。", "右侧面板什么都没选时列出需要处理、接下来的定时与手动控制；点功能区打开检视器，选多个功能区时为批量控制。", "拖动楼层图下方的时间轴或翻到前几天，查看那一刻的状态；回放时不能控制，点“回到现在”返回。", "快捷键：⌘K 或 Ctrl+K 搜索或提问，1–4 切换页签，Esc 返回；左、右方向键移动回放时刻 15 分钟（按住 Shift 为 1 小时），上、下方向键在需要处理各行间移动。"],
-    faq: [["页签都不选时楼层图显示什么？", "状态图层：只给有人和有告警的功能区上色，其余只写名称。"]], rel: ["control", "assistant"] },
+  // 2.70 V672、V691：总览的面板与快捷键；2.74 V700–V708：五个页签（加用电），没有摘要行，地图工具收进“⋯”
+  { id: "overview", topic: "ops", title: "总览", roles: "普通成员以外的角色", upd: "2026-11-01", sum: "五个指标页签、楼层图与右侧面板；拖动时间轴回放过去 7 天，按 1–5 切换页签。",
+    steps: ["照明、空调、空气、占用、用电五个页签各写一个数值与一行说明；点页签换楼层图的填色，点用电换成今天的负荷图，再点一次回到状态视图。", "右侧面板什么都没选时列出需要处理、接下来的定时与手动控制；点功能区打开检视器，选多个功能区时为批量控制。", "楼层图右下的“⋯”里有套索选择、选设备、快速选择与底图；在空白处拖动即框选。", "拖动楼层图下方的时间轴或翻到前几天，查看那一刻的状态；回放时不能控制，点“回到现在”返回。", "快捷键：⌘K 或 Ctrl+K 搜索或提问，1–5 切换页签，Esc 返回；左、右方向键移动回放时刻 15 分钟（按住 Shift 为 1 小时），上、下方向键在需要处理各行间移动。"],
+    faq: [["页签都不选时楼层图显示什么？", "状态视图：有人的功能区铺浅蓝，有告警的功能区画级别色边线和“!”，其余只写名称。"]], rel: ["control", "assistant"] },
   { id: "control", topic: "ops", title: "控制照明与空调", roles: "运营人员及以上；普通成员只控制授权的功能区", upd: "2026-11-01", sum: "单个功能区与单台设备点按即下发，回执显示在原位并写入操作记录。",
     steps: ["在总览选到楼层，点功能区，在右侧面板打开功能区检视器。", "在功能区检视器中调光、开灯或关灯，开关空调或调整设定温度。", "多个功能区：按住 ⌘ 或 Shift 点选，或在楼层图上拖动框选，在右侧面板一次控制照明与空调；关闭有人区域的照明前确认。", "手动控制后到设定的时长恢复自动，也可在功能区检视器或面板的“手动控制”点“恢复自动”。"],
     faq: [["回执显示“未回报”怎么办？", "点“重新查询”读取设备当前状态；仍无回报时按《设备离线与未回报》排查。"]], rel: ["offline", "scene"] },
@@ -103087,6 +103518,8 @@ const DEMO_ITEMS = [
   ["总览", "ops-dev-fc", "空调", "暖通空调 · E-7F-FC20-03", demoX(() => demoOpsHash("hvac"), () => demoDevTap("E-7F-FC20-03"))],
   ["总览", "ops-pg-env", "总览 · 空气", "E栋 · 7F", demoPg(() => demoOpsHash("environment"))],
   ["总览", "ops-pg-occ", "总览 · 占用", "E栋 · 7F", demoPg(() => demoOpsHash("occupancy"))],
+  // 2.74 V701：第 5 个指标页签“用电”，主区为“今天的负荷”
+  ["总览", "ops-pg-power", "总览 · 用电", "E栋 · 7F", demoPg(() => demoOpsHash("energy"))],
   ["我的区域", "ops-member", "我的区域（普通成员）", "办公室 701、702、会议室 7-1", demoHead(demoX("#overview", demoMember()))],
   ["我的区域", "ops-repair", "报修", "普通成员 · 办公室 701", demoX("#overview", demoMember(() => (actions.opsZone({ id: "zone-demo-o701" }), demoAfter(() => actions.opsZoneRepair({ id: "zone-demo-o701" })))))],
   // 2.71 V676：数据分析五个页签，摘要在最前；原“节能”内容在能源 › 节电量，报告从摘要的“全部报告”进入
