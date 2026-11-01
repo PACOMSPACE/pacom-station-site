@@ -13758,14 +13758,13 @@ button.ops-zbadge:active {
   position: absolute;
   inset: 0;
 }
-/* 2.63 V440、V410：整行点击层只盖本行（楼宇级各楼层表、告警记录时间线、定时列表、联动规则卡）；行内另有的开关、链接与胶囊放在点击层之上 */
+/* 2.63 V440、V410：整行点击层只盖本行（楼宇级各楼层表、定时列表、联动规则卡）；行内另有的开关、链接与胶囊放在点击层之上 */
 .ov-t tr:has(> td > .ops-rowbtn),
-.al-tl-r,
 .sc-sl-r,
 .sc-lk {
   position: relative;
 }
-:is(.ov-t tr:has(> td > .ops-rowbtn), .al-tl-r, .sc-sl-r, .sc-lk) :is(button, a, input, label, select, [role="switch"], [data-tip]):not(.ops-rowbtn) {
+:is(.ov-t tr:has(> td > .ops-rowbtn), .sc-sl-r, .sc-lk) :is(button, a, input, label, select, [role="switch"], [data-tip]):not(.ops-rowbtn) {
   position: relative;
   z-index: 1;
 }
@@ -22261,6 +22260,8 @@ a.au-link:focus-visible { outline: 2px solid #00AEEF; outline-offset: 2px; borde
   .dialog.au-account-dlg .au-ctl > .au-eye { right: 4px; }
   .dialog.au-account-dlg .au-ctl > .au-eye::after { content: ""; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
 }
+/* 2.72 账户第 854 条：“即将退出登录”叠在所有弹窗和提示之上 */
+.scrim.au-idle { z-index: 160; }
 
 }
 @layer base {
@@ -32206,7 +32207,7 @@ button.an-rk.all { border-radius: 6px 6px 0 0; }
 /* ---------- 2.61 告警（V326–V330） ----------
    V326 当前告警双栏：左清单 400（筛选胶囊、级别色条、名称与副文、右侧持续与状态），右详情；手机只列清单，点一条全屏打开详情。
    V328 详情：头部标签、名称 20/28、位置与“起 · 持续”；左栏现象、建议、处理记录，右栏位置小图与趋势；底部按钮。
-   V329 工单看板三列（灰底列、白卡），右为工单详情。V330 告警记录：指标卡四张 + 时间线。 */
+   2.72 V682：四个页签都是事项列表加详情（取代 V329 工单看板与 V330 告警记录的指标卡和时间线）。 */
 #app:is([data-page="alarms"], [data-page="scenes"]) .panel { background: var(--ov-canvas); }
 #app:is([data-page="alarms"], [data-page="scenes"]) .pbody { color: var(--ov-ink); }
 .al-tools { margin-bottom: 14px; }
@@ -32236,9 +32237,9 @@ button.an-rk.all { border-radius: 6px 6px 0 0; }
 .al-li.on { box-shadow: inset 0 0 0 1px var(--ov-line); }
 .al-li:focus-visible { outline: 2px solid var(--ov-cyan); outline-offset: -2px; }
 .al-sv { align-self: stretch; border-radius: 2px; background: var(--ov-minor); }
-.al-li.l0 .al-sv, .al-tl-r.l0 { --al-c: var(--ov-crit); }
-.al-li.l1 .al-sv, .al-tl-r.l1 { --al-c: var(--ov-major); }
-.al-li.l2 .al-sv, .al-tl-r.l2 { --al-c: var(--ov-minor); }
+.al-li.l0 .al-sv { --al-c: var(--ov-crit); }
+.al-li.l1 .al-sv { --al-c: var(--ov-major); }
+.al-li.l2 .al-sv { --al-c: var(--ov-minor); }
 .al-li .al-sv { background: var(--al-c); }
 .al-li-m { display: flex; flex-direction: column; min-width: 0; }
 .al-li-t { font-size: 14px; line-height: 22px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -32293,63 +32294,13 @@ button.an-rk.all { border-radius: 6px 6px 0 0; }
 .al-on-bar em { position: absolute; bottom: 14px; transform: translateX(-50%); font-style: normal; font-size: 12px; line-height: 16px; color: var(--ov-crit-t); white-space: nowrap; }
 .al-on-ax { display: flex; justify-content: space-between; margin: 4px 0 0; font-size: 12px; line-height: 18px; color: var(--ov-ink-3); }
 
-/* 工单看板 */
-.al-tasks { grid-template-columns: minmax(0, 1fr) 380px; }
-.al-board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
-.al-col { display: flex; flex-direction: column; gap: 10px; min-height: 380px; padding: 12px; border-radius: 16px; background: var(--ov-surface-3); }
-.al-col > h4 { display: flex; align-items: center; gap: 8px; margin: 2px 4px; font-size: 14px; line-height: 22px; font-weight: 600; color: var(--ov-ink); }
-.al-col > h4 span { font-weight: 400; color: var(--ov-ink-3); }
-.al-col-none { margin: 0; padding: 18px; border: 1.5px dashed var(--ov-line-2); border-radius: 12px; font-size: 12px; line-height: 18px; color: var(--ov-ink-3); text-align: center; }
-.al-wo { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 12px; background: var(--ov-surface); box-shadow: 0 1px 2px rgba(20, 27, 45, 0.06); }
-.al-wo.on { box-shadow: 0 1px 2px rgba(20, 27, 45, 0.06), inset 0 0 0 1.5px var(--ov-navy); }
-.al-wo-b { padding: 0; border: 0; background: none; font: inherit; font-size: 14px; line-height: 22px; font-weight: 600; color: var(--ov-ink); text-align: left; cursor: pointer; }
-.al-wo-b::after { content: ""; position: absolute; inset: 0; border-radius: 12px; }
-.al-wo-b:focus-visible { outline: none; }
-.al-wo-b:focus-visible::after { box-shadow: inset 0 0 0 2px var(--ov-cyan); }
-.al-wo:hover { box-shadow: 0 1px 2px rgba(20, 27, 45, 0.06), 0 6px 16px rgba(20, 27, 45, 0.08); }
-.al-wo-m { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 12px; line-height: 18px; color: var(--ov-ink-3); }
-.al-wo-m > .ic { flex: none; width: 13px; height: 13px; }
-.al-wo-m .sp { flex: 1; }
-.al-wo-src.l0 { color: var(--ov-crit-t); }
-.al-wo-src.l1 { color: var(--ov-major-t); }
-.al-wo-src.l2 { color: var(--ov-minor-t); }
-.al-wo-act { position: relative; z-index: 1; }
-.al-wo-plan.over { color: var(--ov-crit-t); }
-.al-av { display: inline-grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--ov-navy-2); font-size: 12px; font-weight: 600; color: #fff; }
+/* 工单详情 */
 .al-tk .ops-task-editor { margin-top: 4px; padding: 0; border: 0; background: none; }
 .al-tk .ops-task-editor .ops-ctl-row { justify-content: flex-end; }
 
-/* 告警记录：指标卡与时间线 */
-.al-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 0 0 14px; }
-.al-kpi { display: flex; flex-direction: column; min-width: 0; padding: 14px 18px; border-radius: 16px; background: var(--ov-surface); box-shadow: var(--ov-sh); }
-.al-kpi-l { font-size: 12px; line-height: 18px; color: var(--ov-ink-3); }
-.al-kpi-v { font-size: 28px; line-height: 36px; font-weight: 600; color: var(--ov-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.al-kpi-v small { margin: 0 2px 0 3px; font-size: 14px; line-height: 22px; font-weight: 500; color: var(--ov-ink-3); }
-.al-kpi-s { font-size: 12px; line-height: 18px; color: var(--ov-ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.al-tl .ov-card-h { flex-wrap: wrap; padding-bottom: 4px; }
-.al-tl-b { padding: 12px 20px 16px; }
-.al-tl-r { display: grid; grid-template-columns: 230px minmax(0, 1fr) 70px 128px; gap: 12px; align-items: center; padding: 9px 0; border-top: 1px solid var(--ov-line); font-size: 14px; line-height: 22px; }
-.al-tl-r.click { cursor: pointer; }
-.al-tl-r.click:hover { background: var(--ov-surface-2); }
-.al-tl-r.on { background: var(--ov-surface-2); }
-.al-tl-hd { padding: 0 0 6px; border-top: 0; font-size: 12px; line-height: 18px; color: var(--ov-ink-3); }
-.al-tl-r .r { text-align: right; }
-.al-tl-n { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.al-tl-n .ops-rowbtn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 400; }
-.al-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--al-c); }
-.al-tl-ax { position: relative; height: 18px; }
-.al-tl-ax > span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
-.al-tl-tr { position: relative; height: 22px; background: var(--al-grid, none); } /* 2.66 V468：格线画在刻度上 */
-.al-tl-bar { position: absolute; top: 5px; height: 12px; min-width: 6px; border-radius: 6px; background: var(--al-c); }
-.al-tl-r.rec .al-tl-bar { opacity: 0.55; }
-.al-tl-now { position: absolute; top: -9px; bottom: -9px; border-left: 1.5px solid var(--ov-cyan); }
-
 @media (max-width: 1100px) {
   .al-inbox { grid-template-columns: 340px minmax(0, 1fr); }
-  .al-tasks { grid-template-columns: minmax(0, 1fr); }
-  .al-tasks > .al-dt:not(.pick) { display: none; }
   .al-dt-b { grid-template-columns: minmax(0, 1fr); }
-  .al-tl-r { grid-template-columns: 180px minmax(0, 1fr) 64px 116px; }
 }
 @media (max-width: 850px) {
   .al-inbox { grid-template-columns: minmax(0, 1fr); }
@@ -32358,19 +32309,6 @@ button.an-rk.all { border-radius: 6px 6px 0 0; }
   .al-dt-x { display: block; }
   .al-dt-f { position: sticky; bottom: 0; padding-bottom: max(16px, env(safe-area-inset-bottom)); background: var(--ov-surface); }
   .al-dt-f .btn { min-height: 44px; }
-  .al-board { grid-template-columns: minmax(0, 1fr); }
-  .al-col { min-height: 0; }
-  .al-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .al-kpi { padding: 12px 14px; }
-  .al-kpi-v { font-size: 24px; line-height: 32px; }
-  .al-tl-r { grid-template-columns: minmax(0, 1fr) auto; row-gap: 6px; }
-  /* 2.66 V469：手机保留刻度行，与横条同宽 */
-  .al-tl-hd { display: grid; padding-bottom: 2px; }
-  .al-tl-hd > span:not(.al-tl-ax) { display: none; }
-  .al-tl-hd > .al-tl-ax { grid-column: 1 / -1; grid-row: 1; }
-  .al-tl-r > .al-tl-tr { grid-column: 1 / -1; grid-row: 2; }
-  .al-tl-r > .r { grid-column: 2; grid-row: 1; }
-  .al-tl-r > span:last-child { grid-column: 1 / -1; grid-row: 3; }
   .al-li { padding: 12px; min-height: 44px; }
   .al-fchip { height: 32px; }
 }
@@ -32867,19 +32805,8 @@ button.ov-fl.live { background: #c9d0db; }
 /* V462：工单记录只有一行输入框与“添加” */
 .al-tk .ops-note-row, .ops-task-drawer .ops-note-row { display: flex; align-items: flex-start; gap: 8px; }
 .ops-note-row > .field { flex: 1; min-width: 0; margin: 0; }
-/* V463：已完成列底“更早的 N 条” */
-.al-col-more { display: block; margin: 8px auto 0; }
-/* V464：平板宽度（851–1100）工单详情从右侧侧面板打开，宽 480 */
-@media (min-width: 850.02px) and (max-width: 1100px) {
-  .al-tasks > .al-dt.pick { position: fixed; top: 0; right: 0; bottom: 0; z-index: 45; width: 480px; max-width: 100vw; overflow: auto; border-radius: 0; box-shadow: var(--ov-sh-pop); }
-  .al-tasks > .al-dt.pick .al-dt-x { display: block; }
-  .al-tasks > .al-dt.pick .al-dt-f { border-radius: 0; }
-}
 /* V466：工单与告警状态的中性标签（#EDEFF2 / #4F5869），与“检修中”同一组 */
 .al-chip.n { background: #edeff2; color: #4f5869; }
-/* V467：早于期间开始的告警，条形在期间起点截断，左端画箭头 */
-.al-tl-bar.cut { border-radius: 0 6px 6px 0; }
-.al-tl-bar.cut::before { content: ""; position: absolute; left: -6px; top: 0; border: 6px solid transparent; border-left: 0; border-right-color: var(--al-c); }
 
 /* 2.66 V473 场景磁贴：悬停阴影加深一档（同楼宇卡），按下整张叠黑 4% */
 .sc-tile:hover { box-shadow: var(--ov-sh-pop); }
@@ -33579,6 +33506,60 @@ li.none .ov2-fr > small { font-size: 12px; line-height: 18px; }
   #app[data-page="analysis"] .an2-body { gap: 10px; }
   .an2-ins { padding: 14px 16px; }
   .an-brush { margin: 8px 12px 0 12px; }
+}
+
+/* ---------- 2.72 告警与场景（V682–V688、V689 判断卡、V692 手机） ---------- */
+/* V682：一张事项列表（宽 420）加详情；行同 People 表行：整行可点，悬停叠黑 4%，当前一条叠黑 8%，不加边框 */
+.al-items { grid-template-columns: 420px minmax(0, 1fr); }
+.al-items .al-lis { padding: 8px; }
+.al-items .al-li:hover { background: rgba(0, 0, 0, 0.04); }
+.al-items .al-li.on { background: rgba(0, 0, 0, 0.08); box-shadow: none; }
+.al-li.l3 .al-sv { background: #c9ced6; }
+.al-items .al-li-t { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: visible; }
+.al-li-tt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.al-li-b { display: inline-flex; flex: none; gap: 4px; }
+.al-li-b .al-chip { height: 18px; line-height: 16px; }
+/* V682、V689：AI 判断卡在详情顶部，横跨两栏 */
+.al-dt-ai { grid-column: 1 / -1; }
+.ai2-basis dd .ai-ev { display: block; width: fit-content; }
+.al-dt-back { display: none; }
+/* V692：手机上告警为列表一页，点一条进入详情页，左上为返回（不用右上的关闭） */
+@media (max-width: 850px) {
+  .al-items { grid-template-columns: minmax(0, 1fr); }
+  .al-items .al-li.on.dflt { background: none; }
+  .al-items .al-li.on.dflt:hover { background: rgba(0, 0, 0, 0.04); }
+  .al-items > .al-dt.pick .al-dt-x { display: none; }
+  .al-items > .al-dt.pick .al-dt-back { display: block; margin: -6px 0 4px -8px; }
+}
+/* 2.72 V686：场景页“一句话新建”：全圆角输入框，右端圆形发送按钮（输入为空时不可用）；回车后下方为草稿卡 */
+.sc-ask { margin: 0 0 16px; max-width: 760px; }
+.sc-ask-bar { position: relative; display: flex; align-items: center; height: 52px; padding: 0 8px 0 20px; background: #fff; border: 1px solid #e5e7eb; border-radius: 999px; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 16px rgba(16, 24, 40, 0.06); }
+.sc-ask-bar:focus-within { border-color: #9ca3af; }
+.sc-ask-in { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; font-size: 14px; line-height: 22px; color: #111827; }
+.sc-ask-in::placeholder { color: #9ca3af; }
+.sc-ask-go { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 0; border-radius: 50%; background: #111827; color: #fff; cursor: pointer; }
+.sc-ask-go:disabled { background: #e5e7eb; color: #9ca3af; cursor: default; }
+.sc-ask-go .ic { width: 16px; height: 16px; }
+.sc-ask-err { margin: 8px 0 0 20px; font-size: 12px; line-height: 18px; color: #d0382b; }
+.sc-ask-card { margin-top: 12px; padding: 16px 20px; }
+.sc-ask-ch { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.sc-ask-ch b { font-size: 16px; line-height: 24px; font-weight: 600; }
+.sc-ask-ol { list-style: none; margin: 0; padding: 0; }
+.sc-ask-li { padding: 12px 0; border-top: 1px solid #f1f2f4; }
+.sc-ask-li:first-child { border-top: 0; padding-top: 4px; }
+.sc-ask-h { display: flex; align-items: center; gap: 8px; }
+.sc-ask-h .input { flex: 1; min-width: 0; font-weight: 500; }
+.sc-ask-f { display: grid; grid-template-columns: 160px 120px; gap: 12px; margin-top: 8px; }
+.sc-ask-f .field { margin: 0; }
+.sc-ask-c { margin: 6px 0 0; font-size: 14px; line-height: 22px; }
+.sc-ask-a { margin: 8px 0 0; font-size: 14px; line-height: 22px; color: #4b5563; }
+.sc-ask-ft { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+@media (max-width: 600px) {
+  .sc-ask { margin-bottom: 12px; }
+  .sc-ask-bar { height: 48px; padding-left: 16px; }
+  .sc-ask-card { padding: 14px 16px; }
+  .sc-ask-f { grid-template-columns: 1fr 1fr; }
+  .sc-ask-ft { flex-wrap: wrap; }
 }
 
 }
@@ -40425,7 +40406,12 @@ function buildDemoWorkspace(seed) {
   alert("night", { kind: "energy", ruleId: "rule-demo-night", ruleVersion: 1, level: "提示", zoneId: zoneId("labb"), name: "实验室 B 夜间照明偏高", detail: "夜间无人时照明平均功率 259 W，按照明控制参数应为 0 W，多用约 2.1 kWh", at: day(22, "06:05"), acknowledged: true, ackBy: "王敏", ackAt: day(22, "09:12") });
   // 设备已恢复出厂为重要（2026-10-09 用户确认，ABB 对比 BP89：设备已退出网络，影响与离线相同；原先为提示）
   alert("reset", { kind: "device", level: "重要", pointId: reset.id, zoneId: reset.zoneId, name: reset.name + " 恢复出厂", detail: "待重新绑定", at: at(1440 * 2), acknowledged: true, ackBy: "王敏", ackAt: at(1440 * 2 - 18) });
-  alert("rec1", { kind: "environment", metric: "tempDev", ruleId: "rule-demo-temp", ruleVersion: 1, level: "提示", zoneId: zoneId("oa"), name: "开放办公区 A 室温偏高", detail: "高于供冷设定 2.3 K，持续 52 分钟", at: day(22, "15:10"), state: "recovered", recoveredAt: day(22, "15:52") });
+  // 2.72 V685：实验室 C 室温偏离设定近 7 天触发 11 次，每次几分钟内自行恢复，都没有派工（总览“需要处理”出调整规则的建议）
+  [[22, "18:20", 6], [23, "07:40", 5], [23, "09:15", 7], [23, "11:05", 6], [23, "13:30", 8], [23, "15:10", 5], [23, "16:45", 6], [23, "18:05", 7], [24, "07:20", 5], [24, "07:55", 6], [24, "08:20", 6]].forEach(([d, hm, m], i) =>
+    alert("labc" + i, { kind: "environment", metric: "tempDev", ruleId: "rule-demo-temp", ruleVersion: 1, level: "提示", zoneId: zoneId("labc"), name: "实验室 C 室温偏高", detail: `高于供冷设定 2.1 K，持续 ${m + 10} 分钟`, at: day(d, hm), state: "recovered", recoveredAt: new Date(Date.parse(day(d, hm)) + m * 60000).toISOString() }),
+  );
+  // 2.72 V683：恢复后王敏确认并派工检查风机盘管（见下方待核验的工单）
+  alert("rec1", { kind: "environment", metric: "tempDev", ruleId: "rule-demo-temp", ruleVersion: 1, level: "提示", zoneId: zoneId("oa"), name: "开放办公区 A 室温偏高", detail: "高于供冷设定 2.3 K，持续 52 分钟", at: day(22, "15:10"), state: "recovered", recoveredAt: day(22, "15:52"), acknowledged: true, ackBy: "王敏", ackAt: day(22, "16:05") });
   alert("rec2", { kind: "offline", level: "紧急", name: "E栋 · 7F 网关离线", detail: "网络维护，14 分钟后恢复；期间本地联动正常", at: day(20, "07:02"), state: "recovered", recoveredAt: day(20, "07:16"), pointId: db.points.find((p) => p.type === "gw").id, acknowledged: true, ackBy: "王敏", ackAt: day(20, "07:09") });
   // 工单：创建人、说明（不算记录）、计划时间与位置；记录写操作人（V46，ALARM02 待实现第2条）
   db.investigationTasks.push({
@@ -40443,6 +40429,27 @@ function buildDemoWorkspace(seed) {
     description: "检查该照明回路的断路器与 LC20 供电；恢复后两台设备应自动重新上报",
     notes: [{ at: at(28), by: "王敏", text: "初步判断为回路断路器跳闸，已联系物业电工到场核查。" }],
   });
+  // 2.72 V683：待核验的示例。开放办公区 A 室温偏高恢复后派工检查风机盘管，今天 08:40 完成；24 小时内没有再触发即为已核验
+  db.investigationTasks.push({
+    id: "task-demo-verify",
+    projectId: ids.project,
+    name: "开放办公区 A 室温偏高排查",
+    scopeLabel: "E栋 · 7F · 开放办公区 A",
+    alertIds: ["alert-demo-rec1"],
+    assignee: "陈晓",
+    by: "王敏",
+    at: day(22, "16:05"),
+    planAt: day(24, "12:00"),
+    closedAt: day(24, "08:40"),
+    closedBy: "陈晓",
+    zoneId: zoneId("oa"),
+    pointIds: [],
+    description: "检查开放办公区 A 风机盘管的水阀与温控器",
+    notes: [
+      { at: day(23, "10:20"), by: "陈晓", text: "水阀执行器动作迟缓，已安排更换。" },
+      { at: day(24, "08:40"), by: "陈晓", kind: "finish", text: "更换水阀执行器后室温跟随设定。" },
+    ],
+  });
   // 定期检查（2026-10-09 用户确认，ABB 对比 BP108）：按配置参数 H-25 自动生成，公共区多联机内机读到滤网信号“需清洗”；没有负责人时为“未指定”
   db.investigationTasks.push({
     id: "task-demo-periodic",
@@ -40457,6 +40464,28 @@ function buildDemoWorkspace(seed) {
     pointIds: db.points.filter((p) => p.type === "idu").map((p) => p.id),
     description: "公共区多联机内机读到滤网信号“需清洗”。清洗后在线控器上复位滤网信号。",
     notes: [],
+  });
+  // 2.72 V684：报修的 AI 初步判断（提交时按该功能区的室温、设定与空调运行写一句，记在报修上）；昨天已处理完
+  db.investigationTasks.push({
+    id: "task-demo-repair",
+    projectId: ids.project,
+    name: "办公室 701 · 温度偏高",
+    source: "repair",
+    pick: "温度偏高",
+    reading: "提交时 26.8 ℃ · 设定 26.0 ℃ · 制冷 · 有人",
+    judge: "室温 26.8 ℃，与设定相差不到 2 ℃，可能是出风位置或个人体感，可先把设定调低 1 ℃。",
+    reporters: ["林悦"],
+    scopeLabel: "E栋 · 7F · 办公室 701",
+    assignee: "陈晓",
+    by: "林悦",
+    at: day(23, "14:10"),
+    planAt: null,
+    closedAt: day(23, "15:05"),
+    closedBy: "陈晓",
+    zoneId: zoneId("o701"),
+    pointIds: [],
+    description: "下午靠窗位置很热。",
+    notes: [{ at: day(23, "15:05"), by: "陈晓", kind: "finish", text: "调整出风口导风板，设定调到 25 ℃。" }],
   });
   // 告警规则：登记指标、级别与责任对象，条件按配置参数（SPACE07）写（2026-10-09 用户确认，ABB 对比 BP88；下列阈值字段为此前版本保存的，页面不再使用）。
   // version 为当前版本，runVersion 为服务已启用的版本（规范 ALARM04，2026-10-08 Vision 核查 V47、V49）
@@ -41979,7 +42008,7 @@ const PAGE_CATEGORY_CONFIG = new Map(), PAGE_CATEGORY_HEADERS = new Map();
 const PAGE_CATEGORY_ICONS = {
   overview: { general: "dir-grid", lighting: "bulb", hvac: "ac", environment: "aq", energy: "meter" },
   analysis: { summary: "dir-grid", energy: "meter", environment: "aq", space: "zone", health: "pulse" }, // 2.71 V676
-  alarms: { current: "alert", tasks: "doc", history: "clock" },
+  alarms: { current: "alert", tasks: "doc", verify: "check", history: "clock" }, // 2.72 V682
   settings: { general: "panel", lighting: "bulb", hvac: "ac", environment: "aq", energy: "meter", rules: "bell" },
   // 2.66 V504：“操作记录”用列表图标（原为时钟，与记录里的定时来源相同）
   scenes: { manual: "play", schedule: "calendar", link: "link", records: "list" },
@@ -41990,7 +42019,8 @@ function pageCategoryItems(page) {
   if (page === "overview") return overviewTabs;
   if (page === "analysis") return analysisTabs;
   // 告警规则在应用设置（2026-10-17 用户确认，配置区核查 E86）
-  if (page === "alarms") return [["current", "当前告警"], ["tasks", "工单"], ["history", "告警记录"]];
+  // 2.72 V682：一张事项列表按状态分四个页签：未处理、处理中、待核验、已结束（原“当前告警”“工单”“告警记录”），前三个写数量
+  if (page === "alarms") return typeof alarmTabItems === "function" ? alarmTabItems() : [["current", "未处理"], ["tasks", "处理中"], ["verify", "待核验"], ["history", "已结束"]];
   if (page === "settings") return settingsTabItems();
   if (page === "scenes") return [["manual", "场景"], ["schedule", "定时"], ["link", "联动"], ["records", "操作记录"]];
   if (page === "devices") return DEVICE_CATEGORY_ITEMS;
@@ -60829,7 +60859,7 @@ function ruleCond(v) {
       hold = envNum(q14?.value, /持续\s*(\d+)\s*min/) ?? 15,
       pct = envNum(q14?.cond, /低于阈值\s*(\d+(?:\.\d+)?)\s*%/) ?? 90,
       out = envNum(q14?.cond, /%\s*持续\s*(\d+)\s*min\s*退出/) ?? 15;
-    return `${win} 分钟均值 > ${ruleNum(th)} ppm 持续 ${hold} 分钟；< ${ruleNum((th * pct) / 100)} ppm 持续 ${out} 分钟解除`;
+    return `${win} 分钟均值 > ${ruleNum(th)} ppm 持续 ${+v.holdMin || hold} 分钟；< ${ruleNum((th * pct) / 100)} ppm 持续 ${out} 分钟解除`;
   }
   const main = ps[0].s;
   if (m[0] === RULE_NIGHT_METRIC) {
@@ -60842,8 +60872,15 @@ function ruleCond(v) {
     const v0 = ruleStrip(main.value);
     return /(?<!未)告警/.test(v0) ? v0 : [v0, ...ruleStrip(main.cond).split("；").filter((x) => /(告警|解除)$/.test(x))].join("；");
   }
-  return [ruleStrip(main.value), ruleStrip(main.cond)].filter(Boolean).join("；");
+  const full = [ruleStrip(main.value), ruleStrip(main.cond)].filter(Boolean).join("；");
+  return +v.holdMin ? full.replace(/持续\s*\d+\s*min\s*进入/, `持续 ${+v.holdMin} min 进入`) : full;
 }
+// 2.72 V685：环境越限规则的进入持续时间（分钟）：规则另填的（holdMin），否则为配置参数的；没有持续时间的指标为 null
+function ruleHoldMin(v) {
+  const m = /持续\s*(\d+)\s*(?:min|分钟)/.exec(ruleCond(v) || "");
+  return m ? +m[1] : null;
+}
+const RULE_HOLDS = [5, 10, 15, 20, 25, 30, 45, 60];
 // 2.15 E346（应用设置与配置进度核查，2026-10-21 HONG 按建议）：规则表的条件只写一行触发条件，解除、例外、合并与抑制写进规则详情（E347）；
 // 有两档的级别（如“≥ 2 K 提示，≥ 3 K 重要”）在级别列写“提示 / 重要”。原先条件格写规则全文，最多三行。
 function ruleParts(v) {
@@ -61047,7 +61084,8 @@ document.addEventListener("change", (e) => {
 });
 const ALARM_RULES_NOTE = "告警通知按级别发给项目授权内的机构管理员、配置人员和运营人员（查看人员不收告警短信，邮件可自选；普通成员不收），见机构设置 › 通知 · 默认负责人只用于工单 · 条件取各应用页签的参数 · 修改规则需要配置权限";
 // 已恢复而没有确认的紧急告警仍留在当前告警（2026-10-09 用户确认，ABB 对比 BP94）
-const alarmOpen = (a) => a.state !== "recovered" || (a.level === "紧急" && !a.acknowledged);
+// 2.72 V682：关闭的告警不算未处理
+const alarmOpen = (a) => !a.closedAt && (a.state !== "recovered" || (a.level === "紧急" && !a.acknowledged));
 // 规则的默认级别：所依据配置参数写的默认级别；没有时为提示（设备离线为重要）
 const ruleDefaultLevel = (metric, pid) => {
   const m = ruleMetricOf({ metric });
@@ -61088,8 +61126,12 @@ function ruleFieldsHtml(type, metric, v = {}, pid = "") {
       ? fld("夜间时段", "ruleNightFrom", `<div class="rule-night">${["ruleNightFrom", "ruleNightTo"].map((id, i) => `<input id="${id}" class="input" type="text" inputmode="numeric" maxlength="5" autocomplete="off" placeholder="${RULE_NIGHT[i]}" value="${[na, nb][i]}" aria-label="${i ? "夜间结束" : "夜间开始"}">`).join('<span aria-hidden="true">–</span>')}</div>`, "24 小时制，可跨午夜；须在工作时间以外")
       : "";
   const lv = v.metric === name && v.level ? v.level : ruleDefaultLevel(name, pid),
-    level = fld("级别", "ruleLevel", select("ruleLevel", ["提示", "重要", "紧急"].map((x) => [x, x]), lv, "级别"));
-  return sel + night + `<div class="field"><span class="appset-k">条件（参数）</span><p class="muted small appset-points-tip">${esc(nightTrig || zhUnit(ruleCond(cv)))}</p>${items}</div>` + level;
+    level = fld("级别", "ruleLevel", select("ruleLevel", ["提示", "重要", "紧急"].map((x) => [x, x]), lv, "级别")),
+    // 2.72 V685：环境越限的“持续时间”可按规则另选（默认按参数）；频繁自行恢复的告警由“调整规则”带入建议值
+    ph = type === "环境越限" && name !== RULE_NIGHT_METRIC ? ruleHoldMin(cv) : null,
+    hv = v.metric === name && +v.holdMin ? +v.holdMin : "",
+    hold = ph == null ? "" : fld("持续时间", "ruleHold", select("ruleHold", [["", `按参数（${ph} 分钟）`], ...[...new Set([...RULE_HOLDS, ...(hv ? [hv] : [])])].sort((x, y) => x - y).filter((n) => n !== ph).map((n) => [String(n), `${n} 分钟`])], String(hv), "持续时间"));
+  return sel + night + `<div class="field"><span class="appset-k">条件（参数）</span><p class="muted small appset-points-tip">${esc(nightTrig || zhUnit(ruleCond(cv)))}</p>${items}</div>` + hold + level;
 }
 // 范围：整个项目，或项目中已规划设备网络的楼层
 function ruleScopeField(pid, cur) {
@@ -63689,13 +63731,14 @@ defineActions({
   // 结构化登记；修改生成新版本，已启用的规则新版本保存为规划、启用的版本继续运行，已产生的告警保留当时的版本
   alarmRuleForm: (a = {}) => {
     const r = a.id ? g("alertRules", a.id) : null,
-      v = r ? { ...r, ...(r.pending || {}) } : {},
+      v = r ? { ...r, ...(r.pending || {}), ...(+a.hold ? { holdMin: +a.hold } : {}) } : {},
       type = v.type || "环境越限",
       pid = r?.projectId || U.p || (typeof OPS_SCOPE !== "undefined" && Demo.on?.() ? OPS_SCOPE.project : ""),
       next = r ? (r.serviceReceiptId ? (r.pending?.version || r.version || 1) + 1 : (r.version || 1) + 1) : 1;
     formState = { kind: "alertRules", id: r?.id || null };
     modal(
       r ? "修改告警规则" : "新建告警规则",
+      (a.tip ? note(esc(a.tip)) : "") + // 2.72 V685：从“调整规则”打开时写建议
       fld("名称", "ruleName", input("ruleName", v.name || "")) +
         // 2.15 E348：页面已选定项目时去掉“项目”选择框，“范围”占一行（原为“项目”与“范围”并排）
         (pid
@@ -63732,7 +63775,7 @@ defineActions({
       ms = ruleMetrics(type, projectId, was?.pending?.metric || was?.metric),
       m = ms.find((x) => x[0] === value("ruleMetric")) || ms[0];
     if (!name || !projectId) throw Error("请填写规则名称与项目");
-    const v = { name, projectId, type, scope: value("ruleScope") || "", metric: m[0], unit: m[1], codes: m[2], level: value("ruleLevel") || ruleDefaultLevel(m[0], projectId), owner: value("ruleOwner") || "" };
+    const v = { name, projectId, type, scope: value("ruleScope") || "", metric: m[0], unit: m[1], codes: m[2], level: value("ruleLevel") || ruleDefaultLevel(m[0], projectId), owner: value("ruleOwner") || "", holdMin: +value("ruleHold") || null }; // 2.72 V685
     if (m[0] === RULE_NIGHT_METRIC) {
       // 夜间时段（G-8）：开始与结束都要填，不能相同，须完全在工作时间以外（可跨午夜）
       const night = [String(value("ruleNightFrom") || ""), String(value("ruleNightTo") || "")];
@@ -72179,6 +72222,11 @@ function ctlSend(req) {
     id = ((Demo.ctl.sceneCmd ||= {})[s.id] = lightCommand({ zoneIds: ctlZones(req), label: s.name, title: `执行“${s.name}”`, scene: s.name, parts: req.parts }, req.ids, cmd, level));
   // 执行记录保存执行时的场景版本与目标台数，重试的标明“重试”（SCENE04 第3、4条）
   Object.assign(Demo.ctl.runs[0], { scene: s.name, sid: s.id, ver: s.version, n: req.ids.length, retry: !!req.retry, hvId, hvIds });
+  // 2.72 V688：部分生效时 2 分钟后自动补发一次（手动重试的不再自动补发）
+  if (!req.retry) {
+    const run = Demo.ctl.runs[0];
+    setTimeout(() => scAutoResend(run), SC_RESEND);
+  }
   return id;
 }
 // 操作记录（CTRL02 第4条）：从平台下发的每次控制，单台与组、原值与目标、回读（生效 / 目标）、执行者与来源
@@ -72342,13 +72390,16 @@ function opsRecItems() {
         chip: wait ? ["n", "回报中"] : [pend ? "minor" : "ok", `${n} / ${tot} 生效`],
         tip: hcs.length ? `照明 ${c.done.length} / ${c.ids.length}、空调 ${hcs.reduce((k, x) => k + x.done.length, 0)} / ${hcs.reduce((k, x) => k + x.ids.length, 0)}` : "",
         note: pend
-          ? [offIds.length && `${offIds.map(recDev).join("、")} 离线，未执行`, one ? "设备未确认" : waitN ? `${waitN} 台未回报` : "", run && waitN ? sceneRetry(run) : ""].filter(Boolean).join(" ")
-          : "",
+          ? [offIds.length && `${offIds.map(recDev).join("、")} 离线，未执行`, one ? "设备未确认" : waitN ? `${waitN} 台未回报` : "", run && waitN ? sceneRetry(run) : "", esc(scAutoText(run))].filter(Boolean).join(" ")
+          : run?.auto
+            ? esc(scAutoText(run))
+            : "",
         cells: [
           `${esc(r.obj)} · ${esc(c.label)}<small class="ops-al-s">${one ? `${r.zone ? esc(r.zone) + " · " : ""}${esc(r.from)} → ${esc(c.label)}` : `组控制 · ${tot} 台`}</small>`,
           (wait ? "回报中" : recRes(n, tot, pend)) +
             (one ? `<small class="ops-al-s">${c.state === "ok" ? `设备已确认 ${((c.at - c.t0) / 1000).toFixed(1)} 秒` : c.state === "fail" ? "未确认" : "等待确认"}</small>` : netTag(ids)) +
-            (run ? sceneRetry(run) : ""),
+            (run ? sceneRetry(run) : "") +
+            (scAutoText(run) ? `<small class="ops-al-s">${esc(scAutoText(run))}</small>` : ""),
           `${esc(recWho(r.by))}<small class="ops-al-s">${esc(r.src)}</small>`,
         ],
       };
@@ -72539,6 +72590,34 @@ function repairReading(zid, pick) {
   return segsText(!s.light.count ? "本区没有照明控制器" : `提交时照明${s.light.onCount ? `开 · 亮度 ${s.light.level}%` : "关"}`, s.light.count ? (off ? `照明控制器 ${off} 台离线` : "照明控制器在线") : "", occ);
 }
 const segsText = (...xs) => xs.filter(Boolean).join(" · ");
+// 2.72 V684：报修“温度偏高”“温度偏低”“照明故障”“空气质量差”时，按提交时该功能区的室温、设定、空调运行与照明控制器状态写一句初步判断，
+// 记在报修上（工单详情顶部的 AI 判断卡）；“其他”与没有数据时不写
+function repairJudge(zid, pick) {
+  const dz = Demo.zoneOf(zid),
+    s = dz && Demo.zoneState(dz);
+  if (!s || s.gwUnknown || pick === "其他") return "";
+  if (pick === "温度偏低" || pick === "温度偏高") {
+    const ds = [...(s.hvac?.fcs || []), ...(s.hvac?.idus || [])],
+      on = ds.find((d) => d.on),
+      hot = pick === "温度偏高",
+      d = s.temp == null || s.setpoint == null ? null : hot ? s.temp - s.setpoint : s.setpoint - s.temp;
+    if (!ds.length) return s.temp == null ? "" : `本区没有平台可控的空调，室温 ${nf(s.temp, 1)} ℃。`;
+    if (d == null) return "";
+    if (!on) return `空调关闭，室温${hot ? "高于" : "低于"}设定 ${nf(Math.max(0, d), 1)} ℃，可能是按定时或无人关闭，可先在面板上开空调。`;
+    if (d >= 2) return `空调开着，室温仍${hot ? "高于" : "低于"}设定 ${nf(d, 1)} ℃，可能是空调故障（水阀或内机），需要现场检查。`;
+    return `室温 ${nf(s.temp, 1)} ℃，与设定相差不到 2 ℃，可能是出风位置或个人体感，可先把设定${hot ? "调低" : "调高"} 1 ℃。`;
+  }
+  if (pick === "空气质量差") {
+    const a = s.aq;
+    if (!a) return "";
+    return a.co2 > 1000 ? `CO₂ ${nf(a.co2)} ppm，超过 1,000 ppm，可能是通风不足，可加大新风或开窗。` : `空气质量读数正常，可能是传感器测不到的异味，需要现场查看。`;
+  }
+  if (!s.light?.count) return "";
+  const off = s.light.offline;
+  if (off) return `照明控制器 ${off} 台离线，可能是回路失电，需要检查断路器。`;
+  if (!s.light.onCount && s.occupied) return "本区有人但照明关闭，可能是自动控制已关灯，可先在面板上开灯。";
+  return `照明控制器在线，${s.light.onCount ? `亮度 ${s.light.level}%` : "照明关闭"}，可能是灯具或驱动故障，需要现场检查。`;
+}
 /* 功能区面板“暖通空调”（规范 OPS03、CTRL01，2026-10-09 暖通空调方案评估）：风机盘管、多联机内机与分体空调逐台列出。
    标题右侧写待机、节能或手动（保持到何时）；待机、节能时写规则，本区 MS20 都离线时写明按有人运行。
    风机盘管与多联机内机可调设定（按设备步长，限在适用标准与季节的可调范围内）、开关与恢复自动；分体空调只计量，不提供控制。 */
@@ -73305,9 +73384,9 @@ function nextSchedule(pid) {
   for (const s of data().scenes.filter((x) => x.projectId === pid && x.kind === "schedule" && !x.stopped)) {
     const [hh, mm] = schWhen(s).split(":").map(Number);
     if (!Number.isFinite(hh)) continue;
-    let nx = Demo.TODAY + (hh + (mm || 0) / 60) * Demo.H,
+    let nx = schAt(s, Demo.TODAY),
       n = 0;
-    while (nx != null && (nx < Demo.NOW || !daysMatch(s.days || "每天", nx, s))) nx = ++n > 400 ? null : nx + Demo.DAY;
+    while (nx != null && (nx < Demo.NOW || !daysMatch(s.days || "每天", nx, s))) nx = ++n > 400 ? null : schAt(s, Demo.TODAY + n * Demo.DAY); // 2.72 V687：日出日落按当天
     if (nx != null && (!best || nx < best.at)) best = { s, at: nx };
   }
   return best;
@@ -76712,11 +76791,6 @@ function anReports() {
 }
 
 /* ---------- 告警 ---------- */
-const ALARM_TABS = [
-  ["current", "当前告警"],
-  ["tasks", "工单"],
-  ["history", "告警记录"],
-];
 // 告警规则移到应用设置 › 告警规则，告警详情放“查看规则”（2.04 配置区全面核查 E86（2026-10-17 用户确认）：运营只做日常的事，设置在应用设置）
 // 告警类型（规范 ALARM01，2026-10-08 第3轮第7章，ALARM01 待实现第1条：按类型与状态筛选）：环境越限、能耗异常、设备与网络、安全与保护
 // （2026-10-09 用户确认，ABB 对比 BP91：原先没有安全与保护；表计离线、照度复标与第三方系统故障归设备与网络，功率因数归能耗异常）
@@ -77035,26 +77109,23 @@ function opsHealthAlarmBar() {
 }
 function renderOpsAlarms() {
   // 2.46 运营核查 V220：没有运行数据（本地规划数据，或所选位置不在已接入的楼层）时，各页签都只显示“所选范围没有运行数据”
-  if (!Demo.on()) return pageCategoryHeader("alarms", U.tab || "current") + outOfScope();
+  const tab = AL_TABS.includes(U.tab) ? U.tab : "current";
+  if (!Demo.on()) return pageCategoryHeader("alarms", tab) + outOfScope();
   opsReset();
-  const tab = U.tab || "current";
   if (!Demo.inScope()) return pageCategoryHeader("alarms", tab) + outOfScope();
   opsTabTools = "";
-  const body = { current: alCurrent, tasks: alTasks, history: alHistory, rules: alRules }[tab](),
-    head = pageCategoryHeader("alarms", tab, { live: liveHead(), tools: opsTabTools });
-  const drawer = U.opsDrawer;
-  if (drawer?.page === "alarms") {
-    const target = drawer.kind === "alarm" ? F.alarmGroups(data()).find(a => a.id === drawer.id) : g("investigationTasks",drawer.id),
-      allowed = target && mayViewProject(target.projectId) && target.projectId === OPS_SCOPE.project &&
-        (drawer.kind === "alarm" ? ["current","history"].includes(tab) && opsHealthAlarmMatch(target) && alarmForDevice(target) && alarmForZone(target) : ["current","history","tasks"].includes(tab) &&
-          opsHealthTaskMatch(target) && (!U.alarmDevice || taskForDevice(target,U.alarmDevice)) && (!U.alarmZone || taskForZone(target,U.alarmZone)));
-    if (!allowed) U.opsDrawer = null;
+  // 2.72 V682：四个页签都是事项列表加详情，详情在页面右栏（不再用侧面板）
+  const d = U.opsDrawer;
+  if (d?.page === "alarms") {
+    const target = d.kind === "alarm" ? F.alarmGroups(data()).find((a) => a.id === d.id) : g("investigationTasks", d.id);
+    if (!target || !mayViewProject(target.projectId) || target.projectId !== OPS_SCOPE.project) U.opsDrawer = null;
+    // 按设备健康、设备或功能区筛选后不在列表里的，不保留详情
+    else if (!alItemOf(d.kind === "task" ? "task" : "alarm", d.id)) U.opsDrawer = null;
   }
-  // 2.61 V326、V329：当前告警与工单页签的详情在页面右栏（alCurrent、alTasks），告警记录页签仍为侧面板
-  const k = U.opsDrawer?.page === "alarms" ? U.opsDrawer.kind : "",
-    dr = !k || (tab === "current" && k === "alarm") || (tab === "tasks" && k === "task") ? "" : k === "alarm" ? alarmDrawer(U.opsDrawer.id) : taskDrawer(U.opsDrawer.id);
-  // 按功能区或设备筛选时（ABB 对比 IA1），当前告警与工单页签在页签下写筛选条；告警记录的筛选条在筛选行之下
-  return head + opsHealthAlarmBar() + (["current", "tasks"].includes(tab) ? alarmDeviceBar() : "") + body + dr;
+  const body = alList(tab),
+    head = pageCategoryHeader("alarms", tab, { live: liveHead(), tools: opsTabTools });
+  // 按功能区或设备筛选时（ABB 对比 IA1），各页签在页签下写筛选条
+  return head + opsHealthAlarmBar() + alarmDeviceBar() + body;
 }
 // 2.61 V327：起点与持续同一口径（从超过阈值算起，G-7），写“09:53 起 · 37 分钟”；不是今天的写日期，如“9 月 22 日 10:30 起 · 2 天”。
 // 触发时刻只写在处理记录里（原为“持续 37 分钟”与“10:08 发生”并列，用户会以为算错）
@@ -77066,49 +77137,136 @@ function alStateTag(a, plain = false) {
   const tk = taskOf(a.id),
     rec = a.state === "recovered",
     tag = (cls, s) => (plain && !["minor", "crit"].includes(cls) ? `<span class="al-st">${esc(s)}</span>` : `<span class="al-chip ${cls}">${esc(s)}</span>`);
+  if (a.closedAt) return tag("n", "已关闭"); // 2.72 V682
   if (!a.acknowledged) return tag("minor", rec ? "已恢复 · 待确认" : "待确认");
   if (tk) return tag("n", `${tk.assignee || "未指派"} · ${taskState(tk)}`) + (taskOverdue(tk) ? tag("crit", "逾期") : "");
   return tag(rec ? "ok" : "n", rec ? "已恢复" : "已确认");
 }
-// 2.61 V326（取代 V141、V142 的表格）：当前告警为双栏。左为清单：筛选“全部”“待确认”与各级别（只列有告警的级别），每行左边级别色条，
-// 名称与副文（位置 · 说明），右侧持续与状态；右为所选告警的详情（默认第一条），确认、建工单都不离开页面。手机（≤ 850px）只列清单，点一条全屏打开详情。
-// 未恢复的告警，与已恢复而没有确认的紧急告警（排在最后，BP94）；按功能区或设备筛选时（IA1）只列筛选范围内的
-function alCurrentList() {
-  const as = F.alarmGroups(data())
-      .filter((a) => alarmOpen(a) && a.projectId === OPS_SCOPE.project && opsHealthAlarmMatch(a) && alarmForDevice(a) && alarmForZone(a))
-      .sort((a, b) => (a.state === "recovered") - (b.state === "recovered") || lvlRank(a.level) - lvlRank(b.level) || Date.parse(b.at) - Date.parse(a.at)),
-    f = ["todo", "紧急", "重要", "提示"].includes(U.opsLevel) ? U.opsLevel : "all";
-  return { as, f, rows: as.filter((a) => f === "all" || (f === "todo" ? !a.acknowledged : LV(a.level) === f)) };
+// 2.72 V682（取代 V326 的当前告警双栏、V329 的工单看板与 V330 的告警记录时间线）：告警页为一张事项列表加详情。
+// 事项是告警，或来源不是告警的工单（报修、定期检查）；告警派工后与工单合为一条，从发生、确认、派工、处理、恢复到核验都记在同一条上。
+// 未处理：未恢复且没有派工的告警（已恢复而没有确认的紧急告警也在这里，排在后面），与没有负责人的工单；
+// 处理中：有负责人、未完成的工单，与核验没有通过的（标“需返工”）；待核验：来源为告警、完成不满 24 小时的工单（V683）；
+// 已结束：已恢复或已关闭的告警、已核验的工单与已完成的报修和定期检查，按期间筛选（原“告警记录”）
+const AL_TABS = ["current", "tasks", "verify", "history"];
+const AL_VERIFY = 24 * Demo.H;
+const alKey = (x) => `${x.ruleId || x.kind}:${x.zoneId || ""}:${x.pointId || ""}`;
+// 2.72 V683：来源为告警的工单完成后 24 小时内按原告警条件检查：同一规则（同一设备）再次触发，或满 24 小时来源告警仍未恢复，为“需返工”
+function taskRework(t, now = opsNow()) {
+  if (!t?.closedAt || taskSource(t) !== "alarm") return null;
+  const c = Date.parse(t.closedAt),
+    srcs = taskAlarms(t),
+    keys = new Set(srcs.map(alKey)),
+    again = F.alarmGroups(data()).find((a) => !srcs.some((s) => s.id === a.id) && keys.has(alKey(a)) && Date.parse(a.at) >= c && Date.parse(a.at) < c + AL_VERIFY);
+  return again || (now - c >= AL_VERIFY ? srcs.find((a) => a.state !== "recovered" && !a.closedAt) || null : null);
 }
-function alCurrent() {
-  // 没有当前告警时用状态卡：“当前没有告警”，后接“告警记录 ›”
-  if (!F.alarmGroups(data()).some((a) => alarmOpen(a) && a.projectId === OPS_SCOPE.project && opsHealthAlarmMatch(a))) {
-    return `<section class="ops-card ops-al-none"><span class="ops-al-none-ic">${ico("check", "ic16")}</span><b>当前没有告警</b><button class="ops-link" data-act="opsGo" data-page="alarms" data-tab="history">告警记录 ›</button></section>`; // 2.66 V537：不写最近一条
+const alSnoozed = (a) => !!a?.snoozeUntil && !a.snoozeOffAt && Date.parse(a.snoozeUntil) > opsNow();
+const taskReworked = (t) => !!t && !t.closedAt && (t.notes || []).some((n) => n.kind === "rework");
+function alItems() {
+  const now = opsNow(),
+    pid = OPS_SCOPE.project,
+    used = new Set(),
+    out = [];
+  for (const t of data().investigationTasks.filter((x) => x.projectId === pid)) {
+    const srcs = taskAlarms(t),
+      rw = taskRework(t, now);
+    srcs.forEach((a) => used.add(a.id));
+    if (rw) used.add(rw.id);
+    if (!opsHealthTaskMatch(t) || (U.alarmDevice && !taskForDevice(t, U.alarmDevice)) || (U.alarmZone && !taskForZone(t, U.alarmZone))) continue;
+    const st = !t.closedAt ? (t.assignee ? "tasks" : "current") : rw ? "tasks" : taskSource(t) === "alarm" && now - Date.parse(t.closedAt) < AL_VERIFY ? "verify" : "history";
+    out.push({ id: t.id, t, a: srcs[0] || null, rw, st });
   }
-  const { as, rows, f } = alCurrentList(),
-    n = (fn) => as.filter(fn).length,
-    chips = [["all", "全部", as.length], ["todo", "待确认", n((a) => !a.acknowledged)], ...["紧急", "重要", "提示"].map((l) => [l, l, n((a) => LV(a.level) === l)]).filter(([, , k]) => k)],
-    todo = rows.filter((a) => !a.acknowledged),
-    pick = rows.find((a) => U.opsDrawer?.kind === "alarm" && a.id === U.opsDrawer.id),
+  F.alarmGroups(data())
+    .filter((a) => a.projectId === pid && !used.has(a.id) && opsHealthAlarmMatch(a) && alarmForDevice(a) && alarmForZone(a))
+    .forEach((a) => out.push({ id: a.id, t: null, a, rw: null, st: alarmOpen(a) ? "current" : "history" }));
+  return out;
+}
+const alItemOf = (kind, id) => alItems().find((it) => (kind === "task" ? it.t?.id === id : it.id === id || it.a?.id === id || it.rw?.id === id || (!!it.t && taskAlarms(it.t).some((x) => x.id === id))));
+const alEnd = (it) => (it.t?.closedAt ? Date.parse(it.t.closedAt) : it.a?.closedAt ? Date.parse(it.a.closedAt) : it.a?.state === "recovered" ? Date.parse(it.a.recoveredAt) : opsNow());
+const alBegin = (it) => Date.parse(it.a?.at || it.t?.at);
+// 各页签的顺序：未处理按暂缓、已恢复放后，再按级别与新旧；处理中需返工、逾期在前，再按计划完成；待核验与已结束按完成或结束时间，新的在前
+function alTabList(tab, items = alItems()) {
+  const xs = items.filter((it) => it.st === tab),
+    rank = (it) => (it.a ? lvlRank(it.a.level) : 3),
+    plan = (t) => (t.planAt ? Date.parse(t.planAt) : Infinity);
+  if (tab === "current") return xs.sort((x, y) => alSnoozed(x.a) - alSnoozed(y.a) || (x.a?.state === "recovered") - (y.a?.state === "recovered") || rank(x) - rank(y) || alBegin(y) - alBegin(x));
+  if (tab === "tasks") {
+    const who = U.opsTaskWho || "all",
+      me = OPS_WHO(),
+      ok = (t) => who === "all" || (who === "me" ? t.assignee === me : t.assignee === who);
+    return xs.filter((it) => ok(it.t)).sort((x, y) => !!y.rw - !!x.rw || taskOverdue(y.t) - taskOverdue(x.t) || plan(x.t) - plan(y.t));
+  }
+  if (tab === "verify") return xs.sort((x, y) => alEnd(y) - alEnd(x));
+  const per = alHistRange();
+  return xs.filter((it) => alBegin(it) < per.end && alEnd(it) > per.from).sort((x, y) => alEnd(y) - alEnd(x));
+}
+// 2.72 V682：页签写数量（已结束不写）；没有运行数据时不写
+function alarmTabItems() {
+  let items = null;
+  try {
+    items = Demo.on() && OPS_SCOPE.project && Demo.inScope() ? alItems() : null;
+  } catch {
+    items = null;
+  }
+  const n = (st) => (items ? String(items.filter((it) => it.st === st).length) : "");
+  return [["current", "未处理", n("current")], ["tasks", "处理中", n("tasks")], ["verify", "待核验", n("verify")], ["history", "已结束"]];
+}
+// 右侧两行：时长或时间，下为状态（灰字；逾期为危险色）
+function alRowRight(it) {
+  const { a, t } = it,
+    g2 = (s, cls = "al-st") => (s ? `<span class="${cls}">${s}</span>` : "");
+  if (!t) return `<span class="ops-num">${esc(alLast(a))}</span>${g2(a.closedAt ? "已关闭" : a.state === "recovered" ? "已恢复" : a.acknowledged ? "已确认" : "")}`;
+  const done = (x) => `完成 ${esc(evWhen(Date.parse(x)))}`;
+  if (it.st === "current") return `<span class="ops-num">${esc(evWhen(Date.parse(t.at)))}</span>${g2("未指派", "ops-warn-t")}`;
+  if (it.st === "tasks")
+    return it.rw
+      ? `<span class="ops-num">${done(t.closedAt)}</span>${g2(it.rw.id === it.a?.id ? "告警仍未恢复" : `再次触发 ${esc(evWhen(Date.parse(it.rw.at)))}`, "ops-warn-t")}`
+      : `<span class="ops-num${taskOverdue(t) ? " ops-crit-t" : ""}">${t.planAt ? `计划 ${esc(evWhen(Date.parse(t.planAt)))}` : "未登记计划"}</span>${g2(taskOverdue(t) ? "逾期" : taskState(t), taskOverdue(t) ? "al-st ops-crit-t" : "al-st")}`;
+  if (it.st === "verify") return `<span class="ops-num">${done(t.closedAt)}</span>${g2(`核验至 ${esc(evWhen(Date.parse(t.closedAt) + AL_VERIFY))}`)}`;
+  return `<span class="ops-num">${done(t.closedAt)}</span>${g2(taskSource(t) === "alarm" ? "已核验" : "已完成")}`;
+}
+// 列表行（同 People 表行）：整行可点，悬停叠黑 4%，当前一条叠黑 8%，不加边框；左边级别色条（报修与定期检查为灰色）。
+// 名称后为徽章：待确认（黄）、报修、定期检查、需返工（黄）、暂缓至（灰）；副文为位置与要点，处理中与待核验加负责人
+function alRowHtml(it, on, dflt) {
+  const { a, t } = it,
+    src = t ? taskSource(t) : "alarm",
+    chip = (cls, s) => `<span class="al-chip ${cls}">${esc(s)}</span>`,
+    badges = [
+      a && !a.acknowledged && !a.closedAt && it.st === "current" ? chip("minor", "待确认") : "",
+      src === "repair" ? chip("n", "报修") : src === "periodic" ? chip("n", "定期检查") : "",
+      it.rw || taskReworked(t) ? chip("minor", "需返工") : "",
+      a && it.st === "current" && alSnoozed(a) ? chip("n", `暂缓至 ${evWhen(Date.parse(a.snoozeUntil))}`) : "",
+    ].join(""),
+    title = a && src === "alarm" ? alTitleHtml(alarmTitle(a)) + maintTag(a) : nwText(t.name),
+    who = t && ["tasks", "verify"].includes(it.st) ? (t.assignee ? nwText(t.assignee) : `<span class="ops-warn-t">未指派</span>`) : "",
+    sub = [a && src === "alarm" ? esc(alShortSub(a)) : nwDots(t.scopeLabel || floorLabel()), who].filter(Boolean).join(" · ");
+  return `<button type="button" class="al-li l${a ? Math.min(2, lvlRank(a.level)) : 3}${on ? " on" : ""}${on && dflt ? " dflt" : ""}" data-act="${t ? "opsTask" : "opsAlarm"}" data-id="${it.id}"${on ? ' aria-current="true"' : ""}><i class="al-sv" aria-hidden="true"></i><span class="al-li-m"><span class="al-li-t">${a ? `<span class="sr-only">${esc(LV(a.level))} </span>` : ""}<span class="al-li-tt">${title}</span>${badges ? `<span class="al-li-b">${badges}</span>` : ""}</span><span class="al-li-s">${sub}</span></span><span class="al-li-r">${alRowRight(it)}</span></button>`;
+}
+const AL_EMPTY = { current: "没有未处理的告警与工单", tasks: "没有处理中的工单", verify: "没有待核验的工单", history: "所选期间没有已结束的告警与工单" };
+function alList(tab) {
+  const items = alItems(),
+    rows = alTabList(tab, items),
+    d = U.opsDrawer?.page === "alarms" ? U.opsDrawer : null,
+    pick = d ? rows.find((it) => (d.kind === "task" ? it.t?.id === d.id : it.id === d.id || it.a?.id === d.id || it.rw?.id === d.id || (!!it.t && taskAlarms(it.t).some((x) => x.id === d.id)))) : null,
     sel = pick || rows[0],
-    li = (a) => {
-      const t = alarmTitle(a),
-        on = sel?.id === a.id;
-      // 2.66 V459：默认选中的一行（没有点开）加 dflt，手机（≤ 850px）上不显示选中
-      return `<button type="button" class="al-li l${Math.min(2, lvlRank(a.level))}${on ? " on" : ""}${on && !pick ? " dflt" : ""}" data-act="opsAlarm" data-id="${a.id}"${on ? ' aria-current="true"' : ""}><i class="al-sv" aria-hidden="true"></i><span class="al-li-m"><span class="al-li-t"><span class="sr-only">${esc(LV(a.level))} </span>${alTitleHtml(t)}${maintTag(a)}</span><span class="al-li-s">${esc(alShortSub(a))}</span></span><span class="al-li-r"><span class="ops-num">${esc(alLast(a))}</span>${alStateTag(a, true)}</span></button>`;
-    },
-    list = `<section class="ov-card al-list"><div class="al-fchips"><div class="al-fchip-g" role="group" aria-label="筛选">${chips
-      .map(([k, l, c]) => `<button type="button" class="al-fchip${k === f ? " on" : ""}" aria-pressed="${k === f}" data-act="opsAlLevel" data-value="${k}">${l} <span class="ops-num">${c}</span></button>`)
-      .join("")}</div></div><div class="al-lis">${rows.map(li).join("") || `<p class="al-none">没有符合筛选的告警</p>`}</div></section>`;
-  // 2.66 V441：“全部确认”在页签行右端
-  opsTabTools = canOperate() && todo.length >= 2 ? btn("全部确认", "opsAckAll") : "";
-  return `<div class="al-inbox">${list}${sel ? alDetailCard(sel, !!pick) : ""}</div>`;
+    ops = canOperate(),
+    repair = ops ? btn(ico("plus", "ic16") + "新建工单", "opsRepairNew", {}, "primary") : "";
+  // 页签行右端：未处理为“全部确认”（待确认两条以上）与“新建工单”；处理中为负责人与“新建工单”；已结束为期间
+  if (tab === "current") opsTabTools = (ops && rows.filter((it) => it.a && !it.t && !it.a.acknowledged).length >= 2 ? btn("全部确认", "opsAckAll") : "") + repair;
+  else if (tab === "tasks") {
+    const me = OPS_WHO(),
+      names = [...new Set(items.filter((it) => it.st === "tasks").map((it) => it.t.assignee).filter(Boolean))].sort((x, y) => x.localeCompare(y, "zh"));
+    opsTabTools = opsFilter("opsTaskWhoSel", [["all", "全部负责人"], ["me", "我"], ...names.filter((n) => n !== me).map((n) => [n, n])], U.opsTaskWho || "all", "负责人") + repair;
+  } else if (tab === "history") opsTabTools = `<div class="ops-filters al-tools">${opsFilter("opsHistPerSel", HIST_PER, alHistRange().key, "期间")}${alHistInputs()}</div>`;
+  if (!rows.length) return `<section class="ops-card ops-al-none"><span class="ops-al-none-ic">${ico("check", "ic16")}</span><b>${AL_EMPTY[tab]}</b></section>`;
+  const list = `<section class="ov-card al-list" aria-label="${{ current: "未处理", tasks: "处理中", verify: "待核验", history: "已结束" }[tab]}"><div class="al-lis">${rows.map((it) => alRowHtml(it, it === sel, !pick)).join("")}</div></section>`,
+    detail = sel.a && (!sel.t || taskSource(sel.t) === "alarm") ? alDetailCard(sel.a, !!pick, sel) : taskDetailCard(sel.t, !!pick);
+  return `<div class="al-inbox al-items" data-tab="${tab}">${list}${detail}</div>`;
 }
 // 同一规则（或同一设备）此前已恢复的告警：恢复与再次触发是两条告警（规范 ALARM03，2026-10-08 第3轮第7章，ALARM03 待实现第3条）
+// 2.72：同类为同一规则在同一功能区（设备）上的告警，与工单核验同一判断（alKey）
 function alarmPrev(a) {
-  const key = (x) => x.ruleId || `${x.kind}:${x.pointId || x.zoneId}`;
   return F.alarmGroups(data())
-    .filter((x) => x.id !== a.id && x.state === "recovered" && key(x) === key(a) && Date.parse(x.recoveredAt) <= Date.parse(a.at))
+    .filter((x) => x.id !== a.id && x.state === "recovered" && alKey(x) === alKey(a) && Date.parse(x.recoveredAt) <= Date.parse(a.at))
     .sort((x, y) => Date.parse(y.at) - Date.parse(x.at))[0];
 }
 // 已恢复告警的持续时长（从超过阈值到恢复，G-7），与处理记录的“持续”列同一写法
@@ -77179,6 +77337,16 @@ function alarmTimeline(a) {
       if (["修改照明控制参数", "修改灯控参数"].includes(r.action) && r.objectId === t.zone.id && inWin(ts)) ev.push([ts, `${r.actor ? zhSub(String(r.actor).split(" · ")[0], "r") : ""}修改照明控制参数：${r.detail}`]);
     });
   if (end) ev.push([end, "恢复", "", "", true]);
+  // 2.72 V682、V683：暂缓、关闭、核验与需返工也记在同一条上
+  if (a.snoozeAt) ev.push([Date.parse(a.snoozeAt), `${zhSub(a.snoozeBy || "—", "r")}暂缓到 ${evWhen(Date.parse(a.snoozeUntil))}：${a.snoozeNote || ""}`]);
+  if (a.snoozeOffAt) ev.push([Date.parse(a.snoozeOffAt), `${zhSub(a.snoozeOffBy || "—", "r")}取消暂缓`]);
+  if (a.closedAt) ev.push([Date.parse(a.closedAt), `${zhSub(a.closedBy || "—", "r")}关闭：${a.closeNote || ""}`]);
+  if (tk?.closedAt && taskSource(tk) === "alarm") {
+    const rw = taskRework(tk),
+      c = Date.parse(tk.closedAt);
+    if (rw) ev.push(rw.id === a.id ? [c + AL_VERIFY, "核验未通过：完成 24 小时后告警仍未恢复，需返工"] : [Date.parse(rw.at), `再次触发：${alarmTitle(rw).title}，需返工`]);
+    else if (opsNow() - c >= AL_VERIFY) ev.push([c + AL_VERIFY, "已核验：完成后 24 小时内没有再次触发"]);
+  }
   // 2.61 V328：工单未完成且计划时间未到时，末尾写“计划完成”（空心点）；2.66 V445：样式名 al-tl-plan，不与楼层图的 plan 相撞
   if (tk && !tk.closedAt && tk.planAt && Date.parse(tk.planAt) > opsNow()) ev.push([Date.parse(tk.planAt), "计划完成", "", "al-tl-plan"]);
   // 2.66 V454：同一分钟的系统事件合为一行（用“；”连接）
@@ -77261,9 +77429,9 @@ function evInfo(e) {
 // 2.61 V328（取代 V276 的五节）：告警详情。头部为级别与状态标签、名称、“位置 · 09:53 起 · 37 分钟”；左栏现象、建议、处理记录（时间线），
 // 右栏位置小图与趋势（离线为当天在线条，环境为浓度曲线，能耗为近 7 晚，复位为设备事件）；底部“确认”或“查看工单”“新建工单”，以及“在楼层图上查看”。
 // 告警规则入口只在应用设置（趋势脚注“查看规则”）
-function alDetailParts(a) {
+function alDetailParts(a, it = null) {
   const t = alarmTitle(a),
-    tk = taskOf(a.id),
+    tk = it?.t || taskOf(a.id),
     eff = alarmEffect(a),
     ops = canOperate(),
     devs = [a.pointId, ...(a.relatedIds || [])].filter(Boolean),
@@ -77289,13 +77457,28 @@ function alDetailParts(a) {
       mt ? ["检修中", `${esc(mt.by === "task" ? `${mt.reason}执行中，所涉设备自动算检修中` : `${mt.reason}${mt.until ? `（至 ${opsWhen(opsRecAt(mt.until))}）` : ""}`)} · 不通知，不计入告警统计`] : null,
       helper ? [helper[0], helper[1], "dev-helpers-dd"] : null,
     ].filter(Boolean);
-  const next = alarmNext(a),
-    ai = typeof aiRootCause === "function" ? aiRootCause(a) : "",
-    advice = rec ? "" : (next ? `<p class="al-p">${esc(next)}</p>` : "") + ai;
+  // 2.72 V682、V689：未恢复的告警在详情顶部放 AI 判断卡（可能原因与排查步骤，附依据）；“建议”只写按规则给出的处理步骤
+  const open = !rec && !a.closedAt,
+    st = it?.st || (tk ? (tk.closedAt ? "verify" : "tasks") : alarmOpen(a) ? "current" : "history"),
+    next = alarmNext(a),
+    judge = open && st !== "verify" && typeof aiRootCause === "function" ? aiRootCause(a) : "",
+    advice = open && next ? `<p class="al-p">${esc(next)}</p>` : "",
+    tkKv = !tk
+      ? ""
+      : [
+          ["负责人", tk.assignee ? esc(tk.assignee) : `<span class="ops-warn-t">未指派</span>`],
+          tk.closedAt ? ["完成", esc(evWhen(Date.parse(tk.closedAt)))] : ["计划完成", tk.planAt ? `<span class="${taskOverdue(tk) ? "ops-crit-t" : ""}">${esc(evWhen(Date.parse(tk.planAt)))}</span>` : "未登记"],
+          st === "verify" ? ["核验", `${esc(evWhen(Date.parse(tk.closedAt) + AL_VERIFY))} 前没有再次触发即通过`] : null,
+        ]
+          .filter(Boolean)
+          .map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`)
+          .join(""),
+    editor = ops && tk && !tk.closedAt ? `<div class="ops-task-editor ops-note-row"><div class="field ops-note-f"><input class="input" id="opsTaskNote" placeholder="添加处理记录" aria-label="添加处理记录" autocomplete="off"></div>${btn("添加", "opsTaskUpd", { id: tk.id })}</div>` : "";
   const left =
     sec("现象", `<p class="al-p">${esc(what)}</p>${kv.length ? `<dl class="ops-kv al-kv">${kv.map(([k, v, c]) => `<dt>${k}</dt><dd${c ? ` class="${c}"` : ""}>${v}</dd>`).join("")}</dl>` : ""}`) +
     (advice ? sec("建议", advice, "ops-al-adv") : "") +
-    sec("处理记录", alarmTimeline(a));
+    (tk ? sec("工单", `<dl class="ops-kv al-kv">${tkKv}</dl>${tk.description ? `<p class="ops-task-desc">${esc(tk.description)}</p>` : ""}`) : "") +
+    sec("处理记录", alarmTimeline(a) + editor);
   // 趋势脚注末尾“查看规则 ›”（应用设置 › 告警规则，E86）；2.66 V454：网络模板告警不写（原为灰字“网络模板规则”）
   const ruleLink = ["offline", "device"].includes(a.kind) ? "" : `<button type="button" class="ops-link" data-act="goSettings" data-tab="rules" data-p="${esc(OPS_SCOPE.project)}">查看规则 ›</button>`,
     day0 = Demo.dayStart(alarmStart(a)),
@@ -77305,11 +77488,25 @@ function alDetailParts(a) {
     right =
       sec("位置", `<div class="al-loc">${opsPlan({ mini: true, vec: true, highlight: t.zone ? [t.zone.id] : [], hiDevices: devs, alarms: false })}</div>${devs.length ? `<p class="ops-foot">${devs.map((d) => esc(g("points", d)?.name)).join("、")}</p>` : ""}`) +
       trend;
-  // 底部：待确认为“确认”（主）；有工单为“查看工单”；没有工单、未恢复为“新建工单”（同时确认）；都有“在楼层图上查看”
+  // 2.72 V682：底部按状态：未处理为确认、派工（同时确认）、暂缓到…、关闭；处理中为完成工单、改派；待核验与需返工为“需返工”；都有“在楼层图上查看”
   const mapBtn = t.zone ? btn(ico("map", "ic16") + "在楼层图上查看", "opsOpenZone", { id: t.zone.id, tab: a.kind === "environment" ? "environment" : "general" }) : btn(ico("map", "ic16") + "在楼层图上查看", "opsGo", { page: "overview", tab: "general" }),
-    foot = [!a.acknowledged && ops ? btn("确认", "opsAck", { id: a.id }, "primary") : "", tk ? btn("查看工单", "opsTask", { id: tk.id }, a.acknowledged || !ops ? "primary" : "") : ops && !rec ? btn(ico("plus", "ic16") + "新建工单", "opsTaskNew", { id: a.id }, a.acknowledged ? "primary" : "") : "", mapBtn].join("");
+    ack = !a.acknowledged && ops && !a.closedAt,
+    acts = !ops
+      ? []
+      : !tk
+        ? open
+          ? [btn(ico("plus", "ic16") + "派工", "opsTaskNew", { id: a.id }, ack ? "" : "primary"), alSnoozed(a) ? btn("取消暂缓", "opsAlSnoozeOff", { id: a.id }) : btn("暂缓到…", "opsAlSnooze", { id: a.id }), btn("关闭", "opsAlClose", { id: a.id })]
+          : []
+        : !tk.closedAt
+          ? [btn("完成工单", "opsTaskFinish", { id: tk.id }, ack ? "" : "primary"), btn(tk.assignee ? "改派" : "指派", "opsTaskReassign", { id: tk.id })]
+          : ["verify", "tasks"].includes(st)
+            ? [btn("需返工", "opsTaskFinish", { id: tk.id, rework: "1" }, it?.rw && !ack ? "primary" : "")]
+            : [],
+    foot = [ack ? btn("确认", "opsAck", { id: a.id }, "primary") : "", ...acts, mapBtn].join(""),
+    chip = (cls, s2) => `<span class="al-chip ${cls}">${esc(s2)}</span>`;
   return {
-    chips: lvlChip(a.level) + alStateTag(a) + (mt ? `<span class="ops-st mt">检修中</span>` : ""),
+    top: judge,
+    chips: lvlChip(a.level) + (it?.rw ? chip("minor", "需返工") : st === "verify" ? chip("n", "待核验") : alStateTag(a)) + (st === "current" && alSnoozed(a) ? chip("n", `暂缓至 ${evWhen(Date.parse(a.snoozeUntil))}`) : "") + (mt ? `<span class="ops-st mt">检修中</span>` : ""),
     title: t.title,
     sub: nwJoin([fid ? floorLabel(fid) : "", t.zone?.name, alSince(a)].filter(Boolean)),
     left,
@@ -77343,16 +77540,10 @@ function alOnline(e, a) {
       .join("");
   return `<ul class="al-on">${rows}</ul><p class="al-on-ax"><span>00:00</span><span>${d1 < d0 + Demo.DAY ? Demo.hm(d1) : "24:00"}</span></p>`;
 }
-function alDetailCard(a, pick) {
-  const d = alDetailParts(a);
-  return `<section class="ov-card al-dt${pick ? " pick" : ""}" aria-label="告警详情"><header class="al-dt-h"><div class="al-dt-chips">${d.chips}</div><h3 tabindex="-1">${esc(d.title)}</h3><p class="al-dt-sub">${d.sub}</p><span class="al-dt-x">${iconBtn("关闭", "x", "opsDrawerClose")}</span></header><div class="al-dt-b"><div class="al-dt-c">${d.left}</div><div class="al-dt-c">${d.right}</div></div>${d.foot ? `<footer class="al-dt-f">${d.foot}</footer>` : ""}</section>`;
-}
-// 告警记录与工单页签打开的告警详情为侧面板，内容同上，排成一栏
-function alarmDrawer(id) {
-  const a = F.alarmGroups(data()).find((x) => x.id === id);
-  if (!a) return "";
-  const d = alDetailParts(a);
-  return `<aside class="ops-drawer ops-al-drawer" aria-label="告警详情"><header class="ops-drawer-h"><div><div class="ops-drawer-eb">${d.chips}</div><h3 tabindex="-1">${esc(d.title)}</h3><p>${d.sub}</p></div>${iconBtn("关闭", "x", "opsDrawerClose")}</header><div class="ops-drawer-b al-dt-one">${d.left}${d.right}</div>${d.foot ? `<div class="ops-drawer-foot">${d.foot}</div>` : ""}</aside>`;
+function alDetailCard(a, pick, it = null) {
+  const d = alDetailParts(a, it);
+  // 2.72 V692：手机上点一条进入详情页，左上为返回
+  return `<section class="ov-card al-dt${pick ? " pick" : ""}" aria-label="告警详情"><header class="al-dt-h"><span class="al-dt-back">${iconBtn("返回", "back", "opsDrawerClose")}</span><div class="al-dt-chips">${d.chips}</div><h3 tabindex="-1">${esc(d.title)}</h3><p class="al-dt-sub">${d.sub}</p><span class="al-dt-x">${iconBtn("关闭", "x", "opsDrawerClose")}</span></header><div class="al-dt-b">${d.top ? `<div class="al-dt-ai">${d.top}</div>` : ""}<div class="al-dt-c">${d.left}</div><div class="al-dt-c">${d.right}</div></div>${d.foot ? `<footer class="al-dt-f">${d.foot}</footer>` : ""}</section>`;
 }
 // 告警详情的副标题：项目、楼宇楼层与功能区，如“广实2号园 E栋 7F · 会议室 7-1”；网关等不在功能区的写到楼层
 // （全面设计核查第 108 条（2026-10-12 用户确认）：原先写说明与功能区，与下面“发生了什么”逐字重复）。返回各段，由 nwJoin 以“ · ”连接
@@ -77389,6 +77580,35 @@ async function opsAlarmTransaction(ids, fn) {
   }
   return result;
 }
+// 2.72 V682：暂缓、取消暂缓与关闭写在告警上（值为 undefined 的字段删去）；内存中的网关离线告警在提交成功后再写
+async function opsAlarmSet(id, values, action, detail) {
+  let extra = null;
+  const put = (o) => {
+    Object.assign(o, values);
+    for (const k of Object.keys(values)) if (values[k] === undefined) delete o[k];
+  };
+  await transaction(
+    (db) => {
+      const saved = db.alerts.find((x) => x.id === id);
+      extra = saved ? null : Demo.ctl.gwAlarms?.find((x) => x.id === id) || null;
+      if (!saved && !extra) throw new Error("这条告警已不存在");
+      if (saved) put(saved);
+      M.record(db, action, id, detail);
+    },
+    "operate",
+    { assertAccess: opsAlarmAccess([id]) },
+  );
+  if (extra) put(extra);
+}
+const AL_SNOOZE = [["1h", "1 小时后"], ["4h", "4 小时后"], ["tomorrow", "明天 09:00"], ["monday", "下周一 09:00"]];
+function alSnoozeAt(k, now = opsNow()) {
+  if (k === "1h") return now + Demo.H;
+  if (k === "4h") return now + 4 * Demo.H;
+  const d0 = Demo.dayStart(now),
+    wd = new Date(now + 8 * Demo.H).getUTCDay(),
+    days = k === "monday" ? ((8 - wd) % 7 || 7) : 1;
+  return d0 + days * Demo.DAY + 9 * Demo.H;
+}
 // “E栋 7F 网关离线”只在本页内存；提交成功后才写原条目。已确认的不重复记录。
 function opsAckIn(db, id, pending = []) {
   const saved = db.alerts.find((x) => x.id === id),
@@ -77407,47 +77627,6 @@ function opsAckIn(db, id, pending = []) {
 // 2.53 V278：可选的成员写在 ⓘ 里，下方不再另写一行
 const TASK_WHO_LABEL = "负责人"; // 2.66 V526：不加 ⓘ（原三句：可选范围、按通知偏好通知、与告警的关系）
 // 2.46 运营核查 V213：创建、新建和改派工单后按负责人的通知偏好通知（原写“派工与通知服务尚未接入”，与报修、报告的通知前后矛盾）；弹窗底部不再写“负责人在“工单”中查看”
-function alTasks() {
-  // 2.61 V329（取代 V144 的表格）：工单为看板，待处理、处理中、已完成三列（已完成列为近 30 天完成的）。卡片写名称、来源（告警写告警名称，按级别着色；
-  // 报修、定期检查写位置并加标签）、负责人与计划完成（逾期为危险色）；没有负责人时写“未指派”并有“指派”。右为所选工单的详情。
-  // 负责人下拉（全部负责人 / 我 / 未指派 / 各成员）与“新建工单”在页签下一行的右侧
-  const who = U.opsTaskWho || "all",
-    me = OPS_WHO(),
-    all = data().investigationTasks.filter((t) => t.projectId === OPS_SCOPE.project && opsHealthTaskMatch(t)),
-    inScope = all.filter((t) => (!U.alarmDevice || taskForDevice(t, U.alarmDevice)) && (!U.alarmZone || taskForZone(t, U.alarmZone))),
-    whoOk = (t) => who === "all" || (who === "me" ? t.assignee === me : who === "none" ? !t.assignee : t.assignee === who),
-    ts = inScope.filter(whoOk),
-    plan = (t) => (t.planAt ? Date.parse(t.planAt) : Infinity),
-    byPlan = (x, y) => taskOverdue(y) - taskOverdue(x) || plan(x) - plan(y),
-    cols = [
-      ["待处理", ts.filter((t) => !t.closedAt && taskState(t) === "待处理").sort(byPlan)],
-      ["处理中", ts.filter((t) => !t.closedAt && taskState(t) === "处理中").sort(byPlan)],
-      // 2.66 V463：列标题写“已完成 · 近 30 天”；更早完成的在列底“更早的 N 条”，点开后在本列继续列出
-      ["已完成 · 近 30 天", ts.filter((t) => t.closedAt && (U.opsTaskOld || Date.parse(t.closedAt) >= opsNow() - 30 * Demo.DAY)).sort((x, y) => Date.parse(y.closedAt) - Date.parse(x.closedAt))],
-    ],
-    older = U.opsTaskOld ? 0 : ts.filter((t) => t.closedAt && Date.parse(t.closedAt) < opsNow() - 30 * Demo.DAY).length,
-    pick = U.opsDrawer?.kind === "task" ? inScope.find((t) => t.id === U.opsDrawer.id) : null,
-    sel = pick || cols.flatMap(([, xs]) => xs)[0];
-  const card = (t) => {
-    const src = taskSource(t),
-      al = src === "alarm" ? taskAlarms(t)[0] : null,
-      on = sel?.id === t.id,
-      srcLine = al
-        ? `<span class="al-wo-m al-wo-src l${Math.min(2, lvlRank(al.level))}">${ico("bell", "ic16")}<span>${alTitleHtml(alarmTitle(al))}</span></span>`
-        : `<span class="al-wo-m">${ico("map-pin", "ic16")}<span>${nwDots(t.scopeLabel || floorLabel())}</span></span>`,
-      when = t.closedAt ? `完成 ${evWhen(Date.parse(t.closedAt))}` : t.planAt ? `计划 ${evWhen(Date.parse(t.planAt))}` : "",
-      whoHtml = t.assignee ? `<span class="al-av" aria-hidden="true">${esc(t.assignee.slice(0, 1))}</span>${nwText(t.assignee)}` : `<span class="ops-warn-t">未指派</span>`;
-    return `<article class="al-wo${on ? " on" : ""}"><button type="button" class="al-wo-b" data-act="opsTask" data-id="${t.id}"${on ? ' aria-current="true"' : ""}>${nwText(t.name)}</button>${srcLine}<span class="al-wo-m al-wo-who">${src === "alarm" ? "" : `<span class="al-chip n">${esc(TASK_SOURCES[src])}</span>`}${whoHtml}<span class="sp"></span>${!t.assignee && !t.closedAt && canOperate() ? btn("指派", "opsTaskReassign", { id: t.id }, "sm al-wo-act") : ""}${when ? `<span class="al-wo-plan${taskOverdue(t) ? " over" : ""}">${esc(when)}${taskOverdue(t) ? " · 逾期" : ""}</span>` : ""}</span></article>`;
-  };
-  const names = [...new Set(inScope.map((t) => t.assignee).filter(Boolean))].sort((x, y) => x.localeCompare(y, "zh")),
-    whoOpts = [["all", "全部负责人"], ["me", "我"], ["none", "未指派"], ...names.filter((n) => n !== me).map((n) => [n, n])],
-    tools = "";
-  // 2.66 V441：负责人与“新建工单”在页签行右端
-  opsTabTools = `${opsFilter("opsTaskWhoSel", whoOpts, who, "负责人")}${canOperate() ? btn(ico("plus", "ic16") + "新建工单", "opsRepairNew", {}, "primary") : ""}`;
-  // 2.66 V536：没有工单时照常显示三列看板，计数为 0，空列不写字
-  const board = `<div class="al-board">${cols.map(([h, xs]) => `<section class="al-col" aria-label="${h}"><h4>${h} <span class="ops-num">${xs.length}</span></h4>${xs.map(card).join("")}${h.startsWith("已完成") && older ? `<button type="button" class="ops-link al-col-more" data-act="opsTaskOld">更早的 ${older} 条</button>` : ""}</section>`).join("")}</div>`;
-  return `${tools}<div class="al-inbox al-tasks">${board}${sel ? taskDetailCard(sel, !!pick) : ""}</div>`;
-}
 // 2.61 V329：工单详情。头部为状态与来源告警的级别、名称与位置；字段为来源（告警可点开）、负责人（旁有“改派”）、计划完成、创建；
 // 说明、照片、处理记录；未完成时可添加记录（“进展”“暂缓”两类），底部“完成工单”“转派”；已完成的只有“需返工”。
 // （V46、ALARM02；原 V144 的侧面板，字段与记录写法不变）
@@ -77459,7 +77638,7 @@ function taskDetailParts(t) {
     devs = (t.pointIds || []).map((x) => g("points", x)?.name).filter(Boolean),
     id = t.id;
   // 2.66 V461：负责人旁不再放“改派”链接，用底部按钮；V465：定期工单的来源只写“定期检查 · 查看参数 ›”；V466：逾期只在状态旁，计划完成只把时间写成危险色
-  const srcText = src === "repair" ? `报修${(t.reporters || []).length > 1 ? `，报修 ${t.reporters.length} 人` : t.by ? `，${t.by}登记` : ""}${t.reading ? `；${t.reading}` : ""}` : "定期检查",
+  const srcText = src === "repair" ? `报修${(t.reporters || []).length > 1 ? `，报修 ${t.reporters.length} 人` : t.by ? `，${t.by}登记` : ""}${t.reading && !t.judge ? `；${t.reading}` : ""}` : "定期检查",
     info = [
       ["来源", src === "alarm" ? srcs.map((a) => `<button type="button" class="ops-link" data-act="opsAlarm" data-id="${a.id}">${alTitleHtml(alarmTitle(a))} ›</button>${a.state === "recovered" ? ` <span class="ops-dim">已恢复</span>` : ""}`).join("<br>") || "告警" : `${esc(srcText)}${src === "periodic" && t.rule ? ` · <button type="button" class="ops-link" data-act="goSettings" data-tab="general" data-p="${esc(t.projectId)}">查看参数 ›</button>` : ""}`],
       ["负责人", t.assignee ? esc(t.assignee) : `<span class="ops-warn-t">未指派</span>`],
@@ -77481,7 +77660,8 @@ function taskDetailParts(t) {
     chips: taskStChips(t) + (srcs[0] ? lvlChip(srcs[0].level) : ""),
     title: t.name,
     sub: `${esc(place)}${z ? ` <button type="button" class="ops-link" data-act="opsOpenZone" data-id="${z.id}" data-tab="general">在楼层图上查看 ›</button>` : ""}`,
-    body: `<dl class="ops-kv al-kv">${info.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>${t.description ? `<section class="al-sec"><h4>说明</h4><p class="ops-task-desc">${esc(t.description)}</p></section>` : ""}${t.photos?.length ? `<section class="al-sec"><h4>照片</h4><ul class="photo-thumbs">${photoThumbs(t.photos.map(photoOf), { id: t.id })}</ul></section>` : ""}${
+    // 2.72 V684：报修的 AI 初步判断在详情顶部，依据为提交时的读数
+    body: `${t.judge && typeof aiInsight === "function" ? `<div class="al-dt-ai">${aiInsight(esc(t.judge), t.reading ? [["读数", esc(t.reading)]] : [])}</div>` : ""}<dl class="ops-kv al-kv">${info.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>${t.description ? `<section class="al-sec"><h4>说明</h4><p class="ops-task-desc">${esc(t.description)}</p></section>` : ""}${t.photos?.length ? `<section class="al-sec"><h4>照片</h4><ul class="photo-thumbs">${photoThumbs(t.photos.map(photoOf), { id: t.id })}</ul></section>` : ""}${
       // 2.66 V452：横幅只写“来源告警未恢复”，告警名称可点
       t.closedAt && srcs.some((a) => a.state !== "recovered") ? `<p class="ops-banner soft">${ico("alert", "ic16")}<span>来源告警未恢复：${srcs.filter((a) => a.state !== "recovered").map((a) => `<button type="button" class="ops-link" data-act="opsAlarm" data-id="${a.id}">${esc(alarmTitle(a).title)}</button>`).join("、")}</span></p>` : ""
     }<section class="al-sec"><h4>处理记录</h4>${notes.length ? `<ol class="ops-tl">${notes.join("")}</ol>` : `<p class="ops-zp-sub">还没有记录。</p>`}${editor}</section>`,
@@ -77490,14 +77670,7 @@ function taskDetailParts(t) {
 }
 function taskDetailCard(t, pick) {
   const d = taskDetailParts(t);
-  return `<section class="ov-card al-dt al-tk${pick ? " pick" : ""}" aria-label="工单"><header class="al-dt-h"><div class="al-dt-chips">${d.chips}</div><h3 tabindex="-1">${esc(d.title)}</h3>${d.sub ? `<p class="al-dt-sub">${d.sub}</p>` : ""}<span class="al-dt-x">${iconBtn("关闭", "x", "opsDrawerClose")}</span></header><div class="al-dt-b one">${d.body}</div>${d.foot ? `<footer class="al-dt-f">${d.foot}</footer>` : ""}</section>`;
-}
-// 其他页签打开的工单为侧面板，内容同上
-function taskDrawer(id) {
-  const t = g("investigationTasks", id);
-  if (!t) return "";
-  const d = taskDetailParts(t);
-  return `<aside class="ops-drawer ops-task-drawer" aria-label="工单"><header class="ops-drawer-h"><div><div class="ops-drawer-eb">${d.chips}</div><h3 tabindex="-1">${esc(d.title)}</h3>${d.sub ? `<p>${d.sub}</p>` : ""}</div>${iconBtn("关闭", "x", "opsDrawerClose")}</header><div class="ops-drawer-b">${d.body}</div>${d.foot ? `<div class="ops-drawer-foot">${d.foot}</div>` : ""}</aside>`;
+  return `<section class="ov-card al-dt al-tk${pick ? " pick" : ""}" aria-label="工单"><header class="al-dt-h"><span class="al-dt-back">${iconBtn("返回", "back", "opsDrawerClose")}</span><div class="al-dt-chips">${d.chips}</div><h3 tabindex="-1">${esc(d.title)}</h3>${d.sub ? `<p class="al-dt-sub">${d.sub}</p>` : ""}<span class="al-dt-x">${iconBtn("关闭", "x", "opsDrawerClose")}</span></header><div class="al-dt-b one">${d.body}</div>${d.foot ? `<footer class="al-dt-f">${d.foot}</footer>` : ""}</section>`;
 }
 // 告警记录（规范 ALARM03，2026-10-08 第3轮第7章，ALARM03 待实现第1条：按期间与对象回看；2026-10-09 用户确认，ABB 对比 BP95：原名“处理记录”）。
 // 期间（BP98）：“近 24 小时”“近 7 天”“近 30 天”“本月”“自定义”，默认近 7 天（原先另有“近 3 天”）；近 7 天、近 30 天与本月同数据分析按日历日计，
@@ -77555,74 +77728,6 @@ const alarmRuleName = (a) => {
   const t = alarmTitle(a);
   return t.merged ? "控制器疑似失电" : t.p?.type === "gw" ? "网关离线" : a.kind === "device" ? "设备恢复出厂" : a.kind === "offline" ? "设备离线" : a.name;
 };
-// 告警的时长（分钟）：已恢复的为“持续”，未恢复的算到现在（G-7）
-const alMins = (a) => Math.max(0, ((a.state === "recovered" ? Date.parse(a.recoveredAt) : opsNow()) - alarmStart(a)) / Demo.MIN);
-// 指标卡上的时长写“N 小时 M 分钟”（BP97）；2.61 V330：满一天的写“N 天 M 小时”
-const durKpi = (m) => {
-  m = Math.round(m);
-  // 2.66 V455：满一天只写“N 天”（原为“N 天 M 小时”），与清单的持续同一写法
-  if (m >= 1440) return `${Math.floor(m / 1440)}<small>天</small>`;
-  return m >= 60 ? `${Math.floor(m / 60)}<small>小时</small>${m % 60 ? ` ${m % 60}<small>分钟</small>` : ""}` : `${m}<small>分钟</small>`;
-};
-function alHistory() {
-  const per = alHistRange(),
-    // 2.66 V467：与期间有交集就列出并计入：发生早于期间结束，并且未恢复或恢复晚于期间开始
-    inPer = (a) => Date.parse(a.at) < per.end && (a.state !== "recovered" || Date.parse(a.recoveredAt) > per.from),
-    all = F.alarmGroups(data()).filter((a) => a.projectId === OPS_SCOPE.project && inPer(a) && opsHealthAlarmMatch(a) && alarmForDevice(a) && alarmForZone(a)),
-    // 检修中的告警照常列出，不计入统计（BP92）
-    st = all.filter((a) => !alarmMaint(a)),
-    mt = all.length - st.length,
-    rec = st.filter((a) => a.state === "recovered"),
-    open = st.filter((a) => a.state !== "recovered"),
-    // 平均恢复为已恢复告警“持续”的平均，与时间线右侧的持续同一口径（G-7）
-    mttr = rec.reduce((s, a) => s + alMins(a), 0) / Math.max(1, rec.length),
-    longest = open.slice().sort((a, b) => alMins(b) - alMins(a))[0];
-  // 2.61 V330（取代 V145、V275 的指标块、每日柱图与“告警最多”表）：四张指标卡“告警”“已恢复”“平均恢复”“最长未恢复”（副文写对象），
-  // 下为时间线：每条告警一行横条，从超过阈值到恢复，未恢复的延伸到当前时间线，右侧持续与状态；删去“由 N 条设备事件合并”
-  const kpi = (label, value, sub = "") => `<div class="al-kpi"><span class="al-kpi-l">${label}</span><span class="al-kpi-v">${value}</span>${sub ? `<span class="al-kpi-s">${sub}</span>` : ""}</div>`,
-    kpis = `<div class="al-kpis">${kpi("告警", `${st.length}<small>条</small>`, mt ? `另有检修中 ${mt} 条不计入` : "")}${kpi("已恢复", `${rec.length}<small>条</small>`)}${kpi("平均恢复", rec.length ? durKpi(mttr) : "—")}${kpi("最长未恢复", longest ? durKpi(alMins(longest)) : "—", longest ? nwText(alarmObj(longest)) : "")}</div>`;
-  const res = ["open", "todo"].includes(U.opsHistRes) ? U.opsHistRes : "all",
-    resOk = (a) => res === "all" || (res === "open" ? a.state !== "recovered" : !a.acknowledged),
-    list = all.filter(resOk).sort((a, b) => alarmStart(b) - alarmStart(a)),
-    cnt = (f) => all.filter(f).length,
-    mkey = [per.key, per.key === "custom" ? `${U.opsHistFrom}~${U.opsHistTo}` : "", res, U.alarmDevice || "", U.alarmZone || ""].join("|"),
-    lim = Math.min(list.length, U.opsHistMore?.key === mkey ? U.opsHistMore.n : SC_REC_PAGE);
-  // 时间轴：所选期间，近 24 小时每 3 小时一格（时刻写在格线上）、其余每天一格（日期写在格中间，日子多时隔几天写一个）；现在为一条竖线
-  const x0 = per.from,
-    x1 = per.end,
-    X = (ts) => ((Math.max(x0, Math.min(x1, ts)) - x0) / (x1 - x0)) * 100,
-    hourly = per.key === "1",
-    step = hourly ? 3 * Demo.H : Demo.DAY,
-    // 2.66 V468：近 24 小时的刻度为当地 0、3、6…点（格线与标签同一组整点刻度），跨零点那一格写日期
-    off = (((Demo.dayStart(x0) - x0) % step) + step) % step,
-    ticks = [];
-  for (let ts = hourly ? x0 + off : Demo.dayStart(x0); ts < x1; ts += step) if (ts >= x0) ticks.push(ts);
-  // 2.66 V468：侧面板打开时日期隔一个写一个
-  const every = Math.max(U.opsDrawer?.page === "alarms" && !hourly ? 2 : 1, Math.ceil(ticks.length / 8)),
-    now = opsNow() >= x0 && opsNow() < x1 ? `<span class="al-tl-now" style="left:${X(opsNow()).toFixed(2)}%"></span>` : "",
-    // 格线画在刻度上（--al-grid），与标签对齐
-    gx = ticks.map((ts) => X(ts)).filter((x) => x > 0.01),
-    grid = `--al-cols:${ticks.length};--al-grid:${gx.length ? `linear-gradient(90deg,${gx.map((x) => `transparent ${x.toFixed(2)}%,var(--ov-line) ${x.toFixed(2)}%,var(--ov-line) calc(${x.toFixed(2)}% + 1px),transparent calc(${x.toFixed(2)}% + 1px)`).join(",")})` : "none"}`,
-    axis = `<div class="al-tl-r al-tl-hd" aria-hidden="true"><span></span><span class="al-tl-ax">${ticks.map((ts, i) => ((ticks.length - 1 - i) % every === 0 ? `<span style="left:${X(hourly ? ts : ts + step / 2).toFixed(2)}%">${hourly ? (ts === Demo.dayStart(ts) ? Demo.md(ts) : Demo.hm(ts)) : Demo.md(ts)}</span>` : "")).join("")}</span><span class="r">持续</span><span>状态</span></div>`;
-  const row = (a) => {
-    const t = alarmTitle(a),
-      s = alarmStart(a),
-      e = a.state === "recovered" ? Date.parse(a.recoveredAt) : opsNow(),
-      l = X(s),
-      w = Math.max(0, X(e) - l),
-      on = U.opsDrawer?.id === a.id;
-    return `<div class="al-tl-r click l${Math.min(2, lvlRank(a.level))}${a.state === "recovered" ? " rec" : ""}${on ? " on" : ""}" data-act="opsAlarm" data-id="${a.id}"><span class="al-tl-n"><i class="al-dot" aria-hidden="true"></i>${alRowBtn("opsAlarm", a.id, `<span class="sr-only">${esc(LV(a.level))} </span>${alTitleHtml(t)}${maintTag(a)}`, "ops-al-t")}</span><span class="al-tl-tr" style="${grid}" role="img" aria-label="${esc(`${evWhen(s)} 起${a.state === "recovered" ? `，${evWhen(e)} 恢复` : "，未恢复"}`)}">${now}<i class="al-tl-bar${s < x0 ? " cut" : ""}" style="left:${l.toFixed(2)}%;width:${w.toFixed(2)}%"></i></span><span class="r ops-num">${esc(alLast(a))}</span><span>${a.state === "recovered" ? (a.acknowledged ? `<span class="al-chip ok">已恢复</span>` : `<span class="al-chip minor">已恢复 · 待确认</span>`) : a.acknowledged ? `<span class="al-st">未恢复</span>` : `<span class="al-chip minor">未恢复 · 待确认</span>`}</span></div>`;
-  };
-  const chips = [["all", "全部", all.length], ["open", "未恢复", cnt((a) => a.state !== "recovered")], ["todo", "待确认", cnt((a) => !a.acknowledged)]]
-      .map(([k, l, c]) => `<button type="button" class="al-fchip${k === res ? " on" : ""}" aria-pressed="${k === res}" data-act="opsHistRes" data-value="${k}">${l} <span class="ops-num">${c}</span></button>`)
-      .join(""),
-    card = `<section class="ov-card al-tl"><header class="ov-card-h"><h3>时间线</h3><span class="al-meta">${esc(per.span || per.label)}</span><span class="sp"></span><div class="al-fchip-g" role="group" aria-label="筛选">${chips}</div></header>${
-      list.length ? `<div class="al-tl-b" style="--al-cols:${ticks.length}">${axis}${list.slice(0, lim).map(row).join("")}</div>${recMoreBar("opsHistMore", mkey, lim, list.length, false)}` : `<p class="al-none">${all.length ? "没有符合筛选的告警" : "所选期间没有告警"}</p>`
-    }</section>`;
-  // 2.66 V441：期间在页签行右端（自定义时接开始与结束日期）；按功能区或设备筛选时筛选条在下面
-  opsTabTools = `<div class="ops-filters al-tools">${opsFilter("opsHistPerSel", HIST_PER, per.key, "期间")}${alHistInputs()}</div>`;
-  return `${alarmDeviceBar()}${kpis}${card}`;
-}
 // 设备网络与系统接入的告警，随网络模板启用（规范 ALARM04）：默认级别按 ALARM01 的定级准则（2026-10-09 用户确认，ABB 对比 BP89：设备已恢复出厂由提示改为重要，
 // 网络负载偏高持续超过上限为重要）；数据中断与第三方系统故障（BP90、BP58）
 const NET_RULES = [
@@ -77798,8 +77903,40 @@ const schDaysText = (s) => {
   }
   return d;
 };
-// 定时的执行时刻：选“工作时间开始”“工作时间结束”的按项目工作时间（2026-10-09 用户确认，ABB 对比 BP77），其余为登记的时刻
-const schWhen = (s) => (s.at === "work-start" ? workHoursOf(s.projectId).from : s.at === "work-end" ? workHoursOf(s.projectId).to : s.when || "");
+// 2.72 V687：日出、日落按项目坐标逐日计算（NOAA 简化算法，太阳天顶角 90.833°，误差约 1 分钟）；返回当地当天 0 点起的分钟数，
+// 没有坐标或当天没有日出日落时为 null
+function sunMins(pid, day = Demo.TODAY) {
+  const loc = g("projects", pid)?.location,
+    lat = +loc?.lat,
+    lng = +loc?.lng;
+  if (!loc || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const d0 = Demo.dayStart(day),
+    L = Demo.loc(d0 + 12 * Demo.H),
+    utc0 = Date.UTC(L.y, L.mo - 1, L.d),
+    n = Math.round((utc0 - Date.UTC(L.y, 0, 1)) / 864e5) + 1,
+    gm = ((2 * Math.PI) / 365) * (n - 1),
+    eq = 229.18 * (0.000075 + 0.001868 * Math.cos(gm) - 0.032077 * Math.sin(gm) - 0.014615 * Math.cos(2 * gm) - 0.040849 * Math.sin(2 * gm)),
+    de = 0.006918 - 0.399912 * Math.cos(gm) + 0.070257 * Math.sin(gm) - 0.006758 * Math.cos(2 * gm) + 0.000907 * Math.sin(2 * gm) - 0.002697 * Math.cos(3 * gm) + 0.00148 * Math.sin(3 * gm),
+    r = Math.PI / 180,
+    c = Math.cos(90.833 * r) / (Math.cos(lat * r) * Math.cos(de)) - Math.tan(lat * r) * Math.tan(de);
+  if (c < -1 || c > 1) return null;
+  const ha = Math.acos(c) / r,
+    at = (m) => Math.round((utc0 + m * 60000 - d0) / 60000);
+  return { rise: at(720 - 4 * (lng + ha) - eq), set: at(720 - 4 * (lng - ha) - eq) };
+}
+const SUN_AT = { sunset: "日落后", sunrise: "日出前" };
+const minHm = (m) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+// 定时的执行时刻：选“工作时间开始”“工作时间结束”的按项目工作时间（2026-10-09 用户确认，ABB 对比 BP77）；
+// 选“日落后”“日出前”的按当天的日落、日出加减 N 分钟（2.72 V687，day 为哪一天，默认今天）；其余为登记的时刻
+const schWhen = (s, day) => {
+  if (SUN_AT[s.at]) {
+    const m = sunMins(s.projectId, day ?? Demo.TODAY);
+    return m ? minHm(Math.min(1439, Math.max(0, s.at === "sunset" ? m.set + (+s.sunMin || 0) : m.rise - (+s.sunMin || 0)))) : s.when || "";
+  }
+  return s.at === "work-start" ? workHoursOf(s.projectId).from : s.at === "work-end" ? workHoursOf(s.projectId).to : s.when || "";
+};
+// 某一天的执行时间（毫秒）；没有时刻时为 NaN
+const schAt = (s, day) => Demo.dayStart(day) + hmHours(schWhen(s, day)) * Demo.H;
 // 2.66 V490：启用时按“补执行”补上的今天那一次（今天该执行、时刻已过、今天还没有执行记录）；没有时为空
 const scMissedToday = (s) => {
   if (!Demo.on() || s.projectId !== OPS_SCOPE.project) return "";
@@ -77808,7 +77945,7 @@ const scMissedToday = (s) => {
     day = ymdOf(now);
   return t && t <= Demo.hm(now) && daysMatch(s.days, now, s) && !sceneRecords().some((r) => r.sid === s.id && ymdOf(typeof r.at === "number" ? r.at : Date.parse(r.at)) === day) ? t : "";
 };
-const schTimeText = (s) => (s.at === "work-start" ? `工作时间开始（${schWhen(s)}）` : s.at === "work-end" ? `工作时间结束（${schWhen(s)}）` : s.when || "");
+const schTimeText = (s) => (SUN_AT[s.at] ? `${SUN_AT[s.at]} ${+s.sunMin || 0} 分钟（今天 ${schWhen(s)}）` : s.at === "work-start" ? `工作时间开始（${schWhen(s)}）` : s.at === "work-end" ? `工作时间结束（${schWhen(s)}）` : s.when || "");
 // 定时表格的时间一格：日子、时刻名称与括号里的时刻各自不断开（第 315 条）
 const schTimeHtml = (s) => {
   const t = schTimeText(s),
@@ -77837,7 +77974,7 @@ function sceneNextEvent(ts, zid) {
     const ids = schLcIds(s);
     if (!lcs.some((id) => ids.has(id))) continue;
     for (let d = 0; d < 3; d++) {
-      const t = Demo.dayStart(ts) + d * Demo.DAY + hmHours(schWhen(s)) * Demo.H;
+      const t = schAt(s, Demo.dayStart(ts) + d * Demo.DAY);
       if (t > ts && daysMatch(s.days || "每天", t, s)) {
         if (!best || t < best.at) best = { at: t, s };
         break;
@@ -77874,12 +78011,13 @@ function sceneRecords() {
     off = (s, t) => sceneStoppedAt(g("scenes", s.id) || s, t);
   for (let back = 6; back >= 0; back--) {
     sch.forEach((s, k) => {
-      const [hh, mm] = schWhen(s).split(":").map(Number),
+      const [hh, mm] = schWhen(s, Demo.TODAY - back * Demo.DAY).split(":").map(Number),
         t = at(back, hh, mm);
       if (t >= Demo.NOW || !daysMatch(s.days, t, s) || off(s, t)) return;
       const x = snap(s),
         miss = back === 2 && k === sch.length - 1 && x.n > 1;
-      rec.push({ at: t, ...x, trig: "定时 · " + s.name, pend: [], late: miss ? [x.lcs.at(-1)] : [], later: miss ? `延迟确认（${hm(hh, mm + 2)}）` : "" });
+      // 2.72 V688：首次有 1 台未生效，网关 2 分钟后自动补发，补发后生效（原写“延迟确认”）
+      rec.push({ at: t, ...x, trig: "定时 · " + s.name, pend: [], late: miss ? [x.lcs.at(-1)] : [], later: miss ? `补发后生效（${hm(hh, mm + 2)}）` : "" });
     });
   }
   ss.filter((s) => s.kind === "link").forEach((s) => {
@@ -77893,7 +78031,7 @@ function sceneRecords() {
       if (e.act !== "启用" || log[i - 1]?.act !== "停用") return;
       const t1 = Date.parse(e.at),
         t0 = Math.max(Date.parse(log[i - 1].at), Demo.dayStart(t1)),
-        t = Demo.dayStart(t1) + hmHours(schWhen(cur)) * Demo.H;
+        t = schAt(cur, t1);
       if (t >= t0 && t < t1 && daysMatch(cur.days, t, cur)) rec.push({ at: t1, ...snap(cur), trig: "定时 · " + cur.name + " · 启用后补执行", pend: [], late: [] });
     });
   });
@@ -77932,6 +78070,36 @@ function scRunProg(run) {
     busy: cs.some((c) => !c.settled && c.done.length < c.ids.length),
   };
 }
+// 2.72 V688：场景执行部分生效（N / M）时，2 分钟后对没有生效的设备自动补发一次；补发后仍不一致的产生告警，写明哪几台没有执行。
+// 网关执行的定时与联动同样处理，执行记录写“补发后生效（时刻）”
+const SC_RESEND = 2 * 60e3;
+function scAutoResend(run) {
+  if (!run?.sid || run.auto) return;
+  const pr = scRunProg(run),
+    ids = [...pr.off, ...pr.wait];
+  if (!ids.length) return;
+  const cs = [run.id, ...(run.hvIds || [run.hvId])].map((id) => id && Demo.ctl.cmds[id]).filter((c) => c?.ids);
+  cs.forEach((c) => {
+    c.settled = true;
+    c.ids.filter((x) => ids.includes(x) && !c.done.includes(x) && Demo.device(g("points", x))?.online).forEach((x) => (c.done.push(x), c.apply?.(x)));
+  });
+  const miss = ids.filter((x) => !cs.some((c) => c.done.includes(x))),
+    ps = miss.map((x) => g("points", x)).filter(Boolean),
+    zs = [...new Set(ps.map((p) => p.zoneId))];
+  run.auto = { at: opsNow(), n: ids.length, miss };
+  if (ps.length)
+    (Demo.ctl.gwAlarms ||= []).push({ id: "alert-demo-resend-" + run.id, projectId: OPS_SCOPE.project, floorId: ps[0].floorId || OPS_SCOPE.floor, zoneId: zs.length === 1 ? zs[0] : undefined, pointId: ps.length === 1 ? ps[0].id : undefined, kind: "device", level: "重要", name: `场景“${run.scene}”有 ${ps.length} 台未执行`, detail: `补发后仍未执行：${ps.map((p) => p.name).join("、")}`, at: new Date(opsNow()).toISOString(), state: "active", acknowledged: false });
+  refreshRcpt(run.id);
+  refreshZoneBits();
+}
+// 自动补发的说明：等待补发、补发后全部生效或仍有未执行
+function scAutoText(run) {
+  if (!run?.sid || run.retry) return "";
+  if (run.auto) return run.auto.miss.length ? `${Demo.hm(run.auto.at)} 已补发，仍有 ${run.auto.miss.length} 台未执行，已产生告警` : `${Demo.hm(run.auto.at)} 补发 ${run.auto.n} 台后全部生效`;
+  const pr = scRunProg(run),
+    n = pr.off.length + pr.wait.length;
+  return !pr.busy && n ? `${Demo.hm(run.at + SC_RESEND)} 自动补发未生效的 ${n} 台` : "";
+}
 function sceneLast(s, recs) {
   const run = Demo.ctl.runs.find((r) => r.sid === s.id),
     rec = recs.find((r) => r.sceneId === s.id);
@@ -77955,6 +78123,90 @@ const t2Join = (items) => {
   const xs = items.filter(Boolean);
   return xs.map((x, i) => (i < xs.length - 1 ? x.replace(/<\/span>$/, " ·</span>") : x)).join(" ");
 };
+// 2.72 V686：场景页的“一句话新建”（取代只在智能助手中起草，Y14 仍保留）。四个页签之上一个全圆角输入框，右端圆形发送按钮，输入为空时不可用；
+// 回车或点发送后在输入框下生成草稿卡：一句话可含几段（逗号、分号分开），带时刻的一段为定时，带“有人”“无人”的一段为联动，
+// 每段写清对象、时间与动作，名称、重复、时刻、有效时段可就地改；“确认保存”后新建要用的场景与定时、联动（同名场景已有时直接引用），
+// 与在表单中保存相同，经网关同步后生效。只有一段定时的可“在编辑页修改”。认不出时间或动作时在输入框下写一句怎么写
+const SC_ASK_PH = "用一句话描述，例如：工作日 8 点开灯，19 点后无人关灯";
+function scAskTime(s) {
+  const m = String(s).match(/(\d{1,2})\s*(?:[:：]\s*(\d{2})|点\s*(半|(\d{1,2})\s*分?)?)/);
+  if (!m || +m[1] > 23) return null;
+  const mm = m[2] != null ? +m[2] : m[3] === "半" ? 30 : m[4] != null ? +m[4] : 0;
+  return mm > 59 ? null : `${String(+m[1]).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+const scAskDays = (s) => (/非工作日/.test(s) ? "非工作日" : /工作日/.test(s) ? "工作日" : /周末|周六|周日/.test(s) ? "非工作日" : /每天|每日/.test(s) ? "每天" : "");
+function scAskParse(q) {
+  const pid = OPS_SCOPE.project,
+    parts = String(q).split(/[，,；;。]/).map((s) => s.trim()).filter(Boolean),
+    whole = aiDraftZones(q),
+    days0 = scAskDays(q) || "每天",
+    items = [];
+  for (const p of parts) {
+    const occ = /无人|没人/.test(p) ? "无人" : /有人/.test(p) ? "有人" : null,
+      when = scAskTime(p),
+      bare = p.replace(/打开|开启/g, "开"),
+      off = /关/.test(bare),
+      light = /照明|灯/.test(p),
+      hv = /空调/.test(p);
+    if (!/开|关/.test(bare) || (!light && !hv) || (!when && !occ)) continue;
+    const own = /会议|实验室|办公|走廊|公共|全楼|全层|所有|全部/.test(p) || !!findZone(p),
+      z = own ? aiDraftZones(p) : whole,
+      level = Math.min(100, Math.max(10, Number(p.match(/(\d{2,3})\s*%/)?.[1] || 100))),
+      act = { zoneIds: z.zs.map((x) => x.id), ...(light ? (off ? { light: "关闭" } : { light: "开启", level }) : {}), ...(hv ? { hvac: { action: off ? "off" : "on" } } : {}) },
+      what = [light ? (off ? "关灯" : `开灯 ${level}%`) : "", hv ? (off ? "关闭空调" : "开启空调") : ""].filter(Boolean).join("、"),
+      sname = `${z.label} ${off ? "关" : "开"}${light && hv ? "灯与空调" : light ? "灯" : "空调"}`,
+      exist = data().scenes.find((s) => s.projectId === pid && s.kind === "manual" && s.name === sname),
+      scope = z.zs.length > 1 ? `${z.label} ${z.zs.length} 个功能区` : z.zs[0] ? z.zs[0].name + (/[A-Za-z0-9]$/.test(z.zs[0].name) ? " " : "") : "",
+      scene = { name: sname, act, what, scope, exist: exist?.id || null };
+    if (occ) {
+      const span = when && /后|以后|之后/.test(p) ? "非工作时间" : when && /前|以前|之前/.test(p) ? "工作时间" : "全天",
+        cond = z.zs.length > 1 ? `${z.label}${occ === "无人" ? "都" : "有"}${occ === "无人" ? "无人" : "人"}` : `${scope}${occ}`;
+      items.push({ type: "link", name: `${z.label} ${occ}${off ? "关" : "开"}${light && hv ? "灯与空调" : light ? "灯" : "空调"}`, op: occ, hold: occ === "无人" ? 15 : 0, span, cond, scene });
+    } else {
+      const days = scAskDays(p) || days0;
+      items.push({ type: "schedule", name: `${days} ${when} ${sname}`, days, when, scene });
+    }
+  }
+  return items;
+}
+function scAskHtml() {
+  if (!canOperate()) return "";
+  const D = U.scAsk || {},
+    q = D.q || "";
+  return `<div class="sc-ask"><div class="sc-ask-bar"><input id="scAskQ" class="sc-ask-in" type="text" autocomplete="off" maxlength="120" placeholder="${esc(SC_ASK_PH)}" aria-label="用一句话新建定时或联动" value="${esc(q)}"><button type="button" class="sc-ask-go" data-act="scAskGo" aria-label="生成草稿"${q.trim() ? "" : " disabled"}>${ico("au-send", "ic16")}</button></div>${
+    D.err ? `<p class="sc-ask-err" role="alert">${esc(D.err)}</p>` : ""
+  }${D.items?.length ? scAskCard(D.items) : ""}</div>`;
+}
+function scAskCard(items) {
+  const pid = OPS_SCOPE.project,
+    li = items
+      .map((it, i) => {
+        const sc = it.scene,
+          act = `执行场景“${esc(sc.name)}”：${esc(sc.scope)}${esc(sc.what)}${sc.exist ? "（已有场景）" : "（新建场景）"}`,
+          f =
+            it.type === "schedule"
+              ? `<div class="sc-ask-f">${fld("重复", `scAkD${i}`, select(`scAkD${i}`, ["每天", "工作日", "非工作日"].map((x) => [x, x]), it.days, "重复"))}${fld("时刻", `scAkT${i}`, input(`scAkT${i}`, it.when, "", "text").replace('type="text"', 'type="text" inputmode="numeric" maxlength="5"'))}</div>`
+              : `<div class="sc-ask-f">${fld("有效时段", `scAkS${i}`, select(`scAkS${i}`, LINK_SPANS(pid).map(([v, l]) => [v, l]), it.span, "有效时段"))}<div class="field"><span class="appset-k">条件</span><p class="sc-ask-c">${esc(`${it.cond}${it.hold ? ` ${it.hold} 分钟` : ""}`)}</p></div></div>`;
+        return `<li class="sc-ask-li"><div class="sc-ask-h"><span class="al-chip n">${it.type === "schedule" ? "定时" : "联动"}</span>${input(`scAkN${i}`, it.name, "", "text").replace("<input ", `<input aria-label="名称" `)}</div>${f}<p class="sc-ask-a">${act}</p></li>`;
+      })
+      .join(""),
+    one = items.length === 1 && items[0].type === "schedule" && !items[0].scene.exist;
+  return `<section class="ops-card sc-ask-card" aria-label="草稿"><header class="sc-ask-ch"><b>草稿</b><span class="ops-muted">尚未保存</span></header><ol class="sc-ask-ol">${li}</ol><footer class="sc-ask-ft">${btn("取消", "scAskClose")}${one ? btn("在编辑页修改", "scAskEdit") : ""}${btn("确认保存", "scAskSave", {}, "primary")}</footer></section>`;
+}
+// 读出草稿卡上就地改的值
+function scAskRead() {
+  const D = U.scAsk,
+    rd = (id) => (document.getElementById(id) ? value(id) : null);
+  (D?.items || []).forEach((it, i) => {
+    const n = rd(`scAkN${i}`);
+    if (n != null) it.name = String(n).trim();
+    if (it.type === "schedule") {
+      if (rd(`scAkD${i}`)) it.days = rd(`scAkD${i}`);
+      if (rd(`scAkT${i}`) != null) it.when = String(rd(`scAkT${i}`)).trim();
+    } else if (rd(`scAkS${i}`)) it.span = rd(`scAkS${i}`);
+  });
+  return D;
+}
 function renderOpsScenes() {
   if (U.scEd) {
     if (Demo.on()) opsReset();
@@ -77970,7 +78222,7 @@ function renderOpsScenes() {
   const ss = data().scenes.filter((s) => s.projectId === OPS_SCOPE.project),
     dr = sceneDrawerHtml(),
     body = tab === "manual" ? scManual(ss) + dr : tab === "schedule" ? scGwLine() + scSchedule(ss) + dr : tab === "link" ? scGwLine() + scLink(ss) + dr : scGwLine() + scRecords();
-  return pageCategoryHeader("scenes", tab, { live: liveHead(), tools: opsTabTools }) + body;
+  return scAskHtml() + pageCategoryHeader("scenes", tab, { live: liveHead(), tools: opsTabTools }) + body; // 2.72 V686
 }
 // 场景作用的功能区（引用场景的定时、联动按被引用的场景）
 const sceneZoneIds = (s) => [...new Set(sceneTargets(s).map((p) => p.zoneId).filter(Boolean))];
@@ -78050,7 +78302,7 @@ function scSchedule(ss) {
     mon = Demo.TODAY - ((Demo.loc(Demo.TODAY).dow + 6) % 7) * Demo.DAY + wk * 7 * Demo.DAY,
     days = Array.from({ length: 7 }, (_, i) => mon + i * Demo.DAY),
     recs = sceneRecords(),
-    ev = (s) => hmHours(schWhen(s)),
+    ev = (s, d) => hmHours(schWhen(s, d)),
     schRecs = recs.filter((r) => r.trig.startsWith("定时") && sch.some((s) => s.id === r.sid)),
     hd = (d) => holidayOn(OPS_SCOPE.project, ymdOf(d)),
     // 保存（新建或修改）定时之前的日子只按执行记录，不按现在的定义补“无记录”
@@ -78070,7 +78322,7 @@ function scSchedule(ss) {
     const end = Math.min(d + Demo.DAY, Demo.NOW),
       done = schRecs.filter((r) => r.at >= d && r.at < end).map((r) => ({ s: g("scenes", r.sid), t: r.at, past: true, rec: r, tn: r.scene })),
       plan = sch
-        .map((s) => ({ s, t: d + ev(s) * Demo.H, past: d + ev(s) * Demo.H < Demo.NOW, rec: null, tn: (s.refId ? g("scenes", s.refId)?.name : sceneActionLabel(s.action)) || s.name }))
+        .map((s) => ({ s, t: d + ev(s, d) * Demo.H, past: d + ev(s, d) * Demo.H < Demo.NOW, rec: null, tn: (s.refId ? g("scenes", s.refId)?.name : sceneActionLabel(s.action)) || s.name }))
         .filter((x) => daysMatch(x.s.days || "每天", x.t, x.s) && (!x.past || (x.t >= since(x.s) && !done.some((y) => y.s.id === x.s.id))));
     return [...done, ...plan].sort((a, b) => a.t - b.t).map((x) => ({ ...x, when: Demo.hm(x.t), nm: schCalName(x.s, Demo.hm(x.t)), act: x.s.refId ? `执行“${x.tn}”` : x.tn, stop: !x.rec && sceneStoppedAt(x.s, x.t), res: !x.rec && sceneStoppedAt(x.s, x.t) ? `<span class="ops-cal-res none">已停用</span>` : x.past ? res(x.rec) : "" }));
   };
@@ -78140,7 +78392,7 @@ function scSchedule(ss) {
                   ? `<span class="ops-dim">${x.when} 无记录</span>`
                   : `<span class="ops-dim ops-num">${x.when}</span>`,
           tgl = `<button type="button" class="ov-tgl${s.stopped ? "" : " on"}" role="switch" aria-checked="${!s.stopped}" aria-label="${esc(`启用“${s.name}”`)}" data-act="sceneStop" data-id="${s.id}"${canOp ? "" : ` aria-disabled="true" data-tip="查看人员不能停用或启用定时"`}></button>`;
-        return `<div class="sc-sl-r${s.stopped ? " stop" : ""}"><span class="sc-sl-n">${alRowBtn("opsSceneInfo", s.id, nwText(s.name), "ops-row-n")}${badge}${note ? `<small>${note}</small>` : ""}</span><span class="ops-num sc-sl-t">${esc(schWhen(s))}</span><span class="sc-sl-d">${esc(schDaysText(s))}</span><span class="sc-sl-s">${miss ? "—" : esc(ref ? ref.name : sceneActionLabel(s.action))}</span><span class="sc-sl-x">${today}</span><span class="sc-sl-o">${tgl}</span></div>`;
+        return `<div class="sc-sl-r${s.stopped ? " stop" : ""}"><span class="sc-sl-n">${alRowBtn("opsSceneInfo", s.id, nwText(s.name), "ops-row-n")}${badge}${note ? `<small>${note}</small>` : ""}</span><span class="ops-num sc-sl-t">${esc(SUN_AT[s.at] ? schTimeText(s) : schWhen(s))}</span><span class="sc-sl-d">${esc(schDaysText(s))}</span><span class="sc-sl-s">${miss ? "—" : esc(ref ? ref.name : sceneActionLabel(s.action))}</span><span class="sc-sl-x">${today}</span><span class="sc-sl-o">${tgl}</span></div>`;
       })
       .join("");
   return `<section class="ov-card sc-wk-card"><header class="ov-card-h"><h3>${wk === 0 ? "本周" : "下周"}</h3><span class="al-meta">${Demo.md(days[0])}–${Demo.md(days[6])}</span><span class="sp"></span>${btn("查看有人时间", "opsActualUse", {}, "ghost sm")}${weekBtns}</header><div class="sc-tl">${axis}${rows}${legend}</div></section><section class="ov-card sc-sl">${head}${list}</section>`;
@@ -78201,9 +78453,9 @@ window.addEventListener("resize", () => {
 // 下次执行的时刻；一年内没有时为 null
 function schNext(s) {
   const [hh, mm] = schWhen(s).split(":").map(Number);
-  let nx = Demo.TODAY + (hh + mm / 60) * Demo.H,
+  let nx = schAt(s, Demo.TODAY),
     n = 0;
-  while (nx != null && (nx < Demo.NOW || !daysMatch(s.days || "每天", nx, s))) nx = ++n > 400 ? null : nx + Demo.DAY;
+  while (nx != null && (nx < Demo.NOW || !daysMatch(s.days || "每天", nx, s))) nx = ++n > 400 ? null : schAt(s, Demo.TODAY + n * Demo.DAY); // 2.72 V687：日出日落按当天
   return nx;
 }
 // 定时的起止日期、例外日期与执行规则（SCENE02 第1、5条），没有登记时为空
@@ -78634,7 +78886,7 @@ function opsSceneForm(id, preset = {}) {
             "时间",
             "scAt",
             // 2.25 V191：选“指定时刻”时，时刻输入框直接在下拉右侧；帮助文字各留一句
-            `<div class="sc-at">${select("scAt", [["work-start", `工作时间开始（${workHoursOf(pid).from}）`], ["work-end", `工作时间结束（${workHoursOf(pid).to}）`], ["fixed", "指定时刻"]], o.at || "fixed", "时间")}<span id="scWhenRow"${o.at && o.at !== "fixed" ? " hidden" : ""}>${input("scWhen", o.when || "", "", "time").replace("<input ", '<input aria-label="时刻" ')}</span></div>`,
+            `<div class="sc-at">${select("scAt", [["work-start", `工作时间开始（${workHoursOf(pid).from}）`], ["work-end", `工作时间结束（${workHoursOf(pid).to}）`], ["fixed", "指定时刻"], ...(sunMins(pid) ? [["sunset", `日落后（今天日落 ${minHm(sunMins(pid).set)}）`], ["sunrise", `日出前（今天日出 ${minHm(sunMins(pid).rise)}）`]] : [])], o.at || "fixed", "时间")}<span id="scWhenRow"${o.at && o.at !== "fixed" ? " hidden" : ""}>${input("scWhen", o.when || "", "", "time").replace("<input ", '<input aria-label="时刻" ')}</span><span id="scSunRow" class="ops-unit-in sc-sun"${SUN_AT[o.at] ? "" : " hidden"}>${input("scSunN", o.sunMin ?? 15, "", "number").replace('type="number"', 'type="number" min="0" max="120" step="1" inputmode="numeric" aria-label="分钟数"')}<span>分钟</span></span></div>`, // 2.72 V687：日落后、日出前 N 分钟（0–120），按项目坐标逐日计算
           )}${refFld}<div id="scSpanBox"${o.days === "指定日期" ? " hidden" : ""}>${fld("有效期", "scFrom", `<div class="sc-span">${input("scFrom", o.from ?? (id ? "" : today), "", "date")}<span>至</span>${input("scTo", o.to || "", "长期", "date").replace("<input ", '<input aria-label="结束日期" ')}</div>`)}${ofs(
             "例外日期",
             // 2.53 V284：日历选日期，选中的显示为可删除的标签（原为手写“、”分隔的文本框）
@@ -78677,7 +78929,8 @@ function sceneDraft() {
     d = { id: s.id, kind: s.sceneKind, projectId: s.pid, name: value("sceneName") };
   if (s.sceneKind === "schedule")
     Object.assign(d, {
-      at: ["work-start", "work-end"].includes(value("scAt")) ? value("scAt") : undefined,
+      at: ["work-start", "work-end", "sunset", "sunrise"].includes(value("scAt")) ? value("scAt") : undefined,
+      sunMin: SUN_AT[value("scAt")] ? Number(value("scSunN")) : undefined,
       when: value("scWhen"),
       days: value("scDays") || undefined,
       from: value("scFrom"),
@@ -78739,6 +78992,7 @@ async function opsSceneSave() {
     if (kind === "schedule") {
       const when = String(value("scWhen") || "").trim();
       if (value("scAt") === "fixed") !when ? errs.push(["scWhen", "请填写时刻"]) : !/^([01]\d|2[0-3]):[0-5]\d$/.test(when) && errs.push(["scWhen", "时刻格式为 HH:mm，例如 18:00"]);
+      if (SUN_AT[value("scAt")] && !(/^\d{1,3}$/.test(String(value("scSunN")).trim()) && +value("scSunN") <= 120)) errs.push(["scSunN", "分钟数为 0–120"]); // 2.72 V687
       if (value("scDays") === "每周" && !value("scWeekdays")) errs.push(["scWk1", "请选择每周哪几天"]);
       if (value("scDays") === "指定日期" && !scDtList().length) errs.push(["scDtDate", "请选择日期"]);
     } else if (occ && $('#dlg input[name="lkZone"]') && !$('#dlg input[name="lkZone"]:checked')) {
@@ -78813,8 +79067,9 @@ async function opsSceneSave() {
       v.when = linkWhen(v);
     } else {
       // “工作时间开始”“工作时间结束”按项目工作时间执行（2026-10-09 用户确认，ABB 对比 BP77）
-      const atKey = ["work-start", "work-end"].includes(value("scAt")) ? value("scAt") : null,
-        when = atKey ? schWhen({ at: atKey, projectId: s.pid }) : String(value("scWhen") || "").trim(),
+      const atKey = ["work-start", "work-end", "sunset", "sunrise"].includes(value("scAt")) ? value("scAt") : null,
+        sunMin = SUN_AT[atKey] ? Number(value("scSunN")) : null,
+        when = atKey ? schWhen({ at: atKey, projectId: s.pid, sunMin }) : String(value("scWhen") || "").trim(),
         from = value("scFrom").trim(),
         to = value("scTo").trim(),
         except = value("scExcept").trim() ? value("scExcept").trim().split(/[、,，\s]+/).filter(Boolean) : [];
@@ -78822,6 +79077,8 @@ async function opsSceneSave() {
       if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(when)) throw fieldErr("scWhen", "时刻格式为 HH:mm，例如 18:00");
       if (atKey) v.at = atKey;
       else delete v.at;
+      if (sunMin != null) v.sunMin = sunMin;
+      else delete v.sunMin;
       if ((from && !ymdOk(from)) || (to && !ymdOk(to))) throw fieldErr(from && !ymdOk(from) ? "scFrom" : "scTo", "开始和结束日期写成 YYYY-MM-DD");
       if (from && to && from > to) throw fieldErr("scFrom", "开始日期晚于结束日期");
       const badDay = except.find((d) => !ymdOk(d));
@@ -79100,7 +79357,7 @@ function sceneDrawer(id) {
     live = Demo.on() && s.projectId === OPS_SCOPE.project,
     run = live ? Demo.ctl.runs.find((x) => x.sid === s.id) : null,
     pr = run && !scRunProg(run).busy ? scRunProg(run) : null,
-    miss = pr ? [pr.off.length && `${pr.off.map((x) => g("points", x)?.name).filter(Boolean).join("、")} 离线，未执行` /* 2.66 V498 */, pr.wait.length && `${pr.wait.length} 台未回报`].filter(Boolean) : [],
+    miss = pr ? [pr.off.length && `${pr.off.map((x) => g("points", x)?.name).filter(Boolean).join("、")} 离线，未执行` /* 2.66 V498 */, pr.wait.length && `${pr.wait.length} 台未回报`, scAutoText(run) /* 2.72 V688 */].filter(Boolean) : [],
     foot = canOperate() || U.role === "viewer" ? `<div class="ops-drawer-foot">${live ? scRunBtn(s, "primary") : ""}${canOperate() ? btn("编辑", "sceneForm", { id: s.id }) : ""}</div>` /* 底栏为 row-reverse：先写的在最右 */ : "";
   return `<aside class="ops-drawer sc-drawer" aria-label="场景详情"><header class="ops-drawer-h"><div>${sync.includes("ops-st ok") ? "" : `<div class="ops-drawer-eb">${sync}</div>` /* 2.25 V189：去掉“场景”类型徽章 */}<h3 tabindex="-1">${esc(s.name)}</h3></div>${iconBtn("关闭", "x", "opsDrawerClose")}</header><div class="ops-drawer-b">
   <section class="ops-dsec"><h4>动作</h4><ol class="sc-acts">${acts.map((a, i) => `<li>${acts.length > 1 ? `<b class="sc-actno">${i + 1}</b>` : ""}<span>${esc(sceneActName(a))}<small>${esc(scActTxt(a) || "—")}</small></span></li>`).join("")}</ol></section>
@@ -79426,11 +79683,38 @@ function ovAiNeed() {
   const z = Demo.zoneOf(s.resync.zone);
   return `<li><button type="button" class="ov-li ai" data-act="aiAdopt" data-id="labb-hold"${z ? ` data-zone="${esc(z.id)}"` : ""}><i class="ov-sv ai" aria-hidden="true"></i><span class="ov-li-t"><b><span class="chip ov-chip-ai">建议</span>${esc(s.title)}</b><small>每晚约省 2.1 kWh</small></span><span class="ov-li-r"><span class="btn sm">采用</span></span></button></li>`;
 }
+// 2.72 V685：同一条规则在同一功能区近 7 天触发 10 次以上、触发后平均 10 分钟内自行恢复、都没有派工时，建议加长这条规则的持续时间：
+// 原持续时间（规则另选的或配置参数的）加平均恢复时长的两倍，按 5 分钟向上取整，最长 60 分钟。规则已有待启用的修改时不再建议。
+// 告警不另加人工标记，减少打扰靠调整规则（BP93）
+function alRuleTunes(pid = OPS_SCOPE.project) {
+  const from = opsNow() - 7 * Demo.DAY,
+    groups = new Map();
+  F.alarmGroups(data())
+    .filter((a) => a.projectId === pid && a.ruleId && Date.parse(a.at) >= from)
+    .forEach((a) => groups.set(`${a.ruleId}:${a.zoneId || ""}`, [...(groups.get(`${a.ruleId}:${a.zoneId || ""}`) || []), a]));
+  return [...groups.values()].flatMap((as) => {
+    const r = g("alertRules", as[0].ruleId),
+      rec = as.filter((a) => a.state === "recovered" && !a.closedAt && a.recoveredAt),
+      hold = r && typeof ruleHoldMin === "function" ? ruleHoldMin(r) : null;
+    if (!r || r.pending || hold == null || as.length < 10 || !rec.length || as.some((a) => taskOf(a.id))) return [];
+    const avg = rec.reduce((s, a) => s + (Date.parse(a.recoveredAt) - Date.parse(a.at)) / Demo.MIN, 0) / rec.length,
+      next = Math.min(60, hold + Math.ceil((2 * avg) / 5) * 5);
+    if (avg > 10 || next <= hold) return [];
+    return [{ rule: r, zone: g("zones", as[0].zoneId) || null, n: as.length, avg: Math.max(1, Math.round(avg)), hold, next }];
+  });
+}
+const alRuleTuneText = (x) => `“${x.rule.name}”${x.zone ? `在${x.zone.name}${/[A-Za-z0-9]$/.test(x.zone.name) ? " " : ""}` : ""}近 7 天触发 ${x.n} 次，触发后平均 ${x.avg} 分钟自行恢复，建议把持续时间从 ${x.hold} 分钟改为 ${x.next} 分钟。`;
+function ovRuleNeed() {
+  if (!canEdit() || Demo.ctl.gwOffline) return "";
+  return alRuleTunes()
+    .map((x) => `<li><button type="button" class="ov-li ai" data-act="opsRuleTune" data-id="${esc(x.rule.id)}"${x.zone ? ` data-zone="${esc(x.zone.id)}"` : ""}><i class="ov-sv ai" aria-hidden="true"></i><span class="ov-li-t"><b><span class="chip ov-chip-ai">建议</span>${esc(`${x.rule.name}：持续时间改为 ${x.next} 分钟`)}</b><small>${esc(`${x.zone ? `${x.zone.name} · ` : ""}近 7 天触发 ${x.n} 次，触发后平均 ${x.avg} 分钟自行恢复`)}</small></span><span class="ov-li-r"><span class="btn sm">调整规则</span></span></button></li>`)
+    .join("");
+}
 function ovNeedCard() {
   const need = needItems(),
     shown = U.opsNeedAll ? need : need.slice(0, 5),
     rest = need.length - shown.length,
-    ai = ovAiNeed();
+    ai = ovAiNeed() + ovRuleNeed();
   return `<section class="ov-card ov-need"><header class="ov-card-h"><h3>需要处理</h3><span class="sp"></span>${btn("全部告警" + ico("chevron", "ic16 ov-chev"), "opsGo", { page: "alarms" }, "ghost sm")}</header>${
     need.length || ai
       ? `<ul class="ov-list ops-need-list" id="opsNeedList">${shown.map((n) => ovNeedRow({ ...n, args: { ...n.args, ...(n.args.zone ? {} : {}) } })).join("")}${ai}</ul>${rest > 0 || U.opsNeedAll ? `<div class="ov-more">${btn(U.opsNeedAll ? "收起" : `另有 ${rest} 条`, "opsNeedAll", {}, "ghost sm").replace("<button ", `<button aria-expanded="${U.opsNeedAll ? "true" : "false"}" aria-controls="opsNeedList" `)}</div>` : ""}`
@@ -79808,7 +80092,7 @@ function ovNextRuns(pid, from, n = 3) {
     const [hh, mm] = schWhen(s).split(":").map(Number);
     if (!Number.isFinite(hh)) continue;
     for (let i = 0; i < 8; i++) {
-      const at = d0 + i * Demo.DAY + (hh + (mm || 0) / 60) * Demo.H;
+      const at = schAt(s, d0 + i * Demo.DAY);
       if (at > from && daysMatch(s.days || "每天", at, s)) out.push({ s, at });
     }
   }
@@ -80120,6 +80404,30 @@ document.addEventListener("keydown", (e) => {
       n = i < 0 ? (e.key === "ArrowDown" ? 0 : bs.length - 1) : Math.max(0, Math.min(bs.length - 1, i + (e.key === "ArrowDown" ? 1 : -1)));
     bs[n].focus();
   }
+});
+// 2.72 V691：告警列表里 ↑ / ↓ 切换上一条、下一条（输入框、弹层与弹窗里不处理）
+document.addEventListener("keydown", (e) => {
+  if (typeof U === "undefined" || U.page !== "alarms" || (e.key !== "ArrowUp" && e.key !== "ArrowDown") || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+  if (e.target.closest?.("input, textarea, select, [contenteditable], [role=menu], [role=dialog]") || $("#pop") || $("#dlg") || $("#ai-pal")) return;
+  const bs = [...document.querySelectorAll(".al-items .al-li")];
+  if (!bs.length) return;
+  e.preventDefault();
+  const i = bs.findIndex((b) => b.classList.contains("on")),
+    n = i < 0 ? 0 : Math.max(0, Math.min(bs.length - 1, i + (e.key === "ArrowDown" ? 1 : -1))),
+    id = bs[n].dataset.id;
+  if (n !== i) bs[n].click();
+  requestAnimationFrame(() => document.querySelector(`.al-items .al-li[data-id="${CSS.escape(id)}"]`)?.focus());
+});
+// 2.72 V686：一句话新建的输入框：有文字时发送按钮可用；回车（非输入法组字中）生成草稿
+document.addEventListener("input", (e) => {
+  if (e.target?.id !== "scAskQ") return;
+  const b = document.querySelector(".sc-ask-go");
+  if (b) b.disabled = !e.target.value.trim();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.target?.id !== "scAskQ" || e.key !== "Enter" || e.isComposing) return;
+  e.preventDefault();
+  actions.scAskGo();
 });
 // Esc（V691）：回放时回到现在；手机全屏楼层图关闭；面板抽屉关闭；再按回到状态图层（选中的功能区与多选由 opsPanel 先关）
 defineLayer({ name: "ovReplay", level: 27, open: () => ovAt() != null, close: () => ovSetAt(Infinity) });
@@ -81757,8 +82065,9 @@ defineActions({
     closeModal(true);
     const drawer = { page: "alarms", kind: "alarm", id: a.id },
       al = F.alarmGroups(data()).find((x) => x.id === a.id) || g("alerts", a.id);
-    // 2.61 V326：从工单打开来源告警时转到当前告警（右栏为这一条）或告警记录
-    if (U.page !== "alarms" || U.tab === "tasks") return route("alarms", { tab: al && alarmOpen(al) ? "current" : "history", opsDrawer:drawer }, { remember: true });
+    // 2.72 V682：转到这件事所在的页签（右栏为这一条）
+    const tab = alItemOf("alarm", a.id)?.st || (al && alarmOpen(al) ? "current" : "history");
+    if (U.page !== "alarms" || U.tab !== tab) return route("alarms", { tab, opsDrawer:drawer }, { remember: true });
     U.opsDrawer = drawer;
     render();
   },
@@ -81766,8 +82075,10 @@ defineActions({
     // 从设备信息（弹窗）打开时先关闭弹窗（ABB 对比 IA1）
     closeModal(true);
     const drawer = { page: "alarms", kind: "task", id: a.id };
-    // 2.61 V328：告警详情的“查看工单”转到工单页签（右栏为这一张）
-    if (U.page !== "alarms" || U.tab !== "tasks") return route("alarms", { tab: "tasks", opsDrawer:drawer }, { remember: true });
+    // 2.72 V682：转到这件事所在的页签（右栏为这一条）
+    const t = g("investigationTasks", a.id),
+      tab = alItemOf("task", a.id)?.st || (!t || !t.closedAt ? (t?.assignee ? "tasks" : "current") : "history");
+    if (U.page !== "alarms" || U.tab !== tab) return route("alarms", { tab, opsDrawer:drawer }, { remember: true });
     U.opsDrawer = drawer;
     render();
   },
@@ -81809,29 +82120,149 @@ defineActions({
     U.opsDrawer = null;
     render();
   },
-  // 2.61 V330：告警记录时间线的筛选：全部、未恢复、待确认
-  opsHistRes: (a) => {
-    U.opsHistRes = a.value;
-    render();
-  },
   // 告警时间线“显示更早的 N 条”（V143）
   opsTaskSeg: (a) => {
     U.opsTaskState = a.value;
-    render();
-  },
-  // 2.66 V463：已完成列底“更早的 N 条”
-  opsTaskOld: () => {
-    U.opsTaskOld = true;
     render();
   },
   opsTlMore: (a) => {
     U.opsTlAll = [...(U.opsTlAll || []), a.id];
     render();
   },
+  // 2.72 V686：一句话新建
+  scAskGo: () => {
+    const q = String(value("scAskQ") || "").trim();
+    if (!q) return;
+    const items = scAskParse(q);
+    U.scAsk = items.length ? { q, items } : { q, err: "没有认出时间或动作。请写明什么时候、哪里、开还是关，例如：工作日 8 点开灯。" };
+    render();
+    $(items.length ? "#scAkN0" : "#scAskQ")?.focus({ preventScroll: true });
+  },
+  scAskClose: () => {
+    U.scAsk = null;
+    render();
+  },
+  scAskEdit: () => {
+    const D = scAskRead(),
+      it = D?.items?.[0];
+    if (!it) return;
+    U.scAsk = null;
+    scEdOpen(null, { pid: OPS_SCOPE.project, name: it.scene.name, acts: [it.scene.act], back: { kind: "schedule", projectId: OPS_SCOPE.project, name: it.name, days: it.days, when: it.when } });
+  },
+  scAskSave: async () => {
+    const D = scAskRead();
+    if (!D?.items?.length) return;
+    const pid = OPS_SCOPE.project,
+      errs = [];
+    D.items.forEach((it, i) => {
+      if (!it.name) errs.push([`scAkN${i}`, "请填写名称"]);
+      if (it.type === "schedule" && !/^([01]\d|2[0-3]):[0-5]\d$/.test(it.when)) errs.push([`scAkT${i}`, "时刻格式为 HH:mm，例如 18:00"]);
+    });
+    if (errs.length) throw fieldErrs(errs);
+    const made = {};
+    for (const it of D.items) {
+      if (it.scene.exist || made[it.scene.name]) continue;
+      const ck = scEdCheck({ pid, name: it.scene.name, acts: [it.scene.act] });
+      if (ck.why.length) throw Error(`场景“${it.scene.name}”${ck.why[0]}`);
+      made[it.scene.name] = M.uid("scene");
+    }
+    const ids = [];
+    await transaction((db) => {
+      for (const [name, id] of Object.entries(made)) {
+        const act = D.items.find((x) => x.scene.name === name).scene.act;
+        db.scenes.push({ id, projectId: pid, name, kind: "manual", version: 1, status: "draft", actions: [Object.fromEntries(Object.entries(M.copy(act)).filter(([, x]) => x != null && x !== "" && !(Array.isArray(x) && !x.length)))] });
+        M.record(db, "保存场景", id, name);
+        ids.push(id);
+      }
+      for (const it of D.items) {
+        const v = { id: M.uid("scene"), projectId: pid, name: it.name, kind: it.type, version: 1, status: "draft", refId: it.scene.exist || made[it.scene.name] };
+        if (it.type === "schedule") {
+          Object.assign(v, { when: it.when, days: it.days, weekdays: null, dates: null, from: null, to: null, except: [], night: "same", dst: "shift", resume: "skip" });
+          v.description = `${v.days} ${schTimeText(v)} · ${it.scene.name}`;
+        } else {
+          const zn = it.scene.act.zoneIds.map((z) => g("zones", z)?.name).filter(Boolean);
+          v.cond = { app: "占用", source: `${LINK_APPS["占用"].source}：${zn.join("、")}`, zones: it.scene.act.zoneIds, op: it.op, hold: it.hold, recoverKey: "auto", recover: "立即恢复自动", span: it.span, text: it.cond };
+          v.when = linkWhen(v);
+          v.description = `${v.when} · ${it.scene.name}`;
+        }
+        db.scenes.push(v);
+        M.record(db, "保存场景", v.id, v.name);
+        ids.push(v.id);
+      }
+    }, "operate");
+    Demo.ctl.sceneSync = Demo.ctl.sceneSync || {};
+    ids.forEach((id) => (Demo.ctl.sceneSync[id] = { version: 1, done: false }));
+    setTimeout(() => {
+      ids.forEach((id) => Demo.ctl.sceneSync[id] && (Demo.ctl.sceneSync[id].done = true));
+      refreshZoneBits();
+    }, 3000);
+    const n = D.items.length;
+    U.scAsk = null;
+    render();
+    msg(n === 1 ? `已保存“${D.items[0].name}”` : `已保存 ${n} 项：${D.items.map((x) => `“${x.name}”`).join("、")}`);
+  },
+  // 2.72 V685：“调整规则”进入应用设置 › 告警规则，打开这条规则的修改弹窗，持续时间已填建议值，上方写建议；保存后按规则的启用流程生效
+  opsRuleTune: (a) => {
+    const x = alRuleTunes().find((t) => t.rule.id === a.id && (!a.zone || t.zone?.id === a.zone));
+    if (!x) return;
+    actions.goSettings({ tab: "rules", p: x.rule.projectId });
+    requestAnimationFrame(() => actions.alarmRuleForm({ id: x.rule.id, hold: x.next, tip: `建议：${alRuleTuneText(x)}` }));
+  },
+  // 2.72 V682：暂缓到…：选到什么时候（1 小时后、4 小时后、明天 09:00、下周一 09:00），写原因；暂缓期间不通知，到时仍未恢复的再次提醒
+  opsAlSnooze: (a) => {
+    opsAlarmAccess([a.id])(W);
+    const al = F.alarmGroups(data()).find((x) => x.id === a.id);
+    if (!al) return;
+    formState = { kind: "opsAlSnooze", id: a.id };
+    modal(
+      "暂缓",
+      `<p class="ops-modal-sub">${esc(alarmTitle(al).title)}</p>${fld("暂缓到", "opsSnU", select("opsSnU", AL_SNOOZE.map(([k, l]) => [k, `${l}（${evWhen(alSnoozeAt(k))}）`]), "4h", "暂缓到"))}${fld("原因", "opsSnNote", `<textarea class="input" id="opsSnNote" rows="3" placeholder="写明暂缓的原因"></textarea>`)}<p class="ops-foot">暂缓期间不通知，到时仍未恢复的再次提醒。</p>`,
+      btn("取消", "close") + btn("暂缓", "opsAlSnoozeSave", {}, "primary"),
+      false,
+    );
+  },
+  opsAlSnoozeSave: async () => {
+    const id = formState?.id,
+      note = value("opsSnNote").trim(),
+      until = alSnoozeAt(value("opsSnU") || "4h");
+    if (!note) throw fieldErr("opsSnNote", "请写明暂缓的原因");
+    await opsAlarmSet(id, { snoozeUntil: new Date(until).toISOString(), snoozeNote: note, snoozeAt: new Date(opsNow()).toISOString(), snoozeBy: OPS_WHO(), snoozeOffAt: undefined, snoozeOffBy: undefined }, "暂缓告警", `至 ${evWhen(until)}：${note}`);
+    closeModal(true);
+    render();
+    msg("已暂缓");
+  },
+  opsAlSnoozeOff: async (a) => {
+    await opsAlarmSet(a.id, { snoozeOffAt: new Date(opsNow()).toISOString(), snoozeOffBy: OPS_WHO() }, "取消暂缓告警", "");
+    render();
+    msg("已取消暂缓");
+  },
+  // 2.72 V682：关闭：不需要处理的告警写明原因后关闭，移到“已结束”，不再通知
+  opsAlClose: (a) => {
+    opsAlarmAccess([a.id])(W);
+    const al = F.alarmGroups(data()).find((x) => x.id === a.id);
+    if (!al) return;
+    formState = { kind: "opsAlClose", id: a.id };
+    modal(
+      "关闭告警",
+      `<p class="ops-modal-sub">${esc(alarmTitle(al).title)}</p>${fld("原因", "opsClNote", `<textarea class="input" id="opsClNote" rows="3" placeholder="写明不需要处理的原因"></textarea>`)}<p class="ops-foot">关闭后移到“已结束”，不再通知。</p>`,
+      btn("取消", "close") + btn("关闭告警", "opsAlCloseSave", {}, "primary"),
+      false,
+    );
+  },
+  opsAlCloseSave: async () => {
+    const id = formState?.id,
+      note = value("opsClNote").trim();
+    if (!note) throw fieldErr("opsClNote", "请写明关闭的原因");
+    await opsAlarmSet(id, { closedAt: new Date(opsNow()).toISOString(), closedBy: OPS_WHO(), closeNote: note }, "关闭告警", note);
+    closeModal(true);
+    U.opsDrawer = null;
+    render();
+    msg("已关闭");
+  },
   // 待确认组的“全部确认”（V141，取代 1.75 第 113 条的勾选列）：作用于当前筛选下这一组，先确认
   opsAckAll: () => {
-    // 2.61 V326：作用于清单当前筛选下待确认的各条
-    const ids = alCurrentList().rows.filter((x) => !x.acknowledged).map((x) => x.id);
+    // 2.72 V682：作用于“未处理”中待确认的告警
+    const ids = alTabList("current").filter((it) => it.a && !it.t && !it.a.acknowledged).map((it) => it.a.id);
     if (!ids.length) return;
     U.opsAckAll = ids;
     // 2.66 V452：只留标题与按钮
@@ -81859,15 +82290,16 @@ defineActions({
       // 计划时间默认为当前时刻（到分钟，秒不计）的 30 分钟后，按 15 分钟向后取整：10:30 时为 11:00（原先秒数使 10:30 也取到 11:15）
       plan = new Date(Math.ceil((Math.floor(opsNow() / Demo.MIN) * Demo.MIN + 30 * Demo.MIN) / (15 * Demo.MIN)) * 15 * Demo.MIN + 8 * 3600e3).toISOString().slice(0, 16);
     formState = { kind: "opsTask", alertId: a.id };
+    // 2.72 V682：告警详情的“派工”（原“新建工单”），弹窗与按钮同名
     modal(
-      "新建工单",
-      `<p class="ops-modal-sub">来源告警：${esc(t.title)} · ${esc([floorLabel(), t.zone?.name].filter(Boolean).join(" · "))}${al.acknowledged ? "" : "（待确认，新建工单时同时确认）"}</p>${fld("工单名称", "opsTName", input("opsTName", t.title + "排查"))}<div class="ws-form-row">${fld(
+      "派工",
+      `<p class="ops-modal-sub">来源告警：${esc(t.title)} · ${esc([floorLabel(), t.zone?.name].filter(Boolean).join(" · "))}${al.acknowledged ? "" : "（待确认，派工时同时确认）"}</p>${fld("工单名称", "opsTName", input("opsTName", t.title + "排查"))}<div class="ws-form-row">${fld(
         TASK_WHO_LABEL,
         "opsTWho",
         // 2.66 V460：默认取来源告警所属规则的默认负责人（网络模板告警取“设备离线”规则的）；规则未指定时留空，未选就保存时提示“请选择负责人”
         select("opsTWho", [["", "请选择"], ...ms.map((m) => [m.name, m.label])], ms.some((m) => m.name === alarmRuleOwner(al)) ? alarmRuleOwner(al) : "", "负责人"),
       )}${fld("计划完成", "opsTPlan", input("opsTPlan", plan, "", "datetime-local"))}</div>${fld("说明（选填）", "opsTNote", `<textarea class="input" id="opsTNote" rows="3">${esc(alarmNext(al))}</textarea>`)}`,
-      btn("取消", "close") + btn("新建工单", "opsTaskSave", {}, "primary"),
+      btn("取消", "close") + btn("派工", "opsTaskSave", {}, "primary"),
       false,
     );
   },
@@ -82010,6 +82442,7 @@ defineActions({
         source: "repair",
         pick,
         reading: repairReading(z.id, pick),
+        judge: repairJudge(z.id, pick), // 2.72 V684
         reporters: [OPS_WHO()],
         scopeLabel: floorText(z.floorId) + " · " + z.name,
         assignee: who,
@@ -82321,12 +82754,6 @@ defineActions({
     const xs = [...(el?.parentElement?.querySelectorAll(".sc-pin[hidden]") || [])];
     pop(el, `<div class="ops-floorpop" role="menu" aria-label="定时">${xs.map((x) => `<button class="popitem" role="menuitem" data-act="${esc(x.dataset.act)}"${x.dataset.id ? ` data-id="${esc(x.dataset.id)}"` : ""}${x.dataset.name ? ` data-name="${esc(x.dataset.name)}"` : ""}><span>${esc(x.dataset.tip)}</span></button>`).join("")}</div>`);
   },
-  // 执行记录“加载更多”（全面设计核查第 124 条）：再列 20 条；全部列出后按钮换成“已列出全部”，焦点移到这句
-  opsHistMore: (a) => {
-    U.opsHistMore = { key: a.rk, n: Number(a.n) };
-    render();
-    if (!document.querySelector('[data-act="opsHistMore"]')) document.querySelector(".rec-bar > span")?.focus();
-  },
   scRecMore: (a) => {
     U.scRecMore = { key: a.rk, n: Number(a.n) };
     render();
@@ -82396,6 +82823,7 @@ document.addEventListener("input", (e) => {
   if (["scHv", "scFresh", "sceneGroup"].includes(e.target.id) && $("#scHvWhy")) scAppWhy();
   // 定时的时间：选“指定时刻”时填时刻（2026-10-09 用户确认，ABB 对比 BP77）
   if (e.target.id === "scAt" && $("#scWhenRow")) $("#scWhenRow").hidden = e.target.value !== "fixed";
+  if (e.target.id === "scAt" && $("#scSunRow")) $("#scSunRow").hidden = !SUN_AT[e.target.value]; // 2.72 V687
   // 联动的触发来源、条件与执行对象随应用类型变化（SCENE03 第2条）
   if (e.target.id === "lkApp" && $("#lkBody")) {
     $("#lkBody").innerHTML = linkBody(formState.pid, { app: e.target.value });
@@ -82457,6 +82885,8 @@ const aiLink = (label, act, args = {}, mLabel = "") =>
     .join(" ")}${!label && mLabel ? ` aria-label="${esc(mLabel)}"` : ""}>${esc(label)}${mLabel ? `<span class="ai-ev-m">${esc(mLabel)}</span>` : ""}${ico("chevron", "ic16")}</button>`;
 // 2.60 V324：“AI 生成”标记在标题前，标题写对象与问题；按钮依次为主操作、依据 N 项、在图上查看（map）；点“依据 N 项”在卡片底部展开依据
 function aiCard({ title, body, evidence = [], actions = "", cls = "", foot = "", map = "" }) {
+  // 2.72 V682、V689：告警详情的 AI 判断卡同数据分析的解读卡：灰色“AI”，一段话写可能原因与排查步骤，底部“依据 ›”列出数据；不放按钮
+  if (/\bai-inline\b/.test(cls)) return aiInsight(`${String(title).replace(/<span class="ops-info-wrap">[\s\S]*?<\/button><\/span>/g, "").replace(/^(根因)?分析：/, "")}。${String(body).replace(/<\/p>\s*<p[^>]*>/g, "").replace(/<\/?p[^>]*>/g, "")}`, evidence.length ? [["数据", evidence.join("")]] : []);
   const ev = evidence.length ? `<button type="button" class="btn ghost sm ai-evs-btn" data-act="aiEvs" aria-expanded="false">依据 ${evidence.length} 项</button>` : "";
   return `<section class="ai-card ${cls}"><header class="ai-card-h">${aiBadge()}<h3>${title}</h3></header><div class="ai-card-b">${body}</div>${actions || ev || map ? `<div class="ai-card-f">${actions}${ev}${map}</div>` : ""}${evidence.length ? `<div class="ai-evs" hidden>${evidence.join("")}</div>` : ""}${foot ? `<p class="ai-foot">${foot}</p>` : ""}</section>`;
 }
@@ -83393,7 +83823,7 @@ function aiExplain(c) {
     } else if (h.gwOff) out.push(`本层网关离线，其下 ${h.unknown.length} 台设备状态未知。`);
     else {
       out.push(ids.length ? `${ids.length} 台出过问题：${rows.map((r) => r.s).join("；")}。其余 ${ps.length - ids.length} 台全程在线。` : `${ps.length} 台设备全程在线。`);
-      ev.push(aiLink(`告警记录 ${rg.span}`, "opsGo", { page: "alarms", tab: "history" }));
+      ev.push(aiLink(`告警 › 已结束 ${rg.span}`, "opsGo", { page: "alarms", tab: "history" }));
     }
   }
   return {
@@ -83894,7 +84324,7 @@ function aiRules(q, z, forced, scope, yd, ydl) {
       return {
         scope,
         html: `<p class="ai-p"><b>E栋 · 7F 当前 ${lit.length} / ${ss.length} 个功能区的灯亮着</b>，其余按照明控制参数自动关灯或未开灯。${off.length ? `${zhSub(esc(off.map((s) => s.z.name).join("、")), "r")}有照明控制器没有数据，推断失电（见告警）。` : "没有回路失电。"}</p>`,
-        ev: [aiLink("当前告警", "opsGo", { page: "alarms" }), aiLink("照明图层", "opsGo", { page: "overview", tab: "lighting" })],
+        ev: [aiLink("告警 › 未处理", "opsGo", { page: "alarms" }), aiLink("照明图层", "opsGo", { page: "overview", tab: "lighting" })],
         follow: ["实验室 E 为什么不亮灯？"],
       };
     }
@@ -83956,13 +84386,13 @@ function aiRules(q, z, forced, scope, yd, ydl) {
         html: gwNote + (zo.length
           ? `<p class="ai-p"><b>${zhSub(esc(z.name), "r")}当前 ${zo.length} 台离线</b>（全层 ${h.off.length} 台）：</p><ul class="ai-list">${aiOffRows(zo, false)}</ul>`
           : `<p class="ai-p"><b>${zhSub(esc(z.name), "r")}当前没有离线设备</b>（全层 ${h.off.length} 台离线）。</p>`),
-        ev: [aiLink("当前告警", "opsGo", { page: "alarms" }), aiLink("设备健康", "opsGo", { page: "analysis", tab: "health" })],
+        ev: [aiLink("告警 › 未处理", "opsGo", { page: "alarms" }), aiLink("设备健康", "opsGo", { page: "analysis", tab: "health" })],
       };
     }
     return {
       scope: "E栋 · 7F · 当前",
       html: `${gwNote}<p class="ai-p">${h.gwOff ? `另有 <b>${h.off.length - 1} 台离线</b>（网关离线前已离线）` : `当前 <b>${h.off.length} 台离线</b>，在线率 ${nf(h.rate, 1)}%`}：</p><ul class="ai-list">${aiOffRows(h.off.filter((p) => p.type !== "gw"), true)}</ul>`,
-      ev: [aiLink("当前告警", "opsGo", { page: "alarms" }), aiLink("设备健康", "opsGo", { page: "analysis", tab: "health" })],
+      ev: [aiLink("告警 › 未处理", "opsGo", { page: "alarms" }), aiLink("设备健康", "opsGo", { page: "analysis", tab: "health" })],
       follow: ["实验室 E 为什么不亮灯？"],
     };
   }
@@ -83971,7 +84401,7 @@ function aiRules(q, z, forced, scope, yd, ydl) {
     if (z)
       return z.k === "labb"
         ? { scope: scope + " · 近 7 天", html: `<p class="ai-p">${zhSub(esc(z.name), "r")}连续 3 晚夜间照明偏高：占用传感器整晚报无人，照明控制器待机时间结束后仍保持 30% 亮度，照明控制参数设定为关灯。本层没有分区计量，夜间多用约 2.1 kWh/晚为估算。</p>`, ev: [aiLink("异常解释：实验室 B", "opsGo", { page: "analysis", tab: "energy" }), aiLink("告警：实验室 B 夜间照明偏高", "opsAlarm", { id: "alert-demo-night" })] }
-        : { scope: scope + " · 近 7 天", html: `<p class="ai-p">${zhSub(esc(z.name), "r")}近 7 天没有夜间照明偏高的告警。本层没有分区计量，不能给出它的夜间用电。</p>`, ev: [aiLink("当前告警", "opsGo", { page: "alarms" })] };
+        : { scope: scope + " · 近 7 天", html: `<p class="ai-p">${zhSub(esc(z.name), "r")}近 7 天没有夜间照明偏高的告警。本层没有分区计量，不能给出它的夜间用电。</p>`, ev: [aiLink("告警 › 未处理", "opsGo", { page: "alarms" })] };
     const e = Demo.energyIn(Demo.range("7"));
     return { scope: "E栋 · 7F · 近 7 天", html: `<p class="ai-p">近 7 天夜间及非工作日用电占 <b>${e.offShare == null ? "—" : nf(e.offShare, 1) + "%"}</b>，主要是实验设备的持续负荷（约 4.3 kW）。另外实验室 B 连续 3 晚无人时照明没有关灯（照明控制器停在待机亮度 30%）。</p>`, ev: [aiLink("异常解释：实验室 B", "opsGo", { page: "analysis", tab: "energy" }), aiLink("告警：实验室 B 夜间照明偏高", "opsAlarm", { id: "alert-demo-night" })] };
   }
@@ -84031,8 +84461,8 @@ function aiRules(q, z, forced, scope, yd, ydl) {
   // 9 告警
   if (/(告警|报警|需要处理|异常|问题)/.test(q)) {
     const as = F.alarmGroups(data()).filter((a) => a.state !== "recovered" && (!z || (a.zoneId || g("points", a.pointId)?.zoneId) === z.id));
-    if (z && !as.length) return { scope: scope + " · 当前", html: `<p class="ai-p"><b>${zhSub(esc(z.name), "r")}当前没有未恢复告警。</b></p>`, ev: [aiLink("当前告警", "opsGo", { page: "alarms" })] };
-    return { scope: scope + " · 当前", html: `<p class="ai-p">当前 <b>${as.length} 条未恢复告警</b>，${as.filter((a) => !a.acknowledged).length} 条待确认：</p><ul class="ai-list">${as.map((a) => `<li>${esc(LV(a.level))} · ${esc(alarmTitle(a).title)}</li>`).join("")}</ul>`, ev: [aiLink("当前告警", "opsGo", { page: "alarms" })] };
+    if (z && !as.length) return { scope: scope + " · 当前", html: `<p class="ai-p"><b>${zhSub(esc(z.name), "r")}当前没有未恢复告警。</b></p>`, ev: [aiLink("告警 › 未处理", "opsGo", { page: "alarms" })] };
+    return { scope: scope + " · 当前", html: `<p class="ai-p">当前 <b>${as.length} 条未恢复告警</b>，${as.filter((a) => !a.acknowledged).length} 条待确认：</p><ul class="ai-list">${as.map((a) => `<li>${esc(LV(a.level))} · ${esc(alarmTitle(a).title)}</li>`).join("")}</ul>`, ev: [aiLink("告警 › 未处理", "opsGo", { page: "alarms" })] };
   }
   if (z) {
     const s = Demo.zoneState(z);
@@ -85483,7 +85913,7 @@ function auField(o) {
   return `<div class="au-field ${rightAfter ? "au-field-right-after" : ""}" data-f="${name}"><div class="au-lab${info ? " au-label-row" : ""}"><label for="au-${name}">${String(label).replace("（选填）", '<span class="fld-opt">选填</span>')}</label>${info ? auFieldInfo(name, label, info) : ""}${rightAfter ? "" : right}</div><div class="au-ctl"><input id="au-${name}" name="${name}" class="au-in ${suffix ? "has-suffix" : ""}" type="${type}" value="${esc(val)}" ${auto ? `autocomplete="${auto}"` : ""} ${inputmode ? `inputmode="${inputmode}"` : ""} ${ph ? `placeholder="${esc(ph)}"` : ""} ${maxlength ? `maxlength="${maxlength}"` : ""} ${o.limitKey ? `data-limit-key="${o.limitKey}"` : ""} ${required ? 'required aria-required="true"' : ""} aria-describedby="au-${name}-err au-${name}-hint${info ? ` au-${name}-info` : ""}${count ? ` au-${name}-count` : ""}" spellcheck="false" ${type === "password" || ["email", "tel", "username", "one-time-code"].includes(auto) ? 'autocapitalize="none" autocorrect="off"' : ""}><label class="au-input-hit" for="au-${name}" aria-hidden="true"></label>${suffix}</div>${rightAfter ? `<div class="au-field-right">${right}</div>` : ""}<p class="au-err" id="au-${name}-err" aria-live="polite"></p><p class="au-hint" id="au-${name}-hint" ${hintRole ? `role="${hintRole}" aria-live="polite"` : ""}>${hint}</p>${count ? `<p class="au-hint au-char-count" id="au-${name}-count" ${counter ? "" : "hidden"}>${counter}</p>` : ""}</div>`;
 }
 // 显示密码按钮按所在字段命名并关联输入框：“显示新密码”“显示确认新密码”，切换后为“隐藏……”（账户核查第 15 条：原先都叫“显示密码”）。
-const AU_EYE_NAME = { rs_pwd: "新密码" };
+const AU_EYE_NAME = { rs_pwd: "新密码", lx_pwd: "新密码" };
 const auEye = (name) =>
   `<button type="button" class="au-suffix au-eye" data-act="auEye" data-for="au-${name}" data-name="${AU_EYE_NAME[name] || "密码"}" aria-controls="au-${name}" aria-label="显示${AU_EYE_NAME[name] || "密码"}">${ico("au-eyeclosed", "ic16")}</button>`;
 // 最近一次操作的方式：键盘为空，否则为指针类型（mouse / touch / pen），供显示密码按钮决定焦点去向。
@@ -85751,17 +86181,23 @@ const auNoticeContent = (tone, text) =>
 const auSendErr = (text) => `<span class="au-send-err">${auKeepRetry(esc(text))}</span>`;
 const auNotice = (tone, text, extraClass = "", focusId = "") =>
   `<div class="au-notice ${esc(extraClass)}"${focusId ? ` id="${esc(focusId)}" tabindex="-1"` : ""} data-tone="${esc(tone)}" role="${tone === "error" ? "alert" : "status"}" aria-atomic="true">${auNoticeContent(tone, text)}</div>`;
-// 会话全平台统一，不按机构设置：空闲 8 小时自动退出，一次登录最长 30 天（2026-10-09 用户确认，ABB 对比 BP22）。登录时间 AUTH.loginAt 在登录成功时记下。
-// 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 141 条）：勾选“保持登录”（AUTH.keep）的不按空闲退出，关闭浏览器也不退出，最长仍 30 天；去掉空闲退出前 5 分钟的提示条。
-const AU_IDLE_MS = 8 * 36e5,
+// 2.72 账户第 854 条（取代“会话全平台统一，不按机构设置”）：空闲时长和是否允许保持登录按当前机构的安全规则，默认空闲 8 小时、允许保持登录；
+// 一次登录最长 30 天。登录时间 AUTH.loginAt 在登录成功时记下。勾选“保持登录”（AUTH.keep）且机构允许的不按空闲退出，关闭浏览器也不退出；
+// 机构不允许保持登录时勾选不生效。退出前 2 分钟弹出“即将退出登录”倒计时，点“继续使用”或有任何操作即重新计时。
+const AU_IDLE_SPAN = { "8h": 8 * 36e5, "2h": 2 * 36e5, "30m": 30 * 6e4 },
+  AU_IDLE_MS = AU_IDLE_SPAN["8h"],
+  AU_IDLE_WARN = 2 * 6e4,
   AU_MAX_MS = 30 * 864e5;
-// "expire"：空闲满 8 小时（保持登录的不算）或登录满 30 天；其余为 "ok"
-const auIdleState = (now = Date.now()) =>
-  AUTH.session !== "in"
-    ? "ok"
-    : (!AUTH.keep && now - AUX.lastActive > AU_IDLE_MS) || (AUTH.loginAt && now - AUTH.loginAt > AU_MAX_MS)
-      ? "expire"
-      : "ok";
+const auIdleMs = () => AU_IDLE_SPAN[AUTH.secRules?.[AUTH.org]?.idle] || AU_IDLE_MS;
+const auKeepOn = () => !!AUTH.keep && AUTH.secRules?.[AUTH.org]?.keep !== "no";
+// "expire"：空闲满本机构的时长（保持登录的不算）或登录满 30 天；"warn"：离空闲退出不到 2 分钟；其余为 "ok"
+const auIdleState = (now = Date.now()) => {
+  if (AUTH.session !== "in") return "ok";
+  if (AUTH.loginAt && now - AUTH.loginAt > AU_MAX_MS) return "expire";
+  if (auKeepOn()) return "ok";
+  const left = auIdleMs() - (now - AUX.lastActive);
+  return left <= 0 ? "expire" : left <= AU_IDLE_WARN ? "warn" : "ok";
+};
 // 不勾选“保持登录”时关闭浏览器即退出：登录时写一个会话 Cookie，重新打开浏览器时没有它就按已退出处理。
 const AU_SESSION_COOKIE = "pacom_station_session";
 function auSessionMark() { try { document.cookie = `${AU_SESSION_COOKIE}=1; path=/; SameSite=Lax`; AUTH.sessionCookie = true; } catch {} }
@@ -85781,18 +86217,43 @@ function auExpire() {
   auRoute("login");
 }
 AUX.lastActive = Date.now();
-if (AUTH.session === "in" && !AUTH.keep && AUTH.sessionCookie && !auSessionAlive()) { AUTH.session = "out"; AUTH.sessionCookie = false; }
-function auCheckIdle() {
-  if (auIdleState() === "expire") auExpire();
+if (AUTH.session === "in" && !auKeepOn() && AUTH.sessionCookie && !auSessionAlive()) { AUTH.session = "out"; AUTH.sessionCookie = false; }
+// “即将退出登录”叠在当前页面和弹窗之上，不替换已打开的弹窗；剩余时间写成“1:59”
+function auIdleShow(now = Date.now()) {
+  const left = Math.max(0, Math.ceil((auIdleMs() - (now - AUX.lastActive)) / 1000)), t = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+  const el = document.getElementById("auIdle");
+  if (el) { const n = el.querySelector("#auIdleN"); if (n && n.textContent !== t) n.textContent = t; return; }
+  const box = document.createElement("div");
+  box.className = "scrim au-idle";
+  box.id = "auIdle";
+  box.innerHTML = `<section class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="auIdleT" aria-describedby="auIdleD"><div class="dh"><h2 id="auIdleT">即将退出登录</h2></div><div class="db"><p id="auIdleD">长时间没有操作，将在 <span class="au-keep" id="auIdleN">${t}</span> 后退出登录。</p></div><div class="df"><button type="button" class="btn primary" data-act="auIdleKeep">继续使用</button></div></section>`;
+  AUX.idleFocus = document.activeElement;
+  document.body.append(box);
+  box.querySelector("[data-act=auIdleKeep]")?.focus({ preventScroll: true });
 }
-setInterval(auCheckIdle, 30000);
+function auIdleClose() {
+  const el = document.getElementById("auIdle");
+  if (!el) return;
+  el.remove();
+  const back = AUX.idleFocus;
+  AUX.idleFocus = null;
+  if (back?.isConnected) back.focus({ preventScroll: true });
+}
+function auCheckIdle() {
+  const s = auIdleState();
+  if (s === "expire") { auIdleClose(); auExpire(); }
+  else if (s === "warn") auIdleShow();
+  else auIdleClose();
+}
+setInterval(auCheckIdle, 1000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) auCheckIdle(); });
 for (const ev of ["pointerdown", "keydown"])
   document.addEventListener(
     ev,
     () => {
-      if (!BARE[U.page] && auIdleState() === "expire") auExpire();
+      if (!BARE[U.page] && auIdleState() === "expire") { auIdleClose(); auExpire(); }
       AUX.lastActive = Date.now();
+      auIdleClose();
     },
     true,
   );
@@ -85807,7 +86268,7 @@ const auSmsReceiptHtml = (sent) => (sent ? auCodeReceiptHtml(sent) : "");
 // 2.64 账户第 605–608、610、611 条：机构管理员在新设备上一律要两种验证（密码登录再验证手机号码，短信登录或短信重置再验证电子邮箱）；
 // 没有电子邮箱的先绑定电子邮箱，绑定手机号码前先验证电子邮箱；“改用电子邮箱验证”“更换电子邮箱”在弹窗内换成对应一步。
 const AU_LV = {
-  phone: { title: "验证手机号码", lead: "在新设备上登录机构管理员账户，需验证手机号码。", key: "lp", label: "短信验证码", btn: "验证并登录", nocode: "lvPhone" },
+  phone: { title: "验证手机号码", lead: "在新设备上登录，需验证手机号码。", key: "lp", label: "短信验证码", btn: "验证并登录", nocode: "lvPhone" },
   tel: { title: "验证手机号码", lead: "需定期确认此号码仍可正常使用。", key: "lp", label: "短信验证码", btn: "验证并登录", nocode: "lvSmsOwn" },
   mail: { title: "验证电子邮箱", lead: "需定期确认此邮箱仍可正常使用。", key: "lm", label: "邮件验证码", btn: "验证并登录", nocode: "lvMailOwn" },
   smsMail: { title: "验证电子邮箱", lead: "在新设备上登录机构管理员账户，需验证电子邮箱。", key: "lm", label: "邮件验证码", btn: "验证并登录", nocode: "lvMailOwn" },
@@ -85819,7 +86280,12 @@ const AU_LV = {
   // 2.71 账户第 850 条：手机号码近期已更换使用人（已停用）时，需验证手机号码改为验证电子邮箱；机构管理员和没有电子邮箱的账户先绑定新号码
   offMail: { title: "验证电子邮箱", lead: "你的手机号码近期已更换使用人，请验证电子邮箱。", key: "lm", label: "邮件验证码", btn: "验证并登录", nocode: "lvMailOwn" },
   offBind: { title: "绑定手机号码", lead: "你的手机号码近期已更换使用人，请绑定新的手机号码。", key: "lb", label: "短信验证码", btn: "绑定并登录", nocode: "lvSms", addr: ["lb_tel", "手机号码", "tel"] },
+  // 2.72 账户第 852 条：密码超过所在机构的有效期时，最后一步设置新密码（说明按最短的有效期写天数）
+  pwdNew: { title: "设置新密码", lead: "", key: "lx", btn: "保存并登录" },
 };
+// 2.72 账户第 852 条：所在机构设定的密码有效期（天），一个账户属于多个机构时按最短的；没有设定为 Infinity
+const auPwdDays = (p) => Math.min(...Object.keys(p?.orgs || {}).map((o) => +AUTH.secRules?.[o]?.pwd || Infinity));
+const auPwdDue = (p) => { const d = auPwdDays(p); return d < Infinity && !!p?.pwdAt && auYmdDiff(p.pwdAt, auCstYmd()) >= d; };
 const auLvPerson = () => AUTH.people[AUX.lv?.uid];
 // 2.64 账户第 614 条：验证过的设备按“账户 + 浏览器”记录，有效 90 天；退出登录、修改或重置密码、手机号码更换或被改绑即失效。
 const auTrusted = (uid) => { const t = AUTH.trustedDev?.[uid]; return !!t && (t === 1 || auNow() - t < 90 * auDay); };
@@ -85833,10 +86299,12 @@ function auLoginChecks(uid, sms) {
   const strict = admin || Object.keys(p.orgs || {}).some((o) => AUTH.secRules?.[o]?.verify === "all");
   const trusted = auTrusted(uid);
   if (p.phoneOff) {
-    if (p.email && strict && !trusted) q.push("offMail", "offBind");
-    else if (admin || !p.email) q.push("offBind");
+    // 2.72 账户第 851 条：需要验证手机号码而号码已停用的一律改为验证电子邮箱；机构管理员和没有电子邮箱的账户再绑定新号码
+    if (p.email && strict && !trusted) q.push("offMail");
+    if (admin || !p.email) q.push("offBind");
     if (admin && !p.email) q.push("bindMail");
     if (p.email && auMailDue(p) && !q.includes("offMail")) q.push("mail");
+    if (auPwdDue(p)) q.push("pwdNew");
     return q;
   }
   if (strict && !p.phone) { if (p.email) q.push("preBind"); q.push("bind"); }
@@ -85845,29 +86313,60 @@ function auLoginChecks(uid, sms) {
   else if (admin && sms && !trusted && !q.includes("preBind")) q.push("smsMail");
   // 没有电子邮箱的账户：验证手机号码同时算作 90 天验证；本次已验证或绑定电子邮箱的不再定期验证
   if (auMailDue(p) && !q.some((k) => ["preBind", "smsMail", "bindMail"].includes(k))) { if (p.email) q.push("mail"); else if (!q.length) q.push("tel"); }
+  // 2.72 账户第 852 条：密码到期排在其他验证之后，用密码或短信验证码登录都要设置
+  if (auPwdDue(p)) q.push("pwdNew");
   return q;
+}
+const AU_RS_NOPHONE = "机构管理员重置密码需验证手机号码。你的账户没有可接收验证码的手机号码，请联系 PACOM 支持。";
+// 2.72 账户第 852 条：新密码规则与提示同重置密码；与登录时输入的密码相同时不保存。保存后同修改密码：
+// 其他设备上的登录退出，“上次修改”记为当天，发“登录信息已更改”。
+async function auLvPwdNew(f) {
+  const p = auLvPerson();
+  if (!p || !auValidate(f, [["lx_pwd", auNewPwdCheck("请输入新密码")]])) return;
+  const pwd = auVal("lx_pwd");
+  if (AUX.lv.pwd && pwd === AUX.lv.pwd) { auErr("lx_pwd", "新密码不能与当前密码相同"); return $("#au-lx_pwd")?.focus(); }
+  const done = auBusy(f, "正在保存…");
+  const r = await auRequest("changePassword", { account: p.email || p.phone, password: pwd, expired: true });
+  await done();
+  if (!AUX.lv) return;
+  if (r.status === "same-password") { auErr("lx_pwd", "新密码不能与当前密码相同"); return $("#au-lx_pwd")?.focus(); }
+  if (["blocked-password", "invalid-password"].includes(r.status)) { auHeldErr("lx_pwd", PACOM_PASSWORD_POLICY.blockedMessage); return $("#au-lx_pwd")?.focus(); }
+  if (r.status !== "ok") return auFormErr(f, "暂时无法保存，请稍后再试。", true, "error");
+  const uid = AUX.lv.uid;
+  p.pwdAt = auCstYmd();
+  AUTH.sessions = (AUTH.sessions || []).filter((x) => x.cur);
+  auLog("修改密码", p.name, "security");
+  delete AUX.v.lx_pwd;
+  AUX.afterLoginNote ||= "密码已修改，其他设备上的登录已退出";
+  AUX.lv = null;
+  if ($("#dlg")) auCloseModalOriginal(true);
+  auSave();
+  auCompleteLogin(uid);
 }
 // 返回 true 表示已打开登录验证弹窗，登录在验证通过后完成。
 function auLoginGate(uid, sms) {
   const q = auLoginChecks(uid, sms);
   if (!q.length) return false;
-  AUX.lv = { uid, q, sms: !!sms, reset: !!AUX.lvReset };
+  AUX.lv = { uid, q, sms: !!sms, reset: !!AUX.lvReset, pwd: sms ? "" : AUX.v.pwd || "" };
   AUX.lvReset = false;
   // 清空密码（或短信验证码）后焦点移到弹窗，不再提示“请输入密码”
   AUX.attempted.login = false;
   for (const k of ["pwd", "scode"]) { delete AUX.v[k]; const i = $(`#au-${k}`); if (i) i.value = ""; auErr(k, ""); }
-  for (const k of ["lp_code", "lm_code", "lb_tel", "lb_code", "le_mail", "le_code", "lc_mail", "lc_code"]) delete AUX.v[k];
+  for (const k of ["lp_code", "lm_code", "lb_tel", "lb_code", "le_mail", "le_code", "lc_mail", "lc_code", "lx_pwd"]) delete AUX.v[k];
   for (const k of ["lp", "lm", "lb", "le", "lc"]) (AUX.ec ||= {})[k] = {};
   auLvOpen();
   return true;
 }
 function auLvBody(kind) {
   const c = AU_LV[kind], addr = c.addr;
+  if (kind === "pwdNew") return `<p class="au-dlead">所在机构要求每 ${auPwdDays(auLvPerson())} 天更换密码。</p><form id="au-lv-form" data-form="loginVerify" data-kind="pwdNew" novalidate><fieldset>${auNewPwd("lx_pwd", "新密码")}<p class="au-ferr" role="alert" hidden></p></fieldset></form>`;
+  // 2.72 账户第 851 条：机构要求全部成员验证新设备时，非机构管理员的“绑定手机号码”说明为机构要求
+  const lead = kind === "bind" && !Object.values(auLvPerson()?.orgs || {}).includes("admin") ? "所在机构要求在新设备上登录时验证手机号码。" : c.lead;
   // 机构管理员新设备的邮箱验证不提供“更换电子邮箱”；定期验证电子邮箱且绑定了手机号码的才提供（第 611 条）
   const nocode = kind === "mail" && auLvPerson()?.phone ? "lvMailPhone" : kind === "phone" && !auLvPerson()?.email ? "lvSmsOwn" : c.nocode;
   const tel = addr ? auField({ name: addr[0], label: addr[1], type: addr[2], auto: addr[2], inputmode: addr[2], suffix: auEcBtn(c.key), hint: auEcLine(c.key), hintRole: "status" }) : "";
   const code = auField({ name: `${c.key}_code`, label: c.label, right: auNoCodeRight(nocode, `au-${c.key}-nocode`, !!auEcSent(c.key)), auto: "one-time-code", inputmode: "numeric", maxlength: 6, ...(addr ? {} : { suffix: auEcBtn(c.key), hint: auEcLine(c.key), hintRole: "status" }) });
-  return `<p class="au-dlead">${c.lead}</p><form id="au-lv-form" data-form="loginVerify" data-kind="${kind}" novalidate><fieldset>${tel}${code}<p class="au-ferr" role="alert" hidden></p></fieldset></form>`;
+  return `<p class="au-dlead">${lead}</p><form id="au-lv-form" data-form="loginVerify" data-kind="${kind}" novalidate><fieldset>${tel}${code}<p class="au-ferr" role="alert" hidden></p></fieldset></form>`;
 }
 // 只剩一项时主按钮为“验证并登录”（绑定为“绑定并登录”，重置密码后为“重置并登录”）；前面还有一项时为“继续”。
 const auLvBtn = (kind) => (AUX.lv.q.length > 1 ? "继续" : AUX.lv.reset && kind === "smsMail" ? "重置并登录" : AU_LV[kind].btn);
@@ -87553,6 +88052,13 @@ const AU_SUBMIT = {
     if (!auAsyncCurrent(context)) return;
     if (r.status === "invalid-credentials") { auErr("rs_code", "验证码不正确或已过期"); const c = $("#au-rs_code"); c?.focus(); c?.select(); return; }
     if (["blocked-password", "invalid-password"].includes(r.status)) { auHeldErr("rs_pwd", PACOM_PASSWORD_POLICY.blockedMessage); $("#au-rs_pwd")?.focus(); return; }
+    // 2.72 账户第 853 条：机构管理员用电子邮箱重置、账户没有可接收验证码的手机号码（已停用或未绑定）时，邮件验证码通过后说明，不发短信
+    if (r.status === "phone-unavailable") {
+      auFormErr(f, AU_RS_NOPHONE, true, "error");
+      const t = f.querySelector(".au-ferr .au-notice-text");
+      if (t) t.innerHTML = esc(AU_RS_NOPHONE).replace("联系 PACOM 支持", `<button type="button" class="au-inline au-info-link" data-act="auResetSupport">联系 PACOM 支持</button>`);
+      return;
+    }
     if (r.status === "phone-required" && AUTH.people[r.uid]?.phone) {
       AUX.resetAdmin = { uid: r.uid, id, code: auVal("rs_code").trim(), pwd: auVal("rs_pwd") };
       return auResetPhoneOpen();
@@ -87781,6 +88287,7 @@ const AU_SUBMIT = {
   // 登录验证弹窗（2.33 账户第 264–268 条）：验证通过后记下验证日期，还有下一项时继续，最后建立登录。
   async loginVerify(f) {
     if (f.getAttribute("aria-busy") === "true" || !AUX.lv) return;
+    if (f.dataset.kind === "pwdNew") return auLvPwdNew(f);
     const kind = f.dataset.kind, c = AU_LV[kind], p = auLvPerson(), code = `${c.key}_code`, bind = kind === "bind" || kind === "offBind", addr = c.addr;
     const mailKind = ["lm", "le", "lc"].includes(c.key);
     if (!p || !auValidate(f, addr ? [[addr[0], bind ? auPhoneCheck : auMailCheck], [code, auEcCheck(c.key)]] : [[code, auEcCheck(c.key)]])) return;
@@ -88267,6 +88774,17 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "2.72",
+    date: "2026-11-01",
+    notes: [
+      "新增：告警页改为一张事项列表加详情，按未处理、处理中、待核验、已结束查看；告警与工单合为一条，报修也在其中。",
+      "新增：工单完成后 24 小时内自动核验，同一告警再次触发的回到处理中并标“需返工”；报修附 AI 初步判断。",
+      "新增：场景页可用一句话新建定时与联动；定时可按日出日落；部分设备未生效时 2 分钟后自动补发，仍未执行的产生告警。",
+      "改进：频繁自行恢复的告警在总览给出调整规则的建议；告警可暂缓到指定时间或写明原因后关闭。",
+      "改进：机构可要求全部成员验证新设备、设定密码有效期与空闲退出时长；没有电子邮箱的账户改用短信接收账户通知。",
+    ],
+  },
   {
     version: "2.71",
     date: "2026-11-01",
@@ -89310,9 +89828,9 @@ const HELP_ARTICLES = [
     steps: ["在登录页点“注册”，选“加入已有机构”，填写姓名、电子邮箱或手机号码、验证码和密码。机构管理员按这个地址邀请过你时直接加入。", "没有邀请时，填写 9 位邀请码和申请说明后提交；打开邀请链接或扫二维码时邀请码已填好。没有邀请码时点“没有邀请码？”查看做法。", "已有账户的，登录后打开邀请链接或扫二维码；或在“我的账户 › 我的机构”点“加入机构”，填写邀请码。发给你的邀请列在“我的机构”最上面，点“加入”即加入。", "机构管理员直接邀请：点邀请邮件中的链接，没有账户的设置姓名和密码即可加入，已有账户的登录后直接加入；邀请 7 天内有效。", "申请发出后等待机构管理员批准，7 天内有效，可以撤回；批准后收到邮件，登录即可进入。"],
     faq: [["换了工作怎么办？", "离职前在“我的账户 › 账户”把登录邮箱换成你能长期使用的邮箱，原机构的邮箱停用后就收不到验证码。原机构的机构管理员会将你移出，你用同一个账户加入新的机构。"], ["同事能共用一个账户吗？", "不能。每人用自己的电子邮箱注册，角色、授权和操作记录都按账户区分。"], ["申请未获批准或过期了怎么办？", "你会收到邮件或短信。已过期的，登录后点页顶的“重新申请”；未获批准的，请向该机构的同事确认后用邀请码重新申请。"]], rel: ["login", "acct-admin"] },
   { id: "login", topic: "account", title: "登录与验证", roles: "所有角色", sum: "登录方式、保持登录、输错暂停和定期验证的规则。",
-    upd: "2026-10-31",
-    steps: ["用电子邮箱或已绑定的手机号码登录，两者共用同一个密码。", "提示账户或密码不正确时，核对后重试，或点“忘记密码？”用验证码重置。", "多次输错后会暂停登录一段时间，期间登录按钮不可用；连续输错过多，只能重置密码后再登录。", "机构管理员在新设备或新浏览器上登录，用密码登录的验证手机号码，用短信验证码登录的验证电子邮箱；没有绑定手机号码的，先验证电子邮箱再绑定。", "没有勾选“30 天内保持登录”时，关闭浏览器或空闲超过本机构规定的时长（默认 8 小时）即退出；勾选后关闭浏览器也不退出，一次登录最长 30 天。修改或重置密码后，其他设备上的登录会退出。共用电脑请不要勾选。", "登录时会定期要求输入发到电子邮箱的验证码，确认邮箱仍可使用；没有电子邮箱的账户输入发到手机号码的验证码。", "能登录但看不到机构：显示“尚未加入机构”时，按《加入已有机构》申请；原来的机构不在列表中，表示你已被移出该机构。"],
-    faq: [["手机号码换了怎么登录？", "用电子邮箱或原手机号码加密码登录，忘记密码时用电子邮箱重置；登录后更换手机号码。没有电子邮箱、又不能用原号码登录的，请联系 PACOM 支持。"], ["电子邮箱已不能使用怎么办？", "用已绑定的手机号码登录或重置密码，再在“我的账户 › 账户”更换电子邮箱；都不能使用时联系 PACOM 支持核验身份。"], ["看不到某个项目怎么办？", "请联系本机构的机构管理员修改你的项目授权范围，修改后立即生效。"]], rel: ["acct-mail", "acct-profile"] },
+    upd: "2026-11-01",
+    steps: ["用电子邮箱或已绑定的手机号码登录，两者共用同一个密码。", "提示账户或密码不正确时，核对后重试，或点“忘记密码？”用验证码重置。", "多次输错后会暂停登录一段时间，期间登录按钮不可用；连续输错过多，只能重置密码后再登录。", "机构管理员在新设备或新浏览器上登录，用密码登录的验证手机号码，用短信验证码登录的验证电子邮箱；没有绑定手机号码的，先验证电子邮箱再绑定。所在机构要求全部成员验证新设备时，其他成员在新设备上用密码登录也要验证手机号码。", "没有勾选“30 天内保持登录”时，关闭浏览器或空闲超过本机构规定的时长（默认 8 小时）即退出；勾选后关闭浏览器也不退出，一次登录最长 30 天。修改或重置密码后，其他设备上的登录会退出。共用电脑请不要勾选。", "登录时会定期要求输入发到电子邮箱的验证码，确认邮箱仍可使用；没有电子邮箱的账户输入发到手机号码的验证码。所在机构设定了密码有效期的，到期后登录时先设置新密码。", "能登录但看不到机构：显示“尚未加入机构”时，按《加入已有机构》申请；原来的机构不在列表中，表示你已被移出该机构，或该机构已删除。"],
+    faq: [["手机号码换了怎么登录？", "用电子邮箱或原手机号码加密码登录，忘记密码时用电子邮箱重置；登录后更换手机号码。没有电子邮箱、又不能用原号码登录的，请联系 PACOM 支持。机构管理员忘记密码又收不到短信的，请联系 PACOM 支持。"], ["电子邮箱已不能使用怎么办？", "用已绑定的手机号码登录或重置密码，再在“我的账户 › 账户”更换电子邮箱；都不能使用时联系 PACOM 支持核验身份。"], ["看不到某个项目怎么办？", "请联系本机构的机构管理员修改你的项目授权范围，修改后立即生效。"]], rel: ["acct-mail", "acct-profile"] },
   { id: "acct-mail", topic: "account", title: "收不到邮件或短信", roles: "所有角色", sum: "验证码、邀请和通知邮件收不到时，先查垃圾邮件，再放行发件地址。",
     steps: ["查看垃圾邮件、广告邮件和隔离区。", "把发件地址 noreply@pacom.cn 加入联系人；工作邮箱请 IT 管理员放行 pacom.cn 域名。", "短信：核对手机号码，查看短信是否被拦截。", "稍后重新发送；仍收不到时联系 PACOM 支持。"],
     faq: [["验证码过期了怎么办？", "验证码 10 分钟内有效，过期后重新发送。"], ["通知邮件能关闭吗？", "告警通知可以在“我的账户 › 通知偏好”中关闭部分渠道；订阅到期与用量提醒不能关闭。"]], rel: ["login"] },
@@ -89352,15 +89870,15 @@ const HELP_ARTICLES = [
   { id: "display", topic: "ops", title: "展示链接", roles: "机构管理员", sum: "给值班室、管理办公室和大堂的屏生成无需登录的只读链接。",
     steps: ["在“机构设置 › 展示链接”点“新建展示链接”，填写名称，选择版式、楼宇和楼层；名称只在机构设置中显示，选多个楼层时依次轮换。", "复制链接后，在屏上的浏览器中以全屏或 kiosk 方式打开，并关闭浏览器与电脑的自动休眠；屏幕的开关机时间用屏幕自带的定时功能。", "值班版式第一次在某台屏上打开时，屏上显示 6 位配对码；在该行“…”里选“配对屏幕”输入配对码，这台屏即长期有效。每条链接最多配对 10 台，可逐台取消。", "修改版式或范围后链接不变，屏上 1 分钟内换成新内容。", "撤销后 1 分钟内停用，屏上显示“此展示链接已停用，请联系机构管理员”；撤销后不能恢复，需要时新建展示链接。机构暂停使用期间屏上显示“此展示链接已暂停，请联系机构管理员”，续费或付款到账后自动恢复。"],
     faq: [], rel: ["control"] },
-  { id: "alarm", topic: "alarm", title: "处理告警", roles: "运营人员及以上", sum: "确认告警、创建工单，告警以设备数据恢复为准。",
-    steps: ["在“告警 › 当前告警”查看待确认与已确认的告警。", "点告警，在右侧查看现象、建议、处理记录、位置与趋势。", "点“确认”表示已知晓；需要现场处理时“新建工单”，指定负责人和计划完成时间。", "设备数据恢复后告警自动恢复，在告警记录中查看。"],
-    faq: [["能耗异常告警恢复后会怎样？", "恢复 7 晚后，平台用同一指标比较前后各 7 晚，结果写在告警详情的“效果”，改善的计入节电量。"]], rel: ["savings", "offline", "alarm-notify"] },
+  { id: "alarm", topic: "alarm", title: "处理告警", roles: "运营人员及以上", sum: "告警与工单在一张列表中，从发生、确认、派工、处理、恢复到核验都记在同一条上。",
+    steps: ["在“告警 › 未处理”查看未恢复、还没有派工的告警与报修；顶部 AI 判断卡写可能原因与排查步骤。", "点“确认”表示已知晓；需要现场处理时点“派工”，指定负责人和计划完成时间，这条移到“处理中”。暂时不处理的点“暂缓到…”，不需要处理的点“关闭”，都要写原因。", "工单完成后进入“待核验”：24 小时内同一告警再次触发，或告警仍未恢复，回到“处理中”并标“需返工”；否则转为“已结束”。", "已恢复、已关闭与已核验的在“已结束”中按期间查看。"],
+    faq: [["能耗异常告警恢复后会怎样？", "恢复 7 晚后，平台用同一指标比较前后各 7 晚，结果写在告警详情的“效果”，改善的计入节电量。"], ["同一告警反复触发又很快恢复怎么办？", "近 7 天触发 10 次以上、平均 10 分钟内自行恢复且没有派工时，总览“需要处理”会建议加长该规则的持续时间，点“调整规则”确认后保存。"]], rel: ["savings", "offline", "alarm-notify"] },
   // 2.58 账户第 549–552 条：机构设置“通知”页删去的说明收在这里
   { id: "alarm-notify", topic: "alarm", title: "告警通知", roles: "机构管理员设置；有项目授权的成员接收", sum: "告警按事件以短信或邮件通知，一个根因只通知一次。",
     steps: ["在“机构设置 › 通知”按事件勾选短信或邮件。短信发到接收人已验证的手机号码，邮件发到接收人的登录电子邮箱。", "告警与新报修发给项目授权范围内的机构管理员、配置人员和运营人员，查看人员可选择接收告警邮件；安全事件只发给机构管理员，必须以邮件发送；交付与部署发给机构管理员和项目授权范围内的配置人员。", "成员可在“我的账户 › 通知偏好”关闭部分渠道，不影响告警本身。", "一个根因只通知一次；告警升到更高级别时按新级别再通知一次；紧急告警恢复时再告知一次。", "紧急告警发生 30 分钟后仍未确认也未恢复，再给项目授权范围内的机构管理员发一次短信，不受免打扰限制。", "每个项目每 10 分钟最多发一条告警通知，其间的新告警合成一条；紧急告警立即发出。", "部署期尚未交付的设备网络，其告警只进入配置进度的待办，不发送通知。"],
     faq: [], rel: ["alarm"] },
   { id: "scene", topic: "scene", title: "场景、定时与联动", roles: "运营人员及以上", sum: "照明控制器在本地自动控制，场景管理网关或跨系统动作，定时与联动引用场景。",
-    steps: ["占用联动与感应调光由照明控制器在本地执行，网关离线时照常工作。", "在“场景 › 场景”新建场景，按功能区逐条设定动作后保存。", "在“定时”选择执行时间与场景；时间可以引用工作时间的开始与结束。", "在“联动”选择触发条件与执行的场景。"],
+    steps: ["占用联动与感应调光由照明控制器在本地执行，网关离线时照常工作。", "在场景页顶部的输入框用一句话描述，如“工作日 8 点开灯，19 点后无人关灯”，核对草稿后点“确认保存”；也可在“场景 › 场景”逐条设定动作。", "在“定时”选择执行时间与场景；时间可以引用工作时间的开始与结束，室外与门厅照明可选日落后或日出前若干分钟。", "在“联动”选择触发条件与执行的场景。", "执行后有设备没有生效的，2 分钟后自动补发一次；仍不一致的产生告警，写明哪几台没有执行。"],
     faq: [["为什么不在定时里直接设定照明？", "定时与联动引用场景，不重复建立同一照明控制器的照明控制，避免冲突。"]], rel: ["calendar", "control"] },
   { id: "calendar", topic: "scene", title: "设置工作日历", roles: "运营人员及以上", sum: "工作时间与节假日表决定照明、空调与定时的工作日安排。",
     steps: ["在“应用设置 › 通用 › 工作日历”设置工作时间。", "登记当年的节假日表：放假日期与调休上班日，可按国务院办公厅通知填入。", "引用工作时间开始或结束的定时随之改变。", "在定时页点“查看有人时间”，对照空间使用的按小时有人时间占比调整工作时间。"],
@@ -89755,6 +90273,8 @@ Object.assign(actions, {
     }
     auDialog((AU_LEGAL[AUX.legal] || AU_LEGAL.privacy)[0], auLegalBody(), "", "nodirty au-account-dlg");
   },
+  // 2.72 账户第 854 条：“即将退出登录”的“继续使用”
+  auIdleKeep: () => { AUX.lastActive = Date.now(); auIdleClose(); },
   auContact: () => {
     auCloseFieldInfo();
     auDialog(
@@ -93185,13 +93705,17 @@ const AU_ACC_PAGES = {
       ["mail", "邮件"],
     ];
     const orgMatrix = auNotifyOf().matrix,
-      phone = !!auMe().phone;
+      phone = !!auMe().phone,
+      mail = !!auMe().email;
+    // 2.72 账户第 856 条：没有电子邮箱时邮件列同短信列写“—”
     const why = (r, c) =>
       orgMatrix[r] && !orgMatrix[r][c]
           ? `机构未对此事件启用${AU_CH[c]}`
           : c === "sms" && !phone
             ? "尚未绑定手机号码"
-            : "";
+            : c === "mail" && !mail
+              ? "尚未添加电子邮箱"
+              : "";
     // 安全事件为必需通知：机构启用的渠道不能靠个人偏好关闭（03 第 3 条），锁定勾选。
     // 查看人员（2026-10-09 用户确认，ABB 对比 BP100）：不收告警短信；告警邮件由本人选择，默认不选；不会被指派工单
     const viewer = U.role === "viewer",
@@ -93214,8 +93738,9 @@ const AU_ACC_PAGES = {
     const notes = [
       // 表下的角色说明删去（第 86 条）
       reasons.some((x) => x.startsWith("机构未对此事件启用")) ? (U.role === "admin" ? `“—”表示机构未对该事件启用此渠道，可在<button type="button" class="au-linkbtn" data-act="auPage" data-page="org" data-tab="notify">机构设置 › 通知</button>中开启。` : "“—”表示机构未对该事件启用此渠道，可请机构管理员在“机构设置 › 通知”中开启。") : "",
-      U.role === "admin" ? "" : "本人的登录设备被退出时，始终以邮件告知本人。",
+      U.role === "admin" ? "" : `本人的登录设备被退出时，始终以${mail ? "邮件" : "短信"}告知本人。`,
       reasons.includes("尚未绑定手机号码") ? "尚未绑定手机号码，短信不可选，可在“账户”中绑定。" : "",
+      reasons.includes("尚未添加电子邮箱") ? "尚未添加电子邮箱，邮件不可选，可在“账户”中添加。" : "",
       viewer && rows.some(([r]) => alarmRow(r)) ? "查看人员不接收告警短信。" : "",
     ];
     return `${auSec(
@@ -93775,7 +94300,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('input', e => {
   // 2.04 账户第 35 条：新密码、设置密码输入时在框下用灰字提示还缺的项；全部满足时不再提示（2.09 账户核查第 4 条：原写“密码符合要求”）。
   // 2.31 账户第 227 条：提交后显示的未满足要求，输入时满足的那条消失，全部满足后整块消失、框边恢复。
-  if (['rs_pwd', 'rg_pwd', 'iv_pwd'].includes(e.target.name) || e.target.id === 'auPwd1') {
+  if (['rs_pwd', 'rg_pwd', 'iv_pwd', 'lx_pwd'].includes(e.target.name) || e.target.id === 'auPwd1') {
     const req = document.getElementById(e.target.id === 'auPwd1' ? 'auPwd1-req' : `au-${e.target.name}-req`);
     if (req?.classList.contains('bad')) {
       auPwdReqMark(req, e.target.value);
@@ -101149,7 +101674,9 @@ Object.assign(AU_SVC, {
       if (DEMO_FAIL.blockedPassword) { DEMO_FAIL.blockedPassword = false; return { status: "blocked-password" }; }
       // 2.33 账户第 267 条：机构管理员用电子邮箱重置，还需短信验证码，通过后才改密码
       const who = AUTH.people[found[0]];
-      if (/@/.test(payload.account) && who?.phone && Object.values(who.orgs || {}).includes("admin")) {
+      if (/@/.test(payload.account) && Object.values(who?.orgs || {}).includes("admin")) {
+        // 2.72 账户第 853 条：没有可接收验证码的手机号码（已停用或未绑定）时不发短信
+        if (!who.phone || who.phoneOff) return { status: "phone-unavailable", uid: found[0] };
         if (payload.smsCode == null) return { status: "phone-required", uid: found[0] };
         if (payload.smsCode === "000000") return { status: "invalid-credentials", field: "smsCode" };
       }
@@ -101269,6 +101796,8 @@ function demoOrgs() {
   AUTH.people.lj = { name: "刘静", phone: "", email: "liu.jing@example.test", pwdAt: "2026-08-20", mailAt: today, orgs: { [DEMO_PM]: "admin" } };
   if (AUTH.people.wm) AUTH.people.wm.mailAt = today;
   // 2.71 账户第 850 条：演示“手机号码已停用”后恢复王敏的号码
+  // 2.72 账户第 852 条：演示“密码到期”后恢复该机构原来的密码有效期
+  if (AUTH.secRules?.[DEMO_PM]?.pwdDemo) { AUTH.secRules[DEMO_PM].pwd = AUTH.secRules[DEMO_PM].pwdDemo; delete AUTH.secRules[DEMO_PM].pwdDemo; }
   if (AUTH.people.wm?.phoneOffDemo) { delete AUTH.people.wm.phoneOff; delete AUTH.people.wm.phoneOffDemo; AUTH.people.wm.phone = "+86 139 0000 0101"; }
   if (!AUTH.members[DEMO_PM].some((m) => m.uid === "dz")) AUTH.members[DEMO_PM].push({ uid: "dz", name: "邓志", account: "+86 139 0000 0131", role: "ops", scope: "all", last: "10 月 30 日 18:40", joined: Date.parse("2026-09-10T09:00:00+08:00") });
   (AUTH.joinReqs ||= {}).gzlab ||= [{ id: "jr-demo-1", uid: "zq", name: "赵倩", email: "zhao.qian@example.test", note: "广实2号园物业工程部，负责 E栋照明和空调的日常运维。", at: auNow() - 26 * 36e5, status: "pending" }];
@@ -102052,6 +102581,37 @@ function demoRcpt(zid) {
     render();
   });
 }
+// 2.72 V686：在场景页的输入框写一句话，出草稿卡
+function demoAsk(q) {
+  const el = $("#scAskQ");
+  if (el) el.value = q;
+  actions.scAskGo();
+}
+// 2.72 V688：执行“上班”，不等回报和 2 分钟，直接显示自动补发后的结果：离线的 1 台仍未执行，产生告警
+function demoResend() {
+  actions.opsRunScene({ id: "scene-demo-on" });
+  demoAfter(() => {
+    if ($("#dlg") && OPS.pendingCtl) actions.opsCtlOk();
+    const run = Demo.ctl.runs.find((r) => r.sid === "scene-demo-on");
+    if (!run) return;
+    [run.id, ...(run.hvIds || [])]
+      .map((i) => Demo.ctl.cmds[i])
+      .filter((c) => c?.ids)
+      .forEach((c) => {
+        c.ids.forEach((pid) => {
+          if (!Demo.device(g("points", pid)).online || c.done.includes(pid)) return;
+          c.done.push(pid);
+          c.apply?.(pid);
+        });
+        c.settled = true;
+      });
+    run.at -= SC_RESEND;
+    const lg = (Demo.ctl.log || []).find((r) => r.id === run.id);
+    if (lg) lg.at -= SC_RESEND;
+    scAutoResend(run);
+    render();
+  });
+}
 // 设备未确认：一台照明控制器 5 秒内没有确认（演示直接显示结果）
 function demoRcptFail() {
   const p = Demo.zoneOf("zone-demo-o705").lcs[0];
@@ -102121,12 +102681,16 @@ const DEMO_ITEMS = [
   // 2.71 账户第 850 条：号码近期已更换使用人，在原账户上停用；王敏用电子邮箱和密码登录，验证电子邮箱后绑定新号码
   ["登录", "login-phone-off", "手机号码已停用", "机构管理员验证电子邮箱后绑定新号码", () => (demoOut(), Object.assign(AUTH.people.wm, { phoneOff: true, phoneOffDemo: true }), auUntrust("wm"), demoLv("wang.min@example.test"))],
   ["登录", "login-sms-frequent", "发送次数过多", "", () => (demoOut(), (AUX.sms = true), (AUX.v.sphone = "139 0000 0101"), (DEMO_FAIL.send = "frequent"), demoShow("login"), demoClick(".au-getcode"))],
+  // 2.72 账户第 854 条：空闲退出前 2 分钟的提示（倒计时从 1:59 开始）
+  ["登录", "idle-warn", "即将退出登录", "空闲退出前 2 分钟", () => (demoIn(), (AUTH.keep = false), demoHash("#overview"), demoAfter(() => ((AUX.lastActive = Date.now() - auIdleMs() + 119e3), auCheckIdle())))],
   // 登录验证（第 264–268 条）：输完账户和密码后，在登录页上打开“登录验证”弹窗
   ["登录验证", "lv-phone", "新设备登录：验证手机号码", "机构管理员 · 王敏", () => demoMfa()],
   ["登录验证", "lv-mail", "定期验证电子邮箱", "距上次验证满 90 天 · 王敏", () => (demoOut(), ((AUTH.trustedDev ||= {}).wm = 1), (AUTH.people.wm.mailAt = auYmdAdd(auCstYmd(), -91)), demoLv("wang.min@example.test"))],
   ["登录验证", "lv-tel", "定期验证手机号码（没有电子邮箱的账户）", "运营人员 · 邓志", () => (demoOut(), (AUTH.people.dz.telAt = auYmdAdd(auCstYmd(), -91)), demoLv("139 0000 0131"))],
   ["登录验证", "lv-bind", "机构管理员：先验证电子邮箱，再绑定手机号码", "还没有绑定手机号码 · 刘静", () => (demoOut(), demoLv("liu.jing@example.test"))],
   ["登录验证", "lv-sms-mail", "机构管理员短信登录：验证电子邮箱", "新设备 · 王敏", () => (demoOut(), demoShow("login"), auUntrust("wm"), auLoginGate("wm", true))],
+  // 2.72 账户第 852 条：所在机构的密码有效期为 90 天，密码已用满 91 天
+  ["登录验证", "lv-pwd-new", "密码到期：设置新密码", "机构密码有效期 90 天 · 黄帅", () => (demoOut(), ((AUTH.secRules ||= {})[DEMO_PM] = { ...(AUTH.secRules[DEMO_PM] || {}), pwd: "90", pwdDemo: AUTH.secRules[DEMO_PM]?.pwdDemo || AUTH.secRules[DEMO_PM]?.pwd || "none" }), (AUTH.people.hs.pwdAt = auYmdAdd(auCstYmd(), -91)), demoLv("huang.shuai@example.test"))],
   [
     "登录验证",
     "lv-bind-taken",
@@ -102155,6 +102719,8 @@ const DEMO_ITEMS = [
   ["重置密码", "reset-failed", "暂时无法重置", "", () => ((DEMO_FAIL.operation = "resetPassword"), demoReset("123456"))],
   ["重置密码", "reset-ok", "重置后直接登录", "运营人员 · 黄帅，直接进入工作区", () => demoReset("123456", "Pacom#2026x", "huang.shuai@example.test")],
   ["重置密码", "reset-admin", "机构管理员：重置后验证手机号码", "用电子邮箱重置 · 王敏", () => demoReset("123456")],
+  // 2.72 账户第 853 条
+  ["重置密码", "reset-admin-nophone", "机构管理员：没有可接收验证码的手机号码", "用电子邮箱重置 · 刘静", () => demoReset("123456", "Pacom#2026x", "liu.jing@example.test")],
   ["注册：加入", "join-1", "第 1 步 创建账户", "登录页“注册”进入", () => (demoOut(), demoShow("join"))],
   ["注册：加入", "join-1-sent", "第 1 步 验证码已发送", "", () => (demoOut(), Object.assign(AUX.v, { rg_name: "陈璐", rg_mail: "chen.lu@example.test" }), (AUX.ec.rg = { to: "chen.lu@example.test", cool: auNow() + 6e4, exp: auNow() + 10 * 6e4 }), demoShow("join"))],
   ["注册：加入", "join-2-code", "第 2 步 填写邀请码", "没有发给这个账户的邀请", () => (demoOut(), demoJoinAt("陈璐", "chen.lu@example.test"), demoShow("join"))],
@@ -102392,6 +102958,8 @@ const DEMO_ITEMS = [
   ["应用设置", "cfg-pg-set-rules", "应用设置 · 告警规则", "", demoPg(() => demoSetHash("rules"))],
   ["应用设置", "cfg-rule-new", "新建告警规则", "应用设置 › 告警规则", demoX(() => demoSetHash("rules"), () => actions.alarmRuleForm({}))],
   ["应用设置", "cfg-rule-detail", "告警规则详情", "CO₂ 偏高", demoX(() => demoSetHash("rules"), () => actions.alarmRuleDetail({ id: "rule-demo-co2" }))],
+  // 2.72 V685：总览“需要处理”的建议“调整规则”打开的修改弹窗，持续时间已按建议填好
+  ["应用设置", "cfg-rule-tune", "调整告警规则的持续时间", "实验室 C 室温偏高", demoX(() => demoSetHash("rules"), () => actions.opsRuleTune({ id: "rule-demo-temp" }))],
   ["应用设置", "cfg-rule-fixed", "固定规则", "网关离线", demoX(() => demoSetHash("rules"), () => actions.alarmFixedDetail({ id: "net-0" }))],
   ["配置进度", "cfg-pg-dep-all", "配置进度 · 全部项目", "", demoPg("#deployment")],
   ["配置进度", "cfg-pg-dep", "配置进度", "广实2号园", demoPg(demoDepHash)],
@@ -102460,15 +103028,21 @@ const DEMO_ITEMS = [
   ["数据分析", "rpt-new", "新建报告", "数据分析 › 报告", demoX("#analysis?tab=reports", () => actions.reportForm())],
   ["数据分析", "rpt-edit", "编辑草稿", "2026 年第 38 周运行周报", demoX(() => ((U.opsReport = "r-w38"), (U.opsRpDoc = true), "#analysis?tab=reports"), () => actions.aiReportEdit({ id: "r-w38" }))],
   ["数据分析", "rpt-publish", "发布报告", "2026 年第 38 周运行周报", demoX(() => ((U.opsReport = "r-w38"), (U.opsRpDoc = true), "#analysis?tab=reports"), () => actions.aiReportPublish({ id: "r-w38" }))],
-  ["告警", "ops-pg-al-current", "告警 · 当前告警", "", demoPg("#alarms?tab=current")],
+  // 2.72 V682：告警页为事项列表，页签“未处理”“处理中”“待核验”“已结束”；告警派工后与工单合为一条
+  ["告警", "ops-pg-al-current", "告警 · 未处理", "", demoPg("#alarms?tab=current")],
   ["告警", "al-detail", "告警详情", "会议室 7-1 CO₂ 偏高", demoX("#alarms?tab=current", () => actions.opsAlarm({ id: "alert-demo-co2" }))],
-  ["告警", "al-task", "新建工单", "从恢复出厂告警", demoX("#alarms?tab=current", () => actions.opsTaskNew({ id: "alert-demo-reset" }))],
-  ["告警", "ops-pg-al-tasks", "告警 · 工单", "", demoPg("#alarms?tab=tasks")],
-  ["告警", "task-detail", "工单详情", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => actions.opsTask({ id: "task-demo-1" }))],
+  ["告警", "al-task", "派工", "恢复出厂告警", demoX("#alarms?tab=current", () => actions.opsTaskNew({ id: "alert-demo-reset" }))],
+  ["告警", "al-snooze", "暂缓", "会议室 7-1 CO₂ 偏高", demoX("#alarms?tab=current", () => (actions.opsAlarm({ id: "alert-demo-co2" }), demoAfter(() => actions.opsAlSnooze({ id: "alert-demo-co2" }))))],
+  ["告警", "al-close", "关闭告警", "会议室 7-1 CO₂ 偏高", demoX("#alarms?tab=current", () => (actions.opsAlarm({ id: "alert-demo-co2" }), demoAfter(() => actions.opsAlClose({ id: "alert-demo-co2" }))))],
+  ["告警", "ops-pg-al-tasks", "告警 · 处理中", "", demoPg("#alarms?tab=tasks")],
+  // 2.72 V682：由告警派工的工单与告警合为一项，详情是告警详情；工单详情用不由告警产生的定期检查
+  ["告警", "task-detail", "工单详情", "多联机内机滤网清洗 · 定期检查", demoX("#alarms?tab=tasks", () => actions.opsTask({ id: "task-demo-periodic" }))],
   ["告警", "task-repair", "新建工单", "报修", demoX("#alarms?tab=tasks", () => actions.opsRepairNew())],
   ["告警", "task-reassign", "改派工单", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => actions.opsTaskReassign({ id: "task-demo-1" }))],
   ["告警", "task-done", "完成工单", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => (actions.opsTask({ id: "task-demo-1" }), demoAfter(() => actions.opsTaskFinish({ id: "task-demo-1" }))))],
-  ["告警", "ops-pg-al-history", "告警 · 告警记录", "", demoPg("#alarms?tab=history")],
+  ["告警", "ops-pg-al-verify", "告警 · 待核验", "完成后 24 小时内检查是否再次触发", demoPg("#alarms?tab=verify")],
+  ["告警", "ops-pg-al-history", "告警 · 已结束", "", demoPg("#alarms?tab=history")],
+  ["告警", "repair-ai", "报修详情", "办公室 701 · 温度偏高 · AI 初步判断", demoX("#alarms?tab=history", () => actions.opsTask({ id: "task-demo-repair" }))],
   ["场景", "ops-pg-sc-manual", "场景 · 场景", "", demoPg("#scenes?tab=manual")],
   // 2.66 V539：去掉“告警规则”（告警记录上没有这个入口；规则由配置组的“告警规则详情”演示）
   ["场景", "sc-run", "执行确认", "场景“上班”", demoX("#scenes?tab=manual", () => actions.opsRunScene({ id: "scene-demo-on" }))],
@@ -102479,7 +103053,11 @@ const DEMO_ITEMS = [
   ["场景", "ops-pg-sc-link", "场景 · 联动", "", demoPg("#scenes?tab=link")],
   ["场景", "lk-detail", "联动详情", "加班走廊照明", demoX("#scenes?tab=link", () => actions.opsSceneInfo({ id: "scene-demo-l-path" }))],
   ["场景", "lk-new", "新建联动", "联动", demoX("#scenes?tab=link", () => actions.sceneForm({}))],
+  // 2.72 V686：一句话新建定时与联动，先出草稿卡
+  ["场景", "sc-ask", "一句话新建", "工作日 8 点开灯，19 点后无人关灯", demoX("#scenes?tab=schedule", () => demoAsk("工作日 8 点开灯，19 点后无人关灯"))],
   ["场景", "ops-pg-sc-records", "场景 · 操作记录", "", demoPg("#scenes?tab=records")],
+  // 2.72 V688
+  ["场景", "sc-resend", "部分生效：自动补发后告警", "场景“上班” · 1 台离线", demoX("#scenes?tab=records", () => demoResend())],
   ["智能助手", "gl-ai", "搜索或提问", "智能助手", demoHead(() => (demoIn(), demoHash("#overview"), demoAfter(() => aiPalette("", "ask"))))],
   ["智能助手", "ai-85", "AI 用量已用 85%", "", () => (demoIn(), demoLicSeed(85), demoHash("#overview"), demoAfter(() => aiPalette("", "ask")))],
   ["智能助手", "ai-pack", "正在使用 AI 用量包", "", () => (demoIn(), demoLicSeed(102), demoHash("#overview"), demoAfter(() => aiPalette("", "ask")))],
