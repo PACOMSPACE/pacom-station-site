@@ -34030,6 +34030,44 @@ li.none .ov2-fr > small { font-size: 12px; line-height: 18px; }
 /* V744 手机：▾ 紧跟标题，隔 4（位置按钮占满一行时不再两端对齐） */
 .phead .ov-cur.ws-location { justify-content: flex-start; gap: 4px; }
 .phead .ov-cur.ws-location > .ic { margin-left: 0; }
+/* ===== 2.76 Vision 对 2.75 的核查修正（V746–V769） ===== */
+/* V751、V752 AI 小标全站统一为靛蓝（底 --ai-bg，字 --ai-text，V697）；解读面板“建议”节里的建议行不再加小标 */
+.ai2-badge, .an3-ai { background: var(--ai-bg); color: var(--ai-text); font-weight: 600; }
+.an3-sug p > small { display: block; font-size: 12px; line-height: 18px; color: var(--v3-mute); }
+/* V753 最近事件：能点的行与普通行同为左对齐的两列（时间 96 + 其余） */
+.an-tl-b { text-align: left; }
+/* V754 解读面板的文字按钮：V698 写法，#2E2E2E，悬停加 4% 灰底 */
+.an2-ins .btn.an3-go { margin: 0 -6px; padding: 0 6px; border-radius: 6px; color: var(--v3-ink-2); }
+.an2-ins .btn.an3-go:hover { background: rgba(0, 0, 0, 0.04); text-decoration: none; }
+/* V760 告警详情“处理记录”的圆点 #636363（同 V736），计划中的仍为空心 */
+:is(.al-dt, .ops-al-drawer, .ops-task-drawer) .ops-tl li::before { box-shadow: inset 0 0 0 5px #636363; }
+/* V762 操作记录的筛选为分段控件 */
+.rc-chips > .seg { flex: none; }
+/* V763 运营四页弹窗的主按钮同页面，为深蓝实底 */
+#dlg:is([data-page="overview"], [data-page="analysis"], [data-page="alarms"], [data-page="scenes"]) .btn.primary { background: var(--v3-navy); box-shadow: none; color: #fff; }
+#dlg:is([data-page="overview"], [data-page="analysis"], [data-page="alarms"], [data-page="scenes"]) .btn.primary:hover { background: #2b3858; }
+/* V765 定时时间轴的“现在”与总览相同：12/18、字重 600、#030303 正体，1px #030303 竖线 */
+.sc-tl-now { border-left: 1px solid var(--v3-ink); }
+.sc-tl-now b { color: var(--v3-ink); font-style: normal; font-weight: 600; }
+/* V766 联动草稿的条件写成一行 */
+.sc-ask-f { grid-template-columns: 160px minmax(120px, max-content); }
+.sc-ask-c { white-space: nowrap; }
+@media (max-width: 600px) {
+  .sc-ask-f { grid-template-columns: 1fr 1fr; }
+}
+/* V767 我的区域：“E栋 · 7F”在标题右边隔 12（14/22、#636363），后接实时标记，都在左边的标题块里 */
+#app .phead > h1:has(+ .ops-hloc) { flex: none; }
+#app .phead > .ops-hloc { margin: 0; color: var(--v3-mute); font-weight: 400; }
+#app .phead > .ops-hloc + .ops-live { margin: 0 auto 0 0; }
+/* V768 指标页签说明行：放不下时第二件事另起一行，行首不留“·” */
+.an-blk-s:has(> .an-sl) { display: block; overflow: hidden; }
+.an-sl { display: flex; flex-wrap: wrap; margin-left: -1em; }
+.an-sl > .ops-nw { white-space: nowrap; }
+.an-sl > .an-s0 { padding-left: 1em; }
+.an-sep { display: inline-block; width: 1em; font-style: normal; text-align: center; }
+/* V769 “无空调”“未监测”“数据不足”的图例符号与楼层图相同：白底加 1px 灰色点线边，里面不画斜线 */
+#app .ov3 .ov2-legend i.sq:is(.hatch, .unmon) { background: #fff; background-image: none; box-shadow: none; outline: 1px dotted #a3a3a3; outline-offset: -1px; }
+#app .ov3 .ov2-legend i.sq:is(.hatch, .unmon)::before, #app .ov3 .ov2-legend i.sq:is(.hatch, .unmon)::after { content: none; }
 
 }
 @layer base {
@@ -60543,10 +60581,16 @@ const opsPlain = (h) =>
 // 2.71 V678：指标页签与总览是同一个组件（白底一条，竖线分隔，选中项底部 2px 深色线），取代指标卡；下面主图占 2/3、解读栏（ins）占 1/3。
 // V689：去掉图头“AI 解读”按钮；V676：主图的“数据表”收进页签行右端“⋯”（AN_MAIN.table 记下它的数据表）
 const AN_MAIN = { table: "", tab: "", cardTools: "" };
+// 2.76 V768：说明行一行放不下时第二件事另起一行，行首不留“·”：“·”与后一件事放在同一块里，换到行首的那个被裁掉
+const anSubWrap = (s) => {
+  const t = String(s ?? "");
+  if (!t.startsWith('<span class="ops-nw">') || !t.includes('</span> · <span class="ops-nw">')) return t;
+  return `<span class="an-sl">${t.replace('<span class="ops-nw">', '<span class="ops-nw an-s0">').replace(/<\/span> · <span class="ops-nw">/g, '</span><span class="ops-nw"><i class="an-sep"> · </i>')}</span>`;
+};
 function anMainCard(tab, blocks, chart, { def, fixed = false, foot = "", note = "", ins = "" } = {}) {
   const sel = fixed ? "" : anPickOf(tab, blocks, def),
     blk = (b) => {
-      const inner = `<span class="an-blk-l">${b.label}</span><span class="an-blk-v">${b.value}</span>${b.sub ? `<span class="an-blk-s">${b.sub}</span>` : ""}`;
+      const inner = `<span class="an-blk-l">${b.label}</span><span class="an-blk-v">${b.value}</span>${b.sub ? `<span class="an-blk-s">${anSubWrap(b.sub)}</span>` : ""}`;
       if (fixed || b.off || b.still) return `<div class="an-blk${b.off ? " off" : ""}${b.still ? " still" : ""}${b.later ? " later" : ""}">${inner}</div>`;
       // 整块按钮与名称旁的 ⓘ 互为兄弟，不把按钮嵌在按钮里（同可点指标卡）
       return `<div class="an-blk${b.k === sel ? " on" : ""}"><button type="button" class="an-blk-btn" aria-pressed="${b.k === sel}" aria-label="${esc(opsPlain(b.label))}" data-act="anPick" data-tab="${esc(tab)}" data-k="${esc(b.k)}"></button>${inner}</div>`;
@@ -60594,8 +60638,8 @@ function anIns({ ai = "", basis = [], acts = [], notes = [], links = [] } = {}) 
     ns = notes.filter((n) => (Array.isArray(n) ? n[0] : n)),
     ls = links.filter(Boolean),
     sec = (h, body) => `<section class="an3-sec"><h4>${h}</h4>${body}</section>`,
-    // 建议行（V699）：与事件行同高，没有竖条；第一行最前面是 AI 小标“建议”，右侧一个次按钮；acts 每项为按钮，或 [建议文字, 按钮]
-    sug = (a) => (Array.isArray(a) ? `<div class="an3-sug"><p><span class="an3-ai">建议</span>${a[0]}</p>${a[1]}</div>` : `<div class="an3-sug">${a}</div>`);
+    // 建议行（V699）：与事件行同高，没有竖条，右侧一个次按钮；2.76 V751：在“建议”节里不再加“建议”小标；acts 每项为按钮，或 [建议文字, 按钮]
+    sug = (a) => (Array.isArray(a) ? `<div class="an3-sug"><p>${a[0]}</p>${a[1]}</div>` : `<div class="an3-sug">${a}</div>`);
   return `<aside class="an2-ins" aria-label="解读">${ai && typeof aiInsight === "function" ? sec("解读", aiInsight(ai, basis) + (ls.length ? `<p class="an3-links">${ls.join("")}</p>` : "")) : ""}${as.length ? sec("建议", `<div class="an2-acts">${as.map(sug).join("")}</div>`) : ""}${ns.length ? sec("数据说明", `<ul class="an3-notes">${ns.map((n) => `<li>${Array.isArray(n) ? `<span>${n[0]}</span>${n[1] || ""}` : `<span>${n}</span>`}</li>`).join("")}</ul>`) : ""}</aside>`;
 }
 // 明细面板：两列网格的小卡，每卡最多 5 行，多了用“查看全部”（打开同一列表的弹窗）
@@ -71166,10 +71210,11 @@ function chartCard({ title, meta, legend = [], body, table: tb, id, cls = "", ex
     sn = (n) => sp0?.series.find((s) => n === s.name || String(n).startsWith(s.name + " "))?.name,
     tog = (n) => sp0?.rows && sp0.series.length > 1 && !!sn(n);
   if (sp0?.endLabels) legend = legend.filter(([, n]) => !sp0.series.some((s) => s.name === n));
-  const lgItem = ([c, n, kind]) =>
+  // 2.76 V749：图例只写名称；第 4 项为悬停提示（如期间合计“感应调光 367 kWh”）
+  const lgItem = ([c, n, kind, tip]) =>
     tog(n) && (!kind || kind === "sq")
-      ? `<button type="button" class="ops-lgt${U.anHide?.[sn(n)] ? " off" : ""}" aria-pressed="${!U.anHide?.[sn(n)]}" data-act="anLegend" data-name="${esc(sn(n))}"><i class="dot" style="--c:${c}"></i>${esc(n)}</button>`
-      : `<span><i class="${kind || "sq"}" style="--c:${c}"></i>${esc(n)}</span>`;
+      ? `<button type="button" class="ops-lgt${U.anHide?.[sn(n)] ? " off" : ""}" aria-pressed="${!U.anHide?.[sn(n)]}" data-act="anLegend" data-name="${esc(sn(n))}"${tip ? ` data-tip="${esc(tip)}"` : ""}><i class="dot" style="--c:${c}"></i>${esc(n)}</button>`
+      : `<span${tip ? ` data-tip="${esc(tip)}"` : ""}><i class="${kind || "sq"}" style="--c:${c}"></i>${esc(n)}</span>`;
   return `<section class="ops-card ${cls}" ${id ? `id="${id}"` : ""}><header class="ops-card-h"><div><h3>${title}</h3>${meta ? `<p class="ops-meta">${meta}</p>` : ""}</div><div class="ops-card-tools">${extra}${tb ? btn("数据表", "opsTable", { key: tb }, "ghost sm") : ""}${demoTag()}${extra || tb ? `<button type="button" class="btn ghost sm ops-tools-more" data-act="opsToolsMore" aria-haspopup="menu">更多</button>` : ""}</div></header>${legend.length ? `<div class="ops-legend">${legend.map(lgItem).join("")}</div>` : ""}${panel ? `<div class="ws-tabpanel" ${panel}>${body}</div>` : body}${foot ? `<p class="ops-foot">${esc(foot)}</p>` : ""}</section>`;
 }
 // 日用电柱图的数据质量说明（规范 OPS05、ANALYSIS01，2026-10-08 第 2 轮第6章）：逐条写出期间内标注的日期与原因
@@ -72869,7 +72914,8 @@ function ctlRecView(src) {
     hi = U.scRecHi ? list.findIndex((x) => x.at === U.scRecHi) : -1,
     n = Math.max(Math.min(list.length, U[pre + "More"]?.key === key ? U[pre + "More"].n : SC_REC_PAGE), hi + 1),
     cnt = (k) => all.filter((x) => (k === "all" ? true : k === "part" ? recPart(x) : recKind(x) === k)).length,
-    chips = REC_CHIPS.map(([k, l]) => `<button type="button" class="al-fchip${k === f ? " on" : ""}" aria-pressed="${k === f}" data-act="opsRecF" data-value="${k}">${l} <span class="ops-num">${cnt(k)}</span></button>`).join(""),
+    // 2.76 V762：筛选用分段控件（与“按日 / 按小时”同一组件）
+    chips = segPress(REC_CHIPS.map(([k, l]) => [k, `${l} <span class="ops-num">${cnt(k)}</span>`]), f, "opsRecF", "筛选"),
     // 2.66 V502：对象胶囊写“场景：下班”，“×”为胶囊内 16px 图标（原为 32×32 的白色圆钮）
     objX = (act, nm) => `<button type="button" class="rc-obj-x" data-act="${act}" aria-label="${esc(`清除“${nm}”`)}">${ico("x", "ic16")}</button>`,
     objChip = obj ? `<span class="rc-obj">${esc(obj)}${objX("opsRecObjClear", obj)}</span>` : "",
@@ -72881,7 +72927,8 @@ function ctlRecView(src) {
       body += `${day === null ? "" : "</div>"}<h4 class="rc-day">${esc(scRecDay(x.at))}</h4><div class="rc-rows">`;
       day = Demo.dayStart(x.at);
     }
-    const chip = x.chip ? `<span class="al-chip ${x.chip[0]}"${x.tip ? ` data-tip="${esc(x.tip)}"` : ""}>${esc(x.chip[1])}</span>` : x.cells[1];
+    // 2.76 V761：结果写成文字，不加底色：全部生效为 #1E6B44，部分生效为 #8A5A00
+    const chip = x.chip ? `<span class="sc3-eff${x.chip[0] === "ok" ? " ok" : x.chip[0] === "minor" ? " part" : ""}"${x.tip ? ` data-tip="${esc(x.tip)}"` : ""}>${esc(x.chip[1])}</span>` : x.cells[1];
     // 来源不明（写“—”）时不加人员图标
     const who = x.who ?? x.cells[2];
     body += `<div class="rc-r${hi >= 0 && x === list[hi] ? " hi" : ""}"><span class="rc-t ops-num">${Demo.hm(x.at)}</span><span class="rc-op">${x.op ?? x.cells[0]}${x.note ? `<small class="rc-note">${x.note}</small>` : ""}</span><span class="rc-src">${who === "—" ? "" : ico(recIcon(x), "ic16")}<span>${who}</span></span><span class="rc-res">${chip}</span></div>`;
@@ -72890,7 +72937,7 @@ function ctlRecView(src) {
   const none = !items.length ? src.empty : all.length ? `没有符合筛选的${src.noun || "操作记录"}` : `所选期间没有${src.noun || "操作记录"}`;
   return (
     ((opsTabTools = `<div class="ops-filters rc-tools">${opsFilter(pre + "PerSel", HIST_PER, per.key, "期间")}${scRecInputs()}${src.tag || ""}</div>`), "") +
-    `<section class="ov-card rc-card"><div class="rc-chips">${zChip}<div class="al-fchip-g" role="group" aria-label="筛选">${chips}</div>${objChip}</div>${body || `<p class="al-none">${esc(none)}</p>`}</section>` +
+    `<section class="ov-card rc-card"><div class="rc-chips">${zChip}${chips}${objChip}</div>${body || `<p class="al-none">${esc(none)}</p>`}</section>` +
     recMoreBar(pre + "More", key, n, list.length)
   );
 }
@@ -73724,6 +73771,22 @@ const alLocOnly = (a) => {
   const t = alarmTitle(a),
     loc = t.p?.type === "gw" ? "" : t.zone?.name || "";
   return loc && !String(t.title).includes(loc) ? loc : "";
+};
+// 2.76 V759：列表的位置与总览“需要处理”同一规则：选到楼宇写楼层名（“7F”），选到项目或全部项目写楼宇与楼层（“E栋 · 7F”），后接功能区
+// 2.76 V759：名称已含楼层（如“E栋 · 7F 网关离线”）时不再写楼层
+const alAt = (fid, zname = "", name = "") => {
+  const f = U.f ? null : g("floors", fid),
+    fl = f ? (U.b ? f.name : [g("buildings", f.buildingId)?.name, f.name].filter(Boolean).join(" · ")) : "";
+  return [fl && !String(name).includes(fl) ? fl : "", zname].filter(Boolean).join(" · ");
+};
+// 工单的位置：从“E栋 · 7F · 走廊”取出楼层以下的部分；整层的工单在楼层级写“全层”；名称已含位置时不写
+const alTaskAt = (t) => {
+  const z = g("zones", t.zoneId),
+    fid = t.floorId || z?.floorId || OPS_SCOPE.floor,
+    full = floorText(fid),
+    lab = String(t.scopeLabel || ""),
+    rest = lab === full || !lab ? (U.f ? "全层" : "") : lab.startsWith(full + " · ") ? lab.slice(full.length + 3) : z?.name || lab;
+  return alAt(fid, rest && !String(t.name || "").includes(rest) ? rest : "", t.name);
 };
 const alShortSub = (a) => {
   const t = alarmTitle(a);
@@ -74749,7 +74812,9 @@ const anFloorShort = () => floorText(OPS_SCOPE.floor);
 // 2.71：名称以字母或数字结尾时，后面接中文前加空格
 const anSp = (s) => s + (/[A-Za-z0-9]$/.test(s) ? " " : ""),
   anPre = (s) => (/^[A-Za-z0-9]/.test(s) ? " " : "") + s;
-const anZn = (z) => (anWider() ? `${where(z.floorId || OPS_SCOPE.floor).split(" / ").slice(U.b ? 2 : 1).join(" · ")} · ${z.name}` : z.name);
+// 2.76 V750：图表只含一个已接入楼层时（图头已写“只含 E栋 · 7F”），行里不再写楼栋与楼层；含多个楼层时按 V714 分组或加前缀
+const anOneFl = () => [OPS_SCOPE.floor].filter(Boolean).length <= 1;
+const anZn = (z) => (anWider() && !anOneFl() ? `${where(z.floorId || OPS_SCOPE.floor).split(" / ").slice(U.b ? 2 : 1).join(" · ")} · ${z.name}` : z.name);
 // “只含 E栋 7F”整体不换行（全站断行规则：楼宇楼层名不在中间断开，规范 2 6）
 const onlyIn = (sub) => (anWider() ? (sub ? sub + " · " : "") + `<span class="ops-nw">只含 ${esc(anFloorShort())}</span>` : sub);
 // 2.66 V548：主图图头末尾的范围；已接入超过 3 个楼层时写“已接入 N / M 个楼层”（同总览 V415）
@@ -75239,9 +75304,10 @@ function anSummary() {
     labB = night ? `实验室 B 连续 ${night} 晚夜间照明偏高` : "",
     // 2.75 V716：要点行只写需要关注的事（用电量和达标率在卡片里），最多三件
     envK = envBad[0] ? ["co2", "pm", "temp"].filter((k) => envBad[0].c[k] != null).sort((a, b) => envBad[0].c[a] - envBad[0].c[b])[0] : null,
-    focus = [labB, envBad[0] ? `${anSp(anZn(envBad[0].c.z))}${envK === "temp" ? "温度" : `${{ co2: "CO₂", pm: "PM2.5" }[envK]} `}达标 ${pct(envBad[0].v)}%` : "", hNow.off.length ? `${hNow.off.length} 台设备离线` : ""].filter(Boolean),
+    focus = [labB, envBad[0] ? `${anSp(anZn(envBad[0].c.z))}${envK === "temp" ? "温湿度" : `${{ co2: "CO₂", pm: "PM2.5" }[envK]} `}达标 ${pct(envBad[0].v)}%` : "", hNow.off.length ? `${hNow.off.length} 台设备离线` : ""].filter(Boolean),
     key = focus.length ? `需要关注：${esc(focus.join("；"))}` : "没有需要关注的事项",
     C = { use: "#2a78d6", off: "#7c5cc4", save: "#2e9461", occ: "#2a78d6", ok: "#2e9461" },
+    // 2.76 V747、V748：卡片的结论行一律用对应子页指标页签的说明行（同一说法只有一处来源），日均只计完整的天
     // 2.75 V716：六张卡同一结构，自上而下为名称（12/18 #636363）、数值加单位（“估算”为数值后的中性标签）、一行结论（12/18）、高 32 的迷你折线
     card = ({ tab, k, name, value, unit = "", tag = "", text = "", spark = "" }) =>
       `<section class="an-sum-card"><button type="button" class="an-sum-btn" aria-label="${esc(name)}，查看详情" data-act="anSumGo" data-tab="${tab}" data-k="${k}"></button><h3>${esc(name)}</h3><p class="an-sum-v">${value}${value !== "—" && unit ? `<small>${unit}</small>` : ""}${tag && value !== "—" ? `<span class="v3-tag">${tag}</span>` : ""}</p><p class="an-sum-x">${text}</p><div class="an-sum-sp">${spark || anSpark([], "#ccc")}</div></section>`,
@@ -75254,12 +75320,12 @@ function anSummary() {
         })
       : [],
     cards = [
-      card({ tab: "energy", k: "use", name: "用电", value: nf(e.total), unit: "kWh", text: pv.pct == null ? (full.length ? `日均 ${nf(e.total / Math.max(1, ds.length))} kWh` : "今天截至现在") : pv.text, spark: anSpark(ds.map((d) => (d.partial ? null : d.light + d.hvac)), C.use) }),
-      card({ tab: "energy", k: "off", name: "夜间及非工作日", value: e.offShare == null ? "—" : nf(e.offShare, 1), unit: "%", text: labB || diffPt(e.offShare, offP) || (e.offDays ? `超出基荷 ${nf(e.offAbove)} kWh` : "期间内没有完整的天"), spark: anSpark(full.map(offDay), C.off) }),
-      card({ tab: "energy", k: "save", name: "节电量", value: sv.has ? nf(sv.total) : "—", unit: "kWh", tag: "估算", text: !sv.has ? "没有可调光的照明分区" : rate != null ? `照明比满亮度运行少用 ${nf(rate)}%` : "按占用联动与感应调光估算", spark: sv.has ? anSpark(sv.days.map((d) => (d.partial ? null : d.occ + d.dim + d.other)), C.save) : "" }),
-      card({ tab: "environment", k: "all", name: "室内环境达标", value: envLow ? pct(envLow[1].within) : "—", unit: "%", text: noWork ? "所选期间没有工作日" : envBad.length ? `${envBad.length} 个功能区低于 95%，最低一项为${anPre({ co2: "CO₂", pm: "PM2.5", temp: "温度" }[envLow[0]])}` : "全部功能区达标", spark: envDays.some((v) => v != null) ? anSpark(envDays, C.ok, { hi: 100 }) : "" }),
-      card({ tab: "space", k: "avg", name: "空间使用", value: occ == null ? "—" : String(Math.round(occ)), unit: "%", text: least ? `工作时间有人比例，最低 ${esc(anZn(least.z))} ${Math.round(anSpaceAvg(least))}%` : "没有占用数据", spark: anSpark(occH, C.occ, { lo: 0 }) }),
-      card({ tab: "health", k: "rate", name: "设备健康", value: online == null ? "—" : anPct1(online), unit: "%", text: !ps.length ? "选择楼层后查看" : hNow.off.length ? `在线率，当前 ${hNow.off.length} 台离线` : eps.length ? `在线率，期间内离线 ${eps.length} 次` : "在线率，期间内没有设备离线", spark: ps.length ? anSpark(anRate7(ps), C.ok, { hi: 100 }) : "" }),
+      card({ tab: "energy", k: "use", name: "用电", value: nf(e.total), unit: "kWh", text: full.length ? `日均 ${nf(avgOf(full))} kWh` : "今天截至现在", spark: anSpark(ds.map((d) => (d.partial ? null : d.light + d.hvac)), C.use) }),
+      card({ tab: "energy", k: "off", name: "夜间及非工作日", value: e.offShare == null ? "—" : nf(e.offShare, 1), unit: "%", text: e.offDays ? `超出基荷 ${nf(e.offAbove)} kWh` : "期间内没有完整的天", spark: anSpark(full.map(offDay), C.off) }),
+      card({ tab: "energy", k: "save", name: "节电量", value: sv.has ? nf(sv.total) : "—", unit: "kWh", tag: "估算", text: !sv.has ? "未登记照明驱动功率" : rate != null ? `比满亮度运行少用 ${nf(rate)}%` : "按亮度与驱动功率估算", spark: sv.has ? anSpark(sv.days.map((d) => (d.partial ? null : d.occ + d.dim + d.other)), C.save) : "" }),
+      card({ tab: "environment", k: "all", name: "室内环境达标", value: envLow ? pct(envLow[1].within) : "—", unit: "%", text: noWork ? "所选期间没有工作日" : envLow ? `最低一项：${{ co2: "CO₂", pm: "PM2.5", temp: "温湿度" }[envLow[0]]}` : "", spark: envDays.some((v) => v != null) ? anSpark(envDays, C.ok, { hi: 100 }) : "" }),
+      card({ tab: "space", k: "avg", name: "空间使用", value: occ == null ? "—" : String(Math.round(occ)), unit: "%", text: least ? `${esc(anZn(least.z))} 最低 ${Math.round(anSpaceAvg(least))}%` : "没有占用数据", spark: anSpark(occH, C.occ, { lo: 0 }) }),
+      card({ tab: "health", k: "rate", name: "设备健康", value: online == null ? "—" : anPct1(online), unit: "%", text: !ps.length ? "选择楼层后查看" : `${ps.length} 台设备`, spark: ps.length ? anSpark(anRate7(ps), C.ok, { hi: 100 }) : "" }),
     ],
     all = typeof aiReportsAll === "function" ? aiReportsAll() : REPORTS,
     reps = all.slice(0, 3).map((x0) => (typeof aiReportEff === "function" ? aiReportEff(x0) : x0)),
@@ -75434,18 +75500,19 @@ function anEnergy() {
     basis = [["期间", esc(rg.span)], ["对象", esc(`${anFloorShort()} · ${meterName}`)], ["数据", sel === "carbon" ? esc(cv0 ? `用电量 × ${cv0.factor} ${carbonUnit(cv0)}（${cv0.region} ${cv0.year}）` : "用电量 × 适用的排放因子") : sel === "save" ? "照明控制器回报的亮度与登记的驱动功率（估算）" : "电能表读数差（日合计），缺数不补零"]],
     labB = night ? "9 月 21 日起实验室 B 连续 3 晚待机结束后仍保持 30% 亮度，22:00–06:00 的基荷比前 4 周高约 0.26 kW，每晚约多用 2.1 kWh（估算）。" : "",
     // 2.75 V710、V712：不再写三组大数字；照明插座占比在分项卡片，解读面板不重复
+    // 2.76 V746：AI 解读第一句直接写结论与原因，不复述指标页签里的数（本期用电、夜间占比、超出基荷）；V751：建议的按钮为次按钮“采用”
     ins =
       sel === "save"
         ? anIns({ ai: SP.ai, basis, acts: SP.acts, notes: [...dqNotes, ...SP.notes] })
         : anIns({
             ai:
               sel === "off"
-                ? `夜间及非工作日用电占 ${e.offShare == null ? "—" : nf(e.offShare, 1) + "%"}，比基荷多用 ${nf(e.offAbove)} kWh。${labB || "期间内没有发现夜间用电异常。"}`
+                ? labB || "期间内没有发现夜间用电异常。"
                 : sel === "carbon"
                   ? `本期用电碳排放按所选计量点的用电量与适用的排放因子计算${cv0 ? `（${cv0.region} ${cv0.year}）` : ""}。${night ? "减少实验室 B 夜间无人时的照明是本期最直接的减排办法。" : "减少夜间及非工作日用电是最直接的减排办法。"}`
-                  : `本期用电 ${nf(e.total)} kWh${cmpUse ? `，${cmpUse.replace(" · ", "，")}` : pv.pct == null ? "" : `，${pv.text}`}。${bpMed("base") == null ? "" : `基荷 ${nf(bpMed("base"), 1)} kW，峰荷 ${nf(bpMed("peak"), 1)} kW（期间中位数）。`}${labB}`,
+                  : `${cmpUse ? `${cmpUse.replace(" · ", "，")}。` : pv.pct == null ? "" : `用电${pv.text}。`}${bpMed("base") == null ? "" : `基荷 ${nf(bpMed("base"), 1)} kW，峰荷 ${nf(bpMed("peak"), 1)} kW（期间中位数）。`}${labB}` || "期间内没有发现用电异常。",
             basis,
-            acts: sel !== "carbon" && night && canEdit() ? [[esc(AI_SUGGESTIONS["labb-hold"].title), aiSuggest("labb-hold")]] : [],
+            acts: sel !== "carbon" && night && canEdit() ? [[esc(AI_SUGGESTIONS["labb-hold"].title), aiSuggest("labb-hold", "采用")]] : [],
             notes: [...dqNotes, sel === "use" && pv.pct == null && pv.text && !dqNotes.some((x) => x.includes("上一期")) ? esc(pv.text) : "", cmpOff],
           });
   return (
@@ -75779,16 +75846,16 @@ function anSaveParts(rg = anRange()) {
     saveInt = anRoundSum(sv.zones.map((x) => x.kwh)),
     saveZones = sv.zones.length ? anRankPanel("energySaveZones", "按功能区", sv.zones.map((x, i) => ({ name: esc(anZn(x.z)), v: x.kwh, text: `${x.kwh < 10 ? nf(x.kwh, 1) : nf(saveInt[i])} kWh` })), { color: S1 }) : "", // 2.66 V593：小于 10 kWh 保留一位小数
     // 2.60 V318：节能措施第一行放 AI 建议，可直接处理；没有措施写“尚无措施”（V298 第 44 条，“登记措施”在卡片右上角）
-    // 2.71 V689：建议与措施同在列表里，行首为灰色“建议”徽章，按钮为可直接处理的操作
+    // 2.71 V689：建议与措施同在列表里；2.76 V751：建议为 V699 的建议行（不加底色块），行首为靛蓝“建议”小标，按钮为次按钮“采用”（点后打开原确认弹窗）
     aiTip = typeof AI_SUGGESTIONS === "object" && AI_SUGGESTIONS["labb-hold"] && Demo.NIGHT_B != null && rg.end > Demo.dayStart(Demo.NIGHT_B) && aiResyncPts(AI_SUGGESTIONS["labb-hold"]).length
-      ? `<div class="an-aitip an-sug"><div class="an-aitip-l"><span class="sug-badge">建议</span><span class="an-item-t">实验室 B 夜间无人时关灯<small>每晚约省 2.1 kWh（估算）</small></span></div><div class="an-aitip-r">${aiSuggest("labb-hold")}</div></div>`
+      ? `<div class="an3-sug an-sug"><p><span class="ov3-ai">建议</span>实验室 B 夜间无人时关灯<small>每晚约省 2.1 kWh（估算）</small></p>${aiSuggest("labb-hold", "采用")}</div>`
       : "",
     measPanel = anPanel("energyMeasures", "节能措施", [], { right: canOperate() ? btn(ico("plus", "ic16") + "登记措施", "anMeasureForm", {}, "ghost sm") : "", body: aiTip + (mss.length ? `<div class="an-measures">${mss.map((x) => measureRow(x, rg)).join("")}</div>` : `<p class="ops-empty-note">尚无措施</p>`) }),
     top = [...sv.zones].sort((x, y) => y.kwh - x.kwh)[0],
     srcTop = sv.has ? SAVE_SRC.map(([k, n]) => [n, sv.src[k] || 0]).sort((x, y) => y[1] - x[1])[0] : null,
-    // 2.75 V710：解读面板不再写三组要点数字；上线以来的累计节电量写进解读的第一段（Y28）
+    // 2.75 V710：解读面板不再写三组要点数字；2.76 V746：本期节电量在指标页签，解读不再复述，第一句写节电来源与省得最多的功能区；上线以来的累计节电量页签里没有，仍写在解读里
     ai = sv.has
-      ? `本期节电量约 ${nf(sv.total)} kWh${srcTop && srcTop[1] > 0 ? `，主要来自${srcTop[0]}（${nf((srcTop[1] / Math.max(sv.total, 1)) * 100)}%）` : ""}${top ? `，省得最多的是${anZn(top.z)}` : ""}。${since && start != null ? `${opsDay(start)}起累计节电约 ${since[0]}。` : ""}${aiTip ? "实验室 B 夜间无人时仍保持 30% 亮度，按照明控制参数重新下发配置后每晚约再省 2.1 kWh（估算）。" : ""}`
+      ? `${srcTop && srcTop[1] > 0 ? `节电主要来自${srcTop[0]}（${nf((srcTop[1] / Math.max(sv.total, 1)) * 100)}%）` : "节电来自照明控制"}${top ? `，省得最多的是${anZn(top.z)}` : ""}。${since && start != null ? `${opsDay(start)}起累计节电约 ${since[0]}。` : ""}${aiTip ? "实验室 B 夜间无人时仍保持 30% 亮度，是下一步最值得改的地方。" : ""}`
       : "",
     later = bk("later");
   return {
@@ -75859,7 +75926,7 @@ function anSaveCard(rg, sv, ms, foot = "") {
     meta: `${rg.span} · kWh`,
     foot,
     // 2.25 V179：各来源合计写进图例；2.60 V317 同能源，图例不重复单位，进行中的今天（本月）为斜纹
-    legend: keys.map(([k, n, c]) => [c, `${n} ${nf(sv.src[k])}`]).concat(rows.some((r) => r.partial) ? [["", ms ? "本月" : "今日", "hatch"]] : []),
+    legend: keys.map(([k, n, c]) => [c, n, "", `${n} ${nf(sv.src[k])} kWh`]).concat(rows.some((r) => r.partial) ? [["", ms ? "本月" : "今日", "hatch"]] : []),
     // 2.66 V655：多个来源时加“合计”列；末行合计与指标卡同一数
     table: anDataTable(
       "save",
@@ -76167,7 +76234,7 @@ function anChildEnvPanel(tableOnly = false, key = anKey()) {
     });
   if (c.rows.length < 2) return tableOnly ? null : "";
   const pct = (v) => (v == null ? "—" : `${nf(v, 1)}%`),
-    table = anChildTable(["名称", mName, "CO₂", "PM2.5", "温度", "监测覆盖"], anChildOrder(c.rows, "ratio"), (x) => [`${x.need} / ${x.n} 个功能区`, pct(x.co2), pct(x.pm), pct(x.temp), `${x.measured} / ${x.n} 个功能区`]);
+    table = anChildTable(["名称", mName, "CO₂", "PM2.5", "温湿度", "监测覆盖"], anChildOrder(c.rows, "ratio"), (x) => [`${x.need} / ${x.n} 个功能区`, pct(x.co2), pct(x.pm), pct(x.temp), `${x.measured} / ${x.n} 个功能区`]);
   return tableOnly ? { title: c.title, table } : anPanel("envChildren", c.title, [], { right: "达标时间占比", body: table }); // 2.66 V594
 }
 // 空间使用（Y21）：有人时间占比、功能区数、面积；按有人时间占比从低到高（同 Y9）
@@ -76535,8 +76602,8 @@ function anCompBody(comp, all = false) {
   return `${
     shown.length
       ? // 2.66 V650：报告里的表不写格内口径
-        `<div class="ops-tw"><table class="t ops-t ops-comp"><thead><tr><th>功能区</th><th>CO₂</th><th>PM2.5</th><th>温度</th></tr></thead><tbody>${shown
-          .map((c) => `<tr><td>${esc(c.z.name)}</td><td data-l="CO₂">${aqCell(c, "co2")}</td><td data-l="PM2.5">${aqCell(c, "pm")}</td><td data-l="温度">${anCompBar(c.temp)}${anCompCoverage(c,"temp")}</td></tr>`)
+        `<div class="ops-tw"><table class="t ops-t ops-comp"><thead><tr><th>功能区</th><th>CO₂</th><th>PM2.5</th><th>温湿度</th></tr></thead><tbody>${shown
+          .map((c) => `<tr><td>${esc(c.z.name)}</td><td data-l="CO₂">${aqCell(c, "co2")}</td><td data-l="PM2.5">${aqCell(c, "pm")}</td><td data-l="温湿度">${anCompBar(c.temp)}${anCompCoverage(c,"temp")}</td></tr>`)
           .join("")}</tbody></table></div>`
       : `<p class="ops-empty-note">${comp.some((c) => [c.co2,c.pm,c.temp].some((v) => v != null)) ? "有有效数据的各项达标时间占比均不低于 95%。" : "所选期间没有可评价的有效数据。"}</p>`
   }`;
@@ -76668,10 +76735,10 @@ function anEnv() {
     tots = { co2: totOf("co2"), pm: totOf("pm"), temp: totOf("temp") },
     pv = (k) => (tots[k] ? `${nf(tots[k].within, tots[k].within >= 99.95 ? 0 : 1)}<small>%</small>` : "—"),
     allK = ["co2", "pm", "temp"].filter((k) => tots[k]).sort((a, b) => tots[a].within - tots[b].within)[0],
-    nm = { co2: "CO₂", pm: "PM2.5", temp: "温度" },
+    nm = { co2: "CO₂", pm: "PM2.5", temp: "温湿度" }, // 2.76 V755：统一写“温湿度”
     needSub = (k) => (need(k) === "—" ? "" : need(k) ? `${need(k)} 个功能区需关注` : "全部 ≥ 95%"),
     blocks = [
-      { k: "all", label: "达标时间占比" + opsInfo("达标时间占比", esc("CO₂、PM2.5、温度各自的达标时间占比，取最低的一项。")), value: allK ? pv(allK) : "—", sub: ["co2", "pm", "temp"].filter((k) => tots[k]).map((k) => `<span class="nw">${nm[k]} ${nf(tots[k].within, tots[k].within >= 99.95 ? 0 : 1)}%</span>`).join(" · ") },
+      { k: "all", label: "达标时间占比" + opsInfo("达标时间占比", esc("CO₂、PM2.5、温湿度各自的达标时间占比，取最低的一项。")), value: allK ? pv(allK) : "—", sub: allK ? `最低一项：${nm[allK]}` : "" }, // 2.76 V746：说明行不再列出后面三个页签的值
       { k: "co2", label: "CO₂" + opsInfo("CO₂", esc(`工作时间有人时 CO₂ 1 h 均值 ≤ ${nf(zr.co2)} ppm 的时间占比；没有占用传感器的按工作时间。`)), value: pv("co2"), sub: needSub("co2") },
       { k: "pm", label: "PM2.5" + opsInfo("PM2.5", esc(`工作时间有人时 PM2.5 24 h 均值 ≤ ${nf(zr.pm)} μg/m³ 的时间占比；没有占用传感器的按工作时间。`)), value: pv("pm"), sub: needSub("pm") },
       { k: "temp", label: "温湿度" + opsInfo("温湿度", esc(`工作时间有人时温度在参考范围内的时间占比。${basis ? `参考为${basis.replace(/^供热/, "供热设定").replace("设定设定", "设定")}，不同的写在该行。` : ""}湿度见趋势图。`)), value: pv("temp"), sub: needSub("temp") },
@@ -76746,15 +76813,15 @@ function anEnv() {
     noAqN = comp.filter((c) => !c.z.aqs.length).length,
     noTN = comp.filter((c) => c.temp == null).length,
     ox = AN_OVER_AI,
-    // 2.75 V713：解读面板不再写三组数字
+    // 2.75 V713：解读面板不再写三组数字；2.76 V746：不写页签与表格里已有的合计与最低值
     ins = noWork
       ? anIns({ notes: ["所选期间没有工作日"] })
       : anIns({
           ai: tot
-            ? `本期${isAll ? `室内环境达标时间占比最低的一项是${anPre(nm[allK])}` : title}，全部功能区合计 ${pct(tot.within)}。${needN ? `${needN} 个功能区低于 95%，${anSp(anZn(low.z))}最低（${pct(val(low))}）。` : "各功能区都不低于 95%。"}${ox && (sel === "co2" || (isAll && lowK === "co2")) ? ox.text : ""}`
+            ? `${needN && low ? `${isAll ? `${needN} 个功能区低于 95%，` : ""}最需要关注的是${anSp(anZn(low.z))}的${anPre(isAll ? nm[lowK] : title)}。` : "各功能区都不低于 95%。"}${ox && (sel === "co2" || (isAll && lowK === "co2")) ? ox.text : ""}`
             : "",
           basis: [["期间", esc(rg.span)], ["对象", esc(`${anFloorShort()} · ${comp.length} 个功能区`)], ["数据", "工作时间有人时的监测读数；没有占用传感器的按工作时间"]],
-          acts: ox && canOperate() && (sel === "co2" || isAll) ? [[esc(ox.title), btn("写入工单", "aiTaskNew", { title: ox.title, zone: ox.zone, text: ox.text }, "sm")]] : [],
+          acts: ox && canOperate() && (sel === "co2" || isAll) ? [[esc(ox.title), btn("采用", "aiTaskNew", { title: ox.title, zone: ox.zone, text: ox.text }, "sm")]] : [],
           notes: [isAll && noAqN ? `${noAqN} 个功能区未安装空气质量传感器` : "", (sel === "temp" || isAll) && noTN ? `${noTN} 个功能区没有温度数据` : "", sel !== "temp" && !isAll && noAqN ? `${noAqN} 个功能区未安装空气质量传感器` : ""],
         });
   // 2.66 V547：统计口径打开与能源同一弹窗的“室内环境”一节；2.71 V676：在“⋯”里
@@ -76914,12 +76981,12 @@ function anSpace() {
     blocks = noWork
       ? [
           { k: "avg", label: "有人比例", value: "—" },
-          { k: "week", label: "按星期", value: "—", off: !weekOk },
+          { k: "week", label: "按星期" + opsInfo("按星期", esc("工作日每天工作时间的平均有人比例，数值为最高的一天；期间至少 7 天。")), value: "—", off: !weekOk },
           { k: "idle", label: "无人开空调" + opsInfo("无人开空调", esc(idleInfo)), value: "—" },
         ]
       : [
       { k: "avg", label: "有人比例" + opsInfo("有人比例", esc("工作日工作时间检测到有人的时间占比，不含公共区域。")), value: avg == null ? "—" : Math.round(avg) + "<small>%</small>", sub: least ? `<span class="nw">${esc(anZn(least.z))}</span> 最低 ${Math.round(anSpaceAvg(least))}%` : "" },
-      { k: "week", label: "按星期", off: !weekOk, value: wkHi ? `${wkHi[0]}<small> ${wkHi[1]}%</small>` : "—", sub: !weekOk ? "期间至少 7 天" : wkLo && wkLo !== wkHi ? `最低 ${wkLo[0]} ${wkLo[1]}%` : "" },
+      { k: "week", label: "按星期" + opsInfo("按星期", esc("工作日每天工作时间的平均有人比例，数值为最高的一天；期间至少 7 天。")), off: !weekOk, value: wkHi ? `${wkHi[0]}<small> ${wkHi[1]}%</small>` : "—", sub: !weekOk ? "期间至少 7 天" : !wkLo ? "" : wkLo[1] !== wkHi[1] ? `最低 ${wkLo[0]} ${wkLo[1]}%` : "各工作日相同" }, // 2.76 V756：与另两个页签同样有 ⓘ 和说明行
       { k: "idle", label: "无人开空调" + opsInfo("无人开空调", esc(idleInfo)), value: idlePct == null ? "—" : Math.round(idlePct) + "<small>%</small>", sub: idleRows.length ? `<span class="nw">${esc(anZn(idleRows[0].z))}</span> 最多 ${nf(idleAc(idleRows[0]), 1)} h${asOf ? ` · ${asOf}` : "/日"}` : "" },
     ],
     sel = anPickOf("space", blocks, "avg"),
@@ -76947,18 +77014,18 @@ function anSpace() {
     leastRk = [...own].sort((a, b) => anSpaceAvg(a) - anSpaceAvg(b) || nameCmp(a, b)).map((r) => ({ name: esc(anZn(r.z)), v: anSpaceAvg(r), text: `${Math.round(anSpaceAvg(r))}%` })),
     idlePanel = noWork || !leastRk.length ? "" : anRankPanel("spaceLeast", "使用最少的功能区", leastRk, { meta: "工作时间有人比例", max: 100, color: S1 });
   const noWorkCard = () => chartCard({ title: { avg: "有人比例", week: "按星期", idle: "无人开空调" }[sel] || "有人比例", meta: rg.span, body: anNoWorkNote() });
-  // 2.75 V710：解读面板不再写三组数字
+  // 2.75 V710：解读面板不再写三组数字；2.76 V746：也不复述页签里的平均、最高与最低
   const ins = noWork
     ? anIns({ notes: ["所选期间没有工作日"] })
     : anIns({
         ai:
           sel === "idle"
-            ? `空调运行时间里约 ${idlePct == null ? "—" : Math.round(idlePct) + "%"} 无人。${aiOn ? `${anSp(anZn(top.z))}最多。风机盘管无人 ${ecoMin} 分钟后才转节能，建议改为无人 30 分钟后（对项目内全部 ${fcN} 台风机盘管生效）。` : ""}`
+            ? aiOn ? `${anSp(anZn(top.z))}无人开空调最多：风机盘管无人 ${ecoMin} 分钟后才转节能，建议改为无人 30 分钟后（对项目内全部 ${fcN} 台风机盘管生效）。` : idleRows.length ? `${anSp(anZn(idleRows[0].z))}无人开空调最多，可检查该区的定时与占用联动。` : ""
             : sel === "week"
-              ? wkHi ? `工作日中${wkHi[0]}有人比例最高（${wkHi[1]}%）${wkLo && wkLo !== wkHi ? `，${wkLo[0]}最低（${wkLo[1]}%）` : ""}。可按星期安排清洁与设备维护。` : ""
-              : avg == null ? "" : `工作时间平均 ${Math.round(avg)}% 的时间有人。${least ? `${anSp(anZn(least.z))}使用最少（${Math.round(anSpaceAvg(least))}%），可考虑合并使用或调整定时。` : ""}`,
+              ? wkHi ? (wkLo && wkLo[1] !== wkHi[1] ? `${wkLo[0]}人最少，适合安排清洁与设备维护。` : "工作日各天的使用相近，清洁与设备维护可按需安排。") : ""
+              : avg == null ? "" : least ? `${anSp(anZn(least.z))}使用最少，可考虑合并使用或调整定时。` : "",
         basis: [["期间", esc(rg.span)], ["对象", esc(`${anFloorShort()} · ${u0.length} 个功能区`)], ["数据", sel === "idle" ? "占用传感器与风机盘管运行模式（同一分钟）" : "占用传感器的有人状态（工作日工作时间）"]],
-        acts: sel === "idle" && aiOn ? [[esc(AI_SUGGESTIONS["meet-ac"].title), aiSuggest("meet-ac")]] : [],
+        acts: sel === "idle" && aiOn ? [[esc(AI_SUGGESTIONS["meet-ac"].title), aiSuggest("meet-ac", "采用")]] : [],
         notes: [noMs ? `${noMs} 个功能区未安装占用传感器` : missing.length ? `${missing.length} 个功能区没有有效数据` : "", sel === "week" ? `${wk.span} 天参与统计，不含节假日` : ""],
       });
   return filterRow({ basis: "none" }) + anGwLine() + anMainCard("space", blocks, noWork ? noWorkCard() : sel === "idle" ? idleCard() : heatCard, { def: "avg", ins }) + (mapCard || idlePanel ? `<div class="an-space-row${mapCard && idlePanel ? "" : " one"}">${idlePanel}${mapCard}</div>` : "") + anPanels([anWider() ? anChildSpacePanel() : ""]);
@@ -77024,7 +77091,7 @@ const anOffDur = (min) => (min >= 1440 ? `${nf(min / 1440, 1)} 天` : durText(Ma
 // 2.66 V624：设备写“编号 设备类型”（E-7F-LC20-09 照明控制器），网关写“E栋 7F 网关”；位置楼层级只写功能区，项目级以上写“E栋 7F · 实验室 E”，网关不写
 const anFlName = (fid) => floorText(fid);
 const anDevName = (p) => (p.type === "gw" ? `${anFlName(p.floorId)} 网关` : `${p.name} ${OV_FN[p.type] || ""}`.trim());
-const anDevAt = (p) => (p.type === "gw" ? "" : anWider() ? [anFlName(p.floorId), g("zones", p.zoneId)?.name].filter(Boolean).join(" · ") : g("zones", p.zoneId)?.name || "");
+const anDevAt = (p) => (p.type === "gw" ? "" : anWider() && !anOneFl() ? [anFlName(p.floorId), g("zones", p.zoneId)?.name].filter(Boolean).join(" · ") : g("zones", p.zoneId)?.name || "");
 // 在线率保留一位小数时向下取：有离线的期间不写成 100.0%（2.66 V642）
 const anPct1 = (v) => (v >= 100 ? "100" : nf(Math.floor(v * 10) / 10, 1));
 // 2.71 V679：迷你图：线宽 1.5，面积从 20% 渐变到 2%，不画坐标和网格；缺数断开
@@ -77308,14 +77375,13 @@ function anHealth() {
     devRk = devs.map((r) => ({ name: esc(anDevName(r.p)), sub: esc(anDevAt(r.p) || ""), v: r.ms / Demo.MIN, text: `${r.n} 次 · ${anOffDur(r.ms / Demo.MIN)}`, attrs: `data-act="anHealthDev" data-id="${esc(r.p.id)}" aria-label="${esc(`${anDevName(r.p)}，查看告警记录`)}"` })),
     devPanel = devRk.length ? anRankPanel("healthDevs", "离线最多的设备", devRk, { meta: "次数 · 累计时长", max: Math.max(1, ...devRk.map((x) => x.v)), color: "#db6a1e" }) : "",
     worstDev = devs[0],
+    // 2.76 V746：AI 解读不写当前离线台数与离线次数（在指标页签），开头写离线最多的设备；V754：“查看告警”“查看设备”为 V698 文字按钮
     // 2.75 V715：解读面板不再写三组数字；在线率与当前离线为 AI 段落加“查看告警”“查看设备”两个文字按钮，诊断为未通过项的处理按钮
     ins = anIns({
       ai:
         sel === "diag"
           ? bad.length ? `${bad.length} 项检查未通过：${bad.map((c) => `${c.name}（${c.cause}）`).join("；")}。建议先处理${bad[0].short}。` : "近 7 天五项检查全部通过。"
-          : `${h.off.length ? `当前 ${h.off.length} 台离线${h.unknown.length ? `、${h.unknown.length} 台状态未知` : ""}。` : "当前全部在线。"}${eps.length
-            ? `期间内 ${devs.length} 台设备共离线 ${eps.length} 次，累计 ${anOffDur(totMin)}。${worstDev ? `${anSp(anDevName(worstDev.p))}最多（${worstDev.n} 次），多为供电或无线信号问题，可到现场检查。` : ""}`
-            : "期间内没有设备离线。"}`,
+          : `${worstDev ? `${anSp(anDevName(worstDev.p))}离线最多，多为供电或无线信号问题，可到现场检查。` : eps.length ? "离线多为供电或无线信号问题，可到现场检查。" : h.off.length ? "有设备刚离线，可先检查供电与无线信号。" : "期间内设备运行稳定。"}${h.unknown.length ? `另有 ${h.unknown.length} 台状态未知。` : ""}`,
       basis: [["期间", esc(sel === "diag" ? "近 7 天" : rg.span)], ["对象", esc(`${anFloorShort()} · ${ps.length} 台设备`)], ["数据", "设备心跳与离线告警；网络检测与夜间复测"]],
       acts: sel === "diag" ? bad.filter((c) => c.act).slice(0, 3).map((c) => [esc(c.next), c.act]) : [],
       links: sel === "diag" ? [] : [anLink("查看告警", "opsHealthAlarms", { kind: "offline" }), anLink("查看设备", "toDevices", { view: "1" })],
@@ -77767,7 +77833,7 @@ function alarmTabItems() {
   return [["current", "未处理", n("current")], ["tasks", "处理中", n("tasks")], ["verify", "待核验", n("verify")], ["history", "已结束"]];
 }
 // 2.75 V717：列表行用 V699 的事件行，右侧不再另起一列。第二行依次写位置、时长或时间、处理人与状态（“李工处理中”）；
-// 只有“待确认”“未指派”“需返工”用琥珀色文字，“逾期”用危险色；暂缓写“暂缓至 …”
+// 只有“待确认”“需返工”用琥珀色文字（2.76 V759：“未指派”为 #636363），“逾期”用危险色；暂缓写“暂缓至 …”
 function alRowSub(it) {
   const { a, t } = it,
     amb = (s) => `<span class="ov3-pend">${esc(s)}</span>`,
@@ -77778,12 +77844,12 @@ function alRowSub(it) {
     return [esc(alLast(a)), it.st === "current" && alSnoozed(a) ? esc(`暂缓至 ${evWhen(Date.parse(a.snoozeUntil))}`) : a.closedAt ? "已关闭" : a.state === "recovered" ? "已恢复" : "已确认"];
   }
   const who = t.assignee ? nwText(t.assignee) : "";
-  if (it.st === "current") return [esc(evWhen(Date.parse(t.at))), amb("未指派")];
+  if (it.st === "current") return [esc(evWhen(Date.parse(t.at))), "未指派"];
   if (it.st === "tasks") {
     if (it.rw) return [esc(it.rw.id === it.a?.id ? "告警仍未恢复" : `再次触发 ${evWhen(Date.parse(it.rw.at))}`), who + amb("需返工")];
     const od = taskOverdue(t),
       plan = t.planAt ? `计划 ${evWhen(Date.parse(t.planAt))}` : "未登记计划";
-    return [od ? crit(plan) : esc(plan), !who ? amb("未指派") : taskReworked(t) ? who + amb("需返工") : who + esc(taskState(t)), od ? crit("逾期") : ""];
+    return [od ? crit(plan) : esc(plan), !who ? "未指派" : taskReworked(t) ? who + amb("需返工") : who + esc(taskState(t)), od ? crit("逾期") : ""];
   }
   if (it.st === "verify") return [done(t.closedAt), esc(`核验至 ${evWhen(Date.parse(t.closedAt) + AL_VERIFY)}`)];
   return [done(t.closedAt), taskSource(t) === "alarm" ? "已核验" : "已完成"];
@@ -77798,7 +77864,8 @@ function alRowHtml(it, on, dflt) {
       .join(""),
     title = a && src === "alarm" ? alTitleHtml(alarmTitle(a)) : nwText(t.name),
     // 2.75 V738、V739 同样用于告警列表：第二行只写位置（标题已含位置时不写）、时长与状态，读数与“连带…”在详情里
-    sub = [a && src === "alarm" ? esc(alLocOnly(a)) : nwDots(t.scopeLabel || floorLabel()), ...alRowSub(it)].filter(Boolean).join(" · ");
+    // 2.76 V758：已结束的告警第二行先写开始时间；V759：位置按总览的规则写（范围在楼层以上时写出范围以下的各级），告警与工单相同
+    sub = [it.st === "history" && a && !t ? esc(opsWhen(alarmStart(a))) : "", a && src === "alarm" ? nwDots(esc(alAt(alarmFloor(a), alLocOnly(a), alarmTitle(a).title))) : nwDots(esc(alTaskAt(t))), ...alRowSub(it)].filter(Boolean).join(" · ");
   return `<button type="button" class="al-li l${a ? Math.min(2, lvlRank(a.level)) : 3}${on ? " on" : ""}${on && dflt ? " dflt" : ""}" data-act="${t ? "opsTask" : "opsAlarm"}" data-id="${it.id}"${on ? ' aria-current="true"' : ""}><i class="al-sv" aria-hidden="true"></i><span class="al-li-m"><span class="al-li-t">${a ? `<span class="sr-only">${esc(LV(a.level))}：</span>` : ""}<span class="al-li-tt">${title}</span>${tags ? `<span class="al-li-b">${tags}</span>` : ""}</span><span class="al-li-s">${sub}</span></span></button>`;
 }
 // 2.75 V717：列表为空时卡片中间只写一句
@@ -77810,7 +77877,7 @@ function alList(tab) {
     pick = d ? rows.find((it) => (d.kind === "task" ? it.t?.id === d.id : it.id === d.id || it.a?.id === d.id || it.rw?.id === d.id || (!!it.t && taskAlarms(it.t).some((x) => x.id === d.id)))) : null,
     sel = pick || rows[0],
     ops = canOperate(),
-    repair = ops ? btn(ico("plus", "ic16") + "新建工单", "opsRepairNew", {}, "primary") : "";
+    repair = ops ? btn(ico("plus", "ic16") + "新建工单", "opsRepairNew") : ""; // 2.76 V757：页头为次按钮，主按钮留给详情里的处理操作
   // 2.75 V717：页头行右侧为“新建工单”（各页签相同），未处理有两条以上待确认时前面加“全部确认”；页签行右端只留筛选（处理中为负责人，已结束为期间）
   opsHeadActs = (tab === "current" && ops && rows.filter((it) => it.a && !it.t && !it.a.acknowledged).length >= 2 ? btn("全部确认", "opsAckAll") : "") + repair;
   if (tab === "current") opsTabTools = "";
@@ -78027,7 +78094,7 @@ function alDetailParts(a, it = null) {
     tkRows = !tk
       ? []
       : [
-          ["负责人", tk.assignee ? esc(tk.assignee) : `<span class="ov3-pend">未指派</span>`],
+          ["负责人", esc(tk.assignee || "未指派")],
           tk.closedAt ? ["完成", esc(evWhen(Date.parse(tk.closedAt)))] : ["计划完成", tk.planAt ? `<span class="${taskOverdue(tk) ? "ops-crit-t" : ""}">${esc(evWhen(Date.parse(tk.planAt)))}</span>` : "未登记"],
           st === "verify" ? ["核验", `${esc(evWhen(Date.parse(tk.closedAt) + AL_VERIFY))} 前没有再次触发即通过`] : null,
           tk.description ? ["说明", esc(tk.description)] : null,
@@ -78206,7 +78273,7 @@ function taskDetailParts(t) {
   const srcText = src === "repair" ? `报修${(t.reporters || []).length > 1 ? `，报修 ${t.reporters.length} 人` : t.by ? `，${t.by}登记` : ""}${t.reading && !t.judge ? `；${t.reading}` : ""}` : "定期检查",
     info = [
       ["来源", src === "alarm" ? srcs.map((a) => `<button type="button" class="ops-link" data-act="opsAlarm" data-id="${a.id}">${alTitleHtml(alarmTitle(a))} ›</button>${a.state === "recovered" ? ` <span class="ops-dim">已恢复</span>` : ""}`).join("<br>") || "告警" : `${esc(srcText)}${src === "periodic" && t.rule ? ` · <button type="button" class="ops-link" data-act="goSettings" data-tab="general" data-p="${esc(t.projectId)}">查看参数 ›</button>` : ""}`],
-      ["负责人", t.assignee ? esc(t.assignee) : `<span class="ops-warn-t">未指派</span>`],
+      ["负责人", esc(t.assignee || "未指派")],
       ["计划完成", t.planAt ? `<span class="${taskOverdue(t) ? "ops-crit-t" : ""}">${esc(evWhen(Date.parse(t.planAt)))}</span>` : "未登记"],
       // 2.66 V455：今天只写 HH:MM
       ["创建", esc([src === "periodic" ? "按参数自动生成" : t.by, evWhen(Date.parse(t.at))].filter(Boolean).join(" · "))],
@@ -78743,7 +78810,7 @@ function scNewModal() {
     one = D.items?.length === 1 && D.items[0].type === "schedule" && !D.items[0].scene.exist,
     body = `<div class="sc-ask sc-new"><div class="sc-ask-bar"><input id="scAskQ" class="sc-ask-in" type="text" autocomplete="off" maxlength="120" placeholder="${esc(SC_ASK_PH)}" aria-label="描述要自动做的事" value="${esc(q)}"><button type="button" class="sc-ask-go" data-act="scAskGo" aria-label="生成草稿"${q.trim() ? "" : " disabled"}>${ico("au-send", "ic16")}</button></div>${
       D.err ? `<p class="sc-ask-err" role="alert">${esc(D.err)}</p>` : ""
-    }${D.items?.length ? "" : `<button type="button" class="sc-new-form" data-act="scNewForm">逐项填写</button>`}${D.items?.length ? scAskCard(D.items) : ""}</div>`;
+    }<button type="button" class="sc-new-form" data-act="scNewForm">逐项填写</button>${D.items?.length ? scAskCard(D.items) : ""}</div>`;
   modal("新建", body, D.items?.length ? btn("取消", "scAskClose") + (one ? btn("在编辑页修改", "scAskEdit") : "") + btn("确认保存", "scAskSave", {}, "primary") : "", false);
 }
 function scAskCard(items) {
@@ -83584,12 +83651,13 @@ const AI_KIND_BTN = { control: "确认下发", param: "去修改", resync: "重�
 const aiNeedsEdit = (s) => s.kind === "param" || s.kind === "resync";
 const aiAllowed = (s) => (aiNeedsEdit(s) ? canEdit() : canOperate());
 const aiWhy = (s) => (aiNeedsEdit(s) ? "需要配置权限" : "需要运营权限");
-const aiSuggest = (sid) => {
+// 2.76 V751：数据分析的建议行传入 label“采用”，点后仍打开原来的确认弹窗
+const aiSuggest = (sid, label = "") => {
   const s = AI_SUGGESTIONS[sid];
   if (!s) return "";
   // 重新下发配置后设备回读与参数一致：写一行状态，不再给按钮
   if (s.kind === "resync" && !aiResyncPts(s).length) return `<span class="ai-saved">${ico("check", "ic16")}配置已同步</span>`;
-  return aiAllowed(s) ? `<button class="btn sm" data-act="aiAdopt" data-id="${sid}">${AI_KIND_BTN[s.kind]}</button>` : `<button class="btn sm" disabled>${AI_KIND_BTN[s.kind]}</button><span class="ai-why">${aiWhy(s)}</span>`;
+  return aiAllowed(s) ? `<button class="btn sm" data-act="aiAdopt" data-id="${sid}">${label || AI_KIND_BTN[s.kind]}</button>` : `<button class="btn sm" disabled>${label || AI_KIND_BTN[s.kind]}</button><span class="ai-why">${aiWhy(s)}</span>`;
 };
 // 2.71 V689：AI 解读卡：左上灰色“AI”标识，一段话，底部“依据 ›”展开期间、对象与数据来源；告警详情的 AI 判断卡同样写法
 const aiInsight = (text, basis = []) =>
@@ -89459,6 +89527,16 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "2.76",
+    date: "2026-11-01",
+    notes: [
+      "改进：数据分析的解读直接写结论与原因，不再重复页签里的数；摘要卡片与各页签用同一说法。",
+      "改进：告警列表按所选范围写位置，已结束的告警写开始时间，便于区分。",
+      "改进：场景操作记录的筛选改为分段控件，结果写成文字；新建弹窗起草后仍可逐项填写。",
+      "修复已知问题，优化界面细节。",
+    ],
+  },
   {
     version: "2.75",
     date: "2026-11-01",
