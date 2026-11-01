@@ -27677,10 +27677,7 @@ body:has(.demo-cap) > #ai-pal > .ai-pal {
 .dialog.demo-cat-dlg {
   width: min(640px, calc(100vw - 32px));
 }
-.demo-cat-q {
-  position: relative;
-  margin: 0 0 8px;
-}
+.demo-cat-q { position: relative; display: flex; align-items: center; gap: 12px; margin: 0 0 8px; }
 .demo-cat-q .ic {
   position: absolute;
   left: 12px;
@@ -27688,8 +27685,9 @@ body:has(.demo-cap) > #ai-pal > .ai-pal {
   color: var(--text3);
   pointer-events: none;
 }
-.demo-cat-q input {
-  width: 100%;
+.demo-cat-q input[type="search"] {
+  flex: 1;
+  min-width: 0;
   height: 36px;
   padding: 0 12px 0 36px;
   border: 1px solid var(--line);
@@ -27698,17 +27696,21 @@ body:has(.demo-cap) > #ai-pal > .ai-pal {
   font: inherit;
   font-size: 14px;
 }
-.demo-cat-q input:focus {
+.demo-cat-q input[type="search"]:focus {
   outline: 0;
   border-color: #00aeef;
 }
-.demo-cat-g h3 {
-  margin: 12px 0 4px;
-  font-size: 12px;
-  line-height: 18px;
-  font-weight: 500;
-  color: var(--text3);
-}
+/* 2.69：类别标题（右侧已核对数）、页面小标题；页面行之后的状态缩进；行尾为核对勾选与“只看未核对” */
+.demo-cat-todo { display: inline-flex; flex: none; align-items: center; gap: 6px; font-size: 14px; line-height: 22px; color: var(--text2); cursor: pointer; }
+.demo-cat-c h3 { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 16px 0 0; font-size: 16px; line-height: 24px; font-weight: 600; color: var(--text); }
+.demo-cat-c:first-child h3 { margin-top: 4px; }
+.demo-cat-c h3 small { font-size: 12px; line-height: 18px; font-weight: 400; color: var(--text3); font-variant-numeric: tabular-nums; }
+.demo-cat-g h4 { margin: 12px 0 4px; font-size: 12px; line-height: 18px; font-weight: 500; color: var(--text3); }
+.demo-cat-r { display: flex; align-items: center; gap: 4px; }
+.demo-cat-r.sub .demo-cat-i { padding-left: 26px; }
+.demo-cat-ck { display: flex; flex: none; align-items: center; justify-content: center; width: 40px; min-height: 40px; cursor: pointer; }
+.demo-cat-ck input { width: 16px; height: 16px; margin: 0; cursor: pointer; }
+@media (pointer: coarse) { .demo-cat-ck { width: 44px; min-height: 44px; } }
 .demo-cat-i {
   display: flex;
   align-items: center;
@@ -86640,6 +86642,11 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "2.69",
+    date: "2026-11-01",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
+  {
     version: "2.68",
     date: "2026-11-01",
     notes: [
@@ -99414,15 +99421,15 @@ const DEMO_EXPORT_MARK = { tag: "演示" };
 function auDemoMenuRole(o) { return o.id === AUTH.org && U.role && U.role !== o.role ? auSegs([auRole(U.role), "演示"]) : auRole(o.role); }
 
 /* ---------- 演示状态 ---------- */
-const DEMO = { stateOn: false, running: false, offline: false, cur: "", catQ: "", link: "" };
+const DEMO = { stateOn: false, running: false, offline: false, cur: "", catQ: "", catTodo: false, link: "" };
 // 逐个查看页面与状态（2026-10-08 Account 核查 C10，HONG 确认）：记下最后打开的目录条目与目录的搜索词，在本次浏览期间保留（刷新后仍在）。
 const DEMO_STEP_KEY = "pacom-v13-demo-step";
 try {
-  Object.assign(DEMO, (({ cur = "", q = "" }) => ({ cur, catQ: q }))(JSON.parse(sessionStorage.getItem(DEMO_STEP_KEY) || "{}") || {}));
+  Object.assign(DEMO, (({ cur = "", q = "", todo = false }) => ({ cur, catQ: q, catTodo: !!todo }))(JSON.parse(sessionStorage.getItem(DEMO_STEP_KEY) || "{}") || {}));
 } catch {}
 function demoStepSave() {
   try {
-    sessionStorage.setItem(DEMO_STEP_KEY, JSON.stringify({ cur: DEMO.cur, q: DEMO.catQ }));
+    sessionStorage.setItem(DEMO_STEP_KEY, JSON.stringify({ cur: DEMO.cur, q: DEMO.catQ, todo: DEMO.catTodo }));
   } catch {}
 }
 let demoOpeningWorkspace = null;
@@ -99996,7 +100003,7 @@ function demoMenuHtml() {
     inWs
       ? demoItem("demoRoles", "切换角色", "", {}, `<span class="demo-mi-r">${auRole(U.role)}</span>`)
       : demoItem("demoSignIn", "登录并进入工作区", "王敏 · 机构管理员 · 广州国家实验室")
-  }<div class="demo-sep" role="separator"></div>${demoItem("demoCatalog", "页面与状态", `登录、注册、邀请、机构、工作区、空状态、配置与运营，共 ${DEMO_ITEMS.length} 项`)}${typeof scrLinks === "function" ? demoItem("demoScreenGo", "大屏", "值班、管理与公共三种版式，用展示链接打开", { k: DEMO_SCREENS[0].token }) : ""}<div class="demo-sep" role="separator"></div><div class="demo-h">其他产品</div>${demoItem("demoApp", "部署 App", "手机端 · 现场绑定、配置与局部测试")}<div class="demo-sep" role="separator"></div>${demoItem("demoHelp", "演示说明")}</div>`;
+  }<div class="demo-sep" role="separator"></div>${demoItem("demoCatalog", "页面与状态", `账户、配置、运营与通用，共 ${DEMO_ITEMS.length} 项`)}${typeof scrLinks === "function" ? demoItem("demoScreenGo", "大屏", "值班、管理与公共三种版式，用展示链接打开", { k: DEMO_SCREENS[0].token }) : ""}<div class="demo-sep" role="separator"></div><div class="demo-h">其他产品</div>${demoItem("demoApp", "部署 App", "手机端 · 现场绑定、配置与局部测试")}<div class="demo-sep" role="separator"></div>${demoItem("demoHelp", "演示说明")}</div>`;
 }
 
 /* ---------- 驱动实际页面的小工具 ---------- */
@@ -100385,11 +100392,25 @@ function demoRcptFail() {
     if (el) devicePop(el, p.id);
   });
 }
-// [分组, id, 名称, 说明, 打开方式]
+// [分组（页面）, id, 名称, 说明, 打开方式]
+// 2.69（HONG 2026-11-01 09:22Z）：目录按类别分区（账户、配置、运营、通用），类别内按页面分组，分组名即页面；DEMO_ITEMS 按 DEMO_CATS 的顺序排列。
+// 每个页面（含各页签）一项，页面上的状态与弹窗列在其后（目录中缩进）；“被移出机构”“申请未获批准”与“选择机构”“尚未加入机构”看到的页面相同，不再单列。
+const DEMO_CATS = [
+  ["账户", ["登录", "登录验证", "重置密码", "注册：加入", "注册：创建机构", "受邀加入", "已登录：加入或创建机构", "进入机构", "订阅与订单", "机构设置", "我的账户", "隐私和法律"]],
+  ["配置", ["全部项目", "项目", "楼宇", "楼层图", "设备标记", "设备网络", "网络详情", "系统接入", "设备列表", "设备分组", "固件升级", "应用设置", "配置进度"]],
+  ["运营", ["总览", "我的区域", "数据分析", "告警", "场景"]],
+  ["通用", ["智能助手", "异常与维护", "机构菜单与帮助"]],
+];
+// 页面行：同一页面的状态与弹窗缩进列在其后
+const demoHead = (fn) => Object.assign(fn, { head: true });
+const demoPg = (hash, fn) => demoHead(demoX(hash, fn));
+const demoAcc = (hash, fn) => demoHead(() => (demoIn(), fn && fn(), demoHash(hash)));
+const demoMarkHash = (mode) => `#devices?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}&f=${DEMO_IDS.floor}&tab=mark&mode=${mode}`;
+const demoHelp = (fn) => () => (demoIn(), demoHash("#overview"), demoAfter(fn));
 const DEMO_ITEMS = [
   // 2.33（2026-10-27 HONG 06:24Z 按推荐，账户第 270 条）：11 组 86 项，名称即打开后看到的页面或状态，分组按使用顺序；
   // 删除的页面不留条目（第 269 条），每一版同步（第 271 条）。
-  ["登录", "login", "登录", "", () => (demoOut(), demoShow("login"))],
+  ["登录", "login", "登录", "", demoHead(() => (demoOut(), demoShow("login")))],
   ["登录", "login-empty", "未填写直接登录", "字段下方提示", () => (demoOut(), demoShow("login"), demoSubmit("login"))],
   ["登录", "login-badid", "账户格式不正确", "", () => (demoOut(), Object.assign(AUX.v, { id: "wang.min@example", pwd: "password" }), demoShow("login"), demoSubmit("login"))],
   ["登录", "login-wrong", "账户或密码不正确", "", () => (demoOut(), Object.assign(AUX.v, { id: "wang.min@example.test", pwd: "password" }), (DEMO_FAIL.password = 1), demoShow("login"), demoSubmit("login"))],
@@ -100425,7 +100446,6 @@ const DEMO_ITEMS = [
   ["登录", "login-sms-limit", "今日发送次数已达上限", "", () => (demoOut(), (AUX.sms = true), (AUX.v.sphone = "139 0000 0101"), (DEMO_FAIL.send = "limit"), demoShow("login"), demoClick(".au-getcode"))],
   ["登录", "login-sms-recycled", "号码近期已更换使用人", "二次号，短信不生效", () => (demoOut(), (AUX.sms = true), (AUX.v.sphone = "139 0000 0101"), (DEMO_FAIL.send = "recycled"), demoShow("login"), demoClick(".au-getcode"))],
   ["登录", "login-sms-frequent", "发送次数过多", "", () => (demoOut(), (AUX.sms = true), (AUX.v.sphone = "139 0000 0101"), (DEMO_FAIL.send = "frequent"), demoShow("login"), demoClick(".au-getcode"))],
-
   // 登录验证（第 264–268 条）：输完账户和密码后，在登录页上打开“登录验证”弹窗
   ["登录验证", "lv-phone", "新设备登录：验证手机号码", "机构管理员 · 王敏", () => demoMfa()],
   ["登录验证", "lv-mail", "定期验证电子邮箱", "距上次验证满 90 天 · 王敏", () => (demoOut(), ((AUTH.trustedDev ||= {}).wm = 1), (AUTH.people.wm.mailAt = auYmdAdd(auCstYmd(), -91)), demoLv("wang.min@example.test"))],
@@ -100450,8 +100470,7 @@ const DEMO_ITEMS = [
       });
     },
   ],
-
-  ["重置密码", "login-forgot", "重置密码弹窗", "登录页“忘记密码？”打开", () => (demoOut(), (AUX.v.id = "wang.min@example.test"), demoShow("login"), demoAfter(() => actions.auForgot()))],
+  ["重置密码", "login-forgot", "重置密码弹窗", "登录页“忘记密码？”打开", demoHead(() => (demoOut(), (AUX.v.id = "wang.min@example.test"), demoShow("login"), demoAfter(() => actions.auForgot())))],
   ["重置密码", "reset-sent", "邮件验证码已发送", "电子邮箱收邮件验证码", () => (demoOut(), (AUX.v.id = "wang.min@example.test"), demoShow("login"), demoAfter(() => (actions.auForgot(), demoClick("#dlg .au-getcode"))))],
   ["重置密码", "login-forgot-sms", "短信验证码已发送", "手机号码收短信验证码", () => (demoOut(), (AUX.v.id = "139 0000 0101"), demoShow("login"), demoAfter(() => (actions.auForgot(), demoClick("#dlg .au-getcode"))))],
   ["重置密码", "reset-err", "未填写直接重置", "", () => (demoOut(), demoShow("login"), demoAfter(() => (actions.auForgot(), demoSubmit("reset"))))],
@@ -100461,8 +100480,6 @@ const DEMO_ITEMS = [
   ["重置密码", "reset-failed", "暂时无法重置", "", () => ((DEMO_FAIL.operation = "resetPassword"), demoReset("123456"))],
   ["重置密码", "reset-ok", "重置后直接登录", "运营人员 · 黄帅，直接进入工作区", () => demoReset("123456", "Pacom#2026x", "huang.shuai@example.test")],
   ["重置密码", "reset-admin", "机构管理员：重置后验证手机号码", "用电子邮箱重置 · 王敏", () => demoReset("123456")],
-
-  // 申请访问：加入（第 256、257 条：两步逐步填写）
   ["注册：加入", "join-1", "第 1 步 创建账户", "登录页“注册”进入", () => (demoOut(), demoShow("join"))],
   ["注册：加入", "join-1-sent", "第 1 步 验证码已发送", "", () => (demoOut(), Object.assign(AUX.v, { rg_name: "陈璐", rg_mail: "chen.lu@example.test" }), (AUX.ec.rg = { to: "chen.lu@example.test", cool: auNow() + 6e4, exp: auNow() + 10 * 6e4 }), demoShow("join"))],
   ["注册：加入", "join-2-code", "第 2 步 填写邀请码", "没有发给这个账户的邀请", () => (demoOut(), demoJoinAt("陈璐", "chen.lu@example.test"), demoShow("join"))],
@@ -100470,57 +100487,37 @@ const DEMO_ITEMS = [
   ["注册：加入", "join-bad", "邀请码不正确", "", () => (demoOut(), demoJoinAt("周宁", "zhou.ning@example.test"), Object.assign(AUX.v, { jn_code: "123 456 789", jn_note: "广实2号园物业工程部。" }), demoShow("join"), demoSubmit("join"))],
   // 2.42 账户第 374 条：从同事的加入链接打开，标题写机构，第 2 步“提交申请”
   ["注册：加入", "join-link", "打开加入链接", "标题写出机构，邀请码已带入", () => (demoOut(), (AUX.v.jn_code = auJoinCodeText("386204517")), (AUX.joinLinkOrg = auJoinOrgOf("386204517")), demoShow("join"))],
-  ["注册：加入", "join-in", "已登录：申请加入", "尚未加入机构的账户", () => (demoNoOrg(), (AUX.v.jn_code = auJoinCodeText("386204517")), demoShow("join"))],
-  // 2.67 账户第 795 条：已有机构的账户在工作区弹窗中申请加入，提交后“我的机构”最上方显示这条申请
-  ["注册：加入", "join-dlg", "已登录：加入机构弹窗", "已有机构的账户从“我的机构”申请", () => (demoIn(), demoHash("#account?tab=orgs"), demoAfter(() => actions.auJoinDlg()))],
   ["注册：加入", "join-wait", "申请已提交", "", () => (demoJoin("pending"), demoShow("join", "wait"))],
-  // 2.38 账户第 337、338 条：未获批准、已过期不再有单独页面，登录后在“尚未加入机构”页顶提示
-  ["注册：加入", "join-rejected", "申请未获批准", "登录后进入尚未加入机构，不另提示", () => demoJoinNotice("rejected")],
   ["注册：加入", "join-expired", "申请已过期", "7 天没有处理", () => demoJoinNotice("expired")],
-
-  // 申请访问：创建新机构（2.38 账户第 339 条：三步，提交即创建）
   ["注册：创建机构", "create-1", "第 1 步 创建账户", "“创建新机构”", () => demoApplyAt(1)],
   ["注册：创建机构", "create-2", "第 2 步 绑定手机号码", "", () => demoApplyAt(2)],
   ["注册：创建机构", "create-3", "第 3 步 填写机构信息", "", () => demoApplyAt(3)],
   ["注册：创建机构", "create-err", "机构信息需要核对", "第 3 步未填写直接创建", () => (demoApplyAt(3), demoSubmit("apply"))],
-  // 2.67 账户第 794 条：已登录时在同一个弹窗内填写机构信息
-  ["注册：创建机构", "create-signed", "已登录：创建机构", "选“否，创建另一个机构”后在弹窗中填写", () => (demoIn(), demoHash("#overview"), demoAfter(() => (actions.auNewOrg(), actions.auNewOrgCreate())))],
+  ["受邀加入", "inv-new", "受邀注册", "受邀邮箱还没有账户", () => (demoInvite("member", "new"), demoShow("invite", "member"))],
+  ["受邀加入", "inv-admin", "受邀注册：机构管理员（含手机号码）", "注册时绑定手机号码", () => (demoInvite("member", "new", "admin"), demoShow("invite", "member"))],
+  ["受邀加入", "inv-new-err", "受邀注册：需要核对", "未填写直接注册", () => (demoInvite("member", "new"), (AUX.v.iv_name = ""), demoShow("invite", "member"), demoSubmit("invite"))],
+  ["受邀加入", "inv-existing", "受邀登录", "已有账户、未登录：登录后直接加入", () => (demoInvite("member", "existing"), demoShow("invite", "member"))],
+  ["受邀加入", "inv-other", "当前账户不是受邀账户", "已登录其他账户时打开邀请", () => (demoInvite("member", "new"), demoIn(), demoShow("invite", "member"))],
+  ["受邀加入", "inv-expired", "邀请已失效", "", () => demoInvitationState("expired")],
+  ["已登录：加入或创建机构", "join-in", "已登录：申请加入", "尚未加入机构的账户", () => (demoNoOrg(), (AUX.v.jn_code = auJoinCodeText("386204517")), demoShow("join"))],
+  // 2.67 账户第 795 条：已有机构的账户在工作区弹窗中申请加入，提交后“我的机构”最上方显示这条申请
+  ["已登录：加入或创建机构", "join-dlg", "已登录：加入机构弹窗", "已有机构的账户从“我的机构”申请", () => (demoIn(), demoHash("#account?tab=orgs"), demoAfter(() => actions.auJoinDlg()))],
   // 2.42 账户第 379 条：机构菜单或“我的机构”的“创建机构”先问是否在当前机构创建项目；第 375 条：缺电子邮箱或手机号码时先绑定
-  ["注册：创建机构", "create-choose", "创建机构：先选择", "在当前机构创建项目，或创建另一个机构", () => (demoIn(), demoHash("#overview"), actions.auNewOrg())],
-  ["注册：创建机构", "create-signed-bind", "已登录创建机构：先绑定", "用手机号码注册、没有电子邮箱的账户", () => (demoPhoneOnly(), auClearApply(), demoShow("orgs", "apply"))],
-
-  ["受邀注册", "inv-new", "受邀注册", "受邀邮箱还没有账户", () => (demoInvite("member", "new"), demoShow("invite", "member"))],
-  ["受邀注册", "inv-admin", "受邀注册：机构管理员（含手机号码）", "注册时绑定手机号码", () => (demoInvite("member", "new", "admin"), demoShow("invite", "member"))],
-  ["受邀注册", "inv-new-err", "受邀注册：需要核对", "未填写直接注册", () => (demoInvite("member", "new"), (AUX.v.iv_name = ""), demoShow("invite", "member"), demoSubmit("invite"))],
-  ["受邀注册", "inv-existing", "受邀登录", "已有账户、未登录：登录后直接加入", () => (demoInvite("member", "existing"), demoShow("invite", "member"))],
-  ["受邀注册", "inv-other", "当前账户不是受邀账户", "已登录其他账户时打开邀请", () => (demoInvite("member", "new"), demoIn(), demoShow("invite", "member"))],
-  ["受邀注册", "inv-expired", "邀请已失效", "", () => demoInvitationState("expired")],
-
-  ["机构", "orgs", "选择机构", "属于多个机构、没有上次记录", () => (demoIn(), delete AUTH.lastOrg.wm, (AUTH.resume = {}), demoShow("orgs"))],
-  ["机构", "noorg", "尚未加入机构", "", () => (demoNoOrg(), demoShow("orgs"))],
-  ["机构", "noorg-invite", "尚未加入机构：有发给本账户的邀请", "只显示邀请，点“加入”即加入", () => (demoNoOrg(), demoMailInvite(), demoShow("orgs"))],
+  ["已登录：加入或创建机构", "create-choose", "创建机构：先选择", "在当前机构创建项目，或创建另一个机构", () => (demoIn(), demoHash("#overview"), actions.auNewOrg())],
+  // 2.67 账户第 794 条：已登录时在同一个弹窗内填写机构信息
+  ["已登录：加入或创建机构", "create-signed", "已登录：创建机构", "选“否，创建另一个机构”后在弹窗中填写", () => (demoIn(), demoHash("#overview"), demoAfter(() => (actions.auNewOrg(), actions.auNewOrgCreate())))],
+  ["已登录：加入或创建机构", "create-signed-bind", "已登录创建机构：先绑定", "用手机号码注册、没有电子邮箱的账户", () => (demoPhoneOnly(), auClearApply(), demoShow("orgs", "apply"))],
+  ["进入机构", "orgs", "选择机构", "属于多个机构、没有上次记录", () => (demoIn(), delete AUTH.lastOrg.wm, (AUTH.resume = {}), demoShow("orgs"))],
+  ["进入机构", "noorg", "尚未加入机构", "", () => (demoNoOrg(), demoShow("orgs"))],
+  ["进入机构", "noorg-invite", "尚未加入机构：有发给本账户的邀请", "只显示邀请，点“加入”即加入", () => (demoNoOrg(), demoMailInvite(), demoShow("orgs"))],
   [
-    "机构",
+    "进入机构",
     "suspended",
     "机构已暂停使用",
     "",
     // 王敏在该机构是运营人员：不看原因（ABB 对比 BP34）；许可到期由许可服务自动暂停，见“许可已到期”
     () => (demoIn(), (AUTH.orgs[DEMO_PM].suspended = { reason: "客户申请" }), (AUX.suspendedOrg = DEMO_PM), demoShow("suspended")),
   ],
-  // 2.42 账户第 371 条：没有单独页面，进入“选择机构”（没有其他机构时“尚未加入机构”），页顶提示
-  ["机构", "removed", "被移出机构", "直接列出仍可访问的机构，不另提示", () => (demoIn(), delete AUTH.people.wm.orgs[DEMO_PM], delete AUTH.lastOrg.wm, (AUTH.resume = {}), (AUX.removedOrg = DEMO_PM), demoShow("orgs"))],
-  // 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 154 条）：成员页的待批准与邀请码
-  ["机构", "mem-requests", "成员：待批准的加入申请", "批准时选择角色和授权范围", () => {
-    demoIn();
-    AUTH.joinReqs.gzlab = AUTH.joinReqs.gzlab.filter((r) => r.uid !== "zq");
-    AUTH.joinReqs.gzlab.unshift({ id: "jr-demo-1", uid: "zq", name: "赵倩", email: "zhao.qian@example.test", note: "广实2号园物业工程部，负责 E栋照明和空调的日常运维。", at: auNow() - 26 * 36e5, status: "pending" });
-    AUX.orgTab = "requests";
-    demoHash("#org?tab=members");
-  }],
-  ["机构", "org-deleted", "已删除的机构", "30 天内可在“我的机构”恢复", () => (demoDeletedOrg(), demoHash("#account?tab=orgs"))],
-  ["机构", "org-successor", "唯一的机构管理员退出机构", "先选一位成员设为机构管理员", () => (demoIn(), demoHash("#account?tab=orgs"), demoAfter(() => actions.auLeaveOrg({ org: "gzlab" })))],
-
-  // 订阅、订单与付款（2.37 账户第 298–313、326–330 条）
   ["订阅与订单", "lic-none", "机构尚未订阅", "创建后机构管理员看到提示条", () => (demoNewOrg(), demoHash("#overview"))],
   ["订阅与订单", "sub-1", "订阅 · 第 1 步 设备数量与期限", "", () => demoSubAt(1)],
   ["订阅与订单", "sub-2", "订阅 · 第 2 步 机构信息", "", () => demoSubAt(2)],
@@ -100529,18 +100526,6 @@ const DEMO_ITEMS = [
   ["订阅与订单", "renew", "续费", "机构信息与开票信息已有，填好设备数量与期限后在订单摘要提交", () => demoSubAt(1, "renew")],
   ["订阅与订单", "order-pending", "订单待付款", "提交订阅后", () => demoShow("order", demoMakeOrder(false))],
   ["订阅与订单", "order-paid", "订单已付款", "到账后", () => demoShow("order", demoMakeOrder(true))],
-  [
-    "订阅与订单",
-    "lic-pending",
-    "有待付款的订单",
-    "订阅与用量",
-    () => {
-      demoIn();
-      const l = demoLicSeed();
-      l.orders.push({ id: "od-demo-3", no: `PS${auYmdAdd(auCstYmd(), -2).replace(/-/g, "")}-0003`, kind: "renew", text: "续费 · 500 台 · 1 年", quota: 500, years: 1, amount: 30000, status: "pending", at: auNow() - 2 * auDay, until: auYmdAdd(auCstYmd(), 12), by: "王敏", pay: "", stamp: false, billing: { ...(l.billing || {}) } });
-      demoHash("#org?tab=license");
-    },
-  ],
   [
     "订阅与订单",
     "lic-expiring",
@@ -100569,8 +100554,36 @@ const DEMO_ITEMS = [
       demoShow("suspended");
     },
   ],
+  ["机构设置", "org-info", "机构设置 · 机构信息", "", demoAcc("#org?tab=info")],
+  ["机构设置", "org-notify", "机构设置 · 通知", "", demoAcc("#org?tab=notify")],
+  ["机构设置", "org-display", "机构设置 · 展示链接", "", demoAcc("#org?tab=display")],
+  ["机构设置", "org-members", "机构设置 · 成员", "", demoAcc("#org?tab=members", () => (AUX.orgTab = "joined"))],
+  // 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 154 条）：成员页的待批准与邀请码
+  ["机构设置", "mem-requests", "成员：待批准的加入申请", "批准时选择角色和授权范围", () => {
+    demoIn();
+    AUTH.joinReqs.gzlab = AUTH.joinReqs.gzlab.filter((r) => r.uid !== "zq");
+    AUTH.joinReqs.gzlab.unshift({ id: "jr-demo-1", uid: "zq", name: "赵倩", email: "zhao.qian@example.test", note: "广实2号园物业工程部，负责 E栋照明和空调的日常运维。", at: auNow() - 26 * 36e5, status: "pending" });
+    AUX.orgTab = "requests";
+    demoHash("#org?tab=members");
+  }],
+  ["机构设置", "org-roles", "机构设置 · 角色与权限", "", demoAcc("#org?tab=roles")],
+  ["机构设置", "org-license", "机构设置 · 订阅与用量", "", demoAcc("#org?tab=license")],
   [
-    "订阅与订单",
+    "机构设置",
+    "lic-pending",
+    "有待付款的订单",
+    "订阅与用量",
+    () => {
+      demoIn();
+      const l = demoLicSeed();
+      l.orders.push({ id: "od-demo-3", no: `PS${auYmdAdd(auCstYmd(), -2).replace(/-/g, "")}-0003`, kind: "renew", text: "续费 · 500 台 · 1 年", quota: 500, years: 1, amount: 30000, status: "pending", at: auNow() - 2 * auDay, until: auYmdAdd(auCstYmd(), 12), by: "王敏", pay: "", stamp: false, billing: { ...(l.billing || {}) } });
+      demoHash("#org?tab=license");
+    },
+  ],
+  ["机构设置", "org-orders", "机构设置 · 订单与发票", "", demoAcc("#org?tab=orders")],
+  ["机构设置", "org-security", "机构设置 · 安全", "", demoAcc("#org?tab=security")],
+  [
+    "机构设置",
     "lic-api",
     "开放接口已开通",
     "安全页的接口密钥",
@@ -100583,92 +100596,25 @@ const DEMO_ITEMS = [
       demoHash("#org?tab=security");
     },
   ],
-
-  // AI 用量（DEMO03；2026-10-09 用户确认，商业许可方案第 3 条（二））
-  ["AI", "ai-85", "AI 用量已用 85%", "", () => (demoIn(), demoLicSeed(85), demoHash("#overview"), demoAfter(() => aiPalette("", "ask")))],
-  ["AI", "ai-pack", "正在使用 AI 用量包", "", () => (demoIn(), demoLicSeed(102), demoHash("#overview"), demoAfter(() => aiPalette("", "ask")))],
-  ["AI", "ai-out", "AI 用量已用完", "", () => (demoIn(), demoLicSeed(102, 0), demoHash("#overview"), demoAfter(() => aiPalette("昨天 7F 哪个功能区用电最多？", "ask")))],
-  [
-    "AI",
-    "ai-down",
-    "AI 暂时不可用",
-    "提问没有得到回答，可重试",
-    () => {
-      demoIn();
-      demoHash("#overview");
-      AIP.down = true;
-      render();
-      demoAfter(() => aiPalette("实验室 E 为什么不亮灯？", "ask"));
-    },
-  ],
-
-  ["工作区", "notfound", "页面不存在", "", () => (demoIn(), demoHash("#no-such-page"))],
-  ["工作区", "miss-project", "项目不存在或已删除", "楼宇、楼层、功能区相同", () => (demoIn(), demoHash("#projects?p=project-deleted"))],
-  [
-    "工作区",
-    "no-access",
-    "没有访问权限",
-    "权限变更后打开原先可访问的项目",
-    demoNeeds("示例数据中没有广实1号园", () => demoFind("projects", (x) => x.name === "广实1号园"), (p) => {
-      demoIn(DEMO_PM);
-      const m = demoAccessMember();
-      Object.assign(m, { changed: { at: auNow() - 12 * 6e4, by: "刘静", role: m.role, scope: m.scope }, scope: ["广实2号园"] });
-      auSave();
-      demoHash(`#projects?p=${p.id}`);
-    }),
-  ],
-  [
-    "工作区",
-    "offline",
-    "网络连接中断",
-    "顶部提示条；修改无法保存",
-    () => {
-      demoIn();
-      demoHash("#overview");
-      demoOffline(true);
-      DEMO.stateOn = true;
-      render();
-    },
-  ],
-  ["工作区", "unavailable", "服务暂时不可用", "", () => (demoIn(), (AUX.retryHash = "#overview"), demoShow("unavailable"))],
-  [
-    "工作区",
-    "maintenance",
-    "系统维护中",
-    "",
-    () => {
-      const t = new Date();
-      t.setHours(t.getHours() + 2, 0, 0, 0);
-      AUX.maintUntil = t.getTime();
-      demoShow("maintenance");
-    },
-  ],
-  [
-    "工作区",
-    "booterror",
-    "页面加载失败",
-    "浏览器不允许读取或保存站点数据",
-    () => {
-      DEMO.stateOn = true;
-      bootError(new Error("The operation is insecure."));
-    },
-  ],
-
-  ["空状态", "empty-projects", "尚无项目", "没有项目时的项目页", () => (demoIn(), demoOpeningBlank(), demoHash("#projects"))],
-  [
-    "空状态",
-    "empty-buildings",
-    "尚无楼宇",
-    "",
-    demoNeeds(
-      "示例数据中的项目都已有楼宇",
-      () => demoFind("projects", (x) => !data().buildings.some((b) => b.projectId === x.id)),
-      (p) => (demoIn(), demoHash(`#projects?p=${p.id}`)),
-    ),
-  ],
+  ["机构设置", "org-audit", "机构设置 · 审计日志", "", demoAcc("#org?tab=audit")],
+  ["机构设置", "org-data", "机构设置 · 数据导出与删除", "", demoAcc("#org?tab=data")],
+  ["我的账户", "me-profile", "我的账户 · 账户", "", demoAcc("#account?tab=profile")],
+  ["我的账户", "me-security", "我的账户 · 登录设备", "", demoAcc("#account?tab=security")],
+  ["我的账户", "me-notify", "我的账户 · 通知偏好", "", demoAcc("#account?tab=notify")],
+  ["我的账户", "me-orgs", "我的账户 · 我的机构", "", demoAcc("#account?tab=orgs")],
+  ["我的账户", "org-deleted", "已删除的机构", "30 天内可在“我的机构”恢复", () => (demoDeletedOrg(), demoHash("#account?tab=orgs"))],
+  ["我的账户", "org-successor", "唯一的机构管理员退出机构", "先选一位成员设为机构管理员", () => (demoIn(), demoHash("#account?tab=orgs"), demoAfter(() => actions.auLeaveOrg({ org: "gzlab" })))],
+  ["隐私和法律", "legal-privacy", "隐私政策", "隐私和法律", demoHead(() => (demoOut(), demoShow("legal", "privacy")))],
+  ["隐私和法律", "legal-terms", "使用条款", "隐私和法律", demoHead(() => (demoOut(), demoShow("legal", "terms")))],
+  ["隐私和法律", "legal-service", "服务协议", "隐私和法律", demoHead(() => (demoOut(), demoShow("legal", "service")))],
+  ["全部项目", "cfg-pg-grid", "全部项目 · 卡片", "", demoPg("#projects?view=grid")],
+  ["全部项目", "cfg-project-new", "新建项目", "全部项目", demoX("#projects", () => actions.spaceForm({ kind: "projects" }))],
+  ["全部项目", "cfg-project-export", "导出项目资料", "全部项目", demoX("#projects?view=grid", () => actions.exAllOpen({}))],
+  ["全部项目", "cfg-trash", "回收站", "全部项目", demoX("#projects?view=grid", () => actions.trashAll({}))],
+  ["全部项目", "empty-projects", "尚无项目", "没有项目时的项目页", () => (demoIn(), demoOpeningBlank(), demoHash("#projects"))],
   // 空间选择器搜索无结果（2026-10-08 Editor 核查 E31）：打开“全部项目”，展开空间选择器并搜索“滨江”；任何数据中都能打开。
   [
-    "空状态",
+    "全部项目",
     "empty-search",
     "没有匹配的位置",
     "位置选择器搜索无结果",
@@ -100686,8 +100632,31 @@ const DEMO_ITEMS = [
       });
     },
   ],
+  ["全部项目", "cfg-pg-list", "全部项目 · 列表", "", demoPg("#projects?view=list")],
+  ["项目", "cfg-pg-project", "项目", "广实2号园", demoPg(() => `#projects?p=${DEMO_IDS.project}`)],
+  ["项目", "cfg-project-edit", "编辑项目", "广实2号园", demoX(() => `#projects?p=${DEMO_IDS.project}`, () => actions.spaceForm({ kind: "projects", id: DEMO_IDS.project }))],
+  ["项目", "cfg-changes", "修改记录", "广实2号园", demoX(() => `#projects?p=${DEMO_IDS.project}`, () => actions.changes())],
+  ["项目", "cfg-building-new", "新建楼宇", "广实2号园", demoX(() => `#projects?p=${DEMO_IDS.project}`, () => actions.spaceForm({ kind: "buildings" }))],
   [
-    "空状态",
+    "项目",
+    "empty-buildings",
+    "尚无楼宇",
+    "",
+    demoNeeds(
+      "示例数据中的项目都已有楼宇",
+      () => demoFind("projects", (x) => !data().buildings.some((b) => b.projectId === x.id)),
+      (p) => (demoIn(), demoHash(`#projects?p=${p.id}`)),
+    ),
+  ],
+  ["楼宇", "cfg-pg-building", "楼宇", "E栋", demoPg(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}`)],
+  ["楼宇", "cfg-building-edit", "编辑楼宇", "E栋", demoX(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}`, () => actions.spaceForm({ kind: "buildings", id: DEMO_IDS.building }))],
+  ["楼宇", "cfg-plan-upload", "上传楼层图", "E栋 · 已选好一张图片", demoX(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}`, () => demoPlanFile().then((f) => openPlanFiles(DEMO_IDS.building, null, [f])))],
+  ["楼层图", "cfg-pg-floor", "楼层图", "E栋 · 7F · 功能区", demoPg(demoFloorHash)],
+  ["楼层图", "cfg-plan-scale", "设置比例尺", "E栋 · 7F 楼层图", demoX(demoFloorHash, () => actions.scale({}))],
+  ["楼层图", "cfg-zone-draw", "新建功能区", "E栋 · 7F 楼层图 · 拖出矩形", demoX(demoFloorHash, () => actions.drawZone())],
+  ["楼层图", "cfg-zone-copy", "复制功能区到其他楼层", "E栋 · 7F", demoX(demoFloorHash, () => actions.zcForm({ source: DEMO_IDS.floor }))],
+  [
+    "楼层图",
     "empty-plan",
     "楼层尚未上传楼层图",
     "",
@@ -100697,8 +100666,71 @@ const DEMO_ITEMS = [
       (f) => (demoIn(), demoHash(`#projects?p=${g("buildings", f.buildingId).projectId}&b=${f.buildingId}&f=${f.id}`)),
     ),
   ],
+  ["楼层图", "empty-zones", "尚未划分功能区", "切换到“本地规划”数据 · E栋 · 7F", () => demoSwitch("plan", `#projects?f=${OPS_SCOPE.floor}`)],
+  ["设备标记", "cfg-pg-mark", "设备标记 · 设备", "E栋 · 7F", demoPg(() => demoMarkHash("mark"))],
+  ["设备标记", "cfg-mark-check", "规划检查", "楼层图 · E栋 · 7F · 设备", demoX(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}&f=${DEMO_IDS.floor}&mode=mark`, () => (U.checksOpen || actions.checksToggle()))],
+  ["设备标记", "cfg-pg-mark-rel", "设备标记 · 照明分区", "E栋 · 7F", demoPg(() => demoMarkHash("relations"))],
+  ["设备标记", "cfg-pg-mark-roles", "设备标记 · 网络", "E栋 · 7F", demoPg(() => demoMarkHash("roles"))],
+  ["设备网络", "cfg-pg-nets", "设备网络", "", demoPg(() => `#devices?p=${DEMO_IDS.project}&tab=networks`)],
+  ["设备网络", "cfg-net-new", "规划设备网络", "设备网络", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=networks`, () => actions.networkForm({}))],
+  ["设备网络", "empty-networks", "尚无设备网络", "切换到“本地规划”数据 · 设备网络", () => demoSwitch("plan", "#devices?tab=networks")],
+  ["网络详情", "cfg-pg-net", "网络详情 · 概况", "E栋 · 7F 网络", demoPg(() => demoNetHash())],
+  ["网络详情", "cfg-net-gateway", "网关信息", "网络详情 › E栋 · 7F 网络", demoX(() => demoNetHash(), () => demoTap('.flow-section-head [data-act="deviceInfo"]'))],
+  ["网络详情", "cfg-net-params", "网络参数", "网络详情 › 负载分项", demoX(() => demoNetHash(), () => actions.networkParameters({ id: DEMO_IDS.network }))],
+  ["网络详情", "cfg-net-config", "逐项配置", "网络详情 › 查看逐项配置", demoX(() => demoNetHash(), () => actions.configurationList({ id: DEMO_IDS.network }))],
+  ["网络详情", "cfg-mark-bind", "现场绑定", "设备网络 · E栋 · 7F 网络", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=networks&net=${DEMO_IDS.network}`, () => actions.prepareApp({ id: DEMO_IDS.network }))],
+  // 2.65 E982：首次交付、交付记录、多联机调试与现场安装资料也进目录
+  ["网络详情", "cfg-mark-install", "现场安装资料", "设备网络 · E栋 · 7F 网络", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=networks&net=${DEMO_IDS.network}`, () => actions.installKit({ id: DEMO_IDS.network }))],
+  ["网络详情", "cfg-pg-net-health", "网络详情 · 网络检测", "E栋 · 7F 网络", demoPg(() => demoNetHash("&ntab=health"))],
+  ["网络详情", "cfg-net-health", "网络检测", "网络详情 › 局部检测", demoX(() => demoNetHash("&ntab=health"), () => actions.healthForm({ id: DEMO_IDS.network, scope: "near" }))],
+  ["网络详情", "cfg-net-health-record", "网络检测记录", "网络详情 › 一次检测的结果", demoX(() => demoNetHash("&ntab=health"), () => actions.healthRecord({ id: "health-demo-1" }))],
+  ["网络详情", "cfg-pg-net-records", "网络详情 · 记录", "E栋 · 7F 网络", demoPg(() => demoNetHash("&ntab=records"))],
+  ["网络详情", "cfg-net-snapshot", "交付快照", "网络详情 › 记录", demoX(() => demoNetHash("&ntab=records"), () => actions.v13Snapshot({ id: "delivery-demo-1" }))],
+  ["系统接入", "cfg-pg-conn", "系统接入", "", demoPg(demoConnHash)],
+  ["系统接入", "cfg-conn-new", "新建系统连接", "系统接入", demoX(demoConnHash, () => actions.connectionForm({}))],
+  ["系统接入", "cfg-conn-detail", "连接详情", "7F 配电计量", demoX(demoConnHash, () => actions.connectionInfo({ id: "connection-demo-meter" }))],
+  ["设备列表", "cfg-pg-inventory", "设备列表", "", demoPg(() => `#devices?p=${DEMO_IDS.project}&tab=inventory`)],
+  ["设备列表", "cfg-dev-info", "设备信息", "设备列表 › E-7F-LC20-04", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=inventory`, () => actions.deviceInfo({ id: demoPt("E-7F-LC20-04") }))],
+  ["设备列表", "cfg-dev-filter", "筛选设备", "设备列表", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=inventory`, () => actions.deviceFilters())],
+  ["设备分组", "cfg-pg-groups", "设备分组", "", demoPg(() => `#devices?p=${DEMO_IDS.project}&tab=groups`)],
+  ["设备分组", "cfg-group-new", "新建设备分组", "设备分组", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=groups`, () => actions.groupForm({}))],
+  ["固件升级", "cfg-pg-firmware", "固件升级", "", demoPg(() => `#devices?p=${DEMO_IDS.project}&tab=firmware`)],
+  ["固件升级", "cfg-fw-new", "新建升级任务", "固件", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=firmware`, () => actions.firmwareGuide())],
+  ["固件升级", "cfg-fw-task", "升级任务详情", "固件 › FC20 升级到 1.1.1", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=firmware`, () => actions.firmwareDetail({ id: "fw-demo-fc-111" }))],
+  ["应用设置", "cfg-pg-set-general", "应用设置 · 通用", "", demoPg(() => demoSetHash("general"))],
+  ["应用设置", "cfg-set-standard", "修改适用标准", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.v13ProfileEdit())],
+  ["应用设置", "cfg-set-hours", "工作时间", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.workHoursOpen({ p: DEMO_IDS.project }))],
+  ["应用设置", "cfg-set-holiday", "节假日表", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.holidaysOpen({ p: DEMO_IDS.project, year: hdYearNow() }))],
+  ["应用设置", "cfg-set-outdoor", "室外数据", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.outdoorSource({ project: DEMO_IDS.project }))],
+  ["应用设置", "cfg-tpl-diff", "参数模板新版本", "应用设置 › 查看变化", demoX(() => demoSetHash("general"), () => actions.v13TplDiff())],
+  ["应用设置", "cfg-pg-set-lighting", "应用设置 · 照明", "", demoPg(() => demoSetHash("lighting"))],
+  ["应用设置", "cfg-set-lighting", "按空间类型的默认值", "应用设置 › 照明 › 开放办公", demoX(() => demoSetHash("lighting"), () => actions.lightingSettings({ type: "开放办公" }))],
+  ["应用设置", "cfg-pg-set-hvac", "应用设置 · 暖通空调", "", demoPg(() => demoSetHash("hvac"))],
+  ["应用设置", "cfg-set-design", "设计条件", "应用设置 › 暖通空调", demoX(() => demoSetHash("hvac"), () => actions.v13DesignEdit())],
+  ["应用设置", "cfg-set-range", "可调范围", "应用设置 › 暖通空调", demoX(() => demoSetHash("hvac"), () => demoTap('[data-act="v13Edit"][data-id$="-H-02"]'))],
+  ["应用设置", "cfg-pg-set-env", "应用设置 · 室内环境", "", demoPg(() => demoSetHash("environment"))],
+  ["应用设置", "cfg-pg-set-energy", "应用设置 · 能源", "", demoPg(() => demoSetHash("energy"))],
+  ["应用设置", "cfg-set-meter", "计量点", "应用设置 › 能源", demoX(() => demoSetHash("energy"), () => actions.applicationSettings({ kind: "能耗", project: DEMO_IDS.project, part: "points" }))],
+  ["应用设置", "cfg-set-baseline", "节能基线", "应用设置 › 能源", demoX(() => demoSetHash("energy"), () => actions.applicationSettings({ kind: "能耗", project: DEMO_IDS.project, part: "baseline" }))],
+  ["应用设置", "cfg-set-bill", "电费账单", "应用设置 › 能源", demoX(() => demoSetHash("energy"), () => actions.applicationSettings({ kind: "能耗", project: DEMO_IDS.project, part: "bills" }))],
+  ["应用设置", "cfg-set-carbon", "排放因子", "应用设置 › 能源 › 碳排放", demoX(() => demoSetHash("energy"), () => actions.applicationSettings({ kind: "碳排放", project: DEMO_IDS.project, part: "factor" }))],
+  ["应用设置", "cfg-pg-set-rules", "应用设置 · 告警规则", "", demoPg(() => demoSetHash("rules"))],
+  ["应用设置", "cfg-rule-new", "新建告警规则", "应用设置 › 告警规则", demoX(() => demoSetHash("rules"), () => actions.alarmRuleForm({}))],
+  ["应用设置", "cfg-rule-detail", "告警规则详情", "CO₂ 偏高", demoX(() => demoSetHash("rules"), () => actions.alarmRuleDetail({ id: "rule-demo-co2" }))],
+  ["应用设置", "cfg-rule-fixed", "固定规则", "网关离线", demoX(() => demoSetHash("rules"), () => actions.alarmFixedDetail({ id: "net-0" }))],
+  ["配置进度", "cfg-pg-dep-all", "配置进度 · 全部项目", "", demoPg("#deployment")],
+  ["配置进度", "cfg-pg-dep", "配置进度", "广实2号园", demoPg(demoDepHash)],
+  ["配置进度", "cfg-dep-scope", "部署范围", "配置进度", demoX(demoDepHash, () => actions.scopeEntry({ p: DEMO_IDS.project }))],
+  ["配置进度", "cfg-dep-package", "预览下发包", "配置进度 › 验证与交付", demoX(demoDepHash, () => actions.v13Bundle())],
+  // 示例网络已交付过：按首次交付的四步打开（只在示例数据中，关闭弹窗即恢复）
+  ["配置进度", "cfg-dep-deliver", "交付", "配置进度 · 第 1 步", demoX(demoDepHash, () => ((U.deliveryAsFirst = DEMO_IDS.network), showDelivery(0, DEMO_IDS.network)))],
+  ["配置进度", "cfg-dep-redeliver", "重新交付", "配置进度", demoX(demoDepHash, () => actions.deliveryCheck({ id: DEMO_IDS.project }))],
+  ["配置进度", "cfg-dep-deliveries", "交付记录", "配置进度", demoX(demoDepHash, () => actions.v13Deliveries({ p: DEMO_IDS.project }))],
+  ["配置进度", "cfg-dep-vrf", "多联机调试", "配置进度 › 系统接入", demoX(demoDepHash, () => actions.v13VrfRecords())],
+  ["总览", "ops-pg-all", "总览 · 全部项目", "", demoPg("#overview?tab=general")],
+  ["总览", "ops-pg-project", "总览 · 项目", "广实2号园", demoPg(() => `#overview?tab=general&p=${DEMO_IDS.project}`)],
   [
-    "空状态",
+    "总览",
     "empty-ops",
     "所选范围没有运行数据",
     "运营 › 总览",
@@ -100708,106 +100740,142 @@ const DEMO_ITEMS = [
       (p) => (demoIn(), demoHash(`#overview?p=${p.id}`)),
     ),
   ],
-  ["空状态", "empty-zones", "尚未划分功能区", "切换到“本地规划”数据 · E栋 · 7F", () => demoSwitch("plan", `#projects?f=${OPS_SCOPE.floor}`)],
-  ["空状态", "empty-networks", "尚无设备网络", "切换到“本地规划”数据 · 设备网络", () => demoSwitch("plan", "#devices?tab=networks")],
-
-  // 2.44 配置核查 E425：配置导图的弹窗入口，按配置流程排列
-  ["配置", "cfg-project-new", "新建项目", "全部项目", demoX("#projects", () => actions.spaceForm({ kind: "projects" }))],
-  ["配置", "cfg-project-edit", "编辑项目", "广实2号园", demoX(() => `#projects?p=${DEMO_IDS.project}`, () => actions.spaceForm({ kind: "projects", id: DEMO_IDS.project }))],
-  ["配置", "cfg-building-new", "新建楼宇", "广实2号园", demoX(() => `#projects?p=${DEMO_IDS.project}`, () => actions.spaceForm({ kind: "buildings" }))],
-  ["配置", "cfg-building-edit", "编辑楼宇", "E栋", demoX(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}`, () => actions.spaceForm({ kind: "buildings", id: DEMO_IDS.building }))],
-  ["配置", "cfg-plan-upload", "上传楼层图", "E栋 · 已选好一张图片", demoX(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}`, () => demoPlanFile().then((f) => openPlanFiles(DEMO_IDS.building, null, [f])))],
-  ["配置", "cfg-plan-scale", "设置比例尺", "E栋 · 7F 楼层图", demoX(demoFloorHash, () => actions.scale({}))],
-  ["配置", "cfg-zone-draw", "新建功能区", "E栋 · 7F 楼层图 · 拖出矩形", demoX(demoFloorHash, () => actions.drawZone())],
-  ["配置", "cfg-zone-copy", "复制功能区到其他楼层", "E栋 · 7F", demoX(demoFloorHash, () => actions.zcForm({ source: DEMO_IDS.floor }))],
-  ["配置", "cfg-mark-check", "规划检查", "楼层图 · E栋 · 7F · 设备", demoX(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}&f=${DEMO_IDS.floor}&mode=mark`, () => (U.checksOpen || actions.checksToggle()))],
-  ["配置", "cfg-mark-bind", "现场绑定", "设备网络 · E栋 · 7F 网络", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=networks&net=${DEMO_IDS.network}`, () => actions.prepareApp({ id: DEMO_IDS.network }))],
-  // 2.65 E982：首次交付、交付记录、多联机调试与现场安装资料也进目录
-  ["配置", "cfg-mark-install", "现场安装资料", "设备网络 · E栋 · 7F 网络", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=networks&net=${DEMO_IDS.network}`, () => actions.installKit({ id: DEMO_IDS.network }))],
-  ["配置", "cfg-net-new", "规划设备网络", "设备网络", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=networks`, () => actions.networkForm({}))],
-  ["配置", "cfg-conn-new", "新建系统连接", "系统接入", demoX(demoConnHash, () => actions.connectionForm({}))],
-  ["配置", "cfg-conn-detail", "连接详情", "7F 配电计量", demoX(demoConnHash, () => actions.connectionInfo({ id: "connection-demo-meter" }))],
-  ["配置", "cfg-set-standard", "修改适用标准", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.v13ProfileEdit())],
-  ["配置", "cfg-set-holiday", "节假日表", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.holidaysOpen({ p: DEMO_IDS.project, year: hdYearNow() }))],
-  ["配置", "cfg-set-meter", "计量点", "应用设置 › 能源", demoX(() => demoSetHash("energy"), () => actions.applicationSettings({ kind: "能耗", project: DEMO_IDS.project, part: "points" }))],
-  ["配置", "cfg-tpl-diff", "参数模板新版本", "应用设置 › 查看变化", demoX(() => demoSetHash("general"), () => actions.v13TplDiff())],
-  ["配置", "cfg-rule-new", "新建告警规则", "应用设置 › 告警规则", demoX(() => demoSetHash("rules"), () => actions.alarmRuleForm({}))],
-  ["配置", "cfg-dep-scope", "部署范围", "配置进度", demoX(demoDepHash, () => actions.scopeEntry({ p: DEMO_IDS.project }))],
-  ["配置", "cfg-dep-package", "预览下发包", "配置进度 › 验证与交付", demoX(demoDepHash, () => actions.v13Bundle())],
-  ["配置", "cfg-dep-redeliver", "重新交付", "配置进度", demoX(demoDepHash, () => actions.deliveryCheck({ id: DEMO_IDS.project }))],
-  // 示例网络已交付过：按首次交付的四步打开（只在示例数据中，关闭弹窗即恢复）
-  ["配置", "cfg-dep-deliver", "交付", "配置进度 · 第 1 步", demoX(demoDepHash, () => ((U.deliveryAsFirst = DEMO_IDS.network), showDelivery(0, DEMO_IDS.network)))],
-  ["配置", "cfg-dep-deliveries", "交付记录", "配置进度", demoX(demoDepHash, () => actions.v13Deliveries({ p: DEMO_IDS.project }))],
-  ["配置", "cfg-dep-vrf", "多联机调试", "配置进度 › 系统接入", demoX(demoDepHash, () => actions.v13VrfRecords())],
-  ["配置", "cfg-group-new", "新建设备分组", "设备分组", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=groups`, () => actions.groupForm({}))],
-  ["配置", "cfg-fw-new", "新建升级任务", "固件", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=firmware`, () => actions.firmwareGuide())],
-  // 2.46 配置复核 E464：配置导图漏掉的 21 个弹窗
-  ["配置", "cfg-project-export", "导出项目资料", "全部项目", demoX("#projects?view=grid", () => actions.exAllOpen({}))],
-  ["配置", "cfg-changes", "修改记录", "广实2号园", demoX(() => `#projects?p=${DEMO_IDS.project}`, () => actions.changes())],
-  ["配置", "cfg-dev-info", "设备信息", "设备列表 › E-7F-LC20-04", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=inventory`, () => actions.deviceInfo({ id: demoPt("E-7F-LC20-04") }))],
-  ["配置", "cfg-dev-filter", "筛选设备", "设备列表", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=inventory`, () => actions.deviceFilters())],
-  ["配置", "cfg-net-gateway", "网关信息", "网络详情 › E栋 · 7F 网络", demoX(() => demoNetHash(), () => demoTap('.flow-section-head [data-act="deviceInfo"]'))],
-  ["配置", "cfg-net-params", "网络参数", "网络详情 › 负载分项", demoX(() => demoNetHash(), () => actions.networkParameters({ id: DEMO_IDS.network }))],
-  ["配置", "cfg-net-config", "逐项配置", "网络详情 › 查看逐项配置", demoX(() => demoNetHash(), () => actions.configurationList({ id: DEMO_IDS.network }))],
-  ["配置", "cfg-net-health", "网络检测", "网络详情 › 局部检测", demoX(() => demoNetHash("&ntab=health"), () => actions.healthForm({ id: DEMO_IDS.network, scope: "near" }))],
-  ["配置", "cfg-net-health-record", "网络检测记录", "网络详情 › 一次检测的结果", demoX(() => demoNetHash("&ntab=health"), () => actions.healthRecord({ id: "health-demo-1" }))],
-  ["配置", "cfg-net-snapshot", "交付快照", "网络详情 › 记录", demoX(() => demoNetHash("&ntab=records"), () => actions.v13Snapshot({ id: "delivery-demo-1" }))],
-  ["配置", "cfg-fw-task", "升级任务详情", "固件 › FC20 升级到 1.1.1", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=firmware`, () => actions.firmwareDetail({ id: "fw-demo-fc-111" }))],
-  ["配置", "cfg-set-hours", "工作时间", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.workHoursOpen({ p: DEMO_IDS.project }))],
-  ["配置", "cfg-set-outdoor", "室外数据", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.outdoorSource({ project: DEMO_IDS.project }))],
-  ["配置", "cfg-set-lighting", "按空间类型的默认值", "应用设置 › 照明 › 开放办公", demoX(() => demoSetHash("lighting"), () => actions.lightingSettings({ type: "开放办公" }))],
-  ["配置", "cfg-set-design", "设计条件", "应用设置 › 暖通空调", demoX(() => demoSetHash("hvac"), () => actions.v13DesignEdit())],
-  ["配置", "cfg-set-range", "可调范围", "应用设置 › 暖通空调", demoX(() => demoSetHash("hvac"), () => demoTap('[data-act="v13Edit"][data-id$="-H-02"]'))],
-  ["配置", "cfg-set-baseline", "节能基线", "应用设置 › 能源", demoX(() => demoSetHash("energy"), () => actions.applicationSettings({ kind: "能耗", project: DEMO_IDS.project, part: "baseline" }))],
-  ["配置", "cfg-set-bill", "电费账单", "应用设置 › 能源", demoX(() => demoSetHash("energy"), () => actions.applicationSettings({ kind: "能耗", project: DEMO_IDS.project, part: "bills" }))],
-  ["配置", "cfg-set-carbon", "排放因子", "应用设置 › 能源 › 碳排放", demoX(() => demoSetHash("energy"), () => actions.applicationSettings({ kind: "碳排放", project: DEMO_IDS.project, part: "factor" }))],
-  ["配置", "cfg-rule-detail", "告警规则详情", "CO₂ 偏高", demoX(() => demoSetHash("rules"), () => actions.alarmRuleDetail({ id: "rule-demo-co2" }))],
-  ["配置", "cfg-rule-fixed", "固定规则", "网关离线", demoX(() => demoSetHash("rules"), () => actions.alarmFixedDetail({ id: "net-0" }))],
-
-  // 2.44 运营核查 V195：运营导图的弹窗、面板与提示入口
-  ["运营", "ops-zone", "功能区检视器", "总览 · 办公室 705", demoX(() => demoOpsHash("general"), () => actions.opsZone({ id: "zone-demo-o705" }))],
-  ["运营", "ops-confirm", "确认控制", "选中办公室 703、会议室 7-1 后关灯", demoX(() => demoOpsHash("lighting"), () => (selApply("zone", ["zone-demo-o703", "zone-demo-meet"]), render(), actions.opsZSelLight({ cmd: "off" })))],
-  ["运营", "ops-rcpt", "控制已生效", "办公室 705 开灯", demoX(() => demoOpsHash("general"), () => demoRcpt("zone-demo-o705"))],
-  ["运营", "ops-rcpt-pend", "部分离线", "实验室 E 开灯，1 台离线未执行", demoX(() => demoOpsHash("general"), () => demoRcpt("zone-demo-labe"))],
-  ["运营", "ops-rcpt-fail", "设备未确认", "照明控制器 5 秒内没有确认", demoX(() => demoOpsHash("lighting"), () => demoRcptFail())],
-  ["运营", "ops-gw", "网关离线", "E栋 · 7F，控制不可用", demoX(() => demoOpsHash("general"), () => Demo.ctl.gwOffline || actions.demoGw())],
-  // 2.66 V439：超过 5 分钟没有新数据时的总览
-  ["运营", "ops-stale", "数据未更新", "总览 · 6 分钟没有新数据", demoX(() => demoOpsHash("general"), () => Demo.ctl.staleFrom != null || actions.demoStale())],
-  ["运营", "an-basis", "统计口径", "数据分析 › 能源", demoX("#analysis?tab=energy", () => actions.overviewBasis({}))],
-  ["运营", "an-event", "事件", "能源 · 9 月 16 日", // 2.66 V555：事件弹层锚在图上的标记，等图画好后从标记打开
-  demoX("#analysis?tab=energy", () => demoAfter(() => { const el = $(`[data-act="anEvt"][data-k^="${Demo.TODAY - 8 * Demo.DAY}:${Demo.DAY}"]`); if (el) actions.anEvt({ k: el.dataset.k }, el); }))],
-  ["运营", "an-measure", "登记措施", "数据分析 › 节能", demoX("#analysis?tab=saving", () => actions.anMeasureForm())],
-  ["运营", "rpt-new", "新建报告", "数据分析 › 报告", demoX("#analysis?tab=reports", () => actions.reportForm())],
-  ["运营", "rpt-edit", "编辑草稿", "2026 年第 38 周运行周报", demoX(() => ((U.opsReport = "r-w38"), (U.opsRpDoc = true), "#analysis?tab=reports"), () => actions.aiReportEdit({ id: "r-w38" }))],
-  ["运营", "rpt-publish", "发布报告", "2026 年第 38 周运行周报", demoX(() => ((U.opsReport = "r-w38"), (U.opsRpDoc = true), "#analysis?tab=reports"), () => actions.aiReportPublish({ id: "r-w38" }))],
-  ["运营", "al-detail", "告警详情", "会议室 7-1 CO₂ 偏高", demoX("#alarms?tab=current", () => actions.opsAlarm({ id: "alert-demo-co2" }))],
-  ["运营", "al-task", "新建工单", "从恢复出厂告警", demoX("#alarms?tab=current", () => actions.opsTaskNew({ id: "alert-demo-reset" }))],
-  ["运营", "task-detail", "工单详情", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => actions.opsTask({ id: "task-demo-1" }))],
-  ["运营", "task-repair", "新建工单", "报修", demoX("#alarms?tab=tasks", () => actions.opsRepairNew())],
-  ["运营", "task-done", "完成工单", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => (actions.opsTask({ id: "task-demo-1" }), demoAfter(() => actions.opsTaskFinish({ id: "task-demo-1" }))))],
-  // 2.66 V539：去掉“告警规则”（告警记录上没有这个入口；规则由配置组的“告警规则详情”演示）
-  ["运营", "sc-run", "执行确认", "场景“上班”", demoX("#scenes?tab=manual", () => actions.opsRunScene({ id: "scene-demo-on" }))],
-  ["运营", "sc-edit", "新建场景", "场景", demoX("#scenes?tab=manual", () => actions.sceneForm({}))],
-  ["运营", "sch-detail", "定时详情", "工作日上班", demoX("#scenes?tab=schedule", () => actions.opsSceneInfo({ id: "scene-demo-s-on" }))],
-  ["运营", "sch-new", "新建定时", "定时", demoX("#scenes?tab=schedule", () => actions.sceneForm({}))],
-  ["运营", "lk-detail", "联动详情", "加班走廊照明", demoX("#scenes?tab=link", () => actions.opsSceneInfo({ id: "scene-demo-l-path" }))],
-  ["运营", "lk-new", "新建联动", "联动", demoX("#scenes?tab=link", () => actions.sceneForm({}))],
-  // 2.46 运营核查 V202：运营导图漏掉的 12 处
-  ["运营", "ops-member", "我的区域（普通成员）", "办公室 701、702、会议室 7-1", demoX("#overview", demoMember())],
-  ["运营", "ops-repair", "报修", "普通成员 · 办公室 701", demoX("#overview", demoMember(() => (actions.opsZone({ id: "zone-demo-o701" }), demoAfter(() => actions.opsZoneRepair({ id: "zone-demo-o701" })))))],
-  ["运营", "ops-dev", "单台设备", "照明 · E-7F-LC20-04", demoX(() => demoOpsHash("lighting"), () => demoDevTap("E-7F-LC20-04"))],
-  ["运营", "ops-dev-fc", "空调", "暖通空调 · E-7F-FC20-03", demoX(() => demoOpsHash("hvac"), () => demoDevTap("E-7F-FC20-03"))],
-  // 2.66 V439：打开会议室 7-1 检视器 › 设备 › E-7F-AQ20-05
-  ["运营", "ops-dev-aq", "空气质量", "会议室 7-1 · E-7F-AQ20-05", demoX(() => demoOpsHash("general"), () => (actions.opsZone({ id: "zone-demo-meet" }), (U.ovDevs = true), render(), demoAfter(() => demoTap(`.ov-insp [data-act="opsDev"][data-id="${demoPt("E-7F-AQ20-05")}"]`))))],
+  ["总览", "ops-pg-building", "总览 · 楼宇", "E栋", demoPg(() => `#overview?tab=general&b=${DEMO_IDS.building}`)],
+  ["总览", "ops-pg-floor", "总览 · 楼层", "状态 · E栋 · 7F", demoPg(() => demoOpsHash("general"))],
+  ["总览", "ops-zone", "功能区检视器", "总览 · 办公室 705", demoX(() => demoOpsHash("general"), () => actions.opsZone({ id: "zone-demo-o705" }))],
+  ["总览", "ops-params", "照明控制参数", "办公室 705 · 修改", demoX(() => demoOpsHash("general"), () => (actions.opsZone({ id: "zone-demo-o705" }), demoAfter(() => demoTap('.ov-insp [data-act="opsParams"]'))))],
   // 2.59 V308：功能区检视器底部“设备 N 台”展开本区设备，点一台打开单台弹层，再看设备信息
-  ["运营", "dev-info", "设备信息", "办公室 705 · 设备", demoX(() => demoOpsHash("general"), () => (actions.opsZone({ id: "zone-demo-o705" }), (U.ovDevs = true), render(), demoAfter(() => (demoTap('.ov-insp [data-act="opsDev"]'), demoAfter(() => demoTap('#pop [data-act="deviceInfo"]'))))))],
-  ["运营", "ops-params", "照明控制参数", "办公室 705 · 修改", demoX(() => demoOpsHash("general"), () => (actions.opsZone({ id: "zone-demo-o705" }), demoAfter(() => demoTap('.ov-insp [data-act="opsParams"]'))))],
-  ["运营", "ops-sel", "批量控制", "选中办公室 703、会议室 7-1", demoX(() => demoOpsHash("lighting"), () => (selApply("zone", ["zone-demo-o703", "zone-demo-meet"]), render()))],
-  ["运营", "an-table", "数据表", "能源 · 用电趋势", demoX("#analysis?tab=energy", () => actions.opsTable({ key: "daily" }))],
-  ["运营", "an-note", "加备注", "能源 · 9 月 16 日", demoX("#analysis?tab=energy", () => actions.anNoteAdd({ t: Demo.TODAY - 8 * Demo.DAY, step: Demo.DAY }))],
-  ["运营", "task-reassign", "改派工单", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => actions.opsTaskReassign({ id: "task-demo-1" }))],
-  ["运营", "ai-explain", "解释这张图", "数据分析 › 能源", demoX("#analysis?tab=energy", () => actions.anAskAi({ tab: "energy", k: "use" }))],
-  ["运营", "ai-suggest", "AI 建议", "实验室 B 重新下发配置", demoX("#analysis?tab=energy", () => actions.aiAdopt({ id: "labb-hold" }))],
+  ["总览", "dev-info", "设备信息", "办公室 705 · 设备", demoX(() => demoOpsHash("general"), () => (actions.opsZone({ id: "zone-demo-o705" }), (U.ovDevs = true), render(), demoAfter(() => (demoTap('.ov-insp [data-act="opsDev"]'), demoAfter(() => demoTap('#pop [data-act="deviceInfo"]'))))))],
+  // 2.66 V439：打开会议室 7-1 检视器 › 设备 › E-7F-AQ20-05
+  ["总览", "ops-dev-aq", "空气质量", "会议室 7-1 · E-7F-AQ20-05", demoX(() => demoOpsHash("general"), () => (actions.opsZone({ id: "zone-demo-meet" }), (U.ovDevs = true), render(), demoAfter(() => demoTap(`.ov-insp [data-act="opsDev"][data-id="${demoPt("E-7F-AQ20-05")}"]`))))],
+  ["总览", "ops-rcpt", "控制已生效", "办公室 705 开灯", demoX(() => demoOpsHash("general"), () => demoRcpt("zone-demo-o705"))],
+  ["总览", "ops-rcpt-pend", "部分离线", "实验室 E 开灯，1 台离线未执行", demoX(() => demoOpsHash("general"), () => demoRcpt("zone-demo-labe"))],
+  ["总览", "ops-gw", "网关离线", "E栋 · 7F，控制不可用", demoX(() => demoOpsHash("general"), () => Demo.ctl.gwOffline || actions.demoGw())],
+  // 2.66 V439：超过 5 分钟没有新数据时的总览
+  ["总览", "ops-stale", "数据未更新", "总览 · 6 分钟没有新数据", demoX(() => demoOpsHash("general"), () => Demo.ctl.staleFrom != null || actions.demoStale())],
+  ["总览", "ops-pg-lighting", "总览 · 照明", "E栋 · 7F", demoPg(() => demoOpsHash("lighting"))],
+  ["总览", "ops-dev", "单台设备", "照明 · E-7F-LC20-04", demoX(() => demoOpsHash("lighting"), () => demoDevTap("E-7F-LC20-04"))],
+  ["总览", "ops-sel", "批量控制", "选中办公室 703、会议室 7-1", demoX(() => demoOpsHash("lighting"), () => (selApply("zone", ["zone-demo-o703", "zone-demo-meet"]), render()))],
+  ["总览", "ops-confirm", "确认控制", "选中办公室 703、会议室 7-1 后关灯", demoX(() => demoOpsHash("lighting"), () => (selApply("zone", ["zone-demo-o703", "zone-demo-meet"]), render(), actions.opsZSelLight({ cmd: "off" })))],
+  ["总览", "ops-rcpt-fail", "设备未确认", "照明控制器 5 秒内没有确认", demoX(() => demoOpsHash("lighting"), () => demoRcptFail())],
+  ["总览", "ops-pg-hvac", "总览 · 空调", "E栋 · 7F", demoPg(() => demoOpsHash("hvac"))],
+  ["总览", "ops-dev-fc", "空调", "暖通空调 · E-7F-FC20-03", demoX(() => demoOpsHash("hvac"), () => demoDevTap("E-7F-FC20-03"))],
+  ["总览", "ops-pg-env", "总览 · 环境", "E栋 · 7F", demoPg(() => demoOpsHash("environment"))],
+  ["总览", "ops-pg-occ", "总览 · 占用", "E栋 · 7F", demoPg(() => demoOpsHash("occupancy"))],
+  ["我的区域", "ops-member", "我的区域（普通成员）", "办公室 701、702、会议室 7-1", demoHead(demoX("#overview", demoMember()))],
+  ["我的区域", "ops-repair", "报修", "普通成员 · 办公室 701", demoX("#overview", demoMember(() => (actions.opsZone({ id: "zone-demo-o701" }), demoAfter(() => actions.opsZoneRepair({ id: "zone-demo-o701" })))))],
+  ["数据分析", "ops-pg-energy", "数据分析 · 能源", "", demoPg("#analysis?tab=energy")],
+  ["数据分析", "an-basis", "统计口径", "数据分析 › 能源", demoX("#analysis?tab=energy", () => actions.overviewBasis({}))],
+  ["数据分析", "an-table", "数据表", "能源 · 用电趋势", demoX("#analysis?tab=energy", () => actions.opsTable({ key: "daily" }))],
+  ["数据分析", "an-event", "事件", "能源 · 9 月 16 日", // 2.66 V555：事件弹层锚在图上的标记，等图画好后从标记打开
+  demoX("#analysis?tab=energy", () => demoAfter(() => { const el = $(`[data-act="anEvt"][data-k^="${Demo.TODAY - 8 * Demo.DAY}:${Demo.DAY}"]`); if (el) actions.anEvt({ k: el.dataset.k }, el); }))],
+  ["数据分析", "an-note", "加备注", "能源 · 9 月 16 日", demoX("#analysis?tab=energy", () => actions.anNoteAdd({ t: Demo.TODAY - 8 * Demo.DAY, step: Demo.DAY }))],
+  ["数据分析", "ai-explain", "解释这张图", "数据分析 › 能源", demoX("#analysis?tab=energy", () => actions.anAskAi({ tab: "energy", k: "use" }))],
+  ["数据分析", "ai-suggest", "AI 建议", "实验室 B 重新下发配置", demoX("#analysis?tab=energy", () => actions.aiAdopt({ id: "labb-hold" }))],
+  ["数据分析", "ops-pg-saving", "数据分析 · 节能", "", demoPg("#analysis?tab=saving")],
+  ["数据分析", "an-measure", "登记措施", "数据分析 › 节能", demoX("#analysis?tab=saving", () => actions.anMeasureForm())],
+  ["数据分析", "ops-pg-an-env", "数据分析 · 室内环境", "", demoPg("#analysis?tab=environment")],
+  ["数据分析", "ops-pg-space", "数据分析 · 空间使用", "", demoPg("#analysis?tab=space")],
+  ["数据分析", "ops-pg-health", "数据分析 · 设备健康", "", demoPg("#analysis?tab=health")],
+  ["数据分析", "ops-pg-reports", "数据分析 · 报告", "", demoPg("#analysis?tab=reports")],
+  ["数据分析", "rpt-new", "新建报告", "数据分析 › 报告", demoX("#analysis?tab=reports", () => actions.reportForm())],
+  ["数据分析", "rpt-edit", "编辑草稿", "2026 年第 38 周运行周报", demoX(() => ((U.opsReport = "r-w38"), (U.opsRpDoc = true), "#analysis?tab=reports"), () => actions.aiReportEdit({ id: "r-w38" }))],
+  ["数据分析", "rpt-publish", "发布报告", "2026 年第 38 周运行周报", demoX(() => ((U.opsReport = "r-w38"), (U.opsRpDoc = true), "#analysis?tab=reports"), () => actions.aiReportPublish({ id: "r-w38" }))],
+  ["告警", "ops-pg-al-current", "告警 · 当前告警", "", demoPg("#alarms?tab=current")],
+  ["告警", "al-detail", "告警详情", "会议室 7-1 CO₂ 偏高", demoX("#alarms?tab=current", () => actions.opsAlarm({ id: "alert-demo-co2" }))],
+  ["告警", "al-task", "新建工单", "从恢复出厂告警", demoX("#alarms?tab=current", () => actions.opsTaskNew({ id: "alert-demo-reset" }))],
+  ["告警", "ops-pg-al-tasks", "告警 · 工单", "", demoPg("#alarms?tab=tasks")],
+  ["告警", "task-detail", "工单详情", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => actions.opsTask({ id: "task-demo-1" }))],
+  ["告警", "task-repair", "新建工单", "报修", demoX("#alarms?tab=tasks", () => actions.opsRepairNew())],
+  ["告警", "task-reassign", "改派工单", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => actions.opsTaskReassign({ id: "task-demo-1" }))],
+  ["告警", "task-done", "完成工单", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => (actions.opsTask({ id: "task-demo-1" }), demoAfter(() => actions.opsTaskFinish({ id: "task-demo-1" }))))],
+  ["告警", "ops-pg-al-history", "告警 · 告警记录", "", demoPg("#alarms?tab=history")],
+  ["场景", "ops-pg-sc-manual", "场景 · 场景", "", demoPg("#scenes?tab=manual")],
+  // 2.66 V539：去掉“告警规则”（告警记录上没有这个入口；规则由配置组的“告警规则详情”演示）
+  ["场景", "sc-run", "执行确认", "场景“上班”", demoX("#scenes?tab=manual", () => actions.opsRunScene({ id: "scene-demo-on" }))],
+  ["场景", "sc-edit", "新建场景", "场景", demoX("#scenes?tab=manual", () => actions.sceneForm({}))],
+  ["场景", "ops-pg-sc-schedule", "场景 · 定时", "", demoPg("#scenes?tab=schedule")],
+  ["场景", "sch-detail", "定时详情", "工作日上班", demoX("#scenes?tab=schedule", () => actions.opsSceneInfo({ id: "scene-demo-s-on" }))],
+  ["场景", "sch-new", "新建定时", "定时", demoX("#scenes?tab=schedule", () => actions.sceneForm({}))],
+  ["场景", "ops-pg-sc-link", "场景 · 联动", "", demoPg("#scenes?tab=link")],
+  ["场景", "lk-detail", "联动详情", "加班走廊照明", demoX("#scenes?tab=link", () => actions.opsSceneInfo({ id: "scene-demo-l-path" }))],
+  ["场景", "lk-new", "新建联动", "联动", demoX("#scenes?tab=link", () => actions.sceneForm({}))],
+  ["场景", "ops-pg-sc-records", "场景 · 操作记录", "", demoPg("#scenes?tab=records")],
+  ["智能助手", "gl-ai", "搜索或提问", "智能助手", demoHead(() => (demoIn(), demoHash("#overview"), demoAfter(() => aiPalette("", "ask"))))],
+  ["智能助手", "ai-85", "AI 用量已用 85%", "", () => (demoIn(), demoLicSeed(85), demoHash("#overview"), demoAfter(() => aiPalette("", "ask")))],
+  ["智能助手", "ai-pack", "正在使用 AI 用量包", "", () => (demoIn(), demoLicSeed(102), demoHash("#overview"), demoAfter(() => aiPalette("", "ask")))],
+  ["智能助手", "ai-out", "AI 用量已用完", "", () => (demoIn(), demoLicSeed(102, 0), demoHash("#overview"), demoAfter(() => aiPalette("昨天 7F 哪个功能区用电最多？", "ask")))],
+  [
+    "智能助手",
+    "ai-down",
+    "AI 暂时不可用",
+    "提问没有得到回答，可重试",
+    () => {
+      demoIn();
+      demoHash("#overview");
+      AIP.down = true;
+      render();
+      demoAfter(() => aiPalette("实验室 E 为什么不亮灯？", "ask"));
+    },
+  ],
+  ["异常与维护", "notfound", "页面不存在", "", () => (demoIn(), demoHash("#no-such-page"))],
+  ["异常与维护", "miss-project", "项目不存在或已删除", "楼宇、楼层、功能区相同", () => (demoIn(), demoHash("#projects?p=project-deleted"))],
+  [
+    "异常与维护",
+    "no-access",
+    "没有访问权限",
+    "权限变更后打开原先可访问的项目",
+    demoNeeds("示例数据中没有广实1号园", () => demoFind("projects", (x) => x.name === "广实1号园"), (p) => {
+      demoIn(DEMO_PM);
+      const m = demoAccessMember();
+      Object.assign(m, { changed: { at: auNow() - 12 * 6e4, by: "刘静", role: m.role, scope: m.scope }, scope: ["广实2号园"] });
+      auSave();
+      demoHash(`#projects?p=${p.id}`);
+    }),
+  ],
+  [
+    "异常与维护",
+    "offline",
+    "网络连接中断",
+    "顶部提示条；修改无法保存",
+    () => {
+      demoIn();
+      demoHash("#overview");
+      demoOffline(true);
+      DEMO.stateOn = true;
+      render();
+    },
+  ],
+  ["异常与维护", "unavailable", "服务暂时不可用", "", () => (demoIn(), (AUX.retryHash = "#overview"), demoShow("unavailable"))],
+  [
+    "异常与维护",
+    "maintenance",
+    "系统维护中",
+    "",
+    () => {
+      const t = new Date();
+      t.setHours(t.getHours() + 2, 0, 0, 0);
+      AUX.maintUntil = t.getTime();
+      demoShow("maintenance");
+    },
+  ],
+  [
+    "异常与维护",
+    "booterror",
+    "页面加载失败",
+    "浏览器不允许读取或保存站点数据",
+    () => {
+      DEMO.stateOn = true;
+      bootError(new Error("The operation is insecure."));
+    },
+  ],
+  ["机构菜单与帮助", "gl-menu", "机构菜单", "侧栏左下角的机构入口", demoHead(() => (demoIn(), demoHash("#overview"), demoAfter(() => demoTap('[data-act="orgMenu"]'))))],
+  ["机构菜单与帮助", "gl-help", "帮助", "机构菜单 › 帮助", demoHead(demoHelp(() => actions.auHelp()))],
+  ["机构菜单与帮助", "gl-help-center", "帮助中心", "", demoHelp(() => actions.auHelpCenter({ from: "help" }))],
+  ["机构菜单与帮助", "gl-help-article", "帮助文章", "《创建机构》", demoHelp(() => actions.auHelpArticle({ id: "acct-apply" }))],
+  ["机构菜单与帮助", "gl-terms", "术语", "", demoHelp(() => actions.auTerms({ from: "help" }))],
+  ["机构菜单与帮助", "gl-support", "联系支持", "", demoHelp(() => actions.auSupport({ from: "help" }))],
+  ["机构菜单与帮助", "gl-releases", "更新说明", "", demoHelp(() => actions.auReleaseNotes({ from: "help" }))],
 ];
 // 2.26（2026-10-26 HONG 02:29Z“更新”）：再次打开弹窗用 auOpenResetDialog，不用 actions.auForgot（它会清掉验证码与新密码），
 // 让“验证码不正确或已过期”等五项带着填好的验证码与新密码提交，显示各自的结果。
@@ -100855,26 +100923,68 @@ function demoUnlink() {
     history.replaceState(history.state, "", location.pathname + location.hash);
   } catch {}
 }
+// 2.69：每项行尾的勾选表示该页面视觉上已核对、可以接受；只存在这个浏览器（localStorage），按条目记，换版本不清除。
+const DEMO_CHECK_KEY = "pacom-v13-demo-checked";
+function demoChecked() {
+  try {
+    const a = JSON.parse(localStorage.getItem(DEMO_CHECK_KEY) || "[]");
+    return new Set(Array.isArray(a) ? a : []);
+  } catch {
+    return new Set();
+  }
+}
+function demoCheckSet(id, on) {
+  const ok = demoChecked();
+  if (on) ok.add(id);
+  else ok.delete(id);
+  try {
+    localStorage.setItem(DEMO_CHECK_KEY, JSON.stringify([...ok]));
+  } catch {}
+  return ok;
+}
+const demoCatCount = (pages, ok) => {
+  const all = DEMO_ITEMS.filter((x) => pages.includes(x[0]));
+  return `已核对 ${all.filter((x) => ok.has(x[1])).length}/${all.length}`;
+};
+const demoCatRow = ([, id, title, desc], sub, ok) =>
+  `<div class="demo-cat-r${sub ? " sub" : ""}"><button type="button" class="demo-cat-i ${id === DEMO.cur ? "cur" : ""}" data-act="demoGo" data-id="${id}" ${id === DEMO.cur ? 'aria-current="true"' : ""}><span><b>${esc(title)}</b>${desc ? `<small>${esc(desc)}</small>` : ""}</span>${id === DEMO.cur ? `<small class="demo-cat-cur">上次打开</small>` : ""}${ico("chevron", "ic16 demo-cat-chev")}</button><label class="demo-cat-ck" data-tip="视觉已核对"><input type="checkbox" data-demo-ck="${id}"${ok.has(id) ? " checked" : ""} aria-label="视觉已核对：${esc(title)}"></label></div>`;
+// 类别（标题右侧为已核对数）› 页面（小标题）› 条目；页面行之后同一页面的状态与弹窗缩进。搜索按名称、说明、页面和类别过滤，“只看未核对”只列未勾选的条目。
 function demoCatalogHtml(q = "") {
-  const k = q.trim().toLowerCase();
-  const hit = (it) => !k || (it[2] + " " + it[3] + " " + it[0]).toLowerCase().includes(k);
-  const groups = [...new Set(DEMO_ITEMS.map((x) => x[0]))]
-    .map((grp) => {
-      const rows = DEMO_ITEMS.filter((x) => x[0] === grp && hit(x));
-      return rows.length
-        ? `<section class="demo-cat-g"><h3>${grp}</h3>${rows
-            .map(
-              ([, id, title, desc]) =>
-                `<button type="button" class="demo-cat-i ${id === DEMO.cur ? "cur" : ""}" data-act="demoGo" data-id="${id}" ${id === DEMO.cur ? 'aria-current="true"' : ""}><span><b>${esc(title)}</b>${desc ? `<small>${esc(desc)}</small>` : ""}</span>${id === DEMO.cur ? `<small class="demo-cat-cur">上次打开</small>` : ""}${ico("chevron", "ic16 demo-cat-chev")}</button>`,
-            )
-            .join("")}</section>`
-        : "";
-    })
-    .join("");
-  return groups || `<p class="demo-cat-none">没有匹配的页面或状态</p>`;
+  const k = q.trim().toLowerCase(),
+    ok = demoChecked();
+  const html = DEMO_CATS.map(([cat, pages]) => {
+    const secs = pages
+      .map((grp) => {
+        let head = false;
+        const rows = DEMO_ITEMS.filter((x) => x[0] === grp)
+          .map((it) => ((head = head || !!it[4].head), [it, head && !it[4].head]))
+          .filter(([it]) => (!k || (it[2] + " " + it[3] + " " + grp + " " + cat).toLowerCase().includes(k)) && !(DEMO.catTodo && ok.has(it[1])));
+        return rows.length ? `<section class="demo-cat-g"><h4>${grp}</h4>${rows.map(([it, sub]) => demoCatRow(it, sub, ok)).join("")}</section>` : "";
+      })
+      .join("");
+    return secs ? `<section class="demo-cat-c" data-cat="${cat}"><h3>${cat}<small>${demoCatCount(pages, ok)}</small></h3>${secs}</section>` : "";
+  }).join("");
+  return html || `<p class="demo-cat-none">${DEMO.catTodo && !k ? "全部已核对" : "没有匹配的页面或状态"}</p>`;
 }
 document.addEventListener("input", (e) => {
-  if (e.target.id !== "demoQ") return;
+  const t = e.target;
+  // 勾选不算未保存的内容：关闭目录或打开条目时不提示放弃
+  if (t.dataset?.demoCk) {
+    const ok = demoCheckSet(t.dataset.demoCk, t.checked),
+      sec = t.closest(".demo-cat-c"),
+      cat = DEMO_CATS.find(([n]) => n === sec?.dataset.cat);
+    if (cat) sec.querySelector("h3 small").textContent = demoCatCount(cat[1], ok);
+    modalDirty = false;
+    return;
+  }
+  if (t.id === "demoTodo") {
+    DEMO.catTodo = t.checked;
+    $("#demoCat").innerHTML = demoCatalogHtml($("#demoQ")?.value || "");
+    demoStepSave();
+    modalDirty = false;
+    return;
+  }
+  if (t.id !== "demoQ") return;
   $("#demoCat").innerHTML = demoCatalogHtml(e.target.value);
   DEMO.catQ = e.target.value;
   demoStepSave();
@@ -100955,7 +101065,7 @@ defineActions({
   // 再打开目录时保留上次的搜索词与过滤结果，并滚到最后打开的条目（标“上次打开”）。
   demoCatalog: () => {
     closePop();
-    modal("页面与状态", `<div class="demo-cat-q">${ico("search", "ic16")}<input id="demoQ" type="search" placeholder="搜索页面或状态" aria-label="搜索页面或状态" autocomplete="off" value="${esc(DEMO.catQ)}"></div><div id="demoCat" class="demo-cat">${demoCatalogHtml(DEMO.catQ)}</div>`, btn("关闭", "close"));
+    modal("页面与状态", `<div class="demo-cat-q">${ico("search", "ic16")}<input id="demoQ" type="search" placeholder="搜索页面或状态" aria-label="搜索页面或状态" autocomplete="off" value="${esc(DEMO.catQ)}"><label class="demo-cat-todo"><input type="checkbox" id="demoTodo"${DEMO.catTodo ? " checked" : ""}>只看未核对</label></div><div id="demoCat" class="demo-cat">${demoCatalogHtml(DEMO.catQ)}</div>`, btn("关闭", "close"));
     $("#dlg .dialog")?.classList.add("demo-cat-dlg");
     const cur = $('#demoCat [aria-current="true"]');
     if (cur) cur.scrollIntoView({ block: "center" });

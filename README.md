@@ -1,9 +1,9 @@
-# PACOM Station 2.68 · public release
+# PACOM Station 2.69 · public release
 
 - Website: https://pacom.cc.cd/
 - Release date: 2026-11-01
-- Page program fingerprint: `10451ffef9601056`
-- index.html SHA-256: `bba8f222cdaa070f68f183f4de834c00a69f06010c8a98b0013008b5f73fe19a`
+- Page program fingerprint: `cf1e0abfdf75ad75`
+- index.html SHA-256: `bd5d35ac7c8fe58f728520aa9b6d014470700b767842b5b7ad7ab8a5cf068de9`
 
 This repository contains the public static build for GitHub Pages: `index.html`,
 runtime files in `fonts/`, `media/` and `vendor/`, and this generated release note.
