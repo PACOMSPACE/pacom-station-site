@@ -2506,6 +2506,9 @@ p {
   box-shadow: inset 0 0 0 1px #dedede, inset 0 2px 2px -1px #00000005, inset 0 4px 4px -2px #00000005, 0 1px 1px #ffffffcc;
 }
 .seg.seg-cat button { height: 32px; color: var(--text3); }
+/* 2.84 E1105：页签与本页签的动作同一行，动作在右端，放不下时换到下一行右对齐 */
+.seg-cat-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.seg-cat-tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-left: auto; }
 .seg.seg-cat button:not(.on):hover { color: var(--text); }
 .seg.seg-cat button.on { color: var(--cat-fg); }
 .seg.seg-cat:not(.has-thumb) > button.on,
@@ -3584,7 +3587,8 @@ input[type="radio"] {
 }
 .kv {
   display: grid;
-  grid-template-columns: 112px 1fr;
+  /* 2.84 E1111：名称列按最长名称取宽（至少 112），名称不拆行（原“近 7 天采集成功 / 率”） */
+  grid-template-columns: minmax(112px, max-content) minmax(0, 1fr);
   gap: 12px;
   margin: 16px 0;
   font-size: 14px;
@@ -4552,7 +4556,7 @@ details[open] > summary::before {
    grid-template-columns: repeat(2, minmax(0, 1fr));
  }
  .kv {
-   grid-template-columns: 85px 1fr;
+   grid-template-columns: minmax(85px, max-content) minmax(0, 1fr); /* 2.84 E1111 */
  }
  .ws-app-intro {
    gap: 12px;
@@ -6545,6 +6549,10 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .ws-rail-track.scrollable .rail-arrow {
   display: flex;
 }
+/* 2.84 E1123：还能滚动的一端 16 渐隐（楼层号不被上下箭头硬切成半个） */
+.ws-rail-scroll.fade-t { -webkit-mask-image: linear-gradient(transparent, #000 16px); mask-image: linear-gradient(transparent, #000 16px); }
+.ws-rail-scroll.fade-b { -webkit-mask-image: linear-gradient(#000 calc(100% - 16px), transparent); mask-image: linear-gradient(#000 calc(100% - 16px), transparent); }
+.ws-rail-scroll.fade-t.fade-b { -webkit-mask-image: linear-gradient(transparent, #000 16px, #000 calc(100% - 16px), transparent); mask-image: linear-gradient(transparent, #000 16px, #000 calc(100% - 16px), transparent); }
 @media (max-width: 980px) {
  .ws-rail {
    bottom: auto;
@@ -7327,6 +7335,9 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
  /* 2.67 E1017：两组之间最少 16（两个 8 的间隔），原为再加 8 的占位 */
  .ws-toolbar:has(> .ws-tb-actions > .ws-proj-acts) > .sp { min-width:0; }
 }
+/* 2.84 E1105：楼宇、楼层页的工具栏只有右端操作（导出、编辑、⋯、上传）时，电脑上放在页头标题行右侧（toolbar() 写进页头），占标题行余下的宽度，
+   放不下时照常先收图标按钮再收主按钮；不单独占一行 */
+#app .main > .panel > .phead > .ws-toolbar.ws-head-tb { flex: 1 1 0; min-width: 0; margin: 0; flex-wrap: nowrap; }
 /* 2.67 E1017：按实际宽度分两步收起（取代 E554 内容区窄于 680 时整组收起）：先收圆形图标按钮，仍放不下再收主按钮，收起的按钮列进“更多”。 */
 .ws-tb-actions.fold-ic > .ws-proj-acts > .iconbtn { display:none; }
 .ws-tb-actions.fold-all > .ws-proj-acts { display:none; }
@@ -7659,7 +7670,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   margin-bottom: 8px;
   font-size: 14px;
   line-height: 22px;
-  font-weight: 500;
+  font-weight: 600; /* 2.84 E1122：与“对应楼层”字段名相同 */
 }
 .pi-cap small {
   display: inline;
@@ -9994,6 +10005,10 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
   line-height: 18px;
   color: var(--text3);
   white-space: nowrap;
+}
+/* 2.84 E1124：列表为空时的说明与上面的分段左对齐（列表左右各伸出 8，说明补回 8） */
+.mk-zone-list > .mk-lead {
+  padding: 0 8px;
 }
 .mk-back {
   display: inline-flex;
@@ -17692,10 +17707,11 @@ p.ops-work .ops-link {
 ol.ai-ritems {
   counter-reset: ai-ritem;
 }
+/* 2.84 V889：圆点、文字与“›”按第一行对齐：文字紧跟圆点左对齐，“›”在行尾；圆点、“›”与第一行文字垂直居中 */
 .ai-ritem {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
+  justify-content: flex-start;
   gap: 12px;
   min-height: 40px;
   padding: 4px 4px 4px 12px;
@@ -17711,8 +17727,14 @@ ol.ai-ritems > .ai-ritem {
 ol.ai-ritems > .ai-ritem > span::before {
   content: counter(ai-ritem) ". ";
 }
+.ai-ritem > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 5px 0;
+}
 .ai-ritem > .ai-ev {
   flex: none;
+  margin-top: 4px;
 }
 .ai-why {
   font-size: 12px;
@@ -20822,8 +20844,9 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .tw > .au-table.fold > tbody > tr > td { height: auto; padding: 0; border: 0; text-align: left; white-space: normal; max-width: none; }
 .tw > .au-table.fold > tbody > tr > td + td { margin-top: 4px; }
 /* 2.67 账户第 821 条：列名固定 56px 一列（4 个字宽），值从其右 8px 开始，值折行时第二行也从同一位置开始 */
-.tw > .au-table.fold > tbody > tr > td[data-label] { position: relative; padding-left: 64px; }
-.tw > .au-table.fold > tbody > tr > td[data-label]::before { content: attr(data-label); position: absolute; left: 0; top: 0; width: 56px; color: var(--text3); }
+/* 2.84 账户第 916 条：列名放不下折成两行时整行加高，不压到下一行（列名浮在左侧 56 宽，单元格自成块格式化上下文） */
+.tw > .au-table.fold > tbody > tr > td[data-label] { position: relative; display: flow-root; padding-left: 64px; }
+.tw > .au-table.fold > tbody > tr > td[data-label]::before { content: attr(data-label); float: left; width: 56px; margin-left: -64px; color: var(--text3); }
 .tw > .au-table.fold > tbody > tr > td:empty,
 .tw > .au-table.fold > tbody > tr > td.au-td-act:not(:has(*)) { display: none; }
 .tw > .au-table.fold > tbody > tr > td.au-td-act { margin-top: 8px; text-align: left; }
@@ -21477,7 +21500,9 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .au .au-years-seg { display: flex; width: 100%; max-width: 320px; }
 .au .au-years-seg > button { flex: 1 1 0; min-width: 0; font-size: 14px; }
 /* 第 261 条：开票信息 */
-.au .au-inv-type .au-radios { display: grid; gap: 8px; }
+/* 2.84 账户第 912 条：两项上下排列、各占一整行（同“修改开票信息”），名称不折行 */
+.au .au-inv-type .au-radios { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.au .au-inv-type .au-radio > span { white-space: nowrap; }
 .au .au-inv-special { display: grid; gap: 16px; }
 .au .au-inv-special[hidden] { display: none; }
 /* 第 262 条：确认并提交。每组标题右侧“修改”；2.48 起只有一项勾选。 */
@@ -31751,6 +31776,8 @@ button.ov-fl:hover { background: var(--ov-navy-2); }
   .ov-tabbar button.on { color: var(--ov-navy); font-weight: 600; }
   .phead > .ov-head-more { display: grid; flex: none; width: 44px; height: 44px; margin-left: auto; }
   .main:has(+ .ov-tabbar) .pbody { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  /* 2.84 账户第 915 条：有底部导航（60 高）时消息提示在导航上方 16，全站手机页面相同 */
+  body:has(.ov-tabbar) #toast { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
   /* 总览：图层按钮可横向滑动，选择工具与底图收起；楼层图为整层缩略图 */
   .ov-bar { flex-wrap: nowrap; }
   .ov-seg { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
@@ -32788,7 +32815,7 @@ button.an-strip-r:hover { background: var(--ov-surface-2); }
 .ai-rkpi b { font-size: 20px; line-height: 28px; font-weight: 600; color: #030303; font-variant-numeric: tabular-nums; }
 .ai-rkpi span { font-size: 12px; line-height: 18px; color: var(--ov-ink-3); }
 /* 2.66 V642：告警条目前的级别色点 */
-.ai-ritem > .ai-lv { flex: none; width: 8px; height: 8px; margin: 7px 8px 0 0; border-radius: 50%; background: var(--c); }
+.ai-ritem > .ai-lv { flex: none; width: 8px; height: 8px; margin: 12px -4px 0 0; border-radius: 50%; background: var(--c); } /* 2.84 V889：与第一行文字居中（行上边距 4 + 文字上边距 5 + 半行 11 = 20） */
 /* 2.66 V645：纸面内的图表不加外框，表格只留行分隔线；图名 14/22/600；节末小注与页脚 12/18；依据标签 #F3F4F6 底 */
 .ai-report-paper .ai-rfig { margin: 12px 0 8px; padding: 0; border: 0; border-radius: 0; background: none; }
 .ai-report-paper .ai-rfig figcaption { margin: 0 0 12px; font-size: 14px; line-height: 22px; font-weight: 600; color: #030303; }
@@ -32865,6 +32892,7 @@ button.an-strip-r:hover { background: var(--ov-surface-2); }
   .ai-report-paper .ai-ritems { gap: 0; }
   .ai-report-paper .ai-ritem { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 0; min-height: 0; padding: 4px 0; }
   .ai-report-paper .ai-ritem > :is(span, .ai-ev) { grid-column: 2; }
+  .ai-report-paper .ai-ritem > .ai-lv { margin-right: 8px; }
   .ai-report-paper .ai-ritem > .ai-ev { justify-self: start; height: auto; min-height: 0; margin-top: 2px; padding: 0; border-radius: 0; background: none; font-size: 12px; line-height: 18px; color: var(--ov-ink-2); text-decoration: underline; text-underline-offset: 3px; white-space: normal; }
   .ai-report-paper .ai-ritem > .ai-ev .ai-ev-m { display: inline; }
   .ai-report-paper .ai-ritem > .ai-ev > .ic { display: none; }
@@ -34196,8 +34224,14 @@ li.none .ov2-fr > small { font-size: 12px; line-height: 18px; }
   /* 2.81 定稿 2.4：侧栏打开、规则表放不下四列时隐藏“条件”列（侧栏第一节就是条件），名称列随之放宽。
      按设置区宽度判断（不足 1500，约为窗口宽 1500 以下）：定稿写窗口宽 1439 及以下，但 1440 宽时推开后内容区只有约 455，四列放不下 */
   @container au-settings (max-width: 1499.98px) {
-    #pbody:has(> .ds-sheet.push) .ops-rules-t .ops-rl-c { display: none; }
+    /* 2.84 E1142：“条件”列收成 0 宽而不是 display:none（分组标题行跨 5 列，去掉一格会多出一列空白，名称列只剩约 44、与级别重叠，
+       分隔线停在卡片右缘前 45）；名称列至少 160（放不下时表格横向滚动），级别 96 */
+    #pbody:has(> .ds-sheet.push) .ops-rules-t :is(th, td).ops-rl-c { width: 0; padding: 0; border: 0; font-size: 0; overflow: hidden; visibility: hidden; }
+    #pbody:has(> .ds-sheet.push) .ops-rules-t { min-width: 416px; }
     #pbody:has(> .ds-sheet.push) .ops-rules-t .ops-rl-n { width: auto; }
+    #pbody:has(> .ds-sheet.push) .ops-rules-t .ops-rl-l { width: 96px; }
+    #pbody:has(> .ds-sheet.push) .ops-rules-t .ops-rl-k { width: 88px; }
+    #pbody:has(> .ds-sheet.push) .ops-rules-t .ops-rl-s { width: 72px; }
   }
   /* 侧栏让出主区后列表变窄：连接、网络台账的名称列不窄于 200，名称与网关不在字中间断开 */
   #pbody:has(> .ds-sheet.push) .net-ledger > tbody > tr > th[scope=row] { min-width: 200px; }
@@ -34245,6 +34279,12 @@ li.none .ov2-fr > small { font-size: 12px; line-height: 18px; }
 .ops-overview-nav:is([data-category-page="devices"], [data-category-page="settings"]) { flex-wrap: nowrap; align-items: center; gap: 16px; min-height: 40px; margin: 0 0 16px; box-shadow: inset 0 -1px 0 var(--ds-line); }
 .ops-overview-nav:is([data-category-page="devices"], [data-category-page="settings"]) > .ops-overview-tabs { align-self: stretch; flex: 0 1 auto; padding-block: 0; margin-block: 0; }
 .ops-overview-nav:is([data-category-page="devices"], [data-category-page="settings"]) > .ops-overview-tools { margin-left: auto; flex-wrap: nowrap; }
+/* 2.84 E1105：设备页签行右端的新建按钮；手机上只留“＋”图标（32 圆形，名称仍供朗读），页签保留宽度 */
+@media (max-width: 600px) {
+  .ops-overview-nav[data-category-page="devices"] > .ops-overview-tabs { flex: 1 1 auto; min-width: 0; }
+  .ops-overview-nav[data-category-page="devices"] > .ops-overview-tools { flex: 0 0 auto; margin-left: auto; }
+  .ops-overview-nav[data-category-page="devices"] > .ops-overview-tools > .btn.primary { width: 32px; min-width: 32px; padding: 0; gap: 0; justify-content: center; font-size: 0; }
+}
 .ops-overview-nav:is([data-category-page="devices"], [data-category-page="settings"]) :is(.ops-category-pill, .ops-category-separator, .ops-category-measure, .ops-category-content > .ic) { display: none; }
 .ops-overview-nav:is([data-category-page="devices"], [data-category-page="settings"]) :is(.ops-category-switch, .ops-category-track) { width: auto; height: 40px; margin: 0; padding: 0; gap: 24px; border-radius: 0; background: none; box-shadow: none; transition: none; }
 .ops-overview-nav:is([data-category-page="devices"], [data-category-page="settings"]) .ops-category-tab { width: auto; height: 40px; min-height: 40px; padding: 0; border-radius: 0; color: var(--ds-ink-2); font-size: var(--ds-fs-2); line-height: var(--ds-lh-2); font-weight: 500; transition: color var(--ds-dur) ease; }
@@ -34268,6 +34308,8 @@ li.none .ov2-fr > small { font-size: 12px; line-height: 18px; }
   #app .phead > .cfg-head-more { display: grid; flex: none; width: 44px; height: 44px; margin-left: auto; }
   #app .phead > .ops-hscope.ops-hscope:has(~ .cfg-head-more) { margin-right: 0; }
   #app .phead > .cfg-head-more ~ .v13-head { margin-left: 0; }
+  /* 2.84 V838：手机“更多”在第 2 行右端，后面的空演示容器不再分走左右余量 */
+  #app .phead > .ov-head-more ~ .v13-head { margin-left: 0; }
   #pbody > .ws-toolbar > .iconbtn.round:last-child { margin-left: auto; }
 }
 @media (max-width: 600px) {
@@ -34401,12 +34443,12 @@ button.ds-st.ds-link:hover { text-decoration: underline; text-underline-offset: 
 .ob-na.oor { color: #636363; } /* 2.83 KW4：超出量程 */
 .ob-sum2 { display: grid; grid-template-columns: minmax(300px, 4fr) minmax(0, 8fr); gap: var(--ds-gap); align-items: start; }
 /* 数值卡（14.2 第 8 条）：组标题行 32（14/22 字重 500，右侧收起箭头 16）；数值行 40：勾选框 16，距名称 8，名称 14/22 #636363，值 14/22 字重 600 右对齐、等宽数字，单位 12/18 #636363 */
-.ob-vals > .ob-q { width: 100%; height: 32px; margin: 0 0 12px; }
+.ob-vals > .ob-qw { width: 100%; margin: 0 0 12px; } /* 2.84 V832：用全站搜索框（图标 16、高 32） */
 .ob-g + .ob-g { margin-top: 16px; }
 .ob-gh { display: flex; align-items: center; gap: 8px; width: 100%; height: 32px; min-height: 32px; padding: 0; border: 0; border-radius: 0; background: none; font: inherit; font-size: var(--ds-fs-2); line-height: var(--ds-lh-2); font-weight: 500; color: var(--ds-ink); text-align: left; cursor: pointer; }
 .ob-gh .sp { flex: 1; }
 .ob-gh > small { font-size: var(--ds-fs-1); line-height: var(--ds-lh-1); font-weight: 400; }
-.ob-gh > .ic { color: var(--ds-ink-2); transform: rotate(90deg); transition: transform 0.15s; }
+.ob-gh > .ic { color: var(--ds-ink-2); transform: rotate(180deg); transition: transform 0.15s; } /* 2.84 V829：展开“⌃”、收起“⌄” */
 .ob-g.folded > .ob-gh > .ic { transform: none; }
 .ob-gb > .ov-irow, .ob-gb > .ops-zp-state, .ob-gb > .ob-gnote, .ob-gb > .dev-why, .ob-gb > .ov-ieco, .ob-gb > .ops-rcpt, .ob-gb > .mk-gate, .ob-gb > .note { margin: 4px 0 8px; }
 /* 2.82 V796：已恢复出厂的提示条右端为“远程重新绑定” */
@@ -34520,6 +34562,18 @@ button.ds-st.ds-link:hover { text-decoration: underline; text-underline-offset: 
   .phead .ob-meta { display: none; }
   /* 手机标题按总览两行写法：块级，路径在宽度内换行，“⋯”留在同一行 */
   .phead .ob-title { display: block; }
+  /* 2.84 V838：趋势卡第 1 行“趋势 | 位置”，第 2 行期间、合并 | 分图，“⋯”在第 2 行右端 */
+  .ob-trc > header > .sp { flex-basis: 100%; height: 0; }
+  .ob-trc > header > .tr-more { margin-left: auto; }
+  /* 2.84 V883：收起的成员卡高 64，文字左缘与展开的卡片相同 */
+  .ov-mcard.fold { padding: 0; }
+  .ov-mcard.fold > .ov-mfold { min-height: 64px; padding: 0 var(--ds-pad); }
+}
+/* 2.84 V828：手机指标横滑条名称一行、数字一行，不拆词；放不下时该项加宽 */
+@media (max-width: 540px) {
+  .ov3 .ov2-tab-v { gap: 4px; }
+  .ov3 .ov2-tab-v > * { flex-shrink: 0; }
+  .ov3 .ov2-tab { min-width: max-content; }
 }
 /* 2.82 KW40：850 及以下侧栏为底部卡片，半屏，上拉全屏，与总览功能区卡片相同（上圆角 20、顶部拖动条） */
 .ds-bs-grab { display: none; }
@@ -34537,6 +34591,32 @@ button.ds-st.ds-link:hover { text-decoration: underline; text-underline-offset: 
 #app .main > .panel:has(> .net-bar) > .phead { padding-bottom: 0; }
 #app .main > .panel > .phead ~ .net-bar { margin-top: 16px; margin-bottom: 0; }
 #app .main > .panel > .net-bar ~ .pbody { padding-top: 16px; }
+/* ---- 2.84 运营全面核查（Vision V807–V883 中标“错”的各条） ---- */
+/* V836：网关页下级设备的告警只画在状态条上；没有状态条时画在横轴上方的 4 高红条 */
+.ops-alband.st { fill: rgb(208 56 43 / 0.2); }
+.ops-alband.stb { fill: #d0382b; }
+/* V857：计量点排名名称放不下时两行（在空格处换行），“›”照常 */
+.an-side-list .an-rk-n { white-space: normal; overflow: visible; text-overflow: clip; word-break: keep-all; }
+/* V837：对象页卡片里的表格不再套一层带边框的框 */
+.ob-card > .tw { box-shadow: none; border-radius: 0; }
+/* V823：功能区的照明分区与计量各占一行 */
+.ob-keys.col { flex-direction: column; align-items: flex-start; gap: 0; }
+/* V834：路径中间各级与“…”按宽度切换 */
+.phead .ob-title .ov-crumb > [hidden] { display: none; }
+/* V825：多选的勾在功能区左上角，不压右上角的告警角标 */
+.ov-zck { left: 6px; right: auto; }
+/* V807：最近事件的时间写完整日期与时刻 */
+@media (min-width: 851px) { .an-events .an-tl li { grid-template-columns: 128px minmax(0, 1fr); } }
+/* V875：新建场景的楼层图铺满卡片宽度，卡片高度随楼层图，滚动时停在顶部；选择工具为左上角一小组图标按钮；名称只在空格处换行，放不下只填色 */
+@media (min-width: 851px) {
+  .sc-ed-plan { min-height: 0; position: sticky; top: 16px; align-self: start; }
+  .sc-ed-plan > .ops-plan-wrap { flex: none; display: block; container-type: normal; }
+  .sc-ed-plan > .ops-plan-wrap > .ops-plan-scroll { width: min(100%, calc((100dvh - 200px) * var(--ar))); margin: 0 auto; }
+}
+.sc-ed-plan > .ops-seltool { align-self: flex-start; width: auto; height: 32px; margin: 0 0 12px; padding: 2px; border-radius: 999px; background: var(--ov-surface-3); }
+.sc-ed-plan > .ops-seltool > button { width: 32px; min-width: 0; height: 28px; padding: 0; justify-content: center; border-radius: 999px; }
+.sc-ed-plan > .ops-seltool > button > span { display: none; }
+.ops-plan.ov.plain > .ops-zone .ops-zn { overflow-wrap: normal; }
 }
 
 /* 2.83 KW7：停留在告警与工单页或总览时，新进入“未处理”“需要处理”的行底色由 #EAF1FB 渐变到白，用时 1.5 秒；减少动态效果时不渐变 */
@@ -41326,8 +41406,10 @@ function buildDemoWorkspace(seed) {
     alert("conn", { kind: "connection", level: "重要", connectionId: mc.id, name: "7F 配电计量 连接中断", detail: "7F 配电计量的 2 块电能表（2 个数据点）同时读不到，网关在线", at: day(23, "02:10"), state: "recovered", recoveredAt: day(23, "02:50"), acknowledged: true, ackBy: "李工", ackAt: day(23, "08:35") });
   }
   // 2.83：会议室 7-1 CO₂ 偏高近 7 天已出现两次（午后会议），今天这次为第 3 次，列表写琥珀色“7 天内第 3 次”
+  // 2.84 V888：时刻为 5 分钟均值超过 1,000 ppm 的时刻（9/22 14:35 起 25 分钟、9/23 15:10 起 30 分钟）；触发在其后 15 分钟（规则持续 15 分钟），
+  // 恢复为回到 1,000 ppm 以下的时刻。示例 CO₂ 曲线按这两段生成（demo-ops.js co2Hist），证据只取告警自己的时段
   [[22, "14:35", 25], [23, "15:10", 30]].forEach(([d, hm, m], i) =>
-    alert("co2r" + i, { kind: "environment", metric: "co2", ruleId: "rule-demo-co2", ruleVersion: 1, level: "提示", pointId: aqMeet.id, zoneId: zoneId("meet"), name: "会议室 7-1 CO₂ 偏高", detail: `5 分钟均值超过 1,000 ppm，持续 ${m} 分钟`, at: day(d, hm), state: "recovered", recoveredAt: new Date(Date.parse(day(d, hm)) + m * 60000).toISOString() }),
+    alert("co2r" + i, { kind: "environment", metric: "co2", ruleId: "rule-demo-co2", ruleVersion: 1, level: "提示", pointId: aqMeet.id, zoneId: zoneId("meet"), name: "会议室 7-1 CO₂ 偏高", detail: `5 分钟均值超过 1,000 ppm，持续 ${m} 分钟`, at: new Date(Date.parse(day(d, hm)) + 15 * 60000).toISOString(), state: "recovered", recoveredAt: new Date(Date.parse(day(d, hm)) + m * 60000).toISOString() }),
   );
   // 按日判定：9/21 22:00–9/22 06:00 这一晚判定后触发（V54：原先在当晚 23:50 触发，当晚还没过完）
   alert("night", { kind: "energy", ruleId: "rule-demo-night", ruleVersion: 1, level: "提示", zoneId: zoneId("labb"), name: "实验室 B 夜间照明偏高", detail: "夜间无人时照明平均功率 259 W，按照明控制参数应为 0 W，多用约 2.1 kWh", at: day(22, "06:05"), acknowledged: true, ackBy: "王敏", ackAt: day(22, "09:12") });
@@ -41580,6 +41662,8 @@ const DEVICE_CATEGORY_ITEMS = [
   ["firmware", "固件升级"],
 ];
 const deviceTabs = () => pageCategorySwitch("devices", U.tab || deviceDefaultTab());
+// 2.84 E1105：设备网络、系统接入、设备分组的新建按钮放在页签行右端（不再在页签下单独占一行）；各列表渲染时写入，页头随后取用
+let devTabAdd = "";
 // 设备页的默认页签（2026-10-17 用户确认，配置区核查 E138）：地址没有带页签时，范围是楼层打开“设备标记”，范围是项目或楼宇打开“设备列表”；
 // 带页签的地址与配置进度等入口照旧按所带的页签。
 const deviceDefaultTab = () => "inventory";
@@ -43202,11 +43286,15 @@ document.addEventListener("keydown", (e) => {
   e.preventDefault();
   n.focus();
 });
+// 2.84 E1105：项目页楼宇层、楼层层的工具栏左侧没有内容时（电脑），这一行放进页头标题行右侧，不单独占一行（页头在内容之后生成，取用 wsHeadTb）
+let wsHeadTb = "";
+const wsHeadTbTake = () => { const h = wsHeadTb; wsHeadTb = ""; return h; };
 function toolbar(right = "", showViews = false) {
   const left = U.page === "projects" ? projectNavigation(showViews)
     : cfgHeadScopeOn() ? (showViews ? `<div class="ws-location-group with-views">${views()}</div>` : "")
     : U.page === "deployment" ? dirSearch()
     : `<div class="ws-location-group ${showViews ? "with-views" : ""}">${scopeControl()}${showViews ? views() : ""}</div>`;
+  if (U.page === "projects" && !left && right && !isMobile()) return ((wsHeadTb = `<div class="toolbar ws-toolbar ws-head-tb"><span class="sp"></span>${right}</div>`), "");
   return `<div class="toolbar ws-toolbar">${left}<span class="sp"></span>${right}</div>`;
 }
 // 页头工具栏里的整页按钮（操作记录、大屏、修改记录等）。屏宽 600 以下这些按钮收进位置选择右边 44 宽的“更多”，
@@ -43335,7 +43423,7 @@ function wsNavItem(k, l, i) {
 function wsSideHtml() {
   return `<aside class="side" id="side"><div class="brand">${A.logo}${wsSidebarToggle()}</div><nav class="nav" aria-label="主导航">${U.role === "member" ? "" : `<button class="navitem searchrow" data-act="search" aria-label="搜索或提问" aria-keyshortcuts="${IS_APPLE ? "Meta+K" : "Control+K"}" data-tip="搜索或提问" data-tip-shortcut="true"><span class="ib">${ico("search")}</span><span class="navlabel">搜索</span>${searchKbd()}</button>`}${wsNav().map(([title, items]) => `${title ? `<div class="navgroup">${title}</div>` : ""}${items.map(([k, l, i]) => wsNavItem(k, l, i)).join("")}`).join("")}</nav>${typeof orgButton === "function" ? orgButton() : `<button class="orgbtn" data-act="orgMenu"><span class="ws-org-logo"><img src="${A.img_gzlab}" alt=""></span><span>广州国家实验室</span></button>`}</aside>`;
 }
-const wsHeadHtml = () => `<button class="iconbtn mobnav" data-act="mobnav" aria-label="打开菜单" aria-controls="side" aria-expanded="false">${ico("menu")}</button>${headTitle()}${sourceBack()}${pageCategoryTitleActions()}${opsHeadScope()}${typeof headerRight === "function" ? headerRight() : ""}`;
+const wsHeadHtml = () => `<button class="iconbtn mobnav" data-act="mobnav" aria-label="打开菜单" aria-controls="side" aria-expanded="false">${ico("menu")}</button>${headTitle()}${sourceBack()}${pageCategoryTitleActions()}${opsHeadScope()}${wsHeadTbTake()}${typeof headerRight === "function" ? headerRight() : ""}`;
 // 比对前在新内容上先做绘制后处理的结构调整（说明框外壳），不必每次绘制都拆装。
 const wsMorphPrepare = (frag) => { if (typeof wsProjectTextareas === "function") wsProjectTextareas(frag); };
 // 普通成员只有总览中的“我的区域”与“我的账户”（2026-10-09 用户确认，角色权限方案第 4 条）：其他页面与页签（含浏览器地址）一律回到总览；未知地址仍显示“页面不存在”。
@@ -43412,6 +43500,7 @@ function render() {
   // 2.44 配置核查 E443：只显示状态说明和“返回全部项目”，不显示项目资料面板
   PAGE_CATEGORY_HEADERS.delete(U.page);
   rpHandleHtml = "";
+  wsHeadTb = ""; // 2.84 E1105：每次绘制重新取页头里的工具栏
   if (typeof opsHeadLive !== "undefined") opsHeadLive = "";
   if (typeof opsHeadActs !== "undefined") opsHeadActs = "";
   infoAutoOpen();
@@ -43833,7 +43922,8 @@ function floorRail() {
   // 2.65 E740：设备标记的楼层轨道不放“全部楼层”，只列楼层号；楼宇图只在“项目”里有
   const home = U.page === "devices" ? "" : `<button class="ws-rail-home ${!U.f ? "on" : ""}" data-act="buildingHome" aria-label="全部楼层" aria-current="${!U.f ? "location" : "false"}" data-tip="全部楼层">${ico("layers")}</button>`;
   // 2.70 E1051：只有一个楼层可选、又没有“全部楼层”时不显示楼层导航（位置选择器已写楼层）；只有一层时轨道不保留 80 的最小高度
-  if (fs.length < 2 && !home) return "";
+  // 2.84 E1130：网络模式只列本网络的楼层，但只要楼宇有多个楼层就保留轨道，切换模式时楼层图位置不动
+  if (fs.length < 2 && !home && sortedFloors(U.b).length < 2) return "";
   return `<div class="ws-rail">${home}<div class="ws-rail-track${fs.length < 2 ? " single" : ""}"><button class="rail-arrow" data-act="railUp" aria-label="向上滚动楼层">${ico("chevron", "ic16")}</button><nav class="ws-rail-scroll" aria-label="楼层选择器"><span class="ws-rail-ind" aria-hidden="true"></span>${fs.map((f) => `<button aria-label="进入${floorSpeak(f)}${todo(f) ? "，本次范围内有待处理项" : ""}${!f.image ? "，未上传楼层图" : ""}${floorRecent(f.id) ? "，刚离开的楼层" : ""}" aria-current="${f.id === U.f ? "location" : "false"}" class="${f.id === U.f ? "on" : ""} ${todo(f) ? "todo" : ""} ${floorRecent(f.id) ? "recent" : ""}" data-act="floor" data-id="${f.id}" data-tip="${esc(f.name)}${!f.image ? " · 未上传楼层图" : ""}${todo(f) ? " · 空间资料待处理" : ""}" data-tip-at="right">${f.name === "RF" ? "RF" : f.name.replace(/F$/, "")}</button>`).join("")}</nav><button class="rail-arrow" data-act="railDown" aria-label="向下滚动楼层">${ico("chevron", "ic16")}</button></div></div>`;
 }
 // 楼层导航的选中底块滑动（E243，同 Lovable 视图切换与 E228）：150ms ease-out 上下滑到新楼层，距离远时一次滑过去；文字颜色同时过渡 150ms。
@@ -44188,15 +44278,14 @@ pages.devices = () => {
   // 页头右侧只放管整页的“修改记录”；各页签的新建在页签下第一行右端，是本页签唯一的主要按钮（2026-10-10 用户确认，ABB 对比 IA4：
   // 原先这五个页签的页头都有黑色“+ 标记设备”）。标记设备在“设备标记”页签和项目楼层图的“标记设备”进行。
   // “修改记录”用全站默认浅色按钮（Lovable 核查第 104 条，2026-10-11 用户确认：原为透明按钮）
-  const head = pageCategoryHeader("devices", tab, { actions: btn("修改记录", "changes") });
+  // 2.84 E1105：先渲染本页签内容（写入 devTabAdd），再生成页头，新建按钮放在页签行右端
+  devTabAdd = "";
   // 2.65 E722：项目没有楼层时设备列表、设备分组、设备网络与设备标记同一空状态
-  const none = ["inventory", "groups", "networks"].includes(tab) ? devNoFloors() : "";
-  if (none) return head + none;
-  if (tab === "networks") return head + networkList();
-  if (tab === "connections") return head + connectionList();
-  if (tab === "groups") return head + groupList();
-  if (tab === "firmware") return head + renderFirmware();
-  return head + renderInventory();
+  const none = ["inventory", "groups", "networks"].includes(tab) ? devNoFloors() : "",
+    body = none || (tab === "networks" ? networkList() : tab === "connections" ? connectionList() : tab === "groups" ? groupList() : tab === "firmware" ? renderFirmware() : renderInventory()),
+    head = pageCategoryHeader("devices", tab, { actions: btn("修改记录", "changes"), tools: devTabAdd });
+  devTabAdd = "";
+  return head + body;
 };
 function networkList() {
   return renderNetworkList();
@@ -45473,7 +45562,8 @@ function memberPickField(ps0, members, o = {}) {
         const z = (p.zoneId && cx.zones.get(p.zoneId)) || null,
           why = off(p);
         return `<label data-gm-floor="${p.floorId}" data-gm-type="${p.type}"${members.includes(p.id) ? ' data-gm-member="1"' : ""}${gmFits(usage, p.type) || members.includes(p.id) ? "" : " hidden"} data-gm-zone="${esc(z ? z.name : F.NO_ZONE)}" data-gm-name="${esc(p.name.toLowerCase())}"><input name="${nm}" type="checkbox" value="${p.id}" ${members.includes(p.id) ? "checked" : ""}${why ? " disabled" : ""}>${esc(p.name)}<small>${esc(
-          [M.catalog[p.type]?.model || M.catalog[p.type]?.name, devFloorLabel(p.floorId, fids), z?.name, why].filter(Boolean).join(" · "),
+          // 2.84 E1112：设备行写全楼宇“E栋 · 7F”（筛选项仍按 E1062 只写楼层名）
+          [M.catalog[p.type]?.model || M.catalog[p.type]?.name, floorText(p.floorId), z?.name, why].filter(Boolean).join(" · "),
         )}</small></label>`;
       })
       .join("");
@@ -48326,6 +48416,9 @@ function wsAfterRender() {
         down = track.querySelector("[data-act=railDown]");
       up.disabled = rs.scrollTop <= 1;
       down.disabled = rs.scrollTop + rs.clientHeight >= rs.scrollHeight - 1;
+      // 2.84 E1123：还能向上（向下）滚时，轨道上（下）边缘 16 渐隐，楼层号不被箭头硬切
+      rs.classList.toggle("fade-t", over && !up.disabled);
+      rs.classList.toggle("fade-b", over && !down.disabled);
       if (rs.getClientRects().length) { U.planScroll = rs.scrollTop; if (railB) U.bRailScroll = { b: railB, top: rs.scrollTop }; }
     };
     update();
@@ -51492,7 +51585,7 @@ function piRejected(pi, e) {
 // 单张模式的标题：已有图纸的楼层为“更换楼层图”，否则“上传楼层图”；尚未选楼层时只写楼宇。
 function piTitle(pi) {
   const b = g("buildings", pi.bid), f = pi.fid ? g("floors", pi.fid) : null;
-  return `${f?.image ? "更换" : "上传"}${planWord(pi.bid)} · ${b?.name || ""}${f ? " " + f.name : ""}`;
+  return `${f?.image ? "更换" : "上传"}${planWord(pi.bid)} · ${b?.name || ""}${f ? " · " + f.name : ""}`; // 2.84 E1122：“上传楼层图 · E栋 · 8F”
 }
 // 更换已有图纸时先列影响（PLAN01）。
 function piImpact(fid) {
@@ -54300,6 +54393,8 @@ const rowAct = (name, icon, act, args = {}) => iconBtn(name, icon, act, args).re
 const noChev = (html) => html.replace(/<span class="flow-chev">[\s\S]*?<\/span>/g, "");
 // 2.58 E619：详情里切换内容的页签（网络详情、设备信息）用类别页签的外观（.seg.seg-cat：32 高浅灰轨道、强调色胶囊）；分段控件只用于选一个值
 const tabsCat = (items, active, act, panel = "", name = "") => tabs(items, active, act, panel, name).replace('<div class="seg"', '<div class="seg seg-cat"');
+// 2.84 E1105：页签的动作（网络检测的“局部检测”“全网检测”、数据映射的“添加数据点”等）放在页签同一行右端，不另占一行
+const tabsCatRow = (items, active, act, panel, name, tools = "") => (tools ? `<div class="seg-cat-row">${tabsCat(items, active, act, panel, name)}<div class="seg-cat-tools">${tools}</div></div>` : tabsCat(items, active, act, panel, name));
 // 2.15 E298（2026-10-21 HONG 按建议，第 311 条）：设备类别各页正常和完成的状态（已绑定、已同步、已通过、已交付等 good）写普通文字，
 // 只有要处理的状态用实心标签（红：离线、不一致、未通过；橙：待同步、待绑定）。原为绿色实心标签。
 // 2.80 KW21：设备、网关、网络、系统连接的状态写成 8 的圆点加文字（取代上面 2.15 E298 中这些状态的实心标签）：离线红点，配置不一致、
@@ -54370,6 +54465,12 @@ function netIssues(db, n) {
 }
 // gw：逐网络统计时传入该网络的网关（见 F.communication）
 const needsAttention = (db, p, gw) => F.issues(db, p).length > 0 || F.communication(db, p, gw) === "离线";
+// 2.84 E1106：真正通信离线（已恢复出厂而未在更换中的设备写“待重新绑定”，不算离线）；系统接入设备当前读取失败的数据点数
+const devOffline = (db, p) => F.communication(db, p) === "离线" && !(p.fieldReset && !p.replacing);
+const devReadFails = (p) => {
+  const c = p?.connectionId && g("connections", p.connectionId);
+  return c ? (c.mappings || []).filter((m) => m.pointId === p.id && m.fail).length : 0;
+};
 const netOptions = () => F.scopedNetworks(data(), U).map((n) => [n.id, n.name]);
 const scopePoints = () => F.scopedPoints(data(), U);
 const scopeFloors = () => F.scopedFloors(data(), U);
@@ -54520,11 +54621,13 @@ function inventoryView() {
     cx = F.index(db),
     all = F.inventory(db, U),
     mesh = all.filter((p) => ["mesh", "gateway"].includes(M.access(p))),
-    pending = mesh.filter((p) => !F.boundNow(p)),
     bound = all.filter(F.connectedNow),
-    needs = all.filter((p) => needsAttention(db, p)),
-    // 2.82 定稿 5.5（KW39）：状态分段“全部、离线、需处理、待绑定”；“离线”为通信离线，“需处理”含离线（E1096）
-    offline = all.filter((p) => F.communication(db, p) === "离线"),
+    // 2.82 定稿 5.5（KW39）：状态分段“全部、离线、需处理、待绑定”。
+    // 2.84 E1106：每台设备只归一个分段。离线 = 真正通信离线（已恢复出厂的不算，它写“待重新绑定”）；待绑定 = 从未绑定；
+    // 需处理 = 其余要处理的（配置不一致、待重新绑定、数据点读取失败等），不含离线与待绑定
+    offline = all.filter((p) => devOffline(db, p)),
+    pending = mesh.filter((p) => !F.boundNow(p) && !p.fieldReset && !offline.includes(p)),
+    needs = all.filter((p) => !offline.includes(p) && !pending.includes(p) && (needsAttention(db, p) || devReadFails(p) > 0)),
     seg = ["offline", "issues", "pending"].includes(U.filter) ? U.filter : "all",
     f = devFilter(),
     ps = all.filter(
@@ -54544,15 +54647,17 @@ function inventoryView() {
         (!U.devMaint || !!maintOf(p)) &&
         F.deviceMatch(db, p, f, cx),
     ),
-    attention = new Set(needs.map((p) => p.id)),
+    // 2.84 E1106：离线与需处理分开排在前面，按楼层分组时组名分别写“离线”“需处理”（与分段同一口径）
+    attention = new Map([...offline.map((p) => [p.id, "离线"]), ...needs.map((p) => [p.id, "需处理"])]),
+    rank = (p) => ({ 离线: 2, 需处理: 1 })[attention.get(p.id)] || 0,
     floorOf = (p) => cx.floors.get(p.floorId),
     buildingOf = (p) => cx.buildings.get(floorOf(p)?.buildingId);
   // §7：需处理（含通信离线）优先，再按楼宇、楼层高度与名称；按楼层分组时同一楼层的需处理设备连在一起（04 A-3）。
   ps.sort(
     (a, b) =>
-      attention.has(b.id) - attention.has(a.id) || M.byName(buildingOf(a), buildingOf(b)) || M.byHeight(floorOf(a), floorOf(b)) || M.byName(a, b),
+      rank(b) - rank(a) || M.byName(buildingOf(a), buildingOf(b)) || M.byHeight(floorOf(a), floorOf(b)) || M.byName(a, b),
   );
-  return { db, all, pending, bound, offline, needs, seg, ps };
+  return { db, all, pending, bound, offline, needs, seg, ps, attention };
 }
 // 已设的筛选条件写在工具栏下一行，可一次清除。
 function devFilterSummary(all) {
@@ -54612,7 +54717,7 @@ function devPaging(total) {
 function devRows(ps, rows, start, attention, cells) {
   const fids = [...new Set(ps.map((p) => p.floorId))];
   if (fids.length < 2) return rows.map(cells);
-  const key = (p) => (attention.has(p.id) ? "!" : "") + p.floorId,
+  const key = (p) => (attention.has(p.id) ? "!" + attention.get(p.id) : "") + p.floorId,
     count = new Map(),
     issueFloors = new Set();
   for (const p of ps) {
@@ -54625,7 +54730,7 @@ function devRows(ps, rows, start, attention, cells) {
     const k = key(p);
     if (k !== last || i === 0)
       out.push({
-        group: `${esc(devFloorLabel(p.floorId, fids))} · ${attention.has(p.id) ? "需处理 " : issueFloors.has(p.floorId) ? "其余 " : ""}${count.get(k)} 台${i === 0 && k === last ? "（续）" : ""}`,
+        group: `${esc(devFloorLabel(p.floorId, fids))} · ${attention.has(p.id) ? attention.get(p.id) + " " : issueFloors.has(p.floorId) ? "其余 " : ""}${count.get(k)} 台${i === 0 && k === last ? "（续）" : ""}`,
       });
     last = k;
     out.push(cells(p));
@@ -54681,15 +54786,14 @@ function devNoFloors() {
   return empty("尚无楼层", "", canEdit() ? btn("前往项目", "markDirProjects", {}, "primary") : "", "building-2");
 }
 function renderInventory() {
-  const { db, all, pending, offline, needs, seg, ps } = inventoryView(),
+  const { db, all, pending, offline, needs, seg, ps, attention } = inventoryView(),
     edit = canEdit(),
     picking = edit && !!U.devSelMode,
     sel = picking ? new Set(devSelection(all)) : new Set(),
     inView = ps.filter((p) => sel.has(p.id)).length,
     { n, pages } = devPaging(ps.length),
     start = n * DEV_PAGE,
-    rows = ps.slice(start, start + DEV_PAGE),
-    attention = new Set(needs.map((p) => p.id));
+    rows = ps.slice(start, start + DEV_PAGE);
   devView = { ids: ps.map((p) => p.id) };
   // 没有设备时用空状态（2026-10-17 用户确认，设备核查 E158：原为表格里的一行字）；“开始标记设备”打开设备标记的楼层（E145、E547）
   if (!all.length) return empty("尚无设备", "", edit ? btn("标记设备", "startMark", {}, "primary") : "", "map-pin"); // 2.58 E582
@@ -54773,12 +54877,14 @@ function devStatusCell(db, p) {
       b === "待重新绑定" && b,
       ["待绑定", "待接入", "暂不支持绑定", "接入待确认"].includes(b) && b,
       s === "待同步" && !p.fieldReset && s,
+      // 2.84 E1106：系统接入设备有数据点读取失败时写“N 项读取失败”（琥珀点），与系统接入一致
+      devReadFails(p) > 0 && `${devReadFails(p)} 项读取失败`,
     ].filter(Boolean).slice(0, 2),
     t = off ? F.lastSeen(db, p) : null,
     m = maintOf(p),
     sub = [off && (t ? "最近通信 " + shortDate(t, objectProjectId(p.id, db)) : "尚无上报"), note, m && maintText(m)].filter(Boolean);
   // 2.80 KW21：第一行一个圆点（取最需要处理的颜色）加状态文字，两项用“ · ”隔开；都正常时写“在线”，不画点
-  const tone = ["bad", "warn", "off"].find((k) => tags.some((t) => devTone(t) === k)) || "warn";
+  const tone = ["bad", "warn", "off"].find((k) => tags.some((t) => (/项读取失败$/.test(t) ? "warn" : devTone(t)) === k)) || "warn";
   return devLedgerLabel("状态") + (tags.length ? `<span class="ds-st ${tone}">${tags.map(esc).join(" · ")}</span>` : stDot("在线")) + (sub.length ? `<small class="flow-sub" data-tip="${esc(sub.join(" · "))}">${esc(sub.join(" · "))}</small>` : "");
 }
 function renderNetworkList() {
@@ -54789,7 +54895,8 @@ function renderNetworkList() {
     // 2.73 E1068：新增一项的主按钮左侧有 16 的“＋”
     add = canEdit() && projects.length && hasFloors ? btn(ico("plus", "ic16") + "规划设备网络", "networkForm", {}, "primary") : "",
     // 2.65 E806：工具栏里没有按钮时不输出工具栏，空状态距页签 20
-    bar = add ? `<div class="ws-section-toolbar"><span class="sp"></span>${add}</div>` : "";
+    bar = "";
+  devTabAdd = add; // 2.84 E1105：新建放在页签行右端
   // 整体为空、当前位置范围为空与无授权项目分别说明；入口只能指向当前可执行的步骤。
   if (!projects.length) return bar + (canCreateProject()
     ? empty("尚无项目", "", btn(ico("plus", "ic16") + "新建项目", "spaceForm", { kind: "projects" }, "primary"), "building-2")
@@ -54886,7 +54993,7 @@ function networkHead(n) {
     btn("楼层图", "markNetwork", canEdit() && state !== "已交付" ? { id: n.id } : { id: n.id, mode: "view" }, "net-plan-btn") +
     (canEdit() || canInstall() || (canOperate() && everDelivered(data(), n.id)) ? menuTrigger(iconBtn("网络更多", "more", "networkMore", { id: n.id })) : "") +
     nextHtml;
-  return `<div class="flow-heading sub-head"><div><div class="flow-title-row">${back}<h2>${esc(n.name)}</h2>${issueTag}</div><p>${n.floorIds.length} 个服务楼层${maintWin("network", n.id) ? ` · ${esc(maintText({ until: maintWin("network", n.id).until }))}` : ""}${redo && last ? ` · 上次交付 ${v13Date(last.at, false)} · 需重新交付` : ""}</p></div><div class="flow-head-acts">${acts}</div></div>${v13StageBar(stage.cur, redo)}${fieldBar(db, n)}${tabsCat(NETWORK_TABS, U.ntab || "summary", "networkTab", "networkPanel", "设备网络页签")}`;
+  return `<div class="flow-heading sub-head"><div><div class="flow-title-row">${back}<h2>${esc(n.name)}</h2>${issueTag}</div><p>${/* 2.84 E1111：各段整体不拆开，只在“ · ”处换行（原手机上“需重新 / 交付”） */ nwJoin([`${n.floorIds.length} 个服务楼层`, maintWin("network", n.id) ? maintText({ until: maintWin("network", n.id).until }) : "", ...(redo && last ? [`上次交付 ${v13Date(last.at, false)}`, "需重新交付"] : [])])}</p></div><div class="flow-head-acts">${acts}</div></div>${v13StageBar(stage.cur, redo)}${fieldBar(db, n)}${tabsCatRow(NETWORK_TABS, U.ntab || "summary", "networkTab", "networkPanel", "设备网络页签", U.ntab === "health" && canEdit() ? btn("局部检测", "healthForm", { id: n.id, scope: "near" }) + btn("全网检测", "healthForm", { id: n.id, scope: "all" }, "primary") : "")}`;
 }
 // 网络详情的页签以设备网络命名，其下的内容标为它控制的页签面板（Lovable 核查第 321 条，2026-10-11 用户确认）
 // 2.44 配置核查 E435：删除“节点规划”页签，中继与代理在楼层图的网络模式里规划和检查
@@ -54935,7 +55042,8 @@ function networkSummary(n) {
       // 已绑定的实际数量按网关与部署 App 的回执计，已恢复出厂的不计入（规范 DEVICE05）
       // 2.15 E323（2026-10-21 HONG 按建议）：指标下的小字只写要处理的事（如“1 台待重新绑定”），参考值和假设放进指标名旁的 ⓘ
       // 2.58 E620：指标与负载分项不放 ⓘ（术语在帮助中心术语表），负载分项移到“网络参数”弹窗；“现场绑定”与“网关信息”一起在节标题右侧
-      ["节点（已绑定 / 规划）", `${bound}<small> / ${ps.length}</small>`, [reset ? `${reset} 台待重新绑定` : "", load.nodeHint].filter(Boolean).join(" · ")],
+      // 2.84 E1111：名称只在“节点”与括号之间换行
+      [nwText("节点") + nwText("（已绑定 / 规划）"), `${bound}<small> / ${ps.length}</small>`, [reset ? `${reset} 台待重新绑定` : "", load.nodeHint].filter(Boolean).join(" · ")],
       ["估算负载", load.total.toFixed(2) + "<small> 条/秒</small>", load.level === "normal" ? "" : load.label],
       // 2.67 E1029：比例并入数值“8 · 占节点 8.1%”（后半小字，同“节点 99 / 99”），指标下不写小字（原为小字“8.1%”）
       ["中继节点", `${rel}${ps.length ? `<small> · 占节点 ${((rel / ps.length) * 100).toFixed(1)}%</small>` : ""}`, ""],
@@ -55032,11 +55140,8 @@ function networkHealth(n) {
     bound = F.meshPoints(db, n.id).filter(F.boundNow),
     reset = F.meshPoints(db, n.id).filter((p) => M.bound(p) && p.fieldReset).length,
     block = healthBlock(db, n);
-  return `<div class="ws-section-toolbar"><p class="muted">${block ? esc(block) + "。" : ""}</p><div class="row">${
-    canEdit()
-      ? btn("局部检测", "healthForm", { id: n.id, scope: "near" }) + btn("全网检测", "healthForm", { id: n.id, scope: "all" }, "primary")
-      : ""
-  }</div></div>${stats([
+  // 2.84 E1105：“局部检测”“全网检测”在页签同一行右端（networkHead）；不能检测的原因仍写在指标上方
+  return `${block ? `<div class="ws-section-toolbar"><p class="muted">${esc(block)}。</p></div>` : ""}${stats([
     // 2.58 E621：三个指标；最近结果下一行写时间与结论，不再单列“最近网络检测”
     ["已绑定节点", bound.length, reset ? `${reset} 台已恢复出厂` : ""],
     [
@@ -55198,7 +55303,9 @@ function renderGroups() {
     caps = F.capacities(db),
     q = (U.gq || "").trim().toLowerCase(),
     shown = q ? custom.filter((x) => x.name.toLowerCase().includes(q)) : custom,
-    bar = `<div class="ws-section-toolbar">${custom.length ? `<div class="ws-search">${ico("search", "ic16")}<input id="groupQuery" aria-label="搜索设备分组" placeholder="搜索分组名称" value="${esc(U.gq || "")}"></div>` : ""}<span class="sp"></span>${canEdit() ? btn(ico("plus", "ic16") + "新建设备分组", "groupForm", {}, "primary") : ""}</div>`;
+    // 2.84 E1105：“+ 新建设备分组”放在页签行右端；工具栏只留搜索
+    bar = custom.length ? `<div class="ws-section-toolbar"><div class="ws-search">${ico("search", "ic16")}<input id="groupQuery" aria-label="搜索设备分组" placeholder="搜索分组名称" value="${esc(U.gq || "")}"></div></div>` : "";
+  devTabAdd = canEdit() ? btn(ico("plus", "ic16") + "新建设备分组", "groupForm", {}, "primary") : "";
   // 2.67 E1023：空状态图标与“设备分组”页签同为 blocks（原为“全部楼层”的 layers）
   if (!custom.length) return bar + empty("尚无设备分组", "", "", "blocks");
   return `${bar}<div class="dev-ledger-frame list-frame grp-list">${noChev(
@@ -55313,7 +55420,7 @@ function deviceRelations(db, p) {
   // 多联机：内机的所属外机，外机所接的内机（同一套多联机可跨楼层，规范 DEVICE01）
   if (p.type === "idu") {
     const o = p.oduId && g("points", p.oduId);
-    rows.push(["所属外机", o ? `${esc(o.name)} · ${esc(g("floors", o.floorId)?.name || "")}` : "未登记"]);
+    rows.push(["所属外机", o ? `${esc(o.name)} · ${esc(floorText(o.floorId))}` : "未登记"]); // 2.84 E1112：楼层写“E栋 · 7F”
   }
   if (p.type === "odu") {
     const idus = db.points.filter((x) => x.type === "idu" && x.oduId === p.id).sort(M.byName);
@@ -58844,7 +58951,7 @@ function vrfCommissionTable(DS, pid, inModal = false) {
       const o = x.odu,
         s = x.spec;
       return [
-        `${btn(nwText(o.name), "deviceInfo", { id: o.id, tab: "plan" }, "ghost flow-lk")}<small class="flow-sub">${esc(`${g("floors", o.floorId)?.name || ""} · ${s.brand || "品牌未登记"} ${M.HVAC.kinds[s.kind] || ""}`)}</small>`,
+        `${btn(nwText(o.name), "deviceInfo", { id: o.id, tab: "plan" }, "ghost flow-lk")}<small class="flow-sub">${esc(`${floorText(o.floorId)} · ${s.brand || "品牌未登记"} ${M.HVAC.kinds[s.kind] || ""}`)}</small>`,
         ...x.items.map((it) => vrfCell(x, it, edit, pid)),
       ];
     });
@@ -58864,7 +58971,7 @@ function vrfCheckForm(id, key) {
   modal(
     "确认多联机调试项",
     infoRows([
-      ["外机", `${o.name} · ${g("floors", o.floorId)?.name || ""}`],
+      ["外机", `${o.name} · ${floorText(o.floorId)}`], // 2.84 E1112
       ["调试项", it.label],
       ["确认内容", vrfConfirmText(x, key)],
     ]) +
@@ -59348,7 +59455,7 @@ function mkHvacFields(p) {
       fld(
         "所属外机",
         "pe-oduId",
-        peSelect("pe-oduId", [["", "未登记"], ...odus.map((o) => [o.id, `${o.name} · ${g("floors", o.floorId)?.name || ""}`])], p.oduId || "", "所属外机"),
+        peSelect("pe-oduId", [["", "未登记"], ...odus.map((o) => [o.id, `${o.name} · ${floorText(o.floorId)}`]) /* 2.84 E1112 */], p.oduId || "", "所属外机"),
       ),
     );
   }
@@ -61241,7 +61348,9 @@ function wsInfoWords(root) {
 // 所在元素加 ws-words（keep-all）：机构名称、人名、词不在中间断开，标点不在行首。按钮、链接、输入、图表与大屏、运营后台、部署 App 不处理。
 // 2.55 E533：地图（.leaflet-container）也不处理：名称标签所在图层宽度为 0，加 <wbr> 后会一字一行，且在 Leaflet 定位之后改变宽度、位置偏移。
 // 2.67 E1024：标签（.chip）不处理，不收缩、不断行
-const WS_WORDS_SKIP = "button,a,input,textarea,select,option,svg,script,style,code,pre,[contenteditable],.scr-stage,[data-page=console],[data-page=app],.ws-words-off,.leaflet-container,.chip";
+// 2.84 账户第 913 条：整体不拆开的片段（.au-nowrap）不加 <wbr>，否则浏览器在 <wbr> 处仍会断开（如“¥15,600.00（含税）”）
+// 2.84 E1111：.nw（名称、数字连单位等整体不拆开的片段）与状态标签（.ds-st）同样不加 <wbr>（原“数据 / 验证”“读取失败 1 个数据 / 点”）
+const WS_WORDS_SKIP = "button,a,input,textarea,select,option,svg,script,style,code,pre,[contenteditable],.scr-stage,[data-page=console],[data-page=app],.ws-words-off,.leaflet-container,.chip,.au-nowrap,.nw,.ds-st";
 // 2.47 账户第 444 条：整块可点的卡片（如选择卡）里的多行说明（small、p、.au-why）同样按词换行；单行的按钮文字仍不处理
 const WS_WORDS_CARD = "small,p,.au-why";
 function wsWordsSkip(el) {
@@ -64654,7 +64763,7 @@ function connVerifySection(c) {
     ],
     rows = ck.map((x, i) => {
       const r = receipt(x.key),
-        state = x.state === "已通过" ? `<span class="ds-st ok">已通过</span>` : ["未通过", "失败"].includes(x.state) ? `<span class="ds-st bad">未通过</span>` : x.state === "不适用" ? "不适用" : x.state === "未关联应用" ? "尚未关联应用" : x.state === "无映射" ? "没有数据映射" : `<span class="ds-st warn">未验证</span>`,
+        state = x.state === "已通过" ? `<span class="ds-st ok">已通过</span>` : ["未通过", "失败"].includes(x.state) ? `<span class="ds-st bad">未通过</span>` : x.state === "不适用" ? `<span class="ds-st off">不适用</span>` : x.state === "未关联应用" ? `<span class="ds-st off">尚未关联应用</span>` : x.state === "无映射" ? `<span class="ds-st off">没有数据映射</span>` : `<span class="ds-st warn">未验证</span>`, // 2.84 E1135：各行结果都是圆点加文字（不适用等用灰点），表头与圆点左对齐，结果文字在同一竖线上
         when = r?.at ? `<small class="flow-sub">${esc(connWhen(Date.parse(r.at)))}</small>` : "",
         sub = i === 0 && c.protocol === "BACnet/IP" ? `<small class="flow-sub">设备发现 ${c.discoveredAt ? esc(shortDate(c.discoveredAt)) : "尚未执行"}</small>` : i === 3 && apps.length ? `<small class="flow-sub">${esc(apps.join("、"))}</small>` : "",
         acts = (i === 3 ? appSettingButtons(c) : "") + (x.state === "不适用" ? "" : connVerifyBtn(c, i));
@@ -64757,15 +64866,22 @@ function connDiscCard(c) {
           grp("已找不到", gone.map((m) => li("", m.key, esc(m.name), "")), `<p class="flow-sub conn-disc-n">已在数据映射中标“来源已找不到”，不自动删除</p>`);
   return `<section class="card flow-space conn-disc" aria-label="设备发现结果"><div class="flow-section-head"><h3>设备发现结果</h3><small class="flow-sub">${esc(connWhen(R.at))} · ${c.discObjs.length} 个对象</small><span class="sp"></span><button type="button" class="iconbtn" data-act="connDiscClose" aria-label="关闭设备发现结果" data-tip="关闭">${ico("x", "ic16")}</button></div>${body}</section>`;
 }
+// 2.84 E1105：数据映射的添加按钮；有数据点时放在页签同一行右端（renderConnectionPage），没有时在空状态里
+function connMapAdds(c) {
+  const edit = canEdit(),
+    disc = edit && c.protocol === "BACnet/IP" ? (SIM() ? btn("设备发现", "connDiscover", { id: c.id }) : unavailable("设备发现", "")) : ""; // 2.83 KW2
+  return edit ? disc + btn(ico("plus", "ic16") + "添加数据点", "connMapNew", { id: c.id }) + btn("添加计算点", "connMapNew", { id: c.id, calc: 1 }) + btn("粘贴点表", "connMapPaste", { id: c.id }) : "";
+}
+const connMapHasRows = (c) => !!(c.mappings?.length || U.connRow?.conn === c.id);
 function connMapTab(c) {
   const edit = canEdit(),
     writable = (c.mappings || []).some((m) => m.writable),
     receipt = (key) => (c.verifications || []).find((r) => r.kind === key && r.version === (c.version || 1)),
-    disc = edit && c.protocol === "BACnet/IP" ? (SIM() ? btn("设备发现", "connDiscover", { id: c.id }) : unavailable("设备发现", "")) : "", // 2.83 KW2
-    addBtns = edit ? disc + btn(ico("plus", "ic16") + "添加数据点", "connMapNew", { id: c.id }) + btn("添加计算点", "connMapNew", { id: c.id, calc: 1 }) + btn("粘贴点表", "connMapPaste", { id: c.id }) : "",
+    addBtns = connMapAdds(c),
     row = U.connRow?.conn === c.id ? U.connRow : null;
   if (!c.mappings?.length && !row) return connDiscCard(c) + empty("尚无数据点", "", addBtns, "plug");
-  const COLS = ["来源标识", "名称", "当前值", "单位", "读写", "量程", "倍率", "设备", "空间映射", "数据验证", ...(writable ? ["控制验证"] : [])],
+  // 2.84 E1111：表头整体不拆开；量程“0–999999”不拆开；E1112 空间映射写“E栋 · 7F”
+  const COLS = ["来源标识", "名称", "当前值", "单位", "读写", "量程", "倍率", "设备", "空间映射", "数据验证", ...(writable ? ["控制验证"] : [])].map(nwText),
     rows = c.mappings.map((m) => {
       const p = m.pointId && g("points", m.pointId),
         addr = m.calc ? "计算值" : mapAddrText(c, m),
@@ -64781,10 +64897,10 @@ function connMapTab(c) {
           connMapValue(c, m),
           esc(m.unit || "—"),
           m.writable ? "读写" : "只读",
-          m.calc ? "—" : m.range ? esc(`${m.range[0]}–${m.range[1]}`) : "未填",
+          m.calc ? "—" : m.range ? nwText(`${m.range[0]}–${m.range[1]}`) : "未填",
           m.calc ? "—" : esc(m.scale ?? 1) + (meterSub ? `<small class="flow-sub">${esc(meterSub)}</small>` : ""),
           p ? `<span class="nw">${esc(p.name)}</span>` : m.pendingDevice ? `<span class="ds-st warn">待选设备</span>` : "未关联设备",
-          m.floorId ? where(m.floorId) : p ? where(p.floorId) : m.calc ? "—" : "待确认",
+          m.floorId ? nwDots(floorText(m.floorId)) : p ? nwDots(floorText(p.floorId)) : m.calc ? "—" : "待确认",
           m.calc ? "随来源" : receipt("data")?.status || "未验证",
           ...(writable ? [m.calc ? "—" : m.writable ? receipt("control")?.status || "未验证" : "不适用"] : []),
         ],
@@ -64800,7 +64916,7 @@ function connMapTab(c) {
     }
   }
   const newRow = row?.key === "__new" ? `<section class="card flow-space conn-new">${connRowPanel(c, null, !!row.calc)}</section>` : "";
-  return `${edit ? `<div class="ws-section-toolbar"><span class="sp"></span>${addBtns}</div>` : ""}${connDiscCard(c)}${newRow}<div class="conn-map-page">${html}</div><div class="dev-ledger-foot"><p role="status">共 ${c.mappings.length} 个数据点</p></div>`;
+  return `${connDiscCard(c)}${newRow}<div class="conn-map-page">${html}</div><div class="dev-ledger-foot"><p role="status">共 ${c.mappings.length} 个数据点</p></div>`;
 }
 // 展开区：可编辑字段（与原连接弹窗中的数据映射同一组字段）、底部“删除数据点”“取消”“保存”（电能表另有“登记换表”），下面为趋势
 function connRowPanel(c, m, calc = !!m?.calc) {
@@ -64846,7 +64962,7 @@ function renderConnectionPage() {
     more = connMoreItems(c),
     acts = (canEdit() ? btn("编辑连接", "connectionForm", { id: c.id }) : "") + (more ? menuTrigger(iconBtn("连接更多", "more", "connMore", { id: c.id })) : "");
   const body = tab === "map" ? connMapTab(c) : tab === "records" ? connRecords(c) : connSummary(c);
-  return `<div class="flow-heading sub-head conn-head"><div><div class="flow-title-row">${back}<h2>${esc(c.name)}</h2>${connStatusHtml({ ...st, sub: "" })}</div><p>${nwSeps(sub)}${st.sub ? ` · ${esc(st.sub)}` : ""}${maintWin("connection", c.id) ? ` · ${esc(maintText({ until: maintWin("connection", c.id).until }))}` : ""}</p></div>${acts ? `<div class="flow-head-acts">${acts}</div>` : ""}</div>${tabsCat(CONN_TABS, tab, "connectionTab", "connectionPanel", "连接详情页签")}${tabPanel("connectionPanel", "connectionTab", CONN_TABS, tab, body)}`;
+  return `<div class="flow-heading sub-head conn-head"><div><div class="flow-title-row">${back}<h2>${esc(c.name)}</h2>${connStatusHtml({ ...st, sub: "" })}</div><p>${nwSeps(sub)}${st.sub ? ` · ${esc(st.sub)}` : ""}${maintWin("connection", c.id) ? ` · ${esc(maintText({ until: maintWin("connection", c.id).until }))}` : ""}</p></div>${acts ? `<div class="flow-head-acts">${acts}</div>` : ""}</div>${tabsCatRow(CONN_TABS, tab, "connectionTab", "connectionPanel", "连接详情页签", tab === "map" && connMapHasRows(c) ? connMapAdds(c) : "")}${tabPanel("connectionPanel", "connectionTab", CONN_TABS, tab, body)}`;
 }
 // 2.81 E1104：“复制到其他楼层”（512 宽）：只列本项目有网关规划的其他楼层；复制协议、通信参数、采集周期、写入上限与数据映射，
 // 名称按 PLAN03 把楼层名换成目标楼层；网关取目标楼层的设备网络的网关，串口不变；按名称对应不上的设备写“待选设备”；凭证不复制，验证重新开始
@@ -65178,7 +65294,8 @@ function renderConnections() {
   if (!cs.length) return (quota ? wsNotice(esc(quota), "warning") : "") + empty("尚无系统连接", "", add, "plug");
   return (
     (quota ? wsNotice(esc(quota), "warning") : "") +
-    `${add ? `<div class="ws-section-toolbar"><span class="sp"></span>${add}</div>` : ""}` +
+    // 2.84 E1105：“+ 新建系统连接”放在页签行右端（没有连接时仍在空状态里）
+    ((devTabAdd = add), "") +
     // 2.58 E623：连接列两行（名称，下一行“网关 E-7F-EG20-01 · RS-485 口 2”）占其余宽度；协议、服务楼层、数据点（“22 · 可写 9”）、验证定宽；
     // 表头不放 ⓘ，整行打开连接详情，底部写连接总数。E324 起“验证”只写第一步没通过的项目。
     // 2.73 E1074：手机上与设备网络目录同一卡片（名称与采集位置一行，其余值前写列名，内边距上下 12、左右 16）
@@ -65456,7 +65573,7 @@ defineActions({
       lmTo = lm ? new Date(Date.UTC(lm.y, lm.mo - 1, 0)).toISOString().slice(0, 10) : "";
     modal(
       "新建报告",
-      fld("报告名称", "reportName", input("reportName", "", "填写报告名称")) +
+      fld("报告名称", "reportName", input("reportName", "", "如 9 月运行月报")) +
         // 第一个勾选框带 id，“至少选择一项内容”的错误写在这组下面（全面设计核查第 104 条）
         `<fieldset class="ws-checks report-kinds"><legend>内容${opsInfo("报告内容",esc("只有勾选碳排放时，期间内每天都要有适用的排放因子。"))}</legend>${REPORT_KINDS.map(([v, l], i) => `<label><input type="checkbox" name="reportKinds" value="${v}"${i ? "" : ' id="reportKinds-0"'} ${pre.includes(v) ? "checked" : ""}>${l}</label>`).join("")}</fieldset>` +
         fld("项目", "reportProject", projectSelect("reportProject", pid)) +
@@ -65687,6 +65804,16 @@ defineActions({
       // 2.65 E985、E993：新建时主按钮与标题相同，修改时写“保存”（原两处都为“保存规划”）
       btn("取消", "close") + (r ? sameBtn(btn("保存", "saveAlarmRule", {}, "primary")) : btn("新建告警规则", "saveAlarmRule", {}, "primary")),
     );
+    // 2.84 E1143：按建议预填了持续时间时，与已保存的规则比较，“保存”可用（原预填后仍为不可用）
+    const box = r && +a.hold ? $("#dlg .db") : null,
+      sel = box && $("#ruleHold");
+    if (sel) {
+      const now = sel.value;
+      sel.value = String(+(r.pending || r).holdMin || "");
+      wsSameBase.set(box, wsFormSnap(box));
+      sel.value = now;
+      wsSameSync($("#dlg"));
+    }
   },
   // 保存规则（BP88）：只存名称、范围、类型、指标、级别、责任对象与夜间时段（夜间照明负荷，G-8）；条件与依据按配置参数写
   saveAlarmRule: async () => {
@@ -65789,7 +65916,8 @@ defineActions({
         ["类型", r.type],
         ...(r.metric && !ruleByNet(r) ? [["指标", ruleMetricLabel([r.metric, r.unit])]] : []),
         ...(night ? [["时段", `每晚 ${ruleNight(r).join("–")}`]] : []),
-        ["条件", night ? pt.trig.replace(/^每晚\s*\S+\s*无人时照明功率/, "") : pt.trig],
+        // 2.84 E1111：“持续 15 分钟”整体不拆开
+        ["条件", { html: esc(night ? pt.trig.replace(/^每晚\s*\S+\s*无人时照明功率/, "") : pt.trig).replace(/持续 \d+ 分钟/g, (x) => `<span class="nw">${x}</span>`) }],
         ...(ruleMiss(r) ? [["缺数", ruleMiss(r)]] : []),
         ...(r.level || pt.levels ? [["级别", pt.levels || r.level]] : []),
         // 2.81 E1101：固定规则也写“默认负责人”，有配置权限时行尾“修改”（只改这一项）；可修改的规则在“修改规则”里改
@@ -68460,8 +68588,9 @@ function v13TplDiffModal() {
     `参数模板 ${up.version} 的变化`,
     // 2.15 E349（2026-10-21 HONG 按建议）：开头只留一句，采用后的规则进 ⓘ；表格占满弹窗宽度（原表格外框与步骤线段共用 .v13-mini，
     // 成了行内弹性盒，只占左边 223 宽）；配置项下不写编号；不是机构管理员时没有底部按钮（原只有“关闭”）
-    `<p class="v13-lead">当前 ${esc(P.tplVersion)}${infoTip("采用后新增的行生效；模板值改变的行，没改过也没有单独设置的跟随新值，改过或有单独设置的保留原值并标“模板值已更新”。", "采用新版本")}</p><div class="tw v13-tpl-tw"><table class="t"><thead><tr><th>配置项</th><th>变化</th><th>采用后</th></tr></thead><tbody>${plan
-      .map((x) => `<tr><th scope="row">${esc(x.item)}</th><td>${esc(zhUnit(x.text))}</td><td>${esc(zhUnit(x.result))}</td></tr>`)
+    `<p class="v13-lead">当前 ${esc(P.tplVersion)}${infoTip("采用后新增的行生效；模板值改变的行，没改过也没有单独设置的跟随新值，改过或有单独设置的保留原值并标“模板值已更新”。", "采用新版本")}</p><div class="tw v13-tpl-tw"><table class="t"><thead><tr><th>配置项</th><th>变化</th><th>${nwText("采用后")}</th></tr></thead><tbody>${plan
+      // 2.84 E1111：“采用后”“跟随新值”不拆开，结果只在“，”处换行
+      .map((x) => `<tr><th scope="row">${esc(x.item)}</th><td>${esc(zhUnit(x.text))}</td><td>${zhUnit(x.result).split("，").map(nwText).join("，")}</td></tr>`)
       .join("")}</tbody></table></div>`,
     v13CanApprove() ? btn("关闭", "close") + btn("采用新版本", "v13TplAdopt", {}, "primary") : "",
     true, // 2.65 E869：720 宽，配置项名称一行放下
@@ -69550,7 +69679,7 @@ function v13SnapshotModal(id) {
     `${infoRows([
       ["设备网络", s.networkName || "未记录（历史记录没有冻结网络名称）"],
       ["网络版本", "v" + d.networkVersion],
-      ["服务范围", s.floors ? s.floors.map(f => [f.projectName, f.buildingName, f.name].filter(Boolean).join(" / ") || "未记录名称").join("；") : "未记录（不以当前范围回填）"],
+      ["服务范围", s.floors ? s.floors.map(f => [f.buildingName, f.name].filter(Boolean).join(" · ") || "未记录名称") /* 2.84 E1112：写“E栋 · 7F” */.join("；") : "未记录（不以当前范围回填）"],
       ["确认人", d.by || "—"],
       ["确认时间", v13Date(d.at)],
       ["交付回执", d.serviceReceiptId ? "已取得" : "无有效交付回执"], // 2.53 E495：不写内部编号
@@ -71476,15 +71605,34 @@ const DemoService = (() => {
     if (t < START || t > NOW) return null;
     if (metric === "co2" && z.k === "meet" && t >= TODAY + 7 * H) return co2Meet(t, 1);
     const a = Math.floor(t / H) * H, b = Math.min(a + H, NOW), ratio = b === a ? 1 : (t - a) / (b - a),
-      v = envRawKnot(z, metric, a, ctx) + (envRawKnot(z, metric, b, ctx) - envRawKnot(z, metric, a, ctx)) * ratio;
+      v0 = envRawKnot(z, metric, a, ctx) + (envRawKnot(z, metric, b, ctx) - envRawKnot(z, metric, a, ctx)) * ratio,
+      v = metric === "co2" ? co2Hist(z, t, v0) : v0;
     return +(metric === "co2" ? v.toFixed(0) : v.toFixed(1));
+  }
+  // 2.84 V888：会议室以往的 CO₂ 告警时段（告警记录：触发前 15 分钟起超过、恢复时回到 1,000 ppm 以下）在示例曲线上画出会议的升降：
+  // 逐分钟值先以约 25 ppm/分钟上升，5 分钟均值正好在超过时刻越过 1,000 ppm，其间约 1,080 ppm 小幅波动，恢复前 25 ppm/分钟回落，
+  // 5 分钟均值正好在恢复时刻回到 1,000 ppm 以下；前后各 1 小时内底值不高于 950 ppm。告警、趋势与数据分析取同一条曲线
+  function co2Eps(z) {
+    return (data().alerts || [])
+      .filter((a) => a.metric === "co2" && a.zoneId === z.id && a.state === "recovered" && a.recoveredAt && Date.parse(a.at) < TODAY)
+      .map((a) => ({ cross: Date.parse(a.at) - 15 * MIN, rec: Date.parse(a.recoveredAt) }));
+  }
+  function co2Hist(z, t, base, eps = co2Eps(z)) {
+    const ep = eps.find((x) => t >= x.cross - H && t <= x.rec + H);
+    if (!ep) return base;
+    const k = Math.round((t - ep.cross) / MIN),
+      R = Math.round((ep.rec - ep.cross) / MIN),
+      n = (rand("co2h", Math.round(t / MIN)) - 0.5) * 6,
+      shape = Math.min(1010 + 25 * (k + 2), 1080 + 8 * Math.sin((2 * Math.PI * k) / 12), 990 - 25 * (k - (R - 2))) + n;
+    return Math.max(Math.min(base, 950), shape);
   }
   function envMinuteSeries(z, metric) {
     const ctx = envSourceContext(z);
     if (ctx.series.has(metric)) return ctx.series.get(metric);
     const n = Math.floor((NOW - START) / MIN) + 1, values = new Float64Array(n).fill(NaN), sum = new Float64Array(n + 1), count = new Int32Array(n + 1),
       sources = envSourceGroup(z, metric), cuts = sources.filter((p) => metric === "iaqs" ? envQualityOk(p, "co2") && envQualityOk(p, "pm25") : envQualityOk(p, metric)).map(envSourceCut), cut = cuts.length ? Math.max(...cuts) : -Infinity,
-      paired = metric === "iaqs" ? { co2: envMinuteSeries(z, "co2"), pm25: envMinuteSeries(z, "pm25") } : null;
+      paired = metric === "iaqs" ? { co2: envMinuteSeries(z, "co2"), pm25: envMinuteSeries(z, "pm25") } : null,
+      eps = metric === "co2" ? co2Eps(z) : null;
     let hour = -Infinity, a = 0, b = 0, va = 0, vb = 0;
     for (let i = 0; i < n; i++) {
       const t = START + i * MIN;
@@ -71496,7 +71644,8 @@ const DemoService = (() => {
         } else {
           const h = Math.floor(t / H) * H;
           if (h !== hour) { hour = h; a = h; b = Math.min(h + H, NOW); va = envRawKnot(z, metric, a, ctx); vb = envRawKnot(z, metric, b, ctx); }
-          const v = metric === "co2" && z.k === "meet" && t >= TODAY + 7 * H ? co2Meet(t, 1) : va + (vb - va) * (b === a ? 1 : (t - a) / (b - a));
+          const v0 = va + (vb - va) * (b === a ? 1 : (t - a) / (b - a)),
+            v = metric === "co2" && z.k === "meet" && t >= TODAY + 7 * H ? co2Meet(t, 1) : eps ? co2Hist(z, t, v0, eps) : v0;
           values[i] = +(metric === "co2" ? v.toFixed(0) : v.toFixed(1));
         }
       }
@@ -72016,6 +72165,42 @@ const DemoService = (() => {
       at = Date.parse(a.at),
       end = a.state === "recovered" ? Date.parse(a.recoveredAt) : null,
       z = a.zoneId ? zoneOf(a.zoneId) : null;
+    // 2.84 V887：系统连接中断没有数值点，趋势只画该连接的在线条
+    if (a.kind === "connection") return { kind: "conn", triggerAt: at, endAt: end, source: `${g("connections", a.connectionId)?.name || "系统连接"} · 在线记录` };
+    if (a.kind === "environment" && a.metric === "co2" && at < TODAY && z) {
+      // 2.84 V888：以往的 CO₂ 告警按告警自己的时段取证据（触发前 2 小时到恢复后 1 小时的 5 分钟均值）
+      const p = g("points", a.pointId),
+        m5 = (t) => {
+          let s = 0;
+          for (let i = 0; i < 5; i++) s += envRawAt(z, "co2", t - i * MIN) ?? 0;
+          return Math.round(s / 5);
+        },
+        pts = [];
+      for (let t = at - 2 * H; t <= (end ?? at) + H; t += MIN) pts.push([t, m5(t)]);
+      let cross = at;
+      while (m5(cross - MIN) > 1000 && cross > at - 2 * H) cross -= MIN;
+      const peak = Math.max(...pts.filter(([t]) => t >= cross && (end == null || t < end)).map(([, v]) => v));
+      return {
+        kind: "curve",
+        metric: "CO₂",
+        window: "5 分钟均值",
+        unit: "ppm",
+        digits: 0,
+        threshold: 1000,
+        points: pts,
+        crossAt: cross,
+        triggerAt: at,
+        endAt: end,
+        source: `${p?.name || "空气质量传感器"} · ${z.name} · CO₂ 5 分钟均值，逐分钟`,
+        from: p?.name || "空气质量传感器",
+        summary: `5 分钟均值最高 ${fmtN(peak)} ppm`,
+        timeline: [
+          [cross, `5 分钟均值超过 1,000 ppm（${fmtN(m5(cross))} ppm）`],
+          [at, `触发 · 5 分钟均值 ${fmtN(m5(at))} ppm，超过 1,000 ppm 已持续 ${durText(mins(at - cross))}（${ruleTag(a)}）`],
+          ...(end ? [[end, `回到 1,000 ppm 以下（5 分钟均值 ${fmtN(m5(end))} ppm）`]] : []),
+        ],
+      };
+    }
     if (a.kind === "environment" && a.metric === "co2") {
       const p = g("points", a.pointId),
         st = co2Story(),
@@ -72581,19 +72766,23 @@ const DRAW = {
   },
   lines(sp, w, h) {
     // gapTop：缺数区间的“未取得”写在图上方的空白处，不压曲线；yStates：状态值的纵轴只写两头，用状态名（Lovable 核查第 364 条，2026-10-11 用户确认）
-    const L = 48,
+    // 2.84 V815：状态条名称与纵轴刻度共用左侧一列，列宽按最长名称（padL）
+    const L = sp.padL || 48,
       // 2.25 V180：有参考线时右侧留出标注位置，标注写在图右端线外，不被曲线压住
       R = sp.right ? 40 : sp.endLabels || (sp.refs?.length && !sp.refsIn) ? 64 : 14,
       // 2.81 KW36：状态条画在折线下方（每条 12 高、间隔 4）；分图除最下一张外不写横轴；只有状态条时没有折线区
       noLine = !sp.series.length,
-      S = sp.states?.length ? sp.states.length * 16 + 4 : 0,
+      // 2.84 E1107：状态条与折线区之间留 16，最上一条的名称与纵轴最下的刻度相隔 8
+      S = sp.states?.length ? sp.states.length * 16 + 16 : 0,
       T = noLine ? 4 : sp.compact ? 12 : 24,
       B = (sp.noX ? 4 : 26) + S,
       n = sp.xs.length,
       pw = w - L - R,
       x = (i) => L + (n === 1 ? pw / 2 : (pw * i) / (n - 1)),
       all = sp.series.flatMap((s) => s.vals).filter((v) => v != null),
-      sc = sp.yStates ? { min: sp.yStates[0][0], max: sp.yStates.at(-1)[0], step: sp.yStates.at(-1)[0] - sp.yStates[0][0] || 1 } : sp.yMin != null ? niceRange(sp.yMin, Math.max(...all, ...(sp.refs || []).map((r) => r.v))) : niceScale(Math.max(...all, ...(sp.refs || []).map((r) => r.v), sp.yMax || 0)),
+      sc0 = sp.yStates ? { min: sp.yStates[0][0], max: sp.yStates.at(-1)[0], step: sp.yStates.at(-1)[0] - sp.yStates[0][0] || 1 } : sp.yMin != null ? niceRange(sp.yMin, Math.max(...all, ...(sp.refs || []).map((r) => r.v))) : niceScale(Math.max(...all, ...(sp.refs || []).map((r) => r.v), sp.yMax || 0)),
+      // 2.84 V836：台数只有整数，纵轴刻度取整数
+      sc = !sp.yStates && sp.unitShort === "台" && sc0.step < 1 ? { min: Math.floor(sc0.min || 0), max: Math.max(Math.floor(sc0.min || 0) + 1, Math.ceil(sc0.max)), step: 1 } : sc0,
       lo = sc.min || 0,
       y = (v) => T + (h - T - B) * (1 - (v - lo) / (sc.max - lo));
     let g = HATCH;
@@ -72622,10 +72811,14 @@ const DRAW = {
     });
     (sp.bands || []).forEach((b) => (g += `<rect x="${x(b.from)}" y="${T}" width="${x(b.to) - x(b.from)}" height="${h - T - B}" fill="${b.fill || "#f3f3f1"}"/>`));
     // 2.81 KW36：告警时段从触发到恢复画整高的浅红底，对象页在顶部写告警名
+    // 2.84 V836：名称放不下时只在悬停写；网关的下级设备告警（st）只画在状态条上，见下方状态条之后
+    const alX = (b) => [x(Math.max(0, b.a - 0.5)), x(Math.min(n - 1, b.b + 0.5))];
     (sp.alarms || []).forEach((b) => {
-      const x0 = x(Math.max(0, b.a - 0.5)),
-        x1 = x(Math.min(n - 1, b.b + 0.5));
-      g += `<rect class="ops-alband" x="${x0}" y="${T}" width="${Math.max(3, x1 - x0)}" height="${h - T - B}"/>${sp.alarmLabels && b.label ? `<text class="ops-allab" x="${x0 + 4}" y="${T + 12}">${esc(b.label)}</text>` : ""}`;
+      if (b.st && sp.states?.length) return;
+      const [x0, x1] = alX(b),
+        wd = Math.max(3, x1 - x0);
+      if (b.st) return void (g += `<rect class="ops-alband stb" x="${x0}" y="${h - B - 4}" width="${wd}" height="4" data-otip="${esc(b.tip || b.label || "")}"/>`);
+      g += `<rect class="ops-alband" x="${x0}" y="${T}" width="${wd}" height="${h - T - B}"${b.tip ? ` data-otip="${esc(b.tip)}"` : ""}/>${sp.alarmLabels && b.label && x1 - x0 >= trTextW(b.label) + 8 ? `<text class="ops-allab" x="${x0 + 4}" y="${T + 12}">${esc(b.label)}</text>` : ""}`;
     });
     // 2.66 V631：refsIn 时参考线标签右对齐到绘图区右缘，放在线上方 4px
     (sp.refs || []).forEach((r) => (g += `<line class="ops-ref" x1="${L}" x2="${w - R}" y1="${y(r.v)}" y2="${y(r.v)}"/>${sp.refsIn ? `<text class="ops-reflab in" x="${w - R}" y="${y(r.v) - 4}" text-anchor="end">${esc(r.label)}</text>` : `<text class="ops-reflab" x="${w - R + 4}" y="${y(r.v) + 4}">${esc(r.label)}</text>`}`));
@@ -72687,11 +72880,11 @@ const DRAW = {
     // 2.81 KW36：状态条（开、有人、运行 #BFD6F3，关、无人 #EFEFED，缺数斜纹），左侧写名称；每段悬停写时段
     // 规范第十四节第 7 条：“在线”条在线 #EFEFED、离线 #D0382B，正常时安静；设备离线后其他状态条为缺数
     (sp.states || []).forEach((st, k) => {
-      const y0 = h - B + 4 + k * 16,
+      const y0 = h - B + 16 + k * 16,
         last = sp.until != null ? sp.until : n - 1,
         dx = n > 1 ? pw / (n - 1) : pw,
         segs = trSegs(st.vals.slice(0, last + 1));
-      g += `<text class="ops-stlab" x="${L - 8}" y="${y0 + 10}" text-anchor="end">${esc(st.name)}</text>`;
+      g += `<text class="ops-stlab" x="${L - 8}" y="${y0 + 10}" text-anchor="end"${st.full && st.full !== st.name ? ` data-otip="${esc(st.full)}"` : ""}>${esc(st.name)}</text>`;
       segs.forEach(([a, b, v]) => {
         const x0 = Math.max(L, x(a) - dx / 2),
           x1 = Math.min(L + pw, x(b) + dx / 2);
@@ -72700,6 +72893,13 @@ const DRAW = {
         g += `<rect class="ops-st s${v == null ? "n" : st.online ? (v === 1 ? "0" : "x") : v < 0 ? "x" : v}" x="${x0.toFixed(1)}" y="${y0}" width="${Math.max(1, x1 - x0).toFixed(1)}" height="12"${v == null ? ' fill="url(#opsHatch)"' : ""} data-otip="${esc(`${trStText(st, v)}${md ? " · " + md : ""} ${trSpanText(sp.xs, a, b)}`)}"/>${md && x1 - x0 >= md.length * 12 + 8 ? `<text class="ops-sttx" x="${(x0 + 4).toFixed(1)}" y="${y0 + 10}">${esc(md)}</text>` : ""}`;
       });
     });
+    if (sp.states?.length)
+      (sp.alarms || [])
+        .filter((b) => b.st)
+        .forEach((b) => {
+          const [x0, x1] = alX(b);
+          g += `<rect class="ops-alband st" x="${x0}" y="${h - B + 14}" width="${Math.max(3, x1 - x0)}" height="${sp.states.length * 16}" data-otip="${esc(b.tip || b.label || "")}"/>`;
+        });
     if (sp.cursor != null) g += `<line class="ops-at" x1="${x(sp.cursor)}" x2="${x(sp.cursor)}" y1="${T}" y2="${h - (sp.noX ? 4 : 26)}"/>`;
     (sp.marks || []).forEach((m) => (g += `<text class="ops-mark" x="${x(m.i)}" y="${T - 4}" text-anchor="middle" data-otip="${esc(m.tip || m.text)}">${esc(m.text)}</text>`));
     g += `${noLine ? "" : `<line class="ops-axis" x1="${L}" x2="${w - R}" y1="${y(lo)}" y2="${y(lo)}"/>`}<line class="ops-xh" x1="0" x2="0" y1="${T}" y2="${h - (sp.noX ? 4 : 26)}" visibility="hidden"/><g class="ops-xdots"></g>${noLine ? "" : `<rect class="ops-hit" x="${L}" y="${T}" width="${pw}" height="${h - T - B}"/>`}`;
@@ -72897,6 +73097,9 @@ function trPeriod(per = "today") {
   return mk(d0, d0 + D, M5, "今日");
 }
 // 状态条一段的文字（定稿 3.4）：状态本身能读懂的只写状态（有人、无人、在线、离线、运行），单字的写“照明 开”；缺数写“名称 没有数据”
+// 2.84 V815：文字宽度估算（中文 12、其他 7）与状态条设备名的短写（“E-7F-LC20-09”写“LC20-09”）
+const trTextW = (s) => [...String(s)].reduce((a, c) => a + (/[\u2E80-\uFFFF]/.test(c) ? 12 : 7), 0);
+const trStShort = (s) => String(s).replace(/^[A-Z]{1,2}-\d+F-/, "");
 function trStText(st, v) {
   if (v == null) return `${st.name} 没有数据`;
   const lab = st.states?.[v < 0 ? 0 : v] ?? "";
@@ -72985,13 +73188,13 @@ function trChart({ pts, per = "today", view = "merge", h = 240, alarms = [], eve
     lines = all.filter((x) => x.kind === "line" && !trIsSp(x)),
     sps = all.filter(trIsSp),
     bars = all.filter((x) => x.kind === "bar"),
-    stRows = all.filter((x) => x.kind === "state").map((x) => ({ name: x.short || x.name, vals: x.vals, states: x.states, online: x.key === "~online", mode: x.mode || "" })),
-    S = stRows.length ? stRows.length * 16 + 4 : 0,
+    stRows = all.filter((x) => x.kind === "state").map((x) => ({ name: trStShort(x.short || x.name), full: x.name, vals: x.vals, states: x.states, online: x.key === "~online", mode: x.mode || "" })),
+    S = stRows.length ? stRows.length * 16 + 16 : 0, // 2.84 E1107
     merge = view !== "split" && trMergeOk(all),
     idx = (t) => Math.max(0, Math.min(xs.length - 1, Math.floor((t - P.from) / P.step))),
-    al = alarms.filter((a) => a.from < P.to && (a.to ?? now) > P.from).map((a) => ({ a: idx(Math.max(P.from, a.from)), b: idx(Math.min(P.to - 1, a.to ?? now)), label: a.label, tip: a.tip || a.label })),
+    al = alarms.filter((a) => a.from < P.to && (a.to ?? now) > P.from).map((a) => ({ a: idx(Math.max(P.from, a.from)), b: idx(Math.min(P.to - 1, a.to ?? now)), label: a.label, tip: a.tip || a.label, st: !!a.st })),
     cur = cursor != null && cursor >= P.from && cursor < P.to ? idx(cursor) : null,
-    base = { type: "lines", trend: true, xs, xLabel: trTick(P), tipTitle: trTipTitle(P), until, alarms: al, alarmLabels: labels, cursor: cur, tickGap: 56, compact, events: events ? events(xs, P) : [] },
+    base = { type: "lines", trend: true, padL: Math.max(48, ...stRows.map((r) => trTextW(r.name) + 12)), xs, xLabel: trTick(P), tipTitle: trTipTitle(P), until, alarms: al, alarmLabels: labels, cursor: cur, tickGap: 56, compact, events: events ? events(xs, P) : [] },
     yMinOf = (list) => {
       const vs = list.flatMap((x) => x.vals).filter((v) => v != null);
       return vs.length && ["℃", "ppm", "lx", "%", "台"].includes(list[0].unit) && list[0].unit !== "%" ? Math.min(...vs) : undefined;
@@ -73161,10 +73364,10 @@ function chartCard({ title, meta, legend = [], body, table: tb, id, cls = "", ex
     sn = (n) => sp0?.series.find((s) => n === s.name || String(n).startsWith(s.name + " "))?.name,
     tog = (n) => sp0?.rows && sp0.series.length > 1 && !!sn(n);
   if (sp0?.endLabels) legend = legend.filter(([, n]) => !sp0.series.some((s) => s.name === n));
-  // 2.76 V749：图例只写名称；第 4 项为悬停提示（如期间合计“感应调光 367 kWh”）
+  // 2.76 V749：图例只写名称；第 4 项为悬停提示（如期间合计“感应调光 367 kWh”）；2.84 V841：柱图一律方块，折线一律短线
   const lgItem = ([c, n, kind, tip]) =>
     tog(n) && (!kind || kind === "sq")
-      ? `<button type="button" class="ops-lgt${U.anHide?.[sn(n)] ? " off" : ""}" aria-pressed="${!U.anHide?.[sn(n)]}" data-act="anLegend" data-name="${esc(sn(n))}"${tip ? ` data-tip="${esc(tip)}"` : ""}><i class="dot" style="--c:${c}"></i>${esc(n)}</button>`
+      ? `<button type="button" class="ops-lgt${U.anHide?.[sn(n)] ? " off" : ""}" aria-pressed="${!U.anHide?.[sn(n)]}" data-act="anLegend" data-name="${esc(sn(n))}"${tip ? ` data-tip="${esc(tip)}"` : ""}><i class="${sp0?.type === "lines" ? "line" : "sq"}" style="--c:${c}"></i>${esc(n)}</button>`
       : `<span${tip ? ` data-tip="${esc(tip)}"` : ""}><i class="${kind || "sq"}" style="--c:${c}"></i>${esc(n)}</span>`;
   return `<section class="ops-card ${cls}" ${id ? `id="${id}"` : ""}><header class="ops-card-h"><div><h3>${title}</h3>${meta ? `<p class="ops-meta">${meta}</p>` : ""}</div><div class="ops-card-tools">${extra}${tb ? btn("数据表", "opsTable", { key: tb }, "ghost sm") : ""}${demoTag()}${extra || tb ? `<button type="button" class="btn ghost sm ops-tools-more" data-act="opsToolsMore" aria-haspopup="menu">更多</button>` : ""}</div></header>${legend.length ? `<div class="ops-legend">${legend.map(lgItem).join("")}</div>` : ""}${panel ? `<div class="ws-tabpanel" ${panel}>${body}</div>` : body}${foot ? `<p class="ops-foot">${esc(foot)}</p>` : ""}</section>`;
 }
@@ -73849,7 +74052,7 @@ function opsPlan({ layer = "occ", tab = "general", mini = false, highlight = [],
       // 2.74 V702：总览各页签有问题的功能区都按级别色描边 1.5px，右上角 16px 圆形“!”
       const alz = (layer === "status" || ovz) && !mini && !s.gwUnknown ? AL.zones[z.id]?.[0] : null,
         otip = ovz && !plain ? ovZoneCard(z, s, layer, st, alz) : "";
-      return `<button class="ops-zone ${fk} ${hi ? "hi" : ""}${cond.includes(z.id) ? " cond" : ""} ${active ? "on" : ""}${!mini && zsel.has(z.id) ? " sel" : ""}${wasteOn ? " waste" : ""}${need === z.id ? " need" : ""}${alz ? ` al${Math.min(2, lvlRank(alz.level))}` : ""}${manz ? " man" : ""}${xcls}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${f && !fk ? `--fill:${f};` : ""}${fa ? `--fa:${fa}%;` : ""}" ${mini ? "tabindex=-1" : `data-act="opsZone" data-id="${z.id}" data-morph-classes="narrow bare noname noval v14 v12 row" data-zv="${esc(zv)}" data-zs="${esc(zsv)}"`} ${otip ? `data-otip="${esc(otip)}"` : `data-tip="${esc(tip)}"`} aria-label="${esc(tip)}">${mini ? "" : `<span class="ops-zl"><span class="ops-zn">${esc(z.name)}</span>${plain || !zv ? "" : `<b>${esc(zv)}</b>`}${manz && zv ? '<small class="ops-zm">手动</small>' : ""}</span>`}${marks?.[z.id] ? `<span class="sc-actno">${esc(marks[z.id])}</span>` : ""}${ovp && zsel.has(z.id) ? '<i class="ov-zck" aria-hidden="true"></i>' : ""}</button>`;
+      return `<button class="ops-zone ${fk} ${hi ? "hi" : ""}${cond.includes(z.id) ? " cond" : ""} ${active ? "on" : ""}${!mini && zsel.has(z.id) ? " sel" : ""}${wasteOn ? " waste" : ""}${need === z.id ? " need" : ""}${alz ? ` al${Math.min(2, lvlRank(alz.level))}` : ""}${manz ? " man" : ""}${xcls}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${f && !fk ? `--fill:${f};` : ""}${fa ? `--fa:${fa}%;` : ""}" ${mini ? "tabindex=-1" : `data-act="opsZone" data-id="${z.id}" data-morph-classes="narrow bare noname noval v14 v12 row" data-zv="${esc(zv)}" data-zs="${esc(zsv)}"`} ${otip ? `data-otip="${esc(otip)}"` : `data-tip="${esc(tip)}"`} aria-label="${esc(tip)}">${mini ? "" : `<span class="ops-zl"><span class="ops-zn">${plain ? z.name.split(" ").map((w) => `<span class="nw">${esc(w)}</span>`).join(" ") /* 2.84 V875：只在空格处换行，词不拆开 */ : esc(z.name)}</span>${plain || !zv ? "" : `<b>${esc(zv)}</b>`}${manz && zv ? '<small class="ops-zm">手动</small>' : ""}</span>`}${marks?.[z.id] ? `<span class="sc-actno">${esc(marks[z.id])}</span>` : ""}${ovp && zsel.has(z.id) ? '<i class="ov-zck" aria-hidden="true"></i>' : ""}</button>`;
     })
     .join("");
   // 2.66 V364、V372：总览楼层图（不选设备时）离线设备不画在设备位置，改在功能区右下角画一个圆点（告警级别色），不压字
@@ -73956,7 +74159,7 @@ function opsPlanLayout(plan) {
     plan.querySelectorAll(":scope > .ops-zbadge").forEach((bd) => {
       bd.classList.remove("br", "bl", "tl", "tr");
       const zone = plan.querySelector(`:scope > .ops-zone[data-id="${CSS.escape((bd.dataset.key || "").replace(/^zb-/, ""))}"]`),
-        order = zone?.classList.contains("sel") ? ["br", "", "bl", "tl"] : ["", "br", "bl", "tl"],
+        order = zone?.classList.contains("sel") ? ["", "br", "bl"] /* 2.84 V825：选中勾在左上角，角标不去左上 */ : ["", "br", "bl", "tl"],
         hit = () => blockers.some((r) => cross(rect(bd), r));
       const ok = order.find((c) => {
         if (c) bd.classList.add(c);
@@ -74636,8 +74839,8 @@ function ctlSceneRows(req) {
     ];
   if (occ.length) rows.push(["有人", esc(`${occ.length} 个功能区：${occ.slice(0, 3).map(zoneNm).join("、")}${occ.length > 3 ? " 等" : ""}`)]);
   // 2.53 V282：“离线设备：E-7F-LC20-09（实验室 E），不会执行”（原写“回报中计为未回报”）
-  // 2.66 V498：与记录、详情面板同一写法“E-7F-LC20-09 离线，未执行”
-  if (off.length) rows.push(["离线设备", esc(`${off.map((p) => p.name).join("、")} 离线，未执行`)]);
+  // 2.84 V873：执行前写将要发生的事“E-7F-LC20-09 离线，将跳过，2 分钟后自动补发一次”（补发规则见场景“自动补发”）
+  if (off.length) rows.push(["离线设备", esc(`${off.map((p) => p.name).join("、")} 离线，将跳过，2 分钟后自动补发一次`)]);
   const lv = (req.parts || []).filter((pt) => pt.cmd === "level");
   // 2.66 V478：“之后”只写恢复时间（动作已写“转手动”）
   if (lv.length) rows.push(...ctlLightRows({ ...req, ids: lv.flatMap((pt) => pt.ids), cmd: "level" }).filter(([l]) => l === "之后").map(([l, v]) => [l, esc(v.replace(/^转手动，/, ""))]));
@@ -74944,6 +75147,7 @@ function opsRecItems() {
         t: c.t0,
         zids: [...new Set(ids.map((x) => g("points", x)?.zoneId).filter(Boolean))],
         pids: ids, // 2.81 KW23：对象页按设备筛选记录与今天的场景执行
+        dids: one ? (c.state === "ok" ? [c.pid] : []) : cs.flatMap((x) => x.done), // 2.84 V837：已生效的设备，对象页按本区算结果
         src: scene ? "场景" : "手动控制",
         // 框选的组控制归为一类；场景的空调动作与照明动作同属该场景
         obj: c.scope === "框选" ? "框选的设备" : String(r.obj || "—").replace(/ · 空调$/, ""),
@@ -74956,7 +75160,8 @@ function opsRecItems() {
         chip: wait ? ["n", "回报中"] : [pend ? "minor" : "ok", n === tot ? "全部生效" : `${n} / ${tot} 生效`],
         tip: hcs.length ? `照明 ${c.done.length} / ${c.ids.length}、空调 ${hcs.reduce((k, x) => k + x.done.length, 0)} / ${hcs.reduce((k, x) => k + x.ids.length, 0)}` : "",
         note: pend
-          ? [offIds.length && `${offIds.map(recDev).join("、")} 离线，未执行`, one ? "设备未确认" : waitN ? `${waitN} 台未回报` : "", run && waitN ? sceneRetry(run) : "", esc(scAutoText(run))].filter(Boolean).join(" ")
+          ? // 2.84 V879：各句用“ · ”分开，如“E-7F-LC20-09 离线未执行 · 10:30 补发仍未生效 · 已产生告警”，“重试”在最后
+            [[offIds.length && `${offIds.map(recDev).join("、")} 离线未执行`, one ? "设备未确认" : waitN ? `${waitN} 台未回报` : "", esc(scAutoText(run))].filter(Boolean).join(" · "), run && waitN ? sceneRetry(run) : ""].filter(Boolean).join(" ")
           : run?.auto
             ? esc(scAutoText(run))
             : "",
@@ -74982,6 +75187,7 @@ function opsRecItems() {
         src,
         zids: [...new Set((r.lcs || []).map((x) => g("points", x)?.zoneId).filter(Boolean))],
         pids: [...(r.lcs || []), ...(r.hvs || [])],
+        dids: [...(r.lcs || []), ...(r.hvs || [])].filter((id) => !(r.pend || []).includes(id)), // 2.84 V837
         obj: r.scene,
         objs: src === "场景" ? [`场景：${r.scene}`] : [`场景：${r.scene}`, `${src}：${r.trig.split(" · ")[1] || ""}`],
         res: [pend ? "pend" : "ok"],
@@ -77543,6 +77749,12 @@ function anEnergy() {
   // 点楼层电能表一行时主图只看该表（同“计量点”筛选），标题写“表名 · 详情 ›”，再点一次回到全部计量点；行尾“›”进入电能表的对象页
   const eAll = m === "all" ? e : Demo.energyIn(rg, "all"),
     tEnd = Math.min(rg.to, opsNow()),
+    // 2.84 V843：分项电能表与“分项”卡同一取整（先合计再取整）
+    kInt = (() => {
+      const rest = Math.max(0, eAll.total - eAll.light - eAll.hvac),
+        r = anRoundSum([eAll.light, eAll.hvac, rest > 0.05 ? rest : 0]);
+      return { light: r[0], hvac: r[1] };
+    })(),
     mtRows = ovMeters()
       .map((p) => {
         const k = !p.load && OV_LOAD.find(([, n]) => n === obMeterLoad(p))?.[0];
@@ -77555,7 +77767,7 @@ function anEnergy() {
         : anRankPanel(
             "energyMeters",
             "计量点排名",
-            mtRows.map(({ p, k, v }) => ({ name: esc(p.name), sub: esc(ovMeterScope(p)), obj: "dev:" + p.id, v, text: `${nf(v)} kWh`, on: !!k && m === k, ...(k ? { attrs: `data-act="anMeterRow" data-k="${k}" aria-label="${esc(`${p.name} ${nf(v)} kWh，只看该表`)}"` } : {}) })),
+            mtRows.map(({ p, k, v }) => ({ name: esc(p.name), sub: esc(ovMeterScope(p)), obj: "dev:" + p.id, v, text: `${nf(k && kInt[k] != null ? kInt[k] : v)} kWh`, on: !!k && m === k, ...(k ? { attrs: `data-act="anMeterRow" data-k="${k}" aria-label="${esc(`${p.name} ${nf(k && kInt[k] != null ? kInt[k] : v)} kWh，只看该表`)}"` } : {}) })),
             { top: true, cls: "an-side-list", meta: "用电量", max: Math.max(1, ...mtRows.map((r) => r.v)), color: S1 },
           ),
     mSel = sel !== "save" && m !== "all" ? mtRows.find((r) => r.k === m)?.p : null;
@@ -77698,7 +77910,8 @@ function anRank(rows, { max, color = S1, target = null, colorOf = null, all = nu
       const go = r.obj && typeof obOk === "function" && obOk(obParse(r.obj)) ? r.obj : null,
         tag = r.attrs || go ? "button" : "div",
         h = `<${tag}${r.attrs ? ` type="button" ${r.attrs} aria-pressed="${!!r.on}"` : go ? ` type="button" data-act="opsObj" data-o="${esc(go)}"${dp}` : ""} class="an-rk${cls}${r.on ? " on" : ""}"><span class="an-rk-n">${r.name}${r.sub ? `<small${r.subWrap ? ' class="wrap"' : ""}>${r.sub}</small>` : ""}</span><span class="an-rk-bar"><i style="width:${pct(r.v)}%;background:${colorOf ? colorOf(r.v) : color}"></i>${target != null ? `<b class="an-rk-tg" style="left:${pct(target)}%"></b>` : ""}</span><span class="an-rk-v${r.warn ? " warn" : ""}">${r.text}</span></${tag}>`;
-      return r.attrs && go ? `<div class="an-rk-wrap">${h}<button type="button" class="iconbtn an-rk-go" data-act="opsObj" data-o="${esc(go)}"${dp} aria-label="${esc(`详情：${String(r.name).replace(/<[^>]+>/g, "")}`)}" data-tip="详情">›</button></div>` : h;
+      // 2.84 V857：只进入对象页的行也在右侧写“›”（整行即入口，“›”不另占键盘焦点）
+      return r.attrs && go ? `<div class="an-rk-wrap">${h}<button type="button" class="iconbtn an-rk-go" data-act="opsObj" data-o="${esc(go)}"${dp} aria-label="${esc(`详情：${String(r.name).replace(/<[^>]+>/g, "")}`)}" data-tip="详情">›</button></div>` : go ? `<div class="an-rk-wrap">${h}<button type="button" class="iconbtn an-rk-go" data-act="opsObj" data-o="${esc(go)}"${dp} tabindex="-1" aria-hidden="true">›</button></div>` : h;
     };
   return `<div class="an-rank">${all ? row(all, " all") : ""}${rows.map((r) => row(r)).join("")}</div>`;
 }
@@ -77914,7 +78127,7 @@ function anSaveParts(rg = anRange()) {
     srcTop = sv.has ? SAVE_SRC.map(([k, n]) => [n, sv.src[k] || 0]).sort((x, y) => y[1] - x[1])[0] : null,
     // 2.75 V710：解读面板不再写三组要点数字；2.76 V746：本期节电量在指标页签，解读不再复述，第一句写节电来源与省得最多的功能区；上线以来的累计节电量页签里没有，仍写在解读里
     ai = sv.has
-      ? `${srcTop && srcTop[1] > 0 ? `节电主要来自${srcTop[0]}（${nf((srcTop[1] / Math.max(sv.total, 1)) * 100)}%）` : "节电来自照明控制"}${top ? `，省得最多的是${anZn(top.z)}` : ""}。${since && start != null ? `${opsDay(start)}起累计节电约 ${since[0]}。` : ""}${aiTip ? "实验室 B 待机结束后仍保持 30% 亮度，是下一步最值得改的地方。" : ""}`
+      ? `${srcTop && srcTop[1] > 0 ? `节电主要来自${srcTop[0]}（${nf((srcTop[1] / Math.max(sv.total, 1)) * 100)}%）` : "节电来自照明控制"}${top ? `，省得最多的是${anZn(top.z)}` : ""}。${aiTip ? "实验室 B 待机结束后仍保持 30% 亮度，是下一步最值得改的地方。" : ""}`
       : "",
     later = bk("later");
   return {
@@ -78110,7 +78323,7 @@ defineActions({
     formState = { kind: "chartNote", id: n?.id || null };
     modal(
       n ? "修改备注" : "加备注",
-      `<div class="ws-form-row">${fld("日期", "anNoteDay", input("anNoteDay", ymdOf(t), "", "date"))}${fld("时段", "anNoteHour", select("anNoteHour", [["", "全天"], ...Array.from({ length: 24 }, (_, h) => [String(h), `${String(h).padStart(2, "0")}:00–${String(h + 1).padStart(2, "0")}:00`])], hourly ? String(Demo.loc(t).h) : "", "时段"))}</div>${fld("备注", "anNoteText", input("anNoteText", n?.text || "", "如：空调年检"), "本项目成员可见")}`,
+      `<div class="ws-form-row">${fld("日期", "anNoteDay", input("anNoteDay", ymdOf(t), "", "date"))}${fld("时段", "anNoteHour", select("anNoteHour", [["", "全天"], ...Array.from({ length: 24 }, (_, h) => [String(h), `${String(h).padStart(2, "0")}:00–${String(h + 1).padStart(2, "0")}:00`])], hourly ? String(Demo.loc(t).h) : "", "时段"))}</div>${fld("备注", "anNoteText", input("anNoteText", n?.text || "", "如 空调年检"), "本项目成员可见")}`,
       btn("取消", "close") + btn("保存", "anNoteSave", {}, "primary"),
       false,
     );
@@ -79462,7 +79675,8 @@ function anHealth() {
     psIds = new Set(ps.map((p) => p.id)),
     seen = new Set(),
     als = [...F.alarmGroups(data()), ...(Demo.ctl?.gwAlarms || [])].filter((a) => {
-      if (a.kind !== "offline" || !psIds.has(a.pointId) || seen.has(a.id)) return false;
+      // 2.84 V885：本层系统连接的“连接中断”告警也列入最近事件与离线告警
+      if (!((a.kind === "offline" && psIds.has(a.pointId)) || (a.kind === "connection" && cx.some((x) => x.c.id === a.connectionId))) || seen.has(a.id)) return false;
       seen.add(a.id);
       const s = Math.min(opsRecAt(a.at), a.state === "recovered" ? Infinity : end), e = a.state === "recovered" && a.recoveredAt ? opsRecAt(a.recoveredAt) : end;
       return Number.isFinite(s) && s <= end && e >= rg.from && !noData;
@@ -79479,7 +79693,7 @@ function anHealth() {
       ...resets.map((p) => ({ t: Date.parse(p.fieldResetAt), open: true, lv: 1, text: `${p.name} 恢复出厂 · 待重新绑定` })),
     ].sort((a, b) => b.t - a.t).slice(0, 5),
     // 2.75 V715：时间列 96 宽，写“9/22 10:30”，今天只写时刻
-    evWhen = (e) => `${Demo.dayStart(e.t) === Demo.dayStart(Demo.NOW) ? "" : Demo.md(e.t) + " "}${Demo.hm(e.t)}${e.t < rg.from && e.open ? " 起" : ""}`,
+    evWhen = (e) => `${opsWhen(e.t)}${e.t < rg.from && e.open ? " 起" : ""}`, // 2.84 V807
     evCard = evs.length
       ? `<section class="an-panel an-events"><header class="an-panel-h"><h3>最近事件</h3></header><ul class="an-tl">${evs
           .map((e) => `<li class="${e.open ? `open l${e.lv}` : "done"}">${e.id ? `<button type="button" class="an-tl-b" data-act="opsAlarm" data-id="${esc(e.id)}"><time>${esc(evWhen(e))}</time><span>${esc(e.text)}</span></button>` : `<time>${esc(evWhen(e))}</time><span>${esc(e.text)}</span>`}</li>`)
@@ -79501,8 +79715,9 @@ function anHealth() {
     diagCard = () => `<section class="ops-card an-diag-card"><header class="ops-card-h"><div><h3>诊断</h3><p class="ops-meta">近 7 天 · ${esc(anFloorShort())}</p></div></header><div class="an-diags">${diag.map(anDiagCard).join("")}</div></section>`,
     chart = sel === "diag" ? diagCard() : sel === "alarm" ? alarmCard() : selC ? connCard() : rateCard(),
     // 2.77 V775：“离线最多的设备”只按次数、再按累计时长排序（在线记录图仍把网关放第一行）
-    devTop = [...devs].sort((x, y) => y.n - x.n || y.ms - x.ms),
-    devRk = devTop.map((r) => ({ name: esc(anDevName(r.p)), sub: esc(anDevAt(r.p) || ""), obj: "dev:" + r.p.id, v: r.ms / Demo.MIN, text: `${r.n} 次 · ${anOffDur(r.ms / Demo.MIN)}`, attrs: `data-act="anHealthDev" data-id="${esc(r.p.id)}" aria-label="${esc(`${anDevName(r.p)}，查看告警记录`)}"` })),
+    // 2.84 V884：系统连接的中断也按次数与累计时长排进来，写“系统连接”，点开进入连接详情
+    devTop = [...devs, ...cOn.map(({ c, eps: xs }) => ({ c, n: xs.length, ms: xs.reduce((s, x) => s + x.to - x.from, 0) }))].sort((x, y) => y.n - x.n || y.ms - x.ms),
+    devRk = devTop.map((r) => r.c ? { name: esc(r.c.name), sub: "系统连接", v: r.ms / Demo.MIN, text: `${r.n} 次 · ${anOffDur(r.ms / Demo.MIN)}`, attrs: `data-act="opsObjConn" data-id="${esc(r.c.id)}" aria-label="${esc(`${r.c.name}，查看连接详情`)}"` } : ({ name: esc(anDevName(r.p)), sub: esc(anDevAt(r.p) || ""), obj: "dev:" + r.p.id, v: r.ms / Demo.MIN, text: `${r.n} 次 · ${anOffDur(r.ms / Demo.MIN)}`, attrs: `data-act="anHealthDev" data-id="${esc(r.p.id)}" aria-label="${esc(`${anDevName(r.p)}，查看告警记录`)}"` })),
     devPanel = devRk.length ? anRankPanel("healthDevs", "离线最多的设备", devRk, { meta: "次数 · 累计时长", max: Math.max(1, ...devRk.map((x) => x.v)), color: S1 }) : "", // 2.80 KW20：数量一律 #2A78D6（原橙色）
     // 2.82 定稿 5.2（KW27）：侧栏清单“当前离线”：此刻仍离线的设备与待重新绑定的设备，全部列出，离线最久的在上，卡片内滚动；点一行进入设备的对象页
     offNow = (() => {
@@ -79549,7 +79764,7 @@ function anHealth() {
       });
       return out;
     })(),
-    worstDev = !openDevs.length && devTop[0]?.n > 1 && !(devTop[1]?.n >= devTop[0].n) ? devTop[0] : null,
+    worstDev = ((d) => (!openDevs.length && d[0]?.n > 1 && !(d[1]?.n >= d[0].n) ? d[0] : null))(devTop.filter((r) => r.p)),
     // 2.76 V746：AI 解读不写当前离线台数与离线次数（在指标页签），开头写离线最多的设备；V754：“查看告警”“查看设备”为 V698 文字按钮
     // 2.75 V715：解读面板不再写三组数字；在线率与当前离线为 AI 段落加“查看告警”“查看设备”两个文字按钮，诊断为未通过项的处理按钮
     ins = anIns({
@@ -79628,7 +79843,7 @@ function alarmNotice(a) {
   if (alarmMaint(a) && alarmType(a) !== "安全与保护") return { text: "检修中，未通知（安全与保护告警照常通知）" };
   const n = typeof Demo.notices === "function" ? Demo.notices(a, opsMembers(a.projectId || OPS_SCOPE.project)) : null;
   if (!n) return null;
-  if (!n.length) return { text: "未通知：提示告警只在告警页显示" };
+  if (!n.length) return { text: "未发通知（提示级只在本页显示）" };
   const all = n.flatMap((p) => p.ch),
     by = ["短信", "邮件"].map((c) => [c, all.filter(([x]) => x === c).length]).filter(([, k]) => k),
     fail = all.filter(([, st]) => st !== "已送达").length,
@@ -79653,7 +79868,23 @@ function alarmTitle(a) {
   if (a.relatedIds?.length && p?.type === "lc") return out(`${zhSub(p.name, "r")}疑似失电`, [`连带 ${a.relatedIds.length} 台占用传感器离线`], zn, { zone: z, p, merged: true });
   // 网关告警的位置写楼层（不写网关所在的功能区）；网关离线后其下设备的离线告警合并到这一条（规范 ALARM01）
   if (p?.type === "gw") return out(a.name, [alarmDesc(a), a.relatedIds?.length ? `连带 ${a.relatedIds.length} 台设备离线` : ""], alarmFloorName(a), { zone: null, p });
+  // 2.84 V887：系统连接中断的位置为该连接各表计所在的功能区（同在一个功能区时），否则写楼层
+  if (a.kind === "connection") {
+    const ps = alConnPts(a),
+      zs = [...new Set(ps.map((x) => x.zoneId).filter(Boolean))],
+      cz = zs.length === 1 ? g("zones", zs[0]) : null;
+    return out(a.name, [alarmDesc(a)], cz?.name || alarmFloorName(a), { zone: cz, p: null, conn: g("connections", a.connectionId) });
+  }
   return out(a.name, [alarmDesc(a)], zn, { zone: z, p });
+}
+const alConnPts = (a) => data().points.filter((x) => x.connectionId && x.connectionId === a.connectionId);
+function alConnCause(a) {
+  const c = g("connections", a.connectionId),
+    at = Date.parse(a.at),
+    f = (c?.failLog || []).filter((x) => x.whole).sort((x, y) => Math.abs(Date.parse(x.start) - at) - Math.abs(Date.parse(y.start) - at))[0],
+    cat = f ? CONN_CAT[f.reason] || "读取错误" : "读取错误",
+    gw = g("points", c?.collect?.gatewayId);
+  return { cat, go: cat === "网关离线" && gw ? `<button type="button" class="ops-link" data-act="opsObj" data-o="dev:${esc(gw.id)}">查看网关</button>` : `<button type="button" class="ops-link" data-act="opsObjConn" data-id="${esc(a.connectionId)}">去系统接入</button>` };
 }
 // 表格里的告警名称：前面的位置或设备名称整体不换行，其后的事件（“疑似失电”“CO₂ 偏高”）也整体不换行，两者之间可以换行，
 // 整条名称不撑宽较窄的表格（Lovable 核查第 315 条，2026-10-11 用户确认）。
@@ -79669,7 +79900,7 @@ function alarmImpact(a) {
   // 2.66 V453：“影响”只写现象之外的后果，不写位置和状态；与现象重复时不显示（环境越限、夜间照明与已恢复的告警都不显示）
   if (a.state === "recovered" || ["environment", "energy"].includes(a.kind)) return "";
   if (t.merged && p?.type === "lc") return `照明控制器（${p.drivers} 台驱动）无法控制与上报；${a.relatedIds.length} 台占用传感器无数据，占用与照度标“数据缺失”`;
-  if (a.kind === "device") return "该区占用与照度诊断缺一路";
+  if (a.kind === "device") return `${zhSub(t.zone?.name || "该区", "r")}少一台占用传感器，占用与照度只按其余传感器判断`; // 2.84 V868
   if (p?.type === "gw") return "平台暂不能控制本层；本地定时与联动照常运行";
   if (a.kind === "offline" && p) return { ms: "占用、照度与温湿度标“数据缺失”，照明按本地回退运行", lc: "照明回路无法控制与上报", fc: "风机盘管按最后参数本地运行，室温标“数据缺失”", aq: "空气质量标“数据缺失”" }[p.type] || "数据标“数据缺失”";
   return "";
@@ -79863,8 +80094,10 @@ const taskNoteText = (n) => {
   return k ? `${zhSub(by, "r")}${k}${n.text || n.body}` : `${by ? by + "：" : ""}${n.text || n.body}`;
 };
 const opsWhen = (ts) => `${opsDay(ts)} ${Demo.hm(ts)}`;
-// 数据证据里当天的时刻只写时分（2.25 V185：“09:53 超过 · 10:08 触发”），其他日期写日期与时分
-const evWhen = (ts) => (Demo.dayStart(ts) === Demo.dayStart(opsNow()) ? Demo.hm(ts) : opsWhen(ts));
+// 2.84 V807：文字里的时间一律写完整日期与时刻（“9 月 24 日 10:28”，处理记录、列表、对象页记录、最近事件相同）；
+// 只有图表的期间与悬停（evClock）今天只写时分
+const evWhen = (ts) => opsWhen(ts);
+const evClock = (ts) => (Demo.dayStart(ts) === Demo.dayStart(opsNow()) ? Demo.hm(ts) : opsWhen(ts));
 // 手机（≤ 850px）只留主要列，其余列以“列名 值”写在第二行，不横向滚动（规范 OPS06，2026-10-08 Vision 核查 V48）
 // 行的名称是按钮，::after 铺满整行（Lovable 核查第 186 条（2026-10-11 用户确认））：整行照样能点，Tab 走到名称，回车或空格打开；
 // 已打开的一行 aria-current（第 306 条）。html 为已转义的名称
@@ -80016,6 +80249,13 @@ function alItems() {
     .forEach((a) => out.push({ id: a.id, t: null, a, rw: null, st: alarmOpen(a) ? "current" : "history" }));
   return out;
 }
+// 2.84 V890：告警与工单页右栏正在显示的一项（没有点开时为当前页签列表的第一行），助手按它预设回答范围
+function alShownItem() {
+  if (U.page !== "alarms" || !Demo.on()) return null;
+  const tab = AL_TABS.includes(U.tab) ? U.tab : "current",
+    d = U.opsDrawer?.page === "alarms" && U.opsDrawer.id ? U.opsDrawer : null;
+  return (d && alItemOf(d.kind === "task" ? "task" : "alarm", d.id)) || alTabList(tab)[0] || null;
+}
 const alItemOf = (kind, id) => alItems().find((it) => (kind === "task" ? it.t?.id === id : it.id === id || it.a?.id === id || it.rw?.id === id || (!!it.t && taskAlarms(it.t).some((x) => x.id === id))));
 const alEnd = (it) => (it.t?.closedAt ? Date.parse(it.t.closedAt) : it.a?.closedAt ? Date.parse(it.a.closedAt) : it.a?.state === "recovered" ? Date.parse(it.a.recoveredAt) : opsNow());
 const alBegin = (it) => Date.parse(it.a?.at || it.t?.at);
@@ -80105,16 +80345,21 @@ function alRowSub(it) {
   // 2.77 V772：已结束的工单第二行先写完成时间（在 alRowHtml 里，同 V758），这里只写状态
   return [taskSource(t) === "alarm" ? "已核验" : "已完成"];
 }
-// 2.77 V773：已结束列表中同一功能区的同一告警（alKey 相同）合成一行，第二行写“最近 9 月 24 日 08:10 · 近 7 天 12 次 · 每次 15–18 分钟”；告警仍逐条记录
+// 2.84 V889：每次时长（“15–18 分钟”），报告的告警清单用
+function alEachText(xs) {
+  const dm = (d) => (d < 1 ? "不到 1 分钟" : durText(d)),
+    ms = xs.filter((a) => a.recoveredAt).map((a) => Math.max(0, Math.round((Date.parse(a.recoveredAt) - alarmStart(a)) / Demo.MIN)));
+  if (!ms.length) return "";
+  const lo = Math.min(...ms),
+    hi = Math.max(...ms);
+  return lo === hi ? dm(lo) : lo >= 1 && hi < 60 ? `${lo}–${hi} 分钟` : `${dm(lo)}–${dm(hi)}`;
+}
+// 2.77 V773：已结束列表中同一功能区的同一告警（alKey 相同）合成一行；告警仍逐条记录
 function alGrpSub(it) {
   const a = it.a,
-    per = alHistRange(),
-    dm = (d) => (d < 1 ? "不到 1 分钟" : durText(d)),
-    ms = it.grp.filter((x) => x.a.recoveredAt).map((x) => Math.max(0, Math.round((Date.parse(x.a.recoveredAt) - alarmStart(x.a)) / Demo.MIN))),
-    lo = Math.min(...ms),
-    hi = Math.max(...ms),
-    each = !ms.length ? "" : lo === hi ? dm(lo) : lo >= 1 && hi < 60 ? `${lo}–${hi} 分钟` : `${dm(lo)}–${dm(hi)}`;
-  return [esc(`最近 ${opsWhen(alarmStart(a))}`), nwDots(esc(alAt(alarmFloor(a), alLocOnly(a), alarmTitle(a).title))), esc(`${per.key === "custom" ? "期间内" : per.label} ${it.grp.length} 次`), each ? esc(`每次 ${each}`) : ""];
+    per = alHistRange();
+  // 2.84 V866：第二行只写“近 7 天 11 次 · 最近 9 月 24 日 08:10”，位置在第一行，每次时长在详情的发生记录
+  return [esc(`${per.key === "custom" ? "期间内" : per.label} ${it.grp.length} 次`), esc(`最近 ${opsWhen(alarmStart(a))}`)];
 }
 // 第一行标题 14/22、字重 500，后面只放中性标签“报修”“定期检查”“检修中”；左侧 3px 级别竖条，不由告警产生的工单为 #DEDEDE；选中行 #F5F5F5 底
 function alRowHtml(it, on, dflt, fresh = false) {
@@ -80193,7 +80438,7 @@ function alarmTimeline(a) {
     ev = [],
     prev = alarmPrev(a);
   void net;
-  if (prev) ev.push([Date.parse(prev.recoveredAt), `上次同类告警 ${evWhen(Date.parse(prev.at))}，持续 ${alDur(prev)}`, "", "", true]);
+  if (prev) ev.push([Date.parse(prev.recoveredAt), `上次同类告警 ${opsWhen(alarmStart(prev))} 起，持续 ${alDur(prev)}`, "", "", true]);
   if (t.merged) {
     // 离线判定为 3 个上报周期且不少于 20 分钟（BP90）：LC20 每 10 分钟上报一次，为 30 分钟
     // MS20 按 20 分钟判定，先于 LC20 判定离线；LC20 判定离线时合并为一条
@@ -80344,7 +80589,7 @@ function alTrPer(a, e) {
     rec = a.state === "recovered" && a.recoveredAt ? Date.parse(a.recoveredAt) : null,
     end = Math.min(now, rec != null ? rec + H : now),
     from = Math.floor((at - 2 * H) / M5) * M5;
-  return { from, to: Math.floor(end / M5) * M5 + M5, label: `${evWhen(from)}–${end < now ? evWhen(end) : "现在"}` };
+  return { from, to: Math.floor(end / M5) * M5 + M5, label: `${evClock(from)}–${end < now ? evClock(end) : "现在"}` };
 }
 // 告警的点（固定显示）与可叠加的相关点（最多 3 个）；没有数值点的告警（离线、复位）只画对象的在线条，网关另画下级在线台数
 function alTrPts(a, e, t) {
@@ -80393,6 +80638,16 @@ function alTrPts(a, e, t) {
       rel: [],
     };
   }
+  // 2.84 V887：系统连接中断只画这条连接的在线条（没有数值点），中断段为离线
+  if (e.kind === "conn") {
+    const c = g("connections", a.connectionId),
+      s0 = Date.parse(a.at),
+      s1 = e.endAt ?? Infinity;
+    return {
+      fixed: [{ id: `${a.connectionId}|~online`, key: "~online", name: "在线", short: c?.name || "系统连接", kind: "state", states: ["离线", "在线"], get: (P, xs) => xs.map((x) => (x > opsNow() ? null : x + P.step > s0 && x < s1 ? 0 : 1)) }],
+      rel: [],
+    };
+  }
   const ids = [a.pointId, ...(a.relatedIds || [])].filter((id) => pt(id)),
     end = a.state === "recovered" && a.recoveredAt ? Date.parse(a.recoveredAt) : Infinity;
   // 离线告警：在线条按告警本身画（同 V446：最后收到数据之前在线，到判定离线之间没有数据，之后离线，恢复后在线）
@@ -80427,9 +80682,8 @@ const alTrFits = (list) => trMergeOk(list); // 2.82 V804：设定温度不计入
 function alTrCard(a, e, t, devs, ruleLink) {
   const pane = !e || U.alPane === "loc" ? "loc" : "trend",
     per = alTrPer(a, e),
-    perKey = `c:${per.from}:${per.to}`,
-    objs = [t.zone ? obAt("zone", t.zone.id, t.zone.name, perKey) : "", ...devs.filter((d) => g("points", d)).map((d) => obAt("dev", d, g("points", d).name, perKey))].filter(Boolean),
-    objLine = objs.length ? `<p class="ops-foot al3-objs">${objs.join("、")}</p>` : "",
+    // 2.84 V862：图下不再写位置与设备（头部已写位置，设备名在“现象”里可点）
+    objLine = "",
     seg = e ? segSm([["trend", "趋势"], ["loc", "位置"]], pane, "opsAlPane", "", "趋势与位置") : "<h4>位置</h4>";
   if (pane === "loc")
     return `<section class="al-sec al-trc al3-locs"><header class="al-trc-h">${seg}</header><div class="al-loc al3-loc al-trc-map l${Math.min(2, lvlRank(a.level))}">${opsPlan({ mini: true, vec: true, highlight: t.zone ? [t.zone.id] : [], hiDevices: devs, alarms: false })}</div>${objLine}</section>`;
@@ -80438,7 +80692,7 @@ function alTrCard(a, e, t, devs, ruleLink) {
     sel = rel.filter((x) => selIds.includes(x.id)),
     pts = [...fixed, ...sel],
     rec = a.state === "recovered" && a.recoveredAt ? Date.parse(a.recoveredAt) : null,
-    r = trChart({ pts, per, view: "merge", h: 240, alarms: [{ from: alarmStart(a), to: rec, label: LV(a.level), tip: `${LV(a.level)} ${evWhen(alarmStart(a))}–${rec ? evWhen(rec) : "现在"}` }], key: `al-tr`, aria: `${t.title}：${pts.map((x) => x.name).join("、")}` }),
+    r = trChart({ pts, per, view: "merge", h: 240, alarms: [{ from: alarmStart(a), to: rec, label: LV(a.level), tip: `${LV(a.level)} ${evClock(alarmStart(a))}–${rec ? evClock(rec) : "现在"}` }], key: `al-tr`, aria: `${t.title}：${pts.map((x) => x.name).join("、")}` }),
     chip = (x) => {
       const on = sel.includes(x),
         dis = !on && !alTrFits([...pts, x]),
@@ -80453,7 +80707,7 @@ function alTrCard(a, e, t, devs, ruleLink) {
         : e.kind === "night"
           ? segs(esc("每晚 22:00–06:00 无人时"), ruleLink)
           : e.kind === "event"
-            ? esc(e.rows.length ? `${evWhen(e.rows[0][0])} ${e.rows.map(([, x]) => x).join("；")}` : "")
+            ? "" // 2.84 V862：事件的说明已在“现象”与处理记录，图下不重复
             : more
               ? esc(`另有 ${more} 台同时离线，见位置`)
               : "";
@@ -80464,7 +80718,7 @@ function alDetailParts(a, it = null) {
     tk = it?.t || taskOf(a.id),
     eff = alarmEffect(a),
     ops = canOperate(),
-    devs = [a.pointId, ...(a.relatedIds || [])].filter(Boolean),
+    devs = a.kind === "connection" ? alConnPts(a).map((x) => x.id) : [a.pointId, ...(a.relatedIds || [])].filter(Boolean),
     e = alarmEv(a),
     rec = a.state === "recovered",
     mt = alarmMaint(a),
@@ -80503,7 +80757,9 @@ function alDetailParts(a, it = null) {
     editor = ops && tk && !tk.closedAt ? `<div class="ops-task-editor ops-note-row"><div class="field ops-note-f"><input class="input" id="opsTaskNote" placeholder="添加处理记录" aria-label="添加处理记录" autocomplete="off"></div>${btn("添加", "opsTaskUpd", { id: tk.id })}</div>` : "";
   // 2.75 V718：现象、影响、建议为名称与数值两列（名称 12/18、80 宽）；效果、检修中、可处理的同事与工单的负责人、计划完成接在后面
   // 2.77 V774：已派工的告警有“说明”时不再写“建议”（说明由建议带入，交给负责人的是说明）
-  const rows = [["现象", esc(what)], ...kv, open && next && !tk?.description ? ["建议", esc(next)] : null, ...tkRows].filter(Boolean),
+  // 2.84 V886：系统连接中断按五类写“原因”，“建议”写该类的处理办法，行尾“去系统接入”（网关离线为“查看网关”），与设备健康所选连接相同；已恢复的照常显示
+  const cc = a.kind === "connection" ? alConnCause(a) : null,
+    rows = [["现象", esc(what)], ...(cc ? [["原因", esc(cc.cat)], ["建议", `${esc(CONN_CAT_NEXT[cc.cat] || "")}<span class="ov3-lsep" aria-hidden="true"> · </span>${cc.go}`]] : []), ...kv, !cc && open && next && !tk?.description ? ["建议", esc(next)] : null, ...tkRows].filter(Boolean),
     kvHtml = `<dl class="al3-kv">${rows.map(([k, v, c]) => `<div><dt>${k}</dt><dd${c ? ` class="${c}"` : ""}>${v}</dd></div>`).join("")}</dl>`;
   // 趋势脚注末尾“查看规则 ›”（应用设置 › 告警规则，E86）；2.66 V454：网络模板告警不写（原为灰字“网络模板规则”）
   const ruleLink = ["offline", "device"].includes(a.kind) ? "" : `<button type="button" class="ops-link" data-act="goSettings" data-tab="rules" data-p="${esc(OPS_SCOPE.project)}">查看规则 ›</button>`,
@@ -80664,6 +80920,8 @@ const TASK_WHO_LABEL = "负责人"; // 2.66 V526：不加 ⓘ（原三句：可�
 // 2.61 V329：工单详情。头部为状态与来源告警的级别、名称与位置；字段为来源（告警可点开）、负责人（旁有“改派”）、计划完成、创建；
 // 说明、照片、处理记录；未完成时可添加记录（“进展”“暂缓”两类），底部“完成工单”“转派”；已完成的只有“需返工”。
 // （V46、ALARM02；原 V144 的侧面板，字段与记录写法不变）
+// 2.84 V810：工单在列表、详情与弹窗用同一个名称：由告警产生的写告警标题，其他写工单名称
+const tkTitle = (t) => (taskSource(t) === "alarm" && taskAlarms(t)[0] ? alarmTitle(taskAlarms(t)[0]).title : t.name);
 function taskDetailParts(t) {
   const src = taskSource(t),
     srcs = taskAlarms(t),
@@ -80676,11 +80934,15 @@ function taskDetailParts(t) {
     info = [
       ["来源", src === "alarm" ? srcs.map((a) => `<button type="button" class="ops-link" data-act="opsAlarm" data-id="${a.id}">${alTitleHtml(alarmTitle(a))} ›</button>${a.state === "recovered" ? ` <span class="ops-dim">已恢复</span>` : ""}`).join("<br>") || "告警" : `${esc(srcText)}${src === "periodic" && t.rule ? ` · <button type="button" class="ops-link" data-act="goSettings" data-tab="general" data-p="${esc(t.projectId)}">查看参数 ›</button>` : ""}`],
       ["负责人", esc(t.assignee || "未指派")],
-      ["计划完成", t.planAt ? `<span class="${taskOverdue(t) ? "ops-crit-t" : ""}">${esc(evWhen(Date.parse(t.planAt)))}</span>` : "未登记"],
-      // 2.66 V455：今天只写 HH:MM
+      // 2.84 V864：已完成的单写“完成 {日期时间}”，不再写计划完成
+      t.closedAt ? ["完成", esc(opsWhen(Date.parse(t.closedAt)))] : ["计划完成", t.planAt ? `<span class="${taskOverdue(t) ? "ops-crit-t" : ""}">${esc(evWhen(Date.parse(t.planAt)))}</span>` : "未登记"],
       ["创建", esc([src === "periodic" ? "按参数自动生成" : t.by, evWhen(Date.parse(t.at))].filter(Boolean).join(" · "))],
     ],
-    place = [t.scopeLabel, devs.join("、")].filter(Boolean).join(" · ");
+    // 2.84 V869：位置中的功能区与设备可点，进入对象页（同告警）
+    pts = (t.pointIds || []).map((x) => g("points", x)).filter(Boolean),
+    place = z
+      ? nwJoin([esc(floorLabel(z.floorId)), obAt("zone", z.id, z.name), pts.map((p) => obAt("dev", p.id, p.name)).join("、")].filter(Boolean), " · ", true)
+      : esc([t.scopeLabel, devs.join("、")].filter(Boolean).join(" · "));
   const notes = (t.notes || []).map((n) => `<li><time class="ops-num">${evWhen(Date.parse(n.at))}</time><span>${esc(taskNoteText(n))}</span></li>`);
   if (t.closedAt && !(t.notes || []).some((n) => n.kind === "finish")) notes.push(`<li><time class="ops-num">${evWhen(Date.parse(t.closedAt))}</time><span>工单完成</span></li>`);
   // 2.66 V462：只有一行输入框（占位“添加处理记录”）与右侧“添加”，不分“进展 | 暂缓”
@@ -80694,11 +80956,12 @@ function taskDetailParts(t) {
   return {
     // 头部第一行：来源告警的级别圆点与名称，报修与定期检查为灰点加来源，后面是状态
     lv: `<p class="al3-lv"><i class="al3-dot l${srcs[0] ? Math.min(2, lvlRank(srcs[0].level)) : 3}" aria-hidden="true"></i>${srcs[0] ? esc(LV(srcs[0].level)) : src === "repair" ? "报修" : src === "periodic" ? "定期检查" : "工单"} · ${st}</p>`,
-    title: t.name,
-    sub: esc(place),
+    title: tkTitle(t),
+    sub: place,
     acts,
     // 2.72 V684：报修的 AI 初步判断在详情顶部，依据为提交时的读数
-    body: `${t.judge && typeof aiInsight === "function" ? `<div class="al-dt-ai">${aiInsight(esc(t.judge), t.reading ? [["读数", esc(t.reading)]] : [])}</div>` : ""}<dl class="al3-kv">${[...info, t.description ? ["说明", esc(t.description)] : null].filter(Boolean).map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>${t.photos?.length ? `<section class="al-sec"><h4>照片</h4><ul class="photo-thumbs">${photoThumbs(t.photos.map(photoOf), { id: t.id })}</ul></section>` : ""}${
+    // 2.84 V864：已结束的单不显示 AI 建议
+    body: `${t.judge && !t.closedAt && typeof aiInsight === "function" ? `<div class="al-dt-ai">${aiInsight(esc(t.judge), t.reading ? [["读数", esc(t.reading)]] : [])}</div>` : ""}<dl class="al3-kv">${[...info, t.description ? ["说明", esc(t.description)] : null].filter(Boolean).map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>${t.photos?.length ? `<section class="al-sec"><h4>照片</h4><ul class="photo-thumbs">${photoThumbs(t.photos.map(photoOf), { id: t.id })}</ul></section>` : ""}${
       // 2.66 V452：横幅只写“来源告警未恢复”，告警名称可点
       t.closedAt && srcs.some((a) => a.state !== "recovered") ? `<p class="ops-banner soft">${ico("alert", "ic16")}<span>来源告警未恢复：${srcs.filter((a) => a.state !== "recovered").map((a) => `<button type="button" class="ops-link" data-act="opsAlarm" data-id="${a.id}">${esc(alarmTitle(a).title)}</button>`).join("、")}</span></p>` : ""
     }<section class="al-sec"><h4>处理记录</h4>${notes.length ? `<ol class="ops-tl">${notes.join("")}</ol>` : `<p class="ops-zp-sub">还没有记录。</p>`}${editor}</section>`,
@@ -81152,7 +81415,8 @@ function scAutoResend(run) {
 // 自动补发的说明：等待补发、补发后全部生效或仍有未执行
 function scAutoText(run) {
   if (!run?.sid || run.retry) return "";
-  if (run.auto) return run.auto.miss.length ? `${Demo.hm(run.auto.at)} 已补发，仍有 ${run.auto.miss.length} 台未执行，已产生告警` : `${Demo.hm(run.auto.at)} 补发 ${run.auto.n} 台后全部生效`;
+  // 2.84 V879：补发后仍不一致写“10:30 补发仍未生效 · 已产生告警”（补发的都没生效）或“10:30 补发后仍有 N 台未生效 · 已产生告警”
+  if (run.auto) return run.auto.miss.length ? `${Demo.hm(run.auto.at)} ${run.auto.miss.length >= run.auto.n ? "补发仍未生效" : `补发后仍有 ${run.auto.miss.length} 台未生效`} · 已产生告警` : `${Demo.hm(run.auto.at)} 补发 ${run.auto.n} 台后全部生效`;
   const pr = scRunProg(run),
     n = pr.off.length + pr.wait.length;
   return !pr.busy && n ? `${Demo.hm(run.at + SC_RESEND)} 自动补发未生效的 ${n} 台` : "";
@@ -81184,7 +81448,7 @@ const t2Join = (items) => {
 // 回车或点发送后在输入框下生成草稿卡：一句话可含几段（逗号、分号分开），带时刻的一段为定时，带“有人”“无人”的一段为联动，
 // 每段写清对象、时间与动作，名称、重复、时刻、有效时段可就地改；“确认保存”后新建要用的场景与定时、联动（同名场景已有时直接引用），
 // 与在表单中保存相同，经网关同步后生效。只有一段定时的可“在编辑页修改”。认不出时间或动作时在输入框下写一句怎么写
-const SC_ASK_PH = "描述要自动做的事，例如：工作日 8 点开灯，19 点后无人关灯";
+const SC_ASK_PH = "如 工作日 8 点开灯，19 点后无人关灯"; /* 2.84 V813：占位统一写“如 …” */
 function scAskTime(s) {
   const m = String(s).match(/(\d{1,2})\s*(?:[:：]\s*(\d{2})|点\s*(半|(\d{1,2})\s*分?)?)/);
   if (!m || +m[1] > 23) return null;
@@ -81211,14 +81475,15 @@ function scAskParse(q) {
       level = Math.min(100, Math.max(10, Number(p.match(/(\d{2,3})\s*%/)?.[1] || 100))),
       act = { zoneIds: z.zs.map((x) => x.id), ...(light ? (off ? { light: "关闭" } : { light: "开启", level }) : {}), ...(hv ? { hvac: { action: off ? "off" : "on" } } : {}) },
       what = [light ? (off ? "关灯" : `开灯 ${level}%`) : "", hv ? (off ? "关闭空调" : "开启空调") : ""].filter(Boolean).join("、"),
-      sname = `${z.label} ${off ? "关" : "开"}${light && hv ? "灯与空调" : light ? "灯" : "空调"}`,
+      // 2.84 V877：名称与动作之间不加空格（“全层开灯”），名称以字母或数字结尾时才加（“会议室 7-1 开灯”）
+      sname = `${zhSub(z.label, "r")}${off ? "关" : "开"}${light && hv ? "灯与空调" : light ? "灯" : "空调"}`,
       exist = data().scenes.find((s) => s.projectId === pid && s.kind === "manual" && s.name === sname),
       scope = z.zs.length > 1 ? `${z.label} ${z.zs.length} 个功能区` : z.zs[0] ? z.zs[0].name + (/[A-Za-z0-9]$/.test(z.zs[0].name) ? " " : "") : "",
       scene = { name: sname, act, what, scope, exist: exist?.id || null };
     if (occ) {
       const span = when && /后|以后|之后/.test(p) ? "非工作时间" : when && /前|以前|之前/.test(p) ? "工作时间" : "全天",
         cond = z.zs.length > 1 ? `${z.label}${occ === "无人" ? "都" : "有"}${occ === "无人" ? "无人" : "人"}` : `${scope}${occ}`;
-      items.push({ type: "link", name: `${z.label} ${occ}${off ? "关" : "开"}${light && hv ? "灯与空调" : light ? "灯" : "空调"}`, op: occ, hold: occ === "无人" ? 15 : 0, span, cond, scene });
+      items.push({ type: "link", name: `${zhSub(z.label, "r")}${occ}${off ? "关" : "开"}${light && hv ? "灯与空调" : light ? "灯" : "空调"}`, op: occ, hold: occ === "无人" ? 15 : 0, span, cond, scene });
     } else {
       const days = scAskDays(p) || days0;
       items.push({ type: "schedule", name: `${days} ${when} ${sname}`, days, when, scene });
@@ -81235,7 +81500,7 @@ function scNewModal() {
     body = `<div class="sc-ask sc-new"><div class="sc-ask-bar"><input id="scAskQ" class="sc-ask-in" type="text" autocomplete="off" maxlength="120" placeholder="${esc(SC_ASK_PH)}" aria-label="描述要自动做的事" value="${esc(q)}"><button type="button" class="sc-ask-go" data-act="scAskGo" aria-label="生成草稿"${q.trim() ? "" : " disabled"}>${ico("au-send", "ic16")}</button></div>${
       D.err ? `<p class="sc-ask-err" role="alert">${esc(D.err)}</p>` : ""
     }<button type="button" class="sc-new-form" data-act="scNewForm">逐项填写</button>${D.items?.length ? scAskCard(D.items) : ""}</div>`;
-  modal("新建", body, D.items?.length ? btn("取消", "scAskClose") + (one ? btn("在编辑页修改", "scAskEdit") : "") + btn("确认保存", "scAskSave", {}, "primary") : "", false);
+  modal("一句话新建", body, D.items?.length ? btn("取消", "scAskClose") + (one ? btn("在编辑页修改", "scAskEdit") : "") + btn("确认保存", "scAskSave", {}, "primary") : "", false);
 }
 function scAskCard(items) {
   const pid = OPS_SCOPE.project,
@@ -81490,7 +81755,7 @@ function scSchedule(ss) {
                   : `<span class="ops-warn-t">${x.when} ${x.rec.ok} / ${x.rec.n} 台生效</span>`
                 : x.past
                   ? `<span class="ops-dim">${x.when} 无记录</span>`
-                  : `<span class="ops-dim ops-num">${x.when}</span>`,
+                  : `<span class="ops-dim">待执行</span>`, // 2.84 V871：时刻已在“时间”列
           tgl = `<button type="button" class="ov-tgl${s.stopped ? "" : " on"}" role="switch" aria-checked="${!s.stopped}" aria-label="${esc(`启用“${s.name}”`)}" data-act="sceneStop" data-id="${s.id}"${canOp ? "" : ` aria-disabled="true" data-tip="查看人员不能停用或启用定时"`}></button>`;
         return `<div class="sc-sl-r${s.stopped ? " stop" : ""}"><span class="sc-sl-n">${alRowBtn("opsSceneInfo", s.id, nwText(s.name), "ops-row-n")}${badge}${note ? `<small>${note}</small>` : ""}</span><span class="ops-num sc-sl-t">${esc(SUN_AT[s.at] ? schTimeText(s) : schWhen(s))}</span><span class="sc-sl-d">${esc(schDaysText(s))}</span><span class="sc-sl-s">${miss ? "—" : esc(ref ? ref.name : sceneActionLabel(s.action))}</span><span class="sc-sl-x">${today}</span><span class="sc-sl-o">${tgl}</span></div>`;
       })
@@ -81786,7 +82051,7 @@ function linkBody(pid, c = {}) {
   // “结束后”排在“执行”之后（lkEndFld）；V495 条件用胶囊组
   if (app === "占用") {
     const zs = linkZones(pid, "ms");
-    return `${ofs("功能区", zs.length ? lkZonePick(zs, c.zones || []) : `<p class="ops-sc-none">本项目还没有装占用传感器的功能区</p>`)}<div class="ws-form-row">${ofs("条件", scChips("lkOp", "条件", [["有人", "任一功能区有人"], ["无人", "所选功能区都无人"]], c.op || "有人"))}${hold}</div>`;
+    return `${ofs("功能区", zs.length ? lkZonePick(zs, c.zones || []) : `<p class="ops-sc-none">本项目还没有装占用传感器的功能区</p>`)}${ofs("条件", scChips("lkOp", "条件", [["有人", "任一功能区有人"], ["无人", "所选功能区都无人"]], c.op || "有人"))}<div class="ws-form-row">${hold}</div>`; // 2.84 V876：“条件”占整行，“持续”在下一行
   }
   const aq = linkZones(pid, "aq");
   // 新风、净化只选触发来源、执行对象与控制主体；条件、统计窗口、持续与恢复按配置参数只读列出（2026-10-09 用户确认，ABB 对比 BP86 方案一）
@@ -81972,7 +82237,7 @@ function opsSceneForm(id, preset = {}) {
               ? fld("夏令时", "scDst", select("scDst", [["shift", "跳过的时刻在切换后执行，重复的时刻只执行一次"], ["skip", "跳过的时刻当天不执行"]], o.dst || "shift", "夏令时"))
               : ""
           }${fld("补执行", "scResume", select("scResume", [["skip", "不补执行，等下一次"], ["catchup", "补执行当天错过的最近一次"]], o.resume || "skip", "补执行"), "网关断电、离线或定时停用后恢复时")}</details><div id="scHint"></div>`
-        : `${fld("名称", "sceneName", input("sceneName", o.name || "", "填写联动名称"))}${
+        : `${fld("名称", "sceneName", input("sceneName", o.name || "", "如 加班走廊照明"))}${
             // 2.46 V217：只列有已接入并验证可写设备的应用类型；只剩“占用”时直接写“占用”，不放下拉
             linkApps().length > 1
               ? fld("应用类型", "lkApp", select("lkApp", linkApps().map((k) => [k, k]), o.cond?.app || "占用", "应用类型"), "决定可选的触发来源与执行对象")
@@ -82428,7 +82693,7 @@ function sceneDrawer(id) {
     live = Demo.on() && s.projectId === OPS_SCOPE.project,
     run = live ? Demo.ctl.runs.find((x) => x.sid === s.id) : null,
     pr = run && !scRunProg(run).busy ? scRunProg(run) : null,
-    miss = pr ? [pr.off.length && `${pr.off.map((x) => g("points", x)?.name).filter(Boolean).join("、")} 离线，未执行` /* 2.66 V498 */, pr.wait.length && `${pr.wait.length} 台未回报`, scAutoText(run) /* 2.72 V688 */].filter(Boolean) : [],
+    miss = pr ? [pr.off.length && `${pr.off.map((x) => g("points", x)?.name).filter(Boolean).join("、")} 离线未执行` /* 2.66 V498、2.84 V879 */, pr.wait.length && `${pr.wait.length} 台未回报`, scAutoText(run) /* 2.72 V688 */].filter(Boolean) : [],
     foot = canOperate() || U.role === "viewer" ? `<div class="ops-drawer-foot">${live ? scRunBtn(s, "primary") : ""}${canOperate() ? btn("编辑", "sceneForm", { id: s.id }) : ""}</div>` /* 底栏为 row-reverse：先写的在最右 */ : "";
   return `<aside class="ops-drawer sc-drawer" aria-label="场景详情"><header class="ops-drawer-h"><div>${sync.includes("ops-st ok") ? "" : `<div class="ops-drawer-eb">${sync}</div>` /* 2.25 V189：去掉“场景”类型徽章 */}<h3 tabindex="-1">${esc(s.name)}</h3></div>${iconBtn("关闭", "x", "opsDrawerClose")}</header><div class="ops-drawer-b">
   <section class="ops-dsec"><h4>动作</h4><ol class="sc-acts">${acts.map((a, i) => `<li>${acts.length > 1 ? `<b class="sc-actno">${i + 1}</b>` : ""}<span>${esc(sceneActName(a))}<small>${esc(scActTxt(a) || "—")}</small></span></li>`).join("")}</ol></section>
@@ -83965,7 +84230,7 @@ function ovInspector(zid) {
       warm = dv != null && Math.abs(dv) >= 1,
       okc = canControl(ids),
       b = (label, op, name) => ctlBtn(label, "opsZoneHv", { id: z.id, op }, "sm", ids).replace("<button ", `<button aria-label="${esc(name)}" `);
-    hv = `<section class="ov-isec"><h4>${ico("ac", "ic16")}空调<span class="sp"></span><small>${gw ? "" : on ? esc(d0.mode || "运行") : "已关闭"}</small></h4>${takeNote()}<div class="ov-ihv"><div><small>室温</small><span class="ov-itv"><b class="ov-itemp${warm ? " warm" : ""}">${gw || room == null ? "—" : `${nf(room, 1)}<i>℃</i>`}</b>${warm ? `<span class="ov-ichip hi">${dv > 0 ? "偏高" : "偏低"}</span>` : ""}</span></div><div class="ov-isp"><small>设定</small><span class="ov-step${okc ? "" : " dis"}">${b(ico("minus", "ic16"), "down", "降低设定温度")}<b>${gw || s.spMixed ? "—" : hvSpText(acs[0], cur)}</b>${b(ico("plus", "ic16"), "up", "提高设定温度")}</span>${idle ? `<small class="ov-ieco">${HV_USE[s.use]}运行 ${hvSpText(acs[0], s.setpoint)}</small>` : ""}</div></div><div class="ov-irow end">${ctlBtn(ico("power", "ic16") + (on ? "关空调" : "开空调"), "opsZoneHv", { id: z.id, op: "power" }, "sm", ids)}</div>${lastH ? rcpt(lastH) : ""}</section>`;
+    hv = `<section class="ov-isec"><h4>${ico("ac", "ic16")}空调<span class="sp"></span><small>${gw ? "" : on ? esc(d0.mode || "运行") : "已关闭"}</small></h4>${takeNote()}<div class="ov-ihv"><div><small>室温</small><span class="ov-itv"><b class="ov-itemp${warm ? " warm" : ""}">${gw || room == null ? "—" : `${nf(room, 1)}<i>℃</i>`}</b>${warm ? `<span class="ov-ichip hi">${dv > 0 ? "偏高" : "偏低"}</span>` : ""}</span></div><div class="ov-isp"><small>设定</small><span class="ov-step${okc ? "" : " dis"}">${b(ico("minus", "ic16"), "down", "降低设定温度")}<b>${gw || s.spMixed ? "—" : hvSpText(acs[0], cur)}</b>${b(ico("plus", "ic16"), "up", "提高设定温度")}</span>${idle ? `<small class="ov-ieco">无人，按 ${hvSpText(acs[0], s.setpoint)} ${HV_USE[s.use]}运行</small>` /* 2.84 V882 */ : ""}</div></div><div class="ov-irow end">${ctlBtn(ico("power", "ic16") + (on ? "关空调" : "开空调"), "opsZoneHv", { id: z.id, op: "power" }, "sm", ids)}</div>${lastH ? rcpt(lastH) : ""}</section>`;
   } else hv = `<section class="ov-isec"><h4>${ico("ac", "ic16")}空调<span class="sp"></span><small>${z.splits.length ? "分体空调 · 只计量" : "无空调"}</small></h4></section>`;
   // 环境 2×2：超出参考上限的格铺浅底、数值提示色并加“偏高”（V348）；PM2.5 为 24 小时滚动均值（V370），不足 24 小时写“数据不足”；
   // 没有监测的写“未监测”，数据未更新时数值灰色
@@ -84427,7 +84692,7 @@ function ovMemberCard(z, i) {
       b = (label, op, name) => ctlBtn(label, "opsZoneHv", { id: dz.id, op }, "sm", ids).replace("<button ", `<button aria-label="${esc(name)}" `);
     // 2.66 V423：关闭时设定值为次要色，下一行写“已关闭”，步进仍可用（调设定即开机）
     hv = `<div class="ov-msec"><span class="ov-mk">${ico("ac", "ic16")}空调</span>${gw ? "" : `<span class="ov-step${on ? "" : " off"}">${b(ico("minus", "ic16"), "down", "降低设定温度")}<b>${s.spMixed ? "—" : hvSpText(acs[0], cur)}</b>${b(ico("plus", "ic16"), "up", "提高设定温度")}</span>`}${ovTgl(!gw && on, "opsZoneHv", { id: dz.id, op: "power" }, ids, `${z.name}空调`, gw ? "unk" : "")}</div>${
-      gw ? `<div class="ov-msub"><small>状态未知</small></div>` : !on ? `<div class="ov-msub"><small>已关闭</small></div>` : hvcIdle(s) ? `<div class="ov-msub"><small>${HV_USE[s.use]}运行 ${hvSpText(acs[0], s.setpoint)}</small></div>` : ""
+      gw ? `<div class="ov-msub"><small>状态未知</small></div>` : !on ? `<div class="ov-msub"><small>已关闭</small></div>` : hvcIdle(s) ? `<div class="ov-msub"><small>无人，按 ${hvSpText(acs[0], s.setpoint)} ${HV_USE[s.use]}运行</small></div>` /* 2.84 V882：步进仍是舒适设定 */ : ""
     }`;
   }
   return `<article class="ov-card ov-mcard${open ? "" : " fold"}" aria-label="${esc(z.name)}"><button type="button" class="ov-mfold" data-act="ovMyOpen" data-id="${esc(z.id)}" aria-expanded="false"><span><b>${esc(z.name)}</b><small>${sum}</small></span>${ico("chevron", "ic16 ov-chev")}</button><div class="ov-mbody"><header class="ov-mh"><div><h3><button type="button" class="ov-mname" data-act="opsZone" data-id="${esc(z.id)}" aria-label="${esc(`${z.name}：详情与报修`)}">${esc(z.name)}${ico("chevron", "ic16 ov-chev")}</button></h3><small>${esc([z.spaceType, `${dz.area} m²`].filter(Boolean).join(" · "))}</small>${rp ? `<small class="ov-mrp">${esc(rp.closedAt ? `报修已处理 · ${Demo.hm(opsRecAt(rp.closedAt))}` : `报修${taskState(rp)} · 负责人 ${rp.assignee}`)}</small>` : ""}</div><button type="button" class="ov-mcol" data-act="ovMyOpen" data-id="${esc(z.id)}" aria-expanded="true" aria-label="${esc(`收起${z.name}`)}">${ico("chevron", "ic16 ov-chev")}</button></header><div class="ov-mvals">${val("室温", room == null ? null : nf(room, 1), "℃")}${dz.aqs.length ? val("CO₂", co2 == null ? null : nf(co2), "ppm", hi && !gw ? " warn" : "", hi && !gw) : ""}</div>${light}${hv}</div></article>`;
@@ -85668,7 +85933,7 @@ defineActions({
     // 2.66 V461：有负责人时为“改派工单”，没有时为“指派工单”；V455：今天只写 HH:MM，字段名“计划完成”
     modal(
       t.assignee ? "改派工单" : "指派工单",
-      `<p class="ops-modal-sub">${esc(t.name)} · 现为 ${esc(t.assignee || "未指派")}${t.planAt ? `，计划完成 ${esc(evWhen(Date.parse(t.planAt)))}` : ""}</p><div class="ws-form-row">${fld(TASK_WHO_LABEL, "opsTWho", select("opsTWho", t.assignee ? opts : [["", "请选择"], ...opts], t.assignee || "", "负责人"))}${fld("计划完成", "opsTPlan", input("opsTPlan", plan, "", "datetime-local"))}</div>`,
+      `<p class="ops-modal-sub">${esc(tkTitle(t))} · 现为 ${esc(t.assignee || "未指派")}${t.planAt ? `，计划完成 ${esc(evWhen(Date.parse(t.planAt)))}` : ""}</p><div class="ws-form-row">${fld(TASK_WHO_LABEL, "opsTWho", select("opsTWho", t.assignee ? opts : [["", "请选择"], ...opts], t.assignee || "", "负责人"))}${fld("计划完成", "opsTPlan", input("opsTPlan", plan, "", "datetime-local"))}</div>`,
       btn("取消", "close") + btn(t.assignee ? "改派" : "指派", "opsTaskReassignSave", {}, "primary"),
       false,
     );
@@ -85849,7 +86114,7 @@ defineActions({
     formState = { kind: "opsTaskFinish", id: t.id, rework: rw };
     modal(
       rw ? "需返工" : "完成工单",
-      `<p class="ops-modal-sub">${esc(t.name)}</p>${fld(rw ? "原因" : "结论", "opsTaskConcl", `<textarea class="input" id="opsTaskConcl" rows="3" placeholder="${rw ? "写明返工原因" : "处理结果与结论"}"></textarea>`)}${!rw && open ? `<p class="ops-foot">来源告警仍未恢复；完成工单不改变告警状态。</p>` : rw ? `<p class="ops-foot">工单回到“处理中”，原因写入处理记录。</p>` : ""}`,
+      `<p class="ops-modal-sub">${esc(tkTitle(t))}</p>${fld(rw ? "原因" : "结论", "opsTaskConcl", `<textarea class="input" id="opsTaskConcl" rows="3" placeholder="${rw ? "写明返工原因" : "处理结果与结论"}"></textarea>`)}${!rw && open ? `<p class="ops-foot">来源告警仍未恢复；完成工单不改变告警状态。</p>` : rw ? `<p class="ops-foot">工单回到“处理中”，原因写入处理记录。</p>` : ""}`,
       btn("取消", "close") + btn(rw ? "需返工" : "完成工单", "opsTaskUpd", { id: t.id, ...(rw ? { rework: "1" } : { finish: "1" }) }, "primary"),
       false,
     );
@@ -86397,11 +86662,33 @@ function obHeadTitle() {
   if (L.f) cr.push([g("floors", L.f)?.name || "", `data-act="opsDrill" data-p="${esc(L.p)}" data-b="${esc(L.b || "")}" data-f="${esc(L.f)}" data-keep="1"`]);
   if (k === "dev" && o.zoneId && g("zones", o.zoneId)) cr.push([g("zones", o.zoneId).name, `data-act="opsObj" data-o="zone:${esc(o.zoneId)}"`]);
   // 路径过长时中间各级收成“…”，悬停写全路径（13.1 第 5 条）；名称不弹位置选择（12.1 第 3 条）
+  // 2.84 V834：按实际宽度判断，放得下时全部写出；中间各级标 ob-mid，放不下时由 obFitCrumb 换成“…”
   const full = [...cr.map((c) => c[0]), o.name].join(" / "),
-    shown = cr.length > 2 && full.length > 30 ? [cr[0], null, cr.at(-1)] : cr,
-    path = shown.map((c) => (c ? (c[1] ? `<button type="button" class="ov-up" ${c[1]}>${esc(c[0])}</button>` : `<span>${esc(c[0])}</span>`) : `<span class="ob-ell" tabindex="0" data-tip="${esc(full)}" aria-label="${esc(full)}">…</span>`)).join('<i aria-hidden="true">/</i>');
+    many = cr.length > 2,
+    item = (c, mid) => (c[1] ? `<button type="button" class="ov-up${mid ? " ob-mid" : ""}" ${c[1]}>${esc(c[0])}</button>` : `<span${mid ? ' class="ob-mid"' : ""}>${esc(c[0])}</span>`),
+    path = cr
+      .map((c, i) => {
+        const mid = many && i > 0 && i < cr.length - 1,
+          ell = many && i === cr.length - 1 ? `<i class="ob-ell-s" aria-hidden="true" hidden>/</i><span class="ob-ell" hidden tabindex="0" data-tip="${esc(full)}" aria-label="${esc(full)}">…</span>` : "";
+        return `${i ? `${ell}<i aria-hidden="true"${mid ? ' class="ob-mid"' : ""}>/</i>` : ""}${item(c, mid)}`;
+      })
+      .join("");
   return `<h1 class="ov-title ob-title"><span class="ov-crumb">${path}${path ? '<i aria-hidden="true">/</i>' : ""}<b class="ob-name">${esc(o.name)}</b></span><span class="ob-meta"><span class="ob-type">${esc(obType(k, o))}</span>${obStatus(k, o, obWork(k, o))}</span></h1>`;
 }
+// 2.84 V834：路径放不下时中间各级收成“…”（先全部写出再量宽度）
+function obFitCrumb() {
+  const c = document.querySelector(".phead .ob-title .ov-crumb");
+  if (!c || !c.querySelector(".ob-ell")) return;
+  const fold = (on) => {
+      c.querySelectorAll(".ob-mid").forEach((x) => (x.hidden = on));
+      c.querySelectorAll(".ob-ell, .ob-ell-s").forEach((x) => (x.hidden = !on));
+    },
+    h = c.closest("h1");
+  fold(false);
+  if (c.scrollWidth > c.clientWidth + 1 || (h && c.getBoundingClientRect().right > h.getBoundingClientRect().right + 1)) fold(true);
+}
+onAfterRender(obFitCrumb);
+addEventListener("resize", () => obFitCrumb());
 // 页头右侧：功能区“执行场景 ▾”（作用于该功能区的场景），设备“诊断”；“⋯”与侧栏“⋯ 更多操作”同一组（2.82 V792）
 function obHeadActs() {
   const x = obParse();
@@ -86550,7 +86837,7 @@ function obZoneVals(o) {
       key: "ac",
       title: "空调",
       head: offA ? `<span class="ds-st off">${offA} 台离线</span>` : "",
-      ctl: `<div class="ov-irow ob-hv"><span class="ov-step${canControl(ids) ? "" : " dis"}">${hb(ico("minus", "ic16"), "down", "降低设定温度")}<b>${gw || s.spMixed ? "—" : hvSpText(acs[0], cur)}</b>${hb(ico("plus", "ic16"), "up", "提高设定温度")}</span>${ctlBtn(ico("power", "ic16") + (on ? "关空调" : "开空调"), "opsZoneHv", { id: zid, op: "power" }, "sm", ids)}</div>${idle ? `<small class="ov-ieco">${HV_USE[s.use]}运行 ${hvSpText(acs[0], s.setpoint)}</small>` : ""}${lastH ? rcpt(lastH) : ""}`,
+      ctl: `<div class="ov-irow ob-hv"><span class="ov-step${canControl(ids) ? "" : " dis"}">${hb(ico("minus", "ic16"), "down", "降低设定温度")}<b>${gw || s.spMixed ? "—" : hvSpText(acs[0], cur)}</b>${hb(ico("plus", "ic16"), "up", "提高设定温度")}</span>${ctlBtn(ico("power", "ic16") + (on ? "关空调" : "开空调"), "opsZoneHv", { id: zid, op: "power" }, "sm", ids)}</div>${idle ? `<small class="ov-ieco">无人，按 ${hvSpText(acs[0], s.setpoint)} ${HV_USE[s.use]}运行</small>` /* 2.84 V882 */ : ""}${lastH ? rcpt(lastH) : ""}`,
       rows: [
         R("室温", gw || room == null ? null : nf(room, 1), "℃", P.temp, dv != null && Math.abs(dv) >= 1 ? { flag: dv > 0 ? "偏高" : "偏低" } : {}),
         // 2.82 V797：本区空调全部离线时设定温度与运行写“—”；各台设定不同时设定温度写“—”（同控件）
@@ -86702,7 +86989,7 @@ function obValsCard(V) {
         return `<section class="ob-g${folded ? " folded" : ""}" data-g="${gr.key}"><button type="button" class="ob-gh" data-act="opsObjGrp" data-value="${gr.key}" aria-expanded="${!folded}"><span>${esc(gr.title)}</span>${gr.head ? `<small>${gr.head}</small>` : ""}<span class="sp"></span>${ico("chevron", "ic16")}</button>${folded ? "" : `<div class="ob-gb">${only ? "" : gr.ctl || ""}${rows}</div>`}</section>`;
       })
       .join("");
-  return `<section class="ob-card ob-vals" aria-label="数值"><header><h3>数值</h3><span class="sp"></span>${many ? btn("只看已选", "opsObjOnly", {}, `ghost sm${only ? " on" : ""}`).replace("<button ", `<button aria-pressed="${only}" `) : ""}</header>${many ? `<input type="search" class="ob-q" placeholder="搜索点位" aria-label="搜索点位">` : ""}${body}</section>`;
+  return `<section class="ob-card ob-vals" aria-label="数值"><header><h3>数值</h3><span class="sp"></span>${many ? btn("只看已选", "opsObjOnly", {}, `ghost sm${only ? " on" : ""}`).replace("<button ", `<button aria-pressed="${only}" `) : ""}</header>${many ? `<label class="ws-search ob-qw">${ico("search", "ic16")}<input type="search" class="ob-q" placeholder="搜索点位" aria-label="搜索点位" autocomplete="off"></label>` : ""}${body}</section>`;
 }
 // 合并时第二种单位的点在右轴（与 trChart 的左右轴分法相同）
 // 画在右轴的线：与 trChart 同一规则（设定温度跟随同单位的轴，V804）
@@ -86757,7 +87044,8 @@ const obAlarmSpans = (k, o) =>
       const from = alarmStart(a),
         to = a.state === "recovered" && a.recoveredAt ? Date.parse(a.recoveredAt) : null,
         label = ovShortEvent(a);
-      return { from, to, label, tip: `${label} ${Demo.hm(from)}–${to == null ? "现在" : Demo.hm(to)}` };
+      // 2.84 V836：网关页的下级设备告警只画在状态条上
+      return { from, to, label, st: k === "dev" && o.type === "gw" && a.pointId !== o.id, tip: `${label} ${Demo.hm(from)}–${to == null ? "现在" : Demo.hm(to)}` };
     });
 // 位置：同总览的矢量楼板，定位并高亮该对象（功能区填色，设备加圈），可缩放
 function obHasMap(k, o) {
@@ -86861,7 +87149,14 @@ function obRecTab(k, o) {
     rows = [];
   if (obLive(k, o))
     for (const x of opsRecItems().filter((r) => obRecPts(r).some((id) => ids.has(id)) || (k === "zone" && (r.zids || []).includes(o.id))))
-      rows.push({ at: x.at, kind: "控制", op: x.op ?? x.cells?.[0] ?? "", who: x.who ?? "", res: x.chip ? `<span class="sc3-eff${x.chip[0] === "ok" ? " ok" : x.chip[0] === "minor" ? " part" : ""}">${esc(x.chip[1])}</span>` : "" });
+    {
+      // 2.84 V837：台数与结果只算本区（设备页不写台数），如整层“上班”在办公室 701 写“执行“上班” · 3 台”“全部生效”
+      const mine = obRecPts(x).filter((id) => ids.has(id)),
+        okN = mine.filter((id) => (x.dids || []).includes(id)).length,
+        op = String(x.op ?? x.cells?.[0] ?? "").replace(/ · \d[\d,]* 台$/, k === "zone" && mine.length ? ` · ${mine.length} 台` : ""),
+        chip = !x.chip || x.chip[0] === "n" || !mine.length || !x.dids ? x.chip : okN === mine.length ? ["ok", "全部生效"] : ["minor", `${okN} / ${mine.length} 生效`];
+      rows.push({ at: x.at, kind: "控制", op, who: x.who ?? "", res: chip ? `<span class="sc3-eff${chip[0] === "ok" ? " ok" : chip[0] === "minor" ? " part" : ""}">${esc(chip[1])}</span>` : "" });
+    }
   for (const r of db.records || []) {
     const mine = r.objectId === o.id || ids.has(r.objectId) || (nets.has(r.objectId) && (names.some((n) => String(r.detail || "").includes(n)) || r.action === "交付确认"));
     if (mine) rows.push({ at: Date.parse(r.at), kind: /交付/.test(r.action) ? "交付" : "修改", op: esc(`${r.action}${r.detail ? " · " + r.detail : ""}`), who: esc(recWho(r.actor)), res: "" });
@@ -86879,7 +87174,7 @@ function obRecTab(k, o) {
     f = kinds.includes(U.obRecKind) ? U.obRecKind : "all",
     list = rows.filter((r) => f === "all" || r.kind === f),
     seg = kinds.length > 1 ? segSm([["all", `全部 ${rows.length}`], ...kinds.map((x) => [x, `${x} ${rows.filter((r) => r.kind === x).length}`])], f, "opsObjRecKind", "", "记录类型") : "",
-    when = (t) => (Demo.dayStart(t) === Demo.dayStart(opsNow()) ? Demo.hm(t) : `${Demo.md(t)} ${Demo.hm(t)}`),
+    when = opsWhen, // 2.84 V807：完整日期与时刻
     pages = Math.max(1, Math.ceil(list.length / OB_REC_PAGE)),
     n = Math.min(Math.max(0, U.obRecPage || 0), pages - 1),
     start = n * OB_REC_PAGE,
@@ -86979,7 +87274,9 @@ function obKeyRels(k, id) {
       cg = [...new Map(ps.filter((p) => p.type === "lc").map((p) => F.groupOf(db, p.id)).filter(Boolean).map((c) => [c.id, c])).values()],
       m = db.points.find((p) => p.type === "meter" && p.floorId === o.floorId && !p.load && /照明/.test(obMeterLoad(p)));
     if (cg.length) xs.push(`<span>照明分区 ${esc(cg.length > 1 ? `${cg.length} 个` : cg[0].name)}</span>`);
-    if (m) xs.push(obLink("dev", m.id, m.name));
+    if (m) xs.push(`<span>计量 ${obLink("dev", m.id, m.name)}</span>`);
+    // 2.84 V823：功能区的照明分区与计量各占一行（“照明分区 办公室 705”“计量 7F 照明插座电能表”），不用“·”连接
+    if (xs.length) return `<p class="ob-keys col">${xs.join("")}</p>`;
   }
   return xs.length ? `<p class="ob-keys">${xs.join('<i aria-hidden="true">·</i>')}</p>` : "";
 }
@@ -87392,7 +87689,7 @@ function aiRootCause(a) {
     return aiCard({
       title: "根因分析：回路失电的可能性最高",
       // 2.77 V774：只写判断与理由，现象（同一分钟停止上报）留给下面的“现象”一行
-      body: `<p class="ai-p">置信度 <b>较高</b>。同区另一台${zhSub(esc(sib.name))}仍在恒照度运行${h.gwOff ? "（网关现已离线，为离线前的数据）" : ""}，可排除网关、无线与整区断电，问题在${zhSub(esc(p.name))}的供电回路。</p><p class="ai-p">若断路器正常，再测量${zhSub(esc(p.name))}输入电压，检查接线端子。</p>`,
+      body: `<p class="ai-p">置信度<b>较高</b>。同区另一台${zhSub(esc(sib.name))}仍在恒照度运行${h.gwOff ? "（网关现已离线，为离线前的数据）" : ""}，可排除网关、无线与整区断电，问题在${zhSub(esc(p.name))}的供电回路。</p><p class="ai-p">若断路器正常，再测量${zhSub(esc(p.name))}输入电压，检查接线端子。</p>`,
       evidence: [aiLink(`${zhSub(p.name, "r")}最后数据 ${Demo.hm(Date.parse(p.telemetry.offlineSince) - Demo.offAfter(p) * Demo.MIN)}`, "opsOpenZone", { id: "zone-demo-labe", tab: "lighting" }), aiLink(`同区${zhSub(sib.name)}在线`, "opsOpenZone", { id: "zone-demo-labe", tab: "lighting" }), aiLink(h.gwOff ? "网关离线 · 在线率暂无法统计" : `网关在线 · 在线率 ${nf(h.rate, 1)}%`, "opsGo", { page: "analysis", tab: "health" })],
       actions: aiSuggest("labe-task"),
       cls: "ai-inline",
@@ -87546,8 +87843,8 @@ function aiSecEdited(txt, s) {
       .join("") + aiRList(tail.map((x, i) => ({ ...s.items[i], text: x.trim() })), s.ol)
   );
 }
-// 2.66 V637：编辑时数字（连单位、编号与名称里的字母数字）为不可编辑的灰底数值块
-const RPT_NUM = /(?:[A-Za-z]+-?)*\d[\w.,:/\-]*(?:\s?(?:%|kWh|tce|tCO₂e?|kW|ppm|h(?![A-Za-z])))?/g;
+// 2.66 V637：编辑时数值为不可编辑的灰底数值块。2.84 V854：只把数值连单位、日期与时刻做成块，名称、编号与楼层不做块
+const RPT_NUM = /(?:\d{4}\s?年\s?)?\d{1,2}\s?月\s?\d{1,2}\s?日(?:\s?\d{1,2}:\d{2})?|(?<![\w./:-])\d{1,2}\/\d{1,2}(?:\s?[–-]\s?\d{1,2}\/\d{1,2})?(?![\w/])|(?<![\w.:-])\d{1,2}:\d{2}(?:\s?[–-]\s?\d{1,2}:\d{2})?(?![\w:])|(?<![\w.,-])[+−-]?\d[\d,]*(?:\.\d+)?\s?(?:%|kWh|tce|tCO₂e?|kW|ppm|lx|℃|m²|h(?![A-Za-z])|台|次|个|条|张|处|天|分钟|小时|元)/g;
 const rptEditHtml = (txt) =>
   String(txt)
     .split("\n")
@@ -87672,12 +87969,26 @@ function aiReportLive(r) {
     space = `<p class="ai-p">${spaceRows.length ? `${esc(zhSub(spLow.z.name, "r"))}工作时间有人仅 ${nf(spLow.v)}%，为最低。` : "所选期间没有可用的空间使用数据。"}</p>`;
   // 2.66 V642：告警与处理。在线率为期间平均；每条告警前为级别色点，同一天恢复的只写时刻
   const LV_C = ["#D0382B", "#DB6A1E", "#D29A10"],
+    // 2.84 V889：起点与告警页相同（超过阈值的时刻，alarmStart）；恢复出厂未恢复写“待重新绑定”；
+    // 同一功能区（设备）的同一告警合成一行（同已结束列表 V773）：“实验室 C 室温偏高 · 11 次 · 每次 15–18 分钟 · 最近 9 月 24 日 08:10”，点开为最近一次
+    st0 = (a) => (typeof alarmStart === "function" ? alarmStart(a) : Date.parse(a.at)),
     recTxt = (a) => {
-      if (!rec(a)) return "未恢复";
+      if (!rec(a)) return a.kind === "device" ? "待重新绑定" : "未恢复";
       const r0 = Date.parse(a.recoveredAt);
-      return Demo.dayStart(r0) === Demo.dayStart(Date.parse(a.at)) ? `${Demo.hm(r0)} 恢复` : `${t(r0)} 恢复`;
+      return Demo.dayStart(r0) === Demo.dayStart(st0(a)) ? `${Demo.hm(r0)} 恢复` : `${t(r0)} 恢复`;
     },
-    alItems = al.map((a) => ({ text: `${t(Date.parse(a.at))} · ${alarmTitle(a).title} · ${recTxt(a)}`, link: aiLink("", "opsAlarm", { id: a.id }, "查看告警"), dot: LV_C[lvlRank(a.level)] || "#8B93A3" })),
+    alGrp = [...al.reduce((m, a) => { const k = typeof alKey === "function" ? alKey(a) : a.id; m.set(k, [...(m.get(k) || []), a]); return m; }, new Map()).values()]
+      .map((xs) => xs.sort((x, y) => st0(y) - st0(x)))
+      .sort((x, y) => st0(x[0]) - st0(y[0])),
+    alItems = alGrp.map((xs) => {
+      const a = xs[0],
+        each = xs.length > 1 && typeof alEachText === "function" ? alEachText(xs.filter(rec)) : "";
+      return {
+        text: xs.length > 1 ? `${alarmTitle(a).title} · ${xs.length} 次${each ? ` · 每次 ${each}` : ""} · 最近 ${t(st0(a))}${rec(a) ? "" : ` · ${recTxt(a)}`}` : `${t(st0(a))} · ${alarmTitle(a).title} · ${recTxt(a)}`,
+        link: aiLink("", "opsAlarm", { id: a.id }, "查看告警"),
+        dot: LV_C[lvlRank(a.level)] || "#8B93A3",
+      };
+    }),
     avgOn = typeof anOnlineAvg === "function" ? anOnlineAvg(rg.from, now ?? cut) : null,
     liveParts = h
       ? [h.rate == null ? `网关离线，其下 ${h.unknown.length} 台设备状态未知` : "", h.resets.length ? `${h.resets.map((p) => p.name).join("、")} 恢复出厂后脱离设备网络，待重新绑定` : "", fcBelow.length ? `${fcBelow.length} 台${[...new Set(fcBelow.map((p) => M.catalog[p.type].name || p.type))].join("、")}固件有新版本` : ""].filter(Boolean)
@@ -87945,8 +88256,8 @@ function aiIssues() {
         if (!xs.length && !ca) return null;
         const w = xs[0],
           b = w?.bands?.[k] || [],
-          // 2.66 V509：CO₂ 只有上限，写“超过 1,000 ppm”（原“不在参考范围内”）
-          how = !w ? "" : k === "temp" ? ((b[2] || 0) >= (b[0] || 0) ? `有人时间 ${p(b[2] || 0)} 偏高` : `有人时间 ${p(b[0] || 0)} 偏低`) : k === "co2" ? `有人时间 ${p(100 - w[k])} 超过 ${nf(envRef(OPS_SCOPE.project, { zoneId: w.z.id }).co2)} ppm` : `有人时间 ${p(100 - w[k])} 不在参考范围内`,
+          // 2.66 V509：CO₂ 只有上限，写“超过 1,000 ppm”（原“不在参考范围内”）。2.84 V880：写“有人时 39% 的时间温度偏高”，不读成“有人时间偏高”
+          how = !w ? "" : k === "temp" ? ((b[2] || 0) >= (b[0] || 0) ? `有人时 ${p(b[2] || 0)} 的时间温度偏高` : `有人时 ${p(b[0] || 0)} 的时间温度偏低`) : k === "co2" ? `有人时 ${p(100 - w[k])} 的时间超过 ${nf(envRef(OPS_SCOPE.project, { zoneId: w.z.id }).co2)} ppm` : `有人时 ${p(100 - w[k])} 的时间不在参考范围内`,
           cz = ca ? Demo.zoneOf(ca.zoneId) : null,
           cv = cz ? co2Of(Demo.zoneState(cz)) : null,
           al = ca || (w && open.find((a) => a.kind === "environment" && a.zoneId === w.z.id)),
@@ -88173,28 +88484,49 @@ const AIP = { mode: "search" };
 // 2.83 KW9：提问时输入框下方写回答范围（12/18 #636363）。默认“范围：E栋 · 7F ▾”，点开选全层或本层功能区；
 // 从功能区或设备的侧栏、详情页、告警详情打开时预设为所在功能区，写“范围：实验室 E ×”，× 回到全层。
 // 问题里写了功能区时按问题回答；回答仍写各自的范围。范围只在这里选（取代 2.82 回答标题行的范围按钮）。
+// 2.84 V892（定稿：范围预设为该对象）：功能区写功能区，设备写设备（“dev:编号”），告警写告警的对象（功能区告警为功能区，
+// 设备告警为设备，连接中断为该连接“conn:编号”）。回答按对象所在的功能区取数，回答照旧写范围
 function aiCtxScope() {
   if (!aiDemo() || U.role === "member" || typeof g !== "function") return null;
-  const pz = (id) => g("points", id)?.zoneId,
-    ob = U.page === "overview" ? /^(zone|dev):(.+)$/.exec(String(U.obj || "")) : null,
-    it = U.page === "alarms" && U.opsDrawer?.id && typeof alItemOf === "function" ? alItemOf(U.opsDrawer.kind === "task" ? "task" : "alarm", U.opsDrawer.id) : null,
-    id = ob
-      ? ob[1] === "zone" ? ob[2] : pz(ob[2])
-      : U.page === "overview" && U.ovDev ? pz(U.ovDev)
-      : U.page === "overview" && U.opsZone ? U.opsZone
-      : it ? it.a?.zoneId || it.t?.zoneId
-      : U.page === "devices" && U.infoPoint && $("#wsSheet .dev-info-head") ? pz(U.infoPoint)
-      : null;
-  return id && Demo.zoneOf(id) ? id : null;
+  const dev = (id) => (id && g("points", id) ? "dev:" + id : null),
+    zone = (id) => (id && Demo.zoneOf(id) ? id : null),
+    ob = U.page === "overview" ? /^(zone|dev):(.+)$/.exec(String(U.obj || "")) : null;
+  if (ob) return ob[1] === "zone" ? zone(ob[2]) : dev(ob[2]);
+  if (U.page === "overview" && U.ovDev) return dev(U.ovDev);
+  if (U.page === "overview" && U.opsZone) return zone(U.opsZone);
+  // 2.84 V890：告警与工单按右栏正在显示的一项（没有点开时为列表第一行）
+  if (U.page === "alarms") {
+    const it = typeof alShownItem === "function" ? alShownItem() : null,
+      a = it?.a,
+      t = it?.t;
+    if (a?.kind === "connection") return a.connectionId && g("connections", a.connectionId) ? "conn:" + a.connectionId : null;
+    if (a && (["offline", "device"].includes(a.kind) || !a.zoneId)) return dev(a.pointId) || zone(a.zoneId);
+    if (a) return zone(a.zoneId) || dev(a.pointId);
+    return t ? zone(t.zoneId) || dev(t.pointIds?.[0]) : null;
+  }
+  if (U.page === "devices" && U.infoPoint && $("#wsSheet .dev-info-head")) return dev(U.infoPoint);
+  return null;
+}
+// 范围的名称与回答所用的功能区：“dev:”为设备名称与其功能区，“conn:”为连接名称与其各表计同在的功能区（不同时为全层）
+function aiScopeObj(v) {
+  if (!v) return null;
+  const m = /^(dev|conn):(.+)$/.exec(v);
+  if (!m) { const z = Demo.zoneOf(v); return z ? { v, label: z.name, zone: z.id } : null; }
+  if (m[1] === "dev") { const p = g("points", m[2]); return p ? { v, label: p.name, zone: p.zoneId && Demo.zoneOf(p.zoneId) ? p.zoneId : null, obj: true } : null; }
+  const c = g("connections", m[2]),
+    zs = [...new Set(data().points.filter((p) => p.connectionId === m[2]).map((p) => p.zoneId).filter(Boolean))];
+  return c ? { v, label: c.name, zone: zs.length === 1 && Demo.zoneOf(zs[0]) ? zs[0] : null, obj: true } : null;
 }
 function aiPreHtml(mode = AIP.mode) {
   if (!aiDemo() || U.role === "member") return "";
-  const z = AIP.pre ? Demo.zoneOf(AIP.pre) : null,
-    lbl = z ? z.name : "E栋 · 7F",
-    cur = z ? z.id : "floor",
-    opts = [["floor", "E栋 · 7F 全层"], ...Demo.zones().sort((x, y) => x.name.localeCompare(y.name, "zh-CN", { numeric: true })).map((x) => [x.id, x.name])];
-  // 菜单和位置选择弹层同一种：最上面全层，下面分组标题“功能区”和本层各功能区，当前范围只在右侧打勾
-  return `<span class="ai-pre"${mode === "ask" ? "" : " hidden"}><button type="button" class="ai-scope" data-act="aiScopeMenu" aria-haspopup="menu" aria-expanded="false" aria-controls="aiScopeList" aria-label="回答范围：${esc(lbl)}">范围：${esc(lbl)}${z ? "" : ico("chevron", "ic16")}</button>${z ? `<button type="button" class="iconbtn ai-pre-x" data-act="aiScope" data-value="" aria-label="范围改为 E栋 · 7F" data-tip="改为全层">${ico("x", "ic16")}</button>` : ""}<div id="aiScopeList" class="ai-scope-menu" role="menu" aria-label="回答范围" hidden>${opts.map(([v, l], i) => `${i === 1 ? `<div class="ai-scope-cap" role="presentation">功能区</div>` : ""}<button role="menuitemradio" aria-checked="${v === cur}" tabindex="-1" data-act="aiScope" data-value="${esc(v)}"><span>${esc(l)}</span>${v === cur ? ico("check", "ic16") : ""}</button>`).join("")}</div></span>`;
+  const z = aiScopeObj(AIP.pre),
+    lbl = z ? z.label : "E栋 · 7F",
+    cur = z ? z.v : "floor",
+    item = ([v, l]) => `<button role="menuitemradio" aria-checked="${v === cur}" tabindex="-1" data-act="aiScope" data-value="${esc(v)}"><span>${esc(l)}</span>${v === cur ? ico("check", "ic16") : ""}</button>`,
+    cap = (t) => `<div class="ai-scope-cap" role="presentation">${t}</div>`,
+    zs = Demo.zones().sort((x, y) => x.name.localeCompare(y.name, "zh-CN", { numeric: true })).map((x) => [x.id, x.name]);
+  // 菜单和位置选择弹层同一种：最上面全层，下面分组标题“功能区”和本层各功能区，当前范围只在右侧打勾；预设为设备或连接时其上另有“当前对象”一项
+  return `<span class="ai-pre"${mode === "ask" ? "" : " hidden"}><button type="button" class="ai-scope" data-act="aiScopeMenu" aria-haspopup="menu" aria-expanded="false" aria-controls="aiScopeList" aria-label="回答范围：${esc(lbl)}">范围：${esc(lbl)}${z ? "" : ico("chevron", "ic16")}</button>${z ? `<button type="button" class="iconbtn ai-pre-x" data-act="aiScope" data-value="" aria-label="范围改为 E栋 · 7F" data-tip="改为全层">${ico("x", "ic16")}</button>` : ""}<div id="aiScopeList" class="ai-scope-menu" role="menu" aria-label="回答范围" hidden>${item(["floor", "E栋 · 7F 全层"])}${z?.obj ? cap("当前对象") + item([z.v, z.label]) : ""}${cap("功能区")}${zs.map(item).join("")}</div></span>`;
 }
 // 手机面板跟随可见视口；监听仅在面板打开期间存在，不改变平板与电脑规格。
 function aiTrackViewport(el) {
@@ -88360,7 +88692,7 @@ const aiNotice = (text, type, acts) => wsNotice(text, type).replace(/^<div class
 // 服务不可用时说明没有得到回答，给出“重试”“改用搜索”“帮助”，不显示上一次的回答；同一问题再次失败时写明已重试的次数。
 function aiAnswer(q, pick) {
   q = q.trim();
-  if (pick === undefined && AIP.pre && aiDemo() && !findZone(q)) pick = AIP.pre; // 2.83 KW9
+  if (pick === undefined && AIP.pre && aiDemo() && !findZone(q)) pick = aiScopeObj(AIP.pre)?.zone || "floor"; // 2.83 KW9；2.84 V892：设备、连接按其功能区回答
   AIP.tries = AIP.down && AIP.q === q ? (AIP.tries || 0) + 1 : AIP.down ? 1 : 0;
   AIP.q = q;
   AIP.pick = pick;
@@ -88383,6 +88715,9 @@ function aiAnswer(q, pick) {
   // 本月 AI 用量与用量包都用完、或机构尚未订阅（开通后付款前不算，2.33 第 278 条）时不回答，说明原因并给出“改用搜索”（GLOBAL01；2026-10-09 用户确认，商业许可方案第 2、3、6 条）
   const blocked = typeof auAiBlock === "function" ? auAiBlock() : null;
   if (blocked) {
+    // 2.84 V817：用完时只在回答处写一句，顶行不再重复
+    const note = $(".ai-pal-note");
+    if (note) note.hidden = true;
     $("#aiAnswer").innerHTML = `<div class="ai-ans ai-ans-down"><div class="ai-ans-q">${esc(q)}</div>${aiNotice(blocked.text, "warning", blocked.act + btn("改用搜索", "aiMode", { value: "search" }, "ghost sm"))}</div>`;
     return;
   }
@@ -88819,7 +89154,7 @@ defineActions({
     AIP.pre = a.value && a.value !== "floor" ? a.value : null;
     const pre = $(".ai-pre");
     if (pre) pre.outerHTML = aiPreHtml("ask");
-    if (AIP.q && $("#aiAnswer")?.innerHTML) aiAnswer(AIP.q, a.value || "floor");
+    if (AIP.q && $("#aiAnswer")?.innerHTML) aiAnswer(AIP.q, aiScopeObj(AIP.pre)?.zone || "floor");
     $(".ai-pre .ai-scope")?.focus();
   },
   aiRetry: () => {
@@ -90701,9 +91036,11 @@ function auLvOpen() {
   } else auDialog(c.title, auLvBody(kind), auLvFoot(kind), "nodirty au-reset-dlg au-lv-dlg");
   auFitResetDialog();
   // 打开即自动发送（绑定、更换时输入地址后点框内“获取验证码”）；从“联系我们”回来时不重发，倒计时照旧
-  if (!c.addr && !auEcSame(c.key)) auEcIssue(c.key, auEcTarget(c.key));
+  // 2.84 账户第 899 条：没有验证码的验证（设置新密码）打开时不发验证码，焦点在新密码框
+  const code = !!AU_EC[c.key];
+  if (code && !c.addr && !auEcSame(c.key)) auEcIssue(c.key, auEcTarget(c.key));
   auEcSync();
-  auEntryFocus(c.addr ? `#au-${c.addr[0]}` : `#au-${c.key}_code`);
+  auEntryFocus(c.addr ? `#au-${c.addr[0]}` : code ? `#au-${c.key}_code` : "#au-lv-form input:not([type=hidden])");
 }
 BARE.login = () => {
   const sms = AUX.sms;
@@ -91880,7 +92217,8 @@ function auSbMark(n) {
   else auValidate(f, n === 2 ? auSbQualChecks() : auSbInvoiceChecks());
 }
 function auSbSum(kind, n) {
-  if (n === 1) return esc(auSbPlanRows(kind).filter(([k]) => k !== "有效期").map(([, v]) => v).join(" · "));
+  // 2.84 账户第 913 条：各项（如“¥15,600.00（含税）”）整体不拆开，只在“ · ”处换行
+  if (n === 1) return auSbPlanRows(kind).filter(([k]) => k !== "有效期").map(([, v]) => `<span class="au-nowrap">${esc(v)}</span>`).join(" · ");
   if (n === 2) return esc([AUX.v.sb_org, String(AUX.v.sb_uscc || "").toUpperCase()].filter(Boolean).join(" · "));
   if (n === 3) return esc(`${auInvTypeName()} · 收票邮箱 ${AUX.v.sb_imail || ""}`);
   return "";
@@ -92842,7 +93180,11 @@ document.addEventListener("submit", async (e) => {
     await AU_SUBMIT[f.dataset.form](f);
     if (f.querySelector('.au-ferr[data-held="1"]')) auFormErr(f, "");
   } catch (err) {
-    auFormErr(f, err.message || String(err));
+    // 2.84 账户第 899 条：只显示写给用户的中文说明；程序错误不显示原文，登录与登录验证写“暂时无法登录，请稍后再试。”
+    const m = String(err?.message || ""),
+      shown = /[\u3400-\u9fff]/.test(m) && !(err instanceof TypeError || err instanceof ReferenceError || err instanceof RangeError || err instanceof SyntaxError);
+    if (!shown) console.error(err);
+    auFormErr(f, shown ? m : /^(login|loginVerify|smsLogin)$/.test(f.dataset.form) ? "暂时无法登录，请稍后再试。" : "暂时无法完成，请稍后再试。");
     const fs = f.querySelector("fieldset");
     if (fs) fs.disabled = false;
   }
@@ -93149,10 +93491,15 @@ BARE.legal = () => {
   const doc = AU_LEGAL[U.tab] ? U.tab : "privacy";
   return `<div class="au au-legal-page"><main class="au-legal-main">${auLogo()}<h1 class="au-h1" tabindex="-1">隐私和法律</h1><nav class="au-legal-nav" aria-label="法律文件">${Object.entries(AU_LEGAL).map(([key, [title]]) => `<a href="#legal?tab=${key}" ${key === doc ? 'aria-current="page"' : ""}>${title}</a>`).join("")}</nav><article class="au-legal-content" aria-labelledby="au-legal-title"><h2 id="au-legal-title">${AU_LEGAL[doc][0]}</h2>${auLegalBody(doc)}</article></main>${auFooter(true, false)}</div>`;
 };
+// 2.84 账户第 933 条：首次打开不移动焦点；切换文件时焦点到文件标题
 BARE_AFTER.legal = () => {
   document.title = "隐私和法律 · PACOM Station";
-  document.querySelector(".au-legal-content h2")?.setAttribute("tabindex", "-1");
-  document.querySelector(".au-legal-content h2")?.focus({ preventScroll: true });
+  const h = document.querySelector(".au-legal-content h2"),
+    doc = AU_LEGAL[U.tab] ? U.tab : "privacy",
+    moved = AUX.legalShown && AUX.legalShown !== doc;
+  AUX.legalShown = doc;
+  h?.setAttribute("tabindex", "-1");
+  if (moved) h?.focus({ preventScroll: true });
 };
 
 /* ---------- 软件版本、更新说明与术语（GLOBAL05） ---------- */
@@ -93162,6 +93509,17 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "2.84",
+    date: "2026-11-02",
+    notes: [
+      "改进：趋势图台数用整数刻度，网关下级设备的告警只标在状态条上；告警、工单与设备健康的时间统一写日期与时刻。",
+      "改进：场景执行前写离线设备将跳过并自动补发；编辑报告草稿时只锁定数值与日期，图例与取整与报告一致。",
+      "改进：设备列表的离线、需处理与待绑定各台只计一次，读取失败的电能表计入需处理。",
+      "改进：设备网络、系统接入与设备分组的新建按钮放在页签行；名称、表头与数值不再拆行，楼层统一写“E栋 · 7F”。",
+      "改进：手机页头“更多”在第 2 行右端，消息提示在底部导航上方；登录出错只显示简短的中文说明。",
+    ],
+  },
   {
     version: "2.83",
     date: "2026-11-02",
@@ -97197,12 +97555,14 @@ const AU_ORG_PAGES = {
     // 2.47 账户第 439 条：导出按当前页签和筛选（对象搜索在导出时再按输入过滤）；第 732 条：导出全部符合的记录，不受“加载更多”影响
     AUX.auditPool = shown;
     let shownN = 0;
-    const cell = (x) => (x ? esc(x) : "—");
+    const cell = (x) => (x ? esc(x) : "—"),
+      // 2.84 账户第 917 条：设备型号（如“iPhone 15”）整体不拆开
+      objCell = (x) => (x ? esc(x).replace(/\b(iPhone|iPad|Pixel|Galaxy|Mate|nova|Redmi|OPPO|vivo) (\w+)/g, "$1&nbsp;$2") : "—");
     // 结果的各项（如“成功 · 设备网络已建立”）整体不换行，只在“ · ”处换行（E8；K5 固定列宽后原先在“密钥”与“更新”之间断开）。
     // 时间与对象为附属信息，#636363（全面设计核查第 65 条，2026-10-12 用户确认：时间原为 #030303）
     // 第 732 条：先列 20 条，底部“共 N 条”和“加载更多”；对象搜索在原处隐藏不符合的行，计数一起更新
     const row = (e) =>
-      `<tr data-q="${esc(String(e.object || "").toLowerCase())}" ${hit(e) && shownN++ < lim ? "" : "hidden"}><td class="num au-nowrap muted">${auFmtY(e.at)}</td><td>${cell(e.actor)}</td><td><b class="au-ev">${cell(e.action)}</b></td><td class="muted">${cell(e.object)}</td><td>${e.result ? nwJoin(String(e.result).split(" · ")) : "—"}</td></tr>`;
+      `<tr data-q="${esc(String(e.object || "").toLowerCase())}" ${hit(e) && shownN++ < lim ? "" : "hidden"}><td class="num au-nowrap muted">${auFmtY(e.at)}</td><td>${cell(e.actor)}</td><td><b class="au-ev">${cell(e.action)}</b></td><td class="muted">${objCell(e.object)}</td><td>${e.result ? nwJoin(String(e.result).split(" · ")) : "—"}</td></tr>`;
     // 各表用相同的列宽，“全部”上下两张表的列对齐（K5，样式见 auth.css）；日志中有不是当年的时间（加年份）时，各表的时间列一起加宽，
     // 按全部记录判断，切换页签或筛选时列宽不变。
     const withYear = [...ev, ...changes].some((e) => auCstYear(e.at) !== auCstYear(auNow()));
@@ -97438,15 +97798,17 @@ function auQuotaText(where, need = 0) {
 // AI 每月额度 = 1000 万 token + 每台设备 2.5 万 token（第 2 条）；每月 1 日 0:00（中国标准时间）重置。
 const AU_AI_BASE = 1000, AU_AI_PER = 2.5;
 const auAiQuota = (l) => AU_AI_BASE + AU_AI_PER * (l.quota || 0);
-function auNextMonth() {
-  const [y, m] = auYmd(auCstYmd());
+function auNextMonth(ts = auNow()) {
+  const [y, m] = auYmd(auCstYmd(ts));
   return m === 12 ? `${y + 1}-01-01` : `${y}-${auPad(m + 1)}-01`;
 }
 // 本月重置时间：不足一天时写“还有 N 小时重置”。
+// 2.84 V817：与面板说明相同，按页面数据的日期（auAiNow）算
 function auAiReset() {
-  const r = auNextMonth(),
+  const now = auAiNow(),
+    r = auNextMonth(now),
     [y, m, d] = auYmd(r),
-    left = Date.UTC(y, m - 1, d) - 8 * 36e5 - auNow();
+    left = Date.UTC(y, m - 1, d) - 8 * 36e5 - now;
   return left < auDay ? `还有 ${Math.max(1, Math.ceil(left / 36e5))} 小时重置` : `${auDate(r)} 0:00 重置`;
 }
 // 本月 AI 用量（万 token）：智能助手服务按天记的用量中本月的部分；用量未取得时 state 为 "unknown"。
@@ -97456,21 +97818,23 @@ function auAi(id = AUTH.org) {
   const quota = auAiQuota(l),
     left = l.packs.reduce((s, p) => s + p.left, 0);
   // 刚开通、付款前还没有用量记录：本月已用 0
-  if (!l.ai) return l.state === "order" ? { state: "ok", quota, used: 0, pct: 0, left, reset: auNextMonth() } : { state: "unknown", quota, left };
+  if (!l.ai) return l.state === "order" ? { state: "ok", quota, used: 0, pct: 0, left, reset: auNextMonth(auAiNow()) } : { state: "unknown", quota, left };
   const day = auYmd(auCstYmd())[2],
     used = l.ai.daily.slice(-day).reduce((s, n) => s + n, 0),
     out = used >= quota,
     pct = out ? 100 : Math.floor((used / quota) * 100);
-  return { state: out ? (left > 0 ? "pack" : "out") : pct >= 80 ? "warn" : "ok", quota, used: Math.min(used, quota), pct, left, reset: auNextMonth() };
+  return { state: out ? (left > 0 ? "pack" : "out") : pct >= 80 ? "warn" : "ok", quota, used: Math.min(used, quota), pct, left, reset: auNextMonth(auAiNow()) };
 }
+// 2.84 V817：工作区里助手的重置日期按运行数据的时间算（与页面上的日期一致），账户页仍按当前时间
+const auAiNow = () => (typeof Demo !== "undefined" && typeof Demo.on === "function" && Demo.on() && typeof opsNow === "function" ? opsNow() : auNow());
 // “搜索或提问”面板右侧的说明（GLOBAL01）：80% 起提醒，转用用量包与都用完时说明；未订阅时“未订阅”（2.70 账户第 847 条）。没有要说的时返回空。
 function auAiPalNote() {
   if (typeof AUTH === "undefined" || !AUTH.orgs[AUTH.org]) return "";
   const a = auAi();
   if (a.state === "none") return "未订阅"; // 2.70 账户第 847 条
-  if (a.state === "warn") return `本月 AI 额度已用 ${a.pct}% · ${auDate(a.reset)} 0:00 重置`;
+  if (a.state === "warn") return `本月 AI 额度已用 ${a.pct}% · ${auDate(auNextMonth(auAiNow()))} 0:00 重置`;
   if (a.state === "pack") return "本月 AI 额度已用完 · 正在使用用量包";
-  if (a.state === "out") return `本月 AI 额度已用完 · ${auDate(a.reset)} 0:00 重置`;
+  if (a.state === "out") return `本月 AI 额度已用完 · ${auDate(auNextMonth(auAiNow()))} 0:00 重置`;
   return "";
 }
 // 提问被拒绝时回答处的说明与按钮（额度和用量包都用完、未订阅）；可以提问时为 null。旁边有“改用搜索”，不再写“搜索照常可用”（2.53 V290）。
@@ -97481,7 +97845,7 @@ function auAiBlock() {
     admin = auCanManage();
   if (a.state === "none") return { text: "本机构尚未订阅，不能使用智能助手。", /* 2.70 账户第 847 条 */ act: admin ? btn("订阅", "auLicBuy", { kind: "sub" }, "sm") : "" };
   if (a.state === "out")
-    return { text: `本月 AI 额度已用完，${auDate(a.reset)} 0:00 重置${admin ? "。购买用量包后可立即继续使用。" : "，已通知机构管理员。"}`, act: admin ? btn("购买用量包", "auPackBuy", {}, "sm") : "" };
+    return { text: `本月 AI 额度已用完，${auDate(auNextMonth(auAiNow()))} 0:00 重置${admin ? "。购买用量包后可立即继续使用。" : "，已通知机构管理员。"}`, act: admin ? btn("购买用量包", "auPackBuy", {}, "sm") : "" };
   return null;
 }
 // 工作区页头下方的提示条（ORG06、AUTH15）：许可到期暂停后续费中、未订阅（只给机构管理员）、有效期最后一天前 30 天起。不能关闭。
@@ -98153,7 +98517,7 @@ defineActions({
     auDialog(
       "用量包记录",
       `<div class="tw"><table class="t au-table"><thead><tr><th>到账时间</th><th class="num">规格</th><th class="num">剩余</th></tr></thead><tbody>${l.packs
-        .map((p) => `<tr><td class="num au-nowrap muted">${auFmtY(p.at)}</td><td class="num">${auPackName(p.size)}</td><td class="num">${auWan(p.left)} token</td></tr>`)
+        .map((p) => `<tr><td class="au-nowrap muted">${auFmtY(p.at)}</td><td class="num">${auPackName(p.size)}</td><td class="num">${auWan(p.left)} token</td></tr>`)
         .join("")}</tbody><tfoot><tr><td colspan="2">合计</td><td class="num"><b>${auWan(total)} token</b></td></tr></tfoot></table></div>${note(`每笔用量包的订单和发票见<button type="button" class="au-inline" data-act="auOrdersGo">订单与发票</button>。`)}`,
       "",
       "wide-form au-packs-dlg",
@@ -106598,7 +106962,7 @@ function demoLicSeed(aiPct = 34, packLeft = 640) {
     opened: "2026-07-01",
     manager: "林晓 · 400-000-0000（演示）",
     uscc: "91440101MA0000000X（演示）",
-    verified: { at: "2026-06-30" },
+    verified: { at: "2026-07-01" }, // 2.84 账户第 921 条：核验不早于机构创建（7 月 1 日）
     account: { name: "广州天环智能技术有限公司", bank: "招商银行广州分行（演示）", no: "7559 0000 0000 0001（演示）" },
     orders: [
       { id: "od-demo-1", no: "PS20260625-0001", kind: "sub", text: "订阅 · 500 台 · 1 年", quota, years: 1, amount: 30000, status: "paid", at: at("2026-06-25", "10:20"), until: "2026-07-09", by: "PACOM", pay: "对公转账", paidAt: at("2026-06-30", "15:02"), invoice: "issued", invNo: "26442000202606250001", invAt: "2026-06-30", stamp: true },
@@ -107715,8 +108079,9 @@ const DEMO_ITEMS = [
   ],
   ["总览", "ops-pg-building", "总览 · 楼宇", "E栋", demoPg(() => ((U.opsKeep = "next"), `#overview?tab=general&b=${DEMO_IDS.building}`))],
   ["总览", "ops-pg-floor", "总览 · 楼层", "状态 · E栋 · 7F", demoPg(() => demoOpsHash("general"))],
-  ["总览", "ops-zone", "功能区检视器", "总览 · 办公室 705", demoX(() => demoOpsHash("general"), () => actions.opsZone({ id: "zone-demo-o705" }))],
-  ["总览", "ops-params", "照明控制参数", "办公室 705 · 修改", demoX(() => demoOpsHash("general"), () => (actions.opsZone({ id: "zone-demo-o705" }), demoAfter(() => demoTap('.ov-insp [data-act="opsParams"]'))))],
+  // 2.84 V891：检视器的功能区在打开页面前写入（与在功能区表点开相同的状态），不再在页面打开后调用会切换开合的 opsZone
+  ["总览", "ops-zone", "功能区检视器", "总览 · 办公室 705", demoX(() => ((U.opsZone = "zone-demo-o705"), (OPS.zpFocus = "open"), demoOpsHash("general")))],
+  ["总览", "ops-params", "照明控制参数", "办公室 705 · 修改", demoX(() => ((U.opsZone = "zone-demo-o705"), demoOpsHash("general")), () => demoTap('.ov-insp [data-act="opsParams"]'))],
   // 2.59 V308：功能区检视器底部“设备 N 台”展开本区设备；2.81 V784：点一台在检视器里显示该设备
   ["总览", "dev-info", "设备信息", "办公室 705 · 设备", demoX(() => demoOpsHash("general"), () => (actions.opsZone({ id: "zone-demo-o705" }), (U.ovDevs = true), actions.ovDevOpen({ id: demoPt("E-7F-LC20-01") })))],
   // 2.66 V439：打开会议室 7-1 检视器 › 设备 › E-7F-AQ20-05
@@ -107788,7 +108153,7 @@ const DEMO_ITEMS = [
   ["告警与工单", "task-done", "完成工单", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => (actions.opsTask({ id: "task-demo-1" }), demoAfter(() => actions.opsTaskFinish({ id: "task-demo-1" }))))],
   ["告警与工单", "ops-pg-al-verify", "告警与工单 · 待核验", "完成后 24 小时内检查是否再次触发", demoPg("#alarms?tab=verify")],
   ["告警与工单", "ops-pg-al-history", "告警与工单 · 已结束", "", demoPg("#alarms?tab=history")],
-  ["告警与工单", "repair-ai", "报修详情", "办公室 701 温度偏高 · AI 初步判断", demoX("#alarms?tab=history", () => actions.opsTask({ id: "task-demo-repair" }))],
+  ["告警与工单", "repair-ai", "报修详情", "办公室 701 温度偏高 · 已完成", /* 2.84 V864：已完成的单不显示 AI 建议 */ demoX("#alarms?tab=history", () => actions.opsTask({ id: "task-demo-repair" }))],
   ["场景", "ops-pg-sc-manual", "场景 · 场景", "", demoPg("#scenes?tab=manual")],
   // 2.66 V539：去掉“告警规则”（告警记录上没有这个入口；规则由配置组的“告警规则详情”演示）
   ["场景", "sc-run", "执行确认", "场景“上班”", demoX("#scenes?tab=manual", () => actions.opsRunScene({ id: "scene-demo-on" }))],
