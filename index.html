@@ -41081,13 +41081,14 @@ const M = StationModel;
 const F = StationFlowModel;
 // 修改记录的操作人：当前登录成员与角色（v13Actor 由后续脚本提供，调用时才取值）。
 M.setActorSource(() => (typeof v13Actor === "function" ? v13Actor() : null));
+// 2.79 KW13：侧栏“告警”改名“告警与工单”（页面标题、浏览器标签与来源返回同取 TITLES），侧栏顺序不变；角标仍只计告警
 const NAV = [
   [
     "运营",
     [
       ["overview", "总览", "home"],
       ["analysis", "数据分析", "chart-column-increasing"],
-      ["alarms", "告警", "bell"],
+      ["alarms", "告警与工单", "bell"],
       ["scenes", "场景", "workflow"],
     ],
   ],
@@ -41104,7 +41105,7 @@ const NAV = [
 const TITLES = {
   overview: "总览",
   analysis: "数据分析",
-  alarms: "告警",
+  alarms: "告警与工单",
   scenes: "场景",
   projects: "项目",
   devices: "设备",
@@ -42126,6 +42127,80 @@ function normalizeDeviceMode(page = U.page, mode = U.mode) {
   if (!["view", "mark", "relations", "roles"].includes(mode)) return floorDefaultMode(page);
   return !canEdit() && ["mark", "relations"].includes(mode) ? "view" : mode;
 }
+// 2.79 KW15–KW17：全站只有一个当前位置（项目、楼宇、楼层），按账户与机构记下。
+// 总览、数据分析、告警与工单、场景、项目、设备改了位置，换到其他页面照用；应用设置、配置进度只到项目，选别的项目时楼宇与楼层清空，同一项目不动记下的楼宇与楼层。
+// 侧栏进入各页按当前位置打开；侧栏“项目”从别的页面点入按当前位置打开，已在项目页时再点回全部项目。普通成员只有我的区域，不适用。
+// 还没有记下位置，或记下的位置已删除、失去授权时，从全部项目往下：只有一个项目就进这个项目，只有一个楼宇或室外区域就进它，运营页只有一个接入运行数据的楼层就进这一层（KW16）。
+// 正式版由服务端按账户与机构保存，换设备也回到上次的位置；原型存在本机浏览器。
+const LOC_PAGES = ["overview", "analysis", "alarms", "scenes", "projects", "devices"],
+  LOC_PROJECT_PAGES = ["settings", "deployment"],
+  LOC_OPS_PAGES = ["overview", "analysis", "alarms", "scenes"],
+  LOC_KEY = "pacom-v13-loc",
+  LOC_MEM = {};
+const locOwner = () => (typeof AUTH !== "undefined" && AUTH.uid && AUTH.org ? `${AUTH.uid}|${AUTH.org}` : "");
+function locRead() {
+  const k = locOwner();
+  if (!k) return null;
+  if (!(k in LOC_MEM)) {
+    try { LOC_MEM[k] = JSON.parse(localStorage.getItem(LOC_KEY) || "{}")[k] || null; } catch { LOC_MEM[k] = null; }
+  }
+  return LOC_MEM[k];
+}
+function locWrite(L) {
+  const k = locOwner();
+  if (!k) return;
+  LOC_MEM[k] = L;
+  try {
+    const all = JSON.parse(localStorage.getItem(LOC_KEY) || "{}");
+    all[k] = L;
+    localStorage.setItem(LOC_KEY, JSON.stringify(all));
+  } catch {}
+}
+function locValid(L) {
+  if (!L) return false;
+  if (!L.p) return !L.b && !L.f;
+  const b = L.b && g("buildings", L.b), f = L.f && g("floors", L.f);
+  return !!g("projects", L.p) && mayViewProject(L.p) && (!L.b || b?.projectId === L.p) && (!L.f || (!!L.b && f?.buildingId === L.b));
+}
+function locDefault(page) {
+  const ps = (data()?.projects || []).filter((x) => mayViewProject(x.id));
+  if (ps.length !== 1) return { p: null, b: null, f: null };
+  const p = ps[0].id, bs = (data().buildings || []).filter((x) => x.projectId === p);
+  if (bs.length !== 1) return { p, b: null, f: null };
+  const b = bs[0].id, out = outdoorSite(b)?.id || null;
+  if (out || !LOC_OPS_PAGES.includes(page)) return { p, b, f: out };
+  const live = (typeof liveFloorIds === "function" ? liveFloorIds() : []).filter((id) => g("floors", id)?.buildingId === b);
+  return { p, b, f: live.length === 1 ? live[0] : null };
+}
+function locFor(page) {
+  const L = locRead();
+  return locValid(L) ? L : locDefault(page);
+}
+function locTrack() {
+  if (U.role === "member" || !locOwner() || BARE[U.page] || !data()) return;
+  const cur = { p: U.p || null, b: U.b || null, f: U.f || null };
+  if (LOC_PAGES.includes(U.page)) {
+    if (!locValid(cur)) return;
+  } else if (LOC_PROJECT_PAGES.includes(U.page)) {
+    const L = locRead();
+    if ((L?.p || null) === cur.p && locValid(L)) return;
+    if (!locValid({ p: cur.p, b: null, f: null })) return;
+    cur.b = cur.f = null;
+  } else return;
+  const L = locRead();
+  if (L && L.p === cur.p && L.b === cur.b && L.f === cur.f) return;
+  locWrite(cur);
+}
+// 侧栏进入页面时套用当前位置；位置与本页上次停留的不同时，清掉只属于原位置的功能区、点位、网络与面板
+function locApply(page) {
+  if (U.role === "member" || !locOwner() || !(LOC_PAGES.includes(page) || LOC_PROJECT_PAGES.includes(page))) return;
+  const L = locFor(page), next = LOC_PROJECT_PAGES.includes(page) ? { p: L.p, b: null, f: null } : { p: L.p, b: L.b, f: L.f };
+  if (next.p === (U.p || null) && next.b === (U.b || null) && next.f === (U.f || null)) return;
+  Object.assign(U, next, { zone: null, point: null, net: null, spaceInfo: null, mapView: null });
+  const v = U.f ? U.floorViewport[U.f] || { zoom: 1, x: 0, y: 0 } : { zoom: 1, x: 0, y: 0 };
+  Object.assign(U, { zoom: v.zoom, canvasScrollX: v.x, canvasScrollY: v.y });
+  if (page === "projects" && !U.p) U.view = "cards";
+}
 function route(page, scope = {}, opts = {}) {
   guard(() => {
     closePop();
@@ -42190,6 +42265,7 @@ function route(page, scope = {}, opts = {}) {
       scope,
     );
     if (opts.restore && U.memory[page]) Object.assign(U, U.memory[page]);
+    if (opts.loc) locApply(page);
     if (keepInfo && !U.f) U.spaceInfo = U.b ? { kind: "buildings", id: U.b } : U.p ? { kind: "projects", id: U.p } : { kind: "all" };
     // 普通侧栏返回只恢复本页偏好，不把一次来源下钻重新带入；显式来源返回仍按scope恢复。
     if (opts.restore && U.opsHealthAlarm && !("opsHealthAlarm" in scope)) {
@@ -42677,7 +42753,9 @@ const BARE = {},
   BARE_AFTER = {};
 // 导航链接保留原有点击行为，同时支持复制地址和在新标签页打开。
 function wsNavHref(page) {
-  const s = page === "projects" ? {} : U.page === page ? snapshot() : U.memory[page] || {},
+  const s0 = page === "projects" && U.page === "projects" ? {} : U.page === page ? snapshot() : U.memory[page] || {},
+    L = locOwner() && U.role !== "member" && (LOC_PAGES.includes(page) || LOC_PROJECT_PAGES.includes(page)) && !(page === "projects" && U.page === "projects") ? locFor(page) : null,
+    s = L ? { ...(page === "projects" ? {} : s0), p: L.p, b: LOC_PROJECT_PAGES.includes(page) ? null : L.b, f: LOC_PROJECT_PAGES.includes(page) ? null : L.f } : s0,
     q = new URLSearchParams();
   for (const k of ["p", "b", "f", "tab", "net", "ntab"]) {
     if (s[k] && !(k === "ntab" && s[k] === "summary")) q.set(k, s[k]);
@@ -42746,7 +42824,7 @@ function wsAlarmCount() {
     open = F.alarmGroups(db).filter((a) => !a.acknowledged && lv(a) >= 0 && mayViewProject(a.projectId, db) && !maint(a));
   return open.length ? { n: open.length, lvl: Math.min(...open.map(lv)) } : null;
 }
-// 数量写进入口的读屏名称与悬停提示，如“告警 · 2 条重要及以上待确认”；收起时为图标右上角的小角标。
+// 数量写进入口的读屏名称与悬停提示，如“告警与工单 · 2 条重要及以上待确认”；收起时为图标右上角的小角标。
 // 角标只计紧急与重要，写明“重要及以上”，借用总览“未恢复告警”卡的说法；原为“告警 · 2 条待确认”，
 // 和总览卡计全部级别的“待确认”数对不上（全面设计核查第 11 条，2026-10-12 用户确认，改规范 2 1；计数规则不变）。
 function wsNavItem(k, l, i) {
@@ -42787,6 +42865,7 @@ function render() {
     if (p) { U.p = p; syncRoute(true); }
   }
   if (U.p) U.lastP = U.p;
+  locTrack();
   if (typeof auOrgFormSync === "function") auOrgFormSync();
   $("#app").dataset.page=U.page;
   // 绘制引擎画布在无关更新时保留（D4）：仍是同一次绘制或调整、范围未在引擎之外改变时不卸载重挂。
@@ -46022,7 +46101,8 @@ defineActions({
       if (panel) panel.pageMore = { group };
     }
   },
-  nav: (a) => route(a.page, {}, a.page === "projects" ? { root: true, source: null } : { restore: true, source: null }),
+  // 2.79 KW15：侧栏“项目”从别的页面点入按当前位置打开，已在项目页时再点回全部项目；其他入口按当前位置打开
+  nav: (a) => route(a.page, {}, a.page === "projects" && (U.page === "projects" || U.role === "member") ? { root: true, source: null } : { restore: true, source: null, loc: true }),
   location: (a, el) => openLocation(el),
   pickProject: (a, el) => openLocation($(".ws-location") || el, "project"),
   pickFloor: (a, el) => openLocation($(".ws-location") || el, "mark"),
@@ -84662,7 +84742,7 @@ function aiExplain(c) {
     } else if (h.gwOff) out.push(`本层网关离线，其下 ${h.unknown.length} 台设备状态未知。`);
     else {
       out.push(ids.length ? `${ids.length} 台出过问题：${rows.map((r) => r.s).join("；")}。其余 ${ps.length - ids.length} 台全程在线。` : `${ps.length} 台设备全程在线。`);
-      ev.push(aiLink(`告警 › 已结束 ${rg.span}`, "opsGo", { page: "alarms", tab: "history" }));
+      ev.push(aiLink(`告警与工单 › 已结束 ${rg.span}`, "opsGo", { page: "alarms", tab: "history" }));
     }
   }
   return {
@@ -84821,7 +84901,7 @@ function aiRefresh() {
   if (extra && $("#globalResults .note")) $("#globalResults").innerHTML = "";
   // 搜索页签空着时只有“快捷入口”，示例问题只在提问页签（Lovable 核查第 128 条，2026-10-11 用户确认：原先下面还有“或切换到“提问””和两条示例问题）；
   // 快捷入口用侧栏同一个图标：楼层用“项目”的图标，告警、场景用侧栏的（第 129 条：原先三行都是放大镜）
-  if (!q.trim()) $("#globalResults").innerHTML = `<div class="ai-examples"><small>快捷入口</small>${[...(OPS_SCOPE.floor && g("floors", OPS_SCOPE.floor) ? [[floorText(OPS_SCOPE.floor), "goFloor", { id: OPS_SCOPE.floor }, "building-2"]] : []), ["告警", "opsGo", { page: "alarms" }, "bell"], ["场景", "opsGo", { page: "scenes" }, "workflow"]].map(([l, a, args, i]) => `<button data-act="${a}" ${Object.entries(args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")}>${ico(i, "ic16")}${esc(l)}</button>`).join("")}</div>`;
+  if (!q.trim()) $("#globalResults").innerHTML = `<div class="ai-examples"><small>快捷入口</small>${[...(OPS_SCOPE.floor && g("floors", OPS_SCOPE.floor) ? [[floorText(OPS_SCOPE.floor), "goFloor", { id: OPS_SCOPE.floor }, "building-2"]] : []), ["告警与工单", "opsGo", { page: "alarms" }, "bell"], ["场景", "opsGo", { page: "scenes" }, "workflow"]].map(([l, a, args, i]) => `<button data-act="${a}" ${Object.entries(args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")}>${ico(i, "ic16")}${esc(l)}</button>`).join("")}</div>`;
   aiMarkRows(q);
 }
 // 功能区与未恢复告警已按规范顺序并入 renderGlobalSearch（全面设计核查第 12 条）；这里只留“其他端”一组。
@@ -85163,7 +85243,7 @@ function aiRules(q, z, forced, scope, yd, ydl) {
       return {
         scope,
         html: `<p class="ai-p"><b>E栋 · 7F 当前 ${lit.length} / ${ss.length} 个功能区的灯亮着</b>，其余按照明控制参数自动关灯或未开灯。${off.length ? `${zhSub(esc(off.map((s) => s.z.name).join("、")), "r")}有照明控制器没有数据，推断失电（见告警）。` : "没有回路失电。"}</p>`,
-        ev: [aiLink("告警 › 未处理", "opsGo", { page: "alarms" }), aiLink("照明图层", "opsGo", { page: "overview", tab: "lighting" })],
+        ev: [aiLink("告警与工单 › 未处理", "opsGo", { page: "alarms" }), aiLink("照明图层", "opsGo", { page: "overview", tab: "lighting" })],
         follow: ["实验室 E 为什么不亮灯？"],
       };
     }
@@ -85225,13 +85305,13 @@ function aiRules(q, z, forced, scope, yd, ydl) {
         html: gwNote + (zo.length
           ? `<p class="ai-p"><b>${zhSub(esc(z.name), "r")}当前 ${zo.length} 台离线</b>（全层 ${h.off.length} 台）：</p><ul class="ai-list">${aiOffRows(zo, false)}</ul>`
           : `<p class="ai-p"><b>${zhSub(esc(z.name), "r")}当前没有离线设备</b>（全层 ${h.off.length} 台离线）。</p>`),
-        ev: [aiLink("告警 › 未处理", "opsGo", { page: "alarms" }), aiLink("设备健康", "opsGo", { page: "analysis", tab: "health" })],
+        ev: [aiLink("告警与工单 › 未处理", "opsGo", { page: "alarms" }), aiLink("设备健康", "opsGo", { page: "analysis", tab: "health" })],
       };
     }
     return {
       scope: "E栋 · 7F · 当前",
       html: `${gwNote}<p class="ai-p">${h.gwOff ? `另有 <b>${h.off.length - 1} 台离线</b>（网关离线前已离线）` : `当前 <b>${h.off.length} 台离线</b>，在线率 ${nf(h.rate, 1)}%`}：</p><ul class="ai-list">${aiOffRows(h.off.filter((p) => p.type !== "gw"), true)}</ul>`,
-      ev: [aiLink("告警 › 未处理", "opsGo", { page: "alarms" }), aiLink("设备健康", "opsGo", { page: "analysis", tab: "health" })],
+      ev: [aiLink("告警与工单 › 未处理", "opsGo", { page: "alarms" }), aiLink("设备健康", "opsGo", { page: "analysis", tab: "health" })],
       follow: ["实验室 E 为什么不亮灯？"],
     };
   }
@@ -85240,7 +85320,7 @@ function aiRules(q, z, forced, scope, yd, ydl) {
     if (z)
       return z.k === "labb"
         ? { scope: scope + " · 近 7 天", html: `<p class="ai-p">${zhSub(esc(z.name), "r")}连续 3 晚夜间照明偏高：占用传感器整晚报无人，照明控制器待机时间结束后仍保持 30% 亮度，照明控制参数设定为关灯。本层没有分区计量，夜间多用约 2.1 kWh/晚为估算。</p>`, ev: [aiLink("异常解释：实验室 B", "opsGo", { page: "analysis", tab: "energy" }), aiLink("告警：实验室 B 夜间照明偏高", "opsAlarm", { id: "alert-demo-night" })] }
-        : { scope: scope + " · 近 7 天", html: `<p class="ai-p">${zhSub(esc(z.name), "r")}近 7 天没有夜间照明偏高的告警。本层没有分区计量，不能给出它的夜间用电。</p>`, ev: [aiLink("告警 › 未处理", "opsGo", { page: "alarms" })] };
+        : { scope: scope + " · 近 7 天", html: `<p class="ai-p">${zhSub(esc(z.name), "r")}近 7 天没有夜间照明偏高的告警。本层没有分区计量，不能给出它的夜间用电。</p>`, ev: [aiLink("告警与工单 › 未处理", "opsGo", { page: "alarms" })] };
     const e = Demo.energyIn(Demo.range("7"));
     return { scope: "E栋 · 7F · 近 7 天", html: `<p class="ai-p">近 7 天夜间及非工作日用电占 <b>${e.offShare == null ? "—" : nf(e.offShare, 1) + "%"}</b>，主要是实验设备的持续负荷（约 4.3 kW）。另外实验室 B 连续 3 晚无人时照明没有关灯（照明控制器停在待机亮度 30%）。</p>`, ev: [aiLink("异常解释：实验室 B", "opsGo", { page: "analysis", tab: "energy" }), aiLink("告警：实验室 B 夜间照明偏高", "opsAlarm", { id: "alert-demo-night" })] };
   }
@@ -85300,8 +85380,8 @@ function aiRules(q, z, forced, scope, yd, ydl) {
   // 9 告警
   if (/(告警|报警|需要处理|异常|问题)/.test(q)) {
     const as = F.alarmGroups(data()).filter((a) => a.state !== "recovered" && (!z || (a.zoneId || g("points", a.pointId)?.zoneId) === z.id));
-    if (z && !as.length) return { scope: scope + " · 当前", html: `<p class="ai-p"><b>${zhSub(esc(z.name), "r")}当前没有未恢复告警。</b></p>`, ev: [aiLink("告警 › 未处理", "opsGo", { page: "alarms" })] };
-    return { scope: scope + " · 当前", html: `<p class="ai-p">当前 <b>${as.length} 条未恢复告警</b>，${as.filter((a) => !a.acknowledged).length} 条待确认：</p><ul class="ai-list">${as.map((a) => `<li>${esc(LV(a.level))} · ${esc(alarmTitle(a).title)}</li>`).join("")}</ul>`, ev: [aiLink("告警 › 未处理", "opsGo", { page: "alarms" })] };
+    if (z && !as.length) return { scope: scope + " · 当前", html: `<p class="ai-p"><b>${zhSub(esc(z.name), "r")}当前没有未恢复告警。</b></p>`, ev: [aiLink("告警与工单 › 未处理", "opsGo", { page: "alarms" })] };
+    return { scope: scope + " · 当前", html: `<p class="ai-p">当前 <b>${as.length} 条未恢复告警</b>，${as.filter((a) => !a.acknowledged).length} 条待确认：</p><ul class="ai-list">${as.map((a) => `<li>${esc(LV(a.level))} · ${esc(alarmTitle(a).title)}</li>`).join("")}</ul>`, ev: [aiLink("告警与工单 › 未处理", "opsGo", { page: "alarms" })] };
   }
   if (z) {
     const s = Demo.zoneState(z);
@@ -89279,7 +89359,7 @@ function auEnter(orgId, note, hash = "", protectedReturn = null) {
       if (!opsRestoreRouteState(allowed ? entry : null)) U.source = null;
     }
     render();
-  } else route("overview");
+  } else route("overview", {}, { loc: true });
   // 2.21 账户第 173 条：普通登录不弹消息（进入工作区已说明登录成功）；重置密码后弹“密码已重置”；接受邀请等结果照常。
   const shown = note === false ? "" : note || AUX.afterLoginNote || "";
   AUX.afterLoginNote = "";
@@ -89613,6 +89693,14 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "2.79",
+    date: "2026-11-02",
+    notes: [
+      "改进：侧栏“告警”改名“告警与工单”，派工后的工单与报修都在这一页处理。",
+      "改进：全站只记一个当前位置，换页面不用重选；再次登录回到上次的位置，只有一个项目或楼宇时直接进入。",
+    ],
+  },
   {
     version: "2.78",
     date: "2026-11-02",
@@ -90766,7 +90854,7 @@ const HELP_ARTICLES = [
     steps: ["在“机构设置 › 展示链接”点“新建展示链接”，填写名称，选择版式、楼宇和楼层；名称只在机构设置中显示，选多个楼层时依次轮换。", "复制链接后，在屏上的浏览器中以全屏或 kiosk 方式打开，并关闭浏览器与电脑的自动休眠；屏幕的开关机时间用屏幕自带的定时功能。", "值班版式第一次在某台屏上打开时，屏上显示 6 位配对码；在该行“…”里选“配对屏幕”输入配对码，这台屏即长期有效。每条链接最多配对 10 台，可逐台取消。", "修改版式或范围后链接不变，屏上 1 分钟内换成新内容。", "撤销后 1 分钟内停用，屏上显示“此展示链接已停用，请联系机构管理员”；撤销后不能恢复，需要时新建展示链接。机构暂停使用期间屏上显示“此展示链接已暂停，请联系机构管理员”，续费或付款到账后自动恢复。"],
     faq: [], rel: ["control"] },
   { id: "alarm", topic: "alarm", title: "处理告警", roles: "运营人员及以上", sum: "告警与工单在一张列表中，从发生、确认、派工、处理、恢复到核验都记在同一条上。",
-    steps: ["在“告警 › 未处理”查看未恢复、还没有派工的告警与报修；点开一条，详情写可能原因与排查步骤，确认、派工、暂缓与关闭在详情顶部。", "点“确认”表示已知晓；需要现场处理时点“派工”，指定负责人和计划完成时间，这条移到“处理中”。暂时不处理的点“暂缓到…”，不需要处理的点“关闭”，都要写原因。", "工单完成后进入“待核验”：24 小时内同一告警再次触发，或告警仍未恢复，回到“处理中”并标“需返工”；否则转为“已结束”。", "已恢复、已关闭与已核验的在“已结束”中按期间查看。"],
+    steps: ["在“告警与工单 › 未处理”查看未恢复、还没有派工的告警与报修；点开一条，详情写可能原因与排查步骤，确认、派工、暂缓与关闭在详情顶部。", "点“确认”表示已知晓；需要现场处理时点“派工”，指定负责人和计划完成时间，这条移到“处理中”。暂时不处理的点“暂缓到…”，不需要处理的点“关闭”，都要写原因。", "工单完成后进入“待核验”：24 小时内同一告警再次触发，或告警仍未恢复，回到“处理中”并标“需返工”；否则转为“已结束”。", "已恢复、已关闭与已核验的在“已结束”中按期间查看。"],
     faq: [["能耗异常告警恢复后会怎样？", "恢复 7 晚后，平台用同一指标比较前后各 7 晚，结果写在告警详情的“效果”，改善的计入节电量。"], ["同一告警反复触发又很快恢复怎么办？", "近 7 天触发 10 次以上、平均 10 分钟内自行恢复且没有派工时，总览“需要处理”会建议加长该规则的持续时间，点“调整规则”确认后保存。"]], rel: ["savings", "offline", "alarm-notify"] },
   // 2.58 账户第 549–552 条：机构设置“通知”页删去的说明收在这里
   { id: "alarm-notify", topic: "alarm", title: "告警通知", roles: "机构管理员设置；有项目授权的成员接收", sum: "告警按事件以短信或邮件通知，一个根因只通知一次。",
@@ -91223,7 +91311,7 @@ Object.assign(actions, {
       // 2.64 账户第 731 条：切换进入写入审计日志的安全事件“进入本机构”
       auLog("进入本机构", `从其他机构切换进入 · ${auUaText()}`, "security");
       auSave();
-      route("overview");
+      route("overview", {}, { loc: true });
       msg(`已切换到${zhSub(auOrg(a.org).name, "l")} · ${auRole(U.role)}`);
     }),
   auNewOrg: () => {
@@ -103528,7 +103616,7 @@ function demoRcptFail() {
 const DEMO_CATS = [
   ["账户", ["登录", "登录验证", "重置密码", "注册：加入", "注册：创建机构", "受邀加入", "已登录：加入或创建机构", "进入机构", "订阅与订单", "机构设置", "我的账户", "隐私和法律"]],
   ["配置", ["全部项目", "项目", "楼宇", "楼层图", "设备标记", "设备网络", "网络详情", "系统接入", "设备列表", "设备分组", "固件升级", "应用设置", "配置进度"]],
-  ["运营", ["总览", "我的区域", "数据分析", "告警", "场景"]],
+  ["运营", ["总览", "我的区域", "数据分析", "告警与工单", "场景"]],
   ["通用", ["智能助手", "异常与维护", "机构菜单与帮助"]],
 ];
 // 页面行：同一页面的状态与弹窗缩进列在其后
@@ -103927,20 +104015,20 @@ const DEMO_ITEMS = [
   ["数据分析", "rpt-edit", "编辑草稿", "2026 年第 38 周运行周报", demoX(() => ((U.opsReport = "r-w38"), (U.opsRpDoc = true), "#analysis?tab=reports"), () => actions.aiReportEdit({ id: "r-w38" }))],
   ["数据分析", "rpt-publish", "发布报告", "2026 年第 38 周运行周报", demoX(() => ((U.opsReport = "r-w38"), (U.opsRpDoc = true), "#analysis?tab=reports"), () => actions.aiReportPublish({ id: "r-w38" }))],
   // 2.72 V682：告警页为事项列表，页签“未处理”“处理中”“待核验”“已结束”；告警派工后与工单合为一条
-  ["告警", "ops-pg-al-current", "告警 · 未处理", "", demoPg("#alarms?tab=current")],
-  ["告警", "al-detail", "告警详情", "会议室 7-1 CO₂ 偏高", demoX("#alarms?tab=current", () => actions.opsAlarm({ id: "alert-demo-co2" }))],
-  ["告警", "al-task", "派工", "恢复出厂告警", demoX("#alarms?tab=current", () => actions.opsTaskNew({ id: "alert-demo-reset" }))],
-  ["告警", "al-snooze", "暂缓", "会议室 7-1 CO₂ 偏高", demoX("#alarms?tab=current", () => (actions.opsAlarm({ id: "alert-demo-co2" }), demoAfter(() => actions.opsAlSnooze({ id: "alert-demo-co2" }))))],
-  ["告警", "al-close", "关闭告警", "会议室 7-1 CO₂ 偏高", demoX("#alarms?tab=current", () => (actions.opsAlarm({ id: "alert-demo-co2" }), demoAfter(() => actions.opsAlClose({ id: "alert-demo-co2" }))))],
-  ["告警", "ops-pg-al-tasks", "告警 · 处理中", "", demoPg("#alarms?tab=tasks")],
+  ["告警与工单", "ops-pg-al-current", "告警与工单 · 未处理", "", demoPg("#alarms?tab=current")],
+  ["告警与工单", "al-detail", "告警详情", "会议室 7-1 CO₂ 偏高", demoX("#alarms?tab=current", () => actions.opsAlarm({ id: "alert-demo-co2" }))],
+  ["告警与工单", "al-task", "派工", "恢复出厂告警", demoX("#alarms?tab=current", () => actions.opsTaskNew({ id: "alert-demo-reset" }))],
+  ["告警与工单", "al-snooze", "暂缓", "会议室 7-1 CO₂ 偏高", demoX("#alarms?tab=current", () => (actions.opsAlarm({ id: "alert-demo-co2" }), demoAfter(() => actions.opsAlSnooze({ id: "alert-demo-co2" }))))],
+  ["告警与工单", "al-close", "关闭告警", "会议室 7-1 CO₂ 偏高", demoX("#alarms?tab=current", () => (actions.opsAlarm({ id: "alert-demo-co2" }), demoAfter(() => actions.opsAlClose({ id: "alert-demo-co2" }))))],
+  ["告警与工单", "ops-pg-al-tasks", "告警与工单 · 处理中", "", demoPg("#alarms?tab=tasks")],
   // 2.72 V682：由告警派工的工单与告警合为一项，详情是告警详情；工单详情用不由告警产生的定期检查
-  ["告警", "task-detail", "工单详情", "多联机内机滤网清洗 · 定期检查", demoX("#alarms?tab=tasks", () => actions.opsTask({ id: "task-demo-periodic" }))],
-  ["告警", "task-repair", "新建工单", "报修", demoX("#alarms?tab=tasks", () => actions.opsRepairNew())],
-  ["告警", "task-reassign", "改派工单", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => actions.opsTaskReassign({ id: "task-demo-1" }))],
-  ["告警", "task-done", "完成工单", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => (actions.opsTask({ id: "task-demo-1" }), demoAfter(() => actions.opsTaskFinish({ id: "task-demo-1" }))))],
-  ["告警", "ops-pg-al-verify", "告警 · 待核验", "完成后 24 小时内检查是否再次触发", demoPg("#alarms?tab=verify")],
-  ["告警", "ops-pg-al-history", "告警 · 已结束", "", demoPg("#alarms?tab=history")],
-  ["告警", "repair-ai", "报修详情", "办公室 701 温度偏高 · AI 初步判断", demoX("#alarms?tab=history", () => actions.opsTask({ id: "task-demo-repair" }))],
+  ["告警与工单", "task-detail", "工单详情", "多联机内机滤网清洗 · 定期检查", demoX("#alarms?tab=tasks", () => actions.opsTask({ id: "task-demo-periodic" }))],
+  ["告警与工单", "task-repair", "新建工单", "报修", demoX("#alarms?tab=tasks", () => actions.opsRepairNew())],
+  ["告警与工单", "task-reassign", "改派工单", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => actions.opsTaskReassign({ id: "task-demo-1" }))],
+  ["告警与工单", "task-done", "完成工单", "实验室 E 照明控制器离线", demoX("#alarms?tab=tasks", () => (actions.opsTask({ id: "task-demo-1" }), demoAfter(() => actions.opsTaskFinish({ id: "task-demo-1" }))))],
+  ["告警与工单", "ops-pg-al-verify", "告警与工单 · 待核验", "完成后 24 小时内检查是否再次触发", demoPg("#alarms?tab=verify")],
+  ["告警与工单", "ops-pg-al-history", "告警与工单 · 已结束", "", demoPg("#alarms?tab=history")],
+  ["告警与工单", "repair-ai", "报修详情", "办公室 701 温度偏高 · AI 初步判断", demoX("#alarms?tab=history", () => actions.opsTask({ id: "task-demo-repair" }))],
   ["场景", "ops-pg-sc-manual", "场景 · 场景", "", demoPg("#scenes?tab=manual")],
   // 2.66 V539：去掉“告警规则”（告警记录上没有这个入口；规则由配置组的“告警规则详情”演示）
   ["场景", "sc-run", "执行确认", "场景“上班”", demoX("#scenes?tab=manual", () => actions.opsRunScene({ id: "scene-demo-on" }))],
