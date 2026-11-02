@@ -77397,6 +77397,7 @@ function anHealth() {
     devRk = devTop.map((r) => ({ name: esc(anDevName(r.p)), sub: esc(anDevAt(r.p) || ""), v: r.ms / Demo.MIN, text: `${r.n} 次 · ${anOffDur(r.ms / Demo.MIN)}`, attrs: `data-act="anHealthDev" data-id="${esc(r.p.id)}" aria-label="${esc(`${anDevName(r.p)}，查看告警记录`)}"` })),
     devPanel = devRk.length ? anRankPanel("healthDevs", "离线最多的设备", devRk, { meta: "次数 · 累计时长", max: Math.max(1, ...devRk.map((x) => x.v)), color: "#db6a1e" }) : "",
     // 2.77 V775：AI 先写仍未恢复的设备与处理办法（离线告警未恢复的主设备与待重新绑定的设备）；全部恢复时才写离线次数唯一最多（多于 1 次）的设备
+    // 2.78 V781：AI 不写台数（同 V746）；连带离线的设备写在主设备之后（“恢复后连带离线的 … 会一起上线”），不另算一台；多台之间用分号
     openDevs = (() => {
       const seenP = new Set(),
         out = [];
@@ -77404,12 +77405,15 @@ function anHealth() {
         const p = g("points", a.pointId);
         if (!p || seenP.has(p.id)) return;
         seenP.add(p.id);
-        out.push([p, resetIds.has(p.id) ? "重新绑定并下发配置" : alarmTitle(a).merged ? "先查回路断路器" : p.type === "gw" ? "先查供电与上联网络" : "先查供电与无线信号"]);
+        const rel = (a.relatedIds || []).map((id) => g("points", id)).filter(Boolean);
+        rel.forEach((x) => seenP.add(x.id));
+        const relTxt = !rel.length ? "" : `，恢复后连带离线的 ${rel.length <= 2 ? rel.map((x) => anSp(x.type === "gw" ? anDevName(x) : x.name)).join("、") : `${rel.length} 台设备 `}会一起上线`;
+        out.push([p, (resetIds.has(p.id) ? "需重新绑定并下发配置" : alarmTitle(a).merged ? "先查回路断路器" : p.type === "gw" ? "先查供电与上联网络" : "先查供电与无线信号") + relTxt]);
       });
       resets.forEach((p) => {
         if (seenP.has(p.id)) return;
         seenP.add(p.id);
-        out.push([p, "重新绑定并下发配置"]);
+        out.push([p, "需重新绑定并下发配置"]);
       });
       return out;
     })(),
@@ -77420,7 +77424,7 @@ function anHealth() {
       ai:
         sel === "diag"
           ? bad.length ? `${bad.length} 项检查未通过：${bad.map((c) => `${c.name}（${c.cause}）`).join("；")}。建议先处理${bad[0].short}。` : "近 7 天五项检查全部通过。"
-          : `${openDevs.length === 1 ? `${anSp(openDevs[0][0].type === "gw" ? anDevName(openDevs[0][0]) : openDevs[0][0].name)}仍未恢复，${openDevs[0][1]}。` : openDevs.length ? `仍未恢复的 ${openDevs.length} 台：${openDevs.slice(0, 3).map(([p, how]) => `${anSp(p.type === "gw" ? anDevName(p) : p.name)}${how}`).join("，")}${openDevs.length > 3 ? `，另有 ${openDevs.length - 3} 台` : ""}。` : h.off.length ? "有设备刚离线，可先检查供电与无线信号。" : worstDev ? `${anSp(anDevName(worstDev.p))}离线次数最多（${worstDev.n} 次），多为供电或无线信号问题，可到现场检查。` : eps.length ? "期间内离线的设备都已恢复。" : "期间内设备运行稳定。"}${h.unknown.length ? `另有 ${h.unknown.length} 台状态未知。` : ""}`,
+          : `${openDevs.length === 1 ? `${anSp(openDevs[0][0].type === "gw" ? anDevName(openDevs[0][0]) : openDevs[0][0].name)}仍未恢复，${openDevs[0][1]}。` : openDevs.length ? `${openDevs.slice(0, 3).map(([p, how]) => `${anSp(p.type === "gw" ? anDevName(p) : p.name)}${how}`).join("；")}${openDevs.length > 3 ? `；其余未恢复的设备见“查看告警”` : ""}。` : h.off.length ? "有设备刚离线，可先检查供电与无线信号。" : worstDev ? `${anSp(anDevName(worstDev.p))}离线次数最多（${worstDev.n} 次），多为供电或无线信号问题，可到现场检查。` : eps.length ? "期间内离线的设备都已恢复。" : "期间内设备运行稳定。"}${h.unknown.length ? `另有 ${h.unknown.length} 台状态未知。` : ""}`,
       basis: [["期间", esc(sel === "diag" ? "近 7 天" : rg.span)], ["对象", esc(`${anFloorShort()} · ${ps.length} 台设备`)], ["数据", "设备心跳与离线告警；网络检测与夜间复测"]],
       acts: sel === "diag" ? bad.filter((c) => c.act).slice(0, 3).map((c) => [esc(c.next), c.act]) : [],
       links: sel === "diag" ? [] : [anLink("查看告警", "opsHealthAlarms", { kind: "offline" }), anLink("查看设备", "toDevices", { view: "1" })],
@@ -89609,6 +89613,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "2.78",
+    date: "2026-11-02",
+    notes: ["改进：设备健康的解读把连带离线的设备写在对应设备之后，与当前离线台数一致。"],
+  },
   {
     version: "2.77",
     date: "2026-11-02",
