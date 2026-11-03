@@ -26740,6 +26740,11 @@ body:has(> #app.collapsed) #demoSide .demo-step-pair { flex-direction: column; }
   body:has(#app) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed { top: auto; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); right: 16px; }
   body:has(> :is(#dlg, #ai-pal, #discard)) .phead .v13-head > :is(.demo-step, .demo-cap),
   body:has(> :is(#dlg, #ai-pal, #discard)) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed.demo-fixed { top: 20px; bottom: auto; }
+  /* 2.97 V980：底部卡片拉到全屏时，演示控件与关闭按钮（44，距右 8）同一中线，放在它左边隔 8，不盖住它 */
+  body:has(> #dlg.ds-bsheet.ds-bs-full) .phead .v13-head > :is(.demo-step, .demo-cap), body:has(> #dlg.ds-bsheet.ds-bs-full) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed.demo-fixed { top: 26px; }
+  body:has(> #dlg.ds-bsheet.ds-bs-full) .phead .v13-head > .demo-cap, body:has(> #dlg.ds-bsheet.ds-bs-full) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed.demo-fixed { right: 60px; }
+  body:has(> #dlg.ds-bsheet.ds-bs-full) .phead .v13-head > .demo-step { right: 108px; }
+  body:has(.demo-cap, > .demo-fixed) .ops-drawer { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); } /* 2.97 V982：抽屉底边停在演示控件上方，底部按钮不被盖住 */
 }
 
 /* 2.89 账户第 133 条：整页页面仍在右上角，顺序与尺寸同左侧菜单那一行，合在白底胶囊里（高 32）；手机与触屏按原尺寸，手机只显示序号 */
@@ -27232,6 +27237,13 @@ aside.v13-drawer .v13-dg dd > .v13-link {
   }
   :is(.v13-dh, .ops-drawer-h) > .iconbtn.round {
     margin: -6px -6px -6px 0;
+  }
+  /* 2.97 V981：抽屉关闭按钮（44）与标题首行居中：标题上边距 6 + 半行 14 − 22；标题上方有状态一行（22）时再下移 22 */
+  .ops-drawer-h > .iconbtn.round {
+    margin-top: -2px;
+  }
+  .ops-drawer-h:has(.ops-drawer-eb) > .iconbtn.round {
+    margin-top: 20px;
   }
 }
 /* 第 107 条（2026-10-12 用户确认）：屏宽 1440 及以上时，告警页的抽屉把列表推开而不是盖住（“列表 + 详情”）：页签内容右侧让出抽屉的位置，
@@ -31528,6 +31540,7 @@ button.ov-fl.live { background: #c9d0db; }
   .phead > .sc-ed-t > .sc-ed-loc { max-width: 100%; }
   .phead > .sc-ed-acts { display: none; }
   .main:has(.sc-ed) + .ov-tabbar { display: none; }
+  .main:has(.ops-drawer) + .ov-tabbar { display: none; } /* 2.97 V982：场景详情等抽屉打开时底部导航让位，底部的“编辑”“执行”完整可点 */
   .sc-ed { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
   .sc-ed-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; gap: 8px; padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px)); background: var(--ov-surface, #fff); box-shadow: 0 -1px 0 var(--ov-line, #ebebeb); }
   .sc-ed-bar > .btn { flex: 1; height: 44px; min-height: 44px; }
@@ -32760,7 +32773,7 @@ li.none .ov2-fr > small { font-size: 12px; line-height: 18px; }
   #app[data-page="alarms"] .al-inbox > .al-dt.al3.pick::before { content: ""; position: absolute; top: 10px; left: 50%; width: 40px; height: 5px; margin-left: -20px; border-radius: 3px; background: #d5dae2; }
   #app[data-page="alarms"] .al-inbox:has(> .al-dt.pick)::after { content: ""; position: fixed; inset: 0; z-index: 55; background: rgba(20, 27, 45, 0.32); }
   #app[data-page="alarms"] .al-inbox > .al-dt.al3.pick .al-dt-back { display: none; }
-  #app[data-page="alarms"] .al-inbox > .al-dt.al3.pick .al-dt-x { display: block; position: static; order: 3; flex: none; margin: -6px -8px 0 0; }
+  #app[data-page="alarms"] .al-inbox > .al-dt.al3.pick .al-dt-x { display: block; position: static; order: 3; flex: none; margin: 14px -8px 0 0; } /* 2.97 V981：关闭按钮（44）与标题首行居中：级别一行 18 + 标题上边距 4 + 半行 14 − 22 */
   .al-dt.al3 .al-dt-h { flex-wrap: wrap; padding: 4px 16px 12px; }
   .al-dt.al3 .al3-hm { flex: 1 1 0; }
   .al-dt.al3 .al3-acts { order: 4; flex: 1 1 100%; flex-wrap: nowrap; justify-content: flex-start; gap: 6px; }
@@ -94828,6 +94841,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "2.97",
+    date: "2026-11-03",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
   {
     version: "2.96",
     date: "2026-11-03",
