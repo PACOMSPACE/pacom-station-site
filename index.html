@@ -33677,6 +33677,7 @@ button.ds-st.ds-link:hover { text-decoration: underline; text-underline-offset: 
 .au-tcard > .au-tfoot { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 10px 24px; border-top: 1px solid var(--ds-line); font-size: var(--ds-fs-1); line-height: var(--ds-lh-1); color: var(--ds-ink-2); }
 .au-tfoot > .au-pg-t { margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .au-tfoot > .au-pg { width: 28px; height: 28px; min-height: 28px; }
+.au-tfoot > .au-pg[hidden], .au-tfoot > .au-pg-t[hidden] { display: none; } /* 2.94 账户第 173 条补：只有一页时整组翻页不显示 */
 .au-tfoot > .au-pg > .au-flip, .au-flip { transform: scaleX(-1); }
 /* 成员：头像 32 圆形浅灰，名称与下一行灰字；勾选框在行悬停、键盘聚焦或已选时出现（触屏一直显示）；行尾按钮同样 */
 .au-tcard .au-person { display: flex; align-items: center; gap: 12px; min-width: 0; }
@@ -94825,6 +94826,14 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "2.94",
+    date: "2026-11-03",
+    notes: [
+      "改进：删除机构只需输入当前密码，30 天内可在“我的机构”恢复。",
+      "修复已知问题，优化界面细节。",
+    ],
+  },
+  {
     version: "2.93",
     date: "2026-11-03",
     notes: [
@@ -96108,7 +96117,7 @@ const HELP_ARTICLES = [
     faq: [["到期后多久删除数据？", "到期满 90 天仍未续费，合同终止，删除本机构全部数据；删除前 60 天、30 天、7 天再次提醒。"], ["采购需要 PACOM 的营业执照等供应商资料怎么办？", "在“机构设置 › 订阅与订单 › 开票与付款”下载。"], ["价格会调整吗？", "调整前至少 30 天以邮件通知，已提交的订单按原价。"]], rel: ["acct-apply", "acct-admin"] },
   // 2.64 账户第 760 条：补《数据导出与删除机构》《审计日志》两篇
   { id: "acct-data", topic: "account", title: "数据导出与删除机构", roles: "机构管理员", upd: "2026-11-03", sum: "在“机构设置 › 数据导出与删除”导出数据或删除机构。",
-    steps: ["运行数据导出：选项目和时间段，生成能耗、环境与告警记录的 CSV 文件。", "全量数据导出：输入当前密码后生成 ZIP 文件，包括项目与设备资料、配置版本、运行数据、告警、报告、图纸与审计日志。", "导出完成后以邮件通知你，下载链接 7 天内有效。", "删除机构：输入机构名称和当前密码确认，30 天内可在“我的机构”恢复，期满彻底删除全部数据；已订阅的，尚未开始的服务年度和未用的 AI 用量包按比例原路退款。", "各类数据的保存期限见同一页的“数据保存”。"],
+    steps: ["运行数据导出：选项目和时间段，生成能耗、环境与告警记录的 CSV 文件。", "全量数据导出：输入当前密码后生成 ZIP 文件，包括项目与设备资料、配置版本、运行数据、告警、报告、图纸与审计日志。", "导出完成后以邮件通知你，下载链接 7 天内有效。", "删除机构：输入当前密码确认，30 天内可在“我的机构”恢复，期满彻底删除全部数据；已订阅的，尚未开始的服务年度和未用的 AI 用量包按比例原路退款。", "各类数据的保存期限见同一页的“数据保存”。"],
     faq: [["删除机构后网关会怎样？", "网关不再向平台上报，现场按最后下发的配置继续运行。"]], rel: ["acct-audit", "acct-sub"] },
   { id: "acct-audit", topic: "account", title: "审计日志", roles: "机构管理员", upd: "2026-11-03", sum: "查看本机构成员、安全与配置相关的操作记录。",
     steps: ["在“机构设置 › 审计日志”点“筛选”，按时间、类别（安全事件、成员与授权、配置与规划变更）、人员和操作筛选，也可以搜索。", "PACOM 的操作写“PACOM”，如审核数据申请或在授权期限内只读查看数据。", "“导出”按当前筛选导出 CSV 文件。", "审计日志保存 12 个月，任何人都不能修改或删除。"],
@@ -96883,7 +96892,7 @@ Object.assign(actions, {
     render();
     msg("机构名称已变更");
   }),
-  // 2.37 账户第 318 条：删除未订阅的机构。确认框写成员数和项目数，输入机构名称确认；30 天内可在“我的账户 › 我的机构”恢复
+  // 2.37 账户第 318 条：确认框写成员数和项目数；30 天内可在“我的账户 › 我的机构”恢复。2.94 账户第 185 条补：只输入当前密码，不再输入机构名称
   auOrgDelete: () => {
     if (!auCanManage()) throw Error("只有机构管理员可以删除机构");
     const o = auOrg(), l = auLic(),
@@ -96892,17 +96901,16 @@ Object.assign(actions, {
     auDialog(
       // 2.88 账户第 919 条：带输入框的确认弹窗标题不带问号
       `删除${zhSub(o.name, "l")}`,
-      `<p class="au-dlead">本机构有 ${auMembers().length} 位成员、${projects} 个项目。删除后所有成员不能再访问；30 天内可在“我的机构”恢复，期满彻底删除全部数据${paid ? "，尚未开始的服务年度和未用的 AI 用量包按比例原路退款" : ""}。</p>${fld(`输入机构名称“${esc(o.name)}”以确认`, "auOrgDelName", input("auOrgDelName", ""))}${auHiPwd()}`,
+      `<p class="au-dlead">本机构有 ${auMembers().length} 位成员、${projects} 个项目。删除后所有成员不能再访问；30 天内可在“我的机构”恢复，期满彻底删除全部数据${paid ? "，尚未开始的服务年度和未用的 AI 用量包按比例原路退款" : ""}。</p>${auHiPwd()}`,
       btn("取消", "close") + btn("删除机构", "auOrgDeleteDo", {}, "danger"),
       "au-alert",
     );
   },
   auOrgDeleteDo: withPolicy({ busy: "modal" }, async () => {
     const id = AUTH.org, o = auOrg();
-    // 2.64 账户第 736 条：没填写“请输入机构名称以确认”，不一致“输入的机构名称不一致”；第 729 条：输入当前密码
-    const name = value("auOrgDelName").trim(), pe = auHiPwdErr(),
-      errs = [...(!name ? [["auOrgDelName", "请输入机构名称以确认"]] : name !== o.name ? [["auOrgDelName", "输入的机构名称不一致"]] : []), ...(pe ? [pe] : [])];
-    if (errs.length) return auFieldErrs(errs);
+    // 第 729 条：输入当前密码；2.94 账户第 185 条补：不再输入机构名称
+    const pe = auHiPwdErr();
+    if (pe) return auFieldErrs([pe]);
     const r = await auRequest("deleteOrg", { org: id });
     if (r.status !== "ok") throw Error("暂时无法删除，请稍后再试。");
     const roles = {};
@@ -98805,7 +98813,7 @@ const AU_ORG_PAGES = {
         )
       : `<p class="au-none">尚无申请。导出文件只发给申请人，下载链接 7 天内有效。</p>`;
     const keep = auGrid(AU_RETENTION.map(([k, v]) => [k, v]));
-    const close = auTile("au-trash", "删除机构", "删除后 30 天内可在“我的机构”恢复，期满彻底删除全部数据。", gate(btn("删除机构", "auOrgDelete", {}, "sm au-red")), " au-tile-red");
+    const close = auTile("au-trash", "删除机构", "删除后 30 天内可在“我的机构”恢复，期满彻底删除全部数据。", gate(btn("删除", "auOrgDelete", {}, "sm au-red")), " au-tile-red");
     return auCard(
       auDsec("数据导出", "", exp) + auDsec("申请记录", "", recs) + auDsec("数据保存", "", keep) + auDsec("删除机构", "", `<div class="au-tiles au-tiles2">${close}</div>`),
     );
@@ -99144,7 +99152,8 @@ function auTaxRows(total, vat) {
 // 2.68 账户第 832 条：有效期的名称不折行；值放不下时在“至”后折行（各段不折行），右对齐
 function auPeriodHtml(s) {
   const p = String(s).split("至");
-  return p.map((x, i) => `<span class="au-nowrap">${esc(x)}${i < p.length - 1 ? "至" : ""}</span>`).join("<wbr>");
+  // 2.94 账户第 166 条补：整段为一个行内元素，在资料网格里两段之间只隔一个空格
+  return `<span>${p.map((x, i) => `<span class="au-nowrap">${esc(x)}${i < p.length - 1 ? "至" : ""}</span>`).join("<wbr>")}</span>`;
 }
 // 本机构的订阅（许可服务的数据，首次使用时建立）：state 为 "none"（未订阅，2.37 第 296 条：创建机构即为未订阅，不限期限）或 "active"。
 function auLic(id = AUTH.org) {
