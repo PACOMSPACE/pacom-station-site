@@ -42973,10 +42973,11 @@ function wsLocRow() {
     })
     .join('<span class="ws-locsep" aria-hidden="true">/</span>')}</nav>`;
 }
-// 菜单：在位置行下方左对齐，宽 560，最高 400。顶部搜索；左栏项目（两个以上项目才有“全部项目”，未接入的写“未接入”，当前项浅灰底加勾，
-// 2.93 V956：点一个项目即选中整个项目并关闭，指向它时右栏只预览它的楼宇）；右栏楼宇（栏标题只写“楼宇”；每栋一行，行尾“已接入 1 / 23 层”或“未接入”，点一栋即选中并关闭）。
+// 菜单：在位置行下方左对齐，宽 560，最高 400。顶部搜索；左栏项目（两个以上项目才有“全部项目”，运营页未接入的写“未接入”，当前项浅灰底加勾，
+// 2.93 V956：点一个项目即选中整个项目并关闭，指向它时右栏只预览它的楼宇）；右栏楼宇（栏标题只写“楼宇”；每栋一行，运营页行尾“已接入 1 / 23 层”或“未接入”，点一栋即选中并关闭）。
 // 只有一个项目时只留 280 宽的楼宇栏；只按项目的页面只留 280 宽的项目栏。行高 36、圆角 8；方向键选择，Esc 关闭。手机为底部卡片，先选项目再选楼宇。
-const lmLive = () => (typeof Demo !== "undefined" && Demo.on?.() && typeof liveFloorIds === "function" ? new Set(liveFloorIds()) : null);
+// 2.95 V976：接入状态（“未接入”“已接入 1 / 23 层”）只写在运营页的菜单里，配置各页（项目、设备、应用设置、配置进度）行尾不写
+const lmLive = () => (LOC_OPS_PAGES.includes(U.page) && typeof Demo !== "undefined" && Demo.on?.() && typeof liveFloorIds === "function" ? new Set(liveFloorIds()) : null);
 const lmNote = (t) => (t ? `<small class="ws-lm-note">${esc(t)}</small>` : "");
 const lmProjectNote = (pid, live) => lmNote(live && ![...live].some((f) => g("buildings", g("floors", f)?.buildingId)?.projectId === pid) ? "未接入" : "");
 function lmBuildingNote(b, live) {
@@ -94825,6 +94826,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "2.95",
+    date: "2026-11-03",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
   {
     version: "2.94",
     date: "2026-11-03",
