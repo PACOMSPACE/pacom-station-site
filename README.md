@@ -3,7 +3,7 @@
 - Website: https://pacom.cc.cd/
 - Release date: 2026-11-03
 - Page program fingerprint: `ba3aebdc2a4e9491`
-- index.html SHA-256: `26a0ac132033c6c323e78150cb0160a6e1e3d4536372b0262aa2b1e6fa9e1f38`
+- index.html SHA-256: `8ffd3cb8b7527e633098807166e75fb02b172ec761a9233953c736f717f48524`
 
 This repository contains the public static build for GitHub Pages: `index.html`,
 runtime files in `fonts/`, `media/` and `vendor/`, and this generated release note.
