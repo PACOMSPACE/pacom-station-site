@@ -33912,6 +33912,19 @@ button.ds-st.ds-link:hover { text-decoration: underline; text-underline-offset: 
 .ovb-qr > svg { color: #00aeef; transition: transform 0.15s; }
 .ovb-qr:hover > svg { transform: translateX(2px); }
 .ovb-qr:focus-visible { outline: 2px solid #00aeef; outline-offset: -2px; border-radius: 6px; }
+/* 2.93 V955：电脑两栏时右栏（天气卡与今日快捷面板）高度跟随左栏，今日快捷面板随左栏伸缩，底边始终与网络状态卡对齐，行间距按比例收放；
+   两张图卡在矮窗口下收到 260，1440×900 时整页不滚动 */
+.ov2.ovb { container: ovb / inline-size; }
+@media (min-width: 1280px) {
+  .ovb-ch { height: clamp(260px, calc(100vh - 596px), 318px); }
+  @container ovb (min-width: 1096px) {
+    .ov2.ovb > .ovb-r { contain: size; align-self: stretch; }
+    .ovb-r > .ovb-qp { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; }
+    .ovb-qp > ul { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+    .ovb-qp > ul > li { display: flex; flex: 1 1 0; min-height: 0; }
+    .ovb-qp > ul > li > .ovb-qr { padding: 0; }
+  }
+}
 @container (max-width: 719px) {
   .ovb-r1, .ovb-r2 { grid-template-columns: minmax(0, 1fr); }
   .ovb-det { height: auto; }
@@ -34335,21 +34348,26 @@ button.cfg-kpi.click[aria-expanded="true"] { box-shadow: var(--ds-sh-xs), inset 
 @media (max-width: 599.98px) {
   #app[data-page="projects"] #pbody .ws-toolbar:not(:has(> :not(.sp, .ws-tb-actions))):has(> .ws-tb-actions > .ws-proj-acts:only-child) { display: none; }
 }
-/* 2.91 V946：位置行“项目 › 楼宇”。白框首行，上边距 24（页头上内边距），左缘与标题对齐，下隔 8 为标题行；每段为 Lovable 项目名按钮：
-   高 28、全圆角、无边框、左右 8、14/22，前段 #636363，最后一段 #030303 字重 500，悬停叠黑 4%，菜单打开时 8%；只有一个选项的段为普通文字 */
+/* 2.91 V946：位置行。白框首行，上边距 24（页头上内边距），左缘与标题对齐，下隔 8 为标题行。
+   2.93 V962（第三稿，取代 V946 的左右 8、最后一段字重 500 与 16 号“›”）：每段为 Lovable 项目名按钮，28 高全圆，左右 6，名称 14/22 字重 400，
+   后隔 6 为 16 的下箭头（#030303 50%）；前段名称 #636363，最后一段 #030303；分隔符“/”14/22 #636363，与两侧段各隔 2（看到的间距 8）；
+   悬停叠黑 4%、前段名称变 #030303，按下 8%，菜单打开时箭头转 180°（150ms）；只有一个选项的段为普通文字，没有箭头。
+   V959：手机与触屏外观仍为 28 高，点按区透明外扩到 44；悬停底色只给鼠标设备。 */
 #app .main > .panel > .phead:has(> .ws-locrow) { flex-wrap: wrap; row-gap: 0; }
 .phead > .ws-locrow { order: -1; flex: 0 0 100%; display: flex; align-items: center; min-width: 0; height: 28px; margin: 0 0 8px; }
-.ws-locrow > .ws-locseg { display: inline-flex; align-items: center; flex: 0 1 auto; min-width: 0; max-width: 296px; height: 28px; padding: 0 8px; border: 0; border-radius: 999px; background: none; box-shadow: none; color: var(--ds-ink-2); font: inherit; font-size: var(--ds-fs-2); line-height: var(--ds-lh-2); font-weight: 400; white-space: nowrap; }
-.ws-locrow > .ws-locseg:first-child { margin-left: -8px; }
-.ws-locrow > .ws-locseg > span, .ws-locrow > .ws-locseg.plain { overflow: hidden; text-overflow: ellipsis; }
-.ws-locrow > .ws-locseg.cur { color: var(--ds-ink); font-weight: 500; }
-.ws-locrow > button.ws-locseg { cursor: pointer; transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
-.ws-locrow > button.ws-locseg:hover { background: rgba(0, 0, 0, 0.04); }
-.ws-locrow > button.ws-locseg[aria-expanded="true"] { background: rgba(0, 0, 0, 0.08); }
+.ws-locrow > .ws-locseg { position: relative; display: inline-flex; align-items: center; gap: 6px; flex: 0 1 auto; min-width: 0; max-width: 296px; height: 28px; padding: 0 6px; border: 0; border-radius: 999px; background: none; box-shadow: none; color: var(--ds-ink-2); font: inherit; font-size: var(--ds-fs-2); line-height: var(--ds-lh-2); font-weight: 400; white-space: nowrap; }
+.ws-locrow > .ws-locseg:first-child { margin-left: -6px; }
+.ws-locrow > .ws-locseg > span, .ws-locrow > .ws-locseg.plain { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ws-locrow > .ws-locseg.cur { color: var(--ds-ink); }
+.ws-locrow > .ws-locseg > .ws-locarr { flex: none; width: 16px; height: 16px; color: var(--ds-ink); opacity: 0.5; transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
+.ws-locrow > button.ws-locseg[aria-expanded="true"] > .ws-locarr { transform: rotate(180deg); }
+.ws-locrow > button.ws-locseg { cursor: pointer; transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
+@media (hover: hover) and (pointer: fine) { .ws-locrow > button.ws-locseg:hover { background: rgba(0, 0, 0, 0.04); color: var(--ds-ink); } }
+.ws-locrow > button.ws-locseg[aria-expanded="true"] { color: var(--ds-ink); }
+.ws-locrow > button.ws-locseg:active { background: rgba(0, 0, 0, 0.08); }
 .ws-locrow > button.ws-locseg:focus-visible { outline: 2px solid #00aeef; outline-offset: 2px; }
-/* 触屏：外观仍为 28 高，点按区上下各外扩 8，不小于 44（同 V904） */
-@media (pointer: coarse) { .ws-locrow > button.ws-locseg { position: relative; } .ws-locrow > button.ws-locseg::after { content: ""; position: absolute; inset: -8px 0; } }
-.ws-locrow > .ws-locsep { flex: none; width: 16px; font-size: 16px; line-height: 22px; text-align: center; color: #a3a3a3; }
+.ws-locrow > button.ws-locseg::after { content: ""; position: absolute; inset: -8px 0; }
+.ws-locrow > .ws-locsep { flex: none; margin: 0 2px; font-size: var(--ds-fs-2); line-height: var(--ds-lh-2); color: var(--ds-ink-2); }
 /* 菜单：宽 560（只有一栏时 280），最高 400，两栏各自滚动；行高 36、圆角 8，当前项 #F5F5F5 加勾 */
 #pop.ws-lm-pop { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
 .ws-lm { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
@@ -34361,9 +34379,7 @@ button.cfg-kpi.click[aria-expanded="true"] { box-shadow: var(--ds-sh-xs), inset 
 .ws-lm-col { display: flex; flex-direction: column; min-height: 0; }
 .ws-lm-h { display: flex; align-items: center; justify-content: space-between; flex: none; height: 28px; margin-top: 8px; padding: 0 16px; color: var(--ds-ink-2); font-size: var(--ds-fs-1); line-height: var(--ds-lh-1); }
 .ws-lm-h > span { flex: none; white-space: nowrap; }
-.ws-lm-allb { flex: none; width: auto; min-height: 0; height: 28px; margin-right: -8px; padding: 0 8px; border: 0; border-radius: 999px; background: none; box-shadow: none; color: var(--ds-ink); font: inherit; font-size: var(--ds-fs-1); line-height: var(--ds-lh-1); font-weight: 500; cursor: pointer; }
-.ws-lm-allb:hover { background: rgba(0, 0, 0, 0.04); }
-.ws-lm-allb:focus-visible, .ws-lm-row:focus-visible, .ws-lm-back:focus-visible { outline: 2px solid #00aeef; outline-offset: -2px; }
+.ws-lm-row:focus-visible, .ws-lm-back:focus-visible { outline: 2px solid #00aeef; outline-offset: -2px; }
 .ws-lm-list { min-height: 0; overflow: auto; padding: 0 8px 8px; overscroll-behavior: contain; }
 .ws-lm-res { flex: 1 1 auto; padding-top: 8px; }
 .ws-lm-row { display: flex; align-items: center; gap: 8px; width: 100%; height: 36px; min-height: 36px; padding: 0 8px; border: 0; border-radius: 8px; background: none; box-shadow: none; color: var(--ds-ink); font: inherit; font-size: var(--ds-fs-2); line-height: var(--ds-lh-2); font-weight: 400; text-align: left; cursor: pointer; }
@@ -34380,8 +34396,8 @@ button.cfg-kpi.click[aria-expanded="true"] { box-shadow: var(--ds-sh-xs), inset 
 .ws-lm-back { display: inline-flex; align-items: center; gap: 4px; height: 44px; margin: 0 0 4px -8px; padding: 0 8px; border: 0; border-radius: 999px; background: none; box-shadow: none; color: var(--ds-ink-2); font: inherit; font-size: var(--ds-fs-2); line-height: var(--ds-lh-2); cursor: pointer; }
 .ws-lm-sheet .ws-lm-list { padding: 0; overflow: visible; }
 @media (max-width: 850px) {
-  .phead > .ws-locrow { height: 44px; margin-bottom: 0; }
-  .ws-locrow > .ws-locseg { height: 44px; }
+  .phead > .ws-locrow { height: 44px; margin-bottom: 0; } /* 2.93 V959：各段外观仍 28 高，行高 44 即点按区 */
+  .ws-locrow > .ws-locsep { margin: 0; } /* V962：手机上分隔符与两侧各隔 6 */
   .ws-lm-sheet .ws-lm-row { height: 44px; }
 }
 /* 2.91 V945：工作区页面标题 20/28、字重 600，电脑与手机相同（登录与账户入口页按第 3 章）；指标卡、空调卡里的 24/32 数值不改 */
@@ -42926,7 +42942,8 @@ async function savePlan(a = {}) {
 }
 // 2.91 V946：位置行（全站统一的项目与楼宇选择），取代总览标题下拉（V923）、数据分析等三页标题旁的范围按钮、配置各页工具条的位置选择器，
 // 以及把项目、楼宇和全部楼层列成一长串的树形菜单。白框首行，左缘与标题对齐，下隔 8 为标题行；侧栏、logo、外框不动。
-// 两段“项目 › 楼宇”：第一段写“全部项目”或项目名；第二段写“全部楼宇”或楼名，只有选了项目才有。只有一个选项的段写成普通文字，不能点。
+// 两段“项目 / 楼宇”：第一段写“全部项目”或项目名；第二段写“全部楼宇”或楼名，只有选了项目才有。只有一个选项的段写成普通文字，不能点。
+// 2.93 V962：每段名称后接 16 的下箭头，分隔符为“/”（取代“›”）。
 // 楼层不进位置行，在页内选：总览楼层列表，数据分析、告警与工单、场景页签行右边的“全部楼层”筛选，项目页与楼层图页的楼层轨道，设备列表的楼层筛选。
 // 应用设置、配置进度只按项目，只有第一段；机构设置、我的账户与普通成员的我的区域没有位置行。
 const LOC_ROW_PAGES = ["overview", "analysis", "alarms", "scenes", "projects", "devices", "settings", "deployment"];
@@ -42946,13 +42963,13 @@ function wsLocRow() {
     .map(([t, click], i) => {
       const last = i === segs.length - 1, cls = `ws-locseg${last ? " cur" : ""}`;
       return click
-        ? `<button type="button" class="${cls}" data-act="location" aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(t)}：${what}" data-tip="${esc(t)}" data-tip-trunc><span data-trunc>${esc(t)}</span></button>`
+        ? `<button type="button" class="${cls}" data-act="location" aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(t)}：${what}" data-tip="${esc(t)}" data-tip-trunc><span data-trunc>${esc(t)}</span>${ico("chevron", "ic16 ws-locarr")}</button>`
         : `<span class="${cls} plain"${last ? ' aria-current="location"' : ""}>${esc(t)}</span>`;
     })
-    .join('<span class="ws-locsep" aria-hidden="true">›</span>')}</nav>`;
+    .join('<span class="ws-locsep" aria-hidden="true">/</span>')}</nav>`;
 }
 // 菜单：在位置行下方左对齐，宽 560，最高 400。顶部搜索；左栏项目（两个以上项目才有“全部项目”，未接入的写“未接入”，当前项浅灰底加勾，
-// 指向或点一个项目右栏换成它的楼宇，菜单不关）；右栏楼宇（栏标题右端“全部楼宇”选整个项目；每栋一行，行尾“已接入 1 / 23 层”或“未接入”，点一栋即选中并关闭）。
+// 2.93 V956：点一个项目即选中整个项目并关闭，指向它时右栏只预览它的楼宇）；右栏楼宇（栏标题只写“楼宇”；每栋一行，行尾“已接入 1 / 23 层”或“未接入”，点一栋即选中并关闭）。
 // 只有一个项目时只留 280 宽的楼宇栏；只按项目的页面只留 280 宽的项目栏。行高 36、圆角 8；方向键选择，Esc 关闭。手机为底部卡片，先选项目再选楼宇。
 const lmLive = () => (typeof Demo !== "undefined" && Demo.on?.() && typeof liveFloorIds === "function" ? new Set(liveFloorIds()) : null);
 const lmNote = (t) => (t ? `<small class="ws-lm-note">${esc(t)}</small>` : "");
@@ -42965,14 +42982,14 @@ function lmBuildingNote(b, live) {
 const lmImg = (p) => `<span class="ws-lm-img" aria-hidden="true">${p?.image ? `<img src="${esc(p.image)}" alt="">` : ico(p ? "building-2" : "dir-grid", "ic16")}</span>`;
 const lmCheck = (on) => (on ? ico("check", "ic16") : "");
 const lmRow = (on, act, args, inner, cls = "") => `<button type="button" class="ws-lm-row${on ? " on" : ""}${cls}" data-act="${act}"${Object.entries(args).map(([k, v]) => ` data-${k}="${v}"`).join("")}${on ? ' aria-current="true"' : ""}>${inner}${lmCheck(on)}</button>`;
-function lmProjectRows(pv, live, act) {
+function lmProjectRows(pv, live, act, prev = false) {
   // 2.91 V946：设备标记、应用设置只能按单个项目看，菜单不列“全部项目”
   const ps = locProjects();
-  return (ps.length > 1 && !wsNeedsProject() ? lmRow(!U.p, "chooseLocation", {}, `${lmImg(null)}<span class="ws-lm-n">全部项目</span>`) : "") + ps.map((p) => lmRow(U.p === p.id, act, { p: p.id }, `${lmImg(p)}<span class="ws-lm-n">${esc(p.name)}</span>${lmProjectNote(p.id, live)}`, p.id === pv && act === "lmProject" ? " pv" : "")).join("");
+  return (ps.length > 1 && !wsNeedsProject() ? lmRow(!U.p, "chooseLocation", {}, `${lmImg(null)}<span class="ws-lm-n">全部项目</span>`) : "") + ps.map((p) => lmRow(U.p === p.id, act, { p: p.id }, `${lmImg(p)}<span class="ws-lm-n">${esc(p.name)}</span>${lmProjectNote(p.id, live)}`, prev && p.id === pv ? " pv" : "")).join("");
 }
 function lmBuildingCol(pv, live) {
   const rows = (pv ? locBuildings(pv) : []).map((b) => lmRow(U.b === b.id, "chooseLocation", { p: pv, b: b.id }, `<span class="ws-lm-n">${esc(b.name)}</span>${lmBuildingNote(b, live)}`)).join("");
-  return `<div class="ws-lm-h"><span>楼宇</span>${pv ? `<button type="button" class="ws-lm-allb${U.p === pv && !U.b ? " on" : ""}" data-act="chooseLocation" data-p="${pv}">全部楼宇</button>` : ""}</div><div class="ws-lm-list" id="lmB">${rows || '<p class="ws-lm-none">尚无楼宇</p>'}</div>`;
+  return `<div class="ws-lm-h"><span>楼宇</span></div><div class="ws-lm-list" id="lmB">${rows || '<p class="ws-lm-none">尚无楼宇</p>'}</div>`;
 }
 function wsLocOpen(el, intent) {
   U.pickIntent = intent || null;
@@ -42980,7 +42997,7 @@ function wsLocOpen(el, intent) {
   const row = el.closest(".ws-locrow") || el, ps = locProjects(), only = locRowProjectOnly(), live = lmLive(), two = !only && ps.length > 1, w = two ? 560 : 280, ph = only ? "搜索项目" : "搜索项目或楼宇";
   U.lmPv = (U.p && g("projects", U.p) ? U.p : ps[0]?.id) || null;
   const col = (title, id, rows) => `<div class="ws-lm-col"><div class="ws-lm-h"><span>${title}</span></div><div class="ws-lm-list" id="${id}">${rows}</div></div>`,
-    cols = only ? col("项目", "lmP", lmProjectRows(null, live, "chooseLocation")) : `${two ? col("项目", "lmP", lmProjectRows(U.lmPv, live, "lmProject")) : ""}<div class="ws-lm-col" id="lmBCol">${lmBuildingCol(U.lmPv, live)}</div>`;
+    cols = only ? col("项目", "lmP", lmProjectRows(null, live, "chooseLocation")) : `${two ? col("项目", "lmP", lmProjectRows(U.lmPv, live, "chooseLocation", true)) : ""}<div class="ws-lm-col" id="lmBCol">${lmBuildingCol(U.lmPv, live)}</div>`;
   pop(el, `<div class="ws-lm${two ? " two" : ""}"><div class="ws-lm-search">${ico("search", "ic16")}<input id="lmQuery" placeholder="${ph}" aria-label="${ph}" autocomplete="off"></div><div class="ws-lm-cols" id="lmCols">${cols}</div><div class="ws-lm-list ws-lm-res" id="lmRes" hidden></div></div>`);
   const p = $("#pop");
   if (!p) return;
@@ -42994,7 +43011,7 @@ function wsLocOpen(el, intent) {
   p.place();
   p.querySelectorAll(".ws-lm-list .ws-lm-row.on").forEach((r) => r.scrollIntoView?.({ block: "nearest" }));
 }
-// 指向一个项目（停留 100ms，斜着移向右栏时不被途经的项目打断）或点它：右栏换成它的楼宇，菜单不关
+// 指向一个项目（停留 100ms，斜着移向右栏时不被途经的项目打断）或用方向键移到它：右栏换成它的楼宇，只预览不选中（2.93 V956）
 function lmPreview(pid) {
   const c = $("#lmBCol");
   if (!pid || !c || U.lmPv === pid) return;
@@ -43004,7 +43021,7 @@ function lmPreview(pid) {
 }
 let lmHoverT = 0;
 document.addEventListener("mouseover", (e) => {
-  const r = e.target.closest?.('#pop .ws-lm-row[data-act="lmProject"]');
+  const r = e.target.closest?.("#pop #lmP .ws-lm-row[data-p]");
   clearTimeout(lmHoverT);
   if (r) lmHoverT = setTimeout(() => r.matches(":hover") && lmPreview(r.dataset.p), 100);
 });
@@ -43328,12 +43345,7 @@ function render() {
     syncRoute(true);
   }
   memberGuard();
-  // 2.65 E866：设备标记离不开具体项目：带着“全部项目”进入时打开上次查看的项目，没有记录时打开列表第一个项目
-  // 2.91 V946：应用设置不再自动打开项目，位置行是“全部项目”时页内先请用户选项目
-  if (!U.p && !BARE[U.page] && wsNeedsProject() && U.page !== "settings" && data()) {
-    const p = wsLastProject();
-    if (p) { U.p = p; syncRoute(true); }
-  }
+  // 2.91 V946：应用设置不再自动打开项目；2.93 V960：设备标记同样不自动打开项目（取代 2.65 E866），位置行是“全部项目”时页内先请用户选楼宇
   // 2.81 KW25：只有一个时直接进入下一级（ops-demo.js 的 opsOne）
   if (typeof opsOne === "function" && opsOne()) syncRoute(true);
   if (U.p) U.lastP = U.p;
@@ -44156,7 +44168,7 @@ pages.devices = () => {
   // 2.65 E866 起不再有“全部项目”状态（见 render）。不恢复 E482 之前的“全部楼层”目录。
   if (tab === "mark") {
     const head = pageCategoryHeader("devices", "mark", { actions: btn("修改记录", "changes") });
-    if (!U.p) return head + wsNoProject(); // 2.65 E866
+    if (!U.p) return head + (locProjects().length ? empty("设备标记按楼宇进行", "", btn("选择楼宇", "pickProject", {}, "primary")) : wsNoProject()); // 2.93 V960
     const fs = F.scopedFloors(data(), { p: U.p, b: U.b }),
       last = g("floors", (U.markFloor || {})[U.b || U.p]),
       fl = (last && fs.includes(last) ? last : null) || fs.find((f) => f.image) || fs[0];
@@ -46543,7 +46555,6 @@ defineActions({
   location: (a, el) => wsLocOpen(el),
   pickProject: (a, el) => wsLocOpen($(".ws-locrow button.ws-locseg") || el),
   pickFloor: (a, el) => wsLocOpen($(".ws-locrow button.ws-locseg") || el, "mark"),
-  lmProject: (a) => lmPreview(a.p),
   lmSheetProject: (a) => wsLocSheet(a.p),
   lmSheetBack: () => wsLocSheet(),
   spaceOpen: (a) => {
@@ -47513,19 +47524,20 @@ document.addEventListener("keydown", (e) => {
   // ↓ 从搜索框进入列表，↑/↓ 在行间移动（行为“全部项目”、项目、楼宇与楼层，“进入”按钮留给 Tab），在第一行按 ↑ 回到搜索框；
   // Tab 或 Shift+Tab 走出弹层时关闭弹层，焦点从位置按钮继续页面的正常顺序。
   // 2.91 V946：位置菜单。↓ 从搜索框进入当前一栏（搜索时为结果），↑/↓ 在本栏内移动，第一行按 ↑ 回到搜索框；
-  // 项目行按 → 换右栏并进入楼宇，楼宇栏按 ← 回到项目；Tab 走出菜单时关闭，Esc 由唯一的 Escape 入口关闭
+  // 项目行按 → 进入楼宇栏，楼宇栏按 ← 回到项目；Enter 选中所在的项目或楼宇（2.93 V956）；Tab 走出菜单时关闭，Esc 由唯一的 Escape 入口关闭
   const lmPop = $("#pop .ws-lm") ? $("#pop") : null;
   if (!modal && lmPop?.contains(e.target) && !e.altKey && !e.ctrlKey && !e.metaKey) {
-    const vis = (l) => (l ? [...l.querySelectorAll(".ws-lm-row, .ws-lm-allb")].filter((x) => x.getClientRects().length) : []);
+    const vis = (l) => (l ? [...l.querySelectorAll(".ws-lm-row")].filter((x) => x.getClientRects().length) : []);
     if (["ArrowDown", "ArrowUp"].includes(e.key)) {
       const inQ = e.target.id === "lmQuery", l = inQ ? [$("#lmRes:not([hidden])"), $("#lmP"), $("#lmBCol")].find((x) => x && vis(x).length) : e.target.closest(".ws-lm-col, .ws-lm-res"), rows = vis(l), i = rows.indexOf(e.target);
       const next = inQ ? (e.key === "ArrowDown" ? rows[0] : null) : e.key === "ArrowUp" && i <= 0 ? $("#lmQuery") : rows[Math.max(0, Math.min(rows.length - 1, i + (e.key === "ArrowDown" ? 1 : -1)))];
       e.preventDefault();
       next?.focus({ preventScroll: true });
       next?.scrollIntoView?.({ block: "nearest" });
+      if (next?.matches?.("#lmP .ws-lm-row[data-p]")) lmPreview(next.dataset.p);
       return;
     }
-    if (e.key === "ArrowRight" && e.target.matches?.('.ws-lm-row[data-act="lmProject"]')) {
+    if (e.key === "ArrowRight" && $("#lmBCol") && e.target.matches?.("#lmP .ws-lm-row[data-p]")) {
       e.preventDefault();
       lmPreview(e.target.dataset.p);
       const b = vis($("#lmBCol"));
@@ -52795,11 +52807,6 @@ function trashFind(kind, id, db = data()) {
 // 没有账户服务的成员记录时不另行过滤。“已删除”只列可查看项目中的内容。
 // 2.65 E866：只能按具体项目工作的页面（应用设置、设备标记）
 const wsNeedsProject = () => U.page === "settings" || (U.page === "devices" && U.tab === "mark");
-// 上次查看的项目；没有记录或已不可访问时取列表第一个项目（按名称）
-function wsLastProject(db = data()) {
-  const ps = (db?.projects || []).filter((p) => mayViewProject(p.id, db));
-  return (U.lastP && ps.some((p) => p.id === U.lastP) ? U.lastP : [...ps].sort(M.byName)[0]?.id) || null;
-}
 // 没有可访问的项目
 function wsNoProject() {
   const can = canCreateProject();
@@ -84474,9 +84481,10 @@ function ovAlCounts(fids) {
   return { cur: n("current"), tasks: n("tasks"), verify: n("verify"), od: xs.filter((it) => it.st === "tasks" && it.t && taskOverdue(it.t)).length, acur: na("current"), atasks: na("tasks") };
 }
 const ovDevsIn = (fids) => data().points.filter((p) => M.bound(p) && fids.has(p.floorId));
+// 2.93 V957：离线与设备列表“离线”分段同一口径，已恢复出厂（待重新绑定）的设备不算离线
 const ovIsOff = (p) => {
   try {
-    return !!Demo.offline(p);
+    return !p.fieldReset && !!Demo.offline(p);
   } catch {
     return false;
   }
@@ -84633,8 +84641,10 @@ function ovSitesFit() {
   if (!w) return;
   ovKpiTips();
   if (ovPhone()) return w.style.removeProperty("height");
-  const top = w.getBoundingClientRect().top;
-  w.style.height = Math.max(420, Math.floor(innerHeight - top - 24)) + "px";
+  // 2.93 V954：列表与地图底边离白框底 24（内容区下内边距），整页不滚动；原按窗口底减 24 多出白框外的 8
+  const top = w.getBoundingClientRect().top, pb = w.closest("#pbody"),
+    bottom = pb ? pb.getBoundingClientRect().bottom - parseFloat(getComputedStyle(pb).paddingBottom || 0) : innerHeight - 32;
+  w.style.height = Math.max(420, Math.floor(bottom - top)) + "px";
 }
 function ovSitesAfter() {
   let el = $("#ovSitesMap");
@@ -84872,9 +84882,10 @@ function ovBldNet(b, fids) {
   const cs = data().connections.filter((c) => c.projectId === b.projectId),
     gws = data().points.filter((p) => p.type === "gw" && fids.has(p.floorId)),
     ds = ovDevsIn(fids),
-    row = (n, on, all) => {
-      const off = all - on;
-      return `<li><span class="ovb-nn">${n}</span><span class="ovb-nt" aria-hidden="true"><i class="on" style="width:${all ? (on / all) * 100 : 0}%"></i><i class="off" style="width:${all ? (off / all) * 100 : 0}%"></i></span><span class="ovb-nk">${fmt(on)} / ${fmt(all)}<small${off ? ' class="warn"' : ""}>${off ? `离线 ${fmt(off)}` : "全部在线"}</small></span></li>`;
+    // 2.93 V957：设备一行的在线数不含待重新绑定的设备，琥珀色小字写“离线 2 · 待重新绑定 1”
+    row = (n, on, all, rs = 0) => {
+      const off = all - on, t = [off - rs ? `离线 ${fmt(off - rs)}` : "", rs ? `待重新绑定 ${fmt(rs)}` : ""].filter(Boolean).join(" · ");
+      return `<li><span class="ovb-nn">${n}</span><span class="ovb-nt" aria-hidden="true"><i class="on" style="width:${all ? (on / all) * 100 : 0}%"></i><i class="off" style="width:${all ? (off / all) * 100 : 0}%"></i></span><span class="ovb-nk">${fmt(on)} / ${fmt(all)}<small${off ? ' class="warn"' : ""}>${t || "全部在线"}</small></span></li>`;
     };
   let co = 0;
   try {
@@ -84882,7 +84893,7 @@ function ovBldNet(b, fids) {
   } catch {
     co = cs.length;
   }
-  return `<section class="ovb-card ovb-net" aria-label="网络状态"><header><h3>网络状态</h3><span class="ovb-lg"><span><i style="background:#2E9461"></i>在线</span><span><i style="background:#D29A10"></i>离线</span></span></header><ul>${row("系统接入", co, cs.length)}${row("网关", gws.filter((p) => !ovIsOff(p)).length, gws.length)}${row("设备", ds.filter((p) => !ovIsOff(p)).length, ds.length)}</ul></section>`;
+  return `<section class="ovb-card ovb-net" aria-label="网络状态"><header><h3>网络状态</h3><span class="ovb-lg"><span><i style="background:#2E9461"></i>在线</span><span><i style="background:#D29A10"></i>离线</span></span></header><ul>${row("系统接入", co, cs.length)}${row("网关", gws.filter((p) => !ovIsOff(p)).length, gws.length)}${row("设备", ds.filter((p) => !ovIsOff(p) && !p.fieldReset).length, ds.length, ds.filter((p) => p.fieldReset).length)}</ul></section>`;
 }
 function ovBldWx(p) {
   const w = ovWx(),
@@ -94809,6 +94820,16 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "2.93",
+    date: "2026-11-03",
+    notes: [
+      "改进：位置菜单中点一个项目即选中整个项目；位置行写成“项目 / 楼宇”，可点的段带下箭头。",
+      "改进：总览的离线设备数与设备列表一致，待重新绑定的设备不再算作离线。",
+      "改进：设备标记在全部项目时请用户选择楼宇，不再自动打开第一个项目；楼宇总览一屏放下，左右两列底部对齐。",
+      "修复已知问题，优化界面细节。",
+    ],
+  },
   {
     version: "2.92",
     date: "2026-11-03",
@@ -108609,7 +108630,7 @@ const DEMO_ITEMS = [
   ["配置进度", "cfg-dep-deliveries", "交付记录", "配置进度", demoX(demoDepHash, () => actions.v13Deliveries({ p: DEMO_IDS.project }))],
   ["配置进度", "cfg-dep-vrf", "多联机调试", "配置进度 › 系统接入", demoX(demoDepHash, () => actions.v13VrfRecords())],
   ["总览", "ops-pg-all", "总览 · 全部项目", "", demoPg(() => ((U.opsKeep = "next"), "#overview?tab=general"))], // 2.81 KW25：按用户自己选的这一级显示，不自动进入下一级
-  ["总览", "ops-pg-project", "总览 · 项目", "广实2号园", demoPg(() => `#overview?tab=general&p=${DEMO_IDS.project}`)],
+  ["总览", "ops-pg-project", "总览 · 项目", "广实2号园", demoPg(() => ((U.opsKeep = "next"), `#overview?tab=general&p=${DEMO_IDS.project}`))], // 2.93 V958：停在项目级
   [
     "总览",
     "empty-ops",
