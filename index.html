@@ -33912,17 +33912,25 @@ button.ds-st.ds-link:hover { text-decoration: underline; text-underline-offset: 
 .ovb-qr > svg { color: #00aeef; transition: transform 0.15s; }
 .ovb-qr:hover > svg { transform: translateX(2px); }
 .ovb-qr:focus-visible { outline: 2px solid #00aeef; outline-offset: -2px; border-radius: 6px; }
-/* 2.93 V955：电脑两栏时右栏（天气卡与今日快捷面板）高度跟随左栏，今日快捷面板随左栏伸缩，底边始终与网络状态卡对齐，行间距按比例收放；
-   两张图卡在矮窗口下收到 260，1440×900 时整页不滚动 */
+/* 2.93 V955：左栏“楼宇详情”卡与指标卡能并排（本区宽 1096 以上）时，右栏高度跟随左栏：今日快捷面板随左栏伸缩、四行平分，底边始终与网络状态卡对齐；
+   两张图卡在矮窗口下收到 260，1440×900 时整页不滚动。左栏放不下并排时右栏移到下方，天气卡与今日快捷面板各占一半、底边对齐
+   （取代按窗口宽 1279 以下才上下排列：1280–1408 宽时左栏已上下排列，右栏却仍在右侧，底边一高一低）。 */
 .ov2.ovb { container: ovb / inline-size; }
-@media (min-width: 1280px) {
+@container ovb (min-width: 1096px) {
   .ovb-ch { height: clamp(260px, calc(100vh - 596px), 318px); }
-  @container ovb (min-width: 1096px) {
-    .ov2.ovb > .ovb-r { contain: size; align-self: stretch; }
-    .ovb-r > .ovb-qp { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; }
-    .ovb-qp > ul { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-    .ovb-qp > ul > li { display: flex; flex: 1 1 0; min-height: 0; }
-    .ovb-qp > ul > li > .ovb-qr { padding: 0; }
+  .ov2.ovb > .ovb-r { contain: size; align-self: stretch; }
+  .ovb-r > .ovb-qp { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; }
+  .ovb-qp > ul { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+  .ovb-qp > ul > li { display: flex; flex: 1 1 0; min-height: 0; }
+  .ovb-qp > ul > li > .ovb-qr { padding: 0; }
+}
+@media (min-width: 601px) {
+  @container ovb (max-width: 1095.98px) {
+    .ov2.ovb > .ovb-l, .ov2.ovb > .ovb-r { grid-column: 1 / -1; }
+    .ov2.ovb > .ovb-r { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+    .ovb-r > .ovb-qp { display: flex; flex-direction: column; }
+    .ovb-qp > ul { display: flex; flex-direction: column; flex: 1 1 auto; }
+    .ovb-qp > ul > li { display: flex; flex: 1 1 auto; }
   }
 }
 @container (max-width: 719px) {
@@ -33930,10 +33938,6 @@ button.ds-st.ds-link:hover { text-decoration: underline; text-underline-offset: 
   .ovb-det { height: auto; }
   .ovb-ph { height: 72px; }
   .ovb-db dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: center; }
-}
-@media (min-width: 601px) and (max-width: 1279px) {
-  .ov2.ovb { grid-template-columns: minmax(0, 1fr); }
-  .ovb-r { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
 }
 
 /* V917、V932–V936：楼层级左边楼层列表 120（吸顶），中间楼层图卡，右边面板 360 默认收起 */
