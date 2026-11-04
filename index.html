@@ -8259,6 +8259,12 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
 #dlg .zc-floor-grid > label { display:flex; align-items:center; gap:8px; min-width:0; min-height:32px; font-size:14px; line-height:22px; white-space:nowrap; }
 #dlg .zc-floor-grid .zc-skip { color:#8a5a00; font-size:12px; line-height:18px; }
 #dlg .zc-zones + .row { margin-top:12px; }
+/* 3.03 V1009：手机（600 以下）“查看告警”“查看设备”排在段落下面另起一行，第一个按钮文字与段落行首对齐，间隔 16，点按区高 44，段落行距保持 22；电脑仍接在“依据 ›”后面。
+   写在分层之外，压过 ds 层的行内写法和触屏按钮的 44 高、左右 22 内边距 */
+@media (max-width: 600px) {
+  #app[data-page="analysis"] .an4-ins span.an4-links { display: flex; flex-wrap: wrap; gap: 0 16px; }
+  #app[data-page="analysis"] #pbody .an4 .an4-ins :is(span, p).an4-links > .btn.an3-go { display: inline-flex; align-items: center; height: 44px; min-height: 44px; margin: 0 -8px; padding: 0 8px; vertical-align: top; }
+}
 
 @layer base {
 /* Existing Station tokens and geometry; workflow content does not redefine controls. */
@@ -26742,8 +26748,8 @@ body:has(> #app.collapsed) #demoSide .demo-step-pair { flex-direction: column; }
   body:has(> #dlg.ds-bsheet.ds-bs-full) .phead .v13-head > :is(.demo-step, .demo-cap), body:has(> #dlg.ds-bsheet.ds-bs-full) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed.demo-fixed { top: 26px; }
   body:has(> #dlg.ds-bsheet.ds-bs-full) .phead .v13-head > .demo-cap, body:has(> #dlg.ds-bsheet.ds-bs-full) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed.demo-fixed { right: 60px; }
   body:has(> #dlg.ds-bsheet.ds-bs-full) .phead .v13-head > .demo-step { right: 108px; }
-  body:has(#app .sc-side > .ops-drawer.full) .phead .v13-head > :is(.demo-step, .demo-cap), body:has(#app .sc-side > .ops-drawer.full) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed.demo-fixed { top: 48px; } /* 3.02 V1008：场景、定时、联动的卡片全屏时，演示控件与关闭按钮（44，距右 18）同一中线，在它左边隔 8 */
-  body:has(#app .sc-side > .ops-drawer.full) .phead .v13-head > .demo-cap, body:has(#app .sc-side > .ops-drawer.full) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed.demo-fixed { right: 70px; } body:has(#app .sc-side > .ops-drawer.full) .phead .v13-head > .demo-step { right: 118px; }
+  body:has(#app .sc-side > .ops-drawer.full) .phead .v13-head > .demo-cap, body:has(#app .sc-side > .ops-drawer.full) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed.demo-fixed { top: 48px; bottom: auto; right: 70px; } /* 3.02 V1008：场景、定时、联动的卡片全屏时，演示圆点与关闭按钮（44，距右 18）同一中线，在它左边隔 8 */
+  body:has(#app .sc-side > .ops-drawer.full) .phead .v13-head > .demo-step { top: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); left: 16px; right: auto; } /* 3.03 V1011：步进条移到底部操作条左端，与按钮同一中线 */
   body:has(.demo-cap, > .demo-fixed) .ops-drawer:not(.sc-drawer) { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); } /* 2.97 V982：抽屉底边停在演示控件上方，底部按钮不被盖住 */
 }
 
@@ -31637,7 +31643,7 @@ button.an-strip-r:hover { background: var(--ov-surface-2); }
 @media (max-width: 600px) {
   .an-strip-r { grid-template-columns: minmax(0, 1fr) auto 16px; gap: 4px 8px; padding: 6px 0; }
   .an-strip-r > .an-strip-t { grid-column: 2; grid-row: 1; }
-  .an-strip-r > .an-strip-n { grid-column: 1; grid-row: 1; flex-direction: row; align-items: baseline; min-width: 0; }
+  .an-strip-r > .an-strip-n { grid-column: 1; grid-row: 1; flex-direction: row; justify-content: flex-start; align-items: baseline; min-width: 0; } /* 3.03 V1010：设备名一律左对齐 */
   .an-strip-n b { flex: 0 1 auto; min-width: 0; }
   .an-strip-n small { flex: 0 0 auto; }
   .an-strip-n small::before { content: " · "; white-space: pre; }
@@ -95291,6 +95297,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.03",
+    date: "2026-11-04",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
   {
     version: "3.02",
     date: "2026-11-04",
