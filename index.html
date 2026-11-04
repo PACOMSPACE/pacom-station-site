@@ -30060,13 +30060,17 @@ textarea.rpt-auto {
   #app[data-page=devices] .dev-ledger-frame .dev-ledger-table .btn { max-width: 100%; margin: 0; padding-inline: 0; }
   /* 2.46 E452：状态标签整体不换行，放不下时整个标签移到下一行（原为在标签里折成两行） */
   .dev-ledger-frame .dev-ledger-table .chip { max-width: 100%; height: 20px; white-space: nowrap; }
-  #app[data-page=devices] .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="功能区"] {
-    grid-column: 1 / -1; order: 2; color: var(--text3); font-size: 12px; line-height: 18px;
+  /* 3.05 V1030：列名已改为“位置”“接入”，手机规则随之改写（原仍写“功能区”“设备网络”，两项落到 44 宽的网格里逐字折开）。
+     位置在名称下面占整行，不带列名，一行放不下时按词换行。 */
+  #app[data-page=devices] .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="位置"] {
+    grid-column: 1 / -1; order: 2; color: var(--text3); font-size: 12px; line-height: 18px; overflow-wrap: normal;
   }
+  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="位置"] > .dev-ledger-label { display: none; }
+  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="位置"] .nw { white-space: nowrap; }
   .dev-ledger-label { display: block; color: var(--text3); font-size: 12px; line-height: 18px; margin-bottom: 2px; }
   /* 2.56 E549：状态合为一项，与设备网络各占半行；“在图上查看”在右上角，44 触控区域 */
   .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="状态"] { grid-column: 1 / 4; order: 3; }
-  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="设备网络"] { grid-column: 4 / -1; order: 4; }
+  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="接入"] { grid-column: 4 / -1; order: 4; }
   .dev-ledger-frame .dev-ledger-table .flow-sub { display: block; margin: 0; font-size: 12px; line-height: 18px; color: var(--text3); }
   .dev-ledger-frame .dev-ledger-table > tbody > tr > td.act {
     position: absolute; top: 2px; right: 4px; display: flex; width: 44px; height: 44px; min-width: 0; padding: 0;
@@ -30084,7 +30088,7 @@ textarea.rpt-auto {
 }
 
 @media (max-width: 374.98px) {
-  .dev-ledger-frame .dev-ledger-table > tbody > tr > td:is([data-label="状态"], [data-label="设备网络"]) { grid-column: 1 / -1; }
+  .dev-ledger-frame .dev-ledger-table > tbody > tr > td:is([data-label="状态"], [data-label="接入"]) { grid-column: 1 / -1; }
 }
 
 /* 2.67 E1025：设备网络列表与设备列表同一套手机卡片：首行网络名与箭头，下一行“服务 N 个楼层”；两列放网关、节点、网络检测、交付
@@ -95305,6 +95309,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.05",
+    date: "2026-11-04",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
   {
     version: "3.04",
     date: "2026-11-04",
