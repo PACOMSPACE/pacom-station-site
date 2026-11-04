@@ -29578,8 +29578,12 @@ td .ops-lvl.sq {
 /* 2.58 E613：设备列表的“设备”列占其余宽度（最少 240），其余定宽：功能区 160、设备网络 160、状态 200、行尾 56（2.67 E1025：设备网络列表也带 dev-ledger-table，不套用这些列宽） */
 @media (min-width: 600px) {
   .dev-ledger-frame .dev-ledger-table > thead > tr > th { box-sizing: border-box; }
-  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(2) { width: 200px; }
-  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:is(:nth-last-child(3), :nth-last-child(4)) { width: 160px; }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(2) { width: 200px; min-width: 200px; }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(3) { width: 160px; }
+  /* 3.04 V1029：列宽按内容分配。“设备”列按内容（最少 240），不再占满其余宽度；“位置”列占其余宽度（最少 120），写在一行，放不下时省略，悬停显示全文；状态列仍为 200；行高保持 56 */
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(4) { width: 100%; min-width: 120px; }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td:nth-last-child(4) { max-width: 0; }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) .dev-place { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(5) { min-width: 240px; }
   /* 状态列 200 内的细节灰字只占一行（行高保持 56），放不下时省略，完整内容在悬停提示里 */
   .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td > small.flow-sub { max-width: 176px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -54819,10 +54823,14 @@ function devNetworkCell(db, p) {
   return devLedgerLabel("接入") + (to ? btn(nwSeps(text), conn ? "connectionInfo" : "networkInfo", long ? { id: to.id, tip: text } : { id: to.id }, "ghost flow-lk flow-lk-ref") : access === "system" ? nwSeps(text) : `<span class="muted">尚未规划</span>`);
 }
 // 2.88 E1126：“位置”列写楼栋、楼层与功能区（E栋 · 7F · 实验室 E）；未放置、未归属功能区的灰字接在楼层后。
+// 3.04 V1029：电脑上写在一行，放不下时省略，只在省略时悬停显示全文。
 function devPlaceCell(p) {
   const fl = p.floorId ? floorText(p.floorId) : "", z = p.zoneId && g("zones", p.zoneId),
-    tail = p.unplaced ? `<span class="muted">未放置</span>` : z ? "" : `<span class="muted">未归属功能区</span>`;
-  return devLedgerLabel("位置") + [fl || z ? nwSeps([fl, z?.name].filter(Boolean).join(" · ")) : "", tail].filter(Boolean).join(" · ");
+    place = [fl, z?.name].filter(Boolean).join(" · "),
+    tailText = p.unplaced ? "未放置" : z ? "" : "未归属功能区",
+    tail = tailText ? `<span class="muted">${tailText}</span>` : "",
+    full = [place, tailText].filter(Boolean).join(" · ");
+  return devLedgerLabel("位置") + `<span class="dev-place" data-tip="${esc(full)}" data-tip-trunc>${[place ? nwSeps(place) : "", tail].filter(Boolean).join(" · ")}</span>`;
 }
 // 配置同步（规范 DEVICE02）：Mesh 设备按当前目标配置的回执；网关按配置库副本与云端主本是否一致；其他设备没有。
 function devSyncText(db, p) {
@@ -95297,6 +95305,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.04",
+    date: "2026-11-04",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
   {
     version: "3.03",
     date: "2026-11-04",
