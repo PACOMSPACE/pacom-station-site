@@ -26736,13 +26736,15 @@ body:has(> #app.collapsed) #demoSide .demo-step-pair { flex-direction: column; }
   .phead .v13-head > .demo-step .demo-step-b.btn, .phead .v13-head > .demo-step .demo-step-n { background: #fff; }
   :is(.phead .v13-head > .demo-step, body > .demo-fixed) .demo-step-n { box-shadow: var(--btn); } body:has(> .demo-fixed.demo-fixed.demo-fixed, .phead .v13-head > .demo-cap) { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); } body:has(> .demo-fixed.demo-fixed.demo-fixed) > #app.bare .au-left { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); } /* 2.90 账户第 157 条：名称序号框与按钮同样描边；页面底部留出演示条（16 + 40 + 16）；账户页左栏在原有底边距 24 之外再留出演示条 */
   body:has(#app) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed { top: auto; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); right: 16px; }
-  body:has(> :is(#dlg, #ai-pal, #discard)) .phead .v13-head > :is(.demo-step, .demo-cap),
-  body:has(> :is(#dlg, #ai-pal, #discard)) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed.demo-fixed { top: 20px; bottom: auto; }
+  body:has(> :is(#dlg, #ai-pal, #discard), #app .sc-side > .ops-drawer:not(.full)) .phead .v13-head > :is(.demo-step, .demo-cap),
+  body:has(> :is(#dlg, #ai-pal, #discard), #app .sc-side > .ops-drawer:not(.full)) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed.demo-fixed { top: 20px; bottom: auto; } /* 3.02 V1008：场景、定时、联动的底部卡片打开时同样移到右上角，不压卡片底部的按钮 */
   /* 2.97 V980：底部卡片拉到全屏时，演示控件与关闭按钮（44，距右 8）同一中线，放在它左边隔 8，不盖住它 */
   body:has(> #dlg.ds-bsheet.ds-bs-full) .phead .v13-head > :is(.demo-step, .demo-cap), body:has(> #dlg.ds-bsheet.ds-bs-full) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed.demo-fixed { top: 26px; }
   body:has(> #dlg.ds-bsheet.ds-bs-full) .phead .v13-head > .demo-cap, body:has(> #dlg.ds-bsheet.ds-bs-full) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed.demo-fixed { right: 60px; }
   body:has(> #dlg.ds-bsheet.ds-bs-full) .phead .v13-head > .demo-step { right: 108px; }
-  body:has(.demo-cap, > .demo-fixed) .ops-drawer { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); } /* 2.97 V982：抽屉底边停在演示控件上方，底部按钮不被盖住 */
+  body:has(#app .sc-side > .ops-drawer.full) .phead .v13-head > :is(.demo-step, .demo-cap), body:has(#app .sc-side > .ops-drawer.full) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed.demo-fixed { top: 48px; } /* 3.02 V1008：场景、定时、联动的卡片全屏时，演示控件与关闭按钮（44，距右 18）同一中线，在它左边隔 8 */
+  body:has(#app .sc-side > .ops-drawer.full) .phead .v13-head > .demo-cap, body:has(#app .sc-side > .ops-drawer.full) > .demo-fixed.demo-fixed.demo-fixed.demo-fixed.demo-fixed { right: 70px; } body:has(#app .sc-side > .ops-drawer.full) .phead .v13-head > .demo-step { right: 118px; }
+  body:has(.demo-cap, > .demo-fixed) .ops-drawer:not(.sc-drawer) { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); } /* 2.97 V982：抽屉底边停在演示控件上方，底部按钮不被盖住 */
 }
 
 /* 2.89 账户第 133 条：整页页面仍在右上角，顺序与尺寸同左侧菜单那一行，合在白底胶囊里（高 32）；手机与触屏按原尺寸，手机只显示序号 */
@@ -27215,6 +27217,14 @@ aside.v13-drawer .v13-dg dd > .v13-link {
 .ops-drawer-h p {
   font-size: 14px;
   line-height: 22px;
+}
+/* 3.02 V1002（同 V979、V981）：抽屉关闭按钮（32）与标题首行居中：标题上边距 6 + 半行 14 − 16 = 4；标题上方有状态一行（22）时再下移 22。
+   场景、定时、联动与告警的抽屉都用这一条；触屏 44 的写法见下 */
+.ops-drawer-h > .iconbtn.round {
+  margin: 4px 0 -4px;
+}
+.ops-drawer-h:has(.ops-drawer-eb) > .iconbtn.round {
+  margin-top: 26px;
 }
 /* 关闭按钮和弹窗相同：透明 32，悬停叠黑 8%、按下 10%（原先项目信息、参数详情、楼层面板为带边线的白色圆按钮）；触屏 44 */
 :is(.v13-dh, .sp-panel) > .iconbtn.round {
@@ -29093,7 +29103,9 @@ tr.stop > th {
 .an-items, .ai-ritems { gap: 0; }
 .an-items > .an-item, .ai-ritems > .ai-ritem { padding-left: 0; padding-right: 0; border-radius: 0; background: none; box-shadow: none; }
 .an-items > .an-item + .an-item, .ai-ritems > .ai-ritem + .ai-ritem { border-top: 1px solid var(--line2); }
-.an-panel .ops-tw { box-shadow: none; border-radius: 0; margin: 0 -8px; }
+/* 3.02 V997：表格左右各伸出卡片内容区 12（单元格内边距 12），首列文字与卡片标题对齐、末列右边与内容区右边对齐；手机的列表行内边距 8，伸出 8 */
+.an-panel .ops-tw { box-shadow: none; border-radius: 0; margin: 0 -12px; }
+@media (max-width: 850px) { .an-panel .ops-tw { margin: 0 -8px; } }
 .ops-taskcard { position: relative; margin: 0; padding: 10px 32px 10px 8px; border-radius: 0; box-shadow: none; }
 .ops-taskcard + .ops-taskcard { border-top: 1px solid var(--line2); }
 .ops-taskcard:hover { border-radius: 12px; border-top-color: transparent; box-shadow: none; background: var(--hover); }
@@ -32559,6 +32571,10 @@ col.al-w200 { width: 200px; }
 .rc-card > .rc-none { margin: 0; padding: 32px 20px; }
 .rc-card > .rc-more { padding: 8px 20px 12px; }
 .rc-tbl :is(.rc-src, .rc-res .sc3-eff) { font-size: 14px; line-height: 22px; }
+/* 3.02 V1007：来源（图标加文字）为块级 flex，和同行其他单元格一起按行中线居中（行内 flex 落在基线上，比同行高 2） */
+.rc-tbl td > .rc-src { display: flex; }
+/* 3.02 V1005：联动侧栏的条件句是这一节的正文，为黑字 #030303（同场景侧栏“动作”）；执行的场景名仍为链接 */
+.sc-drawer .sc-cond { color: var(--v3-ink); }
 .rc-tbl .rc-op { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--v3-ink); }
 @media (max-width: 850px) {
   .rc-card > .rc-chips { padding: 12px 16px; }
@@ -32570,12 +32586,16 @@ col.al-w200 { width: 200px; }
 /* 3.01 V971–V973：851 及以上点一行在右侧打开 360 侧栏，推开表格；侧栏随页面滚动停在顶部 */
 @media (min-width: 851px) {
   #app[data-page="scenes"] .sc-lay:has(> .sc-side) { display: grid; grid-template-columns: minmax(0, 1fr) var(--ds-side, 360px); column-gap: var(--ds-gap); align-items: start; }
-  #app[data-page="scenes"] .sc-side { position: sticky; top: 16px; display: flex; flex-direction: column; max-height: calc(100dvh - 32px); min-height: 0; }
+  /* 3.02 V1001：最高高度由 scSideFit 按主区可见区算（到底边减 16），这里的 calc 只在脚本运行前生效；
+     吸顶的 top 为 0：粘性定位从滚动区的内边距（16）算起，停在距可见区顶 16（原 top 16 实际停在 32） */
+  #app[data-page="scenes"] .sc-side { position: sticky; top: 0; display: flex; flex-direction: column; max-height: calc(100dvh - 32px); min-height: 0; }
   #app[data-page="scenes"] .sc-side > .ops-drawer { position: static; inset: auto; width: auto; max-width: none; min-height: 0; max-height: 100%; animation: none; box-shadow: var(--ds-sh-xs); border-radius: var(--ds-r-card, 16px); }
 }
 /* 3.01 V975：850 及以下场景、定时、联动的侧栏为底部卡片（同 KW40）：半屏，点顶部拖动条展开到全屏，上圆角 20 */
 @media (max-width: 850px) {
-  .sc-side > .ops-drawer { top: auto; left: 0; right: 0; width: auto; max-width: none; height: 50dvh; border-radius: 20px 20px 0 0; transition: height 200ms cubic-bezier(0.4, 0, 0.2, 1); }
+  /* 3.02 V1008：卡片贴屏幕底边（原离底 72，下面露出一条列表），半屏为屏高一半；底部操作条加安全区 */
+  .sc-side > .ops-drawer { top: auto; bottom: 0; left: 0; right: 0; width: auto; max-width: none; height: 50dvh; border-radius: 20px 20px 0 0; transition: height 200ms cubic-bezier(0.4, 0, 0.2, 1); }
+  .sc-side > .ops-drawer .ops-drawer-foot { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
   .sc-side > .ops-drawer.full { top: 8px; height: auto; }
 }
 /* V721 定时标记：白底小胶囊，20 高，1px #DEDEDE 边，12/18；已执行名称前绿色 ✓，部分生效琥珀色 !，待执行灰字；
@@ -32794,7 +32814,9 @@ col.al-w280 { width: 280px; }
 /* 3.00 V987：最后一条看得见的行不画分隔线（其后只有隐藏的“没有匹配”行或被搜索隐藏的行） */
 .al-tbl tbody tr:not([hidden]):not(:has(~ tr:not([hidden]))) > * { border-bottom: 0; }
 .al-tbl tbody tr[hidden] { display: none; }
-.al-tbl tbody tr.click:hover > *, .al-tbl tbody tr.on > * { background: var(--v3-sel); }
+/* 3.02 V1000（取代 2.99 V969 选中行与悬停同为 #F5F5F5）：选中行整行 #00AEEF 8%，悬停 #F5F5F5，两者分开 */
+.al-tbl tbody tr.click:not(.on):hover > * { background: var(--v3-sel); }
+.al-tbl tbody tr.on > *, .al-tbl tbody tr.click.on:hover > * { background: var(--ds-row-on); }
 .al-tbl tbody tr.click:focus-visible { outline: 2px solid #00aeef; outline-offset: -2px; }
 .al-tbl :is(th, td).act { padding: 0 12px 0 0; text-align: right; }
 .al-tbl .al-rowmore { width: 32px; height: 32px; }
@@ -32833,7 +32855,8 @@ col.al-w280 { width: 280px; }
 .al-occ-t th { height: 40px; padding: 0 8px; border-bottom: 1px solid var(--v3-line); font-size: 14px; line-height: 22px; font-weight: 400; color: var(--v3-mute); }
 .al-occ-t td { height: 48px; padding: 0 8px; border-bottom: 1px solid var(--v3-line); font-size: 14px; line-height: 22px; color: var(--v3-ink-2); }
 .al-occ-t tbody tr:last-child td { border-bottom: 0; }
-.al-occ-t tr.click:hover td, .al-occ-t tr.on td { background: var(--v3-sel); }
+.al-occ-t tr.click:not(.on):hover td { background: var(--v3-sel); }
+.al-occ-t tr.on td, .al-occ-t tr.click.on:hover td { background: var(--ds-row-on); }
 .al-occ-t tr.click:focus-visible { outline: 2px solid #00aeef; outline-offset: -2px; }
 @media (max-width: 1099.98px) {
   .al-sp { grid-template-columns: minmax(0, 1fr); }
@@ -32966,6 +32989,8 @@ col.al-w280 { width: 280px; }
 @layer ds {
 /* ---- 令牌 ---- */
 :root {
+  /* 3.02 V1000：全站选中行（表格里正在看的那一行）整行 #00AEEF 8%，约 #EBF8FD；悬停仍为 #F5F5F5 */
+  --ds-row-on: rgba(0, 174, 239, 0.08);
   /* 表面 */
   --ds-shell: #f5f5f5;
   --ds-canvas: #fafafa;
@@ -34305,13 +34330,20 @@ button.cfg-kpi.click[aria-expanded="true"] { box-shadow: var(--ds-sh-xs), inset 
 #app[data-page="analysis"] .an4 > .an-chart > .ops-card > .ops-card-h { align-items: center; }
 #app[data-page="analysis"] .an4 > .an-chart > .ops-card > .ops-card-h > div:first-child { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; min-width: 0; }
 #app[data-page="analysis"] .an4 > .an-chart > .ops-card > .ops-card-h .ops-meta { margin: 0; font-size: 12px; line-height: 18px; color: #636363; }
+/* 3.02 V993：环境趋势图头里的功能区名可点，进入对象页，悬停加下划线 */
+.an-meta-lk { padding: 0; border: 0; border-radius: 4px; background: none; font: inherit; color: inherit; cursor: pointer; }
+.an-meta-lk:hover { text-decoration: underline; text-underline-offset: 3px; }
 .an4-ins { margin: 12px 0; }
 .an4-ins .ai2 { max-width: none; }
 .an4-ins .ai2-badge { float: none; display: inline-flex; vertical-align: 1px; margin: 0 6px 0 0; }
 .an4-ins .ai2-p { display: inline; color: #030303; }
-.an4-ins .ai2-basis { display: inline; clear: none; margin: 0 0 0 8px; }
+/* 3.02 V995：“依据 ›”收起时为行内块（展开内容不再把后面的文字按钮挤到下一行），文字按钮接在其后，间隔 16；
+   按钮逐个换行，换到下一行时文字与段落各行的行首对齐（按钮左右 6 的内边距由负外边距抵消） */
+.an4-ins .ai2-basis { display: inline-block; clear: none; margin: 0 16px 0 8px; vertical-align: baseline; }
 .an4-ins .ai2-basis[open] { display: block; margin: 4px 0 0; }
-.an4-links { display: inline-flex; flex-wrap: wrap; gap: 16px; margin-left: 16px; vertical-align: baseline; }
+span.an4-links { display: inline; }
+span.an4-links .btn.an3-go { display: inline-block; margin: 0 10px 0 -6px; vertical-align: baseline; }
+.an4-links { display: flex; flex-wrap: wrap; gap: 16px; }
 p.an4-links { display: flex; margin: 0; }
 .an4 .btn.an3-go { height: auto; min-height: 0; margin: 0 -6px; padding: 0 6px; border: 0; border-radius: 6px; background: none; box-shadow: none; font-size: 12px; line-height: 18px; font-weight: 500; color: #2e2e2e; white-space: nowrap; }
 .an4 .btn.an3-go:hover { background: rgba(0, 0, 0, 0.04); text-decoration: none; }
@@ -34329,9 +34361,28 @@ p.an4-links { display: flex; margin: 0; }
 /* V965 达标时间占比表：点一行主图换成该功能区；名称下写“有人 N h” */
 /* V967 当前离线表：设备、位置、离线时长，行尾 › */
 :is(.an-comp-card .ops-comp, .an-off-t) tr.click { cursor: pointer; }
-:is(.an-comp-card .ops-comp, .an-off-t) tr.click:hover > td, .an-comp-card .ops-comp tr.on > td { background: var(--v3-sel, #f3f6fb); }
+/* 3.02 V994、V1000：底色画在整行上（手机为整张列表行），不按单元格分开画；选中行为全站选中色 #00AEEF 8%，悬停为 #F5F5F5 */
+:is(.an-comp-card .ops-comp, .an-off-t) tr.click:not(.on):hover { background: var(--v3-sel, #f5f5f5); }
+.an-comp-card .ops-comp tr.on { background: var(--ds-row-on); }
+/* 3.02 V1000：设备列表等配置表格，侧栏打开的那一行为选中行（整行 #00AEEF 8%，悬停也不变）；卡片内的表格两端各延出 12，同悬停 */
+#pbody .flow-table .t tr.click.on > *, #pbody .flow-table .t tr.click.on:hover > * { background: var(--ds-row-on); }
+#pbody .card .flow-table .t tr.click.on > :first-child { box-shadow: -12px 0 0 var(--ds-row-on); }
+#pbody .card .flow-table .t tr.click.on > :last-child { box-shadow: 12px 0 0 var(--ds-row-on); }
+:is(.an-comp-card .ops-comp, .an-off-t) tr.click > td { background: transparent; }
 .an-off-t th.act, .an-off-t td.act { width: 40px; text-align: right; }
 .an-off-go { font-size: 16px; line-height: 22px; color: #636363; }
+/* 3.02 V996：手机上“当前离线”为两行的列表行：设备名，右边离线时长；第二行位置；行尾 ›。表格不再设 720 最小宽度，页面保持屏幕宽 */
+@media (max-width: 850px) {
+  .an-panel .ops-tw > .ops-t.an-off-t { min-width: 0; }
+  .an-off-t thead { display: none; }
+  .an-off-t tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto 16px; column-gap: 12px; align-items: baseline; padding: 10px 8px; border-bottom: 1px solid #ebebeb; }
+  .an-off-t tbody tr:last-child { border-bottom: 0; }
+  .an-off-t tbody td { display: block; height: auto; padding: 0; border: 0; white-space: normal; }
+  .an-off-t td.nm { grid-area: 1 / 1; min-width: 0; }
+  .an-off-t td.dur { grid-area: 1 / 2; font-size: 14px; line-height: 22px; color: #2e2e2e; text-align: right; white-space: nowrap; }
+  .an-off-t td.at { grid-area: 2 / 1 / 3 / 3; font-size: 12px; line-height: 18px; color: #636363; }
+  .an-off-t td.act { grid-area: 1 / 3 / 3 / 4; align-self: center; width: auto; }
+}
 .an-comp-z { display: block; padding: 0; border: 0; background: none; font: inherit; font-size: 14px; line-height: 22px; color: #030303; text-align: left; cursor: pointer; }
 .an-comp-occ { display: block; font-size: 12px; line-height: 18px; color: #636363; }
 /* V968 摘要：卡间距 16；名称 14/22 #636363，右上 20 图标 */
@@ -42298,7 +42349,8 @@ let sheetRefreshing = false;
 // 侧栏跟随打开时的页面与选中对象：换页、换功能区、换选中的告警或页签（地址变化）时关闭，不留在新内容上
 const sheetCtx = () => [U.page, U.opsZone, U.opsSel, location.hash].map((x) => (x == null ? "" : typeof x === "object" ? JSON.stringify(x) : String(x))).join("|");
 // 2.81 KW23：more 为标题行右侧的“详情 ›”（打开对象页），sub 为名称下的两三条关键关联；手机为弹窗，两者放在正文顶部
-function sideSheet(title, body, foot = "", { label = title, reopen = null, size = true, more = "", sub = "" } = {}) {
+// 3.02 V1000：sel 为侧栏正在看的对象（“动作:编号”，同表格行的 data-act、data-id），表格里对应的行为选中行
+function sideSheet(title, body, foot = "", { label = title, reopen = null, size = true, more = "", sub = "", sel = "" } = {}) {
   const pb = $("#pbody");
   // 2.82 KW40：850 及以下侧栏为底部卡片（半屏，上拉全屏），与总览功能区卡片相同
   if (isMobile() || !pb) return modal(title, (more || sub ? `<div class="ob-sheet-top">${sub}${more}</div>` : "") + body, foot, size, { sheet: isMobile() });
@@ -42326,6 +42378,7 @@ function sideSheet(title, body, foot = "", { label = title, reopen = null, size 
   el.className = `v13-drawer ws-space-info docked ds-sheet${over ? " over" : " push"}`;
   el.setAttribute("role", "region");
   el.setAttribute("aria-label", label);
+  el.dataset.sel = sel;
   const html = `<div class="v13-dh"><div><h2 tabindex="-1">${wsTitleHtml(title)}</h2>${sub}</div>${more}${iconBtn("关闭", "x", "sheetClose")}</div><div class="v13-db">${body}</div>${foot ? `<div class="v13-df">${foot}</div>` : ""}`;
   if (fresh) el.innerHTML = html;
   else morph(el, html);
@@ -48151,7 +48204,26 @@ function mapGroupHtml(kind, list) {
 // 侧面板（项目信息、参数详情、告警详情与工单）都从工具栏下方 8 开始，工具栏滚出视野后回到面板自身的顶边（CSS 的 top）
 // （全面设计核查第 20 条（2026-10-12 用户确认）：原先只有项目信息如此，参数详情从窗口顶 16、告警详情从 8 开始，盖住工具栏）。
 // 2.11 E205：改名，原与 operations-ui.js 的 wsPlaceInfo(anchor, popup) 同名，后者覆盖了它，信息面板一直没有移到工具栏下方
+// 3.02 V1000：侧栏打开的对象在表格里为选中行（整行 #00AEEF 8%、aria-selected），关闭侧栏或换对象即取消。
+// 页面每次绘制、侧栏打开与关闭后都经 wsPlaceSpaceInfo 调到这里
+function wsSheetRowSel() {
+  const sel = $("#wsSheet")?.dataset.sel || "",
+    hit = (tr) => !!sel && `${tr.dataset.act}:${tr.dataset.id}` === sel;
+  for (const tr of document.querySelectorAll("#pbody tr.click.ws-on"))
+    if (!hit(tr)) {
+      tr.classList.remove("on", "ws-on");
+      tr.removeAttribute("aria-selected");
+    }
+  if (!sel) return;
+  for (const tr of document.querySelectorAll(`#pbody tr.click[data-act="${CSS.escape(sel.slice(0, sel.indexOf(":")))}"]`))
+    if (hit(tr)) {
+      tr.classList.add("on", "ws-on");
+      tr.setAttribute("aria-selected", "true");
+    }
+}
 function wsPlaceSpaceInfo() {
+  wsSheetRowSel();
+  if (typeof scSideFit === "function") scSideFit();
   const tb = $("#pbody .ws-toolbar") || $("#pbody .ws-tb-actions");
   // 停靠的信息面板（2.13 E225）：右缘与内容右缘对齐，顶边与工具栏下面第一行内容对齐，页面滚动后贴住页头下方，到页面底部。
   const pb = $("#pbody"), docks = [...document.querySelectorAll("#pbody > .ws-space-info.docked, #pbody > .sp-panel.docked")], dock = docks[0];
@@ -55830,7 +55902,7 @@ function showDeviceInformation(id, tab = "runtime") {
     // 2.58 E628：“更多操作”改为 32 圆形“⋯”图标按钮，提示“更多”
     (p.unplaced && canEdit() ? btn("放置到图上", "placeAgain", { id }) : btn("在图上查看", "locatePoint", { id })) + (canEdit() || (canOperate() && M.bound(p)) ? menuTrigger(iconBtn("更多", "more", "deviceMore", { id })) : ""),
     // 2.81 KW23：标题行右侧“详情 ›”打开设备的对象页，名称下写所在功能区与上级网关（网关写所属网络与下级设备数）
-    { label: "设备信息", reopen: () => (g("points", id) ? showDeviceInformation(id) : sheetClose()), more: typeof obMore === "function" ? obMore("dev", id) : "", sub: devInfoSub(p) },
+    { label: "设备信息", sel: `deviceInfo:${id}`, reopen: () => (g("points", id) ? showDeviceInformation(id) : sheetClose()), more: typeof obMore === "function" ? obMore("dev", id) : "", sub: devInfoSub(p) },
   );
   if (typeof drawCharts === "function" && typeof requestAnimationFrame === "function") requestAnimationFrame(drawCharts);
 }
@@ -62075,7 +62147,7 @@ function renderAnalysis() {
   const dash = (k, label, sub = "", g = "") => ({ k, label, value: "—", sub, g });
   // 2.71 V677：摘要页同样六张卡，数值写“—”
   if (tab === "summary")
-    return head + filter + `<div class="an-sum-cards">${["用电", "夜间及非工作日", "节电量", "室内环境达标", "空间使用", "设备健康"].map((n) => `<section class="an-sum-card off"><h3>${n}</h3><p class="an-sum-v">—</p><p class="an-sum-x">尚无运行数据</p></section>`).join("")}</div>`;
+    return head + filter + `<div class="an-sum-cards">${["用电量", "夜间及非工作日", "节电量", "室内环境达标", "空间使用", "设备健康"].map((n) => `<section class="an-sum-card off"><h3>${n}</h3><p class="an-sum-v">—</p><p class="an-sum-x">尚无运行数据</p></section>`).join("")}</div>`;
   if (tab === "energy") {
     // 3.00 V964：用电量、夜间及非工作日、节电量三张指标卡（碳排放写在用电量的说明里）
     const blocks = [dash("use", "用电量", "kWh"), dash("off", "夜间及非工作日", "等待完整时段数据"), dash("save", "节电量", "kWh")],
@@ -77547,11 +77619,13 @@ const anBillBack = () => {
   return r0.from < Demo.range(anKey()).from && monthKwh(ymOf(r0.from))?.src === "bill";
 };
 const anRange = () => (U.opsRange === "today" ? { ...Demo.range(anKey()), label: "今日", custom: false, today: true } : anBillBack() ? Demo.range0(anKey()) : Demo.range(anKey()));
-// 2.82 定稿 5.2（KW27）：从数据分析进入对象页时带上所选期间；主图换成某个对象时标题写“对象名 · 详情 ›”（ⓘ 保留在末尾）
+// 2.82 KW27：从数据分析进入对象页时带上所选期间；主图换成某块电能表时标题写“对象名 · 详情 ›”（ⓘ 保留在末尾）；室内环境见 3.02 V993（anZnLink）
 const anObjPer = () => {
   const rg = anRange();
   return rg.today ? "today" : `c:${rg.from}:${rg.to}`;
 };
+// 3.02 V993：环境趋势的图头写功能区名，可点进入对象页（悬停加下划线），不另写“详情 ›”
+const anZnLink = (z) => (obOk(obParse(`zone:${z.id}`)) ? obLink("zone", z.id, anZn(z), "an-meta-lk", anObjPer()) : esc(anZn(z)));
 function anObjTitle(chart, k, id, name) {
   if (!obOk(obParse(`${k}:${id}`))) return chart;
   return chart.replace(/<h3>([\s\S]*?)<\/h3>/, (m, t) => `<h3>${esc(name)}<span class="ov3-lsep" aria-hidden="true"> · </span>${obLink(k, id, "详情 ›", "ops-link ops-go", anObjPer())}${(/<span class="ops-info-wrap">[\s\S]*<\/span>/.exec(t) || [""])[0]}</h3>`);
@@ -78125,7 +78199,7 @@ function anSummary() {
         })
       : [],
     cards = [
-      card({ tab: "energy", k: "use", name: "用电", value: nf(e.total), unit: "kWh", text: full.length ? `日均 ${nf(avgOf(full))} kWh` : "今天截至现在", spark: anSpark(ds.map((d) => (d.partial ? null : d.light + d.hvac)), C.use) }),
+      card({ tab: "energy", k: "use", name: "用电量", value: nf(e.total), unit: "kWh", text: full.length ? `日均 ${nf(avgOf(full))} kWh` : "今天截至现在", spark: anSpark(ds.map((d) => (d.partial ? null : d.light + d.hvac)), C.use) }),
       card({ tab: "energy", k: "off", name: "夜间及非工作日", value: e.offShare == null ? "—" : nf(e.offShare, 1), unit: "%", text: e.offDays ? `超出基荷 ${nf(e.offAbove)} kWh` : "期间内没有完整的天", spark: anSpark(full.map(offDay), C.off) }),
       card({ tab: "energy", k: "save", name: "节电量", value: sv.has ? nf(sv.total) : "—", unit: "kWh", tag: "估算", text: !sv.has ? "未登记照明驱动功率" : rate != null ? `比满亮度运行少用 ${nf(rate)}%` : "按亮度与驱动功率估算", spark: sv.has ? anSpark(sv.days.map((d) => (d.partial ? null : d.occ + d.dim + d.other)), C.save) : "" }),
       card({ tab: "environment", k: envLow ? envLow[0] : "co2", name: "室内环境达标", value: envLow ? pct(envLow[1].within) : "—", unit: "%", text: noWork ? "所选期间没有工作日" : envLow ? `最低一项：${{ co2: "CO₂", pm: "PM2.5", temp: "温湿度" }[envLow[0]]}` : "", spark: envDays.some((v) => v != null) ? anSpark(envDays, C.ok, { hi: 100 }) : "" }),
@@ -79233,8 +79307,8 @@ function envTrendCard(zk = U.opsEnvZone, m0 = U.opsEnvMetric, bare = false, pick
     extra: mBtn + tools,
     legend: (daily ? (lo ? [[S1, "日最高", "line"], [S2, "日最低", "line"]] : [[S1, hiName, "line"]]) : [[S1, name, "line"]]).concat(offBands.length ? [["#EDEFF2", "非工作时间"]] : [], anOverlayLegend(metric === "temp")),
     title: "环境趋势" + opsInfo("环境趋势",esc(methods)),
-    // 2.82 定稿 5.2（KW27）：标题写“功能区 · 详情 ›”（anObjTitle），副标题不再重复功能区名
-    meta: daily ? `${metric === "co2" ? "日最高 1 h 均值" : "工作时间日最高、日最低"} · ${esc(unit)}` : `${rg.span} · ${esc(unit)}`,
+    // 3.02 V993（取代 2.82 KW27 的“功能区 · 详情 ›”标题）：标题为“环境趋势”，灰字图头先写功能区（可点，进入对象页），再写期间与单位
+    meta: `${anZnLink(z)} · ${daily ? `${metric === "co2" ? "日最高 1 h 均值" : "工作时间日最高、日最低"} · ${esc(unit)}` : `${rg.span} · ${esc(unit)}`}`,
     // 2.66 V534：去掉“统计窗口”列；“数据”列有效的留空，只写“缺数”
     table: daily
       ? regTable("envtrend", ["日期", `${hiName} ${unit}`, ...(lo ? [`日最低 ${unit}`] : [])], ss.map((s, i) => [Demo.md(s), hi[i] == null ? "—" : nf(hi[i], dg), ...(lo ? [lo[i] == null ? "—" : nf(lo[i], dg)] : [])]))
@@ -79375,7 +79449,7 @@ const anCompBasis = (comp) => {
 // 3.00 V965：室内环境页的达标表点一行，主图换成该功能区；名称下写“有人 N h”（没有占用传感器的写“按工作时间”）
 const anCompRow = (c, cur) => {
   const nm = anZn(c.z);
-  return `<tr class="click${c === cur ? " on" : ""}" data-act="anEnvRow" data-k="${esc(c.z.k)}"><td><button type="button" class="an-comp-z" data-act="anEnvRow" data-k="${esc(c.z.k)}" aria-label="${esc(nm)}，查看趋势"${c === cur ? ' aria-current="true"' : ""}>${esc(nm)}</button><small class="an-comp-occ">${c.basis === "occ" ? `有人 ${nf(c.occH, 0)} h` : "按工作时间"}</small></td>`;
+  return `<tr class="click${c === cur ? " on" : ""}"${c === cur ? ' aria-selected="true"' : ""} data-act="anEnvRow" data-k="${esc(c.z.k)}"><td><button type="button" class="an-comp-z" data-act="anEnvRow" data-k="${esc(c.z.k)}" aria-label="${esc(nm)}，查看趋势"${c === cur ? ' aria-current="true"' : ""}>${esc(nm)}</button><small class="an-comp-occ">${c.basis === "occ" ? `有人 ${nf(c.occH, 0)} h` : "按工作时间"}</small></td>`;
 };
 // 2.88 V845：fold 为真时（室内环境页）只列需关注的功能区，其余收成一行“其余 N 个功能区全部达标 ›”，点开再列
 function anCompBody(comp, all = false, fold = false, cur = null) {
@@ -79566,7 +79640,7 @@ function anEnv() {
     chart = noWork
       ? chartCard({ title: "环境趋势", meta: rg.span, body: anNoWorkNote() })
       : cur
-        ? anObjTitle(envTrendCard(cur.z.k, metric, false, pickKey), "zone", cur.z.id, anZn(cur.z))
+        ? envTrendCard(cur.z.k, metric, false, pickKey)
         : chartPending("环境趋势", "所选期间没有可评价的有效数据。"),
     compCard = noWork ? "" : `<section class="an-panel an-comp-card"><header class="an-panel-h"><h3>达标时间占比${opsInfo("达标时间占比", esc(detail))}</h3><span class="an-panel-m">${esc(rg.span)} · 目标 95%</span></header>${anCompBody(comp, false, true, cur)}</section>`,
     mapCard = canMap && !noWork ? `<section class="an-panel an-env-mapcard"><header class="an-panel-h"><h3>楼层分布</h3><span class="an-panel-m">期间平均 · ${esc(title)}</span></header>${anEnvMap(comp, sel, name, cur)}</section>` : "",
@@ -80225,14 +80299,15 @@ function anHealth() {
       (noData ? [] : anConnEps(now - Demo.MIN, now)).forEach(({ c, eps: xs }) => { const x = xs.find((e) => e.open); if (x) out.push({ c, text: `离线 ${anOffDur((now - x.at) / Demo.MIN)} · ${x.cat}` }); });
       return out;
     })(),
+    // 3.02 V996：单元格带类名，手机上排成两行的列表行（设备名与离线时长一行，位置一行，行尾 ›）
     offRow = ({ p, c, text }) => {
       const dur = esc(text.replace(/^离线 /, "")),
         go = `<td class="act"><span class="an-off-go" aria-hidden="true">›</span></td>`;
-      if (c) return `<tr class="click" data-act="opsObjConn" data-id="${esc(c.id)}"><td><button type="button" class="an-comp-z" data-act="opsObjConn" data-id="${esc(c.id)}">${esc(c.name)}</button></td><td>系统连接</td><td>${dur}</td>${go}</tr>`;
+      if (c) return `<tr class="click" data-act="opsObjConn" data-id="${esc(c.id)}"><td class="nm"><button type="button" class="an-comp-z" data-act="opsObjConn" data-id="${esc(c.id)}">${esc(c.name)}</button></td><td class="at">系统连接</td><td class="dur">${dur}</td>${go}</tr>`;
       const nm = esc(anDevName(p)), at = esc(anDevAt(p) || anFlName(p.floorId) || "—");
       return obOk(obParse("dev:" + p.id))
-        ? `<tr class="click" data-act="opsObj" data-o="dev:${esc(p.id)}" data-per="${esc(anObjPer())}"><td><button type="button" class="an-comp-z" data-act="opsObj" data-o="dev:${esc(p.id)}" data-per="${esc(anObjPer())}">${nm}</button></td><td>${at}</td><td>${dur}</td>${go}</tr>`
-        : `<tr><td>${nm}</td><td>${at}</td><td>${dur}</td><td class="act"></td></tr>`;
+        ? `<tr class="click" data-act="opsObj" data-o="dev:${esc(p.id)}" data-per="${esc(anObjPer())}"><td class="nm"><button type="button" class="an-comp-z" data-act="opsObj" data-o="dev:${esc(p.id)}" data-per="${esc(anObjPer())}">${nm}</button></td><td class="at">${at}</td><td class="dur">${dur}</td>${go}</tr>`
+        : `<tr><td class="nm">${nm}</td><td class="at">${at}</td><td class="dur">${dur}</td><td class="act"></td></tr>`;
     },
     offCard = !offNow.length || !(sel === "rate" || sel === "diag") ? "" : `<section class="an-panel an-off-card"><header class="an-panel-h"><h3>当前离线</h3><span class="an-panel-m">${[offNow.filter((x) => x.p).length ? `${offNow.filter((x) => x.p).length} 台` : "", offNow.filter((x) => x.c).length ? `${offNow.filter((x) => x.c).length} 个连接` : ""].filter(Boolean).join(" · ")}</span></header><div class="ops-tw"><table class="t ops-t an-off-t"><thead><tr><th scope="col">设备</th><th scope="col">位置</th><th scope="col">离线时长</th><th scope="col" class="act"><span class="sr-only">打开</span></th></tr></thead><tbody>${offNow.map(offRow).join("")}</tbody></table></div></section>`,
     // 2.77 V775：AI 先写仍未恢复的设备与处理办法（离线告警未恢复的主设备与待重新绑定的设备）；全部恢复时才写离线次数唯一最多（多于 1 次）的设备
@@ -81007,7 +81082,7 @@ function alRowMore(it, tab) {
 }
 function alRowTr(it, tab, on, fresh) {
   const lvl = alIsAl(it) ? lvlChip(it.a.level) : `<span class="al-lv-x">${alKindOf(it) || "工单"}</span>`;
-  return `<tr class="click${on ? " on" : ""}${fresh ? " ops-new" : ""}" data-act="${it.t ? "opsTask" : "opsAlarm"}" data-id="${esc(it.id)}" data-q="${esc(alQ(it))}" tabindex="0"${on ? ' aria-current="true"' : ""}><th scope="row">${alNameCell(it, tab)}</th><td>${lvl}</td>${alCells(it, tab)
+  return `<tr class="click${on ? " on" : ""}${fresh ? " ops-new" : ""}" data-act="${it.t ? "opsTask" : "opsAlarm"}" data-id="${esc(it.id)}" data-q="${esc(alQ(it))}" tabindex="0"${on ? ' aria-current="true" aria-selected="true"' : ""}><th scope="row">${alNameCell(it, tab)}</th><td>${lvl}</td>${alCells(it, tab)
     .map((c) => `<td>${c}</td>`)
     .join("")}<td class="act">${alRowMore(it, tab)}</td></tr>`;
 }
@@ -81473,7 +81548,7 @@ function alDetailParts(a, it = null) {
         ? `<section class="ov-card al-sp-card al-sp-occ"><header class="al-sp-ch"><h4>发生记录</h4><small>${esc(per ? `${per.key === "custom" ? "期间内" : per.label} ${occXs.length} 次` : `近 7 天 ${occXs.length} 次`)}</small></header><table class="t al-occ-t"><colgroup><col><col class="al-w160"><col class="al-w120"></colgroup><thead><tr><th scope="col">开始</th><th scope="col">持续</th><th scope="col" class="r">结果</th></tr></thead><tbody>${occXs
             .map((x) => {
               const on = x.id === a.id;
-              return `<tr class="click${on ? " on" : ""}" data-act="opsAlarm" data-id="${esc(x.id)}" tabindex="0"${on ? ' aria-current="true"' : ""}><td class="ops-num">${esc(opsWhen(alarmStart(x)))}</td><td>${esc(x.recoveredAt ? alDur(x) : alLast(x))}</td><td class="r">${occRes(x)}</td></tr>`;
+              return `<tr class="click${on ? " on" : ""}" data-act="opsAlarm" data-id="${esc(x.id)}" tabindex="0"${on ? ' aria-current="true" aria-selected="true"' : ""}><td class="ops-num">${esc(opsWhen(alarmStart(x)))}</td><td>${esc(x.recoveredAt ? alDur(x) : alLast(x))}</td><td class="r">${occRes(x)}</td></tr>`;
             })
             .join("")}</tbody></table></section>`
         : "",
@@ -81898,6 +81973,11 @@ function syncLabel(s) {
   if (sim?.version === s.version) return sim.done ? `<span class="ops-st ok">已同步</span>` : `<span class="ops-st ack"><span class="ops-spin"></span>正在同步</span>`;
   return `<span class="ops-st todo">待同步</span>`;
 }
+// 3.02 V1004：侧栏“同步”与表格的状态列同一写法：已同步、正在同步为 #636363 不画点，待同步加琥珀色圆点
+const syncSt = (s) => {
+  const t = syncLabel(s);
+  return t.includes("ops-st ok") ? `<span class="ds-st ok">已同步</span>` : t.includes("ops-st ack") ? `<span class="ds-st ok">正在同步</span>` : `<span class="ds-st warn">待同步</span>`;
+};
 // 工作日按项目节假日表计算，该年没有登记时按周一至周五（规范 SCENE02，2026-10-08 Vision 核查 V60）
 const sceneWorkday = (ts) => workdayOn(OPS_SCOPE.project, ymdOf(ts));
 // 定时在 ts 时刻是否执行：先看起止日期与例外日期（SCENE02 第1条），再看日期规则；00:00–05:59 登记为“按前一天”的按前一天判断（第5条）
@@ -82362,7 +82442,7 @@ const scNmCell = (icon, name, sub, st, ph) =>
   `<span class="sc-nm">${icon ? `<span class="sc-nm-ic" aria-hidden="true">${ico(icon, "ic16")}</span>` : ""}<span class="sc-nm-b"><span class="al-nm"><span class="al-nm-t">${name}</span><span class="al-ph al-ph-st">${st}</span></span><small class="al-sub">${sub ? `<span class="sc-dk">${sub}</span>` : ""}<span class="al-ph">${ph}</span></small></span></span>`;
 const scTwo = (a, b, warn) => `${a}${b ? `<small class="al-sub${warn ? " ops-warn-t" : ""}">${b}</small>` : ""}`;
 const scRowOn = (id) => U.opsDrawer?.page === "scenes" && U.opsDrawer.id === id;
-const scTr = (id, th, tds) => `<tr class="click${scRowOn(id) ? " on" : ""}" data-act="opsSceneInfo" data-id="${esc(id)}" tabindex="0"${scRowOn(id) ? ' aria-current="true"' : ""}><th scope="row">${th}</th>${tds.map((t) => (t.startsWith("<td") ? t : `<td>${t}</td>`)).join("")}</tr>`;
+const scTr = (id, th, tds) => `<tr class="click${scRowOn(id) ? " on" : ""}" data-act="opsSceneInfo" data-id="${esc(id)}" tabindex="0"${scRowOn(id) ? ' aria-current="true" aria-selected="true"' : ""}><th scope="row">${th}</th>${tds.map((t) => (t.startsWith("<td") ? t : `<td>${t}</td>`)).join("")}</tr>`;
 // 楼层组行：14/22 字重 600，底色 #FAFAFA（如“E栋 · 7F”，只看一层时也写）
 const scGrpTr = (name, n) => `<tr class="sc-grp"><th scope="colgroup" colspan="${n}">${esc(name)}</th></tr>`;
 // 3.01 V971（取代 2.82 定稿 5.4 KW28 的方块与“今天”侧栏）：手动场景为整宽表格，按楼层分组；列为场景（32 图标、名称、下行动作摘要）、
@@ -82397,6 +82477,17 @@ function scManual(ss) {
   return why + scTable(ss, true);
 }
 // 3.01 V971：点一行在右侧打开侧栏（360，推开表格，同设备列表）；850 及以下为底部卡片（V975，同 KW40）
+// 3.02 V1001：电脑上场景、定时、联动的侧栏最高到主区可见区底边减 16（与吸顶的 16 对称）：页面未滚动时从表格顶边算起，
+// 滚动后停在距顶 16；标题行与底部操作条固定，中间内容在栏内滚动。页面绘制、滚动与窗口大小变化后由 wsPlaceSpaceInfo 调用
+function scSideFit() {
+  const side = document.querySelector('#app[data-page="scenes"] .sc-side'),
+    pb = $("#pbody");
+  if (!side || !pb) return;
+  if (innerWidth <= 850) return void side.style.removeProperty("max-height");
+  const pr = pb.getBoundingClientRect(),
+    top = Math.max(side.getBoundingClientRect().top, pr.top + 16);
+  side.style.maxHeight = `${Math.max(240, Math.round(Math.min(innerHeight, pr.bottom) - 16 - top))}px`;
+}
 const scLay = (main, dr) => `<div class="sc-lay"><div class="sc-main">${main}</div>${dr ? `<div class="sc-side">${dr}</div>` : ""}</div>`;
 function scSchedule(ss) {
   const sch = ss.filter((s) => s.kind === "schedule");
@@ -82506,7 +82597,8 @@ function scSchedule(ss) {
         what = miss ? "—" : esc(ref ? ref.name : sceneActionLabel(s.action));
       return scTr(s.id, scNmCell("", esc(s.name), note, today, `${esc(schRowText(s))}${miss ? "" : ` · ${what}`}`), [`<span class="ops-num">${esc(schRowText(s))}</span>`, what, today, next, `<td class="sc-on">${scTgl(s, canOp)}</td>`]).replace('<tr class="click', `<tr class="click${s.stopped ? " stop" : ""}`);
     },
-    list = scTbl("定时", [["名称", 0], ["时间", 180], ["场景", 156], ["今天", 180], ["下次执行", 156], ["启用", 80]], sch.map(row).join("")),
+    // 3.02 V1006（取代 3.01 名称占其余宽度）：列宽按内容分配，名称 200，时间占其余宽度，表格最窄 900 时仍有 248，最长的一行不折行，行高 56
+    list = scTbl("定时", [["名称", 200], ["时间", 0], ["场景", 112], ["今天", 148], ["下次执行", 112], ["启用", 80]], sch.map(row).join("")),
     cal = scView() === "cal";
   opsTabTools = scViewSw();
   // 日历视图在 850 及以下不显示时间轴，改为列表（sc-cal-ph 只在窄屏显示）
@@ -83471,7 +83563,6 @@ function refDrawer(id) {
   const s = g("scenes", id);
   if (!s) return "";
   const ref = g("scenes", s.refId),
-    sync = syncLabel(s),
     canOp = canOperate(),
     runs = sceneRecords()
       .filter((r) => r.sid === s.id)
@@ -83494,14 +83585,14 @@ function refDrawer(id) {
       az = sceneZoneIds(s),
       cz = (c?.zones || []).filter((z) => !az.includes(z)),
       live = Demo.on() && s.projectId === OPS_SCOPE.project;
-    body = `<section class="ops-dsec"><h4>条件</h4><p class="ops-zp-sub">${esc(linkCondTxt(s))}，执行 ${act}</p></section>${live ? `<section class="ops-dsec"><h4>范围</h4>${opsPlan({ mini: true, vec: true, highlight: az, cond: cz, alarms: false })}<p class="sc-lg"><span><i class="c"></i>条件区域</span><span><i class="a"></i>执行区域</span></p></section>` : ""}`;
+    body = `<section class="ops-dsec"><h4>条件</h4><p class="ops-zp-sub sc-cond">${esc(linkCondTxt(s))}，执行 ${act}</p></section>${live ? `<section class="ops-dsec"><h4>范围</h4>${opsPlan({ mini: true, vec: true, highlight: az, cond: cz, alarms: false })}<p class="sc-lg"><span><i class="c"></i>条件区域</span><span><i class="a"></i>执行区域</span></p></section>` : ""}`;
   }
   const key = `${SC_KIND[s.kind]}：${s.name}`,
     foot = canOp ? `<div class="ops-drawer-foot">${btn("编辑", "sceneForm", { id: s.id })}</div>` : "";
   return `<aside class="ops-drawer sc-drawer" aria-label="${SC_KIND[s.kind]}详情"><header class="ops-drawer-h"><div><h3 tabindex="-1">${esc(s.name)}</h3></div>${iconBtn("关闭", "x", "opsDrawerClose")}</header><div class="ops-drawer-b">
   ${body}
   <section class="ops-dsec"><div class="ops-dsec-h"><h4>最近执行</h4><span class="ops-dsec-links"><button type="button" class="ops-link ops-go" data-act="opsSceneRecs" data-key="${esc(key)}">操作记录 ›</button></span></div>${last}</section>
-  <section class="ops-dsec">${kv([["启用", scTgl(s, canOp)], ["同步", s.stopped ? `<span class="ops-dim">已停用</span>` : sync]])}</section>
+  <section class="ops-dsec">${kv([["启用", scTgl(s, canOp)], ["同步", s.stopped ? `<span class="ops-dim">已停用</span>` : syncSt(s) /* 3.02 V1004 */]])}</section>
   </div>${foot}</aside>`;
 }
 // 场景详情（V149）：右侧面板，动作、范围小图、被引用、最近执行与“操作记录 ›”、同步；底部右对齐“编辑”“执行”
@@ -83522,13 +83613,15 @@ function sceneDrawer(id) {
     run = live ? Demo.ctl.runs.find((x) => x.sid === s.id) : null,
     pr = run && !scRunProg(run).busy ? scRunProg(run) : null,
     miss = pr ? [pr.off.length && `${pr.off.map((x) => g("points", x)?.name).filter(Boolean).join("、")} 离线未执行` /* 2.66 V498、2.84 V879 */, pr.wait.length && `${pr.wait.length} 台未回报`, scAutoText(run) /* 2.72 V688 */].filter(Boolean) : [],
+    // 3.02 V1003：最近执行与表格“最近执行”一列同一写法，合成一行：“9 月 23 日 23:00 · 定时 · 下班 · 全部生效”，部分生效为提醒色
+    [l1, l2, warn] = live ? scLastCell(s, sceneRecords()) : ["尚未执行", "", false],
     foot = canOperate() || U.role === "viewer" ? `<div class="ops-drawer-foot">${live ? scRunBtn(s, "primary") : ""}${canOperate() ? btn("编辑", "sceneForm", { id: s.id }) : ""}</div>` /* 底栏为 row-reverse：先写的在最右 */ : "";
   return `<aside class="ops-drawer sc-drawer" aria-label="场景详情"><header class="ops-drawer-h"><div>${sync.includes("ops-st ok") ? "" : `<div class="ops-drawer-eb">${sync}</div>` /* 2.25 V189：去掉“场景”类型徽章 */}<h3 tabindex="-1">${esc(s.name)}</h3></div>${iconBtn("关闭", "x", "opsDrawerClose")}</header><div class="ops-drawer-b">
   <section class="ops-dsec"><h4>动作</h4><ol class="sc-acts">${acts.map((a, i) => `<li>${acts.length > 1 ? `<b class="sc-actno">${i + 1}</b>` : ""}<span>${esc(sceneActName(a))}<small>${esc(scActTxt(a) || "—")}</small></span></li>`).join("")}</ol></section>
   ${live && zids.length ? `<section class="ops-dsec"><h4>范围</h4>${opsPlan({ mini: true, vec: true, highlight: zids, marks: acts.length > 1 ? scEdMarks(acts) : null, alarms: false })}</section>` : `<section class="ops-dsec"><h4>范围</h4><p class="ops-zp-sub">${esc(sceneScope(lcs))}</p></section>`}
-  <section class="ops-dsec"><h4>被引用</h4>${refs.length ? refs.map((x) => `<button type="button" class="ops-taskcard" data-act="opsSceneInfo" data-id="${x.id}"><b>${esc(`${SC_KIND[x.kind]}“${x.name}”`)}</b><span>${esc(x.kind === "schedule" ? `${schDaysText(x)} ${schTimeText(x)}` : linkWhen(x))}</span></button>`).join("") : `<p class="ops-zp-sub">没有定时或联动引用</p>`}</section>
-  <section class="ops-dsec"><div class="ops-dsec-h"><h4>最近执行</h4><span class="ops-dsec-links"><button type="button" class="ops-link ops-go" data-act="opsSceneRecs" data-name="${esc(s.name)}">操作记录 ›</button></span></div><p class="ops-zp-sub">${nwJoin(live ? sceneLast(s, sceneRecords()) : ["尚未执行"])}</p>${miss.map((t) => `<p class="ops-zp-sub ops-warn-t">${esc(t)}</p>`).join("")}</section>
-  <dl class="ops-kv"><dt>同步</dt><dd>${sync}</dd>${cap ? `<dt>场景容量</dt><dd class="ops-warn-t">${esc(`${cap.p.name} 已存 ${cap.scenes} / ${cap.sceneLimit} 个场景`)}</dd>` : ""}</dl>
+  <section class="ops-dsec"><h4>被引用</h4>${refs.length ? refs.map((x) => `<button type="button" class="ops-taskcard" data-act="opsSceneInfo" data-id="${x.id}"><b>${esc(`${SC_KIND[x.kind]}“${x.name}”`)}</b><span>${esc(x.kind === "schedule" ? schRowText(x) : linkCondTxt(x))}</span></button>`).join("") : `<p class="ops-zp-sub">没有定时或联动引用</p>`}</section>
+  <section class="ops-dsec"><div class="ops-dsec-h"><h4>最近执行</h4><span class="ops-dsec-links"><button type="button" class="ops-link ops-go" data-act="opsSceneRecs" data-name="${esc(s.name)}">操作记录 ›</button></span></div><p class="ops-zp-sub sc-last">${esc(l1)}${l2 ? ` · ${warn ? `<span class="ops-warn-t">${esc(l2)}</span>` : esc(l2)}` : ""}</p>${miss.map((t) => `<p class="ops-zp-sub ops-warn-t">${esc(t)}</p>`).join("")}</section>
+  <dl class="ops-kv"><dt>同步</dt><dd>${syncSt(s)}</dd>${cap ? `<dt>场景容量</dt><dd class="ops-warn-t">${esc(`${cap.p.name} 已存 ${cap.scenes} / ${cap.sceneLimit} 个场景`)}</dd>` : ""}</dl>
   </div>${foot}</aside>`;
 }
 
@@ -95198,6 +95291,17 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.02",
+    date: "2026-11-04",
+    notes: [
+      "改进：室内环境的趋势图标题统一为“环境趋势”，功能区写在图头，点名称进入功能区页面。",
+      "改进：设备健康的“查看告警”“查看设备”接在 AI 解读之后；手机上“当前离线”为两行的列表，明细表与卡片标题对齐。",
+      "改进：摘要第一张卡改名为“用电量”，与能源页签一致。",
+      "改进：全站表格的选中行改为整行浅蓝，与悬停分开；设备列表打开设备信息时，对应的一行同样选中。",
+      "改进：场景、定时、联动的侧栏不超出窗口，标题与底部操作固定；被引用、最近执行与同步和表格同一写法；手机上的底部卡片贴屏幕底边。",
+    ],
+  },
   {
     version: "3.01",
     date: "2026-11-04",
