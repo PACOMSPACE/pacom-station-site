@@ -30067,6 +30067,10 @@ textarea.rpt-auto {
   }
   .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="位置"] > .dev-ledger-label { display: none; }
   .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="位置"] .nw { white-space: nowrap; }
+  /* 3.06 V1031：“接入”同位置行，只在“ · ”与名称中的空格处换行：每段（.nwg）整块排，放得下时整段换到下一行，
+     放不下时在空格处折开，每个词（.nw）不拆（原为 white-space: normal，名称从字中间折开） */
+  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="接入"] .nwg { display: inline-block; max-width: 100%; vertical-align: top; white-space: normal; }
+  .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="接入"] .nw { white-space: nowrap; }
   .dev-ledger-label { display: block; color: var(--text3); font-size: 12px; line-height: 18px; margin-bottom: 2px; }
   /* 2.56 E549：状态合为一项，与设备网络各占半行；“在图上查看”在右上角，44 触控区域 */
   .dev-ledger-frame .dev-ledger-table > tbody > tr > td[data-label="状态"] { grid-column: 1 / 4; order: 3; }
@@ -30101,6 +30105,9 @@ textarea.rpt-auto {
   .dev-ledger-frame .net-ledger > tbody > tr > td[data-label="需处理"] { grid-column: 1 / -1; order: 3; }
   .dev-ledger-frame .net-ledger > tbody > tr > td.act { color: var(--text3); }
 }
+
+/* 3.06 V1031：“接入”名称按“ · ”分段、段内按空格分词（nwWords）；电脑上每段仍整段不折，与原写法相同 */
+.dev-ledger-frame .dev-ledger-table .nwg { white-space: nowrap; }
 
 }
 @layer base {
@@ -32726,13 +32733,13 @@ col.al-w200 { width: 200px; }
 .ov3 .ov2-legend .ov-offdot { width: 8px; height: 8px; }
 /* 2.88 V820：“!”压在功能区右上角的边线上，名称不再为它留出宽度 */
 .ov3 .ops-plan.ov > .ops-zbadge, .ov3 .ops-plan.ov > .ops-zbadge:is(.br, .bl, .tl) { width: 14px; height: 14px; left: min(calc(100% - 14px), calc(var(--zr) - 18px)) !important; top: max(0px, calc(var(--zy) - 7px)) !important; font-size: 10px; line-height: 14px; box-shadow: 0 0 0 1.5px #fff; }
-/* 2.88 V819：竖排名称（中文竖排，数字不转向）与编号；读数 12 写在名称下 */
-.ov3 .ops-plan.ov > .ops-zone.vert .ops-zn { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 0; }
+/* 2.88 V819：编号；读数 12 写在名称下。3.06 V1032：不再竖排（窄块逐字竖排与相邻文字重叠），编号也放不下时名称以省略号截断（同 SPACE04） */
+.ov3 .ops-plan.ov > .ops-zone.ell .ops-zn { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ov3 .ops-plan.ov > .ops-zone.code .ops-zn { font-size: 0; }
-.ov3 .ops-plan.ov > .ops-zone.code .ops-zn::after { content: attr(data-code); font-size: 12px; line-height: 18px; }
-.ops-plan.mini.mn > .ops-zone.vert > .ops-zl.mn .ops-zn { display: block; writing-mode: vertical-rl; text-orientation: upright; white-space: nowrap; }
+.ov3 .ops-plan.ov > .ops-zone.code .ops-zn::after { content: attr(data-code); display: block; font-size: 12px; line-height: 18px; } /* 3.06 V1032：编号整块排，不再被 0 号字的行高撑到 22 高 */
+.ops-plan.mini.mn > .ops-zone.ell > .ops-zl.mn .ops-zn { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ops-plan.mini.mn > .ops-zone.code > .ops-zl.mn .ops-zn { font-size: 0; }
-.ops-plan.mini.mn > .ops-zone.code > .ops-zl.mn .ops-zn::after { content: attr(data-code); font-size: 12px; }
+.ops-plan.mini.mn > .ops-zone.code > .ops-zl.mn .ops-zn::after { content: attr(data-code); display: block; font-size: 12px; line-height: 16px; }
 .ov3 .ops-plan.ov > .ops-zone > .ops-zl { min-width: 0; }
 .ov3 .ops-plan.ov > .ops-zone .ops-zn { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ov3 .ops-plan.ov > .ops-zone.noname .ops-zn { display: none; }
@@ -32902,6 +32909,91 @@ col.al-w280 { width: 280px; }
   .al-sp-sep { display: none; }
   .al-sp-pg { margin-left: auto; }
 }
+/* 3.06 V1038：空气图层。图层页签下一行：左为指标分段，右为本层结论与图例（分段色块，只列图上出现的档与状态）；
+   读数 16/24、字重 600，单位 12/18 正体；状态词与“局部”12/18 跟在读数后；没有读数的三种：未监测浅灰斜纹、离线灰底、数据不足白底点线边 */
+.ov-envrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; flex: none; padding: 8px 40px 8px 20px; border-bottom: 1px solid #ebebeb; } /* 右边让出面板把手 */
+.ov-envrow > .sp { flex: 1; }
+.ov-envrow .ov2-envseg .seg { margin: 0; height: 28px; }
+.ov-envc { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; line-height: 18px; color: var(--v3-ink-2, #2e2e2e); white-space: nowrap; }
+.ov-envc.bad { color: #8a5a00; }
+.ov-envlg { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 12px; line-height: 18px; color: #636363; }
+.ov-elg { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.ov-elg > i { width: 12px; height: 12px; border-radius: 3px; background: var(--c, #fff); box-shadow: inset 0 0 0 1px rgba(20, 27, 45, 0.08); }
+.ov-elg > i.nomon { background: repeating-linear-gradient(135deg, #f3f3f3 0 2px, #dcdcdc 2px 3px); }
+.ov-elg > i.devoff { background: #e4e4e4; }
+.ov-elg > i.nodata { background: #fff; box-shadow: none; outline: 1px dotted #a3a3a3; outline-offset: -1px; }
+.ov3 .ops-plan.ov > .ops-zone.nomon::before { background: repeating-linear-gradient(135deg, #f5f5f5 0 4px, #e6e6e6 4px 5px); }
+.ov3 .ops-plan.ov > .ops-zone.devoff::before { background: #e4e4e4; }
+.ov3 .ops-plan.ov > .ops-zone.nodata::before { background: #fff; outline: 1px dotted #a3a3a3; outline-offset: -2px; }
+.ov3 .ops-plan.ov > .ops-zone:is(.nomon, .devoff, .nodata):not(.al0, .al1, .al2, .on, .sel, .hi, .need, :hover)::before { box-shadow: none; }
+.ov3 .ops-plan.ov > .ops-zone:is(.devoff, .nodata) b { font-size: 12px; line-height: 18px; font-weight: 400; color: #636363; }
+.ov3 .ops-plan.ov.air > .ops-zone:not(.v14, .v12, .row, .devoff, .nodata) b { font-size: 16px; line-height: 24px; }
+.ops-plan.ov > .ops-zone b > .u { font-style: normal; }
+.ops-plan.ov > .ops-zone b > .zf { font-size: 12px; line-height: 18px; font-weight: 500; font-style: normal; color: #8a5a00; white-space: nowrap; }
+.ops-plan.ov > .ops-zone b > .zf::before { content: " · "; font-weight: 400; color: #636363; }
+.ops-plan.ov > .ops-zone b > .zf.part { font-weight: 400; color: #636363; }
+.ops-plan.ov > .ops-zone.nozf b > .zf { display: none; }
+/* 3.06 V1038：一行写的矮功能区（如走廊）名称与读数隔 10（原被 .ov3 的 gap: 0 盖掉，写成“走廊27.9”） */
+.ov3 .ops-plan.ov > .ops-zone.row > .ops-zl { gap: 10px; }
+/* 3.06 V1039、V1050：室内环境单项列表（检视器）。上方空气质量分大字 28/36，档为底色加档名；每行第一行名称、当前（读数加状态词）、近 7 天达标，
+   第二行 24 小时小趋势与目标；整行可点（打开对象页并选中该指标） */
+.ev-sc { display: flex; align-items: center; gap: 12px; margin: 0 0 8px; }
+.ev-sc > b { font-size: 28px; line-height: 36px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ev-sc.na > b { color: var(--v3-mute); }
+.ev-sc > span { display: flex; flex-direction: column; min-width: 0; }
+.ev-sw { display: flex; flex-wrap: wrap; align-items: center; font-size: 14px; line-height: 22px; color: var(--v3-ink); }
+.ev-sc small { font-size: 12px; line-height: 18px; color: var(--v3-mute); }
+.ev-w { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 4px; font-size: 12px; line-height: 18px; font-style: normal; font-weight: 500; color: var(--v3-ink-2); }
+.ev-sw > .ev-w:first-child { margin-left: 0; }
+.ev-list { margin: 0 -8px; }
+.ev-r { display: grid; grid-template-columns: minmax(0, 1fr) auto 72px; column-gap: 8px; align-items: baseline; width: 100%; padding: 6px 8px; border: 0; border-radius: 6px; background: none; font: inherit; text-align: left; color: var(--v3-ink); }
+button.ev-r { cursor: pointer; }
+button.ev-r:hover { background: var(--v3-sel); }
+.ev-r.hd { padding-top: 0; padding-bottom: 2px; font-size: 12px; line-height: 18px; color: var(--v3-mute); }
+.ev-r.hd > span:nth-child(n + 2) { text-align: right; }
+.ev-n { font-size: 14px; line-height: 22px; }
+.ev-v { font-size: 14px; line-height: 22px; font-weight: 600; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ev-r.na .ev-v { font-weight: 400; color: var(--v3-mute); }
+.ev-p { font-size: 14px; line-height: 22px; text-align: right; font-variant-numeric: tabular-nums; color: var(--v3-ink-2); }
+.ev-l2 { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; }
+.ev-l2 small { font-size: 12px; line-height: 18px; color: var(--v3-mute); }
+.ev-sp, .ev-sp0 { flex: none; width: 64px; height: 20px; }
+.ev-more { margin-top: 4px; font-size: 12px; line-height: 18px; color: var(--v3-mute); }
+.ev-more summary { width: max-content; cursor: pointer; }
+.ev-more dl { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 6px 0 0; }
+.ev-more dl div { display: flex; gap: 6px; }
+.ev-more dd { margin: 0; color: var(--v3-ink); font-variant-numeric: tabular-nums; }
+.ob-rv > em.ev-w { color: var(--v3-ink-2); }
+.ev-sw > .ev-sm { margin-left: 6px; }
+.ob-r > .ob-rs { grid-column: 2 / -1; margin-top: -6px; padding-bottom: 6px; padding-left: 18px; font-size: 12px; line-height: 18px; color: var(--v3-mute); }
+.ob-r:has(> .ob-ck0) > .ob-rs { padding-left: 0; }
+/* 3.06 V1042：室内环境指标卡的分段条（按功能区数，段内写数量）与最差的一区；日 × 小时热力图的空格；散点（通风诊断、舒适区） */
+.an-blk-s:has(.an-seg) { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.an-seg { display: flex; gap: 2px; width: 100%; height: 16px; border-radius: 4px; overflow: hidden; }
+.an-seg > i { display: flex; align-items: center; justify-content: center; min-width: 14px; font-size: 11px; line-height: 16px; font-style: normal; font-weight: 600; font-variant-numeric: tabular-nums; }
+.an-worst { font-size: 12px; line-height: 18px; color: var(--v3-mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.an-hm-c.nd, .ops-legend .sq.nd { background: #fff; box-shadow: inset 0 0 0 1px #dedede; }
+.an-hm-d { grid-template-columns: 136px repeat(var(--cols), minmax(0, 1fr)); }
+.an-hm-d .an-hm-n { white-space: nowrap; }
+.an-sc { position: relative; display: grid; grid-template-rows: auto 1fr auto; gap: 0; height: 280px; padding: 0 8px 0 0; font-size: 12px; line-height: 18px; color: var(--v3-mute); }
+.an-sc-yn { justify-self: start; }
+.an-sc-xn { text-align: center; }
+.an-sc + .ops-legend { margin-top: 8px; }
+.an-sc-p { position: relative; margin: 8px 0 22px 32px; border-left: 1px solid #d5d5d5; border-bottom: 1px solid #d5d5d5; }
+.an-sc-gy, .an-sc-gx { position: absolute; pointer-events: none; }
+.an-sc-gy { left: 0; right: 0; border-top: 1px solid #f0f0f0; }
+.an-sc-gy > b { position: absolute; right: calc(100% + 6px); top: -9px; font-weight: 400; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.an-sc-gx { top: 0; bottom: 0; }
+.an-sc-gx > b { position: absolute; top: calc(100% + 4px); left: 0; transform: translateX(-50%); font-weight: 400; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.an-sc-box { position: absolute; border: 1px solid #2e9461; background: rgba(46, 148, 97, 0.08); pointer-events: none; }
+.an-sc-box > small { position: absolute; top: 2px; left: 4px; font-size: 12px; color: #2e6b2e; }
+.an-sc-rx, .an-sc-ry { position: absolute; pointer-events: none; }
+.an-sc-rx { top: 0; bottom: 0; border-left: 1px dashed #a3a3a3; }
+.an-sc-ry { left: 0; right: 0; border-top: 1px dashed #a3a3a3; }
+.an-sc-pt { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; padding: 0; border: 1.5px solid #fff; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12); cursor: pointer; }
+.an-sc-pt.on { width: 16px; height: 16px; margin: -8px 0 0 -8px; box-shadow: 0 0 0 2px #030303; }
+.an-sc-pt:hover { box-shadow: 0 0 0 2px var(--v3-navy); }
+.popitem[aria-disabled="true"] small { display: block; font-size: 12px; line-height: 18px; color: var(--v3-mute); }
 
 }
 @layer base {
@@ -34339,6 +34431,8 @@ button.cfg-kpi.click[aria-expanded="true"] { box-shadow: var(--ds-sh-xs), inset 
 #app[data-page="analysis"] .an4-cards .an-blk-v small { margin: 0; font-size: 12px; line-height: 18px; font-weight: 400; color: #636363; }
 #app[data-page="analysis"] .an4-cards .an-blk-v .v3-tag { align-self: center; margin-left: 4px; }
 #app[data-page="analysis"] .an4-cards .an-blk-s { overflow: hidden; font-size: 12px; line-height: 18px; color: #636363; white-space: nowrap; text-overflow: ellipsis; }
+/* 3.06 V1042：室内环境指标卡下写分段条与最差的一区，卡高随内容 */
+#app[data-page="analysis"] .an4-cards .an-blk:has(.an-seg) { height: auto; min-height: 104px; justify-content: flex-start; gap: 8px; }
 /* 主图卡：标题行为图名、ⓘ、灰字“期间 · 单位 · 范围”，右端为本图的筛选与粒度；下面是 AI 解读与建议行，然后是图，卡底一行数据说明 */
 #app[data-page="analysis"] .an4 > .an-chart > .ops-card { margin: 0; padding: 16px 20px 18px; }
 #app[data-page="analysis"] .an4 > .an-chart > .ops-card > .ops-card-h { align-items: center; }
@@ -54814,6 +54908,15 @@ function renderInventory() {
 // 已交付、已完成等 STATE_TONE.good）写成普通文字，只有需要处理的状态才用标签；原为每行一个绿色标签，要处理的几行淹没在一列绿色里。
 const devState = (text) => (STATE_TONE.good.includes(text) ? esc(text) : stateBadge(text));
 // 设备列表“设备网络”列（2.56 E549）：第一行所属网络，点开为网络详情；系统接入设备写“系统接入”，未规划写“尚未规划”（表里不再有“—”）；
+// 3.06 V1031：按“ · ”分段（.nwg），段内按空格分词（.nw），“·”跟在前一词后；手机上每段整块排、只在空格处折开。
+function nwWords(s) {
+  const ps = String(s ?? "").split(" · ");
+  return `<span class="nwj">${ps.map((p, i) => {
+    const ws = p.split(" ");
+    if (i < ps.length - 1) ws[ws.length - 1] += " ·";
+    return `<span class="nwg">${ws.map((w) => `<span class="nw">${esc(w)}</span>`).join(" ")}</span>`;
+  }).join(" ")}</span>`;
+}
 // 第二行灰字接入方式（Mesh、网关上联；系统接入设备写连接的协议）。
 function devNetworkCell(db, p) {
   const n = p.networkId && g("networks", p.networkId),
@@ -54824,7 +54927,7 @@ function devNetworkCell(db, p) {
     text = [via, to?.name].filter(Boolean).join(" · "),
     // 一行写完（行高保持 56）；电脑上放不下时省略，完整名称在悬停提示里
     long = [...text].reduce((w, c) => w + (c.charCodeAt(0) > 255 ? 14 : 8), 0) > 150;
-  return devLedgerLabel("接入") + (to ? btn(nwSeps(text), conn ? "connectionInfo" : "networkInfo", long ? { id: to.id, tip: text } : { id: to.id }, "ghost flow-lk flow-lk-ref") : access === "system" ? nwSeps(text) : `<span class="muted">尚未规划</span>`);
+  return devLedgerLabel("接入") + (to ? btn(nwWords(text), conn ? "connectionInfo" : "networkInfo", long ? { id: to.id, tip: text } : { id: to.id }, "ghost flow-lk flow-lk-ref") : access === "system" ? nwWords(text) : `<span class="muted">尚未规划</span>`);
 }
 // 2.88 E1126：“位置”列写楼栋、楼层与功能区（E栋 · 7F · 实验室 E）；未放置、未归属功能区的灰字接在楼层后。
 // 3.04 V1029：电脑上写在一行，放不下时省略，只在省略时悬停显示全文。
@@ -55834,9 +55937,9 @@ function deviceRunRows(p) {
           ms: () =>
             `${demo.occupied ? "有人" : "无人"} · ${demo.temp} ℃ · ${demo.rh}%RH${demo.lux != null ? ` · ${fmt(demo.lux)} lx（主照度传感器）` : ""}`,
           fc: () => `${demo.on ? demo.mode + " · 设定 " + demo.setpoint + " ℃" : "关"} · 室温 ${demo.temp} ℃ · 风速 ${demo.fan}`,
-          // 空气质量分为 Q-07 的辅助评分，设备信息保留输入说明；其它显示位置以现行室内环境规范为准。
+          // 3.06 V1050：空气质量分取 CO₂、PM2.5、PM10 中最低的分项分（Q-07），写分与档；加 PM10
           // CO₂ 与照度加千位分隔（规范 2 6，2026-10-09 用户确认，ABB 对比 BP17：原先写“CO₂ 1086 ppm”）
-          aq: () => `CO₂ ${fmt(demo.co2)} ppm · PM2.5 ${demo.pm25} μg/m³ · 空气质量分 ${demo.iaqs}（按 CO₂ 与 PM2.5 计算）`,
+          aq: () => `CO₂ ${fmt(demo.co2)} ppm · PM2.5 ${demo.pm25} μg/m³${demo.pm10 != null ? ` · PM10 ${demo.pm10} μg/m³` : ""}${demo.aqs ? ` · 空气质量分 ${demo.aqs.v} · ${demo.aqs.band}` : ""}`,
         }[p.type]?.()
       : null,
     comm = F.communication(data(), p);
@@ -61560,7 +61663,7 @@ function anMainCard(tab, blocks, chart, { def, fixed = false, foot = "", note = 
   if (U.page === "analysis" && AN_MAIN.metaTail) chart = chart.replace(/<p class="ops-meta">([\s\S]*?)<\/p>/, (m, t) => `<p class="ops-meta">${t ? t + " · " : ""}<span class="ops-nw">${esc(AN_MAIN.metaTail)}</span></p>`);
   // 2.71 V676：主图的“数据表”按钮移到页签行右端“⋯”菜单
   const tk = /data-act="opsTable" data-key="([^"]+)"/.exec(chart);
-  Object.assign(AN_MAIN, { table: tk ? tk[1] : "", tab });
+  Object.assign(AN_MAIN, { table: tk ? tk[1] : "", tab, outPm: /data-outpm="([^"]*)"/.exec(chart)?.[1] || null });
   if (tk && U.page === "analysis") chart = chart.replace(/<button class="btn ghost sm[^"]*" data-act="opsTable" data-key="[^"]+"\s*>数据表<\/button>/, "");
   // 2.71 V678：图头只留粒度切换：“叠加”（室外温度、事件）与加备注收进“⋯”；用电量点开某天的弹窗里也可加备注
   AN_MAIN.note = U.page === "analysis" && /data-act="anNoteAdd"/.test(chart);
@@ -62289,6 +62392,7 @@ const RULE_METRICS = {
   环境越限: [
     ["CO₂", "ppm", ["Q-02", "Q-14"]],
     ["PM2.5", "μg/m³", ["Q-04", "Q-14"]],
+    ["PM10", "μg/m³", ["Q-18", "Q-14"]],
     ["室温偏离设定", "K", ["H-17", "Q-14"]],
     ["相对湿度", "%", ["H-19", "Q-14"]],
   ],
@@ -62382,6 +62486,14 @@ function ruleCond(v) {
       pct = envNum(q14?.cond, /低于阈值\s*(\d+(?:\.\d+)?)\s*%/) ?? 90,
       out = envNum(q14?.cond, /%\s*持续\s*(\d+)\s*min\s*退出/) ?? 15;
     return `${win} 分钟均值 > ${ruleNum(th)} ppm 持续 ${+v.holdMin || hold} 分钟；< ${ruleNum((th * pct) / 100)} ppm 持续 ${out} 分钟解除`;
+  }
+  // 3.06 V1050：PM10 按 Q-18“一般”的上限，24 小时均值，进入与退出按 Q-14
+  if (m[0] === "PM10") {
+    const th = envNum(p("Q-18")?.value, /一般\s*≤\s*([\d,]+)/) ?? 100,
+      hold = envNum(q14?.value, /持续\s*(\d+)\s*min/) ?? 15,
+      pct = envNum(q14?.cond, /低于阈值\s*(\d+(?:\.\d+)?)\s*%/) ?? 90,
+      out = envNum(q14?.cond, /%\s*持续\s*(\d+)\s*min\s*退出/) ?? 15;
+    return `24 小时均值 > ${ruleNum(th)} μg/m³ 持续 ${+v.holdMin || hold} 分钟；< ${ruleNum((th * pct) / 100)} μg/m³ 持续 ${out} 分钟解除`;
   }
   const main = ps[0].s;
   if (m[0] === RULE_NIGHT_METRIC) {
@@ -62824,7 +62936,7 @@ function opsParamItem({ name, meta, value, split = "", pending = false, pid, row
    过渡季取冬夏两个范围合并。值按楼层或功能区覆盖取：功能区 > 楼层 > 楼宇 > 项目。
    空气质量的分档（可视化设计 VD1）：CO₂ 按 Q-01、PM2.5 按 Q-03 分优、良、一般、差，“一般”的上限即参考值；项目在应用设置中把参考值改严时，
    “差”从参考值起算，不另设。 */
-const ENV_REF_CODES = ["Q-01", "Q-02", "Q-03", "Q-16", "H-17", "H-19"];
+const ENV_REF_CODES = ["Q-01", "Q-02", "Q-03", "Q-18", "Q-16", "H-17", "H-19"];
 // 参数行按工作区对象缓存（工作区在每次保存时整份替换）
 const envRowsCache = new WeakMap();
 function envRows(db, pid) {
@@ -62865,7 +62977,8 @@ function envSeason(pid) {
     season = hvacSeason(v13Profile(data(), pid), projectTime(now, false, pid, true).slice(5, 10));
   return { ...season, sk: { cool: "夏季", heat: "冬季", mid: "过渡季" }[season.key] };
 }
-function envRef(pid, { floorId = null, zoneId = null } = {}) {
+// 3.06 V1042：season 指定季节（cool、heat、mid），舒适区按所选期间涉及的季节各画一个框
+function envRef(pid, { floorId = null, zoneId = null, season: sKey = null } = {}) {
   const db = data(),
     P = v13Profile(db, pid),
     rows = envRows(db, pid),
@@ -62877,9 +62990,11 @@ function envRef(pid, { floorId = null, zoneId = null } = {}) {
     },
     q01 = val("Q-01"),
     q03 = val("Q-03"),
+    q18 = val("Q-18"),
     co2 = envNum(val("Q-02"), ENV_CO2_RE) ?? 1000,
     pm = envPmRef(q03),
-    season = envSeason(pid),
+    pm10 = envNum(q18, /一般\s*≤\s*([\d,]+(?:\.\d+)?)/) ?? 100,
+    season = sKey ? { key: sKey, sk: { cool: "夏季", heat: "冬季", mid: "过渡季" }[sKey] } : envSeason(pid),
     // 供冷季按夏季，供暖季按冬季，过渡季取两个范围合并
     pick = (s, su0, wi0) => {
       const su = envPair(s, "夏") || su0,
@@ -62889,22 +63004,26 @@ function envRef(pid, { floorId = null, zoneId = null } = {}) {
   return {
     co2,
     pm,
-    co2Cuts: [Math.min(envNum(q01, /优\s*<\s*([\d,]+)/) ?? 600, co2), Math.min(envNum(q01, /良\s*[\d,]+\s*[–-]\s*([\d,]+)/) ?? 800, co2)],
-    pmCuts: [Math.min(envNum(q03, /优\s*≤\s*([\d,]+(?:\.\d+)?)/) ?? 15, pm), Math.min(envNum(q03, /良\s*≤\s*([\d,]+(?:\.\d+)?)/) ?? 35, pm)],
+    co2Cuts: [Math.min(envNum(q01, /优\s*[<≤]\s*([\d,]+)/) ?? 600, co2), Math.min(envNum(q01, /良\s*(?:[\d,]+\s*[–-]|≤)\s*([\d,]+)/) ?? 800, co2)],
+    // 3.06 V1050：PM2.5“良”上限 25（GB 3095-2026 一级日均）；PM10 按 Q-18（优 ≤ 45 / 良 ≤ 75 / 一般 ≤ 100）
+    pmCuts: [Math.min(envNum(q03, /优\s*≤\s*([\d,]+(?:\.\d+)?)/) ?? 15, pm), Math.min(envNum(q03, /良\s*≤\s*([\d,]+(?:\.\d+)?)/) ?? 25, pm)],
+    pm10: pm10,
+    pm10Cuts: [Math.min(envNum(q18, /优\s*≤\s*([\d,]+(?:\.\d+)?)/) ?? 45, pm10), Math.min(envNum(q18, /良\s*≤\s*([\d,]+(?:\.\d+)?)/) ?? 75, pm10)],
     acK: envAcK(val("H-17")),
     season,
     temp: pick(val("Q-16"), [22, 28], [16, 24]),
     rh: pick(val("H-19"), [40, 80], [30, 60]),
   };
 }
-// CO₂、PM2.5 按浓度分四档（2.53 运营核查 V238）：参考上限以内两档蓝绿深浅（都算达标），超过为琥珀、红；
-// CO₂ ≤ 800 · 800–1,000 · 1,000–1,500 · > 1,500 ppm，PM2.5 ≤ Q-03“优”上限 · 至参考值 · 至 75 · > 75 μg/m³。
-// 档名只在超出时写“偏高”“过高”；“优、良、一般、差、极差”只用于空气质量分。原为“优 / 良 / 一般 / 差”四档与 EPA 四色
-const AQ_BANDS = ["", "", "偏高", "过高"],
-  AQ_COLORS = ["#d4ede8", "#a6d8ce", "#f1c661", "#f0a0a0"];
-const co2Level = (v, ref) => (v <= ref.co2Cuts[1] ? 0 : v <= ref.co2 ? 1 : v <= 1500 ? 2 : 3),
-  pmLevel = (v, ref) => (v <= ref.pmCuts[0] ? 0 : v <= ref.pm ? 1 : v <= 75 ? 2 : 3);
-const aqBandText = (i) => (AQ_BANDS[i] ? ` ${AQ_BANDS[i]}` : "");
+// 3.06 V1050、V1035：CO₂、PM2.5、PM10 与空气质量分同为优、良、一般、差四档（Q-01、Q-03、Q-18），颜色在楼层图、表格、热力图与检视器相同；
+// “一般”的上限即参考上限（GB/T 18883-2022 限值），超过为“差”。原为按浓度的四档（至 1,500 ppm、75 μg/m³）与“偏高”“过高”（2.53 V238）
+const AQ_BANDS = ["优", "良", "一般", "差"],
+  AQ_COLORS = ["#dcf2dc", "#eef5cf", "#ffedbd", "#f9cfc0"],
+  AQ_INK = ["#2e6b2e", "#5c6b1f", "#8a5a00", "#b5341f"];
+const co2Level = (v, ref) => (v <= ref.co2Cuts[0] ? 0 : v <= ref.co2Cuts[1] ? 1 : v <= ref.co2 ? 2 : 3),
+  pmLevel = (v, ref) => (v <= ref.pmCuts[0] ? 0 : v <= ref.pmCuts[1] ? 1 : v <= ref.pm ? 2 : 3),
+  pm10Level = (v, ref) => (v <= ref.pm10Cuts[0] ? 0 : v <= ref.pm10Cuts[1] ? 1 : v <= ref.pm10 ? 2 : 3);
+const aqBandText = (i) => (AQ_BANDS[i] ? ` · ${AQ_BANDS[i]}` : "");
 // 空气质量取 CO₂（当前值）与 PM2.5（24 h 滚动均值）中较差的一档，括号写决定它的一项，两项同档只写档名
 function aqLevel(aq, ref) {
   if (!aq || aq.valid === false || !Number.isFinite(aq.co2) || !Number.isFinite(aq.pm25) || aq.pm25WindowValid === false) return { i: null, by: "", text: "数据不足", valid: false };
@@ -67264,8 +67383,8 @@ const V13_TPL = [
     "室内环境",
     "§13.1",
     "CO₂ 显示分档",
-    "优 < 600 / 良 600–800 / 一般 800–1,000 / 差 > 1,000 ppm",
-    "当前值 1 min 均值，只用于即时着色，不产生告警",
+    "优 ≤ 600 / 良 ≤ 800 / 一般 ≤ 1,000 / 差 > 1,000 ppm",
+    "当前值 5 min 均值，与空气质量分同一口径，只用于即时着色，不产生告警",
     "GB/T 18883-2022 ≤ 0.10 %（1 h）",
     "云端",
     {},
@@ -67276,7 +67395,7 @@ const V13_TPL = [
     "§13.1",
     "CO₂ 超参考阈值",
     "1 h 均值 > 1,000 ppm 标“超参考阈值”",
-    "参考范围按 1 h 均值；告警按 5 min 均值超过本行的值，进入与退出按 Q-14 · 级别提示；当前值 > 1,500 ppm 即时着色，不产生告警",
+    "参考范围按 1 h 均值；告警按 5 min 均值超过本行的值，进入与退出按 Q-14 · 级别提示",
     "GB/T 18883-2022",
     "云端",
     {},
@@ -67286,21 +67405,34 @@ const V13_TPL = [
     "室内环境",
     "§13.1",
     "PM2.5 分档",
-    "优 ≤ 15 / 良 ≤ 35 / 一般 ≤ 50 / 差 > 50 μg/m³",
-    "24 h 滚动均值；当前值同阈值着色并注明“即时”",
-    "GB/T 18883-2022 ≤ 50 μg/m³（24 h）",
+    "优 ≤ 15 / 良 ≤ 25 / 一般 ≤ 50 / 差 > 50 μg/m³",
+    "24 h 滚动均值；当前值为 1 h 均值，与空气质量分同一口径，同阈值着色",
+    "GB/T 18883-2022 ≤ 50 μg/m³（24 h）；GB 3095-2026 一级日均 25 μg/m³",
+    "云端",
+    {},
+  ],
+  // 3.06 V1050：PM10（AQ20 能测，GB/T 18883-2022 有限值）
+  [
+    "Q-18",
+    "室内环境",
+    "§13.1",
+    "PM10 分档",
+    "优 ≤ 45 / 良 ≤ 75 / 一般 ≤ 100 / 差 > 100 μg/m³",
+    "24 h 滚动均值；当前值为 1 h 均值，同阈值着色；24 h 均值 > 100 μg/m³ 告警，进入与退出按 Q-14 · 级别提示",
+    "GB/T 18883-2022 ≤ 100 μg/m³（24 h）",
     "云端",
     {},
   ],
   ["Q-04", "室内环境", "§13.1", "PM2.5 提前提示", "1 h 均值 > 75 μg/m³", "回落到 ≤ 50 μg/m³ 持续 1 h 解除 · 级别提示", "", "云端", {}],
-  ["Q-05", "室内环境", "§13.1", "VOC 指数", "> 150 即时着色，> 250 告警", "只显示指数，不换算 mg/m³；指数是相对值，> 150 不产生告警 · 级别提示", "", "云端", {}],
+  // 3.06 V1050：> 150 着色，> 150 持续 30 min 告警（与 NOx 同一写法；原 > 250 告警没有出处）
+  ["Q-05", "室内环境", "§13.1", "VOC 指数", "> 150 着色；> 150 持续 30 min 告警", "≤ 150 持续 30 min 解除；只显示指数，不换算 mg/m³；参考阈值，按现场标定调整 · 级别提示", "", "云端", {}],
   [
     "Q-06",
     "室内环境",
     "§13.1",
     "NOx 指数",
     "> 20 持续 30 min 告警",
-    "< 10 持续 30 min 解除；阈值待现场标定 · 级别提示",
+    "< 10 持续 30 min 解除；参考阈值，按现场标定调整 · 级别提示",
     "",
     "云端",
     { d: "t", isNew: 1 },
@@ -67310,10 +67442,10 @@ const V13_TPL = [
     "室内环境",
     "§13.2",
     "空气质量分",
-    "0–100，越高越好；按同台同分钟有效 CO₂ 与 PM2.5 计算，作为辅助评分",
-    "任一输入缺测时结果无效；不替代单项浓度与参考范围判断",
-    "",
-    "设备本地",
+    "0–100，越高越好；取 CO₂、PM2.5、PM10 中最低的分项分；优 90–100 / 良 70–89 / 一般 50–69 / 差 0–49",
+    "分项分在 CO₂ 420 / 600 / 800 / 1,000 / 2,000 ppm、PM2.5 0 / 15 / 25 / 50 / 100 μg/m³、PM10 0 / 45 / 75 / 100 / 200 μg/m³ 处为 100 / 90 / 70 / 50 / 0，其间直线插值；CO₂ 5 min 均值，PM2.5、PM10 1 h 均值；缺项按已有的项计算并写“仅 CO₂”；50 分为 GB/T 18883-2022 限值，不是室外 AQI",
+    "GB/T 18883-2022",
+    "云端",
     {},
   ],
   // 室温参考范围（2026-10-09 用户确认，ABB 对比 BP85）：不由平台控制空调的功能区按此判断室温是否在参考范围内（总览、数据分析与报告），
@@ -67335,7 +67467,7 @@ const V13_TPL = [
     "室内环境",
     "§14",
     "读数有效",
-    "温度、湿度、CO₂、PM2.5 连续 24 h 读数完全相同，或超出该型号量程（温度 −10–60 ℃、湿度 0–100 %、CO₂ 0–5,000 ppm、PM2.5 0–1,000 μg/m³），标无效 · 级别提示",
+    "温度、湿度、CO₂、PM2.5 连续 24 h 读数完全相同，或超出该型号量程（温度 −10–60 ℃、湿度 0–100 %、CO₂ 0–5,000 ppm、PM2.5 与 PM10 0–1,000 μg/m³），标无效 · 级别提示",
     "占用传感器连续 72 h 一直有人，或连续 3 个工作日没有一次有人，标无效；无效期间该读数不参与告警判定、统计与控制，功能区写“数据缺失”；读数变化或回到量程内即恢复",
     "",
     "云端",
@@ -68052,6 +68184,11 @@ const V13_EDIT = {
   },
   "Q-03": {
     fields: () => [v13F("pm", "24 小时均值上限", "μg/m³", 35, 50)],
+    read: v13Re(/一般 ≤ (\d+)/),
+    write: ([n], old) => String(old).replace(/一般 ≤ \d+ \/ 差 > \d+/, `一般 ≤ ${n} / 差 > ${n}`),
+  },
+  "Q-18": {
+    fields: () => [v13F("pm10", "24 小时均值上限", "μg/m³", 80, 100)],
     read: v13Re(/一般 ≤ (\d+)/),
     write: ([n], old) => String(old).replace(/一般 ≤ \d+ \/ 差 > \d+/, `一般 ≤ ${n} / 差 > ${n}`),
   },
@@ -70628,7 +70765,7 @@ const setTabOfState = (s) => SET_TAB_OF_CODE[s.r?.code] || SET_APP_TAB[s.t.app] 
 const SET_SHOWN = {
   lighting: (c) => V13_LIGHT_SHOWN.test(c),
   hvac: (c) => ["H-01", "H-02", "H-03", "H-09", "H-10", "H-12", "H-27", "H-28", "H-29"].includes(c),
-  environment: (c) => ["Q-01", "Q-02", "Q-03", "Q-16", "H-19"].includes(c),
+  environment: (c) => ["Q-01", "Q-02", "Q-03", "Q-18", "Q-16", "H-19"].includes(c),
   general: (c) => c === "H-24",
   energy: () => false,
 };
@@ -71012,11 +71149,14 @@ function setHvac(ctx) {
 function setEnv(ctx) {
   const val = (code) => ctx.states.find((x) => x.r.code === code && !x.r.parentId)?.value || "",
     co2 = Number(/> ([\d,]+) ppm/.exec(val("Q-02"))?.[1]?.replace(/,/g, "")) || 1000,
-    pm = Number(/一般 ≤ (\d+)/.exec(val("Q-03"))?.[1]) || 50;
+    pm = Number(/一般 ≤ (\d+)/.exec(val("Q-03"))?.[1]) || 50,
+    pm10 = Number(/一般 ≤ (\d+)/.exec(val("Q-18"))?.[1]) || 100;
   // 2.53 E513：两项都写上限，值即“一般”的上限；E519：弹窗标题“修改 CO₂ 参考范围”等
   const ps = setParts([
     setParamParts(ctx, "Q-02", { name: "CO₂", title: "修改 CO₂ 参考范围", value: () => `≤ ${v13N(co2)} ppm`, desc: "1 小时均值 · 优 ≤ 600 · 良 ≤ 800" }),
-    setParamParts(ctx, "Q-03", { name: "PM2.5", title: "修改 PM2.5 参考范围", value: () => `≤ ${pm} μg/m³`, desc: "24 小时均值 · 优 ≤ 15 · 良 ≤ 35" }),
+    setParamParts(ctx, "Q-03", { name: "PM2.5", title: "修改 PM2.5 参考范围", value: () => `≤ ${pm} μg/m³`, desc: "24 小时均值 · 优 ≤ 15 · 良 ≤ 25" }),
+    // 3.06 V1050：加 PM10 一格（值为“一般”的上限），与告警规则的 PM10 同一版
+    setParamParts(ctx, "Q-18", { name: "PM10", title: "修改 PM10 参考范围", value: () => `≤ ${pm10} μg/m³`, desc: "24 小时均值 · 优 ≤ 45 · 良 ≤ 75" }),
     setParamParts(ctx, "Q-16", { name: "室温", title: "修改室温参考范围", value: (v) => setSeasons(v, ctx.P) }),
     setParamParts(ctx, "H-19", { name: "湿度", title: "修改湿度参考范围", value: (v) => setSeasons(v, ctx.P) }),
   ]);
@@ -71584,14 +71724,39 @@ const DemoService = (() => {
       gwUnknown: ctl.gwOffline,
     };
   }
-  function iaqs(pm, co2, quality = true) {
-    if (!quality || !Number.isFinite(pm) || !Number.isFinite(co2) || pm < 0 || co2 < 0) return null;
-    const dx = (Math.max(0, Math.min(60, pm)) / 60) * 100,
-      dy = (Math.max(0, Math.min(1880, co2 - 420)) / 1880) * 100;
-    return Math.max(0, Math.min(100, Math.round(100 - Math.sqrt(dx * dx + dy * dy))));
+  // 3.06 V1050：空气质量分保留 Ruuvi 的形式（0–100，越高越好），算法改为国家 AQI 的做法：CO₂、PM2.5、PM10 各按下表在各点之间
+  // 直线插值成分项分，取最低的一项并写出主因。50 分正好是 GB/T 18883-2022 的限值，0 分为限值的 2 倍。缺的项不补 0，按已有的项计算
+  // （原为 Ruuvi 的几何距离公式，只用 CO₂ 与 PM2.5，两项都“良”时分数落在“一般”）
+  const AQ_PTS = {
+      co2: [[420, 100], [600, 90], [800, 70], [1000, 50], [2000, 0]],
+      pm25: [[0, 100], [15, 90], [25, 70], [50, 50], [100, 0]],
+      pm10: [[0, 100], [45, 90], [75, 70], [100, 50], [200, 0]],
+    },
+    AQ_KEYS = { co2: "CO₂", pm25: "PM2.5", pm10: "PM10" };
+  function aqSub(k, v) {
+    const p = AQ_PTS[k];
+    if (!p || !Number.isFinite(v) || v < 0) return null;
+    if (v <= p[0][0]) return 100;
+    for (let i = 1; i < p.length; i++) if (v <= p[i][0]) return p[i - 1][1] + ((p[i][1] - p[i - 1][1]) * (v - p[i - 1][0])) / (p[i][0] - p[i - 1][0]);
+    return 0;
   }
-  const iaqsBand = (v) => (!Number.isFinite(v) ? null : v >= 90 ? "极好" : v >= 80 ? "良" : v >= 50 ? "一般" : v >= 10 ? "差" : "极差");
-  const co2Band = (v) => (v < 600 ? "优" : v <= 800 ? "良" : v <= 1000 ? "一般" : "差");
+  // 档：优 90–100、良 70–89、一般 50–69、差 0–49（单项的档与它的分项分同档：CO₂ ≤ 600 / 800 / 1,000，PM2.5 ≤ 15 / 25 / 50，PM10 ≤ 45 / 75 / 100）
+  const iaqsBand = (v) => (!Number.isFinite(v) ? null : v >= 90 ? "优" : v >= 70 ? "良" : v >= 50 ? "一般" : "差"),
+    aqBandIdx = (v) => (!Number.isFinite(v) ? null : v >= 90 ? 0 : v >= 70 ? 1 : v >= 50 ? 2 : 3);
+  // { v, band, i, main, mainKey, only }：only 为缺项时已有的项（“仅 CO₂”），三项都有时为空
+  function aqScore(co2, pm25, pm10) {
+    const parts = [["co2", aqSub("co2", co2)], ["pm25", aqSub("pm25", pm25)], ["pm10", aqSub("pm10", pm10)]].filter(([, x]) => x != null);
+    if (!parts.length) return null;
+    const [mk, ms] = parts.reduce((a, b) => (b[1] < a[1] ? b : a)),
+      v = Math.round(ms);
+    return { v, band: iaqsBand(v), i: aqBandIdx(v), main: AQ_KEYS[mk], mainKey: mk, only: parts.length < 3 ? parts.map(([k]) => AQ_KEYS[k]).join("、") : "" };
+  }
+  // 示例的 PM10 由同一台的 PM2.5 按本区比例换算（1.3–1.7 倍）
+  const pm10K = (z) => between(1.3, 1.7, z.k, "pm10");
+  function iaqs(pm, co2, quality = true, pm10 = null) {
+    return quality ? (aqScore(co2, pm, pm10)?.v ?? null) : null;
+  }
+  const co2Band = (v) => (v <= 600 ? "优" : v <= 800 ? "良" : v <= 1000 ? "一般" : "差");
   /* ---------- 会议室 7-1 今日 CO₂（AQ20 逐分钟，2026-10-08 Vision 核查 V35、V43、V50） ---------- */
   // 会议 NOW 前 60 分钟（9:30）开始，CO₂ 快速上升；5 分钟均值在告警触发（NOW 前 22 分钟）前 15 分钟超过 1,000 ppm，
   // 开始后约 17 分钟起维持在 1,080 ppm 左右并小幅波动（2.44 运营核查 V199：本项目未接入新风，不写加风）。告警（5 分钟均值）、总览（1 分钟均值与 1 h 均值）、
@@ -71728,6 +71893,13 @@ const DemoService = (() => {
     const l = loc(t),
       hh = l.h + l.mi / 60;
     return +(28.4 + between(-1.6, 1.6, dayStart(t), "odT") + 3.2 * Math.sin(((hh - 9) / 24) * 2 * Math.PI)).toFixed(1);
+  };
+  // 3.06 V1042：室外 PM2.5（天气服务按项目地图位置取逐小时数据；示例）
+  const outdoorPmAt = (t) => {
+    if (t > NOW) return null;
+    const l = loc(t),
+      hh = l.h + l.mi / 60;
+    return Math.round(Math.max(3, 22 + between(-12, 14, dayStart(t), "odP") + 6 * Math.sin(((hh - 7) / 24) * 2 * Math.PI)));
   };
   const outdoorDay = (d) => {
     const xs = Array.from({ length: 24 }, (_, h) => outdoorAt(d + h * H + 30 * MIN)).filter((v) => v != null);
@@ -72208,15 +72380,17 @@ const DemoService = (() => {
     if (ctx.series.has(metric)) return ctx.series.get(metric);
     const n = Math.floor((NOW - START) / MIN) + 1, values = new Float64Array(n).fill(NaN), sum = new Float64Array(n + 1), count = new Int32Array(n + 1),
       sources = envSourceGroup(z, metric), cuts = sources.filter((p) => metric === "iaqs" ? envQualityOk(p, "co2") && envQualityOk(p, "pm25") : envQualityOk(p, metric)).map(envSourceCut), cut = cuts.length ? Math.max(...cuts) : -Infinity,
-      paired = metric === "iaqs" ? { co2: envMinuteSeries(z, "co2"), pm25: envMinuteSeries(z, "pm25") } : null,
+      paired = metric === "iaqs" ? { co2: envMinuteSeries(z, "co2"), pm25: envMinuteSeries(z, "pm25"), k10: pm10K(z) } : null,
       eps = metric === "co2" ? co2Eps(z) : null;
     let hour = -Infinity, a = 0, b = 0, va = 0, vb = 0;
     for (let i = 0; i < n; i++) {
       const t = START + i * MIN;
       if (t <= cut) {
         if (paired) {
-          // 仅当同一台设备在同一分钟两项都有效时评分，不能拼接不相交的监测来源。
-          const score = iaqs(paired.pm25.values[i], paired.co2.values[i]);
+          // 3.06 V1050：与当前分同一窗口，CO₂ 5 分钟均值、PM2.5 与 PM10 1 小时均值（PM10 由同台 PM2.5 换算）
+          const win = (x, w) => (i + 1 >= w && x.count[i + 1] - x.count[i + 1 - w] === w ? (x.sum[i + 1] - x.sum[i + 1 - w]) / w : null),
+            pmh = win(paired.pm25, 60),
+            score = iaqs(pmh, win(paired.co2, 5), true, pmh == null ? null : pmh * paired.k10);
           if (envFinite(score)) values[i] = score;
         } else {
           const h = Math.floor(t / H) * H;
@@ -72238,11 +72412,13 @@ const DemoService = (() => {
     if (i < 0 || t > NOW) return null;
     if (metric === "iaqs") {
       const paired = z.aqs.filter((p) => envQualityOk(p, "co2") && envQualityOk(p, "pm25"));
-      return paired.some((p) => t <= envSourceCut(p)) ? iaqs(envMetricAt(z, "pm25", t), envMetricAt(z, "co2", t)) : null;
+      const pmh = envMetricAt(z, "pm25_1h", t);
+      return paired.some((p) => t <= envSourceCut(p)) ? iaqs(pmh, envMetricAt(z, "co2_5m", t), true, pmh == null ? null : pmh * pm10K(z)) : null;
     }
     // co2_5m：5 分钟均值，总览的 CO₂ 与告警同一口径（2.25 V168）
-    const base = metric === "co2_1h" || metric === "co2_5m" ? "co2" : metric === "pm25_24h" ? "pm25" : metric,
-      ctx = envSourceContext(z), cached = ctx.series.get(base), w = metric === "co2_1h" ? 60 : metric === "co2_5m" ? 5 : metric === "pm25_24h" ? 1440 : 1;
+    // 3.06 V1050：pm25_1h 为 1 小时均值，空气质量分与 PM2.5、PM10 的当前值同一口径
+    const base = metric === "co2_1h" || metric === "co2_5m" ? "co2" : metric === "pm25_24h" || metric === "pm25_1h" ? "pm25" : metric,
+      ctx = envSourceContext(z), cached = ctx.series.get(base), w = metric === "co2_1h" ? 60 : metric === "co2_5m" ? 5 : metric === "pm25_24h" ? 1440 : metric === "pm25_1h" ? 60 : 1;
     if (i + 1 < w) return null;
     if (cached) {
       const a = i + 1 - w;
@@ -72263,16 +72439,17 @@ const DemoService = (() => {
   function envWindowBounds(z, metric) {
     const r = typeof envRef === "function" ? envRef(DEMO_IDS.project, { zoneId: z.id }) : null, th = envSourceContext(z).thermal;
     if (!r || metric === "iaqs") return null;
-    return metric.startsWith("co2") ? [null, r.co2] : metric.startsWith("pm25") ? [null, r.pm] : metric === "rh" ? r.rh : th.cool != null ? [th.heat - r.acK, th.cool + r.acK] : r.temp;
+    if (metric === "aq") return [null, 1];
+    return metric.startsWith("co2") ? [null, r.co2] : metric.startsWith("pm25") ? [null, r.pm] : metric === "pm10_24h" ? [null, r.pm10 ?? 100] : metric === "rh" ? r.rh : th.cool != null ? [th.heat - r.acK, th.cool + r.acK] : r.temp;
   }
   // 2.66 V596：forceStep 指定显示粒度（长期间按日显示时，先取逐时 1 h 均值再求日最高、日最低）
   function envHistory(zk, metric, requested = "30", forceStep = 0) {
     const z = typeof zk === "string" ? zoneOf(zk) : zk, rg = requested && typeof requested === "object" && Number.isFinite(requested.from) ? requested : range(requested),
       from = rg.from, to = Math.min(rg.to, NOW), lastIncluded = to === NOW ? to : to - MIN, span = Math.max(0, to - from), step = forceStep || (span <= 2 * DAY ? MIN : span <= 40 * DAY ? H : DAY),
-      points = [], window = metric === "co2_1h" ? "1 小时均值" : metric === "pm25_24h" ? "24 小时均值" : "1 分钟值",
+      points = [], window = metric === "aq" ? "CO₂ 1 小时均值，PM2.5、PM10 24 小时均值" : metric === "co2_1h" ? "1 小时均值" : metric === "pm25_24h" || metric === "pm10_24h" ? "24 小时均值" : "1 分钟值",
       // occ*：工作时间内检测到有人的有效分钟（2.08 全平台优化 Y8：室内环境按有人时间计）；bands：各档分钟数，CO₂、PM2.5 为优 / 良 / 一般 / 差，温度为偏低 / 范围内 / 偏高
       summary = { expectedMinutes: 0, validMinutes: 0, workExpectedMinutes: 0, workValidMinutes: 0, withinMinutes: 0, overMinutes: 0, occValidMinutes: 0, occWithinMinutes: 0, bands: [0, 0, 0, 0], occBasis: "work", daily: {} },
-      base = metric === "co2_1h" ? "co2" : metric === "pm25_24h" ? "pm25" : metric,
+      base = metric === "co2_1h" || metric === "aq" ? "co2" : metric === "pm25_24h" || metric === "pm10_24h" ? "pm25" : metric,
       sourceIds = z ? envSourceGroup(z, base).map((p) => p.id) : [], bounds = z ? envWindowBounds(z, metric) : null,
       wh = workHoursOf(DEMO_IDS.project), hh = (s) => Number(s.slice(0, 2)) * 60 + Number(s.slice(3)),
       workDays = new Map(), workDay = (day) => {
@@ -72285,19 +72462,28 @@ const DemoService = (() => {
         const day = dayStart(t), min = (t - day) / MIN;
         return workDay(day) && min >= hh(wh.from) && min < hh(wh.to);
       };
-    if (!z || !["co2", "co2_1h", "pm25", "pm25_24h", "temp", "rh", "iaqs"].includes(metric) || !(to >= from)) return { points, step, from, to, window, sourceIds, coverage: 0, summary };
+    if (!z || !["co2", "co2_1h", "pm25", "pm25_24h", "pm10_24h", "temp", "rh", "iaqs", "aq"].includes(metric) || !(to >= from)) return { points, step, from, to, window, sourceIds, coverage: 0, summary, bounds };
     const ctx = envSourceContext(z), calendar = data().projects.find((p) => p.id === DEMO_IDS.project)?.holidays, cacheKey = JSON.stringify([metric, from, to, wh.from, wh.to, calendar, bounds, step]),
       // 有 MS20 的功能区按检测到有人的分钟计（每 15 分钟按该类空间的使用规律取一次有人或无人），没有 MS20 的仍按工作时间
       hasOcc = !!z.mss?.length, occAt = (t) => !hasOcc || rand("occ", z.id, Math.floor(t / (15 * MIN))) < occP(z.type, loc(t).h + loc(t).mi / 60, true),
       ref = typeof envRef === "function" ? envRef(DEMO_IDS.project, { zoneId: z.id }) : null,
-      band = (v) => metric.startsWith("co2") ? (ref ? (v <= ref.co2Cuts[1] ? 0 : v <= ref.co2 ? 1 : v <= 1500 ? 2 : 3) : 0) : metric.startsWith("pm25") ? (ref ? (v <= ref.pmCuts[0] ? 0 : v <= ref.pm ? 1 : v <= 75 ? 2 : 3) : 0) : bounds && bounds[0] != null && v < bounds[0] ? 0 : bounds && bounds[1] != null && v > bounds[1] ? 2 : 1;
+      // 3.06 V1050：CO₂、PM2.5、PM10 的档为优、良、一般、差，与空气质量分的分项分同档
+      band = (v) => metric === "aq" ? (v <= 1 ? 0 : 3) : metric.startsWith("co2") || metric.startsWith("pm") ? aqBandIdx(aqSub(metric.startsWith("co2") ? "co2" : metric.startsWith("pm10") ? "pm10" : "pm25", v)) ?? 0 : bounds && bounds[0] != null && v < bounds[0] ? 0 : bounds && bounds[1] != null && v > bounds[1] ? 2 : 1;
     summary.occBasis = hasOcc ? "occ" : "work";
     if (ctx.histories.has(cacheKey)) return ctx.histories.get(cacheKey);
     const read = (series, t, n = 1) => {
       const i = Math.floor((t - START) / MIN), a = i + 1 - n;
       return i >= 0 && i < series.n && a >= 0 && series.count[i + 1] - series.count[a] === n ? (series.sum[i + 1] - series.sum[a]) / n : null;
     }, raw = sourceIds.length ? envMinuteSeries(z, base) : null,
-      at = (t) => raw ? read(raw, t, metric === "co2_1h" ? 60 : metric === "pm25_24h" ? 1440 : 1) : null;
+      // 3.06 V1050：PM10 24 小时均值由同台 PM2.5 换算（示例）
+      k10 = metric === "pm10_24h" || metric === "aq" ? pm10K(z) : 1,
+      // 3.06 V1050“空气质量达标时间”：CO₂（1 小时均值）、PM2.5 与 PM10（24 小时均值）各除以本区参考上限，取最大的比值，≤ 1 为三项同时在限值内；缺项按已有的项
+      pmRaw = metric === "aq" && envSourceGroup(z, "pm25").length ? envMinuteSeries(z, "pm25") : null,
+      at = metric === "aq" ? (t) => {
+        const c = raw ? read(raw, t, 60) : null, p = pmRaw ? read(pmRaw, t, 1440) : null,
+          xs = [c == null || !ref?.co2 ? null : c / ref.co2, p == null || !ref?.pm ? null : p / ref.pm, p == null || !ref?.pm10 ? null : (p * k10) / ref.pm10].filter(envFinite);
+        return xs.length ? Math.max(...xs) : null;
+      } : (t) => { const v = raw ? read(raw, t, metric === "co2_1h" ? 60 : metric === "pm25_24h" || metric === "pm10_24h" ? 1440 : 1) : null; return v == null ? v : v * k10; };
     // 早于数据起点及未来整日仍保留空点，不制造历史；已发生的分钟进入完整率分母。
     for (let a = from; a <= lastIncluded; a += step) {
       const last = Math.min(a + step - MIN, lastIncluded), startMinute = Math.ceil(a / MIN) * MIN;
@@ -72338,9 +72524,9 @@ const DemoService = (() => {
           }
         }
       }
-      points.push({ t: Math.min(a + step - MIN, lastIncluded), v: valid && valid === expected ? +(total / valid).toFixed(metric === "temp" || metric === "rh" || metric.startsWith("pm25") ? 1 : 0) : null, quality: !valid ? "missing" : valid === expected ? "valid" : "partial", validMinutes: valid, expectedMinutes: expected });
+      points.push({ t: Math.min(a + step - MIN, lastIncluded), v: valid && valid === expected ? +(total / valid).toFixed(metric === "aq" ? 2 : metric === "temp" || metric === "rh" || metric.startsWith("pm25") ? 1 : 0) : null, quality: !valid ? "missing" : valid === expected ? "valid" : "partial", validMinutes: valid, expectedMinutes: expected });
     }
-    const result = { points, step, from, to, window, sourceIds, coverage: summary.expectedMinutes ? summary.validMinutes / summary.expectedMinutes * 100 : 0, summary };
+    const result = { points, step, from, to, window, sourceIds, coverage: summary.expectedMinutes ? summary.validMinutes / summary.expectedMinutes * 100 : 0, summary, bounds };
     ctx.histories.set(cacheKey, result);
     return result;
   }
@@ -72351,29 +72537,55 @@ const DemoService = (() => {
         const lastAt = envSourceCut(p), online = !offline(p) && !ctl.gwOffline, age = Math.max(0, (NOW - lastAt) / MIN),
           co2Valid = online && age <= 5 && envQualityOk(p, "co2"), pm25Valid = online && age <= 5 && envQualityOk(p, "pm25"), valid = co2Valid && pm25Valid,
           co2 = envRawAt(z, "co2", lastAt, ctx), pm25Now = envRawAt(z, "pm25", lastAt, ctx),
-          pm25 = envMetricAt(z, "pm25_24h", lastAt), co2h = envMetricAt(z, "co2_1h", lastAt), co2m = envMetricAt(z, "co2_5m", lastAt);
-        return { id: p.id, name: p.name, online, valid, co2Valid, pm25Valid, lastAt, age, co2, co2h, co2m, pm25Now, pm25, pm25WindowValid: pm25Valid && envFinite(pm25),
-          pm10: envFinite(pm25Now) ? Math.round(pm25Now * between(1.3, 1.7, z.k, "pm10")) : null, voc: Math.round(between(78, 132, z.k, "voc")), nox: 1, iaqs: iaqs(pm25Now, co2, valid), quality: !online ? "offline" : age > 5 ? "stale" : valid ? "valid" : co2Valid || pm25Valid ? "partial" : "invalid", pos: reg(p).aqPos || "", rep: reg(p).aqRep || "" };
+          pm25 = envMetricAt(z, "pm25_24h", lastAt), co2h = envMetricAt(z, "co2_1h", lastAt), co2m = envMetricAt(z, "co2_5m", lastAt),
+          // 3.06 V1050：PM2.5、PM10 的当前值为 1 小时均值，空气质量分用同一个值（CO₂ 为 5 分钟均值）
+          pm25h = envMetricAt(z, "pm25_1h", lastAt), pm10 = envFinite(pm25h) ? Math.round(pm25h * pm10K(z)) : null,
+          aqs = online && age <= 5 ? aqScore(co2Valid ? co2m : null, pm25Valid ? pm25h : null, pm25Valid ? pm10 : null) : null;
+        return { id: p.id, name: p.name, online, valid, co2Valid, pm25Valid, lastAt, age, co2, co2h, co2m, pm25Now, pm25, pm25h, pm25WindowValid: pm25Valid && envFinite(pm25),
+          pm10, pm1: envFinite(pm25h) ? Math.round(pm25h * 0.72) : null, pm4: envFinite(pm25h) ? Math.round(pm25h * 1.12) : null, hpa: Math.round(between(1004, 1016, z.k, "hpa")),
+          voc: Math.round(between(78, 132, z.k, "voc")), nox: 1, iaqs: aqs?.v ?? null, aqs, quality: !online ? "offline" : age > 5 ? "stale" : valid ? "valid" : co2Valid || pm25Valid ? "partial" : "invalid", pos: reg(p).aqPos || "", rep: reg(p).aqRep || "" };
       }), active = sources.filter((p) => p.valid), co2Sources = sources.filter((p) => p.co2Valid), pm25Sources = sources.filter((p) => p.pm25Valid), last = [...sources].sort((a, b) => b.lastAt - a.lastAt)[0],
       chosen = active.length ? active : last ? [last] : [], avg = (key, members = chosen) => { const xs = members.map((p) => p[key]).filter(envFinite); return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null; },
       co2 = avg("co2", co2Sources.length ? co2Sources : chosen), pm25Now = avg("pm25Now", pm25Sources.length ? pm25Sources : chosen), pm25 = avg("pm25", pm25Sources.length ? pm25Sources : chosen), valid = active.length > 0,
       lastAt = chosen.length ? Math.min(...chosen.map((p) => p.lastAt)) : null;
     return { co2, co2h: avg("co2h", co2Sources.length ? co2Sources : chosen), co2m: avg("co2m", co2Sources.length ? co2Sources : chosen), co2Valid: co2Sources.length > 0, pm25Valid: pm25Sources.length > 0, pm25Now, pm25, pm25WindowValid: pm25Sources.length > 0 && pm25Sources.every((p) => p.pm25WindowValid),
-      iaqs: iaqs(avg("pm25Now", active), avg("co2", active), valid), voc: valid ? Math.round(between(78, 132, z.k, "voc")) : null, nox: valid ? 1 : null,
+      ...((co2m, pm25h, pm10) => {
+        const aqs = aqScore(co2m, pm25h, pm10);
+        return { pm25h, pm10: envFinite(pm10) ? Math.round(pm10) : null, aqs, iaqs: aqs?.v ?? null };
+      })(co2Sources.length ? avg("co2m", co2Sources) : null, pm25Sources.length ? avg("pm25h", pm25Sources) : null, pm25Sources.length ? avg("pm10", pm25Sources) : null),
+      pm1: pm25Sources.length ? avg("pm1", pm25Sources) : null, pm4: pm25Sources.length ? avg("pm4", pm25Sources) : null, hpa: avg("hpa"),
+      voc: valid ? Math.round(between(78, 132, z.k, "voc")) : null, nox: valid ? 1 : null,
       age: lastAt == null ? null : Math.max(0, (NOW - lastAt) / MIN), lastAt, online: sources.some((p) => p.online), valid,
       quality: !sources.some((p) => p.online) ? "offline" : valid ? "valid" : co2Sources.length || pm25Sources.length ? "partial" : sources.some((p) => p.quality === "stale") ? "stale" : "invalid", sources,
       representative: active.length > 0 && active.every((p) => p.rep === "zone") && active.length === sources.length };
+  }
+  // 3.06 V1039：检视器的 24 小时小趋势，每 30 分钟一个均值（PM10 由同台 PM2.5 换算；VOC、NOx 指数为器件的相对指数）
+  function envSpark(zk, k) {
+    const z = typeof zk === "string" ? zoneOf(zk) : zk;
+    if (!z) return [];
+    const n = 48, step = 30 * MIN, from = NOW - n * step;
+    if (k === "voc" || k === "nox") {
+      const v0 = aqCurrent(z)[k];
+      if (!envFinite(v0)) return [];
+      return Array.from({ length: n }, (_, i) => (i === n - 1 || k === "nox" ? v0 : Math.round(v0 + (rand("vocs", z.id, i) - 0.5) * 24 + (rand("vocs", z.id, i + 1) - 0.5) * 12)));
+    }
+    const m = { co2: "co2", pm: "pm25", pm10: "pm25", temp: "temp", rh: "rh" }[k];
+    if (!m) return [];
+    const kk = k === "pm10" ? pm10K(z) : 1;
+    return envHistory(z, m, { from, to: NOW }, step).points.slice(-n).map((p) => (p.v == null ? null : p.v * kk));
   }
   // 参考范围时长也从同源分钟窗口统计；只在实际有效的工作时间内求比例，并同时返回覆盖。
   function compliance(key = "7") {
     return zones().map((z) => {
       const c = envHistory(z, "co2_1h", key), p = envHistory(z, "pm25_24h", key), t = envHistory(z, "temp", key),
+        // 3.06 V1042：加 PM10、湿度与空气质量达标时间（三项同时在限值内）
+        p10 = envHistory(z, "pm10_24h", key), h = envHistory(z, "rh", key), a = envHistory(z, "aq", key),
         // 分母为工作时间内检测到有人的有效分钟（Y8；没有 MS20 的按工作时间，原为 ANALYSIS02 的工作时间有效分钟）
         ratio = (x) => x.summary.occValidMinutes ? +(x.summary.occWithinMinutes / x.summary.occValidMinutes * 100).toFixed(1) : null,
         share = (x) => (x.summary.occValidMinutes ? x.summary.bands.map((n) => (n / x.summary.occValidMinutes) * 100) : null),
         co2 = ratio(c), pm = ratio(p), temp = ratio(t), r = typeof envRef === "function" ? envRef(DEMO_IDS.project, { zoneId: z.id }) : null,
         tBasis = z.fcs.length || z.idus.length ? (r ? envAcText(r.acK) : "供热设定 −2 ℃ 至供冷设定 +2 ℃") : r ? `${r.season.sk} ${envN(r.temp[0])}–${envN(r.temp[1])} ℃` : "参考范围待登记";
-      return { z, co2, pm, temp, tBasis, worst: Math.min(...[co2, pm, temp].filter(envFinite), 100), coverage: { co2: c.coverage, pm: p.coverage, temp: t.coverage }, durations: { co2: c.summary, pm: p.summary, temp: t.summary },
+      return { z, co2, pm, temp, pm10: ratio(p10), rh: ratio(h), aq: ratio(a), tBasis, worst: Math.min(...[co2, pm, temp, ratio(p10), ratio(h)].filter(envFinite), 100), coverage: { co2: c.coverage, pm: p.coverage, temp: t.coverage, pm10: p10.coverage, rh: h.coverage, aq: a.coverage }, durations: { co2: c.summary, pm: p.summary, temp: t.summary, pm10: p10.summary, rh: h.summary, aq: a.summary },
         bands: { co2: share(c), pm: share(p), temp: share(t) }, occH: (c.summary.occMinutes ?? t.summary.occMinutes ?? Math.max(c.summary.occValidMinutes, t.summary.occValidMinutes)) / 60, basis: c.summary.occBasis };
     });
   }
@@ -72889,6 +73101,7 @@ const DemoService = (() => {
     idleAc,
     nightW,
     outdoorAt,
+    outdoorPmAt,
     outdoorDay,
     savingsIn,
     zoneEnergy,
@@ -72934,6 +73147,9 @@ const DemoService = (() => {
     ctl,
     iaqs,
     iaqsBand,
+    aqScore,
+    aqSub,
+    aqBandIdx,
     co2Band,
     series,
     days,
@@ -72950,6 +73166,7 @@ const DemoService = (() => {
     BENCH,
     usage,
     compliance,
+    envSpark,
     co2Hours,
     envSeries,
     envHistory,
@@ -73366,7 +73583,7 @@ const DRAW = {
       n = sp.xs.length,
       pw = w - L - R,
       x = (i) => L + (n === 1 ? pw / 2 : (pw * i) / (n - 1)),
-      all = sp.series.flatMap((s) => s.vals).filter((v) => v != null),
+      all = [...sp.series.flatMap((s) => s.vals), ...(sp.range ? [...sp.range.lo, ...sp.range.hi] : [])].filter((v) => v != null),
       sc0 = sp.yStates ? { min: sp.yStates[0][0], max: sp.yStates.at(-1)[0], step: sp.yStates.at(-1)[0] - sp.yStates[0][0] || 1 } : sp.yMin != null ? niceRange(sp.yMin, Math.max(...all, ...(sp.refs || []).map((r) => r.v))) : niceScale(Math.max(...all, ...(sp.refs || []).map((r) => r.v), sp.yMax || 0)),
       // 2.84 V836：台数只有整数，纵轴刻度取整数
       sc = !sp.yStates && sp.unitShort === "台" && sc0.step < 1 ? { min: Math.floor(sc0.min || 0), max: Math.max(Math.floor(sc0.min || 0) + 1, Math.ceil(sc0.max)), step: 1 } : sc0,
@@ -73397,6 +73614,16 @@ const DRAW = {
       g += `<rect class="ops-gaph" x="${x0}" y="${T}" width="${Math.max(3, x1 - x0)}" height="${h - T - B}" fill="url(#opsHatch)"/>`;
     });
     (sp.bands || []).forEach((b) => (g += `<rect x="${x(b.from)}" y="${T}" width="${x(b.to) - x(b.from)}" height="${h - T - B}" fill="${b.fill || "#f3f3f1"}"/>`));
+    // 3.06 V1042：折线后的浅色带（range.lo 至 range.hi，如每日最低到最高），缺数处断开
+    if (sp.range) {
+      let seg = [];
+      const flush = () => {
+        if (seg.length > 1) g += `<path class="ops-tband" d="M${seg.map((i) => `${x(i)},${y(sp.range.hi[i])}`).join(" L")} L${[...seg].reverse().map((i) => `${x(i)},${y(sp.range.lo[i])}`).join(" L")} Z" fill="${sp.range.fill || "#e6edf7"}"/>`;
+        seg = [];
+      };
+      sp.xs.forEach((_, i) => (sp.range.lo[i] == null || sp.range.hi[i] == null ? flush() : seg.push(i)));
+      flush();
+    }
     // 2.81 KW36：告警时段从触发到恢复画整高的浅红底，对象页在顶部写告警名
     // 2.84 V836：名称放不下时只在悬停写；网关的下级设备告警（st）只画在状态条上，见下方状态条之后
     const alX = (b) => [x(Math.max(0, b.a - 0.5)), x(Math.min(n - 1, b.b + 0.5))];
@@ -73450,7 +73677,7 @@ const DRAW = {
       });
       out();
       // 2.80 KW20：线宽 1.5；数据点只在悬停时显示（r3），最新值保留一个点（取代线宽 2、数据点 r4 常显）
-      g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"${s.dash ? ' stroke-dasharray="5 4"' : ""}/>`;
+      g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.thin ? 1 : 1.5}" stroke-linejoin="round" stroke-linecap="round"${s.dash ? ' stroke-dasharray="5 4"' : ""}/>`;
       const li = s.vals.findLastIndex((v) => v != null);
       if ((s.endDot || s.dots) && li >= 0) g += `<circle cx="${x(li)}" cy="${y(s.vals[li])}" r="3" fill="${s.color}" stroke="#fff" stroke-width="1.5"/>`;
       if (sp.endLabels && li >= 0) (sp._labs ||= []).push([x(li) + 8, y(s.vals[li]) + 4, s.short || s.name, s.color]);
@@ -73953,7 +74180,8 @@ function chartCard({ title, meta, legend = [], body, table: tb, id, cls = "", ex
   const say = aria || `${opsPlain(title)}${meta ? `；${opsPlain(meta)}` : ""}${tb ? "，数值见数据表" : ""}`;
   body = body.replace(/role="img" aria-label=""/g, `role="img" aria-label="${esc(say)}"`);
   // 2.66 V555：图上有事件时图例末尾加“事件”；2.75 V712：数据分析的图例只写系列名称，事件圆点悬停即见内容
-  if (U.page !== "analysis" && [...body.matchAll(/data-cid="(oc\d+)"/g)].some((m) => OPS.charts[m[1]]?.events?.length)) legend = [...legend, ["#636363", "事件", "dot"]];
+  // 3.06 V1042：数据分析室内环境的趋势也在图例末尾写“事件”
+  if ((U.page !== "analysis" || cls.includes("an-env-trend")) && [...body.matchAll(/data-cid="(oc\d+)"/g)].some((m) => OPS.charts[m[1]]?.events?.length)) legend = [...legend, ["#636363", "事件", "dot"]];
   // 2.71 V679：数据分析里柱图有两个及以上系列时图例为开关（高 24、圆点 8，关闭的半透明）；折线在线末端写名称时图例不重复
   const sp0 = U.page === "analysis" ? OPS.charts[/data-cid="(oc\d+)"/.exec(body)?.[1]] : null,
     // 图例名称可带期间合计（如“照明插座 1,234”），按系列名开头对应
@@ -74250,11 +74478,10 @@ function envTempDir(s) {
     off = tempOff(s);
   return off != null ? (off > r.acK ? 1 : off < -r.acK ? -1 : 0) : s.temp < r.temp[0] ? -1 : s.temp > r.temp[1] ? 1 : 0;
 }
+// 3.06 V1038：空气图层的“温度”与其他指标同一写法（偏低、适宜、偏高三档，适宜也上色）
 const OPS_ENV_TEMP = {
   ...OPS_LAYERS.temp,
-  fill: (s) => (!s.ms?.count ? "unmon" : s.gwUnknown || !s.sensor || !Number.isFinite(s.temp) ? "hatch" : [RAMP.cool[1], "#efefed", RAMP.warm[1]][envTempDir(s) + 1]),
-  text: (s) => (s.temp == null ? "" : `${nf(s.temp, 1)} ℃`),
-  legend: [[RAMP.cool[1], "低于参考范围"], ["#efefed", "参考范围内"], [RAMP.warm[1], "高于参考范围"], ["hatch", "数据不足"], ["unmon", "未监测"]],
+  ...airLayer("temp", "温度", "℃", 1),
   tip: "按本区有效读数判断，与“温度”摘要相同：平台控制空调的区域按室温偏离设定，其他区域按当前项目、季节的参考范围。",
 };
 /* 2.66 V361、V365、V370、V372：运营页面楼层图按设计稿色阶；斜纹只表示功能区没有读数（照明为没有照明控制器，环境为未监测，占用为没有传感器或全部离线），
@@ -74271,6 +74498,142 @@ function ovAqLegend(k, r) {
   return xs.map((t, i) => [OV_AQ[i], t]).filter((x, i) => i !== 1 || a < top);
 }
 const ovRhOut = (s) => s.rh < zoneRef(s).rh[0] || s.rh > zoneRef(s).rh[1];
+/* 3.06 V1038、V1050、V1035：空气图层。有当前有效读数的功能区都按档上色（优、良也上色，取消 2.74 V701 空气图层“正常为白”）；
+   没有读数分三种：未监测（浅灰斜纹，不写值）、传感器离线（灰底，写“离线”）、数据不足（白底点线边，写“数据不足”）。
+   CO₂、PM2.5、PM10 与空气质量分为优、良、一般、差（同一组颜色），VOC 指数为中性灰三档（只在高于基线较多时写“偏高”），温湿度为偏低、适宜、偏高。
+   标签：读数 16/24、字重 600，单位 12/18 正体；超过参考上限（差）或偏离参考范围时读数后加状态词，空气质量分在 70 以下时写主因（“46 · CO₂”）；
+   只代表局部的监测点加“局部”，不计入本层结论。窗口：CO₂ 5 分钟均值，PM2.5、PM10 1 小时均值，与空气质量分同一个值 */
+const VOC_FILL = ["#f2f2f2", "#e3e3e3", "#cfcfcf"],
+  TH_FILL = [RAMP.cool[1], "#dcf2dc", RAMP.warm[1]],
+  AIR_WORDS = { aq: AQ_BANDS, co2: AQ_BANDS, pm: AQ_BANDS, pm10: AQ_BANDS, voc: ["", "", "偏高"], nox: ["", "", "偏高"], temp: ["偏低", "适宜", "偏高"], rh: ["偏低", "适宜", "偏高"] };
+const aqPart = (s) => s.z.aqs.length > 0 && s.z.aqs.every((p) => aqRegOf(p).rep === "part");
+function airVal(s, k) {
+  if (s.gwUnknown) return null;
+  if (k === "temp" || k === "rh") return s.sensor && Number.isFinite(s[k]) ? s[k] : null;
+  const q = s.aq;
+  if (!q) return null;
+  if (k === "aq") return q.aqs && aqLive(q, q.co2Valid || q.pm25Valid) ? q.aqs.v : null;
+  if (k === "co2") return opsAqCurrent(s) ? co2Of(s) : null;
+  const m = { pm: "pm25h", pm10: "pm10", voc: "voc", nox: "nox" }[k];
+  return opsAqCurrent(s, m) ? q[m] : null;
+}
+function airLevel(s, k, v) {
+  if (!Number.isFinite(v)) return null;
+  if (k === "aq") return Demo.aqBandIdx(v);
+  if (k === "voc") return v <= 100 ? 0 : v <= 150 ? 1 : 2;
+  if (k === "nox") return v <= 1 ? 0 : v <= 20 ? 1 : 2;
+  if (k === "temp") return envTempDir(s) + 1;
+  const r = zoneRef(s);
+  return k === "co2" ? co2Level(v, r) : k === "pm" ? pmLevel(v, r) : k === "pm10" ? pm10Level(v, r) : v < r.rh[0] ? 0 : v > r.rh[1] ? 2 : 1;
+}
+// 没有读数的三种：nomon 未监测、devoff 传感器全部离线、nodata 数据不足
+function airState(s, k) {
+  const th = k === "temp" || k === "rh",
+    ps = th ? s.z.mss : s.z.aqs;
+  return !ps.length ? "nomon" : s.gwUnknown ? "" : ps.every(Demo.offline) ? "devoff" : airVal(s, k) == null ? "nodata" : "";
+}
+const airFill = (k, i) => (k === "voc" || k === "nox" ? VOC_FILL : k === "temp" || k === "rh" ? TH_FILL : OV_AQ)[i];
+// 读数后的状态词：超过参考上限（差）、偏离参考范围、VOC 偏高；空气质量分 70 以下写主因
+function airFlag(s, k) {
+  if (airState(s, k)) return "";
+  const v = airVal(s, k),
+    i = airLevel(s, k, v);
+  return k === "aq" ? (v < 70 ? s.aq.aqs.main : "") : (k === "temp" || k === "rh" ? i !== 1 : k === "voc" ? i === 2 : i === 3) ? AIR_WORDS[k][i] : "";
+}
+function airLayer(k, label, unit, dg = 0) {
+  const num = (s) => nf(airVal(s, k), dg) + (unit && unit !== "%" ? ` ${unit}` : unit);
+  return {
+    label,
+    short: (s) => ({ nomon: "", devoff: "离线", nodata: "数据不足" })[airState(s, k)] ?? nf(airVal(s, k), dg),
+    fill: (s) => (s.gwUnknown ? "" : airState(s, k) || airFill(k, airLevel(s, k, airVal(s, k)))),
+    text: (s) => ({ nomon: "", devoff: "离线", nodata: "数据不足" })[airState(s, k)] ?? num(s),
+    flag: (s) => [airFlag(s, k), airState(s, k) || k === "temp" || k === "rh" || !aqPart(s) ? "" : "局部"].filter(Boolean).join("|"),
+    say: (s) => {
+      const st = airState(s, k);
+      if (st) return { nomon: "未监测", devoff: k === "temp" || k === "rh" ? "占用传感器离线" : "空气质量传感器离线", nodata: "数据不足" }[st];
+      const v = airVal(s, k),
+        w = AIR_WORDS[k][airLevel(s, k, v)],
+        q = k === "aq" ? s.aq.aqs : null;
+      return [`${label} ${num(s)}`, w, q && v < 70 ? `主因 ${q.main}` : "", q?.only ? `仅 ${q.only}` : "", aqPart(s) && k !== "temp" && k !== "rh" ? "只代表局部" : ""].filter(Boolean).join(" · ");
+    },
+    cls: (s) => (airState(s, k) ? "dim" : airFlag(s, k) ? "over" : ""),
+    legend: [],
+    tip: "",
+  };
+}
+/* 3.06 V1039：室内环境单项列表（检视器与对象页共用）。当前值与楼层图同一个值（CO₂ 5 分钟均值，PM2.5、PM10 1 小时均值），按档写状态词并同色；
+   目标为应用设置的参考范围（温湿度按当季，平台控制空调的区域室温按设定 ± H-17）；近 7 天达标为有人时间内在目标内的比例（CO₂ 1 小时均值，PM 24 小时均值，同 GB/T 18883）；
+   VOC、NOx 指数没有国标限值，目标与达标写“—”；PM1、PM4 与气压在“更多”里，照度在照明一节 */
+const ENV_ITEMS = [["co2", "CO₂", "ppm", 0, "co2_1h"], ["pm", "PM2.5", "μg/m³", 0, "pm25_24h"], ["pm10", "PM10", "μg/m³", 0, "pm10_24h"], ["voc", "VOC 指数", "", 0, null], ["nox", "NOx 指数", "", 0, null], ["temp", "温度", "℃", 1, "temp"], ["rh", "湿度", "%", 0, "rh"]],
+  ENV_INK = { aq: AQ_INK, th: ["#2d5ba8", "#2e6b2e", "#8a5a00"], ix: ["#7a7a7a", "#7a7a7a", "#3d3d3d"] },
+  AQ_INFO = "取 CO₂、PM2.5、PM10 中最低的分项分；50 分为 GB/T 18883-2022 限值；不是室外 AQI。",
+  AQ_TIP = { co2: "通风不足，检查新风或开窗", pm25: "颗粒物偏高，关窗或开启净化", pm10: "颗粒物偏高，关窗或开启净化" };
+const envGrp = (k) => (k === "temp" || k === "rh" ? "th" : k === "voc" || k === "nox" ? "ix" : "aq"),
+  envUnit = (v, u) => (!u ? `${v}` : u === "%" ? `${v}%` : `${v} ${u}`),
+  envTarget = (b, u) => (!b ? "—" : b[0] == null ? `≤ ${envUnit(nf(b[1]), u)}` : envUnit(`${envN(b[0])}–${envN(b[1])}`, u));
+function envItems(s) {
+  const z = s.z;
+  return ENV_ITEMS.filter(([k]) => (envGrp(k) === "th" ? z.mss.length : z.aqs.length)).map(([k, name, unit, dg, hk]) => {
+    const st = s.gwUnknown ? "" : airState(s, k),
+      v = st ? null : airVal(s, k),
+      i = v == null ? null : airLevel(s, k, v),
+      h = hk && !s.gwUnknown ? Demo.envHistory(z, hk, "7") : null,
+      sm = h?.summary;
+    return { k, name, unit, dg, st, v, i, word: i == null ? "" : AIR_WORDS[k][i] || "", fill: i == null ? "" : airFill(k, i), ink: i == null ? "#a3a3a3" : ENV_INK[envGrp(k)][i], b: h?.bounds || null,
+      text: v == null ? ({ devoff: "离线", nodata: "数据不足" }[st] || "—") : envUnit(nf(v, dg), unit), target: hk ? envTarget(h?.bounds, unit) : "—",
+      // 不足 100% 时最多写 99%，避免四舍五入后与当前超标的读数矛盾
+      pct: hk && sm?.occValidMinutes ? `${sm.occWithinMinutes === sm.occValidMinutes ? 100 : Math.min(99, Math.round((sm.occWithinMinutes / sm.occValidMinutes) * 100))}%` : "—" };
+  });
+}
+// 24 小时小趋势：64 × 20，线色随最后一档，参考线 1px 虚线（CO₂、PM 为参考上限，温湿度为参考范围落在图内的边），缺测断开
+function envSparkSvg(z, it) {
+  const xs = it.st ? [] : Demo.envSpark(z, it.k),
+    vs = xs.filter(Number.isFinite);
+  if (vs.length < 2) return '<span class="ev-sp0" aria-hidden="true"></span>';
+  let lo = Math.min(...vs),
+    hi = Math.max(...vs),
+    refs = it.b ? it.b.filter((x) => x != null) : [];
+  if (envGrp(it.k) === "aq") refs = refs.filter((x) => x <= hi * 1.5);
+  if (envGrp(it.k) === "aq") (lo = Math.min(lo, ...refs)), (hi = Math.max(hi, ...refs));
+  else refs = refs.filter((x) => x >= lo && x <= hi);
+  if (hi - lo < 1e-6) (hi += 1), (lo -= 1);
+  const X = (i) => ((i / (xs.length - 1)) * 64).toFixed(1),
+    Y = (v) => (2 + (1 - (v - lo) / (hi - lo)) * 16).toFixed(1);
+  let d = "",
+    pen = false;
+  xs.forEach((v, i) => {
+    if (!Number.isFinite(v)) return void (pen = false);
+    d += `${pen ? "L" : "M"}${X(i)} ${Y(v)}`;
+    pen = true;
+  });
+  return `<svg class="ev-sp" width="64" height="20" viewBox="0 0 64 20" aria-hidden="true">${refs.map((r) => `<line x1="0" x2="64" y1="${Y(r)}" y2="${Y(r)}" stroke="#a3a3a3" stroke-dasharray="2 2"/>`).join("")}<path d="${d}" fill="none" stroke="${it.ink}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+// 检视器：上方为空气质量分（大字、档、主因与处理提示，V1050），下面每行一个指标；宽 360 与手机相同，“24 小时”与“目标”在第二行；
+// 点一行打开对象页并在趋势中选中该指标
+function ovEnvSec(s) {
+  const z = s.z,
+    gw = s.gwUnknown,
+    items = envItems(s),
+    un = [...(z.aqs.length ? [] : ["CO₂、PM2.5、PM10"]), ...(z.mss.length ? [] : ["温湿度"])],
+    go = obOk(obParse("zone:" + z.id));
+  let head = "";
+  if (z.aqs.length) {
+    const st = gw ? "" : airState(s, "aq"),
+      v = gw || st ? null : airVal(s, "aq"),
+      q = s.aq?.aqs;
+    head =
+      v == null
+        ? `<div class="ev-sc na"><b>—</b><span><span class="ev-sw">空气质量分${gw ? "" : ` · ${{ devoff: "传感器离线", nodata: "数据不足" }[st] || "数据不足"}`}</span></span></div>`
+        : `<div class="ev-sc"><b style="color:${AQ_INK[q.i]}">${v}</b><span><span class="ev-sw"><em class="ev-w" style="background:${airFill("aq", q.i)}">${q.band}</em>${((t) => (t ? `<span class="ev-sm">${esc(t)}</span>` : ""))([v < 70 ? `主因 ${q.main}` : "", q.only ? `仅 ${q.only}` : "", aqPart(s) ? "局部" : ""].filter(Boolean).join(" · "))}${opsInfo("空气质量分", esc(AQ_INFO))}</span>${v < 70 ? `<small>${AQ_TIP[q.mainKey]}</small>` : ""}</span></div>`;
+  }
+  const row = (it) => {
+    const tag = go ? "button" : "div";
+    return `<${tag}${go ? ` type="button" data-act="opsObjMetric" data-o="zone:${esc(z.id)}" data-k="${it.k}" aria-label="${esc(`${it.name} ${it.text}${it.word ? ` ${it.word}` : ""}，查看趋势`)}"` : ""} class="ev-r${it.v == null ? " na" : ""}"><span class="ev-n">${esc(it.name)}</span><span class="ev-v">${gw ? "—" : esc(it.text)}${it.word ? `<em class="ev-w" style="background:${it.fill}">${it.word}</em>` : ""}</span><span class="ev-p">${gw ? "—" : it.pct}</span><span class="ev-l2">${gw ? '<span class="ev-sp0" aria-hidden="true"></span>' : envSparkSvg(z, it)}<small>目标 ${esc(it.target)}</small></span></${tag}>`;
+  };
+  const q = s.aq,
+    more = !gw && z.aqs.length && q ? [["PM1", opsAqCurrent(s, "pm1") ? envUnit(nf(q.pm1), "μg/m³") : null], ["PM4", opsAqCurrent(s, "pm4") ? envUnit(nf(q.pm4), "μg/m³") : null], ["气压", Number.isFinite(q.hpa) ? envUnit(nf(q.hpa), "hPa") : null], ...(!z.lcs.length && z.mss.length && s.lux != null ? [["照度", envUnit(nf(s.lux), "lx")]] : [])].filter((x) => x[1]) : [];
+  return `<section class="ov-isec ov-ienv"><h4>${ico("aq", "ic16")}室内环境</h4>${head}${items.length ? `<div class="ev-list"><div class="ev-r hd" aria-hidden="true"><span>指标</span><span>当前</span><span>近 7 天达标</span></div>${items.map(row).join("")}</div>` : ""}${more.length ? `<details class="ev-more"><summary>更多</summary><dl>${more.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl></details>` : ""}${un.length ? `<p class="ov3-unmon">未监测：${un.join("、")}</p>` : ""}</section>`;
+}
 Object.assign(OPS_LAYERS, {
   occ: {
     ...OPS_LAYERS.occ,
@@ -74289,38 +74652,13 @@ Object.assign(OPS_LAYERS, {
     cls: (s) => (!s.light.onCount ? "dim" : ""),
     legend: [["#eceef1", "关"], [OV_LIGHT[0], "≤ 50%"], [OV_LIGHT[1], "51–70%"], [OV_LIGHT[2], "71–90%"], [OV_LIGHT[3], "> 90%"], ["hatch", "无照明控制器", "", (s) => !s.light.count]],
   },
-  co2: {
-    label: "CO₂",
-    short: (s) => (!s.aq || !Number.isFinite(co2Of(s)) ? "" : nf(co2Of(s))),
-    fill: (s) => (!s.aq ? "hatch" : !opsAqCurrent(s) ? "" : OV_AQ[co2Level(co2Of(s), zoneRef(s))]),
-    text: (s) => (!s.aq ? "" : Number.isFinite(co2Of(s)) ? `${nf(co2Of(s))} ppm` : "数据不足"),
-    say: (s) => (!s.aq ? "未监测" : !opsAqCurrent(s) ? "数据不足" : `CO₂ ${nf(co2Of(s))} ppm`),
-    cls: (s) => (!s.aq || !opsAqCurrent(s) ? "dim" : co2Of(s) > zoneRef(s).co2 ? "over" : ""),
-    get legend() { return [...ovAqLegend("co2", zoneRef()), ["hatch", "未监测", "", (s) => !s.aq]]; },
-    tip: "",
-  },
-  pm: {
-    label: "PM2.5",
-    short: (s) => (!s.aq ? "" : ovPm24(s) == null ? "数据不足" : nf(ovPm24(s))),
-    fill: (s) => (!s.aq ? "hatch" : ovPm24(s) == null ? "" : OV_AQ[pmLevel(ovPm24(s), zoneRef(s))]),
-    text: (s) => (!s.aq ? "" : ovPm24(s) == null ? "数据不足" : `${nf(ovPm24(s))} μg/m³`),
-    say: (s) => (!s.aq ? "未监测" : ovPm24(s) == null ? "数据不足" : `PM2.5 ${nf(ovPm24(s))} μg/m³`),
-    cls: (s) => (!s.aq || ovPm24(s) == null ? "dim" : ovPm24(s) > zoneRef(s).pm ? "over" : ""),
-    get legend() { return [...ovAqLegend("pm", zoneRef()), ["hatch", "未监测", "", (s) => !s.aq]]; },
-    tip: "",
-  },
-  rh: {
-    ...OPS_LAYERS.rh,
-    fill: (s) => (!s.ms?.count ? "hatch" : !s.sensor || !Number.isFinite(s.rh) ? "" : ovRhOut(s) ? "#ffedbd" : ""),
-    text: (s) => (!s.ms?.count ? "" : s.sensor && Number.isFinite(s.rh) ? `${nf(s.rh)}%` : "数据不足"),
-    say: (s) => (!s.ms?.count ? "未监测" : s.sensor && Number.isFinite(s.rh) ? `湿度 ${nf(s.rh)}%` : "数据不足"),
-    cls: (s) => (!s.sensor || !Number.isFinite(s.rh) ? "dim" : ovRhOut(s) ? "over" : ""),
-    get legend() {
-      const r = zoneRef().rh;
-      return [["#fff", `${nf(r[0])}–${nf(r[1])}%`, "sq line"], ["#ffedbd", `&lt; ${nf(r[0])}% 或 &gt; ${nf(r[1])}%`], ["hatch", "未监测", "", (s) => !s.ms?.count]];
-    },
-    tip: "",
-  },
+  // 3.06 V1038、V1050：空气图层的空气质量分、CO₂、PM2.5、PM10、VOC 指数、湿度（温度见 OPS_ENV_TEMP），见 airLayer
+  aq: airLayer("aq", "空气质量分", ""),
+  co2: airLayer("co2", "CO₂", "ppm"),
+  pm: airLayer("pm", "PM2.5", "μg/m³"),
+  pm10: airLayer("pm10", "PM10", "μg/m³"),
+  voc: airLayer("voc", "VOC 指数", ""),
+  rh: airLayer("rh", "湿度", "%"),
 });
 const opsLayerDef = (layer, tab = "") => (layer === "temp" ? (tab === "environment" ? OPS_ENV_TEMP : OPS_TEMP) : OPS_LAYERS[layer]);
 // 功能区（不传时为当前楼层）适用的参考范围与分档，取配置参数（envRef）
@@ -74534,7 +74872,6 @@ function aqBand(p, layer) {
 // 2.25 V172：代表性说明只在图层的 i 中（图例只留档位），不再在图例下另写一行
 const aqLocalNote = () => "";
 // 2.74 V701：总览空气页签只给超出参考的功能区着色（CO₂、PM2.5 第 3、4 档，湿度超出参考范围），其余白底
-const ovAirOnly = (layer, f) => ((layer === "co2" || layer === "pm") && OV_AQ.indexOf(f) >= 0 && OV_AQ.indexOf(f) < 2 ? "" : f);
 // 2.74 V702：悬停功能区浮出小卡：名称、当前页签的值、问题
 // 2.75 V735：空调页签的悬停写“26.8 ℃ · 设定 26.0 ℃”（颜色表示偏离设定多少）；室温低于供热设定时写供热设定
 function ovSpText(s) {
@@ -74587,7 +74924,8 @@ function opsPlan({ layer = "occ", tab = "general", mini = false, highlight = [],
       const s = Demo.zoneState(z),
         // 网关离线时各图层都不按旧数据着色，占用图层同样用斜线（2026-10-08 Vision 核查 V4）
         // 网关离线时功能区不填色、不写数值，整张图加灰色斜线（2.53 V241；原为每个功能区斜线并写“状态未知”）
-        f = mini ? "" : plain ? (highlight.includes(z.id) || zsel.has(z.id) ? RAMP.blue[1] : "") : s.gwUnknown ? "" : ovp ? ovAirOnly(layer, L.fill(s)) : L.fill(s),
+        // 3.06 V1038：空气图层有读数的功能区都上色（取消 ovAirOnly 的“优、良为白”）
+        f = mini ? "" : plain ? (highlight.includes(z.id) || zsel.has(z.id) ? RAMP.blue[1] : "") : s.gwUnknown ? "" : L.fill(s),
         // CO₂、PM2.5、空气质量图层按档定填色深浅：优、良 20%，一般 45%，差 66%，颜色不变，超标的功能区更突出（全面设计核查第 86 条，
         // 2026-10-12 用户确认，改 VD1：原先各档都是 66%，整层一片黄橙）；其他图层仍为 66%
         // 2.09 全平台优化 Y34：一般 45% 改 30%，差 66% 改 40%，问题靠深色文字和角标突出
@@ -74605,12 +74943,14 @@ function opsPlan({ layer = "occ", tab = "general", mini = false, highlight = [],
       // 名称按功能区实际显示的大小决定（2.01 运营核查 V84，补做全面设计核查第 78 条：原先宽度不到 9% 的一律只写数值）：先写名称和数值，
       // 绘制后放不下的（opsPlanLayout）加 narrow，只写数值（data-zs）；宽度变化时重新判断。zv 为放得下时的数值
       // 2.53 V229：标签一律在左上，第一行名称、第二行数值，12/18；放不下名称时只写数值，数值也放不下时只填色（opsPlanLayout）；未监测不写数值
-      const fk = ["hatch", "idle", "unmon"].includes(f) ? f : "",
+      const fk = ["hatch", "idle", "unmon", "nomon", "devoff", "nodata"].includes(f) ? f : "",
         // 2.59 V303：总览楼层图只写数值，手动用虚线框（man）、离线用设备红点表示
         ovz = !mini && U.page === "overview" && U.role !== "member",
         // 2.66 V375：选设备时功能区只填色、不写数值
         // 2.74 V702：状态与占用视图不写数值，只写名称
-        zv = s.gwUnknown || fk === "unmon" || (ovz && (showDev || layer === "status" || layer === "occ")) ? "" : ovz && layer === "light" ? L.short(s) : L.text(s),
+        zv = s.gwUnknown || fk === "unmon" || fk === "nomon" || (ovz && (showDev || layer === "status" || layer === "occ")) ? "" : ovz && layer === "light" ? L.short(s) : L.text(s),
+        // 3.06 V1038：读数后的状态词与“局部”（空气图层），写在读数后面
+        zf = zv && ovz && L.flag ? L.flag(s) : "",
         // 2.66 V364：手动在数值下写 12px 灰字“手动”
         // 2.70 V669：手动虚线框只在照明、空调图层画（空调图层为本区有手动的空调），状态图层不画
         manz = ovz && !s.gwUnknown && ((layer === "light" && s.light.manual) || (layer === "temp" && s.snapAt == null && selAc(z).some((p) => Demo.device(p).manual))),
@@ -74621,7 +74961,7 @@ function opsPlan({ layer = "occ", tab = "general", mini = false, highlight = [],
       // 2.74 V702：总览各页签有问题的功能区都按级别色描边 1.5px，右上角 16px 圆形“!”
       const alz = (layer === "status" || ovz) && !mini && !s.gwUnknown ? AL.zones[z.id]?.[0] : null,
         otip = ovz && !plain ? ovZoneCard(z, s, layer, st, alz) : "";
-      return `<button class="ops-zone ${fk} ${hi ? "hi" : ""}${cond.includes(z.id) ? " cond" : ""} ${active ? "on" : ""}${!mini && zsel.has(z.id) ? " sel" : ""}${wasteOn ? " waste" : ""}${need === z.id ? " need" : ""}${alz ? ` al${Math.min(2, lvlRank(alz.level))}` : ""}${manz ? " man" : ""}${xcls}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${f && !fk ? `--fill:${f};` : ""}${fa ? `--fa:${fa}%;` : ""}" ${mini ? "tabindex=-1" : `data-act="opsZone" data-id="${z.id}" data-morph-classes="narrow bare noname noval v14 v12 row vert code tight" data-zv="${esc(zv)}" data-zs="${esc(zsv)}"`} ${otip ? `data-otip="${esc(otip)}"` : `data-tip="${esc(tip)}"`} aria-label="${esc(tip)}">${mini ? (names && hi ? `<span class="ops-zl mn"><span class="ops-zn"${zoneCodeAttr(z.name)}>${z.name.split(" ").map((w) => `<span class="nw">${esc(w)}</span>`).join(" ")}</span></span>` /* 2.85 V897：告警位置图在高亮的功能区内写名称，只在空格处换行 */ : "") : `<span class="ops-zl"><span class="ops-zn"${zoneCodeAttr(z.name)}>${plain ? z.name.split(" ").map((w) => `<span class="nw">${esc(w)}</span>`).join(" ") /* 2.84 V875：只在空格处换行，词不拆开 */ : esc(z.name)}</span>${plain || !zv ? "" : `<b>${esc(zv)}</b>`}${manz && zv ? '<small class="ops-zm">手动</small>' : ""}</span>`}${marks?.[z.id] ? `<span class="sc-actno">${esc(marks[z.id])}</span>` : ""}${ovp && zsel.has(z.id) ? '<i class="ov-zck" aria-hidden="true"></i>' : ""}</button>`;
+      return `<button class="ops-zone ${fk} ${hi ? "hi" : ""}${cond.includes(z.id) ? " cond" : ""} ${active ? "on" : ""}${!mini && zsel.has(z.id) ? " sel" : ""}${wasteOn ? " waste" : ""}${need === z.id ? " need" : ""}${alz ? ` al${Math.min(2, lvlRank(alz.level))}` : ""}${manz ? " man" : ""}${xcls}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${f && !fk ? `--fill:${f};` : ""}${fa ? `--fa:${fa}%;` : ""}" ${mini ? "tabindex=-1" : `data-act="opsZone" data-id="${z.id}" data-morph-classes="narrow bare noname noval v14 v12 row ell code tight nozf" data-zv="${esc(zv)}" data-zs="${esc(zsv)}"${zf ? ` data-zf="${esc(zf)}"` : ""}`} ${otip ? `data-otip="${esc(otip)}"` : `data-tip="${esc(tip)}"`} aria-label="${esc(tip)}">${mini ? (names && hi ? `<span class="ops-zl mn"><span class="ops-zn"${zoneCodeAttr(z.name)}>${z.name.split(" ").map((w) => `<span class="nw">${esc(w)}</span>`).join(" ")}</span></span>` /* 2.85 V897：告警位置图在高亮的功能区内写名称，只在空格处换行 */ : "") : `<span class="ops-zl"><span class="ops-zn"${zoneCodeAttr(z.name)}>${plain ? z.name.split(" ").map((w) => `<span class="nw">${esc(w)}</span>`).join(" ") /* 2.84 V875：只在空格处换行，词不拆开 */ : esc(z.name)}</span>${plain || !zv ? "" : `<b>${esc(zv)}</b>`}${manz && zv ? '<small class="ops-zm">手动</small>' : ""}</span>`}${marks?.[z.id] ? `<span class="sc-actno">${esc(marks[z.id])}</span>` : ""}${ovp && zsel.has(z.id) ? '<i class="ov-zck" aria-hidden="true"></i>' : ""}</button>`;
     })
     .join("");
   // 2.66 V364、V372：总览楼层图（不选设备时）离线设备不画在设备位置，改在功能区右下角画一个圆点（告警级别色），不压字
@@ -74642,14 +74982,14 @@ function opsPlan({ layer = "occ", tab = "general", mini = false, highlight = [],
   // 2.66 V506：场景编辑页（vec）同样画矢量楼板，不显示工程底图
   const ov = !mini && ((U.page === "overview" && U.role !== "member") || vec);
   // 2.61 V328、V331、V333：小图可画成矢量楼板（mv）：管的功能区填深色（hi），联动的条件区域浅蓝（cond）
-  const plan = `<div class="ops-plan ${mini ? "mini" : ""}${mini && vec ? " mv" : ""}${mini && names ? " mn" : ""}${plain ? " plain" : ""}${ov ? " ov" : ""}${ov && (vec || !U.opsBase) ? " vec" : ""} ${Demo.ctl.gwOffline && !plain ? "unknown" : ""}${!mini && opsLive().stale ? " stale" : ""}" ${select ? `data-select="${types.filter((t) => CTL_TYPES.includes(t)).join(",")}"` : ""} style="aspect-ratio:${fl.dimensions.width}/${fl.dimensions.height};--ar:${(fl.dimensions.width / fl.dimensions.height).toFixed(4)}"><img src="${esc(fl.image)}" alt="${esc(floorLabel())} 楼层图" draggable="false">${zoneHtml}${devs}${offDots}${badges}<div class="ops-rect" hidden></div></div>`;
+  const plan = `<div class="ops-plan ${mini ? "mini" : ""}${mini && vec ? " mv" : ""}${mini && names ? " mn" : ""}${plain ? " plain" : ""}${ov ? " ov" : ""}${ov && ovp && tab === "environment" ? " air" : ""}${ov && (vec || !U.opsBase) ? " vec" : ""} ${Demo.ctl.gwOffline && !plain ? "unknown" : ""}${!mini && opsLive().stale ? " stale" : ""}" ${select ? `data-select="${types.filter((t) => CTL_TYPES.includes(t)).join(",")}"` : ""} style="aspect-ratio:${fl.dimensions.width}/${fl.dimensions.height};--ar:${(fl.dimensions.width / fl.dimensions.height).toFixed(4)}"><img src="${esc(fl.image)}" alt="${esc(floorLabel())} 楼层图" draggable="false">${zoneHtml}${devs}${offDots}${badges}<div class="ops-rect" hidden></div></div>`;
   return mini ? plan : `<div class="ops-plan-scroll" style="--opsz:${PLAN_ZOOM[planZoomIdx()]}">${plan}</div>`;
 }
 /* 选择的修饰键：Shift 加选，Alt（Option）减选，Mac 上 ⌘ 点功能区同样加选（V135；原为在楼层图上拖动框选设备，已并入选择工具的“选设备”） */
 document.addEventListener("pointerdown", (e) => Object.assign(OPS, { shift: e.shiftKey, alt: e.altKey, meta: e.metaKey, lastBtn: e.target.closest?.("button") || null }), true);
 
 /* 告警角标压住设备点时依次挪到功能区的左下、右上角（Lovable 核查第 208 条）；功能区标签固定在左上（2.53 V229），按绘制后的实际大小判断，楼层图宽度变化时重新判断。 */
-// 2.88 V819：功能区编号取名称最后一段含数字的部分（“办公室 705”写“705”，“会议室 7-1”写“7-1”）；名称竖排也放不下时写编号
+// 2.88 V819：功能区编号取名称最后一段含数字的部分（“办公室 705”写“705”，“会议室 7-1”写“7-1”）；3.06 V1032：名称一行放不下时写编号
 const zoneCode = (n) => {
   const t = String(n).trim().split(/\s+/);
   return t.length > 1 && /\d/.test(t.at(-1)) ? t.at(-1) : "";
@@ -74669,18 +75009,19 @@ function opsPlanLayout(plan) {
       const z = zl.parentElement,
         zr = rect(z),
         rs = [...zl.firstElementChild.getClientRects()];
-      // 2.88 V819：一行放不下时先竖排写名称，再写编号（705、7-1），都放不下才不写
-      const bad = () => [...zl.firstElementChild.getClientRects()].some((a) => a.right > zr.right - 3 || a.bottom > zr.bottom - 3 || icons.some((r) => cross(a, r)));
-      z.classList.remove("noname", "vert", "code");
+      // 3.06 V1032：同 SPACE04，一行放不下时写编号（705、7-1），再放不下以省略号截断（至少一个字加省略号），仍放不下才不写；不竖排
+      const zn = zl.firstElementChild,
+        bad = () => [...zn.getClientRects()].some((a) => a.right > zr.right - 3 || a.bottom > zr.bottom - 3 || icons.some((r) => cross(a, r)));
+      z.classList.remove("noname", "code", "ell");
       if (!rs.some((a) => a.right > zr.right - 3 || a.bottom > zr.bottom - 3 || icons.some((r) => cross(a, r)))) return;
-      z.classList.add("vert");
-      if (!bad()) return;
-      z.classList.remove("vert");
-      if (zl.firstElementChild.dataset.code) {
+      if (zn.dataset.code) {
         z.classList.add("code");
         if (!bad()) return;
         z.classList.remove("code");
       }
+      z.classList.add("ell");
+      if (!bad() && zn.clientWidth >= 2 * parseFloat(getComputedStyle(zn).fontSize)) return;
+      z.classList.remove("ell");
       z.classList.add("noname");
     });
     return;
@@ -74713,9 +75054,10 @@ function opsPlanLayout(plan) {
         zn = zl?.querySelector(".ops-zn"),
         b = zl?.querySelector("b");
       if (!zl) return;
-      z.classList.remove("narrow", "bare", "noname", "noval", "v14", "v12", "row", "tight", "vert", "code");
+      z.classList.remove("narrow", "bare", "noname", "noval", "v14", "v12", "row", "tight", "ell", "code", "nozf");
       const m = /^(.*\d)\s*(ppm|μg\/m³|℃)$/.exec(z.dataset.zv || "");
-      if (b) b.innerHTML = m ? `${esc(m[1])}<i class="u"> ${esc(m[2])}</i>` : esc(z.dataset.zv);
+      // 3.06 V1038：状态词与“局部”跟在读数后（“1,080 ppm · 差”“46 · CO₂”）
+      if (b) b.innerHTML = (m ? `${esc(m[1])}<i class="u"> ${esc(m[2])}</i>` : esc(z.dataset.zv)) + (z.dataset.zf || "").split("|").filter(Boolean).map((t) => `<em class="zf${t === "局部" ? " part" : ""}">${esc(t)}</em>`).join("");
       const W = z.clientWidth - 12,
         H = z.clientHeight - 10,
         fit = () => zl.offsetHeight <= H && zl.scrollWidth <= W + 1 && (!b || b.scrollWidth <= W + 1),
@@ -74728,17 +75070,24 @@ function opsPlanLayout(plan) {
           z.classList.remove("v12");
           return false;
         };
+      // 3.06 V1038：读数后的状态词放不下时先去掉（悬停与读屏仍有），再按原顺序缩小读数
+      const zfOff = () => !!b?.querySelector(".zf") && !z.classList.contains("nozf") && (z.classList.add("nozf"), true);
       if (zn && zn.scrollWidth > W) z.classList.add("noname");
       if (zn && !z.classList.contains("noname") && icons.length && icons.some((r) => cross(rect(zn), r))) z.classList.add("noname");
       // 2.70 V669：总览楼层图放不下时先去掉数值，再去掉名称；名称一行放不下就只填色（悬停提示与读屏有名称和数值）
-      // 2.88 V819：名称一行放不下时先竖排写名称（读数 12 写在名称下），再写编号（705、7-1），都放不下才只填色；有告警的块始终写读数
+      // 3.06 V1032：名称一行放不下时同 SPACE04 先写编号（705、7-1），再以省略号截断（至少一个字加省略号），读数缩到 12 写在名称下；
+      // 都放不下才只填色；有告警的块始终写读数。不竖排（原 2.88 V819 先竖排，窄块里逐字竖排与相邻文字重叠）
       if (z.classList.contains("noname") && plan.closest?.(".ov2")) {
         const al = /\bal[012]\b/.test(z.className),
-          ok = () => zl.offsetHeight <= H && zl.scrollWidth <= W + 1 && (!zn || zn.scrollHeight <= zn.clientHeight + 1) && (!b || b.scrollWidth <= W + 1),
+          ok = () => zl.offsetHeight <= H && zl.scrollWidth <= W + 1 && (!zn || zn.scrollHeight <= zn.clientHeight + 1) && (!b || b.scrollWidth <= W + 1) && (!z.classList.contains("ell") || zn.clientWidth >= 2 * parseFloat(getComputedStyle(zn).fontSize)),
           tryAs = (k) => {
             z.classList.remove("noname");
             z.classList.add(k, "v12");
             if (ok()) return true;
+            if (zfOff()) {
+              if (ok()) return true;
+              z.classList.remove("nozf");
+            }
             if (!al) {
               z.classList.add("noval");
               if (ok()) return true;
@@ -74748,11 +75097,15 @@ function opsPlanLayout(plan) {
             z.classList.add("noname");
             return false;
           };
-        if (zn && tryAs("vert")) return;
         if (zn?.dataset.code && tryAs("code")) return;
+        if (zn && tryAs("ell")) return;
         if (al && b) {
           z.classList.add("v12");
           if (fit()) return;
+          if (zfOff()) {
+            if (fit()) return;
+            z.classList.remove("nozf");
+          }
           z.classList.remove("v12");
         }
         return void z.classList.add("bare");
@@ -74768,6 +75121,10 @@ function opsPlanLayout(plan) {
         };
       if (!b) return void (zl.offsetHeight > H && !(nameOk && oneName()) && z.classList.add("bare"));
       if (sizes()) return;
+      if (zfOff()) {
+        if (sizes()) return;
+        z.classList.remove("nozf");
+      }
       if (!z.classList.contains("noname")) {
         z.classList.add("row");
         if (fit()) return;
@@ -75930,13 +76287,13 @@ function zonePanel(zid, mode = "inline") {
     aqFresh = s.aq?.online !== false && !s.gwUnknown && Number.isFinite(s.aq?.age) && s.aq.age <= 5,
     aqSources = s.aq?.sources || [], aqTime = (at) => Number.isFinite(at) ? `${Demo.dayStart(at) === Demo.TODAY ? "" : opsDay(at) + " "}${Demo.hm(at)}` : "—",
     aqStatus = s.gwUnknown ? "状态未知 · 网关离线" : aqOff ? "空气质量传感器离线" : s.aq?.quality === "stale" ? "数据未更新" : s.aq?.quality === "partial" ? "部分指标不可用" : s.aq?.valid === false ? "读数不可用" : "空气质量传感器",
-    // 2.25 V174：室内环境留六块（占用、照度、温度、湿度、CO₂ 5 分钟均值（2.53 V228）、PM2.5 24 小时均值），超出参考上限时数值标色；1 分钟值与空气质量分在“今日变化”
+    // 2.25 V174：室内环境留六块（占用、照度、温度、湿度、CO₂ 5 分钟均值（2.53 V228）、PM2.5 24 小时均值），超出参考上限时数值标色；1 分钟值在“今日变化”
     pm24 = aqFresh && (!pmNow || s.aq?.pm25WindowValid === false) ? null : s.aq?.pm25,
     // 2.53 V228：没有有效的 5 分钟均值时写“5 分钟数据不足”，不改用 1 分钟值
     co25 = aqFresh && !aqNow ? null : Number.isFinite(s.aq?.co2m) ? s.aq.co2m : null,
     aqHot = (v, lim, txt) => (Number.isFinite(v) && Number.isFinite(lim) && v > lim ? `<span class="ops-warn-t">${txt}</span>` : txt),
     aqBody = s.aq
-      ? `<p class="ops-zp-sub ops-aqh">${esc(aqStatus)} · ${aqNow || pmNow ? agoText(s.aq.age) : `最后读数 ${aqTime(s.aq.lastAt)}`}</p><div class="ops-metrics">${m("CO₂", `${aqHot(co25, ref.co2, nf(co25))} <small>ppm</small>`, `5 分钟均值，与告警同一口径。参考上限 ${nf(ref.co2)} ppm，来源：${aqRefSrc(z)}。`, Number.isFinite(co25) ? `5 分钟均值 · 上限 ${nf(ref.co2)}` : "5 分钟数据不足")}${m("PM2.5", `${aqHot(pm24, ref.pm, nf(pm24))} <small>μg/m³</small>`, `24 小时滚动均值，需完整 1,440 个有效分钟，不足时不计算。参考上限 ${nf(ref.pm)} μg/m³，来源：${aqRefSrc(z)}。1 分钟值与空气质量分见“今日变化”。`, Number.isFinite(pm24) ? `24 小时均值 · 上限 ${nf(ref.pm)}` : "24 小时数据不足")}</div><p class="ops-zp-sub">监测来源${opsInfo("监测来源", esc("逐台登记采集位置与代表性；多个监测点的平均值不自动代表整个功能区。只有全部有效点均确认代表整个功能区时才作区域摘要。"))} · ${s.aq.representative ? "已登记功能区代表性" : "仅代表监测点"}</p>${aqSources.map((q) => `<p class="ops-zp-sub"><b>${esc(q.name || q.id)}</b> · ${q.online ? q.valid ? "在线" : q.quality === "stale" ? "数据未更新" : q.quality === "partial" ? "部分指标不可用" : "读数不可用" : s.gwUnknown ? "状态未知" : "离线"} · ${aqTime(q.lastAt)}<br>${
+      ? `<p class="ops-zp-sub ops-aqh">${esc(aqStatus)} · ${aqNow || pmNow ? agoText(s.aq.age) : `最后读数 ${aqTime(s.aq.lastAt)}`}</p><div class="ops-metrics">${m("CO₂", `${aqHot(co25, ref.co2, nf(co25))} <small>ppm</small>`, `5 分钟均值，与告警同一口径。参考上限 ${nf(ref.co2)} ppm，来源：${aqRefSrc(z)}。`, Number.isFinite(co25) ? `5 分钟均值 · 上限 ${nf(ref.co2)}` : "5 分钟数据不足")}${m("PM2.5", `${aqHot(pm24, ref.pm, nf(pm24))} <small>μg/m³</small>`, `24 小时滚动均值，需完整 1,440 个有效分钟，不足时不计算。参考上限 ${nf(ref.pm)} μg/m³，来源：${aqRefSrc(z)}。1 分钟值见“今日变化”。`, Number.isFinite(pm24) ? `24 小时均值 · 上限 ${nf(ref.pm)}` : "24 小时数据不足")}</div><p class="ops-zp-sub">监测来源${opsInfo("监测来源", esc("逐台登记采集位置与代表性；多个监测点的平均值不自动代表整个功能区。只有全部有效点均确认代表整个功能区时才作区域摘要。"))} · ${s.aq.representative ? "已登记功能区代表性" : "仅代表监测点"}</p>${aqSources.map((q) => `<p class="ops-zp-sub"><b>${esc(q.name || q.id)}</b> · ${q.online ? q.valid ? "在线" : q.quality === "stale" ? "数据未更新" : q.quality === "partial" ? "部分指标不可用" : "读数不可用" : s.gwUnknown ? "状态未知" : "离线"} · ${aqTime(q.lastAt)}<br>${
         // 都未登记时合成一句，配置人员与机构管理员有“在设备中登记”，打开设备标记并选中这台 AQ20（2.05 总览核查 V123，按 2.01 运营核查 V109；原为“采集位置未登记 · 代表性未登记”，没有入口）
         !AQ_POS[q.pos] && !AQ_REP[q.rep] ? `采集位置与代表性未登记${canEdit() && q.id && g("points", q.id) ? ` · <button class="ops-link ops-zp-reg" data-act="locatePoint" data-id="${q.id}">在设备中登记</button>` : ""}` : `${esc(AQ_POS[q.pos] || "采集位置未登记")} · ${esc(AQ_REP[q.rep] || "代表性未登记")}`
       }</p>`).join("")}`
@@ -76205,14 +76562,17 @@ function devCtlBody(pid) {
   if (p.type === "ms") body += `<p class="ops-zp-sub">${d.occupied ? "有人" : "无人"} · ${nf(d.temp, 1)} ℃ · ${d.rh}%${d.lux != null ? ` · 主照度传感器 ${nf(d.lux)} lx` : ""} · ${agoText(d.age)}</p>`;
   if (p.type === "aq") {
     // 2.53 V228：CO₂ 写本台 5 分钟均值（与总览、告警同一口径），1 分钟值只在设备信息的历史曲线里
-    const co2m = Demo.zoneState(p.zoneId)?.aq?.sources?.find((x) => x.id === p.id)?.co2m ?? d.co2,
+    // 3.06 V1050：PM2.5、PM10 写本台 1 小时均值，与空气质量分同一个值；加 PM10、NOx 指数，空气质量分写档与主因
+    const own = Demo.zoneState(p.zoneId)?.aq?.sources?.find((x) => x.id === p.id) || {},
+      co2m = own.co2m ?? d.co2,
+      q = own.aqs,
       fresh = d.online && !d.unknown && Number.isFinite(d.age) && d.age <= 5,
       co2Valid = fresh && (d.co2Valid ?? d.valid) !== false && Number.isFinite(d.co2),
       pm25Valid = fresh && (d.pm25Valid ?? d.valid) !== false && Number.isFinite(d.pm25Now),
       valid = fresh && d.valid !== false,
       metric = (name, value, explain) => `<dt>${name}${opsInfo(name, esc(explain))}</dt><dd>${value}</dd>`,
-      score = valid && Number.isFinite(d.iaqs), time = Number.isFinite(d.lastAt) ? `${Demo.dayStart(d.lastAt) === Demo.TODAY ? "" : opsDay(d.lastAt) + " "}${Demo.hm(d.lastAt)}` : "—";
-    body += `<p class="ops-zp-sub">${co2Valid || pm25Valid ? `${d.quality === "partial" ? "部分指标不可用 · " : ""}数据截至 ${time}` : `${d.unknown ? "状态未知 · 网关离线" : !d.online ? "设备离线" : d.quality === "stale" ? "数据未更新" : "读数不可用"} · 最后读数 ${time}`}</p><dl class="ops-kv">${metric("CO₂", `${nf(co2Valid || !fresh ? co2m : null)} ppm · ${co2Valid ? "5 分钟均值" : fresh ? "当前值不可用" : "最后记录"}`, "5 分钟均值。")}${metric("PM2.5", `${nf(pm25Valid || !fresh ? d.pm25Now : null)} μg/m³ · ${pm25Valid ? "1 分钟均值" : fresh ? "当前值不可用" : "最后记录"}`, "1 分钟均值。")}${metric("PM2.5 · 24 小时", Number.isFinite(d.pm25_24h) && (!fresh || pm25Valid && d.pm25WindowValid !== false) ? `${nf(d.pm25_24h)} μg/m³${pm25Valid ? "" : " · 最后均值"}` : "— · 24 小时数据不足", "需 1,440 个有效分钟，不足时不计算。")}${metric("VOC 指数", Number.isFinite(d.voc) ? nf(d.voc) : "—", "相对变化指数，无单位，不参与空气质量分。")}${metric("空气质量分", score ? `${nf(d.iaqs)}/100 · ${Demo.iaqsBand(d.iaqs).replace("极好", "优")}` : "—", "按同一分钟有效的 CO₂ 和 PM2.5 计算，越高越好：优 90–100、良 80–89、一般 50–79、差 10–49、极差 0–9；不含温湿度。")}</dl>`;
+      score = fresh && !!q, time = Number.isFinite(d.lastAt) ? `${Demo.dayStart(d.lastAt) === Demo.TODAY ? "" : opsDay(d.lastAt) + " "}${Demo.hm(d.lastAt)}` : "—";
+    body += `<p class="ops-zp-sub">${co2Valid || pm25Valid ? `${d.quality === "partial" ? "部分指标不可用 · " : ""}数据截至 ${time}` : `${d.unknown ? "状态未知 · 网关离线" : !d.online ? "设备离线" : d.quality === "stale" ? "数据未更新" : "读数不可用"} · 最后读数 ${time}`}</p><dl class="ops-kv">${metric("CO₂", `${nf(co2Valid || !fresh ? co2m : null)} ppm · ${co2Valid ? "5 分钟均值" : fresh ? "当前值不可用" : "最后记录"}`, "5 分钟均值。")}${metric("PM2.5", `${nf(pm25Valid || !fresh ? own.pm25h : null)} μg/m³ · ${pm25Valid ? "1 小时均值" : fresh ? "当前值不可用" : "最后记录"}`, "1 小时均值，与空气质量分同一个值；告警按 24 小时均值。")}${metric("PM2.5 · 24 小时", Number.isFinite(d.pm25_24h) && (!fresh || pm25Valid && d.pm25WindowValid !== false) ? `${nf(d.pm25_24h)} μg/m³${pm25Valid ? "" : " · 最后均值"}` : "— · 24 小时数据不足", "需 1,440 个有效分钟，不足时不计算。")}${metric("PM10", `${nf(pm25Valid || !fresh ? own.pm10 : null)} μg/m³ · ${pm25Valid ? "1 小时均值" : fresh ? "当前值不可用" : "最后记录"}`, "1 小时均值，与空气质量分同一个值；告警按 24 小时均值。")}${metric("VOC 指数", Number.isFinite(d.voc) ? nf(d.voc) : "—", "器件按近期基线算出的相对指数，无单位，不参与空气质量分。")}${metric("NOx 指数", Number.isFinite(own.nox) ? nf(own.nox) : "—", "器件按近期基线算出的相对指数，无单位，不参与空气质量分。")}${metric("空气质量分", score ? `${q.v} · ${q.band}${q.v < 70 ? ` · 主因 ${q.main}` : ""}${q.only ? ` · 仅 ${q.only}` : ""}` : "—", AQ_INFO)}</dl>`;
   }
   const ctl = p.type === "lc" || isHv(p);
   return body + (ctl ? ctlWhy("p", [pid]) : "") + (r ? rcpt(r) : "");
@@ -76679,16 +77039,16 @@ function myHvacText(s) {
   const sp = zoneSpText(s);
   return segs("开", sp === "各台不同" ? "设定各台不同" : `设定 ${sp}`, s.temp == null ? "" : `室温 ${nf(s.temp, 1)} ℃`);
 }
-// 空气质量（全平台优化 Y20）：有空气质量传感器时写浓度，超出参考上限时其后写“偏高”“过高”，如“CO₂ 1,086 ppm 偏高 · PM2.5 9 μg/m³”，
-// 分档颜色与总览相同；没有传感器时不显示。2.53 V228、V238：CO₂ 用 5 分钟均值（原为 1 分钟值），不再写“优、良”
+// 空气质量（全平台优化 Y20）：有空气质量传感器时显示。3.06 V1050：写“良 72 · 热舒适 适宜”（空气质量分的档与分，70 以下加主因；
+// 热舒适按室温与当季参考范围或空调设定写偏低、适宜、偏高），单项浓度在检视器。原为“CO₂ 1,086 ppm · 差 · PM2.5 9 μg/m³ · 优”
 function myAqText(s) {
-  const a = s.aq;
-  if (!a || !opsAqCurrent(s)) return a ? "数据不足" : "";
-  const r = zoneRef(s),
-    dot = (i) => `<i class="ops-my-dot" style="--c:${OV_AQ[i]}"></i>`,
-    v = co2Of(s),
-    c = co2Level(v, r);
-  return `${dot(c)}CO₂ ${nf(v)} ppm${aqBandText(c)}${opsAqCurrent(s, "pm25Now") ? ` · ${dot(pmLevel(a.pm25Now, r))}PM2.5 ${nf(a.pm25Now)} μg/m³${aqBandText(pmLevel(a.pm25Now, r))}` : ""}`;
+  const a = s.aq,
+    v = a ? airVal(s, "aq") : null;
+  if (!a) return "";
+  if (v == null) return "数据不足";
+  const q = a.aqs,
+    th = ovRoomTemp(s) == null ? "" : ["偏低", "适宜", "偏高"][envTempDir(s) + 1];
+  return `<i class="ops-my-dot" style="--c:${OV_AQ[q.i]}"></i>${q.band} ${v}${v < 70 ? ` · 主因 ${q.main}` : ""}${th ? ` · 热舒适 ${th}` : ""}`;
 }
 const myOccText = (s) => (s.gwUnknown || s.occUnknown ? "未知" : s.occupied ? "有人" : "无人");
 function myZoneCard(z) {
@@ -76830,7 +77190,7 @@ const co2Of = (s) => s.aq?.co2m ?? s.aq?.co2;
 const aqLag = () => { const L = opsLive(); return L.stale ? L.mins : 0; };
 const aqLive = (src, valid) => { const lag = aqLag(); return Number.isFinite(src?.age) && src.age >= 0 && src.age <= 5 + lag && (valid !== false || (lag > 0 && src.quality === "stale")); };
 function opsAqCurrent(s, metric = "co2") {
-  const q = s?.aq, valid = metric === "co2" || metric === "co2m" ? q?.co2Valid : ["pm25Now", "pm25"].includes(metric) ? q?.pm25Valid : q?.valid;
+  const q = s?.aq, valid = metric === "co2" || metric === "co2m" ? q?.co2Valid : ["pm25Now", "pm25", "pm25h", "pm10", "pm1", "pm4"].includes(metric) ? q?.pm25Valid : q?.valid;
   return !!q && !s.gwUnknown && q.online !== false && aqLive(q, valid ?? q.valid) && Number.isFinite(q[metric]);
 }
 // 跨页面共用逐监测点当前值；无逐台来源时明确保留为“监测摘要”，不伪称某台设备。
@@ -77131,7 +77491,7 @@ const zoneSort = (tab, zs) => {
   return [...zs].sort((a, b) => need.get(b.z.id) - need.get(a.z.id) || M.byName(a.z, b.z));
 };
 // 2.25 V163：功能区表的数字列（含表头）靠右
-const ZT_NUM = new Set(["主照度传感器读数", "室温", "设定", "温度 / 湿度", "CO₂", "PM2.5", "空气质量分"]);
+const ZT_NUM = new Set(["主照度传感器读数", "室温", "设定", "温度 / 湿度", "CO₂", "PM2.5"]);
 // 2.25 V173：表格“更新”列只写“2 分钟前”（表头已是“更新”）
 const agoShort = (min) => agoText(min).replace(/^更新于\s*/, "");
 function zoneTable(tab, zs) {
@@ -77151,7 +77511,7 @@ function zoneTable(tab, zs) {
         ? ["功能区", "占用", "照明", "控制方式", "主照度传感器读数", "更新"]
         : tab === "hvac"
           ? ["功能区", "占用", "室温", "设定", "空调", "更新"]
-          : ["功能区", "占用", "温度 / 湿度", "CO₂", "PM2.5", "空气质量分", "更新"],
+          : ["功能区", "占用", "温度 / 湿度", "CO₂", "PM2.5", "更新"], // 3.06 V1039：去掉“空气质量分”列
     // 窄屏（≤ 850px）只留主要列，其余收进每行的第二行（规范 OPS06，2026-10-08 Vision 核查 V6：原先照明表格有 3 列要横向滚动）
     main = tab === "lighting" ? ["功能区", "占用", "照明"] : tab === "hvac" ? ["功能区", "占用", "室温", "设定"] : ["功能区", "CO₂", "PM2.5"],
     sec = head.map((h) => !main.includes(h)),
@@ -77173,12 +77533,12 @@ function zoneTable(tab, zs) {
                   : z.splits.length ? `分体空调 ${z.splits.length} 台 · 只计量` : "无空调",
                 agoShort(s.hvac.age ?? s.sensorAge),
               ]
-            : [occ, s.temp == null ? "—" : `${nf(s.temp, 1)} ℃ · ${s.rh}%`, opsAqCurrent(s) ? nf(co2Of(s)) + " ppm" : s.aq ? "当前值不可用" : "未监测", opsAqCurrent(s, "pm25Now") ? nf(s.aq.pm25Now) + " μg/m³" : s.aq ? "当前值不可用" : "未监测", opsAqCurrent(s, "iaqs") ? `${nf(s.aq.iaqs)}/100 · ${Demo.iaqsBand(s.aq.iaqs).replace("极好", "优")}` : "—", s.aq ? opsAqCurrent(s) || opsAqCurrent(s, "pm25Now") ? `${agoShort(s.aq.age)}${s.aq.quality === "partial" ? " · 部分指标不可用" : ""}` : !s.aq.online ? "空气质量传感器离线" : s.aq.quality === "stale" ? "数据未更新" : "读数不可用" : "未监测"];
+            : [occ, s.temp == null ? "—" : `${nf(s.temp, 1)} ℃ · ${s.rh}%`, opsAqCurrent(s) ? nf(co2Of(s)) + " ppm" : s.aq ? "当前值不可用" : "未监测", opsAqCurrent(s, "pm25h") ? nf(s.aq.pm25h) + " μg/m³" : s.aq ? "当前值不可用" : "未监测", s.aq ? opsAqCurrent(s) || opsAqCurrent(s, "pm25Now") ? `${agoShort(s.aq.age)}${s.aq.quality === "partial" ? " · 部分指标不可用" : ""}` : !s.aq.online ? "空气质量传感器离线" : s.aq.quality === "stale" ? "数据未更新" : "读数不可用" : "未监测"];
       // 合成一格（灰字）：网关离线时名称以外的各列写“状态未知”（2.05 总览核查 V125：原先每格都写“状态未知”，末格“网关离线”）；
       // 室内环境没有 AQ20 的功能区，CO₂、PM2.5、空气质量分、AQ20 更新四列写“本区无 AQ20”（V118：原先四格逐格写“未监测”）。
       // 宽屏一格跨到行尾，窄屏另一格只跨主要列
       // 2.53 V237：没有空气质量传感器的功能区 CO₂、PM2.5、空气质量分与更新都写“—”，CO₂ 表头 ⓘ 说明（原 CO₂ 写“未监测”、其余留空）
-      if (tab === "environment" && !z.aqs.length && !s.gwUnknown) cells.splice(2, 4, "—", "—", "—", "—");
+      if (tab === "environment" && !z.aqs.length && !s.gwUnknown) cells.splice(2, 3, "—", "—", "—");
       const mergeAt = s.gwUnknown ? 0 : -1,
         mergeText = "状态未知";
       // 短的值（有人、无人、无传感器）与以“ · ”连成的各段（“28.0 ℃ · 待机”）整体不换行，只在“ · ”处换行（Lovable 核查第 315 条，2026-10-11 用户确认：
@@ -77190,7 +77550,7 @@ function zoneTable(tab, zs) {
       const on = U.opsZone === z.id ? "on" : "",
         kept = mergeAt < 0 ? cells : cells.slice(0, mergeAt),
         // 2.53 V253：窄屏第二行只写值，如“恒照度 · 440 lx · 更新于 3 分钟前”（原每行重复“控制方式”“主照度传感器读数”，更新写“3 分钟前”）
-        more = segs(...kept.map((c, i) => (!sec[i + 1] || c === "" ? "" : head[i + 1] === "更新" ? (/前$/.test(c) ? `更新于 ${esc(c)}` : esc(c)) : head[i + 1] === "空气质量分" ? `空气质量分 ${cellHtml(c, i)}` : head[i + 1] === "控制方式" ? cellHtml(String(c).replace(/控制/g, ""), i) : cellHtml(c, i)))),
+        more = segs(...kept.map((c, i) => (!sec[i + 1] || c === "" ? "" : head[i + 1] === "更新" ? (/前$/.test(c) ? `更新于 ${esc(c)}` : esc(c)) : head[i + 1] === "控制方式" ? cellHtml(String(c).replace(/控制/g, ""), i) : cellHtml(c, i)))),
         narrowSpan = head.slice(mergeAt + 1).filter((h) => main.includes(h)).length,
         merged = mergeAt < 0 ? "" : `<td class="ops-merge sec" colspan="${head.length - 1 - mergeAt}">${esc(mergeText)}</td>${narrowSpan ? `<td class="ops-merge ops-merge-n" colspan="${narrowSpan}">${esc(mergeText)}</td>` : ""}`;
       // 功能区名称整体不换行，名称列按最长的名称（Lovable 核查第 315 条，2026-10-11 用户确认）
@@ -77199,7 +77559,7 @@ function zoneTable(tab, zs) {
     });
   // 2.25 V160、V173：去掉“功能区”的 i（与楼层图同一数据的说明），说明只留“需要关注的在前”，不写覆盖数
   // 表头说明写排列方式（2.01 运营核查 V84，全面设计核查第 80 条）
-  return `<section class="ops-card ops-tablecard"><header class="ops-card-h"><div><h3>功能区</h3><p class="ops-meta">${kf ? `${esc(kfName || "")} · ${zs.length} 个功能区` : Demo.ctl.gwOffline ? "点击功能区查看离线前的最后数据" : "需要关注的在前"}</p></div>${kf ? `<div class="ops-card-tools">${btn("清除筛选", "opsKpiF", { k: U.opsKpiF.k, tab }, "ghost sm")}</div>` : ""}</header><div class="ops-tw"><table class="t ops-t ops-t-fold ops-t-fit${opsLive().stale ? " stale" : ""}" data-morph-classes="fold"><thead><tr>${ck ? `<th class="ops-ck"><input type="checkbox" class="ops-ck-in" data-act="opsSelRows"${zs.length && zs.every((s) => zsel.has(s.z.id)) ? " checked" : ""} aria-label="选择全部功能区"></th>` : ""}${head.map((h, i) => `<th class="${[sec[i] ? "sec" : "", ZT_NUM.has(h) ? "ops-r" : ""].filter(Boolean).join(" ")}">${h}${h === "CO₂" ? opsInfo("CO₂", esc("5 分钟均值，与告警同一口径。—：本区没有空气质量传感器。")) : ""}${h === "空气质量分" ? opsInfo("空气质量分", esc("空气质量分整数五档：优90–100、良80–89、一般50–79、差10–49、极差0–9。缺少同一分钟有效输入时不计算。")) : ""}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div></section>`;
+  return `<section class="ops-card ops-tablecard"><header class="ops-card-h"><div><h3>功能区</h3><p class="ops-meta">${kf ? `${esc(kfName || "")} · ${zs.length} 个功能区` : Demo.ctl.gwOffline ? "点击功能区查看离线前的最后数据" : "需要关注的在前"}</p></div>${kf ? `<div class="ops-card-tools">${btn("清除筛选", "opsKpiF", { k: U.opsKpiF.k, tab }, "ghost sm")}</div>` : ""}</header><div class="ops-tw"><table class="t ops-t ops-t-fold ops-t-fit${opsLive().stale ? " stale" : ""}" data-morph-classes="fold"><thead><tr>${ck ? `<th class="ops-ck"><input type="checkbox" class="ops-ck-in" data-act="opsSelRows"${zs.length && zs.every((s) => zsel.has(s.z.id)) ? " checked" : ""} aria-label="选择全部功能区"></th>` : ""}${head.map((h, i) => `<th class="${[sec[i] ? "sec" : "", ZT_NUM.has(h) ? "ops-r" : ""].filter(Boolean).join(" ")}">${h}${h === "CO₂" ? opsInfo("CO₂", esc("5 分钟均值，与告警同一口径。—：本区没有空气质量传感器。")) : ""}${h === "PM2.5" ? opsInfo("PM2.5", esc("1 小时均值，与楼层图同一个值；告警按 24 小时均值。—：本区没有空气质量传感器。")) : ""}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div></section>`;
 }
 /* ---------- 位置选到楼宇及以上时的对比表（规范 OPS01–OPS04，2026-10-09 用户确认，可视化设计 VD4） ----------
    选到楼宇：每个已接入运行数据的楼层一行，按楼层高度从高到低（第14章 §7）；选到项目：每栋楼宇一行；选到全部项目：每个项目一行，按名称自然顺序。
@@ -77723,7 +78083,9 @@ defineActions({
     const k = AN_MAIN.table,
       item = (label, act, args = {}, dis = "") => `<button class="popitem" role="menuitem" data-act="${act}" ${Object.entries(args).map(([x, v]) => `data-${x}="${esc(v)}"`).join(" ")}${dis ? ` aria-disabled="true" data-tip="${esc(dis)}"` : ""}><span>${label}</span></button>`,
       chk = (on, label, kk) => `<button class="popitem${on ? " on" : ""}" role="menuitemcheckbox" aria-checked="${on}" data-act="anOverlay" data-k="${kk}"><span>${label}</span>${on ? ico("check", "ic16 pop-check") : ""}</button>`,
-      ov = AN_MAIN.overlay ? `<hr>${AN_MAIN.outdoor ? chk(!!U.opsOutdoor, "室外温度", "outdoor") : ""}${chk(U.opsEvents !== false, "事件", "events")}` : "",
+      // 3.06 V1042：PM2.5 曲线可勾选“室外 PM2.5”；项目地图位置待核对时不可选，写原因
+      op = !AN_MAIN.outPm ? "" : AN_MAIN.outPm === "1" ? chk(!!U.opsOutPm, "室外 PM2.5", "outPm") : `<button class="popitem" role="menuitem" aria-disabled="true"><span>室外 PM2.5<small>${esc(AN_MAIN.outPm)}</small></span></button>`,
+      ov = AN_MAIN.overlay ? `<hr>${AN_MAIN.outdoor ? chk(!!U.opsOutdoor, "室外温度", "outdoor") : ""}${op}${chk(U.opsEvents !== false, "事件", "events")}` : "",
       note = AN_MAIN.note && anNoteOk() ? item("加备注", "anNoteAdd") : "";
     pop(el, `<div class="mk-draw-menu an-more-menu" role="menu" aria-label="更多">${k ? item("数据表", "opsTable", { key: k }) + item("导出 CSV", "opsTableExport", { key: k }, opsCanExportTable() ? "" : "当前角色不能导出") : ""}${a.sec !== "none" ? item("统计口径", "overviewBasis", a.sec ? { sec: a.sec } : {}) : ""}${note}${ov}</div>`);
     el.setAttribute("aria-expanded", "true");
@@ -78958,6 +79320,7 @@ const anEvtWhen = (t, step, evs = [], end = t + step) =>
 defineActions({
   anOverlay: (a) => {
     if (a.k === "outdoor") U.opsOutdoor = !U.opsOutdoor;
+    else if (a.k === "outPm") U.opsOutPm = !U.opsOutPm;
     else U.opsEvents = U.opsEvents === false;
     closePop();
     render();
@@ -79252,11 +79615,11 @@ function envTrendCard(zk = U.opsEnvZone, m0 = U.opsEnvMetric, bare = false, pick
     pts = history.points.filter((p) => p.t >= rg.from && (p.t < rg.to || rg.to === Demo.NOW && p.t === rg.to)),
     vals = pts.filter((p) => p.v != null).map((p) => p.v),
     st = Demo.zoneState(z), ref = zoneRef(st), cool = st.coolSetpoint ?? st.setpoint, heat = st.heatSetpoint ?? cool,
-    band = metric === "co2" ? [null,ref.co2] : metric === "pm25" ? [null,ref.pm] : metric === "temp" ? (cool != null ? [heat-ref.acK,cool+ref.acK] : ref.temp) : metric === "rh" ? ref.rh : null,
+    band = metric === "co2" ? [null,ref.co2] : metric === "pm25" ? [null,ref.pm] : metric === "temp" ? (cool != null ? [heat-ref.acK,cool+ref.acK] : ref.temp) : metric === "rh" ? ref.rh : metric === "iaqs" ? [50,null] : null,
     windowText = metric === "co2" ? "1 h 滚动均值" : metric === "pm25" ? "24 h 滚动均值" : metric === "iaqs" ? "0–100，越高越好" : "时序均值",
     stamp = (t) => `${Demo.md(t)} ${Demo.hm(t)}`,
     expected = pts.reduce((n,p) => n+(p.expectedMinutes||0),0), valid = pts.reduce((n,p) => n+(p.validMinutes||0),0),
-    refText = band ? (metric === "co2" ? `CO₂ ≤ ${nf(ref.co2)} ppm（1 h）` : metric === "pm25" ? `PM2.5 ≤ ${nf(ref.pm)} μg/m³（24 h）` : `${name} ${band[0]}–${band[1]} ${unit}`) : "空气质量分不作为参考范围内时长的判定依据",
+    refText = band ? (metric === "co2" ? `CO₂ ≤ ${nf(ref.co2)} ppm（1 h）` : metric === "pm25" ? `PM2.5 ≤ ${nf(ref.pm)} μg/m³（24 h）` : metric === "iaqs" ? "空气质量分 ≥ 50（GB/T 18883-2022 限值）" : `${name} ${band[0]}–${band[1]} ${unit}`) : "",
     gran = history.step >= Demo.DAY ? "按日显示" : history.step >= Demo.H ? "按小时显示" : "按分钟显示",
     lack = Math.max(0, expected - valid),
     // 2.66 V597：ⓘ 两句以内
@@ -79316,6 +79679,9 @@ function envTrendCard(zk = U.opsEnvZone, m0 = U.opsEnvMetric, bare = false, pick
       else offBands.push({ from: Math.max(0, i - 0.5), to: Math.min(ss.length - 1, i + 0.5), fill: "#EDEFF2" });
     });
   const ovl = anOverlaySpec(ss, step, metric === "temp" ? (x) => (step >= Demo.DAY ? Demo.outdoorDay(x) : Demo.outdoorAt(x)) : null, z),
+    // 3.06 V1042：PM2.5 可叠加室外 PM2.5（天气服务按项目地图位置，逐小时），细灰线；项目地图位置待核对时不画，“⋯”里写原因
+    outPm = metric === "pm25" ? (g("projects", OPS_SCOPE.project)?.location ? true : "项目地图位置待核对，暂不能取得") : null,
+    outPmOn = outPm === true && !!U.opsOutPm,
     hiName = metric === "co2" ? "日最高 1 h 均值" : "日最高",
     // 2.66 V603：图头最前面“指标：CO₂ ▾”；V605：只有“事件”一项时为开关按钮，温度保留“叠加”下拉
     mBtn = `<button type="button" class="btn ghost sm" data-act="anEnvMetricMenu" data-m="${esc(metric)}" data-k="${esc(pickKey)}" aria-haspopup="menu">指标：${esc(name)}${ico("chevron", "ic16")}</button>`,
@@ -79323,7 +79689,7 @@ function envTrendCard(zk = U.opsEnvZone, m0 = U.opsEnvMetric, bare = false, pick
   return chartCard({
     cls: "an-env-trend",
     extra: mBtn + tools,
-    legend: (daily ? (lo ? [[S1, "日最高", "line"], [S2, "日最低", "line"]] : [[S1, hiName, "line"]]) : [[S1, name, "line"]]).concat(offBands.length ? [["#EDEFF2", "非工作时间"]] : [], anOverlayLegend(metric === "temp")),
+    legend: (daily ? (lo ? [[S1, "日最高", "line"], [S2, "日最低", "line"]] : [[S1, hiName, "line"]]) : [[S1, name, "line"]]).concat(offBands.length ? [["#EDEFF2", "非工作时间"]] : [], anOverlayLegend(metric === "temp"), outPmOn ? [["#a3a3a3", "室外 PM2.5（天气服务，按项目地图位置）", "line"]] : []),
     title: "环境趋势" + opsInfo("环境趋势",esc(methods)),
     // 3.02 V993（取代 2.82 KW27 的“功能区 · 详情 ›”标题）：标题为“环境趋势”，灰字图头先写功能区（可点，进入对象页），再写期间与单位
     meta: `${anZnLink(z)} · ${daily ? `${metric === "co2" ? "日最高 1 h 均值" : "工作时间日最高、日最低"} · ${esc(unit)}` : `${rg.span} · ${esc(unit)}`}`,
@@ -79342,16 +79708,16 @@ function envTrendCard(zk = U.opsEnvZone, m0 = U.opsEnvMetric, bare = false, pick
       // 只有一条本期实线：线下渐变面积；温度、湿度、CO₂、PM2.5 用单调平滑（2.09 全平台优化 Y34）
       series: daily
         ? [{name:lo ? "日最高" : hiName,color:S1,vals:hi,endDot:true,area:!lo,smooth:true}, ...(lo ? [{name:"日最低",color:S2,vals:lo,endDot:true,smooth:true}] : [])]
-        : [{name,color:S1,vals:pts.map((p) => p.v),noGap:true,endDot:true,area:true,smooth:["temp","rh","co2","pm25"].includes(metric)}],
+        : [{name,color:S1,vals:pts.map((p) => p.v),noGap:true,endDot:true,area:true,smooth:["temp","rh","co2","pm25"].includes(metric)}, ...(outPmOn ? [{name:"室外 PM2.5",color:"#a3a3a3",vals:ss.map((s) => Demo.outdoorPmAt(s)),noGap:true,thin:true}] : [])],
       ...ovl,
-    }) + warn,
+    }) + warn + (outPm ? `<span hidden data-outpm="${outPm === true ? "1" : esc(outPm)}"></span>` : ""),
   });
 }
 defineActions({
   // 2.66 V603：环境趋势的指标，默认跟随所选指标卡；改选指标卡后回到跟随
   anEnvMetricMenu: (a, el) => {
     if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
-    pop(el, `<div class="ops-floorpop" role="menu" aria-label="指标">${ENV_METRICS.map(([k, n]) => `<button class="popitem ${k === a.m ? "on" : ""}" role="menuitemradio" aria-checked="${k === a.m}" data-act="anEnvMetric" data-m="${k}" data-k="${esc(a.k || "")}"><span>${n}</span>${k === a.m ? ico("check", "ic16 pop-check") : ""}</button>`).join("")}</div>`);
+    pop(el, `<div class="ops-floorpop" role="menu" aria-label="指标">${ENV_METRICS.filter(([k]) => k !== "iaqs").map(([k, n]) => `<button class="popitem ${k === a.m ? "on" : ""}" role="menuitemradio" aria-checked="${k === a.m}" data-act="anEnvMetric" data-m="${k}" data-k="${esc(a.k || "")}"><span>${n}</span>${k === a.m ? ico("check", "ic16 pop-check") : ""}</button>`).join("")}</div>`);
   },
   anEnvMetric: (a) => {
     U.opsEnvTrendM = { k: a.k || "", m: a.m };
@@ -79435,7 +79801,7 @@ function anSpaceZoneHtml(zid) {
 // 不到 95% 为橙 #EB6834，95% 及以上为灰 #B9B9B5（可视化设计 VD2：原先为蓝）；脚注按 ABB 对比 BP85（原先“在线读数不等于标准评价……”）
 // 默认只列有一项低于 95% 的功能区，没有时写“全部在参考范围内”；温度的口径写在温度一栏，不只在悬停时出现（规范 ANALYSIS03，2026-10-08 Vision 核查 V23）。
 // 手机宽度每行为功能区名称加三项小条两行（V28）
-const anCompNeed = (c) => [c.co2, c.pm, c.temp].some((v) => v != null && v < 95);
+const anCompNeed = (c) => [c.co2, c.pm, c.pm10, c.temp, c.rh].some((v) => v != null && v < 95);
 // 全部功能区合计（全平台优化 Y29）：把各功能区有人时间的分钟数加总后按档分段；报告室内环境一节与智能助手的空气问题都先说这一句
 function anCompTotal(comp, k) {
   const xs = comp.filter((c) => c.durations?.[k]?.occValidMinutes),
@@ -79474,17 +79840,19 @@ function anCompBody(comp, all = false, fold = false, cur = null) {
   const open = all || (fold && U.opsCompAll),
     shown = [...comp].sort((a, b) => a.worst - b.worst).filter((c) => open || anCompNeed(c)),
     rest = fold && !open ? comp.filter((c) => !anCompNeed(c)) : [],
-    restNone = rest.filter((c) => [c.co2, c.pm, c.temp].every((v) => v == null)).length,
-    restRow = rest.length ? `<tr class="an-comp-rest"><td colspan="4"><button type="button" class="ops-link ops-go" data-act="opsCompAll" data-value="all">其余 ${rest.length} 个功能区${restNone === rest.length ? "没有数据" : `全部达标${restNone ? `（${restNone} 个没有数据）` : ""}`} ›</button></td></tr>` : "",
+    restNone = rest.filter((c) => [c.co2, c.pm, c.pm10, c.temp, c.rh].every((v) => v == null)).length,
+    restRow = rest.length ? `<tr class="an-comp-rest"><td colspan="6"><button type="button" class="ops-link ops-go" data-act="opsCompAll" data-value="all">其余 ${rest.length} 个功能区${restNone === rest.length ? "没有数据" : `全部达标${restNone ? `（${restNone} 个没有数据）` : ""}`} ›</button></td></tr>` : "",
     // 2.75 V713：没有传感器的格子写“—”（#A3A3A3），原因在解读面板的数据说明写一次
-    aqCell = (c, k) => (c.z.aqs.length ? anCompBar(c[k], 95, "缺数") + anCompCoverage(c, k) : '<span class="an3-none" data-tip="未安装空气质量传感器" aria-label="未安装空气质量传感器">—</span>');
+    aqCell = (c, k) => (c.z.aqs.length ? anCompBar(c[k], 95, "缺数") + anCompCoverage(c, k) : '<span class="an3-none" data-tip="未安装空气质量传感器" aria-label="未安装空气质量传感器">—</span>'),
+    // 3.06 V1042：加 PM10 与湿度两列（温湿度拆开）；没有占用传感器的湿度格写“—”
+    rhCell = (c) => (c.z.mss.length ? anCompBar(c.rh) + anCompCoverage(c, "rh") : '<span class="an3-none" data-tip="未安装占用传感器" aria-label="未安装占用传感器">—</span>');
   return `${
     shown.length
       ? // 2.66 V650：报告里的表不写格内口径
-        `<div class="ops-tw"><table class="t ops-t ops-comp"><thead><tr><th>功能区</th><th>CO₂</th><th>PM2.5</th><th>温湿度</th></tr></thead><tbody>${shown
-          .map((c) => `${fold ? anCompRow(c, cur) : `<tr><td>${esc(c.z.name)}</td>`}<td data-l="CO₂">${aqCell(c, "co2")}</td><td data-l="PM2.5">${aqCell(c, "pm")}</td><td data-l="温湿度">${anCompBar(c.temp)}${anCompCoverage(c,"temp")}</td></tr>`)
+        `<div class="ops-tw"><table class="t ops-t ops-comp"><thead><tr><th>功能区</th><th>CO₂</th><th>PM2.5</th><th>PM10</th><th>温度</th><th>湿度</th></tr></thead><tbody>${shown
+          .map((c) => `${fold ? anCompRow(c, cur) : `<tr><td>${esc(c.z.name)}</td>`}<td data-l="CO₂">${aqCell(c, "co2")}</td><td data-l="PM2.5">${aqCell(c, "pm")}</td><td data-l="PM10">${aqCell(c, "pm10")}</td><td data-l="温度">${anCompBar(c.temp)}${anCompCoverage(c,"temp")}</td><td data-l="湿度">${rhCell(c)}</td></tr>`)
           .join("")}${restRow}</tbody></table></div>`
-      : `<p class="ops-empty-note">${comp.some((c) => [c.co2,c.pm,c.temp].some((v) => v != null)) ? "有有效数据的各项达标时间占比均不低于 95%。" : "所选期间没有可评价的有效数据。"}</p>`
+      : `<p class="ops-empty-note">${comp.some((c) => [c.co2,c.pm,c.pm10,c.temp,c.rh].some((v) => v != null)) ? "有有效数据的各项达标时间占比均不低于 95%。" : "所选期间没有可评价的有效数据。"}</p>`
   }`;
 }
 const AN_ENV_TREND = { co2: "co2", pm: "pm25", temp: "temp" };
@@ -79496,7 +79864,7 @@ const AN_ENV_FILL = ["#dcf2dc", "#eef5cf", "#ffedbd"], AN_ENV_BAR = ["#2e9461", 
 const anEnvLvl = (v) => (v >= 95 ? 0 : v >= 80 ? 1 : 2);
 function anEnvMap(comp, sel, name, cur) {
   const fl = g("floors", OPS_SCOPE.floor),
-    unmon = (c) => (sel === "temp" ? !c.z.fcs.length && !c.z.mss.length : !c.z.aqs.length),
+    unmon = (c) => (sel === "temp" ? !c.z.fcs.length && !c.z.mss.length : sel === "rh" ? !c.z.mss.length : !c.z.aqs.length),
     zones = comp
       .map((c) => {
         const z = c.z,
@@ -79513,7 +79881,8 @@ function anEnvMap(comp, sel, name, cur) {
   return `<div class="ops-plan-scroll" style="--opsz:${PLAN_ZOOM[planZoomIdx()]}"><div class="ops-plan ov vec ops-space-plan an-env-plan" style="aspect-ratio:${fl.dimensions.width}/${fl.dimensions.height}"><img src="${esc(fl.image)}" alt="${esc(anFloorShort())} 楼层图" draggable="false">${zones}</div></div>${planZoom()}${legend}`;
 }
 // 超标时段（2.60 V320）：需关注的功能区 × 工作时间各小时，格子为该小时 CO₂ 均值超过参考上限的工作日占比，用来调新风时间表
-const AN_OVER_COLORS = HEAT; // 2.80 KW20（原为浅灰到橙的五档）
+// 3.06 V1035：超标频次为暖色单色阶 #FDF0D2 → #8F4A12（原为与空间使用同一组蓝色，2.80 KW20）；0 为浅灰
+const AN_OVER_COLORS = ["#f2f2f0", "#fdf0d2", "#f2c98a", "#d68b3c", "#8f4a12"];
 // 2.66 V598：图头写期间与“超过 1,000 ppm 的工作日占比”，右上“数据表”（格内写“45%（10/22 天）”）；V600：还没到来的小时留白；
 // V599：下面接 AI 卡，写最常超标的时段与天数占比，建议物业在这段时间加大新风量或开窗
 function anOverHours(list) {
@@ -79583,109 +79952,287 @@ const anNoWork = (rg) => {
   return true;
 };
 const anNoWorkNote = () => `<p class="ops-empty-note">所选期间没有工作日</p>`;
+/* 3.06 V1042（取代 3.00 V965、2.71 V678 的指标卡与主图）：
+   指标卡五张：空气质量（V1050：CO₂ 1 h 均值、PM2.5 与 PM10 24 h 均值同时在限值内）、CO₂、PM2.5、温度、湿度的达标时间；数值下为按功能区数分段的条
+   （≥ 95% 绿、80–95% 黄、< 80% 橙、无数据灰，段内写数量）与最差的一区。只代表局部的空气质量监测点不计入，数据说明写“另 N 区只代表局部，未计入”。
+   主图为所选功能区：期间 > 2 天（至 40 天）默认“日 × 小时”热力图（工作日工作时间每小时均值，按档着色，与楼层图、检视器同色，空格为无数据），
+   图头“热力 | 曲线”；曲线为每日工作时间均值加最低到最高的浅色带与参考线；≤ 2 天为逐分钟曲线。
+   AI 解读与建议合成一段，后接“采用”；达标表列为 CO₂、PM2.5、PM10、温度、湿度；明细第二行 CO₂ 为超标时段与通风诊断，温湿度为舒适区 */
+const AN_ENV_K = [["aq", "空气质量"], ["co2", "CO₂"], ["pm", "PM2.5"], ["temp", "温度"], ["rh", "湿度"]],
+  AN_ENV_SEG = ["#2e9461", "#d29a10", "#db6a1e", "#c9c9c9"],
+  AN_ENV_SEGT = ["#fff", "#030303", "#fff", "#030303"],
+  AN_ENV_HM = { aq: "iaqs", co2: "co2", pm: "pm25", temp: "temp", rh: "rh" },
+  AN_ENV_UNIT = { aq: "", co2: "ppm", pm: "μg/m³", temp: "℃", rh: "%" };
+const anEnvMon = (c, k) => (k === "temp" ? c.z.fcs.length + c.z.mss.length : k === "rh" ? c.z.mss.length : c.z.aqs.length) > 0,
+  anEnvPart = (c) => c.z.aqs.length > 0 && c.z.aqs.every((p) => aqRegOf(p).rep === "part"),
+  anEnvAq = (k) => !["temp", "rh"].includes(k),
+  anPctI = (v) => (v >= 100 ? 100 : Math.min(99, Math.round(v))),
+  anEnvName = (k) => (k === "aq" ? "空气质量分" : AN_ENV_K.find((x) => x[0] === k)?.[1] || ""),
+  anEnvWork = (s) => workdayOn(OPS_SCOPE.project, ymdOf(s)) && Demo.loc(s).h >= Math.floor(anWork()[0]) && Demo.loc(s).h < Math.ceil(anWork()[1]);
+// 分段条：按功能区数，段内写数量
+function anEnvSeg(cs, k) {
+  const ms = cs.filter((c) => anEnvMon(c, k)),
+    n = [0, 0, 0, 0],
+    lab = ["≥ 95%", "80–95%", "< 80%", "无数据"];
+  ms.forEach((c) => n[c[k] == null ? 3 : anEnvLvl(c[k])]++);
+  if (!ms.length) return "";
+  return `<span class="an-seg" role="img" aria-label="${esc(n.map((x, i) => (x ? `${lab[i]} ${x} 个功能区` : "")).filter(Boolean).join("，"))}">${n.map((x, i) => (x ? `<i style="flex:${x};background:${AN_ENV_SEG[i]};color:${AN_ENV_SEGT[i]}">${x}</i>` : "")).join("")}</span>`;
+}
+// 档：空气质量分与 CO₂、PM2.5 为优、良、一般、差（OV_AQ），温湿度为偏低、适宜、偏高（TH_FILL）
+function anEnvBand(k, v, ref, b) {
+  if (!Number.isFinite(v)) return null;
+  if (k === "aq") return Demo.aqBandIdx(v);
+  if (k === "co2") return co2Level(v, ref);
+  if (k === "pm") return pmLevel(v, ref);
+  return b && b[0] != null && v < b[0] ? 0 : b && b[1] != null && v > b[1] ? 2 : 1;
+}
+const anEnvFill = (k, i) => (anEnvAq(k) ? OV_AQ : TH_FILL)[i],
+  anEnvWord = (k, i) => (anEnvAq(k) ? AQ_BANDS : ["偏低", "适宜", "偏高"])[i];
+function anEnvLegend(k, ref, b, used) {
+  const u = AN_ENV_UNIT[k],
+    w = (x) => (u ? (u === "%" ? `${x}%` : `${x} ${u}`) : x),
+    r =
+      k === "aq"
+        ? ["90–100", "70–89", "50–69", "0–49"]
+        : k === "co2"
+          ? [`≤ ${nf(ref.co2Cuts[0])}`, `${nf(ref.co2Cuts[0] + 1)}–${nf(ref.co2Cuts[1])}`, `${nf(ref.co2Cuts[1] + 1)}–${nf(ref.co2)}`, `> ${nf(ref.co2)}`].map(w)
+          : k === "pm"
+            ? [`≤ ${nf(ref.pmCuts[0])}`, `${nf(ref.pmCuts[0] + 1)}–${nf(ref.pmCuts[1])}`, `${nf(ref.pmCuts[1] + 1)}–${nf(ref.pm)}`, `> ${nf(ref.pm)}`].map(w)
+            : b
+              ? [`< ${envN(b[0])}`, `${envN(b[0])}–${envN(b[1])}`, `> ${envN(b[1])}`].map(w)
+              : [];
+  return `<div class="ops-legend">${r.map((t, i) => (used.has(i) ? `<span><i class="sq" style="--c:${anEnvFill(k, i)}"></i>${esc(`${anEnvWord(k, i)} ${t}`)}</span>` : "")).join("")}${used.has(-1) ? `<span><i class="sq nd"></i>无数据</span>` : ""}</div>`;
+}
+// 所选功能区的逐小时均值（工作日工作时间）
+function anEnvHours(z, k, rg) {
+  const h = Demo.envHistory(z.k, AN_ENV_HM[k], rg, Demo.H);
+  return { h, pts: h.points.map((p) => ({ s: p.t - ((p.t - Demo.dayStart(p.t)) % Demo.H), v: p.v })).filter((p) => anEnvWork(p.s)) };
+}
+const anEnvViewSeg = (view) => segSm([["heat", "热力"], ["curve", "曲线"]], view, "anEnvView", "", "图表类型");
+// 日 × 小时热力图：行为工作日，列为工作时间各小时
+function anEnvHeat(z, k, rg) {
+  const { h, pts } = anEnvHours(z, k, rg),
+    ref = zoneRef(Demo.zoneState(z)),
+    b = h.bounds,
+    wk = anWork(),
+    hours = Array.from({ length: Math.ceil(wk[1]) - Math.floor(wk[0]) }, (_, i) => Math.floor(wk[0]) + i),
+    by = new Map(pts.map((p) => [p.s, p.v])),
+    days = [],
+    name = anEnvName(k),
+    unit = AN_ENV_UNIT[k],
+    dg = k === "temp" ? 1 : 0,
+    hh = (x) => String(x).padStart(2, "0"),
+    used = new Set();
+  for (let d = Demo.dayStart(rg.from); d < Math.min(rg.end, Demo.NOW); d += Demo.DAY) if (workdayOn(OPS_SCOPE.project, ymdOf(d))) days.push(d);
+  const cell = (d, hr) => {
+      const s = d + hr * Demo.H,
+        v = by.get(s),
+        w = `${anDayW(d)} ${hh(hr)}:00–${hh(hr + 1)}:00`;
+      if (s >= Demo.NOW) return `<i class="an-hm-c fut" aria-hidden="true"></i>`;
+      const i = anEnvBand(k, v, ref, b);
+      if (i == null) return used.add(-1), `<i class="an-hm-c nd" data-tip="${esc(`${w} · 无数据`)}" aria-label="${esc(`${w} · 无数据`)}"></i>`;
+      used.add(i);
+      const tip = `${w} · ${name} ${nf(v, dg)}${unit ? (unit === "%" ? "%" : ` ${unit}`) : ""} · ${anEnvWord(k, i)}`;
+      return `<i class="an-hm-c" style="background:${anEnvFill(k, i)}" data-tip="${esc(tip)}" aria-label="${esc(tip)}"></i>`;
+    },
+    rows = days.map((d) => `<div class="an-hm-r"><span class="an-hm-n">${esc(anDayW(d))}</span>${hours.map((hr) => cell(d, hr)).join("")}</div>`).join(""),
+    tb = regTable("envheat", ["日期", ...hours.map((x) => `${hh(x)} 时`)], days.map((d) => [anDayW(d), ...hours.map((hr) => (d + hr * Demo.H >= Demo.NOW ? "" : by.get(d + hr * Demo.H) == null ? "—" : nf(by.get(d + hr * Demo.H), dg)))]));
+  return chartCard({
+    cls: "an-env-trend an-env-heat",
+    extra: anEnvViewSeg("heat"),
+    title: "环境趋势" + opsInfo("环境趋势", esc("每格为该小时的均值，按档着色，与楼层图同一组颜色；非工作日与非工作时间不画，空格为无数据。")),
+    meta: `${anZnLink(z)} · ${esc(name)}${unit ? ` · ${esc(unit)}` : ""} · 工作日工作时间每小时均值`,
+    table: tb,
+    body: days.length ? `<div class="an-hm an-hm-d" style="--cols:${hours.length}">${rows}<div class="an-hm-r an-hm-x" aria-hidden="true"><span></span>${hours.map((x) => `<span>${hh(x)}</span>`).join("")}</div></div>${anEnvLegend(k, ref, b, used)}` : anNoWorkNote(),
+  });
+}
+// 期间 > 2 天的曲线：每日工作时间均值，浅色带为当天最低到最高，参考线为参考上限或参考范围
+function anEnvDaily(z, k, rg, heatOk) {
+  const { h, pts } = anEnvHours(z, k, rg),
+    ref = zoneRef(Demo.zoneState(z)),
+    b = h.bounds,
+    name = anEnvName(k),
+    unit = AN_ENV_UNIT[k] || "分",
+    dg = k === "temp" ? 1 : 0,
+    days = [];
+  for (let d = Demo.dayStart(rg.from); d < Math.min(rg.end, Demo.NOW); d += Demo.DAY) days.push(d);
+  const per = days.map((d) => pts.filter((p) => p.v != null && p.s >= d && p.s < d + Demo.DAY).map((p) => p.v)),
+    mean = per.map((xs) => (xs.length ? +(xs.reduce((a, x) => a + x, 0) / xs.length).toFixed(dg) : null)),
+    lo = per.map((xs) => (xs.length ? Math.min(...xs) : null)),
+    hi = per.map((xs) => (xs.length ? Math.max(...xs) : null)),
+    refs = k === "aq" ? [50] : k === "co2" ? [ref.co2] : k === "pm" ? [ref.pm] : (b || []).filter((v) => v != null),
+    every = dayLabelEvery(days.length),
+    vals = [...lo, ...hi].filter((v) => v != null),
+    // 非工作日为浅灰底；工作日缺数为斜纹
+    off = days.map((d) => !workdayOn(OPS_SCOPE.project, ymdOf(d))),
+    bands = days.flatMap((d, i) => (off[i] ? [{ from: i - 0.5, to: i + 0.5, fill: "#EDEFF2" }] : mean[i] == null ? [{ from: i - 0.5, to: i + 0.5, fill: "url(#opsHatch)" }] : [])),
+    nm = `${name}${/[A-Za-z0-9₂.]$/.test(name) ? " " : ""}日均值`;
+  return chartCard({
+    cls: "an-env-trend",
+    extra: (heatOk ? anEnvViewSeg("curve") : "") + `<button type="button" class="btn ghost sm" data-act="anOverlay" data-k="events" aria-pressed="${U.opsEvents !== false}">事件</button>`,
+    legend: [[S1, nm, "line"], ["#e6edf7", "当天最低到最高"], ...(off.some(Boolean) ? [["#EDEFF2", "非工作日"]] : []), ...(bands.some((b) => b.fill !== "#EDEFF2") ? [["#fafafa", "缺数", "sq hatch"]] : [])],
+    title: "环境趋势" + opsInfo("环境趋势", esc("每日工作时间的均值，浅色带为当天各小时均值的最低到最高。")),
+    meta: `${anZnLink(z)} · ${esc(rg.span)} · 工作时间 · ${esc(unit)}`,
+    table: regTable("envtrend", ["日期", `日均值 ${unit}`, `最低 ${unit}`, `最高 ${unit}`], days.map((d, i) => [anDayW(d), mean[i] == null ? "—" : nf(mean[i], dg), lo[i] == null ? "—" : nf(lo[i], dg), hi[i] == null ? "—" : nf(hi[i], dg)])),
+    body: chartSlot({
+      type: "lines",
+      height: 240,
+      xs: days,
+      xLabel: (s, i) => ((days.length - 1 - i) % every === 0 ? Demo.md(s) : ""),
+      tipTitle: (s) => anDayW(s),
+      unit,
+      unitShort: unit,
+      digits: dg,
+      ...(k === "aq" ? { yMax: 100 } : {}),
+      ...(k === "temp" || k === "rh" ? { yMin: vals.length ? Math.floor(Math.min(...vals, ...refs) - 1) : 0 } : {}),
+      refs: refs.map((v) => ({ v, label: `参考 ${envN(v)}` })),
+      range: { lo, hi },
+      series: [{ name: nm, color: S1, vals: mean, endDot: true, smooth: true, noGap: true }],
+      ...anOverlaySpec(days, Demo.DAY, null, z),
+      bands,
+    }),
+  });
+}
+// 散点（通风诊断、舒适区）：一点一个功能区，点击后主图换成该功能区
+function anScatter({ pts, xr, yr, xName, yName, refX = [], refY = [], boxes = [], aria = "", legend = [] }) {
+  const cl = (v) => Math.max(0, Math.min(100, v)),
+    X = (v) => cl(((v - xr[0]) / (xr[1] - xr[0])) * 100),
+    Y = (v) => cl((1 - (v - yr[0]) / (yr[1] - yr[0])) * 100),
+    tk = (r) => Array.from({ length: Math.round((r[1] - r[0]) / r[2]) + 1 }, (_, i) => +(r[0] + r[2] * i).toFixed(3));
+  return `<div class="an-sc" role="group" aria-label="${esc(aria)}"><span class="an-sc-yn">${esc(yName)}</span><div class="an-sc-p">${tk(yr).map((v) => `<span class="an-sc-gy" style="top:${Y(v)}%"><b>${envN(v)}</b></span>`).join("")}${tk(xr).map((v) => `<span class="an-sc-gx" style="left:${X(v)}%"><b>${envN(v)}</b></span>`).join("")}${boxes.map((q) => `<span class="an-sc-box" style="left:${X(q.x0)}%;width:${X(q.x1) - X(q.x0)}%;top:${Y(q.y1)}%;height:${Y(q.y0) - Y(q.y1)}%"><small>${esc(q.label)}</small></span>`).join("")}${refX.map((v) => `<span class="an-sc-rx" style="left:${X(v)}%"></span>`).join("")}${refY.map((v) => `<span class="an-sc-ry" style="top:${Y(v)}%"></span>`).join("")}${pts.map((p) => `<button type="button" class="an-sc-pt${p.on ? " on" : ""}" style="left:${X(p.x)}%;top:${Y(p.y)}%;--c:${p.color}" data-act="anEnvRow" data-k="${esc(p.k)}" data-tip="${esc(p.tip)}" aria-label="${esc(p.tip + "，查看趋势")}"></button>`).join("")}</div><span class="an-sc-xn">${esc(xName)}</span></div>${legend.length ? `<div class="ops-legend">${legend.map(([c, n]) => `<span><i class="dot" style="--c:${c}"></i>${esc(n)}</span>`).join("")}</div>` : ""}`;
+}
+const anSpan = (xs, pad, floor = null) => {
+  const a = Math.min(...xs) - pad,
+    b = Math.max(...xs) + pad,
+    st = niceScale(b - a, 4).step;
+  return [Math.floor((floor != null ? Math.max(floor, a) : a) / st) * st, Math.ceil(b / st) * st, st];
+};
+// 通风诊断：横轴为工作时间 CO₂ 小时均值的第 90 百分位，纵轴为最大值，参考线为参考上限
+function anVent(comp, cur, rg) {
+  const zr = zoneRef(),
+    pts = comp
+      .filter((c) => c.z.aqs.length && !anEnvPart(c))
+      .map((c) => {
+        const xs = anEnvHours(c.z, "co2", rg).pts.filter((p) => p.v != null).map((p) => p.v).sort((a, b) => a - b);
+        if (!xs.length) return null;
+        const p90 = xs[Math.max(0, Math.ceil(0.9 * xs.length) - 1)],
+          mx = xs.at(-1);
+        return { k: c.z.k, x: p90, y: mx, on: c === cur, color: p90 > zr.co2 ? "#d0382b" : mx > zr.co2 ? "#d29a10" : "#2e9461", tip: `${anZn(c.z)} · 第 90 百分位 ${nf(p90)} ppm · 最高 ${nf(mx)} ppm` };
+      })
+      .filter(Boolean);
+  if (!pts.length) return "";
+  const xr = anSpan([...pts.map((p) => p.x), zr.co2], 60, 400),
+    yr = anSpan([...pts.map((p) => p.y), zr.co2], 60, 400),
+    hiN = pts.filter((p) => p.x > zr.co2).length;
+  return `<section class="an-panel an-vent"><header class="an-panel-h"><h3>通风诊断${opsInfo("通风诊断", esc(`一点一个功能区：横轴为工作时间 CO₂ 1 小时均值的第 90 百分位，纵轴为最高值；虚线为 ${nf(zr.co2)} ppm。右上方的点经常超标，适合先调新风；只有纵轴高的点为偶发。`))}</h3><span class="an-panel-m">${esc(rg.span)} · ppm${hiN ? ` · ${hiN} 个功能区经常超标` : ""}</span></header>${anScatter({ pts, xr, yr, xName: "第 90 百分位", yName: "最高", refX: [zr.co2], refY: [zr.co2], aria: "通风诊断散点", legend: [["#d0382b", "经常超标"], ["#d29a10", "偶发"], ["#2e9461", "未超标"]].filter(([c]) => pts.some((p) => p.color === c)) })}</section>`;
+}
+// 舒适区：横轴温度，纵轴湿度，一点一个功能区（工作时间中位数）；绿色框为应用设置的参考范围，期间跨季时每季一个框
+function anComfort(comp, cur, rg) {
+  const med = (xs) => (xs.length ? xs.sort((a, b) => a - b)[Math.floor((xs.length - 1) / 2)] : null),
+    pts = comp
+      .filter((c) => c.z.mss.length)
+      .map((c) => {
+        const t = med(anEnvHours(c.z, "temp", rg).pts.filter((p) => p.v != null).map((p) => p.v)),
+          h = med(anEnvHours(c.z, "rh", rg).pts.filter((p) => p.v != null).map((p) => p.v));
+        return t == null || h == null ? null : { c, k: c.z.k, x: t, y: h, on: c === cur, tip: `${anZn(c.z)} · ${envN(t)} ℃ · ${envN(h)}%` };
+      })
+      .filter(Boolean);
+  if (!pts.length) return "";
+  const pid = OPS_SCOPE.project,
+    P = v13Profile(data(), pid),
+    keys = [];
+  for (let d = Demo.dayStart(rg.from); d < Math.min(rg.end, Demo.NOW); d += Demo.DAY) {
+    const sk = hvacSeason(P, ymdOf(d).slice(5)).key;
+    if (!keys.includes(sk)) keys.push(sk);
+  }
+  const boxes = keys.map((sk) => {
+      const r = envRef(pid, { floorId: OPS_SCOPE.floor, season: sk });
+      return { x0: r.temp[0], x1: r.temp[1], y0: r.rh[0], y1: r.rh[1], label: r.season.sk };
+    }),
+    inBox = (p) => boxes.some((q) => p.x >= q.x0 && p.x <= q.x1 && p.y >= q.y0 && p.y <= q.y1),
+    xr = anSpan([...pts.map((p) => p.x), ...boxes.flatMap((q) => [q.x0, q.x1])], 1),
+    yr = anSpan([...pts.map((p) => p.y), ...boxes.flatMap((q) => [q.y0, q.y1])], 5, 0),
+    outN = pts.filter((p) => !inBox(p)).length;
+  pts.forEach((p) => (p.color = inBox(p) ? "#2e9461" : "#d29a10"));
+  return `<section class="an-panel an-comfort"><header class="an-panel-h"><h3>舒适区${opsInfo("舒适区", esc("一点一个功能区，为工作时间温度、湿度的中位数；绿色框为应用设置的参考范围，期间跨季时每季一个框。"))}</h3><span class="an-panel-m">${esc(rg.span)}${outN ? ` · ${outN} 个功能区在框外` : " · 全部在框内"}</span></header>${anScatter({ pts, xr, yr, xName: "温度 ℃", yName: "湿度 %", boxes, aria: "舒适区散点", legend: [["#2e9461", "在框内"], ["#d29a10", "在框外"]].filter(([c]) => pts.some((p) => p.color === c)) })}</section>`;
+}
 function anEnv() {
   AN_OVER_AI = null;
-  // 2.71 V678：all 为三项中最低的达标时间占比（某功能区或全部合计）
-  const rg = anRange(), comp = Demo.compliance(anKey()).map((c) => ({ ...c, all: ((xs) => (xs.length ? Math.min(...xs) : null))([c.co2, c.pm, c.temp].filter((v) => v != null)) })), noWork = anNoWork(rg),
-    need = (k) => noWork ? "—" : comp.some((c) => c[k] != null) ? comp.filter((c) => c[k] != null && c[k] < 95).length : "—",
-    needV = (k) => (need(k) === "—" ? "—" : need(k) + "<small>个功能区</small>"),
-    pct = (v) => `${nf(v, v === 100 ? 0 : 1)}%`,
-    worst = (k) => {
-      const c = comp.filter((x) => x[k] != null && x[k] < 95).sort((x, y) => x[k] - y[k])[0];
-      return c ? `<span class="nw">${esc(anZn(c.z))}</span> 最低 ${pct(c[k])}` : "";
-    },
-    cover = (c) => Math.max(0, ...["co2", "pm", "temp"].map((k) => c.coverage?.[k] ?? 0)),
-    basis = anCompBasis(comp),
-    // 按有人时间计（2.08 全平台优化 Y8）：没有占用传感器的功能区仍按工作时间
-    // 2.66 V594、V597：统一叫“达标时间占比”；ⓘ 两句以内，删去“不是检测合格线”
-    detail = "工作时间有人时在参考范围内的时间占比；没有占用传感器的按工作时间。",
+  const rg = anRange(),
+    comp = Demo.compliance(anKey()),
+    noWork = anNoWork(rg),
+    // 只代表局部的空气质量监测点不计入空气质量、CO₂、PM2.5 的合计、分段与排名（V1050 第 8 条）
+    of = (k) => (anEnvAq(k) ? comp.filter((c) => !anEnvPart(c)) : comp),
+    partN = comp.filter(anEnvPart).length,
     zr = zoneRef(),
-    // 2.25 V180：监测覆盖按当前指标统计（选中监测覆盖时沿用上一次选的指标）
-    pre = AN_PICK.environment,
-    covK = ["co2", "pm", "temp"].includes(pre) ? pre : U.opsEnvLast || "co2",
-    noAq = comp.filter((c) => !c.z.aqs.length).length,
-    noT = comp.filter((c) => c.temp == null).length,
-    covSub = covK === "temp" ? (noT ? `${noT} 个没有温度数据` : "") : noAq ? `${noAq} 个未安装<span class="ops-nw">空气质量传感器</span>` : "", // 2.66 V660：传感器名称整体不拆行
-    // 2.66 V595：卡名写明指标（跟随上次所选的指标）
-    covName = { co2: "CO₂", pm: "PM2.5", temp: "温度" }[covK],
-    // 2.71 V678：指标页签为达标时间占比、CO₂、PM2.5、温湿度，数值为全部功能区合计的达标时间占比，副文写需关注的功能区数；
-    // 监测覆盖不再是指标页签，写进解读栏的缺资料一行
-    totOf = (k) => (noWork ? null : anCompTotal(comp, k)),
-    tots = { co2: totOf("co2"), pm: totOf("pm"), temp: totOf("temp") },
-    pv = (k) => (tots[k] ? `${nf(tots[k].within, tots[k].within >= 99.95 ? 0 : 1)}<small>%</small>` : "—"),
-    allK = ["co2", "pm", "temp"].filter((k) => tots[k]).sort((a, b) => tots[a].within - tots[b].within)[0],
-    nm = { co2: "CO₂", pm: "PM2.5", temp: "温湿度" }, // 2.76 V755：统一写“温湿度”
-    needSub = (k) => (need(k) === "—" ? "" : need(k) ? `${need(k)} 个功能区需关注` : "全部 ≥ 95%"),
-    // 3.00 V965：指标卡 3 张（CO₂、PM2.5、温湿度），取消“需关注”卡（需关注的数量就是下方达标表的行数）；默认选中达标比例最低的一项
-    blocks = [
-      { k: "co2", label: "CO₂" + opsInfo("CO₂", esc(`工作时间有人时 CO₂ 1 h 均值 ≤ ${nf(zr.co2)} ppm 的时间占比；没有占用传感器的按工作时间。`)), value: pv("co2"), sub: needSub("co2") },
-      { k: "pm", label: "PM2.5" + opsInfo("PM2.5", esc(`工作时间有人时 PM2.5 24 h 均值 ≤ ${nf(zr.pm)} μg/m³ 的时间占比；没有占用传感器的按工作时间。`)), value: pv("pm"), sub: needSub("pm") },
-      { k: "temp", label: "温湿度" + opsInfo("温湿度", esc(`工作时间有人时温度在参考范围内的时间占比。${basis ? `参考为${basis.replace(/^供热/, "供热设定").replace("设定设定", "设定")}，不同的写在该行。` : ""}湿度见趋势图。`)), value: pv("temp"), sub: needSub("temp") },
-    ],
-    def = allK || "co2",
+    basis = anCompBasis(comp),
+    detail = "工作时间有人时在参考范围内的时间占比；没有占用传感器的按工作时间。",
+    tots = Object.fromEntries(AN_ENV_K.map(([k]) => [k, noWork ? null : anCompTotal(of(k), k)])),
+    tips = {
+      aq: `工作时间有人时 CO₂（1 h 均值）、PM2.5 与 PM10（24 h 均值）同时在限值内的时间占比，限值为 GB/T 18883-2022；没有占用传感器的按工作时间。`,
+      co2: `工作时间有人时 CO₂ 1 h 均值 ≤ ${nf(zr.co2)} ppm 的时间占比；没有占用传感器的按工作时间。`,
+      pm: `工作时间有人时 PM2.5 24 h 均值 ≤ ${nf(zr.pm)} μg/m³ 的时间占比；没有占用传感器的按工作时间。`,
+      temp: `工作时间有人时温度在参考范围内的时间占比。${basis ? `参考为${basis.replace(/^供热/, "供热设定").replace("设定设定", "设定")}，不同的写在达标表该行。` : ""}`,
+      rh: `工作时间有人时湿度在当季参考范围（${envN(zr.rh[0])}–${envN(zr.rh[1])}%）内的时间占比。`,
+    },
+    worstOf = (k) => {
+      const c = of(k).filter((x) => x[k] != null).sort((x, y) => x[k] - y[k])[0];
+      return !c ? "" : c[k] < 95 ? `<span class="nw">${esc(anZn(c.z))}</span> ${anPctI(c[k])}%` : "全部 ≥ 95%";
+    },
+    blocks = AN_ENV_K.map(([k, nm]) => ({
+      k,
+      label: `${nm}${/^[A-Z]/.test(nm) ? " " : ""}达标时间` + opsInfo(`${nm}达标时间`, esc(tips[k])),
+      value: tots[k] ? `${anPctI(tots[k].within)}<small>%</small>` : "—",
+      sub: noWork ? "" : `${anEnvSeg(of(k), k)}<span class="an-worst">${worstOf(k)}</span>`,
+    })),
+    def = AN_ENV_K.map(([k]) => k).filter((k) => tots[k]).sort((a, b) => tots[a].within - tots[b].within)[0] || "aq",
     sel = anPickOf("environment", blocks, def),
-    isCover = false,
-    isAll = sel === "all",
-    _last = !isAll && (U.opsEnvLast = sel),
-    val = (c) => (isCover ? cover(c) : c[sel]),
-    rows = [...comp].filter((c) => (isCover ? true : c[sel] != null)).sort((a, b) => val(a) - val(b) || a.z.name.localeCompare(b.z.name, "zh-CN", { numeric: true })),
-    needN = rows.filter((c) => val(c) < 95).length,
-    // 2.66 V595：选中监测覆盖时环境趋势保持原来的功能区和指标
-    cur = noWork || isCover ? comp.find((c) => c.z.k === (U.opsEnvZone || U.opsEnvShown)) || comp.find((c) => c.z.aqs.length) : rows.find((c) => c.z.k === U.opsEnvZone) || rows[0],
+    name = AN_ENV_K.find((x) => x[0] === sel)?.[1] || "",
+    title = `${name}${/^[A-Z]/.test(name) ? " " : ""}达标时间`,
+    rows = of(sel).filter((c) => c[sel] != null).sort((a, b) => a[sel] - b[sel] || a.z.name.localeCompare(b.z.name, "zh-CN", { numeric: true })),
+    needN = rows.filter((c) => c[sel] < 95).length,
+    cur = noWork ? of(sel).find((c) => c.z.k === (U.opsEnvZone || U.opsEnvShown)) || of(sel).find((c) => anEnvMon(c, sel)) : rows.find((c) => c.z.k === U.opsEnvZone) || rows[0],
     _shown = cur && (U.opsEnvShown = cur.z.k),
-    pickKey = isAll ? (cur ? ["co2", "pm", "temp"].filter((k) => cur[k] != null).sort((a, b) => cur[a] - cur[b])[0] || "co2" : "co2") : sel,
-    metric = U.opsEnvTrendM?.k === pickKey ? U.opsEnvTrendM.m : AN_ENV_TREND[pickKey],
-    name = { all: "综合", co2: "CO₂", pm: "PM2.5", temp: "温度", cover: "监测覆盖" }[sel],
-    canMap = !anWider() && !isCover,
-    // 指标名以字母开头时与“达标时间占比”之间留空格（CO₂ 达标时间占比、温度达标时间占比）
-    title = isAll ? "达标时间占比" : `${name}${/^[A-Z]/.test(name) ? " " : ""}达标时间占比`,
-    info = opsInfo(title, esc(detail)),
-    covMin = (m) => (m < 60 ? `${nf(m)} 分钟` : `${nf(m / 60, m % 60 ? 1 : 0)} 小时`),
-    covMiss = comp
-      .map((c) => {
-        const d = c.durations?.[covK],
-          unmon = covK === "temp" ? !c.z.fcs.length && !c.z.mss.length : !c.z.aqs.length,
-          miss = d ? d.expectedMinutes - d.validMinutes : 0;
-        return unmon ? [c, covK === "temp" ? "未安装温度传感器" : "未安装空气质量传感器"] : miss > 0 ? [c, `缺 ${covMin(miss)}`] : null;
-      })
-      .filter(Boolean),
-    tot = isAll ? (allK ? { n: tots[allK].n, within: tots[allK].within } : null) : anCompTotal(comp, sel),
-    covBody = covMiss.length ? `<ul class="an-cov">${covMiss.map(([c, why]) => `<li>${esc(anZn(c.z))} · <span class="ops-dim">${esc(why)}</span></li>`).join("")}</ul>` : `<p class="ops-empty-note">全部功能区都有有效数据</p>`,
-    // 2.71 V678：主图为趋势（所选功能区、所选指标；默认最需要关注的一处），“达标时间占比”为功能区 × 三项的达标表；
-    // 下方区块为功能区排名与楼层分布（V680：按期间平均着色），选到楼层以上时楼层分布换为分楼层
-    // 3.00 V965：主图“环境趋势”为所选指标在最需要关注的功能区的趋势；第 3 行“达标时间占比”整宽（只列需关注的功能区，点一行主图换成该功能区），
-    // 第 4 行楼层分布 | 超标时段（超标时段只在 CO₂ 下有，其他指标楼层分布占整宽）；取消“按功能区”排名与“达标最差的功能区”清单
+    heatOk = rg.days > 2 && rg.days <= 40,
+    view = heatOk ? (U.anEnvView === "curve" ? "curve" : "heat") : "curve",
     chart = noWork
       ? chartCard({ title: "环境趋势", meta: rg.span, body: anNoWorkNote() })
-      : cur
-        ? envTrendCard(cur.z.k, metric, false, pickKey)
-        : chartPending("环境趋势", "所选期间没有可评价的有效数据。"),
-    compCard = noWork ? "" : `<section class="an-panel an-comp-card"><header class="an-panel-h"><h3>达标时间占比${opsInfo("达标时间占比", esc(detail))}</h3><span class="an-panel-m">${esc(rg.span)} · 目标 95%</span></header>${anCompBody(comp, false, true, cur)}</section>`,
-    mapCard = canMap && !noWork ? `<section class="an-panel an-env-mapcard"><header class="an-panel-h"><h3>楼层分布</h3><span class="an-panel-m">期间平均 · ${esc(title)}</span></header>${anEnvMap(comp, sel, name, cur)}</section>` : "",
-    needCo2 = sel === "co2" && !noWork ? comp.filter((c) => c.co2 != null && c.co2 < 95).sort((a, b) => a.co2 - b.co2) : [],
+      : !cur
+        ? chartPending("环境趋势", "所选期间没有可评价的有效数据。")
+        : view === "heat"
+          ? anEnvHeat(cur.z, sel, rg)
+          : rg.days > 2
+            ? anEnvDaily(cur.z, sel, rg, heatOk)
+            : envTrendCard(cur.z.k, U.opsEnvTrendM?.k === sel ? U.opsEnvTrendM.m : AN_ENV_HM[sel], false, sel),
+    compCard = noWork ? "" : `<section class="an-panel an-comp-card"><header class="an-panel-h"><h3>达标时间${opsInfo("达标时间", esc(detail))}</h3><span class="an-panel-m">${esc(rg.span)} · 目标 95%</span></header>${anCompBody(comp, false, true, cur)}</section>`,
+    mapCard = !anWider() && !noWork ? `<section class="an-panel an-env-mapcard"><header class="an-panel-h"><h3>楼层分布</h3><span class="an-panel-m">期间平均 · ${esc(title)}</span></header>${anEnvMap(comp, sel, name, cur)}</section>` : "",
+    needCo2 = sel === "co2" && !noWork ? of("co2").filter((c) => c.co2 != null && c.co2 < 95).sort((a, b) => a.co2 - b.co2) : [],
     // 2.66 V600：期间内工作日少于 5 天时不显示“超标时段”
-    overCard = needCo2.length && Demo.co2Hours(needCo2[0].z, anKey()).wd >= 5 ? anOverHours(needCo2) : "";
-  // 2.71 V678、V689：解读栏
-  const low = rows.find((c) => val(c) != null),
-    lowK = low && isAll ? ["co2", "pm", "temp"].filter((k) => low[k] != null).sort((a, b) => low[a] - low[b])[0] : sel,
+    overCard = needCo2.length && Demo.co2Hours(needCo2[0].z, anKey()).wd >= 5 ? anOverHours(needCo2) : "",
+    ventCard = sel === "co2" && !noWork ? anVent(comp, cur, rg) : "",
+    comfortCard = (sel === "temp" || sel === "rh") && !noWork ? anComfort(comp, cur, rg) : "";
+  const low = rows[0],
     noAqN = comp.filter((c) => !c.z.aqs.length).length,
-    noTN = comp.filter((c) => c.temp == null).length,
+    noTN = comp.filter((c) => !anEnvMon(c, "temp")).length,
+    noRhN = comp.filter((c) => !c.z.mss.length).length,
     ox = AN_OVER_AI,
-    // 2.75 V713：解读面板不再写三组数字；2.76 V746：不写页签与表格里已有的合计与最低值
+    // AI 解读与建议合成一段（原为解读一句加“建议”一行，说的是同一件事），末尾“采用”
     ins = noWork
       ? anIns({ notes: ["所选期间没有工作日"] })
       : anIns({
-          ai: tot
-            ? `${needN && low ? `${isAll ? `${needN} 个功能区低于 95%，` : ""}最需要关注的是${anSp(anZn(low.z))}的${anPre(isAll ? nm[lowK] : title)}。` : "各功能区都不低于 95%。"}${ox && (sel === "co2" || (isAll && lowK === "co2")) ? ox.text : ""}`
-            : "",
+          ai: tots[sel] ? `${needN && low ? `最需要关注的是${anSp(anZn(low.z))}的${anPre(title)}（${anPctI(low[sel])}%）。` : `各功能区的${anPre(title)}都不低于 95%。`}${ox && sel === "co2" ? ox.text : ""}` : "",
           basis: [["期间", esc(rg.span)], ["对象", esc(`${anFloorShort()} · ${comp.length} 个功能区`)], ["数据", "工作时间有人时的监测读数；没有占用传感器的按工作时间"]],
-          acts: ox && canOperate() && (sel === "co2" || isAll) ? [[esc(ox.title), btn("采用", "aiTaskNew", { title: ox.title, zone: ox.zone, text: ox.text }, "sm")]] : [],
-          notes: [isAll && noAqN ? `${noAqN} 个功能区未安装空气质量传感器` : "", (sel === "temp" || isAll) && noTN ? `${noTN} 个功能区没有温度数据` : "", sel !== "temp" && !isAll && noAqN ? `${noAqN} 个功能区未安装空气质量传感器` : ""],
+          links: ox && canOperate() && sel === "co2" ? [btn("采用", "aiTaskNew", { title: ox.title, zone: ox.zone, text: ox.text }, "sm")] : [],
+          notes: [anEnvAq(sel) && noAqN ? `${noAqN} 个功能区未安装空气质量传感器` : "", anEnvAq(sel) && partN ? `另 ${partN} 区只代表局部，未计入` : "", sel === "temp" && noTN ? `${noTN} 个功能区没有温度数据` : "", sel === "rh" && noRhN ? `${noRhN} 个功能区没有湿度传感器` : ""],
         });
-  // 2.66 V547：统计口径打开与能源同一弹窗的“室内环境”一节；2.71 V676：在“⋯”里
-  return filterRow({ basis: "env" }) + anGwLine() + anMainCard("environment", blocks, chart, { def, ins, lower: anPanels([compCard]) + anPanels([mapCard, overCard]) + anPanels([anWider() ? anChildEnvPanel() : ""]) });
+  return filterRow({ basis: "env" }) + anGwLine() + anMainCard("environment", blocks, chart, { def, ins, lower: anPanels([compCard]) + anPanels([overCard, ventCard]) + anPanels([comfortCard, mapCard]) + anPanels([anWider() ? anChildEnvPanel() : ""]) });
 }
 defineActions({
+  // 3.06 V1042：主图“热力 | 曲线”
+  anEnvView: (a) => {
+    U.anEnvView = a.value;
+    render();
+  },
   anEnvRow: (a) => {
     U.opsEnvZone = a.k;
     if (a.m) AN_PICK.environment = a.m;
@@ -83667,13 +84214,62 @@ const OV_LAYERS = [
   ["occupancy", "占用", "users"],
 ];
 const ovLayer = () => (OV_LAYERS.some(([k]) => k === U.tab) || U.tab === "energy" ? U.tab : "general");
-// 环境图层在楼层图右上切 CO₂、PM2.5、湿度（V301）
+// 3.06 V1038、V1050：空气图层的指标在图层页签下一行（ovEnvRow），第一个为空气质量分（默认）；只列本层有数据的，
+// 温湿度在只装占用传感器的功能区也有读数。原为楼层图左下角的 CO₂ · PM2.5 · 湿度（V301）
 const OV_ENV = [
+  ["aq", "空气质量分"],
   ["co2", "CO₂"],
   ["pm", "PM2.5"],
+  ["pm10", "PM10"],
+  ["voc", "VOC 指数"],
+  ["temp", "温度"],
   ["rh", "湿度"],
 ];
-const ovEnvMetric = () => (OV_ENV.some(([k]) => k === U.opsLayer_environment) ? U.opsLayer_environment : "co2");
+const ovEnvList = () => {
+  const zs = Demo.zones(),
+    aq = zs.some((z) => z.aqs.length),
+    ms = zs.some((z) => z.mss.length);
+  return OV_ENV.filter(([k]) => (k === "temp" || k === "rh" ? ms : aq));
+};
+const ovEnvMetric = () => {
+  const l = ovEnvList();
+  return l.some(([k]) => k === U.opsLayer_environment) ? U.opsLayer_environment : l[0]?.[0] || "aq";
+};
+// 本层结论与图例：结论只计当前有读数、代表整个功能区的监测区（只代表局部的另写一句）；图例为分段色块，只列图上出现的档与状态
+function ovEnvRow(layer) {
+  const list = ovEnvList();
+  if (!list.length || Demo.ctl.gwOffline) return "";
+  const k = list.some(([x]) => x === layer) ? layer : list[0][0],
+    th = k === "temp" || k === "rh",
+    ss = Demo.zones().map((z) => Demo.zoneState(z)).filter((s) => !s.gwUnknown),
+    mon = ss.filter((s) => (th ? s.z.mss.length : s.z.aqs.length)),
+    part = th ? [] : mon.filter((s) => aqPart(s) && !airState(s, k)),
+    counted = mon.filter((s) => !airState(s, k) && !part.includes(s)),
+    bad = counted.filter((s) => (k === "aq" ? airVal(s, k) < 50 : !!airFlag(s, k))).length,
+    n = counted.length,
+    sum = !n
+      ? "没有当前读数"
+      : `${n} 个监测区 · ${bad ? `${bad} 个${th ? "超出参考范围" : k === "voc" ? "偏高" : "超标"}` : th ? "全部在参考范围内" : k === "voc" ? "无偏高" : "全部达标"}${part.length ? `；另 ${part.length} 区只代表局部，未计入` : ""}`,
+    r = zoneRef(),
+    mixed = (k === "co2" || k === "pm" || k === "pm10") && aqRefMixed(),
+    rng = (a, b, c, u) => [`优 ≤ ${nf(a)}`, `良 ${nf(a + 1)}–${nf(b)}`, `一般 ${nf(b + 1)}–${nf(c)}`, `差 > ${nf(c)}${u}`],
+    names = mixed
+      ? AQ_BANDS
+      : {
+          aq: ["优 90–100", "良 70–89", "一般 50–69", "差 0–49"],
+          co2: rng(r.co2Cuts[0], r.co2Cuts[1], r.co2, " ppm"),
+          pm: rng(r.pmCuts[0], r.pmCuts[1], r.pm, " μg/m³"),
+          pm10: rng(r.pm10Cuts[0], r.pm10Cuts[1], r.pm10, " μg/m³"),
+          voc: ["≤ 100", "101–150", "偏高 > 150"],
+          temp: ["偏低", "适宜", "偏高"],
+          rh: [`偏低 < ${nf(r.rh[0])}%`, `适宜 ${nf(r.rh[0])}–${nf(r.rh[1])}%`, `偏高 > ${nf(r.rh[1])}%`],
+        }[k],
+    lv = new Set(mon.filter((s) => !airState(s, k)).map((s) => airLevel(s, k, airVal(s, k)))),
+    st = new Set(ss.map((s) => airState(s, k)).filter(Boolean)),
+    chip = (cls, c, t) => `<span class="ov-elg"><i class="${cls}"${c ? ` style="--c:${c}"` : ""}></i>${esc(t)}</span>`,
+    legend = [...names.map((t, i) => (lv.has(i) ? chip("", airFill(k, i), t) : "")), ...[["nomon", "未监测"], ["devoff", "离线"], ["nodata", "数据不足"]].map(([c, t]) => (st.has(c) ? chip(c, "", t) : ""))].join("");
+  return `<div class="ov-envrow"><span class="ov2-envseg">${segSm(list, k, "opsLayerTab", "opsPlanPanel", "空气指标")}</span><span class="sp"></span><span class="ov-envc${bad ? " bad" : ""}">${esc(sum)}${k === "aq" ? opsInfo("空气质量分", "取 CO₂、PM2.5、PM10 中最低的分项分；50 分为 GB/T 18883-2022 限值；不是室外 AQI。") : ""}</span>${U.ovLegend !== false && legend ? `<span class="ov-envlg">${legend}</span>` : ""}</div>`;
+}
 const ovPlanLayer = (tab) => (tab === "general" ? "status" : tab === "lighting" ? "light" : tab === "hvac" ? "temp" : tab === "environment" ? ovEnvMetric() : "occ");
 // 状态图层只给问题上色（V302）：有告警的功能区铺级别浅底、描边、右上角标，数值位置写短事件名；有人极浅蓝，无人白
 const OV_LVF = ["#fbe4e2", "#fce8d8", "#fdf0d2"];
@@ -83899,7 +84495,7 @@ function ovLegend(tab, layer) {
 function ovCanvas(tab) {
   const layer = ovPlanLayer(tab),
     // 2.66 V355、V369：环境指标切换在图层按钮行；图例行末不放 ⓘ，环境图层只在右上角放一个
-    env = tab === "environment" && !Demo.ctl.gwOffline ? `<span class="ov-canvas-i">${opsInfo("环境指标", "CO₂ 为 5 分钟均值，PM2.5 为 24 小时均值。")}</span>` : "";
+    env = tab === "environment" && !Demo.ctl.gwOffline ? `<span class="ov-canvas-i">${opsInfo("环境指标", "CO₂ 为 5 分钟均值，PM2.5、PM10 为 1 小时均值，与检视器相同。")}</span>` : "";
   if (U.opsZone && selZones().length >= 2) U.opsZone = null;
   return `<section class="ov-canvas${U.opsZone ? " insp-open" : ""}${U.f && selZones().length ? " has-sel" : ""}" id="opsPlanPanel">${ovFloorStack()}<div class="ov-canvas-main">${env}${opsPlan({ layer, tab: tab === "occupancy" ? "general" : tab, select: true, highlight: U.opsKpiF?.tab === tab ? ovPickZones(U.opsKpiF.k, tab).map((z) => z.id) : [] })}${ovLegend(tab, layer)}${typeof ovZoneTracks === "function" && U.opsZone ? ovZoneTracks(U.opsZone) : ""}</div>${typeof ovInspector === "function" && U.opsZone ? ovInspector(U.opsZone) : ""}<div class="ops-cmp-float">${U.f ? ovSelBar() : selBar(tab === "lighting" || tab === "hvac" ? tab : "general")}</div></section>`;
 }
@@ -84297,10 +84893,9 @@ function ovLegend2(tab, layer) {
   let items = [];
   if (tab === "lighting") items = [ovGrad(["#eceef1", ...OV_LIGHT], "关", "100%"), has((s) => s.light.manual) ? it("sq man", "手动") : "", has(PLAN_WASTE.lighting[1]) ? it("sq waste", PLAN_WASTE.lighting[0]) : "", ...hatch, off];
   else if (tab === "hvac") items = [ovGrad([OV_COLD[1], OV_COLD[0], "#fff", OV_HOT[0], OV_HOT[1]], "偏冷 2 ℃", "偏热 2 ℃", "0"), has((s) => selAc(s.z).some((p) => Demo.device(p).manual)) && ovAt() == null ? it("sq man", "手动") : "", has(PLAN_WASTE.hvac[1]) ? it("sq waste", PLAN_WASTE.hvac[0]) : "", ...hatch, off];
-  else if (tab === "environment") {
-    const lg = L.legend.filter(([c]) => c !== "hatch" && c !== "unmon");
-    items = [`<span class="ov2-envseg">${segSm(OV_ENV, ovEnvMetric(), "opsLayerTab", "opsPlanPanel", "空气指标")}</span>`, layer === "rh" ? lg.map(([c, n, k]) => it(k || "sq", n, c)).join("") : ovGrad(lg.map(([c]) => c), lg[0][1], lg.at(-1)[1]), ...hatch];
-  } else if (tab === "occupancy") items = [it("sq", "有人", "#d6e4f8"), it("sq line", "无人", "#fff"), has((s) => !s.sensor && !!s.ms?.count) ? it("sq hatch", "无数据") : "", off];
+  // 3.06 V1038：空气图层的指标切换与图例在图层页签下一行（ovEnvRow），左下角不再放
+  else if (tab === "environment") return "";
+  else if (tab === "occupancy") items = [it("sq", "有人", "#d6e4f8"), it("sq line", "无人", "#fff"), has((s) => !s.sensor && !!s.ms?.count) ? it("sq hatch", "无数据") : "", off];
   else {
     const ranks = [...new Set(Object.entries(alarmIndex("").zones).filter(([zid]) => Demo.zoneOf(zid)).map(([, as]) => Math.min(2, lvlRank(as[0].level))))].sort();
     items = [`<b class="ov3-lg-h">状态</b>`, it("sq", "有人", "#eaf1fb"), ranks.length ? `<i class="ov3-lg-sep" aria-hidden="true"></i>` : "", ...ranks.map((i) => it(`sq ln l${i}`, ["紧急", "重要", "提示"][i]))];
@@ -84312,7 +84907,7 @@ function ovMap(tab) {
   const layer = ovMapLayer(tab),
     hi = (U.ovHi || []).filter((id) => Demo.zoneOf(id));
   // 2.89 V933、V934：图层页签在卡片顶部（48 高）；图例在左下，“图例”开关可隐藏；“需要处理 N”按钮由面板把手代替（V935）
-  return `<section class="ov2-map" id="opsPlanPanel" aria-label="${esc(floorLabel())} 楼层图">${ovFloorBar(tab)}${ovGwBar()}<div class="ov2-plan">${opsPlan({ layer, tab: ovMapTab(tab), devTab: ovDevTab(tab), select: true, highlight: hi })}${ovTools(tab, U.ovLegend !== false ? ovLegend2(tab, layer) : "")}</div>${ovTimeline()}</section>`;
+  return `<section class="ov2-map" id="opsPlanPanel" aria-label="${esc(floorLabel())} 楼层图">${ovFloorBar(tab)}${ovGwBar()}${tab === "environment" ? ovEnvRow(layer) : ""}<div class="ov2-plan">${opsPlan({ layer, tab: ovMapTab(tab), devTab: ovDevTab(tab), select: true, highlight: hi })}${ovTools(tab, U.ovLegend !== false ? ovLegend2(tab, layer) : "")}</div>${ovTimeline()}</section>`;
 }
 /* ---------- 2.81 KW33：楼层图下接功能区表 ----------
    列随指标页签（不选页签时为状态）；默认需要注意的排在前面（有告警、超标、离线、手动），点列头排序，再点倒序；
@@ -84779,7 +85374,7 @@ function ovFloorRows(tab) {
     })
     .join("")}</ul>${none ? ovNoneRow(`另有 ${none} 个楼层未接入运行数据`, { p: U.p }) : ""}</section>`; // 2.88：楼宇页不放时间轴（事件已在“需要处理”）
 }
-// 楼层条中间的功能区缩略图：按楼层图的宽高比画各功能区，颜色同当前页签（只给超标着色的空气页签同楼层图），有问题的按级别色描边
+// 楼层条中间的功能区缩略图：按楼层图的宽高比画各功能区，颜色同当前页签（空气页签同楼层图，3.06 V1038 起有读数的都上色），有问题的按级别色描边
 function ovThumb(layer, tab) {
   const fl = g("floors", OPS_SCOPE.floor),
     ar = fl?.dimensions ? fl.dimensions.width / fl.dimensions.height : 2.5,
@@ -84790,11 +85385,11 @@ function ovThumb(layer, tab) {
   return `<svg viewBox="0 0 100 ${hgt.toFixed(2)}" preserveAspectRatio="xMinYMid meet" style="aspect-ratio:${ar.toFixed(4)}">${Demo.zones()
     .map((z) => {
       const s = Demo.zoneState(z),
-        f = s.gwUnknown ? "#f3f4f6" : ovAirOnly(layer, L.fill(s)) || "#fff",
+        f = s.gwUnknown ? "#f3f4f6" : L.fill(s) || "#fff",
         a = s.gwUnknown ? null : AL.zones[z.id]?.[0],
         y = (z.y / 100) * hgt,
         h = (z.h / 100) * hgt;
-      return `<rect x="${z.x}" y="${y.toFixed(2)}" width="${z.w}" height="${h.toFixed(2)}" fill="${["hatch", "idle", "unmon"].includes(f) ? "#f3f4f6" : f}" stroke="${a ? lc[Math.min(2, lvlRank(a.level))] : "#d4d4d4"}" stroke-width="${a ? 0.9 : 0.35}"/>`;
+      return `<rect x="${z.x}" y="${y.toFixed(2)}" width="${z.w}" height="${h.toFixed(2)}" fill="${["hatch", "idle", "unmon", "nomon", "devoff", "nodata"].includes(f) ? "#f3f4f6" : f}" stroke="${a ? lc[Math.min(2, lvlRank(a.level))] : "#d4d4d4"}" stroke-width="${a ? 0.9 : 0.35}"/>`;
     })
     .join("")}</svg>`;
 }
@@ -85779,7 +86374,7 @@ function ovInspector(zid) {
     sw = z.lcs.length && z.lcs.every(lcSwitch),
     offN = gw ? 0 : lw.off.length,
     offB = offN ? `<button type="button" class="ov-ioff" data-act="ovDevsOff" data-id="${esc(lw.off[0].id)}">${offN} 台离线</button>` : "",
-    lhead = gw ? "" : [s.light.on ? `约 ${nf(lw.w)} W` : sw ? "关" : "", offB].filter(Boolean).join(" · "),
+    lhead = gw ? "" : [z.mss.length && s.lux != null ? `照度 ${nf(s.lux)} lx` : "", s.light.on ? `约 ${nf(lw.w)} W` : sw ? "关" : "", offB].filter(Boolean).join(" · "),
     lastL = Demo.ctl.zoneCmd?.[z.id],
     lastH = Demo.ctl.zoneHvCmd?.[z.id],
     params = U.role === "member" ? "" : `<button type="button" class="ov-iparams" data-act="opsParams" data-zone="${esc(z.id)}" aria-haspopup="dialog">照明控制参数<span class="sp"></span>${ico("chevron", "ic16 ov-chev")}</button>`,
@@ -85800,21 +86395,8 @@ function ovInspector(zid) {
       b = (label, op, name) => ctlBtn(label, "opsZoneHv", { id: z.id, op }, "sm", ids).replace("<button ", `<button aria-label="${esc(name)}" `);
     hv = `<section class="ov-isec"><h4>${ico("ac", "ic16")}空调<span class="sp"></span><small>${gw ? "" : on ? esc(d0.mode || "运行") : "已关闭"}</small></h4>${takeNote()}<div class="ov-ihv"><div><small>室温</small><span class="ov-itv"><b class="ov-itemp${warm ? " warm" : ""}">${gw || room == null ? "—" : `${nf(room, 1)}<i>℃</i>`}</b>${warm ? `<span class="ov-ichip hi">${dv > 0 ? "偏高" : "偏低"}</span>` : ""}</span></div><div class="ov-isp"><small>设定</small><span class="ov-step${okc ? "" : " dis"}">${b(ico("minus", "ic16"), "down", "降低设定温度")}<b>${gw || s.spMixed ? "—" : hvSpText(acs[0], cur)}</b>${b(ico("plus", "ic16"), "up", "提高设定温度")}</span>${idle ? `<small class="ov-ieco">无人，按 ${hvSpText(acs[0], s.setpoint)} ${HV_USE[s.use]}运行</small>` /* 2.84 V882 */ : ""}</div></div><div class="ov-irow end">${ctlBtn(ico("power", "ic16") + (on ? "关空调" : "开空调"), "opsZoneHv", { id: z.id, op: "power" }, "sm", ids)}</div>${lastH ? rcpt(lastH) : ""}</section>`;
   } else hv = `<section class="ov-isec"><h4>${ico("ac", "ic16")}空调<span class="sp"></span><small>${z.splits.length ? "分体空调 · 只计量" : "无空调"}</small></h4></section>`;
-  // 环境 2×2：超出参考上限的格铺浅底、数值提示色并加“偏高”（V348）；PM2.5 为 24 小时滚动均值（V370），不足 24 小时写“数据不足”；
-  // 没有监测的写“未监测”，数据未更新时数值灰色
-  const ref = zoneRef(s) || {},
-    co2 = opsAqCurrent(s) ? co2Of(s) : null, // 5 分钟均值，与指标条、楼层图和告警同一口径（V228）
-    pm = gw ? null : ovPm24(s),
-    // 2.74 V707：两列名称与数值（名称 12/18 #636363，数值 14/22、字重 600）；未监测的项不占格，最后一行写“未监测：CO₂、PM2.5”
-    items = [
-      ["CO₂", "CO₂", !z.aqs.length, co2 == null ? null : nf(co2), "ppm", co2 != null && ref.co2 && co2 > ref.co2, ""],
-      ["PM2.5 · 24 小时", "PM2.5", !z.aqs.length, pm == null ? null : nf(pm), "μg/m³", pm != null && ref.pm && pm > ref.pm, pm == null && !gw && s.aq ? "数据不足" : ""],
-      ["湿度", "湿度", !z.mss.length, gw || s.rh == null ? null : s.rh, "%", false, ""],
-      ["照度", "照度", !z.mss.length, gw || s.lux == null ? null : nf(s.lux), "lx", false, ""],
-    ],
-    mon = items.filter((x) => !x[2]),
-    un = items.filter((x) => x[2]).map((x) => x[1]),
-    env = `<section class="ov-isec"><h4>${ico("aq", "ic16")}室内环境</h4>${mon.length ? `<dl class="ov3-env">${mon.map(([k, , , v, u, over, na]) => `<div${over ? ' class="over"' : ""}><dt>${k}</dt><dd>${na ? `<span class="ov-na">${na}</span>` : v == null ? "—" : `${v}<i>${u}</i>`}${over ? "<em>偏高</em>" : ""}</dd></div>`).join("")}</dl>` : ""}${un.length ? `<p class="ov3-unmon">未监测：${un.join("、")}</p>` : ""}</section>`;
+  // 3.06 V1039：室内环境为单项列表（ovEnvSec），原为 CO₂、PM2.5、湿度、照度 2×2 小格（V348、V707）
+  const env = ovEnvSec(s);
   // V391：设备每行第一行功能名称，第二行编号，右侧状态
   const all = [...z.lcs, ...z.mss, ...z.aqs, ...z.fcs, ...z.idus, ...z.splits],
     devs = U.ovDevs && !member
@@ -88495,6 +89077,7 @@ function obZoneVals(o) {
       co2: aq ? ZP("co2", "CO₂", "ppm", 0, "line", [[aq, null]], { cur: co2 ?? undefined, ref: ref.co2 || null, refLabel: ref.co2 ? `参考上限 ${nf(ref.co2)}` : "" }) : null,
       pm25: aq ? ZP("pm25", "PM2.5", "μg/m³", 0, "line", [[aq, "~pm25"]]) : null,
       rh: ms ? ZP("rh", "湿度", "%", 0, "line", [[ms, "~rh"]], { cur: na(s.rh) ?? undefined }) : null,
+      mtemp: ms ? ZP("mtemp", "温度", "℃", 1, "line", z.mss.map((p) => [p, null]), { cur: gw || !s.sensor || s.temp == null ? undefined : s.temp }) : null,
       lux: ms ? ZP("lux", "照度", "lx", 0, "line", [[ms, "~lux"]], { cur: na(s.lux) ?? undefined }) : null,
       occ: ms ? ZP("occ", "有人", "", 0, "state", [[ms, "~occ"]], { states: ["无人", "有人"] }) : null,
     },
@@ -88517,7 +89100,7 @@ function obZoneVals(o) {
       head: offL ? `<span class="ds-st off">${offL} 台离线</span>` : "",
       ctl: `<div class="ov-irow">${ovLightSlider(z, s, lcIds)}${!gw && s.light.on ? ctlBtn("关灯", "opsZoneLight", { id: zid, cmd: "off" }, "sm", lcIds) : ctlBtn("开灯", "opsZoneLight", { id: zid, cmd: "on" }, "sm", lcIds)}</div>${lastL && !(rcptDone(lastL) && (s.light.forced || s.light.manual)) ? rcpt(lastL) : ""}`,
       // 2.82 V797：本区照明控制器全部离线时写“—”
-      rows: ((x) => [R("照明", x ? null : na(s.light.onCount ? "亮" : "关"), "", P.light, x), R("亮度", x ? null : na(s.light.on ? s.light.level : 0), "%", P.lvl, x), R("功率", x ? null : na(s.light.on ? `约 ${nf(lw.w)}` : "0"), "W", null, x)])(!gw && offL === z.lcs.length ? { na: "—" } : null),
+      rows: ((x) => [R("照明", x ? null : na(s.light.onCount ? "亮" : "关"), "", P.light, x), R("亮度", x ? null : na(s.light.on ? s.light.level : 0), "%", P.lvl, x), R("功率", x ? null : na(s.light.on ? `约 ${nf(lw.w)}` : "0"), "W", null, x), ...(z.mss.length ? [R("照度", s.lux == null || msBad ? null : na(nf(s.lux)), "lx", P.lux, msBad ? MISS : {})] : [])])(!gw && offL === z.lcs.length ? { na: "—" } : null),
     });
   if (acs.length)
     groups.push({
@@ -88533,17 +89116,24 @@ function obZoneVals(o) {
       ],
     });
   else if (z.splits.length) groups.push({ key: "ac", title: "空调", rows: [R("分体空调", "只计量")] });
-  if (z.aqs.length || z.mss.length)
+  // 3.06 V1039：环境组与检视器同一组指标（envItems）：读数后写状态词并同色，下一行写目标与近 7 天达标；照度在照明组
+  if (z.aqs.length || z.mss.length) {
+    const EP = { co2: P.co2, pm: P.pm25, rh: P.rh, temp: P.mtemp };
     groups.push({
       key: "env",
       title: "环境",
       rows: [
-        z.aqs.length ? (aqBad ? R("CO₂", null, "ppm", P.co2, MISS) : R("CO₂", co2 == null ? null : nf(co2), "ppm", P.co2, co2 != null && ref.co2 && co2 > ref.co2 ? { flag: "偏高" } : {})) : null,
-        z.aqs.length ? (aqBad ? R("PM2.5 · 24 小时", null, "μg/m³", P.pm25, MISS) : R("PM2.5 · 24 小时", pm == null ? null : nf(pm), "μg/m³", P.pm25, pm != null && ref.pm && pm > ref.pm ? { flag: "偏高" } : pm == null && !gw && s.aq ? { note: "数据不足" } : {})) : null,
-        z.mss.length ? R("湿度", msBad ? null : na(s.rh), "%", P.rh, msBad ? MISS : {}) : null,
-        z.mss.length ? R("照度", s.lux == null || msBad ? null : na(nf(s.lux)), "lx", P.lux, msBad ? MISS : {}) : null,
-      ].filter(Boolean),
+        ...envItems(s).map((it) => {
+          const pt = EP[it.k] || null,
+            bad = envGrp(it.k) === "th" ? msBad : aqBad;
+          if (gw) return R(it.name, null, it.unit, pt);
+          if (bad) return R(it.name, null, it.unit, pt, MISS);
+          return it.v == null ? R(it.name, null, it.unit, pt, { na: it.text }) : R(it.name, nf(it.v, it.dg), it.unit === "%" ? "%" : it.unit, pt, { flag: it.word, fbg: it.fill, sub: `目标 ${it.target} · 近 7 天达标 ${it.pct}` });
+        }),
+        ...(!z.lcs.length && z.mss.length ? [R("照度", s.lux == null || msBad ? null : na(nf(s.lux)), "lx", P.lux, msBad ? MISS : {})] : []),
+      ],
     });
+  }
   if (z.mss.length) groups.push({ key: "occ", title: "占用", rows: [R("有人", gw || msBad ? null : !s.sensor ? '<span class="ds-st off">传感器离线</span>' : s.occupied ? "有人" : "无人", "", P.occ, msBad ? MISS : {}), R("今天有人比例", pc, "%")] });
   // 关联对象：本区各台设备的读数，也可勾选叠加到右侧
   const rel = all.slice().sort(M.byName).flatMap((p) => obDevRows(p, `${p.name} · `));
@@ -88681,8 +89271,8 @@ function obValsCard(V) {
         dis = r.pt && !on && obSelFull(selPts, r.pt),
         st = V.stale != null && r.val != null && !r.raw,
         // 2.82 V797：空值按原因写（r.na）；没有原因的为“未取得”。V796：运行数据行（链接、按钮）为常规字重
-        val = r.val == null ? `<span class="ob-na${r.oor ? " oor" : ""}">${esc(r.note || r.na || "未取得")}</span>` : r.raw ? `<span class="ob-rx">${r.val}</span>` : `<b>${r.val}</b>${r.unit ? `<i>${esc(r.unit)}</i>` : ""}${r.flag ? `<em>${esc(r.flag)}</em>` : ""}`;
-      return `<div class="ob-r${st ? " stale" : ""}${on ? " on" : ""}" data-n="${esc(r.name)}">${r.pt ? `<input type="checkbox" class="ob-ck${trIsSp(r.pt) ? " sp" : ""}" data-act="opsObjPt" data-id="${esc(r.pt.id)}" style="--c:${c}"${on ? " checked" : ""}${dis ? ` disabled data-tip="${r.pt.kind === "state" ? "状态条最多 4 条" : "最多 6 个点"}"` : ""} aria-label="${esc(`在趋势中显示 ${r.name}`)}">` : '<span class="ob-ck0" aria-hidden="true"></span>'}<span class="ob-rn">${r.pt ? `<i class="tr-sw${trIsSp(r.pt) ? " sp" : ""}${on ? " on" : ""}" style="--c:${c}" aria-hidden="true"></i>` : ""}${esc(r.name)}${on && r.pt.kind === "line" && view === "merge" && trMergeOk(selPts) && obRightAxis(selPts, r.pt.id) ? "<small>右轴</small>" : ""}</span><span class="ob-rv">${val}${st ? `<small>数据截至 ${Demo.hm(V.stale)}</small>` : r.val != null && r.note ? `<small>${esc(r.note)}</small>` : ""}</span></div>`;
+        val = r.val == null ? `<span class="ob-na${r.oor ? " oor" : ""}">${esc(r.note || r.na || "未取得")}</span>` : r.raw ? `<span class="ob-rx">${r.val}</span>` : `<b>${r.val}</b>${r.unit ? `<i>${esc(r.unit)}</i>` : ""}${r.flag ? `<em${r.fbg ? ` class="ev-w" style="background:${r.fbg}"` : ""}>${esc(r.flag)}</em>` : ""}`;
+      return `<div class="ob-r${st ? " stale" : ""}${on ? " on" : ""}" data-n="${esc(r.name)}">${r.pt ? `<input type="checkbox" class="ob-ck${trIsSp(r.pt) ? " sp" : ""}" data-act="opsObjPt" data-id="${esc(r.pt.id)}" style="--c:${c}"${on ? " checked" : ""}${dis ? ` disabled data-tip="${r.pt.kind === "state" ? "状态条最多 4 条" : "最多 6 个点"}"` : ""} aria-label="${esc(`在趋势中显示 ${r.name}`)}">` : '<span class="ob-ck0" aria-hidden="true"></span>'}<span class="ob-rn">${r.pt ? `<i class="tr-sw${trIsSp(r.pt) ? " sp" : ""}${on ? " on" : ""}" style="--c:${c}" aria-hidden="true"></i>` : ""}${esc(r.name)}${on && r.pt.kind === "line" && view === "merge" && trMergeOk(selPts) && obRightAxis(selPts, r.pt.id) ? "<small>右轴</small>" : ""}</span><span class="ob-rv">${val}${st ? `<small>数据截至 ${Demo.hm(V.stale)}</small>` : r.val != null && r.note ? `<small>${esc(r.note)}</small>` : ""}</span>${r.sub ? `<span class="ob-rs">${esc(r.sub)}</span>` : ""}</div>`;
     },
     body = V.groups
       .map((gr) => {
@@ -89115,6 +89705,15 @@ defineActions({
     render();
     requestAnimationFrame(() => document.querySelector(`.ob-g[data-g="${a.value}"] > .ob-gh`)?.focus({ preventScroll: true }));
   },
+  // 3.06 V1039：检视器室内环境的一行：打开功能区对象页，趋势只选该指标（有趋势数据的 CO₂、PM2.5、温度、湿度），并滚到该行
+  opsObjMetric: (a) => {
+    const id = a.o.slice(5),
+      pt = { co2: "co2", pm: "pm25", temp: "mtemp", rh: "rh" }[a.k],
+      name = ENV_ITEMS.find((x) => x[0] === a.k)?.[1];
+    if (pt) OB_SEL[a.o] = [`z:${id}|${pt}`];
+    opsObjOpen(a.o);
+    requestAnimationFrame(() => document.querySelector(`.ob-g[data-g="env"] .ob-r[data-n="${name}"]`)?.scrollIntoView({ block: "nearest" }));
+  },
   // 勾选点：最多 6 个；勾选框即图例
   opsObjPt: (a) => {
     const x = obParse();
@@ -89345,7 +89944,7 @@ function aiCo2Story() {
 // 当前空气回答只引用明确有效且仍新鲜的监测值；最后记录不冒充当前状态。
 const aiAirValid = (s, metric = "co2") => opsAqPeak([s], metric) != null;
 const aiAirState = (s) => s?.gwUnknown ? "网关离线，状态未知" : !s?.aq ? "未监测" : s.aq.online === false ? "空气质量传感器离线" : s.aq.quality === "stale" || s.aq.age > 5 ? "数据未更新" : aiAirValid(s) || aiAirValid(s,"pm25Now") ? "部分空气读数不可用" : "当前读数不可用";
-const aiAirExplain = () => opsInfo("空气读数", esc("CO₂与PM2.5为当前有效监测点的1分钟均值，不把多个区域的平均值当作全区空气结论。完整1小时CO₂与24小时PM2.5参考评价在详情中分别显示。空气质量分仅为0–100辅助分，越高越好，不是AQI或室内合规结论。"));
+const aiAirExplain = () => opsInfo("空气读数", esc("CO₂与PM2.5为当前有效监测点的1分钟均值，不把多个区域的平均值当作全区空气结论。完整1小时CO₂与24小时PM2.5参考评价在详情中分别显示。空气质量分取 CO₂、PM2.5、PM10 中最低的分项分，50 分为 GB/T 18883-2022 限值，不是室外 AQI。"));
 /* ---------- 总览 · AI 每日摘要 ---------- */
 function aiDailyBrief() {
   // 标题与正文写取得数据的时刻，与工具栏“数据截至”、指标卡和图表标题相同；数据未更新时也是（Lovable 核查第 193 条，2026-10-11 用户确认）
@@ -90738,7 +91337,8 @@ function aiRules(q, z, forced, scope, yd, ydl) {
       top = opsAqPeak(states, "co2"), pmTop = opsAqPeak(states, "pm25Now"),
       score = opsAqReadings(states, "iaqs").sort((a,b) => a.value-b.value)[0],
       pointName = (p) => p.source.summary ? "监测摘要" : p.source.name || p.s.z.name,
-      scoreText = /IAQS|评分|分数/i.test(q) ? score ? `${esc(score.s.z.name)} · ${esc(pointName(score))} 空气质量分 IAQS ${nf(score.value)}/100 · ${esc(Demo.iaqsBand(score.value).replace("极好","优"))}（越高越好）。` : "空气质量分 IAQS 暂无有效当前值。" : "",
+      // 3.06 V1050：空气质量分取 CO₂、PM2.5、PM10 中最低的分项分，写档与主因（原为 IAQS 与 Ruuvi 五档）
+      scoreText = /IAQS|评分|分数/i.test(q) ? score ? `${esc(score.s.z.name)} · ${esc(pointName(score))} 空气质量分 ${nf(score.value)} · ${esc(Demo.iaqsBand(score.value))}${score.value < 70 && score.source.aqs ? ` · 主因 ${esc(score.source.aqs.main)}` : ""}（取 CO₂、PM2.5、PM10 中最低的分项分，越高越好）。` : "空气质量分暂无有效当前值。" : "",
       co2T = top ? `CO₂ ${nf(top.value)} ppm` : "CO₂ 没有有效读数",
       pmT = pmTop ? `PM2.5 ${nf(pmTop.value,1)} μg/m³` : "PM2.5 没有有效读数",
       first = !monitored.length
@@ -95310,6 +95910,11 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "3.06",
+    date: "2026-11-06",
+    notes: ["新增：空气质量分取 CO₂、PM2.5、PM10 中最低的一项，并写出主因；增加 PM10。", "改进：楼层图的空气图层可按空气质量分、CO₂、PM2.5、PM10、VOC 指数、温度与湿度查看。", "改进：功能区的室内环境改为单项列表，写目标与近 7 天达标。", "改进：数据分析的室内环境改为达标时间、日 × 小时热力图与诊断散点。", "修复已知问题，优化界面细节。"],
+  },
+  {
     version: "3.05",
     date: "2026-11-04",
     notes: ["修复已知问题，优化界面细节。"],
@@ -96513,7 +97118,7 @@ const AU_TERMS = [
   ["计量边界", "能耗设置中写明用电统计包括的范围，如“E栋全楼，含空调”；必须填写，能耗分析按它说明统计口径。", "应用设置 › 能源"],
   ["计入方式", "能耗设置中每个计量点的用法：“计入总量”“仅作分项（已含在总表内）”或“不使用”，避免总表和分表重复计算。", "应用设置 › 能源"],
   ["空气质量", "室内空气中各项污染物的状态，分别查看 CO₂、PM2.5 等指标及其统计时段；不以综合档名代替单项读数或检测结论。", "总览 › 环境，数据分析 › 室内环境"],
-  ["空气质量分", "按同台同分钟有效 CO₂ 与 PM2.5 计算的 0–100 辅助评分，越高越好；不替代单项浓度、参考范围或检测结论。", "设备信息、总览与数据分析的室内环境"],
+  ["空气质量分", "0–100，越高越好；取 CO₂、PM2.5、PM10 中最低的分项分，50 分为 GB/T 18883-2022 限值；分优、良、一般、差四档，不是室外 AQI。", "总览的空气图层、功能区检视器、我的区域与数据分析的室内环境"],
   ["楼层图", "楼层的平面图，上传后在上面规划功能区、标记设备，总览在上面显示设备状态和告警。", "项目 › 楼层，总览"],
   ["目标配置", "平台按规划、网络模板和应用设置为每台设备生成的配置，按版本写作“vN”；设备回执确认后才算已应用。", "设备 › 设备列表，详情页 › 信息"],
   ["内部标识", "平台给每个点位的内部编号，改名或更换设备都不变；只在联系 PACOM 支持时提供，平时用点位名称。", "详情页 › 信息，现场安装资料"],
