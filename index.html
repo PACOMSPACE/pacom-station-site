@@ -9430,6 +9430,8 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
   color: var(--crit);
   font-weight: 500;
 }
+/* 3.11 E1197：驱动与控制类型不符时驱动型号下的红字 */
+.field > small.mk-bad { color: var(--crit); }
 .mk-session .mk-meter {
   margin-top: -2px;
 }
@@ -33014,6 +33016,8 @@ button.ev-r:hover { background: var(--v3-sel); }
 .an-hm-c.nd, .ops-legend .sq.nd { background: #fff; box-shadow: inset 0 0 0 1px #dedede; }
 .an-hm-d { grid-template-columns: 136px repeat(var(--cols), minmax(0, 1fr)); }
 .an-hm-d .an-hm-n { white-space: nowrap; }
+/* 3.11 V1088：环境趋势热力图的图例上方留 12（原贴着最后一行） */
+.an-hm-d + .ops-legend { margin-top: 12px; }
 .an-sc { position: relative; display: grid; grid-template-rows: auto 1fr auto; gap: 0; height: 280px; padding: 0 8px 0 0; font-size: 12px; line-height: 18px; color: var(--v3-mute); }
 .an-sc-yn { justify-self: start; }
 .an-sc-xn { text-align: center; }
@@ -35733,7 +35737,7 @@ const StationModel = (() => {
     gw: { name: "边缘网关", model: "EG20", icon: "gw", access: "gateway" },
     lc: { name: "照明控制器", model: "LC20", icon: "bulb", access: "mesh" },
     ms: { name: "多功能传感器", model: "MS20", icon: "sensor", access: "mesh" },
-    fc: { name: "风机盘管温控器", model: "FC20", icon: "thermo", access: "cell" }, // 3.08 V1047：4G 直连平台，不是 Mesh 节点
+    fc: { name: "风机盘管温控器", model: "FC20", icon: "thermo", access: "mesh" }, // 3.11：Mesh 节点（撤回 3.08 V1047 的 4G 接入）
     aq: { name: "空气质量监测仪", model: "AQ20", icon: "aq", access: "mesh" },
     vg: { name: "多联式空调网关", model: "VG20", icon: "gw", access: "system" },
     idu: { name: "多联机内机", model: "", icon: "ac", access: "system" },
@@ -35751,10 +35755,10 @@ const StationModel = (() => {
     ctrlText = (c) => CTRL_TEXT[c || "dim"] || CTRL_TEXT.dim,
     ctrlDim = (c) => (c === "dim1" ? "1–10 V" : c === "switch" ? "" : "0–10 V"),
     driversFor = (c) => (c === "switch" ? DRIVERS : DRIVERS.filter((d) => d.dim === ctrlDim(c)));
-  // 3.10 P9：LS 自供能无线开关的型号与按键（LS21 一键、LS22 两键、LS23 三键），每个按键的动作；接收的照明控制器未选时默认同一功能区里最近的 LC20
+  // 3.10 P9：LS 自供能无线开关的型号与按键（LS21 一键、LS22 两键、LS23 三键）；接收的照明控制器未选时默认同一功能区里最近的 LC20
+  // 3.11 E1198：LS 只做照明开关，每个按键开关一个照明分区（存照明分区 id，空为接收的 LC20 所在照明分区）；原每键可选开关、调光、执行场景
   const LS_MODELS = [["LS21", 1], ["LS22", 2], ["LS23", 3]],
-    LS_ACTIONS = [["switch", "照明分区开关"], ["dim", "调光"], ["scene", "执行场景"]],
-    lsKeys = (p) => Array.from({ length: (LS_MODELS.find(([m]) => m === p.lsModel) || LS_MODELS[0])[1] }, (_, i) => p.lsKeys?.[i] || "switch");
+    lsKeys = (p) => Array.from({ length: (LS_MODELS.find(([m]) => m === p.lsModel) || LS_MODELS[0])[1] }, (_, i) => (/^(switch|dim|scene)$/.test(p.lsKeys?.[i] || "") ? "" : p.lsKeys?.[i] || ""));
   function lsReceiver(db, p) {
     if (p.rxId) return db.points.find((x) => x.id === p.rxId && x.type === "lc") || null;
     const d = (x) => (x.x - p.x) ** 2 + (x.y - p.y) ** 2,
@@ -35905,7 +35909,7 @@ const StationModel = (() => {
   const networks = (db, fid) => db.networks.filter((n) => n.floorIds.includes(fid));
   const bound = (p) => p.binding === "bound";
   const access = (p) => p.access || catalog[p.type]?.access;
-  // 3.08 V1047：现场绑定、随设备网络交付的设备（网关、Mesh 设备与 4G 设备）；只有 Mesh 设备是网络节点
+  // 3.08 V1047：现场绑定、随设备网络交付的设备（网关、Mesh 设备，以及以后的 4G 设备）；只有 Mesh 设备是网络节点
   const field = (p) => ["mesh", "gateway", "cell"].includes(access(p));
   // 操作人取当前登录成员（由页面提供）；取不到时记为 null，显示“未记录”，不写固定的占位名称。
   let actorSource = null;
@@ -36508,7 +36512,6 @@ const StationModel = (() => {
     ctrlDim,
     driversFor,
     LS_MODELS,
-    LS_ACTIONS,
     lsKeys,
     lsReceiver,
     HVAC,
@@ -36701,7 +36704,7 @@ const StationFlowModel = ((M) => {
     );
   };
   const meshPoints = (db, nid) => M.networkPoints(db, nid).filter((p) => M.access(p) === "mesh");
-  // 3.08 V1047：随本网络现场绑定、配置同步、功能验证与交付的设备：Mesh 设备与 4G 设备（FC20）。节点、中继、代理、网络检测、参数估算与固件只计 Mesh 设备
+  // 3.08 V1047：随本网络现场绑定、配置同步、功能验证与交付的设备：Mesh 设备，以及以后的 4G 设备（3.11 起 FC20 为 Mesh 设备）。节点、中继、代理、网络检测、参数估算与固件只计 Mesh 设备
   const fieldPoints = (db, nid) => M.networkPoints(db, nid).filter((p) => ["mesh", "cell"].includes(M.access(p)));
   const gateway = (db, nid) => M.networkPoints(db, nid).find((p) => p.type === "gw");
   const isConnected = (p) => (M.access(p) === "system" ? !!(p.hardwareId && p.connectionReceiptId) : M.bound(p));
@@ -36880,10 +36883,10 @@ const StationFlowModel = ((M) => {
   // 上报周期按设备类型取网络模板：LC20 为控制器状态周期（600 s，即 30 分钟），MS20 为占用刷新、AQ20 为发布周期（60 s，即 20 分钟），
   // 其他设备为 FC20 周期；网关按离线判定时长。控制器有无更短的心跳待固件负责人确认（第12章 12 3）。
   const OFFLINE_REPORT = { lc: "controller", ms: "occupancy", aq: "aq" };
-  // 3.10 E1191：FC20 按暖通空调平台参数 H-31（状态上报周期，默认 300 秒）
-  function offlineAfter(n, p, db) {
+  // 3.11：FC20 改回 Mesh 节点，按网络参数“FC20 状态”（3.10 E1191 曾为暖通空调平台参数 H-31）
+  function offlineAfter(n, p) {
     const t = templates(n),
-      sec = p && p.type !== "gw" ? (p.type === "fc" && db ? fcReportSec(db, p) : Number(t.report[OFFLINE_REPORT[p.type] || "other"]) || 0) : 0;
+      sec = p && p.type !== "gw" ? Number(t.report[OFFLINE_REPORT[p.type] || "other"]) || 0 : 0;
     return Math.max(Number(t.offlineMinutes) || 0, Math.ceil((3 * sec) / 60));
   }
   // 检修中（2026-10-09 用户确认，ABB 对比 BP92）：t 时刻设备（或其设备网络）是否在检修中。设为检修中的时段到结束时间或提前结束为止；
@@ -37394,7 +37397,6 @@ const StationFlowModel = ((M) => {
     );
   }
   function plannedItems(db, p, cx) {
-    if (M.access(p) === "cell") return cellItems(db, p, cx || indexOf(db));
     if (M.access(p) !== "mesh") return [];
     cx ||= indexOf(db);
     const n = cx.networks.get(p.networkId),
@@ -37420,6 +37422,7 @@ const StationFlowModel = ((M) => {
       },
       { key: "roles", label: "中继节点与代理节点", value: { relay: !!p.relay, proxy: !!p.proxy, ttl: t.ttl } },
       { key: "report", label: "上报参数", value: t.report },
+      ...(p.type === "fc" ? fcItems(db, p, cx) : []),
       ...(p.type === "lc"
         ? [
             // V1.3 16：控制类型、驱动型号与台数、照明负载功率属于 LC20 必备配置；改动形成新的目标配置版本。
@@ -37448,21 +37451,14 @@ const StationFlowModel = ((M) => {
         : []),
     ];
   }
-  // 3.08 V1047：4G 设备（FC20）由平台直接下发：上报周期与功能区占用来源（平台转发同一功能区 MS20 的占用）；没有 Mesh 密钥、分组与节点角色
-  // 3.10 E1191：上报周期为第 10 章暖通空调的平台参数 H-31（原为网络参数“FC20 状态上报周期”）；P14：工作时间与节假日表下发到 FC20，
-  // 断网收不到占用 15 分钟后 FC20 按本机保存的工作时间判断有人、无人（P13）；改工作时间或节假日表后项目内 FC20 为“待同步”
-  function fcReportSec(db, p) {
-    const pid = M.projectOfFloor(db, p.floorId),
-      r = (db.paramRegistry || []).find((x) => x.kind === "param" && x.projectId === pid && x.level === "project" && x.code === "H-31" && x.custom),
-      n = Number(String(r?.value ?? "").replace(/,/g, "").match(/\d+/)?.[0]);
-    return n > 0 ? n : 300;
-  }
-  function cellItems(db, p, cx) {
+  // 3.11：FC20 为 Mesh 节点（撤回 3.08 V1047、3.10 E1191 的 4G 接入），与其他 Mesh 设备一样由网关下发，上报参数用网络参数“FC20 状态”；
+  // 另有占用来源（经 Mesh 接收同一功能区 MS20 的占用，不经网关）与工作时间（P14：含节假日表；收不到占用 15 分钟后 FC20 按本机保存的工作时间
+  // 判断有人、无人，P13）；改工作时间或节假日表后项目内 FC20 为“待同步”
+  function fcItems(db, p, cx) {
     const pj = db.projects.find((x) => x.id === M.projectOfFloor(db, p.floorId)) || {},
       wh = pj.workHours?.from && pj.workHours?.to ? pj.workHours : { from: "08:00", to: "19:00" };
     return [
-      { key: "report", label: "上报参数", value: { status: fcReportSec(db, p) } },
-      { key: "occupancy", label: "占用来源（平台转发）", value: (cx.byZoneMesh.get(p.zoneId) || []).filter((s) => s.type === "ms").map((s) => s.id).sort() },
+      { key: "occupancy", label: "占用来源", value: (cx.byZoneMesh.get(p.zoneId) || []).filter((s) => s.type === "ms").map((s) => s.id).sort() },
       { key: "workHours", label: "工作时间", value: { hours: `${wh.from}–${wh.to}`, holidays: Object.keys(pj.holidays || {}).sort().map((y) => `${y} v${pj.holidays[y]?.version || 1}`) } },
     ];
   }
@@ -37707,6 +37703,7 @@ const StationFlowModel = ((M) => {
       ["温湿度", (ms * 1.5) / r.climate, `周期 ${r.climate.toLocaleString("zh-CN")} 秒＋变化触发余量`],
       ["气压", ms / r.pressure, `每 ${r.pressure.toLocaleString("zh-CN")} 秒`],
       ["LC20 状态", c("lc") / r.controller, `每 ${r.controller.toLocaleString("zh-CN")} 秒；本版不启用设备能量计量`],
+      ["FC20", c("fc") / r.other, `每 ${r.other.toLocaleString("zh-CN")} 秒`], // 3.11：FC20 改回 Mesh 节点，计入估算
       // V1.3 §16.2：AQ20 每 60 秒发布，CO₂ 变化 ≥ 50 ppm 或 PM2.5 ≥ 5 μg/m³ 时提前发布（最短 10 秒），按 1.5 倍计变化余量
       ["AQ20", (c("aq") * 1.5) / (r.aq || 60), `每 ${(r.aq || 60).toLocaleString("zh-CN")} 秒＋变化触发余量`],
       ["控制与查询余量", ps.length / 1500, "按规划节点数量估算"],
@@ -38563,11 +38560,11 @@ const StationFlowModel = ((M) => {
     return [about, buildings, floors, zones, checks];
   }
   // ---------- 现场安装资料（2026-10-05 核查 H1）：按设备网络的服务楼层出带编号的设备安装图与设备清单（PDF、CSV），供布线与安装 ----------
-  // 只读已保存的规划；图上编号按楼层从 1 起（EG20、LC20、MS20、FC20、AQ20 依次，同型号按名称），同一次生成的 PDF 与 CSV 一致。
+  // 只读已保存的规划；图上编号按楼层从 1 起（EG20、LC20、MS20、AQ20、FC20 依次，同型号按名称），同一次生成的 PDF 与 CSV 一致。
   // 不含设备身份（序列号、设备 UUID）与网络密钥，也不是绑定、验证或交付报告。
   const INSTALL_NOTICE = "安装资料按已保存的规划生成，用于布线与安装；不代表设备绑定、配置已应用、功能验证或交付，不含设备身份与网络密钥。";
   const INSTALL_KINDS = { pdf: { label: "PDF 现场安装图", ext: "pdf" }, sheet: { label: "CSV 设备清单", ext: "zip", fmt: "CSV" } };
-  const INSTALL_ORDER = ["gw", "lc", "ms", "aq", "fc"]; // 3.08 V1047：4G 设备排在 Mesh 设备之后
+  const INSTALL_ORDER = ["gw", "lc", "ms", "aq", "fc"];
   const CTRL_NAMES = M.CTRL_TEXT;
   // 规划检查各项在设备行中的简称（按检查项编号的前缀）；未列出的写规划检查原文。
   const INSTALL_ISSUES = {
@@ -38880,7 +38877,7 @@ const StationFlowModel = ((M) => {
         t: "list",
         items: [
           `按生成时已保存的规划（网络 v${n.version}）；规划变化后请重新下载。`,
-          "图上编号按楼层从 1 起（EG20、LC20、MS20、FC20、AQ20 依次，同型号按名称），只用于本资料，与同一次生成的 CSV 设备清单一致。",
+          "图上编号按楼层从 1 起（EG20、LC20、MS20、AQ20、FC20 依次，同型号按名称），只用于本资料，与同一次生成的 CSV 设备清单一致。",
           "“—”表示未知或未填写，不表示 0。",
         ],
       },
@@ -41030,7 +41027,7 @@ const StationFlowModel = ((M) => {
     return out;
   }
   // 发送与重传参数随固件版本登记（规范 HEALTH01，取值见规范 6.1）：按型号与起始固件版本登记；网络参数弹窗按本网络设备上报的固件列出。
-  const TRANSMIT = [{ types: ["lc", "ms", "aq"], from: "1.0.0", relay: [0, 20], network: [2, 20], periodic: [0, 0], event: [1, 50] }];
+  const TRANSMIT = [{ types: ["lc", "ms", "aq", "fc"], from: "1.0.0", relay: [0, 20], network: [2, 20], periodic: [0, 0], event: [1, 50] }];
   const versionCompare = (a, b) => {
     const x = String(a).split(".").map(Number),
       y = String(b).split(".").map(Number);
@@ -41102,7 +41099,6 @@ const StationFlowModel = ((M) => {
     issues,
     communication,
     offlineAfter,
-    fcReportSec,
     maintenanceAt,
     floorRename,
     lastSeen,
@@ -41514,13 +41510,13 @@ function buildDemoWorkspace(seed) {
     { key: "40001", name: "分体空调有功电能", unit: "kWh", writable: false, range: [0, 999999], scale: 0.01, addr: 2, reg: "holding", dtype: "uint32", pointId: split.id },
     { key: "40003", name: "分体空调有功功率", unit: "W", writable: false, range: [0, 99999], addr: 2, reg: "holding", dtype: "uint32", pointId: split.id },
   ];
-  // 2.81 E1095：分体空调计量的有功功率今天 08:40 起从站无响应（读取失败 1 个数据点）；9 月 19 日有过一段校验错误。连接本身在线，电能照常采集
+  // 2.81 E1095：分体空调计量的有功功率今天 08:40 起从站无响应（读取失败 1 个数据点）；9 月 19 日有过一段连接超时（3.11 E1196，原为校验错误）。连接本身在线，电能照常采集
   {
     const sc = db.connections.find((c) => c.id === "connection-demo-split");
     sc.mappings.find((m) => m.key === "40003").fail = { reason: "从站无响应", since: day(24, "08:40"), last: at(5), count: 23 };
     sc.failLog = [
       { reason: "从站无响应", start: day(24, "08:40"), last: at(5), count: 23, keys: ["40003"] },
-      { reason: "校验错误", start: day(19, "14:05"), last: day(19, "14:20"), count: 4, keys: ["40001", "40003"] },
+      { reason: "连接超时", start: day(19, "14:05"), last: day(19, "14:20"), count: 4, keys: ["40001", "40003"] },
     ];
   }
   // 2.81 E1093：E栋的配电系统图（SVG 图片）与 7F 配电计量的点表（CSV），交付前由李工上传
@@ -41769,7 +41765,7 @@ function buildDemoWorkspace(seed) {
   reset.fieldResetAt = at(2880);
   reset.telemetry.demoOffline = true;
   reset.telemetry.offlineSince = at(2880);
-  // 同型号不同固件版本分行（FC20 为 4G 设备，3.08 V1047 起不在平台固件升级中，只显示版本）
+  // 同型号不同固件版本分行；正式发布目录中 FC20 最新为 1.1.1，这台显示“有新版本 1.1.1”（3.11 FC20 改回 Mesh 设备）
   const fcOld = db.points.find((p) => p.type === "fc" && p.zoneId === zoneId("o702"));
   fcOld.firmwareVersion = "1.1.0";
   // 固件升级任务（示例，规范 DEVICE07；3.08 V1044–V1046）：LC20 升级到 1.3.2，在交付前的无人时段完成，先试点 2 台；
@@ -56243,7 +56239,7 @@ function configValueText(db, p, i, cx = {}) {
           ms: () =>
             `占用 ${fmt(r.occupancy)} 秒 · 照度 ${fmt(r.lux)} 秒 · 温湿度 ${fmt(r.climate)} 秒 · 气压 ${fmt(r.pressure)} 秒<small class="flow-sub">变化时提前上报：照度 ${r.luxChange}% 或 ${r.luxAbsolute} lx · 温度 ${r.tempChange} ℃ · 湿度 ${r.humidityChange}%</small>`,
           lc: () => `状态 ${fmt(r.controller)} 秒`,
-          fc: () => `状态 ${fmt(r.status ?? r.other)} 秒<small class="flow-sub">暖通空调参数 H-31</small>`,
+          fc: () => `状态 ${fmt(r.other)} 秒`, // 3.11：网络参数“FC20 状态”（原为暖通空调参数 H-31）
           aq: () => `发布 ${fmt(r.aq ?? 60)} 秒<small class="flow-sub">变化时提前发布</small>`,
         }[p.type]?.() || "见原始配置"
       );
@@ -56271,7 +56267,7 @@ function configValueText(db, p, i, cx = {}) {
     case "occupancy":
       return (v || []).length ? `同一功能区 MS20 ${(v || []).length} 台` : "功能区没有 MS20";
     case "workHours":
-      return `工作日 ${esc(v?.hours || "—")}<small class="flow-sub">${v?.holidays?.length ? `节假日表 ${esc(v.holidays.join("、"))}` : "未登记节假日表，按周一至周五"} · 断网收不到占用 15 分钟后按工作时间判断</small>`;
+      return `工作日 ${esc(v?.hours || "—")}<small class="flow-sub">${v?.holidays?.length ? `节假日表 ${esc(v.holidays.join("、"))}` : "未登记节假日表，按周一至周五"} · 收不到占用 15 分钟后按工作时间判断</small>`;
   }
   return "见原始配置";
 }
@@ -56380,7 +56376,7 @@ function deviceConfigParts(p) {
     cfg = F.configItems(data(), p),
     held = F.pendingFieldChanges(data(), p.networkId).find((fc) => F.fieldPointIds(fc).includes(id));
   // 网关与系统接入设备不走 Mesh 目标配置：网关核对配置库副本，系统接入设备按系统接入映射核对（不显示“待同步”）
-  // 3.10 E1190：FC20（4G）与 Mesh 设备同样有“配置”卡：上报参数、占用来源（平台转发）、工作时间；不再写“接入方式待确认”
+  // 3.10 E1190：FC20 有“配置”卡，另有占用来源与工作时间两项（3.11 起 FC20 为 Mesh 设备）；不再写“接入方式待确认”
   if (!["mesh", "cell"].includes(M.access(p)))
     return {
       rows: isGateway
@@ -56461,7 +56457,7 @@ function deviceAdvancedHtml(p) {
 /* 2.81 E1095（定稿 2.4）：数据点读取失败。数据映射行带 fail（{ reason, since, last, count }）为当前读取失败，连接的 failLog 为近 30 天的失败记录；
    原因按协议列出，连接详情“运行”一节与设备侧栏写同一组原因 */
 const CONN_FAIL_REASONS = {
-  modbus: ["从站无响应", "校验错误", "寄存器地址无效", "网关离线"],
+  modbus: ["从站无响应", "寄存器地址无效", "连接超时", "网关离线"], // 3.11 E1196：去掉“校验错误”，加“连接超时”
   bacnet: ["设备未响应", "对象不存在"],
   api: ["认证失败", "证书过期", "连接超时", "服务不可达"],
 };
@@ -57452,7 +57448,7 @@ function deliveryShort(c) {
 // 2.65 E958：确认存档一步写这次交付的实际数据
 function deliveryArchiveRows(db, n, proxies) {
   const mesh = F.meshPoints(db, n.id),
-    // 3.08 V1047：4G 设备（FC20）随本网络功能验证与交付，单独写台数
+    // 3.08 V1047：4G 设备随本网络功能验证与交付，单独写台数（3.11 起 FC20 为 Mesh 设备，计入节点）
     field = F.fieldPoints(db, n.id),
     cells = field.length - mesh.length,
     gw = F.gateway(db, n.id),
@@ -57636,7 +57632,7 @@ const fwReleases = (type) => fwAllReleases(type).filter((r) => r.published && r.
 // 有新版本（2026-10-09 用户确认，ABB 对比 BP52）：同型号已正式发布、比设备回报版本新的最高版本；没有目标版本，不计入需处理
 const fwVer = (a, b) => String(a).localeCompare(String(b), "en", { numeric: true });
 const fwNewerOf = (type, version) => {
-  if (!type || !version || M.catalog[type]?.access !== "mesh") return null; // 3.08 V1047：只有 Mesh 设备在平台升级（网关自行更新，FC20 为 4G 设备）
+  if (!type || !version || M.catalog[type]?.access !== "mesh") return null; // 3.08 V1047：只有 Mesh 设备在平台升级（网关自行更新；3.11 起含 FC20）
   const v = fwReleases(type).map((r) => r.version).sort(fwVer).pop();
   return v && fwVer(v, version) > 0 ? v : null;
 };
@@ -57710,8 +57706,8 @@ function renderFirmware() {
   const db = data(),
     ns = F.scopedNetworks(db, U),
     tasks = db.firmwareTasks.filter((t) => !t.networkIds?.length || t.networkIds.some((id) => ns.some((n) => n.id === id))),
-    // 2.58 E624：没有设备的型号不列；全无设备时为页面空状态“尚无设备”。3.08 V1047：只列 Mesh 型号，FC20 为 4G 设备
-    models = ["lc", "ms", "aq"]
+    // 2.58 E624：没有设备的型号不列；全无设备时为页面空状态“尚无设备”。3.08 V1047：只列 Mesh 型号（3.11 起含 FC20）
+    models = ["lc", "ms", "aq", "fc"]
       .map((type) => [type, scopePoints().filter((p) => p.type === type && M.access(p) === "mesh" && F.boundNow(p))])
       .filter(([, ps]) => ps.length);
   if (!models.length && !tasks.length) return empty("尚无设备", "", "", "upgrade");
@@ -57868,12 +57864,14 @@ function showFirmware(id) {
   );
 }
 // 影响（V1044）：如“将升级 23 台：今晚 22:00 起传输，约需 2 晚；全部验证后在 02:00–05:00 分批生效，有人的功能区延后。”
+// 3.11 F8：FC20 与 LC20 一样等所在功能区无人才生效（生效时重启，风机盘管短暂停机）；MS20、AQ20 只避开场景执行
+const fwHoldOcc = (type) => type === "lc" || type === "fc";
 function fwImpactText(db, d, rel) {
   if (!rel) return "选择目标版本后计算影响台数";
   const n = d.networkIds.reduce((a, nid) => a + fwTargets(db, d, rel, nid).length, 0),
     pilot = d.pilot ? d.networkIds.reduce((a, nid) => a + fwPilotIds(db, fwTargets(db, d, rel, nid), nid).length, 0) : 0,
     winOk = d.windowStart && d.windowEnd && d.windowStart !== d.windowEnd,
-    hold = d.type === "lc" ? "有人的功能区延后" : "场景执行中的设备延后";
+    hold = fwHoldOcc(d.type) ? "有人的功能区延后" : "场景执行中的设备延后";
   return esc(
     // 3.10 V1069：先试点时写“试点 1 晚，观察 24 小时后其余约需 2 晚”，原只按台数估算、没算试点与观察
     `将升级 ${n} 台${pilot ? `，先试点 ${pilot} 台` : ""}：${winOk ? `今晚 ${d.windowStart} 起传输，` : ""}${pilot ? `试点 1 晚，观察 24 小时后其余${((k) => (k ? `约需 ${k} 晚` : "按试点实测估算"))(fwNights(db, d.networkIds, n - pilot, d.id))}` : fwNightsText(fwNights(db, d.networkIds, n, d.id))}；全部验证后在 ${d.effStart}–${d.effEnd} 分批生效，${hold}。传输期间照明控制与上报变慢，网络检测与批量配置暂停；密钥更新暂停到全部生效。`,
@@ -57957,7 +57955,7 @@ function showFirmwareDetail(id) {
   const notices = [
     unconfirmed ? wsNotice(`${unconfirmed === 1 ? esc(g("points", rs.find((r) => r.status === "unconfirmed").pointId)?.name || "1 台设备") + " " : unconfirmed + " 台设备"}尚未回报新版本，设备上线后状态自动更新；仍未回报请到现场核对。`, "warning") : "",
     // V1044：连续 3 晚未生效的设备由人工安排；立即生效时灯会短暂熄灭
-    manual.length ? `<div class="fw-note">${wsNotice(`${manual.length} 台连续 3 晚未能生效，需人工安排。立即生效时${t.type === "lc" ? "这些功能区的灯会短暂熄灭" : "设备会短暂离线"}。`, "warning")}${edit ? btn("立即生效", "firmwareNowAsk", { id }, "sm") : ""}</div>` : "",
+    manual.length ? `<div class="fw-note">${wsNotice(`${manual.length} 台连续 3 晚未能生效，需人工安排。立即生效时${t.type === "lc" ? "这些功能区的灯会短暂熄灭" : t.type === "fc" ? "这些功能区的风机盘管会短暂停机" : "设备会短暂离线"}。`, "warning")}${edit ? btn("立即生效", "firmwareNowAsk", { id }, "sm") : ""}</div>` : "",
     vfail.length ? `<div class="fw-note">${wsNotice(`${vfail.length} 台验证失败：文件不完整或签名不符，不能重试。`, "error", false)}${btn("联系支持", "auSupport", { from: "firmware" }, "sm")}</div>` : "",
     t.status === "withdrawn" ? wsNotice(`发布方已撤回 ${esc(t.targetVersion)}，任务已停止，未升级的设备不再升级。`, "warning") : "",
   ].join("");
@@ -57972,7 +57970,7 @@ function showFirmwareDetail(id) {
       ...(t.status !== "draft" && t.at ? [["下发", esc([t.by, v13Date(t.at, true, g("networks", t.networkIds[0])?.projectId)].filter(Boolean).join(" · "))]] : []), // 2.65 E855
       ["状态", esc(fwStateText(t)) + (t.serviceReceiptId?.startsWith("demo-") ? " " + simTag() : "")],
       // 3.10 V1072：传输都完成后（生效中）写剩下的，如“等待无人 8 台，今晚 02:00 继续”，不再写传输的“约需 2 晚”
-      ...(live ? [["预计", esc(rs.some((r) => ["waiting", "downloading"].includes(r.status)) ? fwNightsText(fwNights(db, t.networkIds, rs.filter((r) => ["waiting", "downloading"].includes(r.status)).length, t.id)) : ((h, v) => [h ? `${t.type === "lc" ? "等待无人" : "等待场景结束"} ${h} 台` : "", v ? `待生效 ${v} 台` : ""].filter(Boolean).join("、") + (h || v ? (t.status === "paused" ? "" : `，今晚 ${t.effStart || "02:00"} 继续`) : "传输与生效已完成，等待核对"))(count("holdOcc").length + count("holdScene").length, count("verified").length))]] : []),
+      ...(live ? [["预计", esc(rs.some((r) => ["waiting", "downloading"].includes(r.status)) ? fwNightsText(fwNights(db, t.networkIds, rs.filter((r) => ["waiting", "downloading"].includes(r.status)).length, t.id)) : ((h, v) => [h ? `${fwHoldOcc(t.type) ? "等待无人" : "等待场景结束"} ${h} 台` : "", v ? `待生效 ${v} 台` : ""].filter(Boolean).join("、") + (h || v ? (t.status === "paused" ? "" : `，今晚 ${t.effStart || "02:00"} 继续`) : "传输与生效已完成，等待核对"))(count("holdOcc").length + count("holdScene").length, count("verified").length))]] : []),
       // V1046：回读版本后自动核对配置，不一致的重新下发，再自动做一次网络检测
       ...(t.check ? [["升级后核对", esc(t.check)]] : []),
     ])}${notices}${/* 2.88 E1138：只有一个网络时不列汇总表 */ t.networkIds.length > 1 ? table(["设备网络", "#设备", "#已生效", "#未确认", "#失败"], byNet, "未选择设备网络。") : ""}${table(
@@ -57998,7 +57996,7 @@ function showFirmwareDetail(id) {
 
 const numberField = (label, id, val, hint = "", unit = "") => fld(label, id, unit ? unitBox(input(id, val, "", "number"), unit) : input(id, val, "", "number"), hint);
 // 2.67 E1034：网络参数的单位放进输入框内，字段名不带单位（原为“占用刷新（秒）”等）
-const NP_UNITS = { npOccupancy: "秒", npRatio: "%", npLux: "秒", npClimate: "秒", npPressure: "秒", npController: "秒", npAq: "秒", npOffline: "分钟", npLuxChange: "%", npLuxAbsolute: "lx", npTemp: "℃", npHumidity: "%RH", npReach: "%", npLoad1: "条/秒", npLoad2: "条/秒", npGap: "米" };
+const NP_UNITS = { npOccupancy: "秒", npRatio: "%", npLux: "秒", npClimate: "秒", npPressure: "秒", npController: "秒", npOther: "秒", npAq: "秒", npOffline: "分钟", npLuxChange: "%", npLuxAbsolute: "lx", npTemp: "℃", npHumidity: "%RH", npReach: "%", npLoad1: "条/秒", npLoad2: "条/秒", npGap: "米" };
 function drawingBounds(a, b) {
   const end = { x: Math.max(0, Math.min(100, b.x)), y: Math.max(0, Math.min(100, b.y)) };
   if (U.zoneShape === "ellipse") {
@@ -58029,6 +58027,7 @@ const PARAM_LABELS = {
   "report.climate": "温湿度上报周期",
   "report.pressure": "气压上报周期",
   "report.controller": "LC20 状态上报周期",
+  "report.other": "FC20 状态上报周期", // 3.11：FC20 改回 Mesh 节点
   "report.aq": "AQ20 空气质量上报周期",
   "report.luxChange": "照度相对变化",
   "report.luxAbsolute": "照度绝对变化",
@@ -58092,13 +58091,14 @@ function startConnectionGesture(e, point, canvas) {
   document.addEventListener("pointerup", up, { once: true });
 }
 // 2.88 E1133：网络参数表的数据项、上报周期与变化阈值的可调范围（保存时按此核对）
-const NP_RANGES = { npLux: [30, 3600], npClimate: [60, 3600], npPressure: [300, 3600], npController: [60, 3600], npAq: [30, 600], npLuxChange: [5, 50], npLuxAbsolute: [5, 100], npTemp: [0.2, 2], npHumidity: [2, 10] };
+const NP_RANGES = { npLux: [30, 3600], npClimate: [60, 3600], npPressure: [300, 3600], npController: [60, 3600], npOther: [60, 3600], npAq: [30, 600], npLuxChange: [5, 50], npLuxAbsolute: [5, 100], npTemp: [0.2, 2], npHumidity: [2, 10] };
 const NP_ROWS = [
   ["占用", "npOccupancy", "occupancy", []],
   ["照度", "npLux", "lux", [["npLuxChange", "luxChange", "相对变化"], ["npLuxAbsolute", "luxAbsolute", "绝对变化"]]],
   ["温湿度", "npClimate", "climate", [["npTemp", "tempChange", "温度变化"], ["npHumidity", "humidityChange", "湿度变化"]]],
   ["气压", "npPressure", "pressure", []],
   ["LC20 状态", "npController", "controller", []],
+  ["FC20 状态", "npOther", "other", []], // 3.11：FC20 改回 Mesh 节点（3.08 V1047 删去）
   ["AQ20 空气质量", "npAq", "aq", []],
 ];
 const npRangeText = (fid, minOff) => {
@@ -58158,6 +58158,7 @@ const NP_FIELDS = {
   npClimate: ["report.climate"],
   npPressure: ["report.pressure"],
   npController: ["report.controller"],
+  npOther: ["report.other"],
   npAq: ["report.aq"],
   npOffline: ["offlineMinutes"],
   npLuxChange: ["report.luxChange"],
@@ -58275,6 +58276,7 @@ function readParameters(vals = null) {
       climate: num("npClimate"),
       pressure: num("npPressure"),
       controller: num("npController"),
+      other: num("npOther"),
       aq: num("npAq"),
       luxChange: num("npLuxChange"),
       luxAbsolute: num("npLuxAbsolute"),
@@ -59650,7 +59652,7 @@ defineActions({
     const n = (t.results || []).filter((r) => r.status === "manual").length;
     modal(
       `立即生效 ${n} 台？`,
-      `<p class="flow-lead">${t.type === "lc" ? "这些设备会重启，所在功能区的灯会短暂熄灭，随后按“断电恢复”设定恢复。" : "这些设备会重启并短暂离线。"}</p>`,
+      `<p class="flow-lead">${t.type === "lc" ? "这些设备会重启，所在功能区的灯会短暂熄灭，随后按“断电恢复”设定恢复。" : t.type === "fc" ? "这些设备会重启，所在功能区的风机盘管会短暂停机，随后按“断电恢复”设定恢复。" : "这些设备会重启并短暂离线。"}</p>`,
       btn("返回", "firmwareDetail", { id: a.id }) + execBtn("立即生效", "firmwareNow", { id: a.id }, "config", "primary"),
     );
   },
@@ -60079,18 +60081,24 @@ const mkSyncBadge = (p) => {
 };
 // 2.65 E742：只有用到功能区的设备有“功能区”字段：LC20、MS20、FC20、AQ20、多联机内机、所接负载为分体空调的电能表
 const mkUsesZone = (p) => ["lc", "ms", "fc", "aq", "idu", "ls", "tp"].includes(p.type) || (p.type === "meter" && p.load === "分体空调");
-// 3.10 P9、P11：LS 选接收的照明控制器（默认同一功能区里最近的 LC20）、型号与每个按键的动作；TP 选显示范围（默认所在功能区，可多选本网络服务楼层的功能区或整层）
+// 3.10 P9、P11：LS 选接收的照明控制器（默认同一功能区里最近的 LC20）、型号与每个按键开关的照明分区（3.11 E1198；LS21 一个键，不列按键项）；TP 选显示范围（默认所在功能区，可多选本网络服务楼层的功能区或整层）
 function mkLsTpFields(p, n) {
   const db = data();
   if (p.type === "ls") {
     const lcs = db.points.filter((x) => x.type === "lc" && x.floorId === p.floorId).sort(M.byName),
-      rx = M.lsReceiver(db, p);
+      rx = M.lsReceiver(db, p),
+      cgs = (db.circuitGroups || []).filter((g) => g.floorId === p.floorId).sort(M.byName),
+      def = (rx && cgs.find((g) => g.controllerIds.includes(rx.id))?.id) || "";
     return sec(
       "开关设置",
       "",
       fld("接收的照明控制器", "pe-rxId", peSelect("pe-rxId", [["", lcs.length ? "请选择" : "本层没有照明控制器"], ...lcs.map((x) => [x.id, x.name])], rx?.id || "", "接收的照明控制器")) +
         fld("型号", "pe-lsModel", peSelect("pe-lsModel", M.LS_MODELS.map(([m, k]) => [m, `${m} · ${k} 键`]), p.lsModel || "LS21", "型号")) +
-        M.lsKeys(p).map((k, i) => fld(`按键 ${i + 1}`, `pe-lsKey${i}`, peSelect(`pe-lsKey${i}`, M.LS_ACTIONS, k, `按键 ${i + 1}`))).join("") +
+        ((p.lsModel || "LS21") === "LS21"
+          ? ""
+          : M.lsKeys(p)
+              .map((k, i) => fld(`按键 ${i + 1}`, `pe-lsKey${i}`, peSelect(`pe-lsKey${i}`, cgs.length ? cgs.map((g) => [g.id, g.name]) : [["", "本层没有照明分区"]], cgs.some((g) => g.id === k) ? k : def, `按键 ${i + 1}`)))
+              .join("")) +
         `<p class="mk-lead">${esc(F.bindingLabel(p))} · 按键信号由照明控制器接收，不经网关，断网照样可用</p>`,
     );
   }
@@ -60200,6 +60208,19 @@ function meterRow(label, v, max, unit, alt) {
   const over = v != null && v > max;
   return `<div class="mk-meter ${over ? "over" : ""}"><span>${label}</span><i><b style="width:${v == null ? 0 : Math.min(100, (v / max) * 100)}%"></b></i><em>${v == null ? alt : `${fmt(v)}/${fmt(max)}${unit}`}</em></div>`;
 }
+// 3.11 E1197：控制类型改了以后原选的驱动不相符：照旧显示这款驱动，下一行红字写不符，下拉只列相符的驱动与“其他”；冲击写“驱动与控制类型不符”
+// （原驱动框写“请选择”，检查却说已选的驱动不符）
+const drvOff = (p) => {
+  const d = p.ctrl !== "switch" && p.driverModel && p.driverModel !== "other" ? M.DRIVERS.find((x) => x.model === p.driverModel) : null;
+  return d && !M.driversFor(p.ctrl).includes(d) ? d : null;
+};
+function drvField(p, none) {
+  const bad = drvOff(p),
+    opts = [["", none], ...M.driversFor(p.ctrl).map((d) => [d.model, `${d.model} · ${d.watts} W`]), ["other", "其他（待兼容测试）"]],
+    cur = bad && `${bad.model} · ${bad.watts} W`,
+    ctl = !bad ? peSelect("pe-driverModel", opts, p.driverModel || "", "驱动型号") : canEdit() ? select("pe-driverModel", opts, p.driverModel, "驱动型号").replace('<span class="ph">请选择</span>', `<span>${esc(cur)}</span>`) : roText("pe-driverModel", cur);
+  return fld("驱动型号", "pe-driverModel", ctl, bad ? esc(`${bad.dim} 调光驱动，与控制类型不符`) : "").replace('<small class="muted" id="pe-driverModel-hint">', '<small class="muted mk-bad" id="pe-driverModel-hint">');
+}
 function lcMeters(p) {
   const l = F.lcLoad(p),
     L = M.LIMITS,
@@ -60207,12 +60228,12 @@ function lcMeters(p) {
   return (
     meterRow("调光驱动", dim ? l.drivers : null, L.dimDrivers, "", "开关型不限") +
     meterRow("功率", l.watts, L.loadWatts, " W") +
-    meterRow("冲击", l.inrush, L.inrushBudget, " A", p.driverModel ? "待兼容测试" : "未选驱动")
+    meterRow("冲击", drvOff(p) ? null : l.inrush, L.inrushBudget, " A", drvOff(p) ? "驱动与控制类型不符" : p.driverModel ? "待兼容测试" : "未选驱动")
   );
 }
 function driverFields(p) {
   if (!canEdit())
-    return `${roRow("控制类型", M.ctrlText(p.ctrl))}${fld("驱动型号", "pe-driverModel", peSelect("pe-driverModel", [["", "未选择"], ...M.driversFor(p.ctrl).map((d) => [d.model, `${d.model} · ${d.watts} W`]), ["other", "其他（待兼容测试）"]], p.driverModel || "", "驱动型号"))}${roRow("驱动台数", p.drivers)}${roRow("每台灯具功率（W）", p.fixtureWatts)}<div class="mk-meters" data-meters="${p.id}">${lcMeters(p)}</div>`;
+    return `${roRow("控制类型", M.ctrlText(p.ctrl))}${drvField(p, "未选择")}${roRow("驱动台数", p.drivers)}${roRow("每台灯具功率（W）", p.fixtureWatts)}<div class="mk-meters" data-meters="${p.id}">${lcMeters(p)}</div>`;
   // 分段选择用紧凑页签（.seg.sm：32 高的轨道、26 高的选中块、14 号字，触屏不放大）（全面设计核查第 147 条（2026-10-12 用户确认）；原为 28 高、13 号字的 .mk-seg）
   // 2.65 E757：分段上方写标签“控制类型”（与类型、原厂限温等同一样式）
   return `<div class="field mk-hvac"><span class="mk-hvac-label" id="pe-ctrl-label">控制类型</span><div class="seg sm mk-opt" role="radiogroup" aria-labelledby="pe-ctrl-label">${[
@@ -60224,16 +60245,7 @@ function driverFields(p) {
       ([v, l]) =>
         `<button type="button" role="radio" tabindex="${(p.ctrl || "dim") === v ? 0 : -1}" aria-checked="${(p.ctrl || "dim") === v}" class="${(p.ctrl || "dim") === v ? "on" : ""}" data-act="peCtrl" data-point="${p.id}" data-value="${v}"${dis()}>${l}</button>`,
     )
-    .join("")}</div></div>${fld(
-    "驱动型号",
-    "pe-driverModel",
-    peSelect(
-      "pe-driverModel",
-      [["", "请选择"], ...M.driversFor(p.ctrl).map((d) => [d.model, `${d.model} · ${d.watts} W`]), ["other", "其他（待兼容测试）"]],
-      p.driverModel || "",
-      "驱动型号",
-    ),
-  )}<div class="mk-2col">${fld("驱动台数", "pe-drivers", peInput("drivers", p.drivers, "number", ' min="0" max="99" step="1" inputmode="numeric"'))}${fld("每台灯具功率（W）", "pe-fixtureWatts", peInput("fixtureWatts", p.fixtureWatts, "number", ' min="0" max="1000" step="1" inputmode="numeric"'))}</div><div class="mk-meters" data-meters="${p.id}">${lcMeters(p)}</div>`;
+    .join("")}</div></div>${drvField(p, "请选择")}<div class="mk-2col">${fld("驱动台数", "pe-drivers", peInput("drivers", p.drivers, "number", ' min="0" max="99" step="1" inputmode="numeric"'))}${fld("每台灯具功率（W）", "pe-fixtureWatts", peInput("fixtureWatts", p.fixtureWatts, "number", ' min="0" max="1000" step="1" inputmode="numeric"'))}</div><div class="mk-meters" data-meters="${p.id}">${lcMeters(p)}</div>`;
 }
 // 接线: n/10; kept as a named block so the zero-sensor explanation stays testable.
 function relationPointTools(p) {
@@ -60946,7 +60958,7 @@ function commitField(el, quiet) {
           p.lsKeys = M.lsKeys({ ...p, lsModel: raw });
           p.lsModel = raw;
         } else if (/^lsKey\d$/.test(field)) {
-          if (!M.LS_ACTIONS.some(([v]) => v === raw)) throw Error("取值无效");
+          if (raw && !(db.circuitGroups || []).some((g) => g.id === raw && g.floorId === p.floorId)) throw Error("请选择本层的照明分区");
           p.lsKeys = M.lsKeys(p);
           p.lsKeys[+field.slice(5)] = raw;
         } else if (/^tpScope[FZ]-/.test(field)) {
@@ -65657,8 +65669,8 @@ function connStatus(c) {
 const connStatusHtml = (s) => `<span class="ds-st ${s.cls}">${esc(s.text)}</span>${s.sub ? `<small class="ds-st2">${esc(s.sub)}</small>` : ""}`;
 // 各原因的含义与处理步骤（运行一节的失败记录展开、设备侧栏的读取失败共用）
 const CONN_FAIL_HELP = {
-  从站无响应: ["网关发出读取请求后，表计或设备在超时内没有应答。", ["核对该数据点的从站地址与设备上的通信地址", "检查 RS-485 接线（A、B 是否接反）与终端电阻", "确认设备已上电"]],
-  校验错误: ["收到的应答校验不通过，多为总线干扰或波特率、校验位不一致。", ["核对通信参数与设备设置一致", "检查屏蔽层单端接地、总线远离动力线"]],
+  // 3.11 E1196：网关经网口读通讯管理机（Modbus TCP），平台收到的是通讯管理机回的“目标设备无响应”，看不到表计一段的校验错误（去掉“校验错误”）
+  从站无响应: ["通讯管理机回复该表计在超时内没有应答。", ["核对数据映射的从站地址与通讯管理机上该表计的地址", "在通讯管理机上查看该表计的通信状态，检查表计到通讯管理机的 RS-485 接线", "确认表计已上电"]],
   寄存器地址无效: ["设备返回“非法数据地址”，所读寄存器不存在。", ["按设备点表核对寄存器地址与寄存器类型", "注意点表地址从 0 还是从 1 开始"]],
   网关离线: ["采集所在的网关离线，本连接的数据点都无法读取。", ["查看网关的网络与电源", "网关恢复后自动继续采集"]],
   设备未响应: ["BACnet 设备在超时内没有应答。", ["核对设备实例号与网段", "确认设备在线"]],
@@ -65668,6 +65680,9 @@ const CONN_FAIL_HELP = {
   连接超时: ["在超时内没有建立连接。", ["核对服务地址与端口", "确认网络可达"]],
   服务不可达: ["服务地址无法访问。", ["核对服务地址", "确认服务正在运行"]],
 };
+// 3.11 E1196：Modbus TCP 的连接超时为连不上通讯管理机或多联式空调网关
+const CONN_FAIL_HELP_MODBUS = { 连接超时: ["在超时内没有连上通讯管理机或多联式空调网关。", ["核对服务地址与端口", "确认通讯管理机已上电、网线已接好"]] };
+const connFailHelp = (c, reason) => (c?.protocol === "Modbus TCP" && CONN_FAIL_HELP_MODBUS[reason]) || CONN_FAIL_HELP[reason];
 // 近 30 天的失败记录（连接的 failLog）：最近的在前
 function connFailRows(c) {
   const now = connClock();
@@ -65724,7 +65739,7 @@ function connRunSection(c) {
           shown.map((x, i) => ({ act: "connFailRow", args: { i }, cells: [esc(x.reason) + (x.keys?.length ? `<small class="flow-sub">${esc(x.keys.map((k) => c.mappings.find((m) => m.key === k)?.name || k).join("、"))}</small>` : ""), esc(connWhen(Date.parse(x.start))), esc(connWhen(Date.parse(x.last))), String(x.count)] })),
         )
       : `<p class="flow-none">没有失败记录</p>`, // 2.88 E1135：标题已写“近 30 天”
-    help = open != null && shown[open] ? CONN_FAIL_HELP[shown[open].reason] : null,
+    help = open != null && shown[open] ? connFailHelp(c, shown[open].reason) : null,
     detail = help ? `<tr class="flow-x"><td colspan="5"><p>${esc(help[0])}</p><ol class="conn-steps">${help[1].map((s) => `<li>${esc(s)}</li>`).join("")}</ol></td></tr>` : "";
   let t = tbl;
   if (detail) t = t.replace(new RegExp(`(<tr class="click" data-act="connFailRow" data-i="${open}"[\\s\\S]*?</tr>)`), `$1${detail}`).replace(`data-i="${open}" tabindex="0"`, `data-i="${open}" tabindex="0" aria-expanded="true"`);
@@ -65885,7 +65900,7 @@ function connHealth(c) {
           rows.map((x, i) => ({ act: "connFailRow", args: { i }, cells: [esc(x.reason), esc((x.keys || []).map((k) => c.mappings.find((m) => m.key === k)?.name || k).join("、") || "全部数据点"), esc(connWhen(Date.parse(x.start))), esc(connWhen(Date.parse(x.last))), String(x.count)] })),
         )
       : `<p class="flow-none">没有失败记录</p>`,
-    help = open != null && rows[open] ? CONN_FAIL_HELP[rows[open].reason] : null,
+    help = open != null && rows[open] ? connFailHelp(c, rows[open].reason) : null,
     detail = help ? `<tr class="flow-x"><td colspan="5"><p>${esc(help[0])}</p><ol class="conn-steps">${help[1].map((x) => `<li>${esc(x)}</li>`).join("")}</ol></td></tr>` : "";
   let t = tbl;
   if (detail) t = t.replace(new RegExp(`(<tr class="click" data-act="connFailRow" data-i="${open}"[\\s\\S]*?</tr>)`), `$1${detail}`).replace(`data-i="${open}" tabindex="0"`, `data-i="${open}" tabindex="0" aria-expanded="true"`);
@@ -67830,7 +67845,7 @@ const V13_TPL = [
     "§6.2",
     "风机盘管待机",
     "无人 15 min：供冷 +2 K / 供热 −2 K，风速锁低",
-    "有人连续 1 min 恢复舒适设定；占用数据缺失不算无人，断网收不到占用 15 min 后按本机保存的工作时间判断（工作时间内有人、外无人）",
+    "有人连续 1 min 恢复舒适设定；占用数据缺失不算无人，收不到占用 15 min 后按本机保存的工作时间判断（工作时间内有人、外无人）",
     "",
     "设备本地",
     { more: "只用于风机盘管；豁免空间不做", when: (P) => P.tempBasis !== "exempt" || "豁免项目不做待机、节能" },
@@ -67841,7 +67856,7 @@ const V13_TPL = [
     "§6.2",
     "风机盘管节能",
     "无人 60 min：供冷 30 / 供热 15 ℃；室温在范围内风机停、阀关，越限时低速运行；防冻有效",
-    "占用数据缺失时回到舒适；断网收不到占用 15 min 后按本机保存的工作时间判断",
+    "占用数据缺失时回到舒适；收不到占用 15 min 后按本机保存的工作时间判断",
     "",
     "设备本地",
     { more: "只用于风机盘管；豁免空间不做", when: (P) => P.tempBasis !== "exempt" || "豁免项目不做待机、节能" },
@@ -67950,17 +67965,6 @@ const V13_TPL = [
       devTypes: [],
       when: (P, db, pid) => v13HasVrf(db, pid) || "项目没有多联机",
     },
-  ],
-  [
-    "H-31",
-    "暖通空调",
-    "§7.1",
-    "FC20 状态上报周期",
-    "300 s",
-    "FC20 经 4G 直连平台，按此周期上报运行状态与室温；离线按 3 个周期且不少于 20 min 判定",
-    "",
-    "平台",
-    { fw: "按周期上报运行状态与室温", d: "w", dev: "FC20", devTypes: ["fc"] },
   ],
   [
     "E-01",
@@ -68959,12 +68963,6 @@ const V13_EDIT = {
     fields: () => [{ k: "lock", label: "面板锁", wide: true, options: v13Lock.map((x) => [x, x]) }],
     read: (v) => [v13LockOf(v)],
     write: ([x]) => x,
-  },
-  // 3.10 E1191：FC20 状态上报周期（原为网络参数）
-  "H-31": {
-    fields: () => [v13F("s", "上报周期", "s", 60, 3600, 60)],
-    read: v13Re(/^([\d,]+) s/),
-    write: ([n]) => `${v13N(n)} s`,
   },
   "H-29": {
     fields: () => [{ k: "min", label: "无人后关机", options: [30, 60, 90, 120].map((m) => [m, `${m} min`]) }], // 2.65 E901
@@ -70608,7 +70606,7 @@ function v13Progress(db, pid, bid = null) {
     todos: appTodos,
   });
   // 6 验证与交付（E195、E183）：功能验证、参数现场验证、相较交付的改动各一行；交付记录移到设备网络表头
-  const meshPts = nets.flatMap((n) => F.fieldPoints(db, n.id)), // 3.08 V1047：含 4G 设备（FC20）
+  const meshPts = nets.flatMap((n) => F.fieldPoints(db, n.id)), // 3.08 V1047：含以后的 4G 设备
     verified = meshPts.filter((p) => F.verifiedNow(db, p)).length,
     cx = F.index(db),
     tests = nets.map((n) => F.testCoverage(db, n, cx)),
@@ -75926,7 +75924,11 @@ function opsPlanLayout(plan) {
           return false;
         };
       // 3.06 V1038：读数后的状态词放不下时先去掉（悬停与读屏仍有），再按原顺序缩小读数
-      const zfOff = () => !!b?.querySelector(".zf") && !z.classList.contains("nozf") && (z.classList.add("nozf"), true);
+      const zfOff = () => !!b?.querySelector(".zf") && !z.classList.contains("nozf") && (z.classList.add("nozf"), true),
+        // 3.11 V1084：读数仍放不下时去掉千分位（“1,080”写成“1080”），再放不下才不写读数
+        b0 = b?.firstChild?.nodeType === 3 ? b.firstChild.data : null,
+        cmp = () => (b0 != null && /\d,\d/.test(b0) ? ((b.firstChild.data = b0.replace(/(\d),(?=\d)/g, "$1")), true) : false),
+        uncmp = () => b0 != null && (b.firstChild.data = b0);
       if (zn && zn.scrollWidth > W) z.classList.add("noname");
       if (zn && !z.classList.contains("noname") && icons.length && icons.some((r) => cross(rect(zn), r))) z.classList.add("noname");
       // 2.70 V669：总览楼层图放不下时先去掉数值，再去掉名称；名称一行放不下就只填色（悬停提示与读屏有名称和数值）
@@ -75940,10 +75942,13 @@ function opsPlanLayout(plan) {
             z.classList.remove("noname");
             z.classList.add(k, "v12");
             if (ok()) return true;
-            if (zfOff()) {
+            const zf = zfOff();
+            if (zf && ok()) return true;
+            if (cmp()) {
               if (ok()) return true;
-              z.classList.remove("nozf");
+              uncmp();
             }
+            if (zf) z.classList.remove("nozf");
             if (!al) {
               z.classList.add("noval");
               if (ok()) return true;
@@ -75959,10 +75964,13 @@ function opsPlanLayout(plan) {
         if (b) {
           z.classList.add("v12");
           if (fit()) return;
-          if (zfOff()) {
+          const zf = zfOff();
+          if (zf && fit()) return;
+          if (cmp()) {
             if (fit()) return;
-            z.classList.remove("nozf");
+            uncmp();
           }
+          if (zf) z.classList.remove("nozf");
           z.classList.remove("v12");
         }
         return void z.classList.add("bare");
@@ -77904,10 +77912,12 @@ function myAqText(s) {
   if (!a) return "";
   if (v == null) return "数据不足";
   const q = a.aqs,
-    th = ovRoomTemp(s) == null ? "" : ["偏低", "适宜", "偏高"][envTempDir(s) + 1];
+    th = myThermText(s);
   return `<i class="ops-my-dot" style="--c:${OV_AQ[q.i]}"></i>${q.band} ${v}${v < 70 ? ` · 主因 ${q.main}` : ""}${th ? ` · 热舒适 ${th}` : ""}`;
 }
 const myOccText = (s) => (s.gwUnknown || s.occUnknown ? "未知" : s.occupied ? "有人" : "无人");
+// 3.11 V1089：无人时热舒适不评价，写“无人”（原按节能设定 ±2 ℃ 写“适宜”）
+const myThermText = (s) => (ovRoomTemp(s) == null ? "" : s.sensor && !s.occUnknown && !s.occupied ? "无人" : ["偏低", "适宜", "偏高"][envTempDir(s) + 1]);
 function myZoneCard(z) {
   const dz = Demo.on() ? Demo.zoneOf(z.id) : null,
     s = dz && Demo.zoneState(dz),
@@ -78522,7 +78532,7 @@ const co2Chip = (v, s) => {
   const i = co2Level(v, zoneRef(s));
   return `<span class="ops-cmp-chip" style="--c:${OV_AQ[i]}">${nf(v)} ppm${aqBandText(i)}</span>`;
 };
-const cmpBar = (v, max) => `<span class="ops-cmp-bar"><i style="width:${max > 0 ? Math.max(4, Math.round((v / max) * 100)) : 0}%"></i></span>`;
+const cmpBar = (v, max, c = "") => `<span class="ops-cmp-bar"><i style="width:${max > 0 ? Math.max(4, Math.round((v / max) * 100)) : 0}%${c ? `;background:${c}` : ""}"></i></span>`;
 // 一行的各列：{ h 列名, t 文字（第二行）, html 单元格, main 窄屏时留在第一行, bar 小横条的数值（按各行最大值）, sub 数值下一行的小字, al 告警列（数据未更新时不变暗） }
 function cmpCols(tab, r, kind) {
   const unk = !!Demo.ctl.gwOffline,
@@ -80388,6 +80398,14 @@ function anChildRows(stat, lv = null) {
 const AN_CMP_C = ["#2A78D6", "#17928F", "#D29A10", "#8B5CF6", "#DB6A1E"];
 const anCmpKey = () => [U.p, U.b, anLv()].join("|");
 const anCmpIds = () => (U.anCmp?.key === anCmpKey() ? U.anCmp.ids : []);
+// 3.11 V1086：对比图显示时，表中已勾选行的占比条与图中对应线同色，其余行为灰色（原都是蓝色）
+function anCmpColors() {
+  const ids = anCmpIds();
+  if (ids.length < 2 || U.f) return null;
+  const rs = anChildRows(() => ({}), anLv()).rows,
+    on = ids.filter((id) => rs.some((x) => x.r.o.id === id));
+  return on.length < 2 ? null : new Map(on.map((id, i) => [id, AN_CMP_C[i]]));
+}
 function anCmpCk(x, on) {
   const full = !on && anCmpIds().length >= 5;
   return `<button type="button" role="checkbox" class="an-ck${on ? " on" : ""}" aria-checked="${on}" data-act="anCmpPick" data-id="${esc(x.r.o.id)}" aria-label="${esc(`对比 ${x.name}`)}"${full ? ' aria-disabled="true" data-tip="最多对比 5 项"' : ""}>${on ? ico("check", "ic14") : ""}</button>`;
@@ -80434,10 +80452,14 @@ function anCmpCard(tab, rg) {
     .replace('<div class="ops-card-tools">', '<div class="ops-card-tools an-cmp-tools">');
 }
 function anChildOrder(rows, key, asc = false) {
-  const gs = [...new Set(rows.map((x) => x.grp))].sort((a, b) => Number(!a) - Number(!b) || a.localeCompare(b, "zh-CN"));
+  // 3.11 V1087：组按用电量合计从高到低（没有用电量时按名称），“未填”的组排最后；原按用途名称
+  const gk = (g) => rows.reduce((s, x) => s + (x.grp === g ? x.kwh || 0 : 0), 0),
+    gs = [...new Set(rows.map((x) => x.grp))].sort((a, b) => Number(!a) - Number(!b) || gk(b) - gk(a) || a.localeCompare(b, "zh-CN"));
   return gs.flatMap((gp) => {
     const xs = rows.filter((x) => x.grp === gp);
-    return [...xs.filter((x) => !x.partial && x[key] != null).sort((a, b) => (asc ? a[key] - b[key] : b[key] - a[key])), ...xs.filter((x) => !x.partial && x[key] == null), ...xs.filter((x) => x.partial)];
+    // 3.11 V1087：没有数值与数据不全的行在组末，按用电量从高到低（没有用电量的按名称；原按接入顺序）
+    const tail = (a, b) => (b.kwh ?? -1) - (a.kwh ?? -1) || a.name.localeCompare(b.name, "zh-CN");
+    return [...xs.filter((x) => !x.partial && x[key] != null).sort((a, b) => (asc ? a[key] - b[key] : b[key] - a[key])), ...xs.filter((x) => !x.partial && x[key] == null).sort(tail), ...xs.filter((x) => x.partial).sort(tail)];
   });
 }
 function anChildTable(head, rows, cells, ck = false) {
@@ -80473,9 +80495,11 @@ function anChildPanel(rg, sel, tableOnly = false) {
   // 3.07 V1041：所选层级有 2 个以上有数据的对象时显示（未接入运行数据的合成一行写在表下）；列加“单位面积碳排放”
   if (c.rows.length < 2) return tableOnly ? null : "";
   const sum = c.rows.reduce((a, x) => a + x.kwh, 0) || 1,
+    cc = tableOnly ? null : anCmpColors(),
     table = anChildTable(["名称", "用电量", "单位面积用电", "用电碳排放", "单位面积碳排放", "环比"], anChildOrder(c.rows, "per"), (x) => {
       const mom = x.prev > 0 ? ((x.kwh - x.prev) / x.prev) * 100 : null;
-      return [`${cmpBar(x.kwh, sum)} ${nf(x.kwh)} kWh`, x.partial ? "数据不全" : x.per == null ? "—" : `${nf(x.per, 2)} kWh/m²`, x.t == null ? "—" : `${nf(x.t, 2)} tCO₂`, x.t == null || !x.area ? "—" : `${nf((x.t * 1000) / x.area, 2)} kgCO₂/m²`, mom == null ? "—" : `${mom > 0 ? "+" : ""}${nf(mom, 1)}%`];
+      // 3.11 V1085：期间数据不全时两列单位面积都写“数据不全”（原单位面积碳排放仍有值）
+      return [`${cmpBar(x.kwh, sum, cc ? cc.get(x.r.o.id) || "#DEDEDE" : "")} ${nf(x.kwh)} kWh`, x.partial ? "数据不全" : x.per == null ? "—" : `${nf(x.per, 2)} kWh/m²`, x.t == null ? "—" : `${nf(x.t, 2)} tCO₂`, x.partial ? "数据不全" : x.t == null || !x.area ? "—" : `${nf((x.t * 1000) / x.area, 2)} kgCO₂/m²`, mom == null ? "—" : `${mom > 0 ? "+" : ""}${nf(mom, 1)}%`];
     }, !tableOnly);
   return tableOnly ? { title: c.title, table } : anPanel("energyChildren", anLvOpts().length > 1 ? "分级对比" : c.title, [], { right: anLvSeg() || "按单位面积用电排序", body: table + anLvNone(c) });
 }
@@ -81455,7 +81479,7 @@ function anOffEpisodes(ps, from, to) {
 }
 // 2.83 KW3：系统连接的离线时段：整条连接读不到（失败记录中 whole 的一段）到下一次采集成功；网关离线时从网关离线起，未恢复。
 // 原因归为五类：网关离线、连接超时、认证失败、地址无响应、读取错误，各配一句处理办法
-const CONN_CAT = { 网关离线: "网关离线", 连接超时: "连接超时", 服务不可达: "连接超时", 认证失败: "认证失败", 证书过期: "认证失败", 从站无响应: "地址无响应", 设备未响应: "地址无响应", 校验错误: "读取错误", 寄存器地址无效: "读取错误", 对象不存在: "读取错误" };
+const CONN_CAT = { 网关离线: "网关离线", 连接超时: "连接超时", 服务不可达: "连接超时", 认证失败: "认证失败", 证书过期: "认证失败", 从站无响应: "地址无响应", 设备未响应: "地址无响应", 寄存器地址无效: "读取错误", 对象不存在: "读取错误" };
 const CONN_CAT_NEXT = {
   网关离线: "先查网关的供电与上联网络，恢复后自动继续采集",
   连接超时: "在系统接入中核对服务地址与端口",
@@ -87914,7 +87938,7 @@ function ovMemberCard(z, i) {
     aqSt = gw || !dz.aqs.length ? "" : airState(s, "aq"),
     aqV = gw || aqSt || !dz.aqs.length ? null : airVal(s, "aq"),
     aqQ = s.aq?.aqs,
-    th = gw || room == null ? "" : ["偏低", "适宜", "偏高"][envTempDir(s) + 1],
+    th = gw ? "" : myThermText(s),
     sum = [room == null || gw ? "" : `${nf(room, 1)} ℃`, aqV == null ? "" : `空气质量 <span${aqV < 70 ? ' class="hi"' : ""}>${aqQ.band} ${aqV}</span>`].filter(Boolean).join(" · "),
     // 2.75 V723：CO₂ 偏高按 V697 写法，数值用状态色文字，后面写“偏高”，不加底色
     val = (k, v, u, cls = "", over = false) => `<div class="ov-mv${cls}"><small>${k}</small><b>${v == null || gw ? "—" : `${v}<i>${u}</i>`}${over ? "<em>偏高</em>" : ""}</b></div>`;
@@ -87944,7 +87968,7 @@ function ovMemberCard(z, i) {
       gw ? `<div class="ov-msub"><small>状态未知</small></div>` : !on ? `<div class="ov-msub"><small>已关闭</small></div>` : hvcIdle(s) ? `<div class="ov-msub"><small>无人，按 ${hvSpText(acs[0], s.setpoint)} ${HV_USE[s.use]}运行</small></div>` /* 2.84 V882：步进仍是舒适设定 */ : ""
     }`;
   }
-  return `<article class="ov-card ov-mcard${open ? "" : " fold"}" aria-label="${esc(z.name)}"><button type="button" class="ov-mfold" data-act="ovMyOpen" data-id="${esc(z.id)}" aria-expanded="false"><span><b>${esc(z.name)}</b><small>${sum}</small></span>${ico("chevron", "ic16 ov-chev")}</button><div class="ov-mbody"><header class="ov-mh"><div><h3><button type="button" class="ov-mname" data-act="opsZone" data-id="${esc(z.id)}" aria-label="${esc(`${z.name}：详情与报修`)}">${esc(z.name)}${ico("chevron", "ic16 ov-chev")}</button></h3><small>${esc([z.spaceType, `${dz.area} m²`].filter(Boolean).join(" · "))}</small>${rp ? `<small class="ov-mrp">${esc(rp.closedAt ? `报修已处理 · ${Demo.hm(opsRecAt(rp.closedAt))}` : `报修${taskState(rp)} · 负责人 ${rp.assignee}`)}</small>` : ""}</div><button type="button" class="ov-mcol" data-act="ovMyOpen" data-id="${esc(z.id)}" aria-expanded="true" aria-label="${esc(`收起${z.name}`)}">${ico("chevron", "ic16 ov-chev")}</button></header><div class="ov-mvals">${val("室温", room == null ? null : nf(room, 1), "℃")}${dz.aqs.length ? `<div class="ov-mv"><small>空气质量</small><b>${aqV == null ? "—" : `<span style="color:${AQ_INK[aqQ.i]}">${aqQ.band} ${aqV}</span>${aqV < 70 ? `<i> · 主因 ${esc(aqQ.main)}</i>` : ""}`}</b></div>` : ""}${dz.mss.length ? `<div class="ov-mv${th && th !== "适宜" ? " warn" : ""}"><small>热舒适</small><b>${th || "—"}</b></div>` : ""}</div>${light}${hv}</div></article>`;
+  return `<article class="ov-card ov-mcard${open ? "" : " fold"}" aria-label="${esc(z.name)}"><button type="button" class="ov-mfold" data-act="ovMyOpen" data-id="${esc(z.id)}" aria-expanded="false"><span><b>${esc(z.name)}</b><small>${sum}</small></span>${ico("chevron", "ic16 ov-chev")}</button><div class="ov-mbody"><header class="ov-mh"><div><h3><button type="button" class="ov-mname" data-act="opsZone" data-id="${esc(z.id)}" aria-label="${esc(`${z.name}：详情与报修`)}">${esc(z.name)}${ico("chevron", "ic16 ov-chev")}</button></h3><small>${esc([z.spaceType, `${dz.area} m²`].filter(Boolean).join(" · "))}</small>${rp ? `<small class="ov-mrp">${esc(rp.closedAt ? `报修已处理 · ${Demo.hm(opsRecAt(rp.closedAt))}` : `报修${taskState(rp)} · 负责人 ${rp.assignee}`)}</small>` : ""}</div><button type="button" class="ov-mcol" data-act="ovMyOpen" data-id="${esc(z.id)}" aria-expanded="true" aria-label="${esc(`收起${z.name}`)}">${ico("chevron", "ic16 ov-chev")}</button></header><div class="ov-mvals">${val("室温", room == null ? null : nf(room, 1), "℃")}${dz.aqs.length ? `<div class="ov-mv"><small>空气质量</small><b>${aqV == null ? "—" : `<span style="color:${AQ_INK[aqQ.i]}">${aqQ.band} ${aqV}</span>${aqV < 70 ? `<i> · 主因 ${esc(aqQ.main)}</i>` : ""}`}</b></div>` : ""}${dz.mss.length ? `<div class="ov-mv${th === "偏低" || th === "偏高" ? " warn" : ""}"><small>热舒适</small><b>${th || "—"}</b></div>` : ""}</div>${light}${hv}</div></article>`;
 }
 // V337：手机底部标签；成员没有标签栏（V339）。3.07 V1034：五个标签“总览、空间、场景、告警、分析”，与侧栏同一入口（按当前位置打开）
 function ovTabbar() {
@@ -90681,7 +90705,7 @@ function obInfoTab(k, o) {
       kv([
         ["类型", esc(obKind(o))],
         ["所属网络", M.access(o) === "cell" ? "不属于设备网络（4G 直连）" : n ? `<button type="button" class="ops-link" data-act="networkInfo" data-id="${esc(n.id)}">${esc(n.name)}</button>` : o.connectionId && g("connections", o.connectionId) ? `<button type="button" class="ops-link" data-act="opsObjConn" data-id="${esc(o.connectionId)}">${esc(g("connections", o.connectionId).name)}</button>` : "—"],
-        ...(gw && gw.id !== o.id && M.access(o) !== "cell" ? [["网关", obLink("dev", gw.id, gw.name)]] : []), // 3.10 E1190：FC20 不经网关
+        ...(gw && gw.id !== o.id && M.access(o) !== "cell" ? [["网关", obLink("dev", gw.id, gw.name)]] : []), // 4G 设备不经网关（3.11 起 FC20 为 Mesh 设备，照常写网关）
         ...nodeRows,
         ...(gwConns.length ? [["系统连接", inl(gwConns)]] : []),
         ["序列号", esc(o.serial || o.deviceUuid || "—")],
@@ -98885,9 +98909,14 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "3.11",
+    date: "2026-11-06",
+    notes: ["改进：FC20 为 Mesh 节点，计入节点数，可在平台升级固件。", "改进：LS 开关只开关照明，多键型号每个键开关一个照明分区。", "改进：Modbus TCP 失败原因加“连接超时”，处理步骤按通讯管理机写。", "改进：楼层图窄功能区放不下时读数去掉千分位；我的区域无人时热舒适写“无人”。", "改进：分级对比的占比条与对比线同色，默认按用电量从高到低排。"],
+  },
+  {
     version: "3.10",
     date: "2026-11-06",
-    notes: ["新增：3D 模型可把各层楼层图用两个参考点对齐，换图后提示复核。", "新增：楼层图支持上传 DWG，转换后与 DXF 一样选图层；一个文件有几张平面图时逐张显示。", "改进：电能表经通讯管理机以网口接入；LC20 支持 1–10 V 调光。", "改进：固件升级只在实际传输与生效时暂停检测、算检修中，时段外自动暂停。", "改进：室内环境参考范围按季节分行，告警规则加 VOC、NOx 指数。"],
+    notes: ["新增：楼层图支持上传 DWG；3D 模型可用两个参考点对齐各层楼层图。", "改进：电能表经通讯管理机以网口接入。", "改进：LC20 支持 1–10 V 调光。", "改进：固件升级只在传输期间暂停网络检测与批量配置，正在传输或生效的设备记为检修中；时段结束后任务自动暂停。", "改进：室内环境参考范围按季节分行，告警规则加 VOC、NOx 指数。"],
   },
   {
     version: "3.09",
@@ -113481,7 +113510,7 @@ const V13_DEMO_RELEASES = [
     signature: { verified: true, signer: "PACOM 固件发布签名" },
     notes: "修复 1.3.1 的 0–10 V 下限映射问题",
   },
-  // 3.08 V1046：LC20 1.3.3 为最新；1.3.4 已撤回；MS20 1.3.3 为安全更新（FC20 为 4G 设备，不在平台固件升级中）
+  // 3.08 V1046：LC20 1.3.3 为最新；1.3.4 已撤回；MS20 1.3.3 为安全更新；3.11 FC20 改回 Mesh 设备，最新为 1.1.1
   {
     id: "rel-demo-lc-133",
     type: "lc",
@@ -113516,6 +113545,17 @@ const V13_DEMO_RELEASES = [
     fromVersion: "1.2.0",
     signature: { verified: true, signer: "PACOM 固件发布签名" },
     notes: "修复占用上报可被重放的问题",
+  },
+  {
+    id: "rel-demo-fc-111",
+    type: "fc",
+    version: "1.1.1",
+    published: true,
+    compositionUnchanged: true,
+    hardwareVersions: ["FC20 A"],
+    fromVersion: "1.0.0",
+    signature: { verified: true, signer: "PACOM 固件发布签名" },
+    notes: "防冻保护在关机状态下也生效",
   },
 ];
 // 3.09 V1043、V1049：E栋上传 IFC 模型的示例（楼层、对齐、对应三步）只放在内存里，打开其他条目时清掉。
@@ -113701,7 +113741,7 @@ function demoFwStage(stage) {
       pilotIds.includes(p.id)
         ? { status: "completed", version: "1.3.3" }
         : stage === "running"
-          ? i === 3 ? { status: "failed", fail: "transfer" } : i < ps.length / 2 ? { status: "verified" } : { status: "downloading" }
+          ? i === 3 ? { status: "failed", fail: "transfer" } : i < ps.length / 2 ? { status: "verified" } : { status: "waiting" } // 3.11 E1200：时段外已暂停，没传完的写“等待时段”（原“传输中”）
           : i === 2 ? { status: "failed", fail: "verify" } : i === 4 ? { status: "failed", fail: "rollback", version: "1.3.2" } : i === 5 || i === 7 ? { status: "manual" } : i % 3 === 0 ? { status: "holdOcc" } : { status: "completed", version: "1.3.3" };
   demoFwClear();
   db.firmwareTasks.unshift({
