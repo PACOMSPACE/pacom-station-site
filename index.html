@@ -7812,6 +7812,13 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 /* 勾选清单中每行的说明小字不小于 12px（核查 R14：浏览器默认 small 为 11.67px）。 */
 #dlg :is(.ws-floor-checks, .zc-zones, .zc-floors, .ws-checks) label small { font-size:12px; line-height:18px; }
 #dlg .bu-trim[hidden] { display:none; }
+/* 3.10 V1076：DXF 各张平面图预览（宽 320、高 180，横向排，多了可横滑），下一行写图纸单位 */
+.bu-cadpv { margin: 8px 0 12px; }
+.bu-cadpv-s { display: flex; gap: 12px; overflow-x: auto; }
+.bu-cadpv-f { flex: none; display: flex; flex-direction: column; gap: 4px; width: min(320px, 72vw); padding: 0; border: 0; background: none; font: inherit; text-align: left; cursor: zoom-in; }
+.bu-cadpv-f img { display: block; width: 100%; height: 180px; object-fit: contain; border-radius: 12px; background: #fff; box-shadow: inset 0 0 0 1px #e5e5e5; }
+.bu-cadpv-f span, .bu-cadpv-n { font-size: 12px; line-height: 18px; color: #636363; }
+.bu-cadpv-n { margin: 4px 0 0; }
 /* 上传楼层图（C15）：单张模式的“对应楼层”；对应列表的“按顺序对应”（B3）、逐行方向与裁剪。 */
 #dlg .pi-floor .field { margin:0; }
 #dlg .pi-floor .ws-select { max-width:280px; }
@@ -8038,7 +8045,7 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
   #dlg label.fw-pilot { flex-wrap: wrap; align-items: center; }
   #dlg label.fw-pilot > small { flex-basis: 100%; padding-left: 24px; font-size: 12px; line-height: 18px; color: var(--text3); }
   .fw-checks { margin: 16px 0 0; }
-  #dlg .fw-checks h4 { margin: 0 0 4px; font-size: 14px; line-height: 22px; font-weight: 500; color: var(--text); }
+  #dlg .fw-checks h4 { margin: 0 0 4px; font-size: 14px; line-height: 22px; font-weight: 600; color: var(--text); } /* 3.10 V1070：与“目标版本”“范围”等字段名同为 600 */
   .fw-checks ul { list-style: none; margin: 0; padding: 0; }
   .fw-checks li { display: grid; grid-template-columns: 16px 7.5em minmax(0, 1fr); gap: 8px; padding: 4px 0; font-size: 14px; line-height: 22px; }
   .fw-checks li > svg { margin-top: 3px; color: var(--good); }
@@ -8263,7 +8270,6 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
 /* 2.67 E1039：新建系统连接两列网格；按协议显示的分组不占格，里面的字段依次补位；宽度 < 600 时单列 */
 #dlg .ws-form-row.conn-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); row-gap:0; }
 #dlg .conn-grid :is([data-protocol], [data-protocols], [data-collect]):not([hidden]) { display:contents; }
-#dlg .conn-grid > .conn-shared-note { grid-column:1 / -1; }
 @media (max-width: 599.98px) { #dlg .ws-form-row.conn-grid { grid-template-columns:minmax(0, 1fr); } }
 /* 2.67 E1034：数字字段的单位统一放在输入框内右侧 14/22 #636363（与 .ws-unit-in 同一写法），右内边距由 unitPad 按单位宽度设置。原为框外右侧 */
 .ops-unit-in { position:relative; display:block; }
@@ -11760,7 +11766,6 @@ details.v13-tech[open]>summary::after{transform:translateY(1px) rotate(-135deg)}
 /* 2.65 E832：网络参数“高级阈值”展开后与第一行字段间距 16 */
 #dlg details.np-adv[open] > summary { margin-bottom: 16px; }
 /* 2.65 E836：同一 RS-485 口已有连接时，串口参数下写共用的连接（12/18 灰字） */
-#dlg .conn-shared-note { margin: -8px 0 16px; font-size: 12px; line-height: 18px; color: #636363; }
 /* 2.65 E838：数据映射一行一条时，名称、量程、设备、空间映射不折行，宽度按内容；倍率下的额定、起始底数可折行 */
 @container (min-width: 961px) {
   .conn-map .t > tbody > tr > :is(:nth-child(2), :nth-child(5), :nth-child(7), :nth-child(8)) { white-space: nowrap; }
@@ -30840,6 +30845,9 @@ button.an-rk.all { border-radius: 6px 6px 0 0; }
 .an-hm-c:hover { box-shadow: inset 0 0 0 1.5px var(--ov-navy); }
 .an-hm-x > span { color: var(--ov-ink-3); }
 .an-over .ops-legend { margin-top: 4px; }
+/* 3.10 V1059：小时刻度在热力图上方；V1060：超标时段的格子随卡高加高，与通风诊断等高时填满卡片（原图例下空出约 150px） */
+.an-over .an-hm { flex: 1 1 auto; grid-template-rows: auto; grid-auto-rows: minmax(20px, 1fr); }
+.an-over .an-hm-r:not(.an-hm-x) > .an-hm-c { height: auto; min-height: 20px; }
 
 /* 空间使用（V321）：按类型分组的热力表，非工作时间加斜纹；楼层分布与无人开空调并排 */
 .an-space-heat { grid-template-columns: 120px repeat(var(--cols), minmax(0, 1fr)); gap: 2px; }
@@ -32766,10 +32774,10 @@ col.al-w200 { width: 200px; }
 .ov3 .ops-plan.ov > .ops-zbadge, .ov3 .ops-plan.ov > .ops-zbadge:is(.br, .bl, .tl) { width: 14px; height: 14px; left: min(calc(100% - 14px), calc(var(--zr) - 18px)) !important; top: max(0px, calc(var(--zy) - 7px)) !important; font-size: 10px; line-height: 14px; box-shadow: 0 0 0 1.5px #fff; }
 /* 2.88 V819：编号；读数 12 写在名称下。3.06 V1032：不再竖排（窄块逐字竖排与相邻文字重叠），编号也放不下时名称以省略号截断（同 SPACE04） */
 .ov3 .ops-plan.ov > .ops-zone.ell .ops-zn { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ov3 .ops-plan.ov > .ops-zone.code .ops-zn { font-size: 0; }
+.ov3 .ops-plan.ov > .ops-zone.code .ops-zn { font-size: 0; line-height: 0; } /* 3.10 V1051：0 号字仍按原行高占一行，编号块被撑成两行高，矮块（701、703）只能退到省略号 */
 .ov3 .ops-plan.ov > .ops-zone.code .ops-zn::after { content: attr(data-code); display: block; font-size: 12px; line-height: 18px; } /* 3.06 V1032：编号整块排，不再被 0 号字的行高撑到 22 高 */
 .ops-plan.mini.mn > .ops-zone.ell > .ops-zl.mn .ops-zn { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ops-plan.mini.mn > .ops-zone.code > .ops-zl.mn .ops-zn { font-size: 0; }
+.ops-plan.mini.mn > .ops-zone.code > .ops-zl.mn .ops-zn { font-size: 0; line-height: 0; }
 .ops-plan.mini.mn > .ops-zone.code > .ops-zl.mn .ops-zn::after { content: attr(data-code); display: block; font-size: 12px; line-height: 16px; }
 .ov3 .ops-plan.ov > .ops-zone > .ops-zl { min-width: 0; }
 .ov3 .ops-plan.ov > .ops-zone .ops-zn { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -33456,6 +33464,9 @@ b.spc-src-n { cursor: auto; }
 .ov3-zt-t td { height: 44px; padding: 0 12px; border-bottom: 1px solid var(--ds-line); font-size: var(--ds-fs-2); line-height: var(--ds-lh-2); white-space: nowrap; }
 .ov3-zt-t tbody tr { cursor: pointer; }
 .ov3-zt-t tbody tr:hover, .ov3-zt-t tbody tr.on { background: #f5f5f5; }
+/* 3.10 V1063：清单的勾选列与选中行（#00AEEF 8%，同全站选中行）；V1064：表格不经断字处理（.nw），单元格不换行，放不下时表内横向滚动 */
+.ov3-zt-t .ov3-zt-ck { width: 40px; padding-right: 0; }
+.ov3-zt-t tbody tr.sel, .ov3-zt-t tbody tr.sel:hover { background: #ebf8fd; }
 .ov3-zt-t tbody tr:last-child td { border-bottom: 0; }
 .ov3-zt-n { padding: 0; border: 0; background: none; font: inherit; font-weight: 500; color: var(--ds-ink); cursor: pointer; }
 /* 2.88 V809：功能区表除“问题”列外不画圆点，超标、离线的值用提醒色文字 */
@@ -33914,6 +33925,10 @@ b.spc-src-n { cursor: auto; }
 .an-ck[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .an-child-t tr.cmp { cursor: pointer; }
 .an-child-t tr.cmp.hi { background: var(--ds-row-on); }
+/* 3.10 V1068：占比条在表格里按行内块排，与数值同一行（原没有宽高，撑成大色块、数值掉到下一行）；名称按钮不拉满，左对齐 */
+.an-child-t .ops-cmp-bar { display: inline-block; vertical-align: middle; margin-right: 8px; }
+.an-child-t td.r { white-space: nowrap; }
+.an-child-n > .ops-link, .an-child-n > .an-child-tw { align-self: flex-start; text-align: left; }
 .an-child-none { margin: 8px 0 0; font-size: var(--ds-fs-1); line-height: var(--ds-lh-1); color: var(--ds-ink-2); }
 /* 3.07 V1036：室内环境卡的分档条（达标、需关注、不达标、未监测的功能区数）；卡片第三行；“卡片 | 表格”切换与表格视图 */
 .ovs-seg { display: flex; gap: 2px; height: 6px; margin-top: 6px; border-radius: 3px; overflow: hidden; }
@@ -34048,14 +34063,15 @@ b.spc-src-n { cursor: auto; }
 .ovb-tk.d { fill: var(--ds-ink); }
 .ovb-net { padding: 16px 20px; }
 .ovb-net > header > .ovb-lg { margin-left: auto; }
-.ovb-net ul { display: flex; flex-direction: column; gap: 12px; margin: 12px 0 0; padding: 0; list-style: none; }
-.ovb-net li { display: grid; grid-template-columns: 72px minmax(0, 1fr) 120px; gap: 12px; align-items: center; }
+/* 3.10 V1066：三行共用一个网格，右列按最长的一行（“97 / 100 离线 2 · 待重新绑定 1”）定宽、一行写完；原右列固定 120 宽，折成三行 */
+.ovb-net ul { display: grid; grid-template-columns: 72px minmax(0, 1fr) max-content; gap: 12px; align-items: center; margin: 12px 0 0; padding: 0; list-style: none; }
+.ovb-net li { display: contents; }
 .ovb-nn { font-size: 14px; line-height: 22px; color: var(--ds-ink); }
 .ovb-nt { display: flex; height: 12px; border-radius: 6px; background: #f5f5f5; overflow: hidden; }
 .ovb-nt > .on { background: #2e9461; }
 .ovb-nt > .off { background: #d29a10; }
 .ovb-nk { display: flex; justify-content: flex-end; align-items: baseline; gap: 8px; white-space: nowrap; font-size: 14px; line-height: 22px; font-variant-numeric: tabular-nums; }
-.ovb-nk > small { font-size: 12px; color: var(--ds-ink-2); }
+.ovb-nk > small { font-size: 12px; color: var(--ds-ink-2); white-space: normal; text-align: right; }
 .ovb-nk > small.warn { color: #8a5a00; }
 .ovb-wt { display: flex; justify-content: space-between; gap: 12px; padding: 18px 20px 16px; }
 .ovb-city { display: block; font-size: 20px; line-height: 28px; font-weight: 600; color: var(--ds-ink); }
@@ -34359,6 +34375,7 @@ button.cfg-kpi.click[aria-expanded="true"] { box-shadow: var(--ds-sh-xs), inset 
 .btn.set-allbtn[aria-pressed="true"] { background: #ebebeb; box-shadow: none; font-weight: 500; }
 .cfg-card-a { display: flex; flex: none; align-items: center; gap: 4px; }
 .cfg-grid.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cfg-grid.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } /* 3.10 E1177 */
 .cfg-grid.c1 { grid-template-columns: minmax(0, 1fr); }
 .cfg-grid dt { display: flex; align-items: center; gap: 4px; height: 18px; }
 .cfg-grid > .wide { grid-column: 1 / -1; }
@@ -34451,7 +34468,7 @@ button.cfg-kpi.click[aria-expanded="true"] { box-shadow: var(--ds-sh-xs), inset 
 .cfg-card.dep-all { padding-top: 4px; }
 .set-wk-now { position: absolute; left: 0; right: 0; z-index: 1; height: 2px; margin-top: -1px; background: var(--ds-bad); }
 @container (max-width: 760px) {
-  .cfg-grid, .cfg-grid.c4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cfg-grid, .cfg-grid.c4, .cfg-grid.c3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cfg-grid.set-cal-side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .set-cal { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .conn-cc-row, .conn-up { grid-template-columns: minmax(0, 1fr); }
@@ -34483,7 +34500,7 @@ button.cfg-kpi.click[aria-expanded="true"] { box-shadow: var(--ds-sh-xs), inset 
   .set-rules-bar > :not(.ws-search):not(.sp):not(.sp ~ *) { order: 3; }
   .set-wk-off { font-size: 0; } /* 手机列宽放不下节日名：照日历通行写法只写“休”，节日名见右侧节假日表 */
   .set-wk-off::after { content: "休"; font-size: var(--ds-fs-1); }
-  .cfg-grid, .cfg-grid.c4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cfg-grid, .cfg-grid.c4, .cfg-grid.c3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .set-cal { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .conn-cc-row, .conn-up { grid-template-columns: minmax(0, 1fr); }
   .ws-search.conn-q { width: auto; flex: 1 1 160px; }
@@ -34625,10 +34642,15 @@ p.an4-links { display: flex; margin: 0; }
 /* 3.09 V1049：项目 › 楼宇 › 3D 模型。标题行同连接详情；下面左为楼层列表 120，中为画布，右为 320 设置面板 */
 .m3 { display: flex; flex-direction: column; gap: 16px; height: max(560px, calc(100vh - 128px)); }
 .m3 > .m3-head { flex: none; margin: 0; }
+/* 3.10 V1079：三步未完成时“发布”为不可用样式（仍可聚焦，悬停写原因） */
+.m3-head .btn[aria-disabled="true"] { opacity: var(--disabled-opacity); cursor: not-allowed; }
+/* 3.10 V1082：手机 空间 › 3D 的画布卡撑到底部标签栏（原固定 380 高，下半屏空白） */
+@media (max-width: 600px) { .ov3 .s3-col > .s3-map { height: max(380px, calc(100dvh - 276px)); } }
 .m3-narrow { flex: none; margin: -8px 0 0; font-size: 12px; line-height: 18px; color: var(--ds-ink-2); }
 .m3-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 120px minmax(0, 1fr) 320px; gap: 16px; }
 .m3-fl.ovf-fl { position: static; max-height: 100%; }
 .m3-fl .ovf-fr > i.m3-off { width: 6px; height: 6px; background: #c4c4c4; }
+.m3-fl .ovf-fr > i.m3-off.m3-wait { background: #d29a10; } /* 3.10 E1192 */
 .m3-stage { position: relative; min-width: 0; min-height: 0; border-radius: 16px; background: #f7f8fa; box-shadow: var(--ds-sh-xs); overflow: hidden; }
 .m3-stage > .ov2-zoom { position: absolute; right: 12px; bottom: 12px; z-index: 6; }
 .m3-panel { min-height: 0; overflow: auto; padding: 20px; border-radius: 16px; background: #fff; box-shadow: var(--ds-sh-xs); }
@@ -34659,6 +34681,10 @@ p.an4-links { display: flex; margin: 0; }
 .m3-t td small { display: block; font-size: 12px; line-height: 18px; color: var(--ds-ink-2); }
 .m3-rt td:first-child { width: 40%; }
 .m3-ft td:first-child { width: 58%; }
+/* 3.10 P11：触控面板的显示范围，按楼层分组的勾选列表 */
+.mk-scope { max-height: 240px; overflow: auto; display: grid; gap: 8px; }
+.mk-scope-f { display: grid; gap: 4px; }
+.mk-scope-f > .chk:first-child { font-weight: 500; }
 .m3-rt td > em { display: block; white-space: normal; }
 .m3-rt .sel, .m3-rt select { width: 100%; }
 .m3-none { margin: 8px 0 0; padding: 0 8px; font-size: 12px; line-height: 18px; }
@@ -35709,17 +35735,33 @@ const StationModel = (() => {
     ms: { name: "多功能传感器", model: "MS20", icon: "sensor", access: "mesh" },
     fc: { name: "风机盘管温控器", model: "FC20", icon: "thermo", access: "cell" }, // 3.08 V1047：4G 直连平台，不是 Mesh 节点
     aq: { name: "空气质量监测仪", model: "AQ20", icon: "aq", access: "mesh" },
-    vg: { name: "空调网关", model: "VG2x", icon: "gw", access: "system" },
+    vg: { name: "多联式空调网关", model: "VG20", icon: "gw", access: "system" },
     idu: { name: "多联机内机", model: "", icon: "ac", access: "system" },
     odu: { name: "多联机外机", model: "", icon: "odu", access: "system" },
     meter: { name: "电能表", model: "", icon: "meter", access: "system" },
-    ls: { name: "自发电开关", model: "LS2x", icon: "switch", access: "pending" },
-    tp: { name: "触控面板", model: "TP11 / TP21", icon: "panel", access: "pending" },
+    ls: { name: "自供能无线开关", model: "LS2x", icon: "switch", access: "pending" }, // 3.10 P8：按键信号由 LC20 接收，不经网关，不计 Mesh 节点
+    tp: { name: "触控面板", model: "TP11 / TP21", icon: "panel", access: "pending" }, // 3.10 P10：以太网或 Wi-Fi 连本层 EG20，经网关本地控制，不计 Mesh 节点
   };
   // V1.3 16.1: planning limits for LC20 first edition (LC20-NDALI). Values are planning values pending EVT.
   const LIMITS = { msPerLc: 10, dimDrivers: 10, loadWatts: 600, inrushBudget: 300 };
   // Compatibility list (V1.3 16.1). Only drivers with published data are listed; others need compatibility testing.
   const DRIVERS = [{ model: "PE-N60AA42", watts: 60, inrush: 30, dim: "0–10 V", note: "代表驱动 · 200–250 VAC" }];
+  // 3.10 P6：LC20 第一版控制类型为 0–10 V 调光、1–10 V 调光与开关（DALI 以后支持）；驱动按控制类型列出，开关型不限调光接口
+  const CTRL_TEXT = { dim: "0–10 V 调光", dim1: "1–10 V 调光", switch: "开关" },
+    ctrlText = (c) => CTRL_TEXT[c || "dim"] || CTRL_TEXT.dim,
+    ctrlDim = (c) => (c === "dim1" ? "1–10 V" : c === "switch" ? "" : "0–10 V"),
+    driversFor = (c) => (c === "switch" ? DRIVERS : DRIVERS.filter((d) => d.dim === ctrlDim(c)));
+  // 3.10 P9：LS 自供能无线开关的型号与按键（LS21 一键、LS22 两键、LS23 三键），每个按键的动作；接收的照明控制器未选时默认同一功能区里最近的 LC20
+  const LS_MODELS = [["LS21", 1], ["LS22", 2], ["LS23", 3]],
+    LS_ACTIONS = [["switch", "照明分区开关"], ["dim", "调光"], ["scene", "执行场景"]],
+    lsKeys = (p) => Array.from({ length: (LS_MODELS.find(([m]) => m === p.lsModel) || LS_MODELS[0])[1] }, (_, i) => p.lsKeys?.[i] || "switch");
+  function lsReceiver(db, p) {
+    if (p.rxId) return db.points.find((x) => x.id === p.rxId && x.type === "lc") || null;
+    const d = (x) => (x.x - p.x) ** 2 + (x.y - p.y) ** 2,
+      lcs = db.points.filter((x) => x.type === "lc" && x.floorId === p.floorId),
+      same = lcs.filter((x) => p.zoneId && x.zoneId === p.zoneId);
+    return (same.length ? same : lcs).sort((a, b) => d(a) - d(b))[0] || null;
+  }
   // 暖通空调的设备登记（规范 DEVICE01，2026-10-09 暖通空调方案评估 5 1）：FC20 登记水系统、水温传感器与电加热（fcSpec）；
   // 多联机外机登记品牌、类型、原厂限温、设定步长与写入限制（vrfSpec，写入限制为每点每天次数）；多联机内机登记所属外机（oduId，
   // 本项目的外机，同一套多联机可跨楼层）；电能表登记所接负载（load，只有“分体空调”：家用分体空调只计量，不作为受控设备）。
@@ -36066,7 +36108,8 @@ const StationModel = (() => {
       f = floor(db, p.floorId);
     if (p.planVersion !== f?.planVersion) a.push("位置待核对");
     if (p.type === "ms" && (!p.powerId || p.powerSuggested)) a.push("接线待确认");
-    if (t.access === "pending") a.push(p.type === "ls" ? "需适配节点，暂不支持绑定" : "非 Mesh 节点，接入方式待确认");
+    if (p.type === "ls" && !lsReceiver(db, p)) a.push("本层没有可接收的照明控制器");
+    if (p.type === "tp" && !db.points.some((x) => x.type === "gw" && x.networkId && x.networkId === p.networkId)) a.push("本网络没有网关");
     if (access(p) === "system" && !p.connectionId) a.push("尚未关联系统连接");
     if (bound(p) && p.appliedVersion !== p.version) a.push("配置待应用");
     if (bound(p) && p.verifiedVersion !== p.version) a.push("功能未验证");
@@ -36460,6 +36503,14 @@ const StationModel = (() => {
   return {
     LIMITS,
     DRIVERS,
+    CTRL_TEXT,
+    ctrlText,
+    ctrlDim,
+    driversFor,
+    LS_MODELS,
+    LS_ACTIONS,
+    lsKeys,
+    lsReceiver,
     HVAC,
     HVAC_FIELDS,
     HVAC_CHECK_KEYS,
@@ -36669,8 +36720,10 @@ const StationFlowModel = ((M) => {
         : "待接入"
       : M.access(p) === "pending"
         ? p.type === "ls"
-          ? "暂不支持绑定"
-          : "接入待确认"
+          ? p.pairedLc
+            ? `已配对（${p.pairedLc}）`
+            : "待配对"
+          : "待接入"
         : M.bound(p) && !p.fieldReset
           ? p.replaceSync
             ? "已绑定 · 配置下发中"
@@ -36821,15 +36874,16 @@ const StationFlowModel = ((M) => {
     if (gw === undefined) gw = gateway(db, p.networkId);
     if (p.type !== "gw" && M.access(p) === "mesh" && gw?.telemetry?.upstream !== "online") return "状态未知";
     if (!p.telemetry?.lastSeen) return "状态未知";
-    return Date.now() - Date.parse(p.telemetry.lastSeen) > offlineAfter(n, p) * 60000 ? "离线" : "在线";
+    return Date.now() - Date.parse(p.telemetry.lastSeen) > offlineAfter(n, p, db) * 60000 ? "离线" : "在线";
   }
   // 离线判定（2026-10-09 用户确认，ABB 对比 BP90）：3 个上报周期且不少于网络模板的离线判定时长（默认 20 分钟），单位分钟。
   // 上报周期按设备类型取网络模板：LC20 为控制器状态周期（600 s，即 30 分钟），MS20 为占用刷新、AQ20 为发布周期（60 s，即 20 分钟），
   // 其他设备为 FC20 周期；网关按离线判定时长。控制器有无更短的心跳待固件负责人确认（第12章 12 3）。
   const OFFLINE_REPORT = { lc: "controller", ms: "occupancy", aq: "aq" };
-  function offlineAfter(n, p) {
+  // 3.10 E1191：FC20 按暖通空调平台参数 H-31（状态上报周期，默认 300 秒）
+  function offlineAfter(n, p, db) {
     const t = templates(n),
-      sec = p && p.type !== "gw" ? Number(t.report[OFFLINE_REPORT[p.type] || "other"]) || 0 : 0;
+      sec = p && p.type !== "gw" ? (p.type === "fc" && db ? fcReportSec(db, p) : Number(t.report[OFFLINE_REPORT[p.type] || "other"]) || 0) : 0;
     return Math.max(Number(t.offlineMinutes) || 0, Math.ceil((3 * sec) / 60));
   }
   // 检修中（2026-10-09 用户确认，ABB 对比 BP92）：t 时刻设备（或其设备网络）是否在检修中。设为检修中的时段到结束时间或提前结束为止；
@@ -36843,9 +36897,32 @@ const StationFlowModel = ((M) => {
     if (w) return { by: "window", until: w.until, reason: w.reason, id: w.id, kind: w.kind };
     const run = (x) => at(x.startedAt || x.at) <= t && (x.status === "running" || (!!x.completedAt && t < at(x.completedAt))),
       task = (db.maintenanceTasks || []).find((x) => x.networkId === nid && (!x.pointId || x.pointId === p.id) && x.taskKind !== "access" && run(x)),
-      // 3.08 V1044：固件试点、传输与生效期间所涉设备算检修中
-      fw = (db.firmwareTasks || []).find((x) => (x.pointIds || []).includes(p.id) && (["pilot", "activating"].includes(x.status) || run(x)));
-    return task || fw ? { by: "task", until: null, reason: (task || fw).name, id: (task || fw).id, kind: "task" } : null;
+      // 3.10 E1188：固件升级只在升级时段或生效时段内、设备正在传输或生效时算检修中；已暂停、等待（时段、无人、场景结束）、需人工安排与试点观察不算
+      fw = (db.firmwareTasks || []).find((x) => {
+        const r = (x.pointIds || []).includes(p.id) && (x.results || []).find((y) => y.pointId === p.id);
+        if (!r) return false;
+        if ((x.status === "running" || (x.status === "pilot" && x.pilotState === "transfer")) && r.status === "downloading") return fwInWindow(db, x, t, x.windowStart, x.windowEnd);
+        return x.status === "activating" && r.status === "verified" && fwInWindow(db, x, t, x.effStart || "02:00", x.effEnd || "05:00");
+      });
+    // 3.10 E1189：固件升级写“检修中（固件升级执行中）”（原为任务名称，如“检修中（MS20 升级到 1.3.3执行中）”）
+    return task ? { by: "task", until: null, reason: task.name, id: task.id, kind: "task" } : fw ? { by: "task", until: null, reason: "固件升级", id: fw.id, kind: "task" } : null;
+  }
+  // 升级时段、生效时段按项目时区判断（可跨午夜），t 为毫秒
+  function fwInWindow(db, x, t, s, e) {
+    const nw = M.get(db, "networks", (x.networkIds || [])[0]),
+      pr = nw && M.get(db, "projects", nw.projectId),
+      mm = (v) => (/^\d{1,2}:\d{2}$/.test(v || "") ? Number(v.split(":")[0]) * 60 + Number(v.split(":")[1]) : null),
+      S = mm(s),
+      E = mm(e),
+      hm = (tz) => new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(t));
+    if (S == null || E == null || S === E) return false;
+    let m;
+    try {
+      m = mm(hm(pr?.timezone || "Asia/Shanghai"));
+    } catch {
+      m = mm(hm("Asia/Shanghai"));
+    }
+    return S < E ? S <= m && m < E : m >= S || m < E;
   }
   // Electrical ownership and data reception are independent planning relations.
   // Suggested wiring must not silently become an applied circuit or subscription.
@@ -37372,11 +37449,21 @@ const StationFlowModel = ((M) => {
     ];
   }
   // 3.08 V1047：4G 设备（FC20）由平台直接下发：上报周期与功能区占用来源（平台转发同一功能区 MS20 的占用）；没有 Mesh 密钥、分组与节点角色
+  // 3.10 E1191：上报周期为第 10 章暖通空调的平台参数 H-31（原为网络参数“FC20 状态上报周期”）；P14：工作时间与节假日表下发到 FC20，
+  // 断网收不到占用 15 分钟后 FC20 按本机保存的工作时间判断有人、无人（P13）；改工作时间或节假日表后项目内 FC20 为“待同步”
+  function fcReportSec(db, p) {
+    const pid = M.projectOfFloor(db, p.floorId),
+      r = (db.paramRegistry || []).find((x) => x.kind === "param" && x.projectId === pid && x.level === "project" && x.code === "H-31" && x.custom),
+      n = Number(String(r?.value ?? "").replace(/,/g, "").match(/\d+/)?.[0]);
+    return n > 0 ? n : 300;
+  }
   function cellItems(db, p, cx) {
-    const t = templates(cx.networks.get(p.networkId));
+    const pj = db.projects.find((x) => x.id === M.projectOfFloor(db, p.floorId)) || {},
+      wh = pj.workHours?.from && pj.workHours?.to ? pj.workHours : { from: "08:00", to: "19:00" };
     return [
-      { key: "report", label: "上报参数", value: { status: t.report.other } },
+      { key: "report", label: "上报参数", value: { status: fcReportSec(db, p) } },
       { key: "occupancy", label: "占用来源（平台转发）", value: (cx.byZoneMesh.get(p.zoneId) || []).filter((s) => s.type === "ms").map((s) => s.id).sort() },
+      { key: "workHours", label: "工作时间", value: { hours: `${wh.from}–${wh.to}`, holidays: Object.keys(pj.holidays || {}).sort().map((y) => `${y} v${pj.holidays[y]?.version || 1}`) } },
     ];
   }
   function reconcile(db, previous) {
@@ -37804,7 +37891,7 @@ const StationFlowModel = ((M) => {
       const zs = db.zones.filter((z) => z.floorId === f.id),
         untyped = zs.filter((z) => !z.spaceType);
       if (f.planReview)
-        add({ ...base, ...fix("review"), rule: "plan-review", status: "待核对", text: `${zhSub(where, "r")}已更换楼层图（v${f.planReview.from} → v${f.planReview.to}），功能区与点位位置待核对${M.building(db, f.buildingId)?.model3d?.align?.[f.id]?.review ? "，3D 模型对齐待复核" : ""}` });
+        add({ ...base, ...fix("review"), rule: "plan-review", status: "待核对", text: `${zhSub(where, "r")}已更换楼层图（v${f.planReview.from} → v${f.planReview.to}），功能区与点位位置待核对${align3dReview(db, f) ? "，3D 模型对齐待复核" : ""}` });
       if (untyped.length) add({ ...base, ...fix("type"), rule: "zone-type", zoneIds: untyped.map((z) => z.id), text: `${zhSub(where, "r")}有 ${untyped.length} 个功能区未选空间类型` });
       if (!zs.length) add({ ...base, ...fix("draw"), rule: "zone-review", text: `${zhSub(where, "r")}尚未划分功能区` });
     }
@@ -38481,7 +38568,7 @@ const StationFlowModel = ((M) => {
   const INSTALL_NOTICE = "安装资料按已保存的规划生成，用于布线与安装；不代表设备绑定、配置已应用、功能验证或交付，不含设备身份与网络密钥。";
   const INSTALL_KINDS = { pdf: { label: "PDF 现场安装图", ext: "pdf" }, sheet: { label: "CSV 设备清单", ext: "zip", fmt: "CSV" } };
   const INSTALL_ORDER = ["gw", "lc", "ms", "aq", "fc"]; // 3.08 V1047：4G 设备排在 Mesh 设备之后
-  const CTRL_NAMES = { dim: "0–10 V 调光", switch: "开关" };
+  const CTRL_NAMES = M.CTRL_TEXT;
   // 规划检查各项在设备行中的简称（按检查项编号的前缀）；未列出的写规划检查原文。
   const INSTALL_ISSUES = {
     drv: "未填照明负载",
@@ -39018,7 +39105,7 @@ const StationFlowModel = ((M) => {
                   ? "dxf"
                   : "",
       extKind = { pdf: "pdf", png: "png", jpg: "jpeg", jpeg: "jpeg", webp: "webp", dwg: "dwg", dxf: "dxf" }[ext] || "";
-    if (kind === "dwg") return { ok: false, reason: "DWG 暂不能在页面中直接读取，请在 CAD 中另存为 DXF 后上传" };
+    // 3.10 E1193：DWG 由服务转为 DXF 后同 DXF（原为“DWG 暂不能在页面中直接读取…”）
     if (extKind === "dxf" && kind !== "dxf") return { ok: false, reason: at(0, 0x41, 0x75, 0x74, 0x6f) ? "二进制 DXF 暂不能读取，请另存为文本格式的 DXF" : "DXF 文件无法读取，可能已损坏" };
     if (!kind) return { ok: false, reason: extKind ? "文件内容无法识别，可能已损坏" : "只支持 PDF、PNG、JPEG、WebP、DWG、DXF" };
     if (extKind && extKind !== kind) return { ok: false, reason: `扩展名为 .${ext}，内容却是 ${kind.toUpperCase()}；请确认文件后重试` };
@@ -39053,6 +39140,9 @@ const StationFlowModel = ((M) => {
     // 3.09 V1043：上传的 3D 模型中该层已对齐时，换图后对齐标“待复核”
     const m3 = M.building(db, f.buildingId)?.model3d;
     if (had && m3?.align?.[fid]?.dst) m3.align[fid].review = true;
+    // 3.10 E1192：白模中该层已对齐时同样标“待复核”；换的是基准层时，对齐到它的层都待复核
+    const wa = M.building(db, f.buildingId)?.whiteAlign;
+    if (had && wa) for (const [k, v] of Object.entries(wa)) if (k === fid || v.base === fid) v.review = true;
     const s = plan.source;
     M.record(db, had ? "更换楼层图" : "保存楼层图", fid, `${f.name} · v${f.planVersion}${s?.fileName ? " · " + s.fileName + (s.page ? ` 第 ${s.page} 页` : "") : ""}`);
     f.planOrigin = { recordId: db.records[0].id, uploadRecordId: db.records[0].id };
@@ -39169,6 +39259,33 @@ const StationFlowModel = ((M) => {
       dev,
       grade: dev <= 0.2 ? "良好" : dev <= 0.5 ? "可用" : "偏差较大",
     };
+  }
+  // 3.10 E1192：自动生成的白模也要对齐。基准为有楼层图与比例尺的最低一层；其他楼层用两个参考点（该层楼层图 pts → 基准楼层图 ref，单位米）对齐到基准；
+  // 与基准同一个 DXF（含转换的 DWG）或多页 PDF 拆出的楼层自动对齐。返回 { base, rows: [{ f, state: base | auto | pending | review | done, t }] }，自下而上
+  function whiteAlign(db, bid) {
+    const b = M.building(db, bid),
+      st = floorStack(db, bid).filter((x) => x.meters),
+      base = st[0]?.f || null,
+      key = (f) => {
+        const s = f?.planSource;
+        return s?.sha256 && (["dxf", "dwg"].includes(s.fileType) || (s.fileType === "pdf" && s.pages > 1)) ? s.sha256 : null;
+      },
+      bk = key(base);
+    return {
+      base,
+      rows: st.map(({ f }) => {
+        if (f === base) return { f, state: "base", t: null };
+        if (bk && key(f) === bk) return { f, state: "auto", t: null };
+        const al = b?.whiteAlign?.[f.id],
+          t = al?.pts ? alignSim(al.pts, al.ref) : null;
+        return { f, state: !t ? "pending" : al.review || al.base !== base.id ? "review" : "done", t };
+      }),
+    };
+  }
+  // 换图后 3D 对齐待复核：上传了模型时看模型的对齐，否则看白模的对齐
+  function align3dReview(db, f) {
+    const b = M.building(db, f?.buildingId);
+    return !!(b?.model3d ? b.model3d.align?.[f.id]?.review : b?.whiteAlign?.[f.id]?.review);
   }
   // 房间与功能区按名称对应：去空格、全角转半角、不分大小写后相同，或房间编号（名称中含数字的一段）相同且唯一
   const roomKey = (n) => String(n || "").normalize("NFKC").replace(/\s+/g, "").toLowerCase();
@@ -40189,7 +40306,7 @@ const StationFlowModel = ((M) => {
     return (zoneAt(db, p.floorId, fromXY)?.id || null) === (zoneAt(db, p.floorId, p)?.id || null) ? null : zoneShift(db, p);
   }
   // 按空间配置的设备（LC20、MS20、FC20、AQ20）应归属功能区；网关、系统接入的计量与网关类设备、只标记安装位置的设备可以没有功能区。
-  const needsZone = (p) => ["lc", "ms", "fc", "aq"].includes(p.type);
+  const needsZone = (p) => ["lc", "ms", "fc", "aq", "ls", "tp"].includes(p.type); // 3.10 P9、P11：LS、TP 标注到区域
   // V1.3 5.4: marking defines relationships; the check panel lists blocking items and hints.
   function lcLoad(p) {
     const d = M.DRIVERS.find((x) => x.model === p.driverModel);
@@ -40207,7 +40324,9 @@ const StationFlowModel = ((M) => {
           ? { id: "drv-" + lc.id, text: `${zhSub(lc.name, "r")}未填照明负载` }
           : !l.driver
             ? { id: "cmp-" + lc.id, text: `${zhSub(lc.name, "r")}的驱动${lc.driverModel === "other" ? "" : " " + lc.driverModel}不在兼容清单，需先完成兼容测试` }
-            : null,
+            : lc.ctrl !== "switch" && l.driver.dim !== M.ctrlDim(lc.ctrl)
+              ? { id: "cmp-" + lc.id, text: `${zhSub(lc.name, "r")}的驱动 ${lc.driverModel} 为 ${l.driver.dim} 调光，与控制类型（${M.ctrlText(lc.ctrl)}）不符` }
+              : null,
       limits: [
         lc.ctrl !== "switch" && l.drivers > L.dimDrivers && { id: "dim-" + lc.id, text: `${zhSub(lc.name, "r")}调光驱动 ${l.drivers} 台，超过 ${L.dimDrivers} 台` },
         l.watts > L.loadWatts && { id: "w-" + lc.id, text: `${zhSub(lc.name, "r")}功率 ${l.watts} W，超过规划值 ${L.loadWatts} W` },
@@ -40232,7 +40351,7 @@ const StationFlowModel = ((M) => {
     lc: {
       label: "照明负载",
       fields: [
-        { key: "ctrl", label: "控制类型", options: [["dim", "0–10 V 调光"], ["switch", "开关"]] },
+        { key: "ctrl", label: "控制类型", options: Object.entries(M.CTRL_TEXT) },
         { key: "driverModel", label: "驱动型号", options: [...M.DRIVERS.map((d) => [d.model, `${d.model} · ${d.watts} W`]), ["other", "其他（待兼容测试）"]] },
         { key: "drivers", label: "驱动台数", max: 99 },
         { key: "fixtureWatts", label: "每台灯具功率（W）", name: "每台灯具功率", max: 1000, unit: " W" },
@@ -40257,7 +40376,7 @@ const StationFlowModel = ((M) => {
   // 修改项的显示值：没有填写的写“未填”，不写 0；控制类型未设时按 0–10 V 调光（与点位面板相同）。
   function batchValueText(key, v) {
     const f = batchField(key);
-    if (key === "ctrl") return v === "switch" ? "开关" : "0–10 V 调光";
+    if (key === "ctrl") return M.ctrlText(v);
     if (v == null || v === "") return key === "aqPos" || key === "aqRep" ? "未登记" : "未填";
     if (f?.options) return f.options.find(([x]) => x === v)?.[1].replace(/ · .*$/, "") ?? String(v);
     return `${v}${f?.unit || ""}`;
@@ -40930,7 +41049,7 @@ const StationFlowModel = ((M) => {
       .sort((a, b) => a.type.localeCompare(b.type) || versionCompare(a.version || "0", b.version || "0"))
       .map((r) => ({ ...r, entry: r.version ? TRANSMIT.filter((e) => e.types.includes(r.type) && versionCompare(r.version, e.from) >= 0).at(-1) || null : TRANSMIT.find((e) => e.types.includes(r.type)) || null }));
   }
-  // 连接下有多联机（空调网关、内机、外机）或分体空调电能表时，按设备登记关联暖通空调（2026-10-09 暖通空调方案评估：暖通空调设置不再选控制来源）
+  // 连接下有多联机（多联式空调网关、内机、外机）或分体空调电能表时，按设备登记关联暖通空调（2026-10-09 暖通空调方案评估：暖通空调设置不再选控制来源）
   const hvacConnection = (db, c) =>
     db.points.some((p) => p.connectionId === c.id && (["vg", "idu", "odu"].includes(p.type) || (p.type === "meter" && p.load === "分体空调")));
   // 系统接入的四项验证（规范 DEVICE06）：连接、数据、控制与应用分别按当前连接版本的验证回执；只读来源的控制写“不适用”，
@@ -40983,6 +41102,7 @@ const StationFlowModel = ((M) => {
     issues,
     communication,
     offlineAfter,
+    fcReportSec,
     maintenanceAt,
     floorRename,
     lastSeen,
@@ -41059,6 +41179,8 @@ const StationFlowModel = ((M) => {
     modelKindText,
     modelState,
     alignSim,
+    whiteAlign,
+    align3dReview,
     matchRooms,
     modelSteps,
     alignPlan,
@@ -41301,17 +41423,17 @@ function buildDemoWorkspace(seed) {
     for (const [ax, ay] of L.aq || []) add("aq", ...at2(ax, ay), { zoneId: zoneId(k) });
     groups.push([k, zoneLcs]);
   }
-  // 两块电能表经第三方系统接入：在本层网关的 RS-485 口 1 采集，每 5 分钟（E-01）；两块表在同一总线上，从站地址分别为 1 与 3
+  // 两块电能表经第三方系统接入：接在 7F 电能表通讯管理机上，本层网关经网口以 Modbus TCP 读取，每 5 分钟（E-01）；从站地址分别为 1 与 3（3.10 P5）
   // （2026-10-09 用户确认，ABB 对比 BP55、BP56：原先把“EG20 · RS-485 口 1 · 9600 8N1”写在服务地址里，两块表共用总线地址 1）
-  const rs485 = (port, period = 300) => ({ at: "gateway", gatewayId: gw.id, port, period });
+  const viaGw = (via, period = 300) => ({ at: "gateway", gatewayId: gw.id, via, period });
   db.connections.push({
     id: "connection-demo-meter",
     projectId: ids.project,
     name: "7F 配电计量",
-    protocol: "Modbus RTU",
-    endpoint: "",
-    params: { baud: 9600, parity: "none" },
-    collect: rs485("RS-485 口 1"),
+    protocol: "Modbus TCP",
+    endpoint: "192.168.10.20",
+    params: { port: 502 },
+    collect: viaGw("7F 电能表通讯管理机"),
     floorIds: [ids.floor],
     mappings: [
       // 额定功率与起始底数在数据映射登记（2026-10-09 用户确认，ABB 对比 BP117）
@@ -41332,13 +41454,13 @@ function buildDemoWorkspace(seed) {
     .find((c) => c.id === "connection-demo-meter")
     .mappings.forEach((m, i) => (m.pointId = db.points.find((p) => p.name === ["7F 照明插座电能表", "7F 空调末端电能表"][i])?.id));
   // 暖通空调的另外两类系统（2026-10-09 暖通空调方案评估）：
-  // 走廊、电梯厅由一套热泵多联机供冷（外机在 7F 设备平台），经空调网关 VG2x 接入；外机登记品牌、类型、原厂限温、步长与写入限制，内机登记所属外机（规范 5 1）。
+  // 走廊、电梯厅由一套热泵多联机供冷（外机在 7F 设备平台），经多联式空调网关 VG20 接入；外机登记品牌、类型、原厂限温、步长与写入限制，内机登记所属外机（规范 5 1）。
   // 样品准备间另有一台家用分体空调，不作为受控设备，只用电能表计量（所接负载“分体空调”）。
-  // 多联机经 RS-485 口 2 每 1 分钟采集；分体空调电能表与两块楼层电能表同在 RS-485 口 1，从站地址 2
-  const conn = (id, name, collect, receipt) =>
-    db.connections.push({ id, projectId: ids.project, name, protocol: "Modbus RTU", endpoint: "", params: { baud: 9600, parity: "none" }, collect, floorIds: [ids.floor], mappings: [], version: 1, status: "connected", serviceReceiptId: receipt });
-  conn("connection-demo-vrf", "7F 公共区多联机（VG2x）", rs485("RS-485 口 2", 60), "svc-conn-7f-02");
-  conn("connection-demo-split", "样品准备间 分体空调计量", rs485("RS-485 口 1"), "svc-conn-7f-03");
+  // 多联机经多联式空调网关每 1 分钟采集；分体空调电能表与两块楼层电能表同接在 7F 电能表通讯管理机上，从站地址 2
+  const conn = (id, name, endpoint, collect, receipt) =>
+    db.connections.push({ id, projectId: ids.project, name, protocol: "Modbus TCP", endpoint, params: { port: 502 }, collect, floorIds: [ids.floor], mappings: [], version: 1, status: "connected", serviceReceiptId: receipt });
+  conn("connection-demo-vrf", "7F 公共区多联机（VG20）", "192.168.10.31", viaGw("7F 多联式空调网关", 60), "svc-conn-7f-02");
+  conn("connection-demo-split", "样品准备间 分体空调计量", "192.168.10.20", viaGw("7F 电能表通讯管理机"), "svc-conn-7f-03");
   const sysAdd = (type, x, y, connectionId, extra) => {
     const p = add(type, x, y, { connectionId, ...extra });
     Object.assign(p, { hardwareId: "sys-" + p.name, connectionReceiptId: "rcpt-conn-" + p.name, telemetry: { lastSeen: at(1), demoLive: true } });
@@ -41462,6 +41584,11 @@ function buildDemoWorkspace(seed) {
       },
     },
   );
+  // 项目节假日表（规范 SCENE02，2026-10-08 Vision 核查 V60）：按国务院办公厅公布的 2026 年安排登记；示例的“今天”9/24 是中秋节前最后一个工作日；
+  // 在生成目标配置之前登记（3.10 P14：FC20 的配置项含工作时间与节假日表）
+  const proj = db.projects.find((p) => p.id === ids.project);
+  if (proj && typeof HOLIDAY_REF !== "undefined" && HOLIDAY_REF[2026])
+    proj.holidays = { 2026: { source: HOLIDAY_REF[2026].source, items: M.copy(HOLIDAY_REF[2026].items), version: 1, at: day(9, "09:20"), by: "王敏 · 机构管理员" } };
   // 照明分区：同一原有照明控制器的多台 LC20 共用主照度传感器与占用输入
   F.reconcile(db);
   const zoneNames = Object.fromEntries(DEMO_ZONES.map((z) => [z[0], z[1]]));
@@ -41707,10 +41834,6 @@ function buildDemoWorkspace(seed) {
     cond: { app: "占用", source: "功能区占用：开放办公区 A、开放办公区 B", zones: [zoneId("oa"), zoneId("ob")], op: "有人", hold: 0, recoverKey: "none", recover: "不另行恢复，由自动控制处理", span: "非工作时间", text: "开放办公区 A 或开放办公区 B 有人" },
     description: "非工作时间 · 开放办公区 A 或开放办公区 B 有人 · 走廊值守",
   });
-  // 项目节假日表（规范 SCENE02，2026-10-08 Vision 核查 V60）：按国务院办公厅公布的 2026 年安排登记；示例的“今天”9/24 是中秋节前最后一个工作日
-  const proj = db.projects.find((p) => p.id === ids.project);
-  if (proj && typeof HOLIDAY_REF !== "undefined" && HOLIDAY_REF[2026])
-    proj.holidays = { 2026: { source: HOLIDAY_REF[2026].source, items: M.copy(HOLIDAY_REF[2026].items), version: 1, at: day(9, "09:20"), by: "王敏 · 机构管理员" } };
   // 告警（示例）：LC20 失电合并其 MS20；环境与能耗。环境与能耗告警记下触发时的规则与版本（ruleId、ruleVersion），
   // 证据按规则从运行数据中取（DemoService.evidence；2026-10-08 Vision 核查 V43、V50、V52–V54）
   const alert = (id, extra) => db.alerts.push({ id: "alert-demo-" + id, projectId: ids.project, floorId: ids.floor, state: "active", acknowledged: false, ...extra });
@@ -43650,7 +43773,7 @@ function overviewPageActions() {
   const replay = typeof ovAt === "function" && ovAt() != null;
   // 3.07 V1034、V1037：总览只看，“执行场景 ▾”移到空间页头；空间页头为“楼层图 | 清单”、“执行场景 ▾”与“⋯”
   if (!U.sp || U.obj) return "";
-  // 3.09 V1040：有 3D 时为“楼层图 | 3D | 清单”
+  // 3.09 V1040：有 3D 时多一项 3D（3.10 V1077 放最后：“楼层图 | 清单 | 3D”）
   const seg = typeof segSm === "function" ? `<span class="ov-hseg">${segSm(spViewItems(), spView(), "ovView", "", "显示方式")}</span>` : "";
   return seg + (U.p && canOperate() ? (replay ? disBtn("执行场景" + ico("chevron", "ic16"), "opsSceneMenu", {}, "", "回放中，不能控制") : menuTrigger(btn("执行场景" + ico("chevron", "ic16"), "opsSceneMenu"))) : "") + (canEdit() && U.b ? menuTrigger(iconBtn("更多", "more", "spMore")) : "");
 }
@@ -44452,8 +44575,8 @@ function railSlide(rs) {
 // 设备点看全图时画成 12 的实心小点，只用类型颜色区分（全面设计核查第 32 条（2026-10-12 用户确认）；原先设备点固定 28×28，
 // 7F 的 108 个点在图纸窄时大片重叠，挡住功能区名称，也难点中单台）。按设备大类取色（照明、传感、暖通、网关与电能表），
 // 不用选中的蓝色和告警的红、橙、黄；放大后仍是 28 的图标，图例写在楼层轨道下方。颜色经全站数据图配色校验（彼此、色弱可分，对浅底 ≥3:1）。
-const PT_FAMILY = { lc: "light", ls: "light", tp: "light", ms: "sense", aq: "sense", fc: "hvac", vg: "hvac", idu: "hvac", odu: "hvac", gw: "infra", meter: "infra" };
-const PT_FAMILY_TEXT = [["light", "照明"], ["sense", "传感器"], ["hvac", "暖通空调"], ["infra", "网关与电能表"]];
+const PT_FAMILY = { lc: "light", ls: "light", tp: "infra", ms: "sense", aq: "sense", fc: "hvac", vg: "hvac", idu: "hvac", odu: "hvac", gw: "infra", meter: "infra" }; // 3.10 P11：TP 归灰色组
+const PT_FAMILY_TEXT = [["light", "照明"], ["sense", "传感器"], ["hvac", "暖通空调"], ["infra", "网关、面板与电能表"]];
 // 图纸画宽小于此值（像素）时用小点；缩放不低于 100%，所以“看全图”即图纸窄于约 900。
 const PT_DOT_W = 900;
 const ptDots = (w) => w > 0 && w < PT_DOT_W;
@@ -44649,7 +44772,7 @@ function renderPoint(p) {
       // 看全图时小点的颜色按设备大类（第 32 条）
       "pt-" + (PT_FAMILY[p.type] || "infra"),
     ].filter(Boolean);
-  const state = M.access(p) === "pending" ? "规则待确认" : F.bindingLabel(p);
+  const state = F.bindingLabel(p);
   return `<button class="${cls.join(" ")}" style="left:${p.x}%;top:${p.y}%${color ? ";--cg:" + color : ""}" data-act="point" data-id="${p.id}" aria-label="${esc(p.name)}"${canEdit() && !["view", "health"].includes(U.mode) ? ' aria-description="拖动调整位置，方向键微调"' : ""} title="${esc(pointTitle(p, state))}" tabindex="0">${ico(M.catalog[p.type].icon)}${star ? '<i class="mk-star" aria-label="主照度传感器" title="主照度传感器：照明分区按它的照度调光">★</i>' : ""}${p.relay ? '<i class="ws-role-dot">中</i>' : p.proxy ? '<i class="ws-role-dot">代</i>' : ""}</button>`;
 }
 function renderZones() {
@@ -45372,8 +45495,6 @@ function connectionForm(id) {
         "connectionProtocol",
         [
           ["Modbus TCP", "Modbus TCP"],
-          ["Modbus RTU", "Modbus RTU / RS-485"],
-          ["DL/T 645", "DL/T 645 / RS-485"],
           ["BACnet/IP", "BACnet/IP"],
           ["REST API", "REST API"],
           ["MQTT", "MQTT"],
@@ -45393,26 +45514,21 @@ function connectionForm(id) {
           btn("保存", "saveConnection", {}, "primary")
       : btn("取消", "close") + btn("新建系统连接", "saveConnection", {}, "primary"), // 2.65 E985
   );
-  connSharedSync();
 }
 // 按协议显示的一段：列出的协议（以“|”分隔）之外隐藏，切换协议时随之显示或隐藏
 // 2.65 E837：BACnet/IP 靠广播发现、按设备实例号寻址，不填服务地址；E845：服务地址的占位按协议写地址格式
 const ENDPOINT_PROTOS = "Modbus TCP|REST API|MQTT",
   ENDPOINT_PH = { "Modbus TCP": "192.168.10.20", "REST API": "https://api.example.com/v1", MQTT: "mqtt.example.com" },
-  SERIAL_PROTOS = ["Modbus RTU", "DL/T 645"],
   protoGroup = (list, cur, html, tag = "div") => `<${tag} data-protocols="${list}"${list.split("|").includes(cur) ? "" : " hidden"}>${html}</${tag}>`;
 // 系统连接的通信参数（规范 DEVICE06）：按协议录入，切换协议时只显示该协议的字段，保存时只保存所选协议的字段。
-// 只留总线参数（2026-10-09 用户确认，ABB 对比 BP56）：从站地址、表地址与设备实例号移到数据映射的每一行
+// 只留总线参数（2026-10-09 用户确认，ABB 对比 BP56）：从站地址与设备实例号移到数据映射的每一行
+// 3.10 P1：EG20 没有 RS-485 口，去掉 Modbus RTU 与 DL/T 645；电能表接在电能表通讯管理机上，网关经网口以 Modbus TCP 读取
 const CONNECTION_PARAMS = {
   "Modbus TCP": [["port", "端口", 502]],
-  "Modbus RTU": [["baud", "波特率", 9600], ["parity", "校验", "none"]],
-  "DL/T 645": [["baud", "波特率", 2400], ["parity", "校验", "even"]],
   "BACnet/IP": [["port", "端口", 47808], ["bbmd", "BBMD 地址（选填）", ""]], // 2.65 E837：跨网段时填写
   "REST API": [],
   MQTT: [["port", "端口", 8883], ["topic", "主题前缀", ""]],
 };
-const BAUDS = [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200],
-  PARITY = { none: "无校验 · 8N1", even: "偶校验 · 8E1", odd: "奇校验 · 8O1" };
 function connectionParamFields(c) {
   const cur = c.protocol || "Modbus TCP";
   return Object.entries(CONNECTION_PARAMS)
@@ -45422,13 +45538,7 @@ function connectionParamFields(c) {
       return `<div class="conn-cell" data-protocol="${esc(proto)}" ${proto === cur ? "" : "hidden"}>${
         fields.length
           ? fields
-              .map(([k, label, def]) =>
-                k === "baud"
-                  ? fld(label, id(k), select(id(k), BAUDS.map((b) => [String(b), String(b)]), String(own[k] ?? def), label))
-                  : k === "parity"
-                    ? fld(label, id(k), select(id(k), Object.entries(PARITY), own[k] ?? def, label))
-                    : fld(label, id(k), input(id(k), own[k] ?? def, k === "topic" ? "例如：building/e7f" : k === "bbmd" ? "192.168.10.1" : "", k === "topic" || k === "bbmd" ? "text" : "number")),
-              )
+              .map(([k, label, def]) => fld(label, id(k), input(id(k), own[k] ?? def, k === "topic" ? "例如：building/e7f" : k === "bbmd" ? "192.168.10.1" : "", k === "topic" || k === "bbmd" ? "text" : "number")))
               .join("")
           : ""
       }</div>`;
@@ -45445,9 +45555,7 @@ function readConnectionParams(proto) {
       const n = Number(raw);
       if (!Number.isInteger(n) || n < 1 || n > 65535) throw fieldErr(id(k), `${label}请输入 1–65535 的整数`);
       out.port = n;
-    } else if (k === "baud") out.baud = Number(raw) || null;
-    else if (k === "parity") out.parity = raw;
-    else if (k === "topic") {
+    } else if (k === "topic") {
       if (!raw) throw fieldErr(id(k), "请填写主题前缀");
       out.topic = raw;
     } else if (k === "bbmd" && raw) {
@@ -45460,14 +45568,15 @@ function readConnectionParams(proto) {
 // 通信参数的一行写法：如“9600 bps · 8N1”（地址在数据映射的每一行，BP56；2.53 E500：8N1 已含校验，不再写“无校验”）
 function connectionParamText(c) {
   const p = c.params || {},
-    parts = [p.port != null && `端口 ${p.port}`, p.baud && `${p.baud} bps`, p.parity && PARITY[p.parity].split(" · ").pop(), p.topic && `主题前缀 ${p.topic}`, p.bbmd && `BBMD ${p.bbmd}`].filter(Boolean);
+    parts = [p.port != null && `端口 ${p.port}`, p.topic && `主题前缀 ${p.topic}`, p.bbmd && `BBMD ${p.bbmd}`].filter(Boolean);
   return parts.length ? parts.join(" · ") : c.protocol === "REST API" ? "只有服务地址" : "尚未填写";
 }
 // 采集位置与采集周期（2026-10-09 用户确认，ABB 对比 BP55）：RS-485、Modbus TCP 与 BACnet/IP 在网关采集，选本项目已绑定的 EG20 与接口；
-// REST API 与 MQTT 可在云端或网关采集。周期默认按第10章：电能表 5 分钟（E-01），RS-485 接入的 AQ20 60 秒（Q-12），其他 300 秒（10 4），可改。
-const COLLECT_AT_GATEWAY = ["Modbus TCP", "Modbus RTU", "DL/T 645", "BACnet/IP"],
+// REST API 与 MQTT 可在云端或网关采集。周期默认按第10章：电能表 5 分钟（E-01），其他 300 秒（10 4），可改。
+// 3.10 P2：Modbus TCP 另填选填的“经由设备”（如“7F 电能表通讯管理机”），采集位置写“E-7F-EG20-01 · 经 7F 电能表通讯管理机”；AQ20 第一版只有 Mesh 版
+const COLLECT_AT_GATEWAY = ["Modbus TCP", "BACnet/IP"],
   collectOptions = (proto) => (COLLECT_AT_GATEWAY.includes(proto) ? [["gateway", "网关"]] : [["cloud", "云端"], ["gateway", "网关"]]),
-  collectPeriodDefault = (c) => (data().points.some((p) => p.connectionId && p.connectionId === c.id && p.type === "aq") ? 60 : 300);
+  collectPeriodDefault = () => 300;
 // 2.44 配置核查 E436：列出本项目楼层图上已标记的网关，未绑定的写“待绑定”；连接与点表可先保存为规划，验证连接要等网关现场绑定
 function connectionGateways(pid) {
   return data()
@@ -45487,43 +45596,14 @@ function connectionCollectFields(c, pid) {
       "connGateway",
       select("connGateway", [["", gws.length ? "请选择" : "先在楼层图上标记网关"], ...gws.map((p) => [p.id, `${p.name}（${floorText(p.floorId)}）${M.bound(p) ? "" : " · 待绑定"}`])], k.gatewayId || "", "网关"),
       "",
-    )}${protoGroup(SERIAL_PROTOS.join("|"), proto, fld("接口", "connPort", select("connPort", portOptions(k.gatewayId, c.id), k.port || "", "接口")))}</div>`,
+    )}${protoGroup("Modbus TCP", proto, fld("经由设备（选填）", "connVia", input("connVia", k.via || "", "如 7F 电能表通讯管理机")))}</div>`,
     `${protoGroup(
-      "Modbus TCP|Modbus RTU|DL/T 645|BACnet/IP|REST API",
+      "Modbus TCP|BACnet/IP|REST API",
       proto,
       // 字段下不写说明句（2.04 配置区全面核查 E102，2026-10-17 用户确认）；默认值已填在输入框中
       fld("采集周期", "connPeriod", unitBox(input("connPeriod", k.period ?? collectPeriodDefault(c), "", "number"), "秒")),
     )}${fld("每点每天写入上限", "connWriteLimit", unitBox(input("connWriteLimit", c.writeLimit ?? "", `默认 ${M.HVAC.writeDefault}`, "number"), "次"))}`,
   ];
-}
-// 2.65 E835：串口协议的“接口”按网关登记的串口列出（EG20 两路 RS-485），每项后写已用的连接数；网口协议走网关网口，不选接口
-const GW_SERIAL_PORTS = ["RS-485 口 1", "RS-485 口 2"],
-  portUse = (gw, port, self) => data().connections.filter((x) => x.id !== self && gw && x.collect?.gatewayId === gw && x.collect?.port === port),
-  portOptions = (gw, self) => [["", "请选择"], ...GW_SERIAL_PORTS.map((x) => [x, `${x} · ${portUse(gw, x, self).length ? `${portUse(gw, x, self).length} 个连接` : "未使用"}`])];
-// 2.65 E836：一条 RS-485 总线只能用一种串口参数：所选口已有连接时，波特率与校验取已有连接的值并只读，字段下写共用的连接
-function connSharedSync() {
-  const dlg = $("#dlg");
-  if (!dlg || !$("#connectionProtocol")) return;
-  dlg.querySelectorAll(".conn-shared-note").forEach((x) => x.remove());
-  const pid = (pr, k) => `connParam-${pr.replace(/[^A-Za-z0-9]/g, "")}-${k}`;
-  SERIAL_PROTOS.forEach((pr) => ["baud", "parity"].forEach((k) => {
-    const b = $(`#${pid(pr, k)}-control`);
-    if (b) b.disabled = false;
-  }));
-  const proto = value("connectionProtocol"),
-    port = value("connPort"),
-    other = SERIAL_PROTOS.includes(proto) && port && portUse(value("connGateway"), port, formState?.id).find((x) => SERIAL_PROTOS.includes(x.protocol));
-  if (!other) return;
-  ["baud", "parity"].forEach((k) => {
-    const inp = $(`#${pid(proto, k)}`),
-      b = $(`#${pid(proto, k)}-control`),
-      v = other.params?.[k];
-    if (!inp || !b || v == null) return;
-    inp.value = String(v);
-    b.querySelector("span").textContent = JSON.parse(b.dataset.options).find(([o]) => String(o) === String(v))?.[1] || String(v);
-    b.disabled = true;
-  });
-  dlg.querySelector(`[data-protocol="${proto}"]`)?.insertAdjacentHTML("afterend", `<p class="conn-shared-note">与“${esc(other.name)}”共用 ${esc(port)}</p>`);
 }
 function readCollect(proto, pid) {
   const at = COLLECT_AT_GATEWAY.includes(proto) || value("connCollectAt") === "gateway" ? "gateway" : "cloud",
@@ -45531,11 +45611,10 @@ function readCollect(proto, pid) {
   if (at === "gateway") {
     const gw = value("connGateway"),
       gws0 = connectionGateways(pid),
-      port = SERIAL_PROTOS.includes(proto) ? value("connPort") : "";
+      via = proto === "Modbus TCP" ? value("connVia").trim() : "";
     // 字段错误写在字段下（参考组件核查第 362 条）
     if (!gw || !gws0.some((p) => p.id === gw)) throw fieldErr("connGateway", gws0.length ? "请选择采集的网关" : "先在楼层图上标记网关");
-    if (SERIAL_PROTOS.includes(proto) && !port) throw fieldErr("connPort", "请选择网关上的 RS-485 口");
-    Object.assign(out, { gatewayId: gw }, port ? { port } : {});
+    Object.assign(out, { gatewayId: gw }, via ? { via } : {});
   }
   if (proto === "MQTT") return { ...out, period: null };
   const n = Number(value("connPeriod"));
@@ -45548,7 +45627,7 @@ const collectPeriodText = (s) => (s % 60 ? `${s} 秒` : s < 3600 ? `${s / 60} �
 const collectWhere = (c) => {
   const k = c.collect;
   if (!k) return "采集位置未登记";
-  return k.at === "cloud" ? "云端" : `网关 ${g("points", k.gatewayId)?.name || "（已不在本项目）"}${k.port ? " · " + k.port : ""}`;
+  return k.at === "cloud" ? "云端" : `网关 ${g("points", k.gatewayId)?.name || "（已不在本项目）"}${k.via ? " · 经 " + k.via : ""}`;
 };
 const collectText = (c) => (c.collect ? collectWhere(c) + (c.collect.period ? ` · 每 ${collectPeriodText(c.collect.period)}` : "") : "采集位置未登记");
 // 凭证（2026-10-09 用户确认，ABB 对比 BP54）：只写，按协议填账号与密码、接口密钥或上传证书；
@@ -45658,8 +45737,8 @@ const normUnit = (u) => {
   return Object.prototype.hasOwnProperty.call(UNIT_ALIAS, k) ? UNIT_ALIAS[k] : null;
 };
 const ENERGY_KWH = { Wh: 0.001, kWh: 1, MWh: 1000 };
-// 每行的地址字段：Modbus 为从站地址、寄存器类型、数据类型（寄存器地址不填时取来源标识），DL/T 645 为表地址与数据标识，BACnet/IP 为设备实例号与对象类型和编号
-const MAP_ADDR = { "Modbus TCP": "modbus", "Modbus RTU": "modbus", "DL/T 645": "dlt", "BACnet/IP": "bacnet", "REST API": "", MQTT: "" },
+// 每行的地址字段：Modbus 为从站地址、寄存器类型、数据类型（寄存器地址不填时取来源标识），BACnet/IP 为设备实例号与对象类型和编号
+const MAP_ADDR = { "Modbus TCP": "modbus", "BACnet/IP": "bacnet", "REST API": "", MQTT: "" },
   MODBUS_REGS = [
     ["holding", "保持寄存器"],
     ["input", "输入寄存器"],
@@ -45669,8 +45748,6 @@ const MAP_ADDR = { "Modbus TCP": "modbus", "Modbus RTU": "modbus", "DL/T 645": "
   MODBUS_TYPES = ["uint16", "int16", "uint32", "int32", "float32", "uint64", "int64", "float64", "bool"],
   KEY_EXAMPLE = {
     "Modbus TCP": "如 40001（寄存器地址）",
-    "Modbus RTU": "如 40001（寄存器地址）",
-    "DL/T 645": "如 00010000（数据标识）",
     "BACnet/IP": "如 AI:1（对象）",
     MQTT: "如 e7f/meter-1/energy（主题）",
     "REST API": "如 power.total（字段）",
@@ -45682,7 +45759,6 @@ function mapAddrText(c, m) {
     a = rowAddr(c, m);
   if (m.calc || !kind) return "";
   if (kind === "modbus") return [`从站 ${a}`, MODBUS_REGS.find(([k]) => k === m.reg)?.[1], m.dtype, m.ref && `寄存器 ${m.ref}`].filter(Boolean).join(" · ");
-  if (kind === "dlt") return [`表地址 ${a || "未填"}`, m.ref && `数据标识 ${m.ref}`].filter(Boolean).join(" · ");
   return [`设备实例号 ${a === "" ? "未填" : a}`, m.ref && `对象 ${m.ref}`].filter(Boolean).join(" · ");
 }
 const statesText = (m, sep = "；") => (m.states || []).map(([v, t]) => `${v}=${t}`).join(sep);
@@ -45742,7 +45818,7 @@ function mapRowHtml(m, c, pid, open, calc = !!m.calc) {
           "开始采集时的表计读数，乘倍率后的值",
         )}</div>`
       }${protoGroup(
-        "Modbus TCP|Modbus RTU",
+        "Modbus TCP",
         proto,
         `<div class="ws-form-row">${fld("从站地址", id("mbaddr"), input(id("mbaddr"), own("modbus") ? rowAddr(c, m) : (m.addr ?? 1), "", "number"))}${fld(
           "寄存器地址",
@@ -45757,14 +45833,6 @@ function mapRowHtml(m, c, pid, open, calc = !!m.calc) {
             (own("modbus") && m.dtype) || "uint16",
             "数据类型",
           ),
-        )}</div>`,
-      )}${protoGroup(
-        "DL/T 645",
-        proto,
-        `<div class="ws-form-row">${fld("表地址", id("dladdr"), input(id("dladdr"), own("dlt") ? rowAddr(c, m) : (m.addr ?? ""), "12 位数字"))}${fld(
-          "数据标识",
-          id("dlid"),
-          input(id("dlid"), own("dlt") ? m.ref || "" : "", "不填时取来源标识"),
         )}</div>`,
       )}${protoGroup(
         "BACnet/IP",
@@ -45789,8 +45857,8 @@ function mapRowRaw(r, proto) {
   const v = (k) => value(`map-${r.rid}-${k}`).trim();
   if (r.calc) return { calc: true, key: v("key"), name: v("name"), unit: v("unit"), expr: v("expr"), pointId: v("dev") };
   const kind = MAP_ADDR[proto],
-    addr = kind === "modbus" ? v("mbaddr") : kind === "dlt" ? v("dladdr") : kind === "bacnet" ? v("bnaddr") : "",
-    ref = kind === "modbus" ? v("mbref") : kind === "dlt" ? v("dlid") : kind === "bacnet" ? v("bnobj") : "";
+    addr = kind === "modbus" ? v("mbaddr") : kind === "bacnet" ? v("bnaddr") : "",
+    ref = kind === "modbus" ? v("mbref") : kind === "bacnet" ? v("bnobj") : "";
   return { key: v("key"), name: v("name"), unit: v("unit"), rw: v("rw") === "rw" ? "读写" : "只读", range: v("range"), scale: v("scale"), ratedKw: v("rated"), baseReading: v("base"), pointId: v("dev"), addr, ref, reg: v("mbreg"), dtype: v("mbtype"), states: v("states") };
 }
 // 校验一行：写错时点名第几行（规范 DEVICE06）
@@ -45847,10 +45915,6 @@ function checkMapRow(x, no, proto, pid) {
     if (!dtype) throw bad(`数据类型请填 ${MODBUS_TYPES.join("、")} 之一`);
     if (x.ref && !/^\d{1,6}$/.test(x.ref)) throw bad("寄存器地址请输入数字，如 40001");
     Object.assign(m, { addr: n, reg, dtype }, x.ref ? { ref: x.ref } : {});
-  } else if (kind === "dlt") {
-    if (!/^\d{12}$/.test(a)) throw bad("表地址请输入 12 位数字（表计铭牌上的通信地址）");
-    if (x.ref && !/^[0-9A-Fa-f]{8}$/.test(x.ref)) throw bad("数据标识请输入 8 位，如 00010000");
-    Object.assign(m, { addr: a }, x.ref ? { ref: x.ref.toUpperCase() } : {});
   } else if (kind === "bacnet") {
     const n = Number(a);
     if (a === "" || !Number.isInteger(n) || n < 0 || n > 4194302) throw bad("设备实例号请输入 0–4194302 的整数");
@@ -45978,17 +46042,6 @@ function connFormSync(field) {
     (formState?.mapRows || []).forEach((r) => mapSumRefresh(r.rid));
   }
   if (field === "connectionProtocol" || field === "connCollectAt") dlg.querySelectorAll("[data-collect]").forEach((x) => (x.hidden = value("connCollectAt") !== x.dataset.collect));
-  if (field === "connGateway") {
-    const ctl = $("#connPort-control"),
-      opts = portOptions(value("connGateway"), formState?.id),
-      hit = opts.find(([k]) => k && k === value("connPort"));
-    if (ctl) {
-      ctl.dataset.options = JSON.stringify(opts);
-      ctl.querySelector("span").textContent = hit?.[1] || "请选择";
-      ctl.querySelector("span").classList.toggle("ph", !hit);
-    }
-  }
-  if (/^(connectionProtocol|connGateway|connPort)$/.test(field)) connSharedSync();
   const cred = /^(.+)CredKind$/.exec(field);
   if (cred) dlg.querySelectorAll(`#${cred[1]}CredEdit [data-cred]`).forEach((x) => (x.hidden = x.dataset.cred !== value(field)));
 }
@@ -48830,7 +48883,7 @@ function fitZoneLabels() {
         return seen.get(t);
       };
     const pad = 12, text = parseFloat(cs.lineHeight), line = text + 4,
-      cw = cv.clientWidth, ch = cv.clientHeight, ell = width("一…");
+      cw = cv.clientWidth, ch = cv.clientHeight, ell = width("一二…"); // 3.10 V1053：省略号前至少两个字，放不下两个字时不写名称
     labels.forEach((s) => width(s.firstElementChild.textContent));
     labels.forEach((s) => { const t = s.querySelector(".zn-short")?.textContent; if (t) width(t); });
     m.remove();
@@ -50434,11 +50487,13 @@ function mgSaved() {
 function mgChecks(b, above, below, roof, sel) {
   const have = new Set(b ? sortedFloors(b.id).map((f) => f.name) : []),
     ns = structPlan(null, above, below, roof, null)?.all || [];
+  // 3.10 E1183：还没填层数时写提示，不先报“地上、地下层数不能都为 0”（只在点“新建楼宇”时报）
+  if (!ns.length) return `<legend>管理楼层</legend><p class="muted ws-mg-none">填写层数后在这里勾选要管理的楼层</p>`;
   return `<legend>管理楼层</legend>${ns.map((n) => `<label><input type="checkbox" class="ws-ck" name="spaceMg" value="${esc(n)}"${sel.includes(n) || have.has(n) ? " checked" : ""}${have.has(n) ? " disabled" : ""}>${esc(n)}</label>`).join("")}`;
 }
 function mgFieldHtml(o) {
   const part = !!o.managed?.length;
-  if (o.id && !part) return ""; // 整栋楼宇的层都已建，编辑时没有可选的层
+  // 3.10 E1182：编辑整栋楼宇也显示管理范围；改为“部分楼层”时已建的层全部勾选且不能取消（删楼层在楼层清单中操作）
   return `<div class="field ws-mg-field"><label id="spaceMgLabel">管理范围</label><div class="seg ws-mg-seg" role="radiogroup" aria-labelledby="spaceMgLabel">${[["whole", "整栋"], ["part", "部分楼层"]].map(([v, l]) => { const on = (v === "part") === part; return `<button type="button" role="radio" aria-checked="${on}" class="${on ? "on" : ""}" tabindex="${on ? 0 : -1}" data-act="spaceMgPick" data-value="${v}">${l}</button>`; }).join("")}</div></div><fieldset class="ws-checks ws-floor-checks ws-mg-floors" id="spaceMgFloors"${part ? "" : " hidden"}>${mgChecks(o.id ? o : null, o.above ?? "", o.below ?? 0, o.roof, o.managed || [])}</fieldset>`;
 }
 function mgRefresh() {
@@ -50472,7 +50527,7 @@ function structRange(names) {
 function structText(plan, isNew) {
   if (!plan) return "";
   if (isNew && plan.part && plan.all.length) return plan.want.length ? `将生成 ${plan.want.length} 个楼层：${plan.want.length <= 6 ? mgSort(plan.want).join("、") : mgRuns(plan.want)}（共 ${plan.all.length} 层，只管理 ${plan.want.length} 层）` : "请选择管理楼层";
-  if (isNew) return plan.want.length ? `将生成 ${plan.want.length} 个楼层：${structRange(plan.want)}` : "地上、地下层数不能都为 0";
+  if (isNew) return plan.want.length ? `将生成 ${plan.want.length} 个楼层：${structRange(plan.want)}` : ""; // 3.10 E1183：层数为 0 的错误只在点“新建楼宇”时报
   const t = [];
   if (plan.add.length) t.push(`新增${zhSub(floorNames(plan.add), "l")}`);
   if (plan.trashed.length) t.push(`${zhSub(floorNames(plan.trashed), "r")}在回收站中，请先恢复`);
@@ -50724,7 +50779,7 @@ function spArea(f, z) {
   return a == null ? (F.floorMeters(f) ? "形状无效，面积未知" : "比例尺未设置，面积未知") : `约 ${Math.round(a).toLocaleString("zh-CN")} m²`;
 }
 // 功能区名称标签（2026-10-05 核查 S7 与合并细节第 1 条：1280×720 下“办公室 701”折成 3 行、越入相邻区域 17.7px）：只占一行，不越出功能区。
-// 放得下写全名；放不下时，名称末尾有房间编号的只写编号（如“701”“7-1”），没有编号的以省略号截断；区域低于一行或一个字也放不下时不显示。
+// 放得下写全名；放不下时，名称末尾有房间编号的只写编号（如“701”“7-1”），没有编号的以省略号截断（省略号前至少两个字）；区域低于一行或省略号前放不下两个字时不显示。
 // 选中、悬停（隐藏名称时除外）与草稿显示全名，可越出区域；读屏名称始终是全名。放不放得下由 fitZoneLabels 按实际像素判断。
 function zoneShortName(name) {
   const t = String(name || "").trim(), m = t.match(/(?:^|[\s\u3000·_-]|[^\x00-\x7f])([A-Za-z]{0,3}\d[A-Za-z0-9.-]*)$/);
@@ -52069,7 +52124,7 @@ function planReviewBanner(f) {
   const keep = F.previousCalibration(f), ed = canEdit(), busy = !!U.planAlign,
     moved = data().zones.some((z) => z.floorId === f.id) || data().points.some((p) => p.floorId === f.id);
   // 3.09 V1043：上传的 3D 模型中本层已对齐时，换图后对齐待复核，写在复核条里（“去对齐”打开 3D 模型的对齐步骤）
-  const al3 = g("buildings", f.buildingId)?.model3d?.align?.[f.id]?.review ? `<p class="sp-review-3d">3D 模型对齐待复核${ed && !isMobile() ? btn("去对齐", "m3Open", { s: "2", f: f.id }, "sm ghost") : ""}</p>` : "";
+  const al3 = F.align3dReview(data(), f) ? `<p class="sp-review-3d">3D 模型对齐待复核${ed && !isMobile() ? btn("去对齐", "m3Open", { s: "2", f: f.id }, "sm ghost") : ""}</p>` : "";
   return `<div class="sp-plan-review" role="status"><div class="sp-review-head"><b>换图复核 · v${r.from} → v${r.to}</b>${ed ? btn("恢复原" + planWord(f.buildingId), "planRevert", { disabled: busy }, "sm ghost") : ""}</div>${al3}${
     ed
       ? `${keep ? `<label class="row small sp-keep-cal"><input type="checkbox" id="planKeepCal"><span>沿用原比例尺与北向（新楼层图尺寸与原图相同${keep.length < 2 ? `，原图只有${keep[0]}` : ""}）</span></label>` : ""}<div class="sp-actions">${btn(U.planCompare ? "关闭对照" : "对照原图", "planCompare", { disabled: busy }, "sm")}${moved ? btn("对齐到新图", "planAlign", { disabled: busy }, "sm") : ""}${btn("完成复核", "planReviewDone", { disabled: busy }, "sm")}</div>`
@@ -52238,6 +52293,15 @@ function piSetFloor(fid) {
   if (box) box.innerHTML = piImpact(pi.fid);
   piSaveState(pi);
 }
+// 3.10 E1193：DWG 由转换服务转为 DXF，再与 DXF 相同（预览、选图层、确认）；转换同时报告每张图中缺少字体（SHX）的文字处数。
+// 服务接入前取 DXF 样例（demoDxfFile）作为转换结果
+const DWG_WAIT = "DWG 转换中…完成后和 DXF 一样选图层、确认；原楼层图保持不变。";
+async function planDwgToDxf() {
+  await new Promise((ok) => setTimeout(ok, 600));
+  const f = typeof demoDxfFile === "function" ? demoDxfFile() : null;
+  if (!f) throw Error("DWG 转换失败，请稍后重试；也可以在 CAD 中另存为 DXF 后上传");
+  return { bytes: await f.arrayBuffer(), missingFonts: [2] };
+}
 async function openPlanImport(bid, fid, file) {
   if (!canEdit()) throw Error("当前角色只有查看权限");
   const b = g("buildings", bid);
@@ -52253,10 +52317,18 @@ async function openPlanImport(bid, fid, file) {
   try {
     // 超限也在本弹窗内说明并可“重新选择文件”（PLAN01，2026-10-03 用户确认）。
     if (file.size > L.bytes) throw Error(`文件 ${fileSize(file.size)}，超过 ${fileSize(L.bytes)} 的上限；请拆分或导出较小的 PDF`);
-    const bytes = await file.arrayBuffer();
+    let bytes = await file.arrayBuffer();
     if (!active()) return;
     kind = F.sniffPlanFile(new Uint8Array(bytes, 0, Math.min(16, bytes.byteLength)), file.name);
     if (!kind.ok) throw Error(kind.reason);
+    if (kind.kind === "dwg") {
+      if ($("#dlgBody")) $("#dlgBody").innerHTML = wsNotice(DWG_WAIT) + '<div class="form-error" id="formError" role="alert"></div>';
+      const cv = await planDwgToDxf(bytes);
+      if (!active()) return;
+      bytes = cv.bytes;
+      kind = { ok: true, kind: "dxf" };
+      Object.assign(pi, { src: "dwg", fonts: cv.missingFonts });
+    }
     Object.assign(pi, { bytes, kind: kind.kind });
     // 3.09 V1043：DXF 读取图层、单位与图元；一个文件有几张平面图时进入对应列表（同多页 PDF）
     if (kind.kind === "dxf") {
@@ -52269,7 +52341,7 @@ async function openPlanImport(bid, fid, file) {
         U.planBack = back;
         return openBatchUpload(bid, [file], fid);
       }
-      Object.assign(pi, { sheet: 0, page: 1 });
+      Object.assign(pi, { sheet: 0, page: 1, missingFonts: pi.fonts?.[0] || 0 });
     } else if (kind.kind === "pdf") {
       const lib = await loadPdfJs();
       if (!active()) return;
@@ -52312,7 +52384,7 @@ async function openPlanImport(bid, fid, file) {
   if (isOutdoor(bid) && fs[0] && !pi.fid) { pi.fid = fs[0].id; pi.planVersion = fs[0].planVersion || 0; }
   modal(
     piTitle(pi),
-    `<div class="pi-file">${ico(kind.kind === "pdf" ? "doc" : "image", "ic16")}<span><b>${esc(file.name)}</b><small>${kind.kind.toUpperCase()} · ${fileSize(file.size)}${kind.kind === "pdf" ? " · 1 页" : kind.kind === "dxf" ? ` · 图纸单位：${cadUnitText(pi.cad)}` : ` · ${pi.bitmap.width} × ${pi.bitmap.height} px`}</small></span></div>` +
+    `<div class="pi-file">${ico(kind.kind === "pdf" ? "doc" : "image", "ic16")}<span><b>${esc(file.name)}</b><small>${(pi.src || kind.kind).toUpperCase()} · ${fileSize(file.size)}${kind.kind === "pdf" ? " · 1 页" : kind.kind === "dxf" ? ` · 图纸单位：${cadUnitText(pi.cad)}` : ` · ${pi.bitmap.width} × ${pi.bitmap.height} px`}</small></span></div>${pi.missingFonts ? note(`图中 ${pi.missingFonts} 处文字缺少字体，显示为问号`) : ""}` +
       // 室外区域只有一张总平面图：不选楼层，写明“对应图纸：总平面”（2026-10-04 用户确认“室外区域用语”）。
       (isOutdoor(bid) && fs[0]
         ? `<div class="pi-sec pi-floor"><p class="pi-fixed">对应总平面图：${esc(fs[0].name)}</p><input type="hidden" id="piFloor" value="${esc(fs[0].id)}"></div>`
@@ -52444,7 +52516,7 @@ defineActions({
     piInfoSet($("#piInfo"), "正在保存楼层图…请等待结果。");
     try {
       const sha = await sha256Hex(pi.bytes), source = {
-        fileName: pi.file.name, fileType: pi.kind, fileSize: pi.file.size, sha256: sha,
+        fileName: pi.file.name, fileType: pi.src || pi.kind, fileSize: pi.file.size, sha256: sha,
         ...(pi.kind === "pdf" ? { page: request.page, pages: request.pages, renderScale: request.renderScale } : {}),
         ...(pi.kind === "dxf" ? { units: cadUnitText(pi.cad), hiddenLayers: [...pi.cad.hidden] } : {}),
         rotation: request.rotation, trimmed: request.trim, width: out.width, height: out.height, at: M.now(),
@@ -52633,12 +52705,26 @@ async function openBatchUpload(bid, files, fid = null) {
       items.push({ ...base, error: `超过 ${fileSize(L.bytes)} 的上限` });
       continue;
     }
-    const bytes = await file.arrayBuffer(),
-      k = F.sniffPlanFile(new Uint8Array(bytes, 0, Math.min(16, bytes.byteLength)), file.name);
+    let bytes = await file.arrayBuffer(),
+      k = F.sniffPlanFile(new Uint8Array(bytes, 0, Math.min(16, bytes.byteLength)), file.name),
+      dwg = null;
     if (U.bu !== bu) return;
     if (!k.ok) {
       items.push({ ...base, error: k.reason });
       continue;
+    }
+    // 3.10 E1193：DWG 转为 DXF 后同 DXF；缺字体的文字处数按张写在该行
+    if (k.kind === "dwg") {
+      if ($("#dlgBody")) $("#dlgBody").innerHTML = wsNotice(DWG_WAIT) + '<div class="form-error" id="formError" role="alert"></div>';
+      try {
+        dwg = await planDwgToDxf(bytes);
+      } catch (e) {
+        items.push({ ...base, error: e.message });
+        continue;
+      }
+      if (U.bu !== bu) return;
+      bytes = dwg.bytes;
+      k = { ok: true, kind: "dxf" };
     }
     if (k.kind === "pdf") {
       let pdf;
@@ -52670,7 +52756,7 @@ async function openBatchUpload(bid, files, fid = null) {
       cad.sheets.forEach((sh, j) => {
         const t = cadFloorText(sh),
           m = t ? F.matchFloorFile(data(), bid, t) : n === 1 ? F.matchFloorFile(data(), bid, file.name) : { floorId: null, confidence: "none", reason: "图中没有可识别的楼层：请选择楼层，或跳过" };
-        items.push({ ...base, key: i + "-" + (j + 1), kind: "dxf", bytes, cad, cadKey: String(i), sheet: j, page: n > 1 ? j + 1 : null, pages: n, match: m, floorId: m.confidence === "high" ? m.floorId : "" });
+        items.push({ ...base, key: i + "-" + (j + 1), kind: "dxf", ...(dwg ? { src: "dwg", missingFonts: dwg.missingFonts[j] || 0 } : {}), bytes, cad, cadKey: String(i), sheet: j, page: n > 1 ? j + 1 : null, pages: n, match: m, floorId: m.confidence === "high" ? m.floorId : "" });
         rows++;
       });
     } else {
@@ -52729,7 +52815,7 @@ function buRow(it, st) {
   // 2.65 E653：结果列写每张图传到了哪一层：“已上传到 8F”“失败：原因”“未上传”（原只写“成功”）
   const status = !it.status ? "" : it.status === "成功" ? `<span class="bu-st ok">已上传到 ${esc(f?.name || "")}</span>` : it.status === "失败" ? `<span class="bu-st crit">失败${it.fail ? "：" + esc(it.fail) : ""}</span>` : it.status === "跳过" ? `<span class="bu-st">未上传</span>` : `<span class="bu-st crit">${esc(it.status)}</span>`;
   // 2.65 E659：图片不再写格式行（扩展名已在文件名里）；PDF 写“第 2 / 5 页”，旋转过的写“旋转 90°”
-  const fmt = [it.page ? `第 ${it.page} / ${it.pages} ${it.kind === "dxf" ? "张" : "页"}` : "", it.rotation ? `旋转 ${it.rotation}°` : ""].filter(Boolean).join(" · ");
+  const fmt = [it.page ? `第 ${it.page} / ${it.pages} ${it.kind === "dxf" ? "张" : "页"}` : "", it.rotation ? `旋转 ${it.rotation}°` : "", it.missingFonts ? `图中 ${it.missingFonts} 处文字缺少字体，显示为问号` : ""].filter(Boolean).join(" · ");
   return `<tr class="${st.conflicts.has(it.key) ? "conflict" : ""}">${U.bu.done ? "" : `<td class="ck">${edit ? `<label class="bu-ck"><input type="checkbox" class="ws-ck" data-bu="${it.key}" ${it.include ? "checked" : ""} aria-label="导入${esc(buLabel(it))}"></label>` : ""}</td>`}<td class="bu-src"><div class="bu-img"><button type="button" class="bu-thumb" data-act="buInspect" data-key="${it.key}" data-thumb="${it.key}" aria-label="查看楼层图 ${esc(buLabel(it))}">${it.thumb ? `<img src="${it.thumb}" style="transform:rotate(${it.rotation}deg)" alt="已旋转 ${it.rotation} 度的楼层图缩略图">` : ""}</button><span class="bu-name"><b title="${esc(it.file.name)}">${esc(it.file.name)}</b>${fmt ? `<small>${fmt}</small>` : ""}</span></div></td><td class="bu-floor">${
     edit ? select("buF-" + it.key, buFloorOptions(U.bu.bid), it.floorId, `${buLabel(it)}对应楼层`) : status || esc(f?.name || "—")
   }${edit && hint ? `<p class="bu-hint">${hint}</p>` : !edit && it.error ? `<p class="bu-hint">${hint}</p>` : ""}</td></tr>`;
@@ -52756,7 +52842,7 @@ function buModal() {
   modal(
     `上传楼层图 · ${g("buildings", bu.bid)?.name || ""}`,
     // 2.14 E278：去掉标题下的统计行（已选数量只写在“上传所选 N 项”上；保存中与完成后仍写进度与结果）、表格下的两行说明；“裁去四周空白”对全部图片生效。
-    `<p class="bu-sum" id="buSum"${bu.running || bu.done ? "" : " hidden"}>${buSummary(st, ready.length, high)}</p><div id="buPreset">${buPresetNote()}</div><div id="buSeqBox">${buSeqBar()}</div>${Object.entries(bu.cads || {}).map(([k, cad]) => cadLayerPicker(cad, k, `${bu.items.find((it) => it.cadKey === k)?.file.name || ""} · 图层`)).join("")}<div class="tw bu-tw"><table class="t bu-table"><thead id="buHead">${buHead()}</thead><tbody id="buRows">${bu.items.map((it) => buRow(it, st)).join("")}</tbody></table></div><label class="row bu-trim" ${bu.done ? "hidden" : ""}><input type="checkbox" class="ws-ck" id="buTrim" ${bu.trim ? "checked" : ""}>裁去四周空白</label>`,
+    `<p class="bu-sum" id="buSum"${bu.running || bu.done ? "" : " hidden"}>${buSummary(st, ready.length, high)}</p><div id="buPreset">${buPresetNote()}</div><div id="buSeqBox">${buSeqBar()}</div>${Object.entries(bu.cads || {}).map(([k, cad]) => cadLayerPicker(cad, k, `${bu.items.find((it) => it.cadKey === k)?.file.name || ""} · 图层`) + buCadPv(k)).join("")}<div class="tw bu-tw"><table class="t bu-table"><thead id="buHead">${buHead()}</thead><tbody id="buRows">${bu.items.map((it) => buRow(it, st)).join("")}</tbody></table></div><label class="row bu-trim" ${bu.done ? "hidden" : ""}><input type="checkbox" class="ws-ck" id="buTrim" ${bu.trim ? "checked" : ""}>裁去四周空白</label>`,
     buFoot(st),
   );
   planDialogMark();
@@ -52955,7 +53041,7 @@ async function buRun(list) {
         sha = (it.sha ||= await sha256Hex(it.bytes)),
         source = {
           fileName: it.file.name,
-          fileType: it.kind,
+          fileType: it.src || it.kind,
           fileSize: it.file.size,
           sha256: sha,
           ...(it.kind === "pdf" ? { page: sourceItem.page, pages: sourceItem.pages, renderScale: sourceItem.renderScale } : {}),
@@ -53017,6 +53103,7 @@ defineActions({
     it.rotation = (it.rotation + 90) % 360;
     modalDirty = true;
     buRefresh();
+    if (it.cadKey != null) $(`[data-cadpv="${CSS.escape(it.cadKey)}"]`)?.replaceWith(...new DOMParser().parseFromString(buCadPv(it.cadKey), "text/html").body.childNodes);
     const big = $("#buInspect")?.dataset.key === it.key ? $("#buInspect img") : null;
     if (big) big.style.transform = `rotate(${it.rotation}deg)`;
   },
@@ -55026,7 +55113,7 @@ const DEV_ST = {
   ok: ["在线", "已绑定", "已同步", "已接入", "已应用", "正常"],
   bad: ["离线"],
   warn: ["配置不一致", "不一致", "同步失败", "失败", "待同步", "待同步（规划已更新）", "现场改动待并入", "待重新绑定", "待重新绑定（已恢复出厂）", "读取失败", "待密钥更新", "已失效（密钥更新）"],
-  off: ["未接入", "状态未知", "待绑定", "待接入", "暂不支持绑定", "接入待确认", "已清除（已恢复出厂）", "检修中"],
+  off: ["未接入", "状态未知", "待绑定", "待接入", "待配对", "已清除（已恢复出厂）", "检修中"],
 };
 const devTone = (text) => Object.keys(DEV_ST).find((k) => DEV_ST[k].includes(text)) || "";
 const stDot = (text, tone = devTone(text)) => `<span class="ds-st ${tone || "ok"}">${esc(text)}</span>`;
@@ -55066,9 +55153,10 @@ function gatewayReady(db, n) {
   if (F.communication(db, gw) !== "在线") return { ok: false, why: "网关离线或状态未知，需先恢复网关" };
   return { ok: true };
 }
-// 3.08 V1044：进行中的任务（下发到全部生效与核对）；FW_XFER 为传输期间（网络检测与批量配置暂停），FW_KEYS 为密钥更新暂停的阶段（从下发到全部生效）
+// 3.08 V1044：进行中的任务（下发到全部生效与核对）；FW_KEYS 为密钥更新暂停的阶段（从下发到全部生效）
+// 3.10 E1185：只在实际传输时（传输中、试点设备传输中）暂停网络检测与批量配置；等待时段、试点观察与已暂停时不暂停（原为整个试点与传输期间）
 const ACTIVE_FW = ["queued", "pilot", "running", "paused", "verified", "activating", "checking"];
-const FW_XFER = ["pilot", "running"];
+const fwXfer = (t) => t.status === "running" || (t.status === "pilot" && t.pilotState === "transfer");
 const FW_KEYS = ["queued", "pilot", "running", "paused", "verified", "activating"];
 const activeFirmware = (db, nid) => db.firmwareTasks.filter((t) => ACTIVE_FW.includes(t.status) && t.networkIds?.includes(nid));
 const runningHealth = (db, nid) => db.healthRecords.filter((h) => h.networkId === nid && h.status === "running");
@@ -55315,8 +55403,8 @@ const devLedgerLabel = (text) => `<span class="dev-ledger-label" aria-hidden="tr
 const devAccessHtml = (p) => nwJoin({
   mesh: ["Mesh"],
   gateway: ["网关上联"],
-  system: p.type === "aq" ? ["RS-485", "系统接入"] : ["系统接入"],
-  pending: [p.type === "ls" ? "适配节点" : "非 Mesh"],
+  system: ["系统接入"],
+  pending: [p.type === "ls" ? "经照明控制器" : "经网关"], // 3.10 P8、P10
   cell: ["4G"], // 3.08 V1047
 }[M.access(p)]);
 // 2.56 E549：“设备”列两行，名称与“LC20 · 照明控制器”；第三方设备没有型号，只写类型。
@@ -55368,7 +55456,7 @@ function renderInventory() {
         : []),
       "设备",
       // 2.88 E1126：项目有多栋楼时只写功能区看不出楼栋楼层，改回“位置”（E栋 · 7F · 实验室 E）；“设备网络”改“接入”，
-      // 一行写接入方式与所属网络或连接（Mesh · E栋 · 7F / Modbus RTU · 7F 配电计量），点开为网络详情或连接详情。
+      // 一行写接入方式与所属网络或连接（Mesh · E栋 · 7F / Modbus TCP · 7F 配电计量），点开为网络详情或连接详情。
       "位置",
       "接入",
       "状态",
@@ -55409,7 +55497,7 @@ function devNetworkCell(db, p) {
   const n = p.networkId && g("networks", p.networkId),
     access = M.access(p),
     conn = access === "system" && p.connectionId && g("connections", p.connectionId),
-    via = access === "system" ? conn?.protocol || (p.type === "aq" ? "RS-485" : "系统接入") : { mesh: "Mesh", gateway: "网关上联", cell: "4G", pending: p.type === "ls" ? "适配节点" : "非 Mesh" }[access] || "",
+    via = access === "system" ? conn?.protocol || "系统接入" : { mesh: "Mesh", gateway: "网关上联", cell: "4G", pending: p.type === "ls" ? "经照明控制器" : "经网关" }[access] || "",
     to = conn || (!["system", "cell"].includes(access) && n),
     text = [via, to?.name].filter(Boolean).join(" · "),
     // 一行写完（行高保持 56）；电脑上放不下时省略，完整名称在悬停提示里
@@ -55449,7 +55537,7 @@ function devStatusCell(db, p) {
       // 2.65 E942：状态标签写“配置不一致”（同列还有通信、绑定两类，单写“不一致”看不出指什么）
       ["同步失败", "不一致", "现场改动待并入"].includes(s) && (s === "不一致" ? "配置不一致" : s),
       b === "待重新绑定" && b,
-      ["待绑定", "待接入", "暂不支持绑定", "接入待确认"].includes(b) && b,
+      ["待绑定", "待接入", "待配对"].includes(b) && b,
       s === "待同步" && !p.fieldReset && s,
       // 2.84 E1106：系统接入设备有数据点读取失败时写“N 项读取失败”（琥珀点），与系统接入一致
       devReadFails(p) > 0 && `${devReadFails(p)} 项读取失败`,
@@ -55712,7 +55800,7 @@ const healthTimeCell = (h) =>
 function healthBlock(db, n) {
   const gr = gatewayReady(db, n);
   if (!gr.ok) return gr.why;
-  if (activeFirmware(db, n.id).some((t) => FW_XFER.includes(t.status))) return "本网络正在传输固件，传输期间不能网络检测";
+  if (activeFirmware(db, n.id).some(fwXfer)) return "本网络正在传输固件，传输期间不能网络检测";
   if (runningKeys(db, n.id).length) return "密钥更新进行中，完成后再网络检测";
   if (runningHealth(db, n.id).length) return "已有网络检测在进行";
   return "";
@@ -56054,7 +56142,7 @@ function devicePlanData(db, p) {
     ];
   if (p.type === "lc")
     rows.push(
-      ["控制类型", p.ctrl === "switch" ? "开关" : "0–10 V 调光"],
+      ["控制类型", M.ctrlText(p.ctrl)],
       ["驱动", !p.driverModel && (p.drivers == null || p.drivers === "") ? "驱动未填" : `${p.driverModel === "other" ? "其他（待兼容测试）" : esc(p.driverModel || "驱动未填")} × ${esc(p.drivers ?? "—")}`],
       ["每台灯具功率", p.fixtureWatts ? esc(p.fixtureWatts) + " W" : "未填"],
       ["负载", batchLoad({ load: F.lcLoad(p), after: p })],
@@ -56155,12 +56243,12 @@ function configValueText(db, p, i, cx = {}) {
           ms: () =>
             `占用 ${fmt(r.occupancy)} 秒 · 照度 ${fmt(r.lux)} 秒 · 温湿度 ${fmt(r.climate)} 秒 · 气压 ${fmt(r.pressure)} 秒<small class="flow-sub">变化时提前上报：照度 ${r.luxChange}% 或 ${r.luxAbsolute} lx · 温度 ${r.tempChange} ℃ · 湿度 ${r.humidityChange}%</small>`,
           lc: () => `状态 ${fmt(r.controller)} 秒`,
-          fc: () => `状态 ${fmt(r.other)} 秒`,
+          fc: () => `状态 ${fmt(r.status ?? r.other)} 秒<small class="flow-sub">暖通空调参数 H-31</small>`,
           aq: () => `发布 ${fmt(r.aq ?? 60)} 秒<small class="flow-sub">变化时提前发布</small>`,
         }[p.type]?.() || "见原始配置"
       );
     case "load":
-      return `${v?.ctrl === "switch" ? "开关" : "0–10 V 调光"} · ${
+      return `${M.ctrlText(v?.ctrl)} · ${
         v?.driverModel || (v?.drivers != null && v.drivers !== "") ? `${esc(v.driverModel === "other" ? "其他（待兼容测试）" : v.driverModel || "驱动未填")} × ${esc(v.drivers ?? "—")}` : "驱动未填"
       }${v?.fixtureWatts ? ` · 每台灯具 ${esc(v.fixtureWatts)} W` : ""}`;
     case "lighting": {
@@ -56180,6 +56268,10 @@ function configValueText(db, p, i, cx = {}) {
         .filter(Boolean)
         .join(" · ");
     }
+    case "occupancy":
+      return (v || []).length ? `同一功能区 MS20 ${(v || []).length} 台` : "功能区没有 MS20";
+    case "workHours":
+      return `工作日 ${esc(v?.hours || "—")}<small class="flow-sub">${v?.holidays?.length ? `节假日表 ${esc(v.holidays.join("、"))}` : "未登记节假日表，按周一至周五"} · 断网收不到占用 15 分钟后按工作时间判断</small>`;
   }
   return "见原始配置";
 }
@@ -56288,7 +56380,8 @@ function deviceConfigParts(p) {
     cfg = F.configItems(data(), p),
     held = F.pendingFieldChanges(data(), p.networkId).find((fc) => F.fieldPointIds(fc).includes(id));
   // 网关与系统接入设备不走 Mesh 目标配置：网关核对配置库副本，系统接入设备按系统接入映射核对（不显示“待同步”）
-  if (M.access(p) !== "mesh")
+  // 3.10 E1190：FC20（4G）与 Mesh 设备同样有“配置”卡：上报参数、占用来源（平台转发）、工作时间；不再写“接入方式待确认”
+  if (!["mesh", "cell"].includes(M.access(p)))
     return {
       rows: isGateway
         ? [
@@ -56296,7 +56389,7 @@ function deviceConfigParts(p) {
             ["最后同步", shortDate(p.lastLibrarySync)],
           ]
         : [],
-      note: isGateway || M.access(p) === "system" ? "" : note("接入方式待确认"),
+      note: "",
       diff: n && isGateway ? renderParameterDifferences(n) : "",
     };
   // 已恢复出厂的设备已退出网络、清除配置，网关无法下发：不显示“重新下发”，改为“远程重新绑定”（与“更多操作”是同一个动作），
@@ -56342,7 +56435,7 @@ function deviceConfigParts(p) {
       ]),
       "尚无目标配置",
     ),
-    diff: n ? renderParameterDifferences(n) : "",
+    diff: n && M.access(p) === "mesh" ? renderParameterDifferences(n) : "",
     raw: cfg.length ? `<details class="ws-details"><summary class="sum-fw">原始配置</summary><pre class="flow-json">${esc(JSON.stringify(Object.fromEntries(cfg.map((i) => [i.key, i.value])), null, 2))}</pre></details>` : "",
   };
 }
@@ -56368,7 +56461,7 @@ function deviceAdvancedHtml(p) {
 /* 2.81 E1095（定稿 2.4）：数据点读取失败。数据映射行带 fail（{ reason, since, last, count }）为当前读取失败，连接的 failLog 为近 30 天的失败记录；
    原因按协议列出，连接详情“运行”一节与设备侧栏写同一组原因 */
 const CONN_FAIL_REASONS = {
-  modbus: ["从站无响应", "校验错误", "寄存器地址无效", "网关离线", "串口未接通"],
+  modbus: ["从站无响应", "校验错误", "寄存器地址无效", "网关离线"],
   bacnet: ["设备未响应", "对象不存在"],
   api: ["认证失败", "证书过期", "连接超时", "服务不可达"],
 };
@@ -56631,7 +56724,7 @@ function pointProperties(p, n) {
           ),
         )
       : ""
-  }${mkHvacFields(p)}${mkAqFields(p)}${p.type === "ls" ? `<p class="mk-lead">LS2x 需要适配节点，当前只标记安装位置，暂不支持绑定。</p>` : p.type === "tp" ? `<p class="mk-lead">TP11 / TP21 不是 Mesh 节点；接入方式确认后再关联。</p>` : ""}${mkIssues(p)}`;
+  }${mkHvacFields(p)}${mkAqFields(p)}${mkLsTpFields(p, n)}${mkIssues(p)}`;
 }
 function renderRoleCoverage(n) {
   if (U.mode !== "roles" || !n) return "";
@@ -57588,10 +57681,15 @@ const fwPendingTask = (db, pid) => {
 const fwNewDraft = (type = "lc", releaseId = "") => ({ name: "", autoName: true, type, releaseId, networkIds: [], windowStart: "22:00", windowEnd: "06:00", effStart: "02:00", effEnd: "05:00", pilot: true, unoccupied: false });
 // 2.53 E505：全部回报前任务状态写“N 台未确认”（原为“已完成”）；3.08：传输中写本网络进度，自动暂停写何时继续
 const fwStateText = (t) => {
-  const n = (t.results || []).filter((r) => r.status === "unconfirmed").length;
-  if (t.status === "completed" && n) return `${n} 台未确认`;
+  const rs = t.results || [],
+    n = rs.filter((r) => r.status === "unconfirmed").length,
+    rb = rs.filter((r) => r.status === "failed" && r.fail === "rollback").length,
+    bad = rs.filter((r) => r.status === "failed" && r.fail !== "rollback").length;
+  // 3.10 V1073：已完成的任务把回退、失败与未确认都写出（“1 台已回退 · 1 台未确认”），原只写未确认
+  if (t.status === "completed" && (n || rb || bad)) return [rb ? `${rb} 台已回退` : "", bad ? `${bad} 台失败` : "", n ? `${n} 台未确认` : ""].filter(Boolean).join(" · ");
   if (t.status === "running" && t.progress != null) return `传输中 · 本网络 ${t.progress}%`;
-  if (t.status === "paused" && t.autoPause) return `已暂停 · 今晚 ${t.windowStart} 继续`;
+  // 3.10 E1186：生效时段结束时还有设备未生效，同样自动暂停，写“已暂停 · 明天 02:00 继续”
+  if (t.status === "paused" && t.autoPause) return t.pausedAt === "activating" ? `已暂停 · 明天 ${t.effStart || "02:00"} 继续` : `已暂停 · 今晚 ${t.windowStart} 继续`;
   return FW_STATE[t.status] || t.status;
 };
 // 预计时长：按该网络上一次升级的实测速度（台/晚）估算；没有记录时写“首次升级，传输后按实测更新”
@@ -57633,10 +57731,13 @@ function renderFirmware() {
             ps.forEach((p) => (dist[p.firmwareVersion || "尚未回报"] = (dist[p.firmwareVersion || "尚未回报"] || 0) + 1));
             const vs = Object.entries(dist),
               pend = ps.map((p) => fwPendingTask(db, p.id)).filter(Boolean),
-              low = latest ? ps.filter((p) => p.firmwareVersion && fwVer(p.firmwareVersion, latest) < 0 && !fwPendingTask(db, p.id)).length : 0,
+              lowPs = latest ? ps.filter((p) => p.firmwareVersion && fwVer(p.firmwareVersion, latest) < 0 && !fwPendingTask(db, p.id)) : [],
+              low = lowPs.length,
               signed = rel?.signature?.verified,
-              // 3.08 V1045：可升级台数与升级弹窗一致，离线与低于起始版本的不计
-              ready = low ? ps.filter((p) => p.firmwareVersion && fwVer(p.firmwareVersion, latest) < 0 && !fwPendingTask(db, p.id) && F.communication(db, p) !== "离线" && !(rel?.fromVersion && fwVer(p.firmwareVersion, rel.fromVersion) < 0)).length : 0,
+              // 3.08 V1045：可升级台数与升级弹窗一致，离线与低于起始版本的不计；
+              // 3.10 E1184：有升级任务在跑的网络里的设备也不计，都在这些网络里时写“升级任务进行中”（点开任务），不给“升级”
+              busyT = lowPs.map((p) => activeFirmware(db, p.networkId)[0]).find(Boolean),
+              ready = lowPs.filter((p) => !activeFirmware(db, p.networkId).length && F.communication(db, p) !== "离线" && !(rel?.fromVersion && fwVer(p.firmwareVersion, rel.fromVersion) < 0)).length,
               up = !!latest && !!ready && signed,
               top = ps.map((p) => p.firmwareVersion).filter(Boolean).sort(fwVer).pop(),
               // 3.08 V1046：发布方撤回比设备当前版本新的版本时写“1.3.4 已撤回”
@@ -57650,7 +57751,7 @@ function renderFirmware() {
               // 3.08 V1046：安全更新带中性灰“安全更新”标签，悬停写发布说明
               !latest || !low
                 ? (pend.length ? btn(`等待 ${pend.length} 台回报`, "firmwareDetail", { id: pend[0].id }, "ghost flow-lk") : "已是最新") + wdLine
-                : `<span class="fw-new"${rel?.notes ? ` data-tip="${esc(rel.notes)}"` : ""}>${nwText(`有新版本 ${latest}`)}${rel?.security ? `<span class="chip fw-sec">安全更新</span>` : ""}</span><small class="flow-sub">${!signed ? `<span class="v13-warn">签名未验证</span>` : ready ? `${ready} 台可升级` : "可升级的设备离线"}</small>${wdLine}`,
+                : `<span class="fw-new"${rel?.notes ? ` data-tip="${esc(rel.notes)}"` : ""}>${nwText(`有新版本 ${latest}`)}${rel?.security ? `<span class="chip fw-sec">安全更新</span>` : ""}</span><small class="flow-sub">${!signed ? `<span class="v13-warn">签名未验证</span>` : ready ? `${ready} 台可升级` : busyT ? btn("升级任务进行中", "firmwareDetail", { id: busyT.id }, "ghost flow-lk") : "可升级的设备离线"}</small>${wdLine}`,
               up && canEdit() ? btn("升级", "fwUpgradeType", { type }, "ghost sm") : "",
             ];
           }),
@@ -57722,7 +57823,7 @@ function fwChecks(db, d, rel) {
     ["签名", !!rel?.signature?.verified, rel?.signature?.verified ? `已验证 · 签名方 ${rel.signature.signer || "PACOM"}` : "签名未验证，不能下发"],
     ["硬件与起始版本", !old.length, old.length ? `${old.length} 台低于起始版本 ${rel.fromVersion}，已排除` : rel ? `全部符合（${fwCondition(rel).replace(/<[^>]+>/g, "")}）` : "—"],
     ["离线设备", !off.length, off.length ? `${off.length} 台离线，已排除；上线后可再建任务` : "没有离线设备"],
-    ["信号弱", !weak.length, !tested.length ? "尚无网络检测结果" : weak.length ? `${weak.length} 台信号弱，可能需要多次重传` : "最近一次网络检测信号正常"],
+    ["信号", !weak.length, !tested.length ? "尚无网络检测结果" : weak.length ? `${weak.length} 台信号弱，可能需要多次重传` : "最近一次网络检测信号正常"],
     ["组成数据", true, "不改变组成数据，升级后不需要重新绑定"],
   ];
   return { rows, gate: !rel ? "" : gwBad.length ? "网关离线，不能下发" : !rel.signature?.verified ? "签名未验证，不能下发" : "" };
@@ -57774,7 +57875,8 @@ function fwImpactText(db, d, rel) {
     winOk = d.windowStart && d.windowEnd && d.windowStart !== d.windowEnd,
     hold = d.type === "lc" ? "有人的功能区延后" : "场景执行中的设备延后";
   return esc(
-    `将升级 ${n} 台${pilot ? `，先试点 ${pilot} 台` : ""}：${winOk ? `今晚 ${d.windowStart} 起传输，` : ""}${fwNightsText(fwNights(db, d.networkIds, n, d.id))}；全部验证后在 ${d.effStart}–${d.effEnd} 分批生效，${hold}。传输期间照明控制与上报变慢，网络检测与批量配置暂停；密钥更新暂停到全部生效。`,
+    // 3.10 V1069：先试点时写“试点 1 晚，观察 24 小时后其余约需 2 晚”，原只按台数估算、没算试点与观察
+    `将升级 ${n} 台${pilot ? `，先试点 ${pilot} 台` : ""}：${winOk ? `今晚 ${d.windowStart} 起传输，` : ""}${pilot ? `试点 1 晚，观察 24 小时后其余${((k) => (k ? `约需 ${k} 晚` : "按试点实测估算"))(fwNights(db, d.networkIds, n - pilot, d.id))}` : fwNightsText(fwNights(db, d.networkIds, n, d.id))}；全部验证后在 ${d.effStart}–${d.effEnd} 分批生效，${hold}。传输期间照明控制与上报变慢，网络检测与批量配置暂停；密钥更新暂停到全部生效。`,
   );
 }
 // 2.65 E858：项目不在中国标准时间时，在时间字段下写按哪个时区执行
@@ -57824,7 +57926,7 @@ function showFirmwareDetail(id) {
     live = ACTIVE_FW.includes(t.status),
     edit = canEdit();
   // 阶段条：试点中、试点失败按“传输中”一格显示；暂停按暂停前的阶段
-  const cur = { pilot: "running", pilotFailed: "running", paused: t.pausedAt || "running", withdrawn: t.stoppedAt || "running", cancelled: null }[t.status] ?? t.status,
+  const cur = { pilot: "running", pilotFailed: "running", paused: t.pausedAt === "pilot" ? "running" : t.pausedAt || "running", withdrawn: t.stoppedAt || "running", cancelled: null }[t.status] ?? t.status,
     ci = FW_STAGES.indexOf(cur),
     stages = t.status === "draft" || t.status === "cancelled" ? "" : `<ol class="fw-stages">${FW_STAGES.map((s, i) => `<li class="${i < ci || t.status === "completed" ? "done" : i === ci ? "on" : ""}">${FW_STATE[s]}</li>`).join("")}</ol>`;
   const pilotText = !t.pilot
@@ -57838,14 +57940,16 @@ function showFirmwareDetail(id) {
         ? btn("修改", "firmwareEdit", { id }, "primary")
         : ""
       : (live || t.status === "pilotFailed") && edit
-        ? btn("取消任务", "firmwareCancelAsk", { id }, "ghost") +
+        ? /* 3.10 V1074：“取消任务”红字放在底部最左，底部不放“关闭” */ btn("取消任务", "firmwareCancelAsk", { id }, "ghost danger") +
+          '<span class="sp"></span>' +
           // 2.65 E1006：开始前可以修改（没有草稿）
           (t.status === "queued" ? btn("修改", "firmwareEdit", { id }) : "") +
           // 3.08 V1045：机构管理员可跳过试点后的 24 小时观察
           (t.status === "pilot" && t.pilotState === "observe" && isAdmin() ? execBtn("跳过等待", "firmwareControl", { id, op: "skip" }, "admin", "") : "") +
           // 3.08 V1044：传输未完时可先让已验证的设备生效
-          (["running", "paused"].includes(t.status) && count("verified").length ? execBtn("先让已验证的生效", "firmwareControl", { id, op: "early" }, "config", "") : "") +
-          (["running", "paused", "queued"].includes(t.status) ? (t.status === "paused" ? execBtn("继续", "firmwareControl", { id, op: "resume" }, "config", "") : t.status === "running" ? execBtn("暂停", "firmwareControl", { id, op: "pause" }, "config", "") : "") : "") +
+          ((t.status === "running" || (t.status === "paused" && t.pausedAt !== "activating")) && count("verified").length ? execBtn("先让已验证的生效", "firmwareControl", { id, op: "early" }, "config", "") : "") +
+          // 3.10 E1186：自动暂停时为“暂停”（今晚不再自动继续），手动暂停后为“继续”
+          (t.status === "paused" && !t.autoPause ? execBtn("继续", "firmwareControl", { id, op: "resume" }, "config", "") : t.status === "running" || t.status === "paused" ? execBtn("暂停", "firmwareControl", { id, op: "pause" }, "config", "") : "") +
           (retry.length && t.status !== "pilotFailed" ? execBtn("重试失败的设备", "firmwareControl", { id, op: "retry" }, "config", "") : "")
         : retry.length && edit && !["cancelled", "withdrawn"].includes(t.status)
           ? execBtn("重试失败的设备", "firmwareControl", { id, op: "retry" })
@@ -57867,20 +57971,26 @@ function showFirmwareDetail(id) {
       ["试点", t.pilot && t.pilotIds?.length ? pilotText : esc(pilotText)],
       ...(t.status !== "draft" && t.at ? [["下发", esc([t.by, v13Date(t.at, true, g("networks", t.networkIds[0])?.projectId)].filter(Boolean).join(" · "))]] : []), // 2.65 E855
       ["状态", esc(fwStateText(t)) + (t.serviceReceiptId?.startsWith("demo-") ? " " + simTag() : "")],
-      ...(live ? [["预计", esc(fwNightsText(fwNights(db, t.networkIds, rs.length, t.id)))]] : []),
+      // 3.10 V1072：传输都完成后（生效中）写剩下的，如“等待无人 8 台，今晚 02:00 继续”，不再写传输的“约需 2 晚”
+      ...(live ? [["预计", esc(rs.some((r) => ["waiting", "downloading"].includes(r.status)) ? fwNightsText(fwNights(db, t.networkIds, rs.filter((r) => ["waiting", "downloading"].includes(r.status)).length, t.id)) : ((h, v) => [h ? `${t.type === "lc" ? "等待无人" : "等待场景结束"} ${h} 台` : "", v ? `待生效 ${v} 台` : ""].filter(Boolean).join("、") + (h || v ? (t.status === "paused" ? "" : `，今晚 ${t.effStart || "02:00"} 继续`) : "传输与生效已完成，等待核对"))(count("holdOcc").length + count("holdScene").length, count("verified").length))]] : []),
       // V1046：回读版本后自动核对配置，不一致的重新下发，再自动做一次网络检测
       ...(t.check ? [["升级后核对", esc(t.check)]] : []),
     ])}${notices}${/* 2.88 E1138：只有一个网络时不列汇总表 */ t.networkIds.length > 1 ? table(["设备网络", "#设备", "#已生效", "#未确认", "#失败"], byNet, "未选择设备网络。") : ""}${table(
       ["设备", "当前版本", "结果"],
       // 2.53 E505：失败、需人工安排、未确认的排在最前
-      [...rs].sort((a, b) => ["failed", "manual", "unconfirmed"].includes(b.status) - ["failed", "manual", "unconfirmed"].includes(a.status)).map((r) => [
+      // 3.10 V1071：失败在前，试点紧随其后，再按状态与编号排（原试点一台在第二行、一台在最后）
+      [...rs].sort((a, b) => {
+        const rk = (r) => (["failed", "manual", "unconfirmed"].includes(r.status) ? 0 : t.pilotIds?.includes(r.pointId) ? 1 : 2),
+          so = Object.keys(FW_RESULT);
+        return rk(a) - rk(b) || so.indexOf(a.status) - so.indexOf(b.status) || String(g("points", a.pointId)?.name || a.pointId).localeCompare(String(g("points", b.pointId)?.name || b.pointId), "zh-CN", { numeric: true });
+      }).map((r) => [
         esc(g("points", r.pointId)?.name || r.pointId),
         esc(r.version || g("points", r.pointId)?.firmwareVersion || "—"),
         esc(fwResultText(r)) + (t.pilotIds?.includes(r.pointId) ? `<small class="flow-sub">试点</small>` : ""),
       ]),
       t.status === "draft" ? "草稿尚未下发。" : "尚无逐台结果。",
     )}`,
-    acts ? btn("关闭", "close") + acts : "",
+    acts,
     true,
     acts ? {} : { footer: false },
   );
@@ -57888,7 +57998,7 @@ function showFirmwareDetail(id) {
 
 const numberField = (label, id, val, hint = "", unit = "") => fld(label, id, unit ? unitBox(input(id, val, "", "number"), unit) : input(id, val, "", "number"), hint);
 // 2.67 E1034：网络参数的单位放进输入框内，字段名不带单位（原为“占用刷新（秒）”等）
-const NP_UNITS = { npOccupancy: "秒", npRatio: "%", npLux: "秒", npClimate: "秒", npPressure: "秒", npController: "秒", npOther: "秒", npAq: "秒", npOffline: "分钟", npLuxChange: "%", npLuxAbsolute: "lx", npTemp: "℃", npHumidity: "%RH", npReach: "%", npLoad1: "条/秒", npLoad2: "条/秒", npGap: "米" };
+const NP_UNITS = { npOccupancy: "秒", npRatio: "%", npLux: "秒", npClimate: "秒", npPressure: "秒", npController: "秒", npAq: "秒", npOffline: "分钟", npLuxChange: "%", npLuxAbsolute: "lx", npTemp: "℃", npHumidity: "%RH", npReach: "%", npLoad1: "条/秒", npLoad2: "条/秒", npGap: "米" };
 function drawingBounds(a, b) {
   const end = { x: Math.max(0, Math.min(100, b.x)), y: Math.max(0, Math.min(100, b.y)) };
   if (U.zoneShape === "ellipse") {
@@ -57919,7 +58029,6 @@ const PARAM_LABELS = {
   "report.climate": "温湿度上报周期",
   "report.pressure": "气压上报周期",
   "report.controller": "LC20 状态上报周期",
-  "report.other": "FC20 状态上报周期",
   "report.aq": "AQ20 空气质量上报周期",
   "report.luxChange": "照度相对变化",
   "report.luxAbsolute": "照度绝对变化",
@@ -57983,7 +58092,7 @@ function startConnectionGesture(e, point, canvas) {
   document.addEventListener("pointerup", up, { once: true });
 }
 // 2.88 E1133：网络参数表的数据项、上报周期与变化阈值的可调范围（保存时按此核对）
-const NP_RANGES = { npLux: [30, 3600], npClimate: [60, 3600], npPressure: [300, 3600], npController: [60, 3600], npOther: [60, 3600], npAq: [30, 600], npLuxChange: [5, 50], npLuxAbsolute: [5, 100], npTemp: [0.2, 2], npHumidity: [2, 10] };
+const NP_RANGES = { npLux: [30, 3600], npClimate: [60, 3600], npPressure: [300, 3600], npController: [60, 3600], npAq: [30, 600], npLuxChange: [5, 50], npLuxAbsolute: [5, 100], npTemp: [0.2, 2], npHumidity: [2, 10] };
 const NP_ROWS = [
   ["占用", "npOccupancy", "occupancy", []],
   ["照度", "npLux", "lux", [["npLuxChange", "luxChange", "相对变化"], ["npLuxAbsolute", "luxAbsolute", "绝对变化"]]],
@@ -58049,7 +58158,6 @@ const NP_FIELDS = {
   npClimate: ["report.climate"],
   npPressure: ["report.pressure"],
   npController: ["report.controller"],
-  npOther: ["report.other"],
   npAq: ["report.aq"],
   npOffline: ["offlineMinutes"],
   npLuxChange: ["report.luxChange"],
@@ -59070,12 +59178,7 @@ defineActions({
     if (U.type && U.type === a.type) return actions.stopMarking();
     U.type = a.type;
     U.point = null;
-    U.accessMode = a.type === "aq" ? U.accessMode || "mesh" : null;
-    render();
-  },
-  // 2.65 E746：AQ20 接入方式为类型列表 AQ20 下的分段“Mesh | RS-485”，默认 Mesh，不弹窗
-  aqAccess: (a) => {
-    U.accessMode = a.value;
+    U.accessMode = null; // 3.10：AQ20 第一版只有 Mesh 版，不再选接入方式
     render();
   },
 
@@ -59520,7 +59623,7 @@ defineActions({
     await transaction((db) => {
       const t = M.get(db, "firmwareTasks", a.id);
       // 3.08 V1044：暂停记下暂停前的阶段，继续时回到该阶段；V1045：机构管理员跳过试点后的观察；“先让已验证的生效”
-      if (a.op === "pause") Object.assign(t, { pausedAt: ["pilot", "running"].includes(t.status) ? t.status : "running", status: "paused", autoPause: false });
+      if (a.op === "pause") Object.assign(t, { pausedAt: t.status === "paused" ? t.pausedAt || "running" : ["pilot", "running"].includes(t.status) ? t.status : "running", status: "paused", autoPause: false });
       if (a.op === "resume") t.status = t.pausedAt || "queued";
       if (a.op === "skip") Object.assign(t, { pilotState: "passed", status: "running", pilotLeft: null });
       if (a.op === "early") t.early = true;
@@ -59975,7 +60078,42 @@ const mkSyncBadge = (p) => {
   return MK_SYNC.includes(st) ? stateBadge(st === "不一致" ? "配置不一致" : st) : "";
 };
 // 2.65 E742：只有用到功能区的设备有“功能区”字段：LC20、MS20、FC20、AQ20、多联机内机、所接负载为分体空调的电能表
-const mkUsesZone = (p) => ["lc", "ms", "fc", "aq", "idu"].includes(p.type) || (p.type === "meter" && p.load === "分体空调");
+const mkUsesZone = (p) => ["lc", "ms", "fc", "aq", "idu", "ls", "tp"].includes(p.type) || (p.type === "meter" && p.load === "分体空调");
+// 3.10 P9、P11：LS 选接收的照明控制器（默认同一功能区里最近的 LC20）、型号与每个按键的动作；TP 选显示范围（默认所在功能区，可多选本网络服务楼层的功能区或整层）
+function mkLsTpFields(p, n) {
+  const db = data();
+  if (p.type === "ls") {
+    const lcs = db.points.filter((x) => x.type === "lc" && x.floorId === p.floorId).sort(M.byName),
+      rx = M.lsReceiver(db, p);
+    return sec(
+      "开关设置",
+      "",
+      fld("接收的照明控制器", "pe-rxId", peSelect("pe-rxId", [["", lcs.length ? "请选择" : "本层没有照明控制器"], ...lcs.map((x) => [x.id, x.name])], rx?.id || "", "接收的照明控制器")) +
+        fld("型号", "pe-lsModel", peSelect("pe-lsModel", M.LS_MODELS.map(([m, k]) => [m, `${m} · ${k} 键`]), p.lsModel || "LS21", "型号")) +
+        M.lsKeys(p).map((k, i) => fld(`按键 ${i + 1}`, `pe-lsKey${i}`, peSelect(`pe-lsKey${i}`, M.LS_ACTIONS, k, `按键 ${i + 1}`))).join("") +
+        `<p class="mk-lead">${esc(F.bindingLabel(p))} · 按键信号由照明控制器接收，不经网关，断网照样可用</p>`,
+    );
+  }
+  if (p.type !== "tp") return "";
+  const gw = n && db.points.find((x) => x.type === "gw" && x.networkId === n.id),
+    floors = (n?.floorIds || [p.floorId]).map((id) => g("floors", id)).filter(Boolean).sort(M.byHeight),
+    sc = p.tpScope || { floors: [], zones: p.zoneId ? [p.zoneId] : [p.floorId] },
+    box = (id, on, label, off = false) => `<label class="chk"><input type="checkbox" id="pe-${id}"${on ? " checked" : ""}${off || !canEdit() ? " disabled" : ""}> ${esc(label)}</label>`;
+  return sec(
+    "面板设置",
+    "",
+    `<div class="field"><label>显示范围</label><div class="mk-scope">${floors
+      .map((f) => {
+        const whole = sc.floors.includes(f.id) || sc.zones.includes(f.id);
+        return `<div class="mk-scope-f">${box("tpScopeF-" + f.id, whole, `整层 · ${floorText(f.id)}`)}${db.zones
+          .filter((z) => z.floorId === f.id)
+          .sort(M.byName)
+          .map((z) => box("tpScopeZ-" + z.id, whole || sc.zones.includes(z.id), z.name, whole))
+          .join("")}</div>`;
+      })
+      .join("")}</div></div>` + `<p class="mk-lead">绑定到 ${esc(gw?.name || "本网络的网关（尚未标记）")} · 以太网或 Wi-Fi，经网关本地控制，断网照样可用</p>`,
+  );
+}
 function mkNameZone(p) {
   if (!mkUsesZone(p)) return `<div class="mk-1col">${fld("点位名称", "pe-name", peInput("name", p.name))}</div>`;
   const zones = data()
@@ -60074,11 +60212,12 @@ function lcMeters(p) {
 }
 function driverFields(p) {
   if (!canEdit())
-    return `${roRow("控制类型", (p.ctrl || "dim") === "switch" ? "开关" : "0–10 V 调光")}${fld("驱动型号", "pe-driverModel", peSelect("pe-driverModel", [["", "未选择"], ...M.DRIVERS.map((d) => [d.model, `${d.model} · ${d.watts} W`]), ["other", "其他（待兼容测试）"]], p.driverModel || "", "驱动型号"))}${roRow("驱动台数", p.drivers)}${roRow("每台灯具功率（W）", p.fixtureWatts)}<div class="mk-meters" data-meters="${p.id}">${lcMeters(p)}</div>`;
+    return `${roRow("控制类型", M.ctrlText(p.ctrl))}${fld("驱动型号", "pe-driverModel", peSelect("pe-driverModel", [["", "未选择"], ...M.driversFor(p.ctrl).map((d) => [d.model, `${d.model} · ${d.watts} W`]), ["other", "其他（待兼容测试）"]], p.driverModel || "", "驱动型号"))}${roRow("驱动台数", p.drivers)}${roRow("每台灯具功率（W）", p.fixtureWatts)}<div class="mk-meters" data-meters="${p.id}">${lcMeters(p)}</div>`;
   // 分段选择用紧凑页签（.seg.sm：32 高的轨道、26 高的选中块、14 号字，触屏不放大）（全面设计核查第 147 条（2026-10-12 用户确认）；原为 28 高、13 号字的 .mk-seg）
   // 2.65 E757：分段上方写标签“控制类型”（与类型、原厂限温等同一样式）
   return `<div class="field mk-hvac"><span class="mk-hvac-label" id="pe-ctrl-label">控制类型</span><div class="seg sm mk-opt" role="radiogroup" aria-labelledby="pe-ctrl-label">${[
     ["dim", "0–10 V 调光"],
+    ["dim1", "1–10 V 调光"],
     ["switch", "开关"],
   ]
     .map(
@@ -60090,7 +60229,7 @@ function driverFields(p) {
     "pe-driverModel",
     peSelect(
       "pe-driverModel",
-      [["", "请选择"], ...M.DRIVERS.map((d) => [d.model, `${d.model} · ${d.watts} W`]), ["other", "其他（待兼容测试）"]],
+      [["", "请选择"], ...M.driversFor(p.ctrl).map((d) => [d.model, `${d.model} · ${d.watts} W`]), ["other", "其他（待兼容测试）"]],
       p.driverModel || "",
       "驱动型号",
     ),
@@ -60390,18 +60529,8 @@ function markingPalette() {
   return `<div class="ws-palette mark-palette">${Object.entries(M.catalog)
     .map(([k, t]) => {
       const off = k === "gw" && gw;
-      return `<button draggable="${off ? "false" : "true"}" data-dragtype="${k}" data-act="type" data-type="${k}" aria-pressed="${U.type === k}" class="pt-${PT_FAMILY[k] || "infra"}${U.type === k ? " on" : ""}"${off ? ` aria-disabled="true" data-tip="${esc(`${zhSub(n.name, "r")}已有网关${zhSub(gw.name, "l")}`)}"` : ""}>${ico(t.icon)}<span>${t.name}<small>${off ? "本网络已有网关" : (t.model || "系统接入") + (k === "aq" ? " · Mesh / RS-485" : "")}</small></span></button>${k === "aq" && U.type === "aq" ? mkAqSeg() : ""}`;
+      return `<button draggable="${off ? "false" : "true"}" data-dragtype="${k}" data-act="type" data-type="${k}" aria-pressed="${U.type === k}" class="pt-${PT_FAMILY[k] || "infra"}${U.type === k ? " on" : ""}"${off ? ` aria-disabled="true" data-tip="${esc(`${zhSub(n.name, "r")}已有网关${zhSub(gw.name, "l")}`)}"` : ""}>${ico(t.icon)}<span>${t.name}<small>${off ? "本网络已有网关" : (t.model || "系统接入")}</small></span></button>`;
     })
-    .join("")}</div>`;
-}
-// 2.65 E746：选中 AQ20 后在其下方选接入方式“Mesh | RS-485”，默认 Mesh（原为弹窗）
-function mkAqSeg() {
-  const cur = U.accessMode || "mesh";
-  return `<div class="seg sm mk-opt mk-aq-seg" role="radiogroup" aria-label="AQ20 接入方式">${[
-    ["mesh", "Mesh"],
-    ["system", "RS-485"],
-  ]
-    .map(([v, l]) => `<button type="button" role="radio" tabindex="${cur === v ? 0 : -1}" aria-checked="${cur === v}" class="${cur === v ? "on" : ""}" data-act="aqAccess" data-value="${v}">${l}</button>`)
     .join("")}</div>`;
 }
 function renderContinuousMarking(n) {
@@ -60809,7 +60938,27 @@ function commitField(el, quiet) {
         else if (field === "powerId") Object.assign(p, { powerId: raw || null, powerSuggested: false });
         else if (field === "relay" || field === "proxy") p[field] = raw;
         else if (field === "connectionId") p.connectionId = raw || null;
-        else if (field === "aqPos" || field === "aqRep") {
+        else if (field === "rxId") {
+          if (raw && !db.points.some((x) => x.id === raw && x.type === "lc" && x.floorId === p.floorId)) throw Error("请选择本层的照明控制器");
+          p.rxId = raw || null;
+        } else if (field === "lsModel") {
+          if (!M.LS_MODELS.some(([m]) => m === raw)) throw Error("取值无效");
+          p.lsKeys = M.lsKeys({ ...p, lsModel: raw });
+          p.lsModel = raw;
+        } else if (/^lsKey\d$/.test(field)) {
+          if (!M.LS_ACTIONS.some(([v]) => v === raw)) throw Error("取值无效");
+          p.lsKeys = M.lsKeys(p);
+          p.lsKeys[+field.slice(5)] = raw;
+        } else if (/^tpScope[FZ]-/.test(field)) {
+          const sc = p.tpScope || { floors: [], zones: p.zoneId ? [p.zoneId] : [p.floorId] },
+            id = field.slice(9),
+            key = field[7] === "F" ? "floors" : "zones";
+          // 整层与所在楼层的功能区互斥：勾整层时去掉该层已勾的功能区
+          sc[key] = raw ? [...new Set([...sc[key], id])] : sc[key].filter((x) => x !== id);
+          if (key === "floors") sc.zones = sc.zones.filter((z) => z !== id && (!raw || db.zones.find((x) => x.id === z)?.floorId !== id));
+          if (!sc.floors.length && !sc.zones.length) throw Error("显示范围至少选一个功能区或整层");
+          p.tpScope = sc;
+        } else if (field === "aqPos" || field === "aqRep") {
           if (raw && !(field === "aqPos" ? F.AQ_POS : F.AQ_REP).some(([v]) => v === raw)) throw Error("取值无效");
           p[field] = raw || null;
         }
@@ -62269,7 +62418,7 @@ const anIcon = (k) => (AN_ICONS[k] ? `<span class="an4-ci" style="color:${AN_ICO
 function anMainCard(tab, blocks, chart, { def, fixed = false, foot = "", note = "", ins = "", lower = "" } = {}) {
   const sel = fixed ? "" : anPickOf(tab, blocks, def),
     blk = (b) => {
-      const inner = `<span class="an4-ch"><span class="an-blk-l">${b.label}</span>${anIcon(b.k)}</span><span class="an4-cb"><span class="an-blk-v">${b.value}</span>${b.sub ? `<span class="an-blk-s">${anSubWrap(b.sub)}</span>` : ""}</span>`;
+      const inner = `<span class="an4-ch"><span class="an-blk-l">${b.label}</span>${tab === "environment" ? "" : anIcon(b.k) /* 3.10 V1058：室内环境五张卡都不放图标（原 CO₂、PM2.5、温度有、空气质量与湿度没有） */}</span><span class="an4-cb"><span class="an-blk-v">${b.value}</span>${b.sub ? `<span class="an-blk-s">${anSubWrap(b.sub)}</span>` : ""}</span>`;
       if (fixed || b.off || b.still) return `<div class="an-blk${b.off ? " off" : ""}${b.still ? " still" : ""}${b.later ? " later" : ""}">${inner}</div>`;
       // 整卡按钮与名称旁的 ⓘ 互为兄弟，不把按钮嵌在按钮里
       return `<div class="an-blk${b.k === sel ? " on" : ""}"><button type="button" class="an-blk-btn" aria-pressed="${b.k === sel}" aria-label="${esc(opsPlain(b.label))}" data-act="anPick" data-tab="${esc(tab)}" data-k="${esc(b.k)}"></button>${inner}</div>`;
@@ -62621,12 +62770,12 @@ function hvcPlanRows(hv) {
     swap = !off && ["cool", "heat"].includes(hv.mode),
     odus = swap ? [...new Map(idu.map((p) => hvacOdu(db, p)).filter((o) => o && hvacVrfSpec(o).kind === "heatpump").map((o) => [o.id, o])).values()] : [],
     pts = off
-      ? [fc.length && "风机盘管开关机", idu.length && "多联机内机开关机（经空调网关，关机立即发送）"]
+      ? [fc.length && "风机盘管开关机", idu.length && "多联机内机开关机（经多联式空调网关，关机立即发送）"]
       : [
           fc.length && `风机盘管设定温度（${rt(fc)}）`,
-          idu.length && `多联机内机设定温度（经空调网关，${rt(idu)}；每点每天 ≤ ${fmt(lim)} 次）`,
+          idu.length && `多联机内机设定温度（经多联式空调网关，${rt(idu)}；每点每天 ≤ ${fmt(lim)} 次）`,
           fc.length && "风机盘管运行模式",
-          idu.length && (odus.length ? "多联机外机运行模式（经空调网关）" : "多联机内机运行模式（经空调网关）"),
+          idu.length && (odus.length ? "多联机外机运行模式（经多联式空调网关）" : "多联机内机运行模式（经多联式空调网关）"),
         ];
   return [
     ["可写数据点", pts.filter(Boolean).join("；")],
@@ -63012,6 +63161,9 @@ const RULE_METRICS = {
     ["CO₂", "ppm", ["Q-02", "Q-14"]],
     ["PM2.5", "μg/m³", ["Q-04", "Q-14"]],
     ["PM10", "μg/m³", ["Q-18", "Q-14"]],
+    // 3.10 E1181：VOC 指数、NOx 指数按 Q-05、Q-06（参考阈值，按现场标定调整），没有单位
+    ["VOC 指数", "", ["Q-05"]],
+    ["NOx 指数", "", ["Q-06"]],
     ["室温偏离设定", "K", ["H-17", "Q-14"]],
     ["相对湿度", "%", ["H-19", "Q-14"]],
   ],
@@ -63113,6 +63265,12 @@ function ruleCond(v) {
       pct = envNum(q14?.cond, /低于阈值\s*(\d+(?:\.\d+)?)\s*%/) ?? 90,
       out = envNum(q14?.cond, /%\s*持续\s*(\d+)\s*min\s*退出/) ?? 15;
     return `24 小时均值 > ${ruleNum(th)} μg/m³ 持续 ${+v.holdMin || hold} 分钟；< ${ruleNum((th * pct) / 100)} μg/m³ 持续 ${out} 分钟解除`;
+  }
+  if (m[0] === "VOC 指数" || m[0] === "NOx 指数") {
+    const s0 = ps[0].s,
+      a = /> ([\d,]+)[^；]*?持续 (\d+) min 告警/.exec(s0?.value || ""),
+      b = /[≤<] ([\d,]+) 持续 (\d+) min 解除/.exec(s0?.cond || "");
+    return `> ${a ? a[1] : m[0] === "VOC 指数" ? 150 : 20} 持续 ${+v.holdMin || (a ? +a[2] : 30)} 分钟；${b ? (/^</.test(b[0]) ? "<" : "≤") : "≤"} ${b ? b[1] : a ? a[1] : 150} 持续 ${b ? b[2] : 30} 分钟解除`;
   }
   const main = ps[0].s;
   if (m[0] === RULE_NIGHT_METRIC) {
@@ -63360,7 +63518,9 @@ function ruleFieldsHtml(type, metric, v = {}, pid = "") {
     itemOf = (x) =>
       x.code === "Q-02"
         ? { name: "CO₂ 参考范围", value: `≤ ${ruleNum(envNum(x.s.value, ENV_CO2_RE) ?? 1000)} ppm` }
-        : x.code === "E-19" && nightVal
+        : x.code === "Q-05" || x.code === "Q-06"
+          ? { name: x.s.t.item, value: `> ${/> ([\d,]+)/.exec(x.s.value || "")?.[1] ?? (x.code === "Q-05" ? 150 : 20)} · 参考阈值，按现场标定调整` }
+          : x.code === "E-19" && nightVal
           ? { name: "夜间无人时照明功率", value: `${nightVal[1]} 倍且高出 ${nightVal[2]} W` }
           : { name: x.s.t.item, value: zhUnit(ruleStrip(x.s.value)) },
     items = ps.length
@@ -65501,7 +65661,6 @@ const CONN_FAIL_HELP = {
   校验错误: ["收到的应答校验不通过，多为总线干扰或波特率、校验位不一致。", ["核对通信参数与设备设置一致", "检查屏蔽层单端接地、总线远离动力线"]],
   寄存器地址无效: ["设备返回“非法数据地址”，所读寄存器不存在。", ["按设备点表核对寄存器地址与寄存器类型", "注意点表地址从 0 还是从 1 开始"]],
   网关离线: ["采集所在的网关离线，本连接的数据点都无法读取。", ["查看网关的网络与电源", "网关恢复后自动继续采集"]],
-  串口未接通: ["网关的串口没有检测到总线。", ["检查接口与接线是否插好、接口编号是否与连接一致"]],
   设备未响应: ["BACnet 设备在超时内没有应答。", ["核对设备实例号与网段", "确认设备在线"]],
   对象不存在: ["设备上没有所读的对象。", ["按设备点表核对对象类型与编号"]],
   认证失败: ["接口拒绝了登记的凭证。", ["在“编辑连接”中更换凭证"]],
@@ -66202,7 +66361,7 @@ defineActions({
             hit = src && sys.find((p) => p.type === src.type && p.name === rename(src.name));
           return hit ? { ...rest, pointId: hit.id } : src || m.pendingDevice ? { ...rest, pendingDevice: true } : rest;
         });
-        const nc = { id: M.uid("connection"), projectId: c.projectId, name, protocol: c.protocol, endpoint: c.endpoint || "", params: M.copy(c.params || {}), collect: c.collect ? { ...M.copy(c.collect), ...(c.collect.at === "gateway" ? { gatewayId: t.gw.id } : {}) } : null, writeLimit: c.writeLimit ?? null, credential: null, floorIds: [t.f.id], mappings, version: 1, status: "pending", copiedFrom: c.id };
+        const nc = { id: M.uid("connection"), projectId: c.projectId, name, protocol: c.protocol, endpoint: c.endpoint || "", params: M.copy(c.params || {}), collect: c.collect ? { ...M.copy(c.collect), ...(c.collect.at === "gateway" ? { gatewayId: t.gw.id } : {}), ...(c.collect.via ? { via: rename(c.collect.via) } : {}) } : null, writeLimit: c.writeLimit ?? null, credential: null, floorIds: [t.f.id], mappings, version: 1, status: "pending", copiedFrom: c.id };
         db.connections.push(nc);
         M.record(db, "复制系统连接", nc.id, `${c.name} → ${name}`);
       }
@@ -66455,7 +66614,7 @@ defineActions({
       `<p class="muted">${esc(c.name)} · ${esc(m.key)} · ${esc(m.name)}${last ? ` · 上次换表 ${esc(meterTime(last.at))}` : ""}</p>` +
         `<div class="ws-form-row">${fld("换表时间", "mcAt", input("mcAt", "", "", "datetime-local"), "中国标准时间（UTC+08:00）")}${fld("新表倍率", "mcScale", input("mcScale", m.scale ?? 1, "", "number"), "原始值乘以的系数，含 CT/PT 变比")}</div>` +
         `<div class="ws-form-row">${fld("旧表止码", "mcOld", unitBox(input("mcOld", "", "拆表时的读数", "number"), "kWh"))}${fld("新表起码", "mcNew", unitBox(input("mcNew", "", "装表时的读数", "number"), "kWh"))}</div>` +
-        fld("新表地址（选填）", "mcAddr", input("mcAddr", "", MAP_ADDR[c.protocol] === "dlt" ? "12 位数字" : MAP_ADDR[c.protocol] === "modbus" ? "从站地址 1–247" : "地址未变时留空"), "地址未变时留空"),
+        fld("新表地址（选填）", "mcAddr", input("mcAddr", "", MAP_ADDR[c.protocol] === "modbus" ? "从站地址 1–247" : "地址未变时留空"), "地址未变时留空"),
       btn("取消", "close") + btn("保存", "saveMeterChange", {}, "primary"),
     );
   },
@@ -66483,7 +66642,6 @@ defineActions({
     if (!(newScale > 0)) throw fieldErr("mcScale", "新表倍率请填大于 0 的数");
     const kind = MAP_ADDR[c.protocol];
     if (addr && kind === "modbus" && !(Number.isInteger(Number(addr)) && Number(addr) >= 1 && Number(addr) <= 247)) throw fieldErr("mcAddr", "从站地址请输入 1–247 的整数");
-    if (addr && kind === "dlt" && !/^\d{12}$/.test(addr)) throw fieldErr("mcAddr", "表地址请输入 12 位数字（表计铭牌上的通信地址）");
     const by = configBy() || "未记录",
       text = `换表时间 ${meterTime(at)}；旧表止码 ${mfmt(oldFinal)} kWh，新表起码 ${mfmt(newInitial)} kWh，新表倍率 ${mfmt(newScale)}${addr ? `，新表地址 ${addr}` : ""}`;
     await transaction((db) => {
@@ -67672,7 +67830,7 @@ const V13_TPL = [
     "§6.2",
     "风机盘管待机",
     "无人 15 min：供冷 +2 K / 供热 −2 K，风速锁低",
-    "有人连续 1 min 恢复舒适设定；占用数据缺失不算无人",
+    "有人连续 1 min 恢复舒适设定；占用数据缺失不算无人，断网收不到占用 15 min 后按本机保存的工作时间判断（工作时间内有人、外无人）",
     "",
     "设备本地",
     { more: "只用于风机盘管；豁免空间不做", when: (P) => P.tempBasis !== "exempt" || "豁免项目不做待机、节能" },
@@ -67683,7 +67841,7 @@ const V13_TPL = [
     "§6.2",
     "风机盘管节能",
     "无人 60 min：供冷 30 / 供热 15 ℃；室温在范围内风机停、阀关，越限时低速运行；防冻有效",
-    "占用数据缺失时回到舒适",
+    "占用数据缺失时回到舒适；断网收不到占用 15 min 后按本机保存的工作时间判断",
     "",
     "设备本地",
     { more: "只用于风机盘管；豁免空间不做", when: (P) => P.tempBasis !== "exempt" || "豁免项目不做待机、节能" },
@@ -67770,7 +67928,7 @@ const V13_TPL = [
     {
       fw: "无人 60 分钟关机，人工开机后重新计时",
       d: "w",
-      dev: "空调网关 VG2x",
+      dev: "多联式空调网关 VG20",
       devTypes: ["vg"],
       when: (P, db, pid) => v13HasVrf(db, pid) || "项目没有多联机",
     },
@@ -67792,6 +67950,17 @@ const V13_TPL = [
       devTypes: [],
       when: (P, db, pid) => v13HasVrf(db, pid) || "项目没有多联机",
     },
+  ],
+  [
+    "H-31",
+    "暖通空调",
+    "§7.1",
+    "FC20 状态上报周期",
+    "300 s",
+    "FC20 经 4G 直连平台，按此周期上报运行状态与室温；离线按 3 个周期且不少于 20 min 判定",
+    "",
+    "平台",
+    { fw: "按周期上报运行状态与室温", d: "w", dev: "FC20", devTypes: ["fc"] },
   ],
   [
     "E-01",
@@ -67834,9 +68003,9 @@ const V13_TPL = [
     "能耗",
     "§10",
     "规约与串口",
-    "DL/T 645 2400 bps 8E1 · Modbus RTU 9600 bps 8N1",
-    // 表计参数只在系统接入的数据映射登记（2026-10-09 用户确认，ABB 对比 BP117 方案A：原先写“表地址与 CT/PT 变比在设备库登记”）
-    "逐表可改；表地址、倍率（含 CT/PT）、额定功率与起始底数在系统接入的数据映射登记",
+    "在电能表通讯管理机上设置",
+    // 3.10 P3：EG20 没有 RS-485，规约与串口参数在通讯管理机上设置；平台只在系统接入的数据映射登记倍率、额定功率与起始底数
+    "平台不登记；倍率（含 CT/PT）、额定功率与起始底数在系统接入的数据映射登记",
     "DL/T 645-2007",
     "网关",
     {},
@@ -68037,7 +68206,7 @@ const V13_TPL = [
     "§13.1",
     "PM10 分档",
     "优 ≤ 45 / 良 ≤ 75 / 一般 ≤ 100 / 差 > 100 μg/m³",
-    "24 h 滚动均值；当前值为 1 h 均值，同阈值着色；24 h 均值 > 100 μg/m³ 告警，进入与退出按 Q-14 · 级别提示",
+    "24 h 滚动均值；当前值为 1 h 均值，同阈值着色；24 h 均值超过“一般”的上限（参考范围）告警，进入与退出按 Q-14 · 级别提示",
     "GB/T 18883-2022 ≤ 100 μg/m³（24 h）",
     "云端",
     {},
@@ -68086,7 +68255,7 @@ const V13_TPL = [
     "室内环境",
     "§14",
     "读数有效",
-    "温度、湿度、CO₂、PM2.5 连续 24 h 读数完全相同，或超出该型号量程（温度 −10–60 ℃、湿度 0–100 %、CO₂ 0–5,000 ppm、PM2.5 与 PM10 0–1,000 μg/m³），标无效 · 级别提示",
+    "温度、湿度、CO₂、PM2.5、PM10 连续 24 h 读数完全相同，或超出该型号量程（温度 −10–60 ℃、湿度 0–100 %、CO₂ 0–5,000 ppm、PM2.5 与 PM10 0–1,000 μg/m³），标无效 · 级别提示",
     "占用传感器连续 72 h 一直有人，或连续 3 个工作日没有一次有人，标无效；无效期间该读数不参与告警判定、统计与控制，功能区写“数据缺失”；读数变化或回到量程内即恢复",
     "",
     "云端",
@@ -68790,6 +68959,12 @@ const V13_EDIT = {
     fields: () => [{ k: "lock", label: "面板锁", wide: true, options: v13Lock.map((x) => [x, x]) }],
     read: (v) => [v13LockOf(v)],
     write: ([x]) => x,
+  },
+  // 3.10 E1191：FC20 状态上报周期（原为网络参数）
+  "H-31": {
+    fields: () => [v13F("s", "上报周期", "s", 60, 3600, 60)],
+    read: v13Re(/^([\d,]+) s/),
+    write: ([n]) => `${v13N(n)} s`,
   },
   "H-29": {
     fields: () => [{ k: "min", label: "无人后关机", options: [30, 60, 90, 120].map((m) => [m, `${m} min`]) }], // 2.65 E901
@@ -71421,7 +71596,7 @@ function setParamRow(ctx, code, o = {}) {
     sub = s.editable && s.adminOnly && !v13CanApprove() && v13CanProject() ? `<small class="set-sub">由机构管理员修改</small>` : "",
     pend = ctx.pend.has(s.r.id) ? " " + badge("待下发", "warn") : "",
     of = (x) => (typeof x === "function" ? x(String(s.value ?? "")) : x),
-    val = typeof o.value === "function" ? nwSeps(zhUnit(of(o.value)), true) : o.value ?? nwSeps(zhUnit(s.value), true),
+    val = typeof o.value === "function" ? (o.lines ? of(o.value).split(" · ").map((x) => nwSeps(zhUnit(x), true)).join("<br>") : nwSeps(zhUnit(of(o.value)), true)) : o.value ?? nwSeps(zhUnit(s.value), true),
     desc = of(o.desc),
     info = of(o.info);
   // 2.53 E519：弹窗标题为“按钮文字 + 行名”（如“修改可调范围”“修改 CO₂ 参考范围”），o.title 可另给
@@ -71584,7 +71759,7 @@ function setParamParts(ctx, code, o = {}) {
     sub = s.editable && s.adminOnly && !v13CanApprove() && v13CanProject() ? `<small class="set-sub">由机构管理员修改</small>` : "",
     pend = ctx.pend.has(s.r.id) ? " " + badge("待下发", "warn") : "",
     of = (x) => (typeof x === "function" ? x(String(s.value ?? "")) : x),
-    val = typeof o.value === "function" ? nwSeps(zhUnit(of(o.value)), true) : o.value ?? nwSeps(zhUnit(s.value), true),
+    val = typeof o.value === "function" ? (o.lines ? of(o.value).split(" · ").map((x) => nwSeps(zhUnit(x), true)).join("<br>") : nwSeps(zhUnit(of(o.value)), true)) : o.value ?? nwSeps(zhUnit(s.value), true),
     desc = of(o.desc),
     info = of(o.info),
     nm = o.name || s.t.item,
@@ -71781,10 +71956,11 @@ function setEnv(ctx) {
     setParamParts(ctx, "Q-03", { name: "PM2.5", title: "修改 PM2.5 参考范围", value: () => `≤ ${pm} μg/m³`, desc: "24 小时均值 · 优 ≤ 15 · 良 ≤ 25" }),
     // 3.06 V1050：加 PM10 一格（值为“一般”的上限），与告警规则的 PM10 同一版
     setParamParts(ctx, "Q-18", { name: "PM10", title: "修改 PM10 参考范围", value: () => `≤ ${pm10} μg/m³`, desc: "24 小时均值 · 优 ≤ 45 · 良 ≤ 75" }),
-    setParamParts(ctx, "Q-16", { name: "室温", title: "修改室温参考范围", value: (v) => setSeasons(v, ctx.P) }),
-    setParamParts(ctx, "H-19", { name: "湿度", title: "修改湿度参考范围", value: (v) => setSeasons(v, ctx.P) }),
+    setParamParts(ctx, "Q-16", { name: "室温", title: "修改室温参考范围", value: (v) => setSeasons(v, ctx.P), lines: true }),
+    setParamParts(ctx, "H-19", { name: "湿度", title: "修改湿度参考范围", value: (v) => setSeasons(v, ctx.P), lines: true }),
   ]);
-  return setCard("参考范围", setGrid(ps.map((p) => p.cell)), { info: "只能改严", edits: setEdits(ps) });
+  // 3.10 E1177：3 列，第一行 CO₂、PM2.5、PM10，第二行室温、湿度；室温、湿度每个季节一行（原 4 列，湿度单独掉到第二行）
+  return setCard("参考范围", setGrid(ps.map((p) => p.cell), "c3"), { info: "只能改严", edits: setEdits(ps) });
 }
 /* 能源（E1172）：能耗、碳排放两张卡；未设置的项（计量边界、电费账单、年度用电目标、核算边界）格子写“未设置”，标题行“设置”；
    开关和下拉框（自备电源、折标系数、节能基线、核算用途、核算口径）仍在格子里，改了即生效；“已保存版本”在修改记录中 */
@@ -72486,7 +72662,7 @@ const DemoService = (() => {
         // 网关离线前已离线的设备仍为离线（与设备列表相同），其余状态未知
         unknown: ctl.gwOffline && !offline(p) && p.type !== "gw" && p.type !== "meter",
         offlineMin: offline(p) ? minutesAgo(Date.parse(p.telemetry.offlineSince)) : null,
-        // 经空调网关或第三方系统接入的设备按名称取值（示例每次生成的设备编号不同）
+        // 经多联式空调网关或第三方系统接入的设备按名称取值（示例每次生成的设备编号不同）
         age: offline(p)
           ? minutesAgo(lastDataAt(p))
           : ["idu", "odu", "vg", "meter"].includes(p.type)
@@ -73720,7 +73896,38 @@ const DemoService = (() => {
     }
     return null;
   }
+  /* 3.10 V1068：示例运行数据只有 E栋 7F 一层。目录“分级对比”给 F栋 5F 记上 demoTwin，只在数据分析页算作接入运行数据，
+     数值按 E栋 7F 折算（用电 × 0.74，达标时间与有人时间加减固定量，日均值乘固定系数），用来看按楼宇、按楼层与勾选对比 */
+  const twin = () => (on() && typeof U !== "undefined" && U.page === "analysis" ? data().floors.find((f) => f.demoTwin)?.id || null : null);
+  const TWIN = { e: 0.74, prev: 0.7, n: 18, measured: 16, occ: -9, env: { co2: 4.6, pm: -2.1, temp: 3.3 }, day: { co2: 0.92, pm25: 1.12, temp: 1.02 } };
+  const pct100 = (v) => (v == null ? null : Math.max(0, Math.min(100, v)));
+  const wavg = (a, na, b, nb) => (a == null ? b : b == null ? a : (a * na + b * nb) / (na + nb));
+  function twinStat(kind, b, mine) {
+    if (!b) return b;
+    if (kind === "energy") {
+      const t = { kwh: b.kwh * TWIN.e, prev: b.prev == null ? null : b.prev * TWIN.prev, partial: b.partial };
+      return mine ? { kwh: b.kwh + t.kwh, prev: b.prev == null ? null : b.prev + t.prev, partial: b.partial } : t;
+    }
+    if (kind === "env") {
+      const need = Math.max(0, Math.round(b.need * 0.6)),
+        t = { n: TWIN.n, need, ratio: need / TWIN.n, co2: pct100(b.co2 == null ? null : b.co2 + TWIN.env.co2), pm: pct100(b.pm == null ? null : b.pm + TWIN.env.pm), temp: pct100(b.temp == null ? null : b.temp + TWIN.env.temp), measured: TWIN.measured, partial: false };
+      if (!mine) return t;
+      const n = b.n + t.n;
+      return { n, need: b.need + t.need, ratio: n ? (b.need + t.need) / n : null, co2: wavg(b.co2, b.n, t.co2, t.n), pm: wavg(b.pm, b.n, t.pm, t.n), temp: wavg(b.temp, b.n, t.temp, t.n), measured: b.measured + t.measured, partial: false };
+    }
+    const t = { occ: b.occ == null ? null : Math.max(0, b.occ + TWIN.occ), n: TWIN.n, partial: false };
+    return mine ? { occ: wavg(b.occ, b.n, t.occ, t.n), n: b.n + t.n, partial: false } : t;
+  }
+  function twinSeries(kind, vs, mine) {
+    const t = vs.map((v, i) => (v == null ? null : kind === "energy" ? v * TWIN.e : v * (TWIN.day[kind] || 1) * (1 + 0.03 * Math.sin(i * 1.7))));
+    return mine ? vs.map((v, i) => (v == null || t[i] == null ? null : kind === "energy" ? v + t[i] : (v + t[i]) / 2)) : t;
+  }
+  const twinTip = "示例中 F栋 · 5F 只有对比用的汇总数据";
   return {
+    twin,
+    twinStat,
+    twinSeries,
+    twinTip,
     usageWeek,
     idleAc,
     nightW,
@@ -73953,6 +74160,7 @@ function opsNoService() {
   return {
     on: () => false,
     inScope: () => false,
+    twin: () => null,
     NOW,
     MIN,
     H,
@@ -75204,11 +75412,13 @@ function envItems(s) {
       h = hk && !s.gwUnknown ? Demo.envHistory(z, hk, "7") : null,
       sm = h?.summary;
     return { k, name, unit, dg, st, v, i, word: i == null ? "" : AIR_WORDS[k][i] || "", fill: i == null ? "" : airFill(k, i), ink: i == null ? "#a3a3a3" : ENV_INK[envGrp(k)][i], b: h?.bounds || null,
-      text: v == null ? ({ devoff: "离线", nodata: "数据不足" }[st] || "—") : envUnit(nf(v, dg), unit), target: hk ? envTarget(h?.bounds, unit) : "—",
+      text: v == null ? ({ devoff: "离线", nodata: "数据不足" }[st] || "—") : envUnit(nf(v, dg), unit), target: !hk ? "—" : k === "temp" && (z.fcs.length || z.idus.length) && h?.bounds ? `设定 ±${envN(zoneRef(s).acK)} ℃` : envTarget(h?.bounds, unit),
       // 不足 100% 时最多写 99%，避免四舍五入后与当前超标的读数矛盾
       pct: hk && sm?.occValidMinutes ? `${sm.occWithinMinutes === sm.occValidMinutes ? 100 : Math.min(99, Math.round((sm.occWithinMinutes / sm.occValidMinutes) * 100))}%` : "—" };
   });
 }
+// 3.10 V1054、V1055：平台控制空调的区域，温度按偏离设定（H-17）判断，“目标”写“设定 ±2 ℃”（原写成设定加减后的“18–28 ℃”，像季节参考范围）；
+// 空调一节室温与设定相差 1 ℃ 起写“高于设定”“低于设定”（原写“偏高”，与室内环境的“适宜”同屏矛盾）
 // 24 小时小趋势：64 × 20，线色随最后一档，参考线 1px 虚线（CO₂、PM 为参考上限，温湿度为参考范围落在图内的边），缺测断开
 function envSparkSvg(z, it) {
   const xs = it.st ? [] : Demo.envSpark(z, it.k),
@@ -75619,6 +75829,22 @@ const zoneCode = (n) => {
   return t.length > 1 && /\d/.test(t.at(-1)) ? t.at(-1) : "";
 };
 const zoneCodeAttr = (n) => (zoneCode(n) ? ` data-code="${esc(zoneCode(n))}"` : "");
+// 3.10 V1053：省略号前至少放得下两个字（如“样品…”），放不下两个字时不写名称（原至少一个字，“卫…”看不出名称）；按页面上同样式文字的实际字宽判断
+const opsEll2W = new Map();
+const opsEll2 = (zn) => {
+  const cs = getComputedStyle(zn),
+    k = `${cs.font}|${cs.letterSpacing}`;
+  if (!opsEll2W.has(k)) {
+    const m = document.createElement("span");
+    m.setAttribute("aria-hidden", "true");
+    m.style.cssText = `position:absolute;left:0;top:0;visibility:hidden;white-space:nowrap;pointer-events:none;font:${cs.font};letter-spacing:${cs.letterSpacing}`;
+    m.textContent = "一二…";
+    document.body.appendChild(m);
+    opsEll2W.set(k, m.getBoundingClientRect().width);
+    m.remove();
+  }
+  return zn.clientWidth + 0.5 >= opsEll2W.get(k);
+};
 const planCircle = (el) => {
   const r = el.getBoundingClientRect();
   return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width / 2 };
@@ -75644,7 +75870,7 @@ function opsPlanLayout(plan) {
         z.classList.remove("code");
       }
       z.classList.add("ell");
-      if (!bad() && zn.clientWidth >= 2 * parseFloat(getComputedStyle(zn).fontSize)) return;
+      if (!bad() && opsEll2(zn)) return;
       z.classList.remove("ell");
       z.classList.add("noname");
     });
@@ -75684,7 +75910,12 @@ function opsPlanLayout(plan) {
       if (b) b.innerHTML = (m ? `${esc(m[1])}<i class="u"> ${esc(m[2])}</i>` : esc(z.dataset.zv)) + (z.dataset.zf || "").split("|").filter(Boolean).map((t) => `<em class="zf${t === "局部" ? " part" : ""}">${esc(t)}</em>`).join("");
       const W = z.clientWidth - 12,
         H = z.clientHeight - 10,
-        fit = () => zl.offsetHeight <= H && zl.scrollWidth <= W + 1 && (!b || b.scrollWidth <= W + 1),
+        // 3.10 V1052：状态词按实际像素判断，scrollWidth 取整后多出不到 1px 时“差”会被裁掉一半
+        zfIn = () => {
+          const e = b?.querySelector(".zf:last-child");
+          return !e || z.classList.contains("nozf") || e.getBoundingClientRect().right <= b.getBoundingClientRect().left + b.clientWidth + 0.5;
+        },
+        fit = () => zl.offsetHeight <= H && zl.scrollWidth <= W + 1 && (!b || b.scrollWidth <= W + 1) && zfIn(),
         sizes = () => {
           if (fit()) return true;
           z.classList.add("v14");
@@ -75703,7 +75934,8 @@ function opsPlanLayout(plan) {
       // 都放不下才只填色；有告警的块始终写读数。不竖排（原 2.88 V819 先竖排，窄块里逐字竖排与相邻文字重叠）
       if (z.classList.contains("noname") && plan.closest?.(".ov2")) {
         const al = /\bal[012]\b/.test(z.className),
-          ok = () => zl.offsetHeight <= H && zl.scrollWidth <= W + 1 && (!zn || zn.scrollHeight <= zn.clientHeight + 1) && (!b || b.scrollWidth <= W + 1) && (!z.classList.contains("ell") || zn.clientWidth >= 2 * parseFloat(getComputedStyle(zn).fontSize)),
+          // 3.10 V1067：名称框裁掉超出部分，编号（7-1）比块宽时 zl.scrollWidth 量不到，另看名称框本身的内容宽（原手机上只剩“7”）
+          ok = () => zl.offsetHeight <= H && zl.scrollWidth <= W + 1 && (!zn || zn.scrollHeight <= zn.clientHeight + 1) && (!zn || z.classList.contains("ell") || zn.scrollWidth <= W + 1) && (!b || b.scrollWidth <= W + 1) && zfIn() && (!z.classList.contains("ell") || opsEll2(zn)),
           tryAs = (k) => {
             z.classList.remove("noname");
             z.classList.add(k, "v12");
@@ -75723,7 +75955,8 @@ function opsPlanLayout(plan) {
           };
         if (zn?.dataset.code && tryAs("code")) return;
         if (zn && tryAs("ell")) return;
-        if (al && b) {
+        // 3.10 V1053：名称放不下时不写名称，只写读数（原只有告警块写读数，其余只填色）；读数也放不下才只填色
+        if (b) {
           z.classList.add("v12");
           if (fit()) return;
           if (zfOff()) {
@@ -76311,17 +76544,17 @@ function hvPoints(req) {
     out = [];
   if (cmd === "sp") {
     if (fc.length) out.push(`风机盘管设定温度（${rt(fc)}）`);
-    if (idu.length) out.push(`多联机内机设定温度（经空调网关，${rt(idu)}；每点每天 ≤ ${nf(lim)} 次）`);
+    if (idu.length) out.push(`多联机内机设定温度（经多联式空调网关，${rt(idu)}；每点每天 ≤ ${nf(lim)} 次）`);
   } else if (cmd === "auto") {
     if (fc.length) out.push("风机盘管设定温度与开关机");
-    if (idu.length) out.push("多联机内机设定温度与开关机（经空调网关）");
+    if (idu.length) out.push("多联机内机设定温度与开关机（经多联式空调网关）");
   } else {
     if (fc.length) out.push("风机盘管开关机");
-    if (idu.length) out.push("多联机内机开关机（经空调网关，关机立即发送）");
+    if (idu.length) out.push("多联机内机开关机（经多联式空调网关，关机立即发送）");
   }
   if (hvModeChange(req)) {
     if (fc.length) out.push("风机盘管运行模式");
-    if (idu.length) out.push(hvOduChange(req).length ? "多联机外机运行模式（经空调网关）" : "多联机内机运行模式（经空调网关）");
+    if (idu.length) out.push(hvOduChange(req).length ? "多联机外机运行模式（经多联式空调网关）" : "多联机内机运行模式（经多联式空调网关）");
   }
   return out.join("；");
 }
@@ -78044,7 +78277,7 @@ function ovSpace(tab) {
     const { fcs, idus, splits, odus, vgs } = hv,
       kinds = [
         fcs.length && `风机盘管 ${fcs.length} 台（本地温控）`,
-        idus.length && `多联机内机 ${idus.length} 台（经空调网关${vgs > 1 ? ` ${vgs} 台` : ""}，外机 ${odus.length} 台）`,
+        idus.length && `多联机内机 ${idus.length} 台（经多联式空调网关${vgs > 1 ? ` ${vgs} 台` : ""}，外机 ${odus.length} 台）`,
         splits.length && `分体空调 ${splits.length} 台（只计量）`,
       ].filter(Boolean);
     // 2.25 V171：“本层空调”一行并入楼层图标题的 i（V160 起型号写功能名称）
@@ -78190,7 +78423,17 @@ function zoneTable(tab, zs) {
    选到楼宇：每个已接入运行数据的楼层一行，按楼层高度从高到低（第14章 §7）；选到项目：每栋楼宇一行；选到全部项目：每个项目一行，按名称自然顺序。
    未接入运行数据的合成表下一行。列与本页签的状态条相同（概况为未恢复告警、设备在线率、有人功能区、CO₂ 最高与今日用电），与指标卡、状态条同一计算；
    楼宇及以上的今日用电另写每平方米。网关离线的楼层整行写“状态未知”，不按离线前的数据着色（告警照常列出）。点一行进入下一级。 */
-const liveFloorIds = () => (Demo.on() && g("floors", OPS_SCOPE.floor) ? [OPS_SCOPE.floor] : []);
+// 3.10 V1068：数据分析页另有 Demo.twin() 的楼层（另一栋按本层折算，只参与分级对比与勾选对比）
+const liveFloorIds = () => (Demo.on() && g("floors", OPS_SCOPE.floor) ? [OPS_SCOPE.floor, ...(Demo.twin?.() ? [Demo.twin()] : [])] : []);
+// 一行里接入运行数据的楼层：mine 为本层，twin 为折算的楼层
+const anRowLive = (r) => {
+  const tw = Demo.twin?.();
+  return { mine: r.fids.includes(OPS_SCOPE.floor), twin: !!tw && r.fids.includes(tw) };
+};
+const anTwinVals = (r, vs, kind) => {
+  const lv = anRowLive(r);
+  return lv.twin ? Demo.twinSeries(kind, vs, lv.mine) : vs;
+};
 // 2.81 KW25：只有一个时直接进入下一级。运营各页的“全部项目”只有一个已接入运行数据的项目时直接为该项目（KW25 补）；
 // 总览再逐级套用：项目只有一栋已接入运行数据的楼宇时为该楼宇（楼层总要点一下才进入）。位置行照常写项目与楼宇；
 // 数据分析、告警与工单、场景仍按所选范围统计，不往楼宇、楼层下钻。普通成员只有我的区域，不适用
@@ -80158,7 +80401,7 @@ function anCmpCard(tab, rg) {
   const per = tab === "energy" && U.anCmpPer,
     days = Demo.days().filter((d) => d.t >= rg.from && d.t < rg.to),
     mk = { co2: ["co2", "CO₂", "ppm", 0], pm: ["pm25", "PM2.5", "μg/m³", 0], temp: ["temp", "温度", "℃", 1] }[["co2", "pm", "temp"].includes(U.opsEnvLast) ? U.opsEnvLast : "co2"],
-    live = (x) => x.r.fids.includes(OPS_SCOPE.floor) && Demo.on(),
+    live = (x) => Demo.on() && (anRowLive(x.r).mine || anRowLive(x.r).twin),
     envDaily = () => {
       const zs = Demo.zones().filter((z) => z.aqs.length || mk[0] === "temp"),
         ps = zs.map((z) => Demo.envHistory(z, mk[0], { from: rg.from, to: rg.to }, Demo.DAY).points);
@@ -80172,7 +80415,7 @@ function anCmpCard(tab, rg) {
       name: x.name,
       color: AN_CMP_C[i],
       fade: !!U.anCmpHi && U.anCmpHi !== x.r.o.id,
-      vals: !live(x) ? days.map(() => null) : tab === "energy" ? days.map((d) => (per ? (x.area ? (d.light + d.hvac) / x.area : null) : d.light + d.hvac)) : ed,
+      vals: !live(x) ? days.map(() => null) : anTwinVals(x.r, tab === "energy" ? days.map((d) => d.light + d.hvac) : ed, tab === "energy" ? "energy" : mk[0]).map((v) => (!per || v == null ? v : x.area ? v / x.area : null)),
     })),
     unit = tab === "energy" ? (per ? "kWh/m²" : "kWh") : mk[2],
     warn = per && new Set(rows.map((x) => x.grp || "")).size > 1 ? "类型不同，仅供参考" : "",
@@ -80183,7 +80426,7 @@ function anCmpCard(tab, rg) {
     meta: [esc(rg.span), tab === "energy" ? (per ? "每日单位面积用电" : "每日用电") : `${mk[1]} 日均值`, noArea.length ? esc(`${noArea.join("、")}未填面积`) : "", warn].filter(Boolean).join(" · "),
     cls: "an-cmp-card",
     extra: tools,
-    body: chartSlot({ type: "lines", height: 240, xs: days.map((d) => d.t), xLabel: (t) => Demo.md(t), tipTitle: (t) => anDayW(t), unit, unitShort: unit, digits: per ? 3 : mk[3], endLabels: true, series: series.filter((x) => x.vals.some((v) => v != null)) }),
+    body: chartSlot({ type: "lines", height: 240, xs: days.map((d) => d.t), xLabel: (t, i, step) => ((days.length - 1 - i) % step === 0 ? Demo.md(t) : ""), tipTitle: (t) => anDayW(t), unit, unitShort: unit, digits: per ? 3 : mk[3], endLabels: true, series: series.filter((x) => x.vals.some((v) => v != null)) }),
   })
     .replace(/<button type="button" class="btn ghost sm ops-tools-more"[^>]*>更多<\/button>/, "")
     // 主图卡的“只含 …”、上期对比说明与计量点筛选不适用于对比图
@@ -80199,7 +80442,9 @@ function anChildOrder(rows, key, asc = false) {
 }
 function anChildTable(head, rows, cells, ck = false) {
   const ids = ck ? anCmpIds() : [],
-    nm = (x) => `<button type="button" class="ops-link" data-act="opsDrill" data-p="${esc(x.r.go.p || "")}" data-b="${esc(x.r.go.b || "")}" data-f="${esc(x.r.go.f || "")}">${esc(x.name)}</button>${x.sub ? `<small class="ops-dim">${esc(x.sub)}</small>` : ""}`,
+    // 3.10 V1068：只有折算数据的楼层（及其楼宇）名称不能点开，悬停写原因
+    nm = (x) => (!anRowLive(x.r).mine && anRowLive(x.r).twin ? `<span class="an-child-tw" data-tip="${esc(Demo.twinTip)}" tabindex="0">${esc(x.name)}</span>${x.sub ? `<small class="ops-dim">${esc(x.sub)}</small>` : ""}` : nm0(x)),
+    nm0 = (x) => `<button type="button" class="ops-link" data-act="opsDrill" data-p="${esc(x.r.go.p || "")}" data-b="${esc(x.r.go.b || "")}" data-f="${esc(x.r.go.f || "")}">${esc(x.name)}</button>${x.sub ? `<small class="ops-dim">${esc(x.sub)}</small>` : ""}`,
     name = (x) => (ck ? `<div class="an-child-c">${anCmpCk(x, ids.includes(x.r.o.id))}<span class="an-child-n">${nm(x)}</span></div>` : nm(x));
   return `<div class="ops-tw"><table class="t ops-t ops-t-list an-child-t${ck ? " ck" : ""}"><thead><tr>${head.map((h, i) => `<th${i ? ' class="r"' : ""}>${h}</th>`).join("")}</tr></thead><tbody>${rows.map((x) => `<tr${ck && ids.includes(x.r.o.id) ? ` class="cmp${U.anCmpHi === x.r.o.id ? " hi" : ""}" data-act="anCmpHi" data-id="${esc(x.r.o.id)}"` : ""}><td>${name(x)}</td>${cells(x).map((v, i) => `<td class="r ops-num" data-l="${esc(opsPlain(head[i + 1]))}">${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
@@ -80208,10 +80453,14 @@ const anLvSeg = () => (anLvOpts().length > 1 ? `<span class="an-lv">${segSm(anLv
 const anLvNone = (c) => (c.none ? `<p class="an-child-none">另有 ${fmt(c.none)} ${{ floors: "个楼层", buildings: "栋楼宇", projects: "个项目" }[c.kind]}未接入运行数据</p>` : "");
 // 能源（Y18）：用电量（占比条）、单位面积用电、用电碳排放、环比；按单位面积用电从高到低，选中“用电碳排放”时按碳排放。对标在节能页（Y24）
 function anChildEnergy(r, rg) {
-  if (!Demo.on() || !r.fids.includes(OPS_SCOPE.floor)) return null;
+  const lv = anRowLive(r);
+  if (!Demo.on() || !(lv.mine || lv.twin)) return null;
   const span = rg.to - rg.from,
-    days = Demo.days().filter((d) => d.t >= rg.from && d.t < rg.to);
-  return { kwh: Demo.energyIn(rg).total, prev: Demo.energyIn({ ...rg, from: rg.from - span, to: rg.from }).total, partial: days.some((d) => d.gapHours > 0) };
+    days = Demo.days().filter((d) => d.t >= rg.from && d.t < rg.to),
+    kwh = Demo.energyIn(rg).total,
+    // 3.10：环比与主图同一判断，上一期计量数据不全时不比较（写“—”）
+    e = { kwh, prev: span > 0 ? anPrevEnergy(rg, "all", kwh).prev : null, partial: days.some((d) => d.gapHours > 0) };
+  return lv.twin ? Demo.twinStat("energy", e, lv.mine) : e;
 }
 function anChildPanel(rg, sel, tableOnly = false) {
   const ce = carbonIn(rg),
@@ -80237,11 +80486,13 @@ function anChildEnvPanel(tableOnly = false, key = anKey()) {
     mk = ["co2", "pm", "temp"].includes(U.opsEnvLast) ? U.opsEnvLast : "co2",
     mName = { co2: "CO₂ 需关注", pm: "PM2.5 需关注", temp: "温度需关注" }[mk],
     c = anChildRows((r) => {
-      if (!Demo.on() || !r.fids.includes(OPS_SCOPE.floor)) return null;
+      const lv = anRowLive(r);
+      if (!Demo.on() || !(lv.mine || lv.twin)) return null;
       const n = comp.length,
         need = comp.filter((x) => x[mk] != null && x[mk] < 95).length,
         tot = (k) => anCompTotal(comp, k)?.within ?? null;
-      return { n, need, ratio: n ? need / n : null, co2: tot("co2"), pm: tot("pm"), temp: tot("temp"), measured: comp.filter((x) => x.co2 != null || x.pm != null || x.temp != null).length, partial: false };
+      const st = { n, need, ratio: n ? need / n : null, co2: tot("co2"), pm: tot("pm"), temp: tot("temp"), measured: comp.filter((x) => x.co2 != null || x.pm != null || x.temp != null).length, partial: false };
+      return lv.twin ? Demo.twinStat("env", st, lv.mine) : st;
     }, tableOnly ? null : anLv());
   if (c.rows.length < 2) return tableOnly ? null : "";
   const pct = (v) => (v == null ? "—" : `${nf(v, 1)}%`),
@@ -80252,8 +80503,10 @@ function anChildEnvPanel(tableOnly = false, key = anKey()) {
 function anChildSpacePanel(tableOnly = false, key = anKey()) {
   const u = Demo.on() ? Demo.usage("occ", key).filter((r) => r.z.mss?.length && anSpaceAvg(r) != null) : [],
     c = anChildRows((r) => {
-      if (!Demo.on() || !r.fids.includes(OPS_SCOPE.floor)) return null;
-      return { occ: u.length ? u.reduce((a, x) => a + anSpaceAvg(x), 0) / u.length : null, n: Demo.zones().length, partial: false };
+      const lv = anRowLive(r);
+      if (!Demo.on() || !(lv.mine || lv.twin)) return null;
+      const st = { occ: u.length ? u.reduce((a, x) => a + anSpaceAvg(x), 0) / u.length : null, n: Demo.zones().length, partial: false };
+      return lv.twin ? Demo.twinStat("space", st, lv.mine) : st;
     });
   if (c.rows.length < 2) return tableOnly ? null : "";
   const table = anChildTable(["名称", "有人时间占比", "功能区数", "面积"], anChildOrder(c.rows, "occ", true), (x) => [x.occ == null ? "—" : `${Math.round(x.occ)}%`, nf(x.n), x.area ? `${nf(x.area)} m²` : "—"]);
@@ -80524,7 +80777,7 @@ function anCompTotalText(comp) {
   return t ? `温度达标时间占比 ${p(t.bands[1])}${side ? `（${side}）` : ""}。` : "";
 }
 // 2.66 V644：条形与室内环境页签一致分三档（≥ 95%、80–95%、< 80%）
-const anCompBar = (v, lim = 95, missing = "缺数") => (v == null ? `<span class="ops-na">${esc(missing)}</span>` : `<span class="ops-cbar"><i style="width:${v}%;background:${AN_ENV_BAR[anEnvLvl(v)]}"></i></span><b class="ops-num">${nf(v, v === 100 ? 0 : 1)}%</b>`);
+const anCompBar = (v, lim = 95, missing = "缺数") => (v == null ? `<span class="ops-na">${esc(missing)}</span>` : `<span class="ops-cbar"><i style="width:${v}%;background:${AN_ENV_BAR[anEnvLvl(v)]}"></i></span><b class="ops-num">${anPctI(v)}%</b>`); // 3.10 V1057：取整，不足 100 的最多写 99%，与指标卡、最差一区同一写法（原写一位小数）
 const anCompCoverage = (c, key) => {
   const d = c.durations?.[key], pct = d?.workExpectedMinutes ? d.workValidMinutes / d.workExpectedMinutes * 100 : c.coverage?.[key];
   return pct != null && pct < 100 ? `<small class="ops-cbasis">有效覆盖 ${nf(pct,1)}%</small>` : "";
@@ -80576,7 +80829,7 @@ function anEnvMap(comp, sel, name, cur) {
         const z = c.z,
           v = c[sel],
           hi = sel === "temp" && v != null && (c.bands.temp?.[2] ?? 0) >= (c.bands.temp?.[0] ?? 0),
-          txt = v == null ? (unmon(c) ? "未监测" : "缺数") : `${nf(v, v === 100 ? 0 : 1)}%`,
+          txt = v == null ? (unmon(c) ? "未监测" : "缺数") : `${anPctI(v)}%`,
           tip = `${z.name} · ${v == null ? txt : `${name}${/^[A-Z]/.test(name) ? " " : ""}达标时间占比 ${txt}${v < 95 && sel === "temp" ? (hi ? "，偏高较多" : "，偏低较多") : ""}`}`; // 2.66 V594
         return `<button class="ops-zone ${v == null ? "hatch" : `lv${anEnvLvl(v)}`}${c === cur ? " on" : ""}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%;${v == null ? "" : `--fill:${AN_ENV_FILL[anEnvLvl(v)]};`}" ${v == null ? "disabled" : `data-act="anEnvRow" data-k="${esc(z.k)}" data-zv="${esc(txt)}"`} data-tip="${esc(tip)}" aria-label="${esc(tip + (v == null ? "" : " · 查看趋势"))}"><span class="ops-zl"><span class="ops-zn">${esc(z.name)}</span>${v == null ? "" : `<b>${esc(txt)}</b>`}</span></button>`;
       })
@@ -80609,7 +80862,7 @@ function anOverHours(list) {
     tb = regTable("overhours", ["功能区", ...hours.map((h) => `${hh(h)} 时`)], rows.map(({ c, h }) => [anZn(c.z), ...h.cells.map((v, j) => (v == null ? (h.fut[j] ? "" : "缺数") : `${nf(v, 0)}%（${h.over[j]}/${h.days[j]} 天）`))]));
   Object.assign(OPS_TABLES[tb], { title: "超标时段", meta: head, foot: "" });
   const hatch = rows.some(({ h }) => h.cells.some((v, j) => v == null && !h.fut[j]));
-  return `<section class="an-panel an-over"><header class="an-panel-h"><h3>超标时段${opsInfo("超标时段", esc(`工作日工作时间每小时 CO₂ 均值超过 ${nf(ref)} ppm 的天数占比；数据不完整的工作日不计入。`))}</h3><span class="an-panel-r">${btn("数据表", "opsTable", { key: tb }, "ghost sm")}</span><span class="an-panel-m">${esc(head)}</span></header><div class="an-hm" style="--cols:${hours.length}">${rows.map(({ c, h }) => `<div class="an-hm-r"><span class="an-hm-n">${esc(anZn(c.z))}</span>${h.cells.map((v, j) => cell(c, h, j)).join("")}</div>`).join("")}<div class="an-hm-r an-hm-x" aria-hidden="true"><span></span>${hours.map((h) => `<span>${hh(h)}</span>`).join("")}</div></div><div class="ops-legend">${["0", "< 10%", "10–25%", "25–40%", "≥ 40%"].map((l, i) => `<span><i class="sq" style="--c:${AN_OVER_COLORS[i]}"></i>${esc(l)}</span>`).join("")}${hatch ? `<span><i class="sq hatch"></i>缺数</span>` : ""}</div>${anOverAi(rows, hours, ref)}</section>`;
+  return `<section class="an-panel an-over"><header class="an-panel-h"><h3>超标时段${opsInfo("超标时段", esc(`工作日工作时间每小时 CO₂ 均值超过 ${nf(ref)} ppm 的天数占比；数据不完整的工作日不计入。`))}</h3><span class="an-panel-r">${btn("数据表", "opsTable", { key: tb }, "ghost sm")}</span><span class="an-panel-m">${esc(head)}</span></header><div class="an-hm" style="--cols:${hours.length}"><div class="an-hm-r an-hm-x" aria-hidden="true"><span></span>${hours.map((h) => `<span>${hh(h)}</span>`).join("")}</div>${rows.map(({ c, h }) => `<div class="an-hm-r"><span class="an-hm-n">${esc(anZn(c.z))}</span>${h.cells.map((v, j) => cell(c, h, j)).join("")}</div>`).join("")}</div><div class="ops-legend">${["0", "< 10%", "10–25%", "25–40%", "≥ 40%"].map((l, i) => `<span><i class="sq" style="--c:${AN_OVER_COLORS[i]}"></i>${esc(l)}</span>`).join("")}${hatch ? `<span><i class="sq hatch"></i>缺数</span>` : ""}</div>${anOverAi(rows, hours, ref)}</section>`;
 }
 // 2.66 V599：最常超标的功能区与连续时段（该小时超标天数占比 ≥ 25%），平均占比写在正文
 // 2.71 V689：数据分析不再单独放 AI 卡：结论记在 AN_OVER_AI，写进解读栏的 AI 解读，“写入工单”为建议操作
@@ -80749,7 +81002,7 @@ function anEnvHeat(z, k, rg) {
     title: "环境趋势" + opsInfo("环境趋势", esc("每格为该小时的均值，按档着色，与楼层图同一组颜色；非工作日与非工作时间不画，空格为无数据。")),
     meta: `${anZnLink(z)} · ${esc(name)}${unit ? ` · ${esc(unit)}` : ""} · 工作日工作时间每小时均值`,
     table: tb,
-    body: days.length ? `<div class="an-hm an-hm-d" style="--cols:${hours.length}">${rows}<div class="an-hm-r an-hm-x" aria-hidden="true"><span></span>${hours.map((x) => `<span>${hh(x)}</span>`).join("")}</div></div>${anEnvLegend(k, ref, b, used)}` : anNoWorkNote(),
+    body: days.length ? `<div class="an-hm an-hm-d" style="--cols:${hours.length}"><div class="an-hm-r an-hm-x" aria-hidden="true"><span></span>${hours.map((x) => `<span>${hh(x)}</span>`).join("")}</div>${rows}</div>${anEnvLegend(k, ref, b, used)}` : anNoWorkNote(),
   });
 }
 // 期间 > 2 天的曲线：每日工作时间均值，浅色带为当天最低到最高，参考线为参考上限或参考范围
@@ -80888,7 +81141,7 @@ function anEnv() {
     blocks = AN_ENV_K.map(([k, nm]) => ({
       k,
       label: `${nm}${/^[A-Z]/.test(nm) ? " " : ""}达标时间` + opsInfo(`${nm}达标时间`, esc(tips[k])),
-      value: tots[k] ? `${anPctI(tots[k].within)}<small>%</small>` : "—",
+      value: tots[k] ? `${anPctI(tots[k].within)}%` : "—", // 3.10 V1057：“85%”与数字同字号，不留空
       sub: noWork ? "" : `${anEnvSeg(of(k), k)}<span class="an-worst">${worstOf(k)}</span>`,
     })),
     def = AN_ENV_K.map(([k]) => k).filter((k) => tots[k]).sort((a, b) => tots[a].within - tots[b].within)[0] || "aq",
@@ -81202,7 +81455,7 @@ function anOffEpisodes(ps, from, to) {
 }
 // 2.83 KW3：系统连接的离线时段：整条连接读不到（失败记录中 whole 的一段）到下一次采集成功；网关离线时从网关离线起，未恢复。
 // 原因归为五类：网关离线、连接超时、认证失败、地址无响应、读取错误，各配一句处理办法
-const CONN_CAT = { 网关离线: "网关离线", 连接超时: "连接超时", 服务不可达: "连接超时", 认证失败: "认证失败", 证书过期: "认证失败", 从站无响应: "地址无响应", 设备未响应: "地址无响应", 串口未接通: "地址无响应", 校验错误: "读取错误", 寄存器地址无效: "读取错误", 对象不存在: "读取错误" };
+const CONN_CAT = { 网关离线: "网关离线", 连接超时: "连接超时", 服务不可达: "连接超时", 认证失败: "认证失败", 证书过期: "认证失败", 从站无响应: "地址无响应", 设备未响应: "地址无响应", 校验错误: "读取错误", 寄存器地址无效: "读取错误", 对象不存在: "读取错误" };
 const CONN_CAT_NEXT = {
   网关离线: "先查网关的供电与上联网络，恢复后自动继续采集",
   连接超时: "在系统接入中核对服务地址与端口",
@@ -81273,7 +81526,7 @@ function anRate7(ps) {
     return span ? 100 * (1 - e7.reduce((n, x) => n + Math.max(0, Math.min(e, x.to) - Math.max(t, x.from)), 0) / span) : null;
   });
 }
-// 2.83 KW4：环境与占用传感器的读数是否有效（由告警规则“读数无效”判定：温度、湿度、CO₂、PM2.5 读数 24 小时不变或超出量程；
+// 2.83 KW4：环境与占用传感器的读数是否有效（由告警规则“读数无效”判定：温度、湿度、CO₂、PM2.5、PM10 读数 24 小时不变或超出量程；
 // 占用连续 72 小时为“有人”，或 3 个工作日没有“有人”）；无效期间该读数不参与告警判定与统计
 const AN_SENSOR = ["aq", "ms"];
 const anReadBad = (p) => [...data().alerts, ...(Demo.ctl?.gwAlarms || [])].some((a) => a.kind === "invalid" && a.pointId === p.id && a.state === "active");
@@ -83106,7 +83359,7 @@ const NET_RULES = [
   ["网络负载偏高", "提示；持续超过上限为重要", "网关实测消息率持续超过预算", "固件升级和网络检测期间抑制"],
   // 2.83 KW6、KW4：系统连接中断与读数无效
   ["系统连接中断", "重要", "网关在线，一个系统连接的全部数据点连续 3 个采集周期读不到", "抑制该连接下各表计的表计离线；网关离线时并入网关离线"],
-  ["读数无效", "提示", "温度、湿度、CO₂、PM2.5 读数 24 小时不变或超出量程；占用连续 72 小时为“有人”，或 3 个工作日没有“有人”", "每台设备每项读数一条；无效期间该读数不参与告警判定与统计"],
+  ["读数无效", "提示", "温度、湿度、CO₂、PM2.5、PM10 读数 24 小时不变或超出量程；占用连续 72 小时为“有人”，或 3 个工作日没有“有人”", "每台设备每项读数一条；无效期间该读数不参与告警判定与统计"],
   ["第三方系统故障", "重要", "系统接入的数据点读到数据映射中标为“故障”的值", "告警写来源系统、数据点与原值；在平台中确认不回写原系统；值恢复正常时自动恢复"],
 ];
 // 安全与保护（BP91）：随应用设置启用，级别紧急，检修中照常通知；条件取配置参数（BP88）
@@ -85676,7 +85929,8 @@ function ovZtCell(k, s, AL) {
     const v = k === "co2" ? (opsAqCurrent(s) ? co2Of(s) : null) : opsAqCurrent(s, "pm25Now") ? s.aq.pm25Now : null;
     if (v == null) return ["—", -1, false];
     const bad = out.includes(k === "co2" ? "CO₂" : "PM2.5"),
-      text = `${nf(v)} ${k === "co2" ? "ppm" : "μg/m³"}${bad ? " · 偏高" : ""}`;
+      // 3.10 V1056：超过参考上限写档名“差”，与空气质量分的四档同一叫法（原写“偏高”）
+      text = `${nf(v)} ${k === "co2" ? "ppm" : "μg/m³"}${bad ? ` · ${AQ_BANDS[3]}` : ""}`;
     return [bad ? st(text, "warn") : esc(text), v, bad];
   }
   if (k === "occPct") {
@@ -85703,7 +85957,10 @@ function ovZoneTable(tab) {
     const i = cols.findIndex(([k]) => k === srt.k);
     rows.sort((a, b) => cmp(a.cells[i][1], b.cells[i][1]) * srt.d || M.byName(a.z, b.z));
   } else rows.sort((a, b) => a.need - b.need || M.byName(a.z, b.z));
-  const head = cols
+  // 3.10 V1063：空间 › 清单（V1037）行前加勾选列，选中的行浅蓝底（同全站选中行），表头勾选框全选本层；查看人员与手机没有
+  const ck = !!U.sp && spView() === "list" && U.role !== "viewer" && U.role !== "member" && !isMobile(),
+    allOn = ck && rows.length > 0 && rows.every((r) => sel.has(r.z.id));
+  const head = (ck ? `<th scope="col" class="ov3-zt-ck"><input type="checkbox" class="ops-ck-in" data-act="opsSelRows"${allOn ? " checked" : ""} aria-label="全选本层"></th>` : "") + cols
     .map(([k, l]) => {
       const on = srt?.k === k,
         sort = on ? (srt.d > 0 ? "ascending" : "descending") : "none";
@@ -85711,11 +85968,11 @@ function ovZoneTable(tab) {
     })
     .join("");
   const body = rows
-    .map((r) => `<tr class="${U.opsZone === r.z.id || sel.has(r.z.id) ? "on" : ""}${r.need < 9 ? " need" : ""}" data-z="${esc(r.z.id)}" data-act="opsZone" data-id="${esc(r.z.id)}">${r.cells.map((c, i) => `<td${OV_ZT_NUM.has(cols[i][0]) ? ' class="num"' : ""}>${c[0]}</td>`).join("")}</tr>`)
+    .map((r) => `<tr class="${ck && sel.has(r.z.id) ? "sel" : U.opsZone === r.z.id || sel.has(r.z.id) ? "on" : ""}${r.need < 9 ? " need" : ""}" data-z="${esc(r.z.id)}" data-act="opsZone" data-id="${esc(r.z.id)}">${ck ? `<td class="ov3-zt-ck"><input type="checkbox" class="ops-ck-in" data-act="opsSelZone" data-id="${esc(r.z.id)}"${sel.has(r.z.id) ? " checked" : ""} aria-label="${esc(`选择 ${r.z.name}`)}"></td>` : ""}${r.cells.map((c, i) => `<td${OV_ZT_NUM.has(cols[i][0]) ? ' class="num"' : ""}>${c[0]}</td>`).join("")}</tr>`)
     .join("");
   // 2.81 定稿 5.1：回放时表格为那一刻的值（ovWithReplay），表头右侧写回放时刻
   const at = ovAt();
-  return `<section class="ov3-zt" aria-label="功能区"><header class="ov3-zt-hd"><h3>功能区</h3><small>${srt ? "" : "需要注意的在前"}</small>${at != null ? `<span class="sp"></span><small class="ov3-zt-at">${esc(`${ovDayName(at)} ${Demo.hm(at)}`)}</small>` : ""}</header><div class="ov3-zt-sc"><table class="t ov3-zt-t"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div></section>`;
+  return `<section class="ov3-zt" aria-label="功能区"><header class="ov3-zt-hd"><h3>功能区</h3><small>${srt ? "" : "需要注意的在前"}</small>${at != null ? `<span class="sp"></span><small class="ov3-zt-at">${esc(`${ovDayName(at)} ${Demo.hm(at)}`)}</small>` : ""}</header><div class="ov3-zt-sc"><table class="t ov3-zt-t nw"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div></section>`;
 }
 // 悬停功能区表的一行时楼层图上高亮该区
 document.addEventListener("pointerover", (e) => {
@@ -86272,9 +86529,11 @@ function ovSiteNums(st) {
     flA = (fs) => (fs.length && fs.every((f) => f.area > 0) ? fs.reduce((a, f) => a + f.area, 0) : null),
     bA = (b) => b.area || flA(fsOf(b)),
     area = st.kind === "projects" ? st.o.area || (bs.length && bs.every(bA) ? bs.reduce((a, b) => a + bA(b), 0) : null) : bA(st.o),
+    // 3.10 V1061：项目的单位面积按计入本月用电的楼宇的面积算（项目填了面积时用项目面积）；原要求项目下全部楼宇都有面积，未接入的楼宇没填面积时整项写“—”
+    euiA = st.kind === "projects" ? st.o.area || (metered.length && metered.every(bA) ? metered.reduce((a, b) => a + bA(b), 0) : null) : area,
     kg = ovCo2Kg(st.kind === "projects" ? st.o.id : st.o.projectId),
     grp = (st.kind === "projects" ? (typeof v13Profile === "function" ? v13Profile(db, st.o.id)?.buildingType : "") : st.o.usage) || "未分类";
-  return { today, month, area, eui: month != null && area ? month / area : null, co2: month != null && kg != null ? (month * kg) / 1000 : null, env: st.live ? ovEnvOf(new Set(ovFloorsOf(st.o, st.kind).map((f) => f.id))) : null, grp };
+  return { today, month, area, eui: month != null && euiA ? month / euiA : null, co2: month != null && kg != null ? (month * kg) / 1000 : null, env: st.live ? ovEnvOf(new Set(ovFloorsOf(st.o, st.kind).map((f) => f.id))) : null, grp };
 }
 // 2.91 V952、V953：项目级与全部项目级在列表和地图上方加三张汇总卡（当前告警、离线设备、今日用电），样式同楼宇级指标卡；
 // 未接入运行数据的项目与楼宇不计入，没有电能表的楼宇不计入今日用电；碳排放按各项目的碳排放设置折算后相加，卡太窄时改在悬停里写
@@ -86355,7 +86614,7 @@ const OV_TCOLS = [
   ["month", "本月用电", "kWh", "本月 1 日到现在的用电，计入范围同今日用电"],
   ["eui", "单位面积", "kWh/m²", "本月用电除以建筑面积（只管部分楼层时为管理面积）；未填面积的写“—”"],
   ["co2", "碳排放", "tCO₂", "本月用电按项目的碳排放设置折算"],
-  ["env", "室内环境达标", "", OV_ENV_TIP + "；写达标功能区占有数据功能区的比例与需关注、不达标的功能区数"],
+  ["env", "室内环境达标", "", OV_ENV_TIP + "；写达标功能区占有数据功能区的比例与未达标（需关注与不达标合计）的功能区数"],
   ["al", "当前告警", "", "未处理与处理中的告警数"],
   ["off", "离线设备", "", "当前离线的设备台数"],
 ];
@@ -86368,7 +86627,7 @@ function ovSiteTable(c, xs, q) {
       const v = val(r, k);
       if (k === "name") return `<td><b>${esc(r.st.o.name)}</b>${r.st.live ? "" : '<small class="ovs-t-na">未接入运行数据</small>'}</td>`;
       if (v == null) return '<td class="num">—</td>';
-      const t = k === "env" ? `${v}%${r.x.env.need ? ` · ${r.x.env.need} 区需关注` : ""}` : k === "eui" || k === "co2" ? nf(v, 2) : fmt(Math.round(v));
+      const t = k === "env" ? `${v}%${r.x.env.need ? ` · ${r.x.env.need} 区未达标` : ""}` /* 3.10 V1062：需关注与不达标合计写“未达标”（原写“需关注”，只是其中一档） */ : k === "eui" || k === "co2" ? nf(v, 2) : fmt(Math.round(v));
       return `<td class="num${(k === "al" || k === "off") && v > 0 ? " hot" : ""}">${esc(t)}</td>`;
     },
     head = OV_TCOLS.map(([k, l, u, tip]) => {
@@ -86667,7 +86926,8 @@ function ovBldNet(b, fids) {
     ds = ovDevsIn(fids),
     // 2.93 V957：设备一行的在线数不含待重新绑定的设备，琥珀色小字写“离线 2 · 待重新绑定 1”
     row = (n, on, all, rs = 0) => {
-      const off = all - on, t = [off - rs ? `离线 ${fmt(off - rs)}` : "", rs ? `待重新绑定 ${fmt(rs)}` : ""].filter(Boolean).join(" · ");
+      // 3.10 V1066：每段整体不拆开（.nw），放不下时“待重新绑定 1”整段换到下一行；原“待”单独折到一行
+      const off = all - on, t = [off - rs ? `离线 ${fmt(off - rs)}` : "", rs ? `待重新绑定 ${fmt(rs)}` : ""].filter(Boolean).map((x) => `<span class="nw">${x}</span>`).join(" · ");
       return `<li><span class="ovb-nn">${n}</span><span class="ovb-nt" aria-hidden="true"><i class="on" style="width:${all ? (on / all) * 100 : 0}%"></i><i class="off" style="width:${all ? (off / all) * 100 : 0}%"></i></span><span class="ovb-nk">${fmt(on)} / ${fmt(all)}<small${off ? ' class="warn"' : ""}>${t || "全部在线"}</small></span></li>`;
     };
   let co = 0;
@@ -87231,7 +87491,7 @@ function ovInspector(zid) {
       warm = dv != null && Math.abs(dv) >= 1,
       okc = canControl(ids),
       b = (label, op, name) => ctlBtn(label, "opsZoneHv", { id: z.id, op }, "sm", ids).replace("<button ", `<button aria-label="${esc(name)}" `);
-    hv = `<section class="ov-isec"><h4>${ico("ac", "ic16")}空调<span class="sp"></span><small>${gw ? "" : on ? esc(d0.mode || "运行") : "已关闭"}</small></h4>${takeNote()}<div class="ov-ihv"><div><small>室温</small><span class="ov-itv"><b class="ov-itemp${warm ? " warm" : ""}">${gw || room == null ? "—" : `${nf(room, 1)}<i>℃</i>`}</b>${warm ? `<span class="ov-ichip hi">${dv > 0 ? "偏高" : "偏低"}</span>` : ""}</span></div><div class="ov-isp"><small>设定</small><span class="ov-step${okc ? "" : " dis"}">${b(ico("minus", "ic16"), "down", "降低设定温度")}<b>${gw || s.spMixed ? "—" : hvSpText(acs[0], cur)}</b>${b(ico("plus", "ic16"), "up", "提高设定温度")}</span>${idle ? `<small class="ov-ieco">无人，按 ${hvSpText(acs[0], s.setpoint)} ${HV_USE[s.use]}运行</small>` /* 2.84 V882 */ : ""}</div></div><div class="ov-irow end">${ctlBtn(ico("power", "ic16") + (on ? "关空调" : "开空调"), "opsZoneHv", { id: z.id, op: "power" }, "sm", ids)}</div>${lastH ? rcpt(lastH) : ""}</section>`;
+    hv = `<section class="ov-isec"><h4>${ico("ac", "ic16")}空调<span class="sp"></span><small>${gw ? "" : on ? esc(d0.mode || "运行") : "已关闭"}</small></h4>${takeNote()}<div class="ov-ihv"><div><small>室温</small><span class="ov-itv"><b class="ov-itemp${warm ? " warm" : ""}">${gw || room == null ? "—" : `${nf(room, 1)}<i>℃</i>`}</b>${warm ? `<span class="ov-ichip hi">${dv > 0 ? "高于设定" : "低于设定"}</span>` : ""}</span></div><div class="ov-isp"><small>设定</small><span class="ov-step${okc ? "" : " dis"}">${b(ico("minus", "ic16"), "down", "降低设定温度")}<b>${gw || s.spMixed ? "—" : hvSpText(acs[0], cur)}</b>${b(ico("plus", "ic16"), "up", "提高设定温度")}</span>${idle ? `<small class="ov-ieco">无人，按 ${hvSpText(acs[0], s.setpoint)} ${HV_USE[s.use]}运行</small>` /* 2.84 V882 */ : ""}</div></div><div class="ov-irow end">${ctlBtn(ico("power", "ic16") + (on ? "关空调" : "开空调"), "opsZoneHv", { id: z.id, op: "power" }, "sm", ids)}</div>${lastH ? rcpt(lastH) : ""}</section>`;
   } else hv = `<section class="ov-isec"><h4>${ico("ac", "ic16")}空调<span class="sp"></span><small>${z.splits.length ? "分体空调 · 只计量" : "无空调"}</small></h4></section>`;
   // 3.06 V1039：室内环境为单项列表（ovEnvSec），原为 CO₂、PM2.5、湿度、照度 2×2 小格（V348、V707）
   const env = ovEnvSec(s);
@@ -87647,12 +87907,15 @@ function ovMemberCard(z, i) {
     ds = acs.map((p) => Demo.device(p)),
     gw = s.gwUnknown,
     room = ovRoomTemp(s),
-    co2 = opsAqCurrent(s) ? co2Of(s) : null, // 5 分钟均值，与指标条、楼层图和告警同一口径（V228）
-    hi = co2 != null && co2 > ((zoneRef(s) || {}).co2 || 1000),
     open = (U.ovMyOpen || U.ovMyFirst) === z.id,
     rp = myRepairs(z.id)[0], // 2.66 V422：处理完 24 小时内写“报修已处理 · 10:45”
     // 2.66 V434：折叠行的“偏高”用提示色、字重 500
-    sum = [room == null || gw ? "" : `${nf(room, 1)} ℃`, co2 == null ? "" : `CO₂ ${nf(co2)} ppm${hi ? ' <span class="hi">偏高</span>' : ""}`].filter(Boolean).join(" · "),
+    // 3.10 V1056：与检视器、总览同一口径，写空气质量分的档与分（70 以下加主因）和热舒适，不再单写 CO₂ 与“偏高”（不在四档之内）
+    aqSt = gw || !dz.aqs.length ? "" : airState(s, "aq"),
+    aqV = gw || aqSt || !dz.aqs.length ? null : airVal(s, "aq"),
+    aqQ = s.aq?.aqs,
+    th = gw || room == null ? "" : ["偏低", "适宜", "偏高"][envTempDir(s) + 1],
+    sum = [room == null || gw ? "" : `${nf(room, 1)} ℃`, aqV == null ? "" : `空气质量 <span${aqV < 70 ? ' class="hi"' : ""}>${aqQ.band} ${aqV}</span>`].filter(Boolean).join(" · "),
     // 2.75 V723：CO₂ 偏高按 V697 写法，数值用状态色文字，后面写“偏高”，不加底色
     val = (k, v, u, cls = "", over = false) => `<div class="ov-mv${cls}"><small>${k}</small><b>${v == null || gw ? "—" : `${v}<i>${u}</i>`}${over ? "<em>偏高</em>" : ""}</b></div>`;
   // 2.66 V418：点按后开关立即转到目标位置并呈加载态（不可再点），小字依次写“下发中”“已关灯 · 10:31”，超时写“关灯未收到设备确认”与“重试”；
@@ -87681,7 +87944,7 @@ function ovMemberCard(z, i) {
       gw ? `<div class="ov-msub"><small>状态未知</small></div>` : !on ? `<div class="ov-msub"><small>已关闭</small></div>` : hvcIdle(s) ? `<div class="ov-msub"><small>无人，按 ${hvSpText(acs[0], s.setpoint)} ${HV_USE[s.use]}运行</small></div>` /* 2.84 V882：步进仍是舒适设定 */ : ""
     }`;
   }
-  return `<article class="ov-card ov-mcard${open ? "" : " fold"}" aria-label="${esc(z.name)}"><button type="button" class="ov-mfold" data-act="ovMyOpen" data-id="${esc(z.id)}" aria-expanded="false"><span><b>${esc(z.name)}</b><small>${sum}</small></span>${ico("chevron", "ic16 ov-chev")}</button><div class="ov-mbody"><header class="ov-mh"><div><h3><button type="button" class="ov-mname" data-act="opsZone" data-id="${esc(z.id)}" aria-label="${esc(`${z.name}：详情与报修`)}">${esc(z.name)}${ico("chevron", "ic16 ov-chev")}</button></h3><small>${esc([z.spaceType, `${dz.area} m²`].filter(Boolean).join(" · "))}</small>${rp ? `<small class="ov-mrp">${esc(rp.closedAt ? `报修已处理 · ${Demo.hm(opsRecAt(rp.closedAt))}` : `报修${taskState(rp)} · 负责人 ${rp.assignee}`)}</small>` : ""}</div><button type="button" class="ov-mcol" data-act="ovMyOpen" data-id="${esc(z.id)}" aria-expanded="true" aria-label="${esc(`收起${z.name}`)}">${ico("chevron", "ic16 ov-chev")}</button></header><div class="ov-mvals">${val("室温", room == null ? null : nf(room, 1), "℃")}${dz.aqs.length ? val("CO₂", co2 == null ? null : nf(co2), "ppm", hi && !gw ? " warn" : "", hi && !gw) : ""}</div>${light}${hv}</div></article>`;
+  return `<article class="ov-card ov-mcard${open ? "" : " fold"}" aria-label="${esc(z.name)}"><button type="button" class="ov-mfold" data-act="ovMyOpen" data-id="${esc(z.id)}" aria-expanded="false"><span><b>${esc(z.name)}</b><small>${sum}</small></span>${ico("chevron", "ic16 ov-chev")}</button><div class="ov-mbody"><header class="ov-mh"><div><h3><button type="button" class="ov-mname" data-act="opsZone" data-id="${esc(z.id)}" aria-label="${esc(`${z.name}：详情与报修`)}">${esc(z.name)}${ico("chevron", "ic16 ov-chev")}</button></h3><small>${esc([z.spaceType, `${dz.area} m²`].filter(Boolean).join(" · "))}</small>${rp ? `<small class="ov-mrp">${esc(rp.closedAt ? `报修已处理 · ${Demo.hm(opsRecAt(rp.closedAt))}` : `报修${taskState(rp)} · 负责人 ${rp.assignee}`)}</small>` : ""}</div><button type="button" class="ov-mcol" data-act="ovMyOpen" data-id="${esc(z.id)}" aria-expanded="true" aria-label="${esc(`收起${z.name}`)}">${ico("chevron", "ic16 ov-chev")}</button></header><div class="ov-mvals">${val("室温", room == null ? null : nf(room, 1), "℃")}${dz.aqs.length ? `<div class="ov-mv"><small>空气质量</small><b>${aqV == null ? "—" : `<span style="color:${AQ_INK[aqQ.i]}">${aqQ.band} ${aqV}</span>${aqV < 70 ? `<i> · 主因 ${esc(aqQ.main)}</i>` : ""}`}</b></div>` : ""}${dz.mss.length ? `<div class="ov-mv${th && th !== "适宜" ? " warn" : ""}"><small>热舒适</small><b>${th || "—"}</b></div>` : ""}</div>${light}${hv}</div></article>`;
 }
 // V337：手机底部标签；成员没有标签栏（V339）。3.07 V1034：五个标签“总览、空间、场景、告警、分析”，与侧栏同一入口（按当前位置打开）
 function ovTabbar() {
@@ -87706,7 +87969,8 @@ function ovTabbar() {
 const s3Has = (bid) => F.floorStack(data(), bid).some((x) => x.meters) || !!g("buildings", bid)?.model3d?.published;
 const sp3Ok = () => !!U.sp && !!U.b && s3Has(U.b);
 const spView = () => (U.ovView === "list" ? "list" : U.ovView === "3d" && sp3Ok() ? "3d" : "plan");
-const spViewItems = () => [["plan", "楼层图"], ...(sp3Ok() ? [["3d", "3D"]] : []), ["list", "清单"]];
+// 3.10 V1077：3D 放最后，没有 3D 的楼宇“清单”不换位置
+const spViewItems = () => [["plan", "楼层图"], ["list", "清单"], ...(sp3Ok() ? [["3d", "3D"]] : [])];
 const SP3_KEY = "pacom.space.view";
 function sp3Pref(v) {
   try {
@@ -87816,7 +88080,7 @@ function spZoneGroups(tab) {
           .join("")}</tbody>`;
       })
       .join("");
-  return `<section class="ov3-zt spc-zt" aria-label="功能区"><header class="ov3-zt-hd"><h3>功能区</h3><small>按楼层分组，需要注意的在前</small></header><div class="ov3-zt-sc"><table class="t ov3-zt-t"><thead><tr>${head}</tr></thead>${body}</table></div></section>`;
+  return `<section class="ov3-zt spc-zt" aria-label="功能区"><header class="ov3-zt-hd"><h3>功能区</h3><small>按楼层分组，需要注意的在前</small></header><div class="ov3-zt-sc"><table class="t ov3-zt-t nw"><thead><tr>${head}</tr></thead>${body}</table></div></section>`;
 }
 const SP_ACTIONS = {
   spMore: (a, el) => popRight(el, menuBox("更多", spMoreItems())),
@@ -88316,7 +88580,8 @@ defineActions({
         return !!fs.size && [...fs].every((f) => off.has(f));
       },
       anyDead = ss.some(dead);
-    (more ? popRight : pop)(
+    // 3.10 V1065：菜单右缘与按钮对齐（同“⋯”），原左对齐时右边超出页面卡片
+    popRight(
       more || el,
       `<div class="ops-floorpop ops-scmenu" role="menu" aria-label="执行场景">${anyDead ? `<p class="ops-menu-h ops-scmenu-off">${esc([...off].map((f) => floorLabel(f)).join("、"))} 网关离线，不能执行</p>` : ""}${
         ss.length
@@ -90092,7 +90357,7 @@ function obZoneVals(o) {
       head: offA ? `<span class="ds-st off">${offA} 台离线</span>` : "",
       ctl: `<div class="ov-irow ob-hv"><span class="ov-step${canControl(ids) ? "" : " dis"}">${hb(ico("minus", "ic16"), "down", "降低设定温度")}<b>${gw || s.spMixed ? "—" : hvSpText(acs[0], cur)}</b>${hb(ico("plus", "ic16"), "up", "提高设定温度")}</span>${ctlBtn(ico("power", "ic16") + (on ? "关空调" : "开空调"), "opsZoneHv", { id: zid, op: "power" }, "sm", ids)}</div>${idle ? `<small class="ov-ieco">无人，按 ${hvSpText(acs[0], s.setpoint)} ${HV_USE[s.use]}运行</small>` /* 2.84 V882 */ : ""}${lastH ? rcpt(lastH) : ""}`,
       rows: [
-        R("室温", gw || room == null ? null : nf(room, 1), "℃", P.temp, dv != null && Math.abs(dv) >= 1 ? { flag: dv > 0 ? "偏高" : "偏低" } : {}),
+        R("室温", gw || room == null ? null : nf(room, 1), "℃", P.temp, dv != null && Math.abs(dv) >= 1 ? { flag: dv > 0 ? "高于设定" : "低于设定" } : {}),
         // 2.82 V797：本区空调全部离线时设定温度与运行写“—”；各台设定不同时设定温度写“—”（同控件）
         R("设定温度", gw || s.spMixed || (!gw && offA === acs.length) ? null : nf(cur, 1), "℃", P.sp, !gw && (s.spMixed || offA === acs.length) ? { na: "—" } : {}),
         R("运行", !gw && offA === acs.length ? null : na(on ? (idle ? HV_USE[s.use] : d0?.mode || "运行") : "关"), "", P.run, !gw && offA === acs.length ? { na: "—" } : {}),
@@ -90415,8 +90680,8 @@ function obInfoTab(k, o) {
       `<h4 class="ob-sh">基本</h4>` +
       kv([
         ["类型", esc(obKind(o))],
-        ["所属网络", n ? `<button type="button" class="ops-link" data-act="networkInfo" data-id="${esc(n.id)}">${esc(n.name)}</button>` : o.connectionId && g("connections", o.connectionId) ? `<button type="button" class="ops-link" data-act="opsObjConn" data-id="${esc(o.connectionId)}">${esc(g("connections", o.connectionId).name)}</button>` : "—"],
-        ...(gw && gw.id !== o.id ? [["网关", obLink("dev", gw.id, gw.name)]] : []),
+        ["所属网络", M.access(o) === "cell" ? "不属于设备网络（4G 直连）" : n ? `<button type="button" class="ops-link" data-act="networkInfo" data-id="${esc(n.id)}">${esc(n.name)}</button>` : o.connectionId && g("connections", o.connectionId) ? `<button type="button" class="ops-link" data-act="opsObjConn" data-id="${esc(o.connectionId)}">${esc(g("connections", o.connectionId).name)}</button>` : "—"],
+        ...(gw && gw.id !== o.id && M.access(o) !== "cell" ? [["网关", obLink("dev", gw.id, gw.name)]] : []), // 3.10 E1190：FC20 不经网关
         ...nodeRows,
         ...(gwConns.length ? [["系统连接", inl(gwConns)]] : []),
         ["序列号", esc(o.serial || o.deviceUuid || "—")],
@@ -90895,7 +91160,7 @@ const S3V = (() => {
       const w = f.w || B.w,
         d = f.d || B.d,
         z = f.z0,
-        rect = [[0, 0], [w, 0], [w, d], [0, d]],
+        rect = f.outline || [[0, 0], [w, 0], [w, d], [0, d]],
         top = rect.map((p) => P(p[0], p[1], z)),
         bot = rect.map((p) => P(p[0], p[1], z - 0.25));
       // 楼板侧面与顶面
@@ -91126,8 +91391,9 @@ const S3V = (() => {
 const s3n = (v, d = 2) => (Number(v) || 0).toFixed(d);
 // 功能区轮廓（百分比）换成米
 const s3ZonePts = (z, m) => (typeof zoneOutline === "function" ? zoneOutline(z) : [{ x: z.x, y: z.y }, { x: z.x + z.w, y: z.y }, { x: z.x + z.w, y: z.y + z.h }, { x: z.x, y: z.y + z.h }]).map((p) => [(p.x / 100) * m.w, (p.y / 100) * m.h]);
-// 设备的安装高度：AQ20 按登记的采集位置（呼吸区 1.2 m，高于 1.8 m 或吸顶为层高减 0.3 m），面板类 1.4 m，其余吸顶
-const S3_DEV_Z = { fc: 1.4, ir: 1.4, tp: 1.2, ls: 1.2 };
+// 设备的安装高度：AQ20 按登记的采集位置（呼吸区 1.2 m，高于 1.8 m 或吸顶为层高减 0.3 m），墙面设备 1.4 m，其余吸顶
+// 3.10 E1194：墙面设备为 FC20（原写“面板类（FC20、IR20）”，IR20 为 4G 设备、不标记），TP、LS 同按 1.4 m
+const S3_DEV_Z = { fc: 1.4, tp: 1.4, ls: 1.4 };
 const s3DevZ = (p, h) => (p.type === "aq" ? (p.aqPos === "high" ? h - 0.3 : 1.2) : S3_DEV_Z[p.type] ?? h - 0.3);
 // 已发布的上传模型：楼层 → 按对齐换到楼层图坐标（米）的房间
 function s3ModelRooms(b, fid) {
@@ -91146,11 +91412,15 @@ function s3Scene(bid, { colorOf = null, devsOf = null, edgeOf = null, focus = nu
   const db = data(),
     b = g("buildings", bid),
     st = F.floorStack(db, bid),
+    // 3.10 E1192：各层按白模对齐换到基准层的坐标（未对齐的层不动）
+    WA = F.whiteAlign(db, bid),
     ref = st.find((x) => x.meters)?.meters || null,
     foot = ref ? { w: ref.w, d: ref.h } : { w: 40, d: 20 },
     topId = st.at(-1)?.f.id;
   const floors = st.map(({ f, elevation, height, meters, why }) => {
     const m = meters,
+      tm = WA.rows.find((r) => r.f.id === f.id)?.t?.map || null,
+      mp = (pts) => (tm ? pts.map(tm) : pts),
       rooms = m ? s3ModelRooms(b, f.id) : null,
       zones = !m
         ? []
@@ -91158,13 +91428,13 @@ function s3Scene(bid, { colorOf = null, devsOf = null, edgeOf = null, focus = nu
           ? rooms.map((r) => {
               const z = r.zoneId ? g("zones", r.zoneId) : null,
                 c = z && colorOf ? colorOf(z) : null;
-              return { id: z?.id || r.id, pts: r.pts, fill: c?.fill || (z ? "#FFFFFF" : "#EEF1F5"), alarm: c?.alarm ?? null, tip: z ? c?.tip || z.name : r.name, pick: !!z };
+              return { id: z?.id || r.id, pts: mp(r.pts), fill: c?.fill || (z ? "#FFFFFF" : "#EEF1F5"), alarm: c?.alarm ?? null, tip: z ? c?.tip || z.name : r.name, pick: !!z };
             })
           : db.zones
               .filter((z) => z.floorId === f.id)
               .map((z) => {
                 const c = colorOf ? colorOf(z) : null;
-                return { id: z.id, pts: s3ZonePts(z, m), fill: c?.fill || "#FFFFFF", alarm: c?.alarm ?? null, tip: c?.tip || z.name };
+                return { id: z.id, pts: mp(s3ZonePts(z, m)), fill: c?.fill || "#FFFFFF", alarm: c?.alarm ?? null, tip: c?.tip || z.name };
               });
     return {
       id: f.id,
@@ -91174,8 +91444,9 @@ function s3Scene(bid, { colorOf = null, devsOf = null, edgeOf = null, focus = nu
       w: m ? m.w : foot.w,
       d: m ? m.h : foot.d,
       ghost: !m,
+      outline: tm && m ? mp([[0, 0], [m.w, 0], [m.w, m.h], [0, m.h]]) : null,
       zones,
-      devs: m && devsOf ? devsOf(f, m, height) : [],
+      devs: m && devsOf ? devsOf(f, m, height).map((v) => (tm ? ((q) => ({ ...v, x: q[0], y: q[1] }))(tm([v.x, v.y])) : v)) : [],
       edge: edgeOf ? edgeOf(f) : null,
       tip: why ? `${f.name} · ${why}` : f.name,
       prio: m ? 2 : f.id === topId || f.kind !== "above" || f.level === 1 || f.level % 5 === 0 ? 1 : 0,
@@ -91232,13 +91503,12 @@ function s3OpsScene(tab) {
 function s3OpsCard(tab) {
   const ui = s3Ui(),
     S = s3OpsScene(tab),
-    why = s3WhyText(S.why),
     f = S.focus ? g("floors", S.focus) : null,
     tb = (label, icon, act, on = null, dis = "") =>
       iconBtn(label, icon, act).replace("<button ", `<button data-tip-at="top"${on != null ? ` aria-pressed="${on}"` : ""}${dis ? ` aria-disabled="true" data-tip="${esc(dis)}"` : ""} `);
   S3_PEND = S;
   const legend = U.ovLegend !== false ? ovLegend2(tab, ovMapLayer(tab)) : "";
-  return `<section class="ov2-map s3-map" id="opsPlanPanel" aria-label="${esc(S.name)} 3D">${ovFloorBar(tab, "3d")}${ovGwBar()}<div class="ov2-plan s3-stage"><div class="s3-host" id="s3Host"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${S.name}${f ? " · " + f.name : ""} 3D 视图：拖动环绕，右键或 Shift 拖动平移，滚轮缩放`)}"></canvas><div class="s3-tip" hidden></div></div>${why ? `<p class="s3-note">${esc(why)}</p>` : ""}<div class="s3-tools" role="group" aria-label="3D 视图">${f ? `<span class="s3-cur">${esc(f.name)}</span>${btn("整栋", "s3Focus", { id: "" }, "ghost sm")}` : ""}${tb("复位视角", "rotate-ccw", "s3Reset")}${tb("只看本层", "layers", "s3Only", !!ui.only, f ? "" : "先点选一层")}${tb("显示外墙", "brick-wall", "s3Walls", S.walls ?? !S.focus)}</div><div class="ov2-zoom ws-zoom" role="group" aria-label="缩放">${iconBtn("缩小", "minus", "s3Zoom", { k: 0.8 }).replace("<button ", '<button data-tip-at="top" ')}${iconBtn("放大", "plus", "s3Zoom", { k: 1.25 }).replace("<button ", '<button data-tip-at="top" ')}</div><div class="ov2-maprow">${legend}</div></div>${ovTimeline()}</section>`;
+  return `<section class="ov2-map s3-map" id="opsPlanPanel" aria-label="${esc(S.name)} 3D">${ovFloorBar(tab, "3d")}${ovGwBar()}<div class="ov2-plan s3-stage"><div class="s3-host" id="s3Host"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${S.name}${f ? " · " + f.name : ""} 3D 视图：拖动环绕，右键或 Shift 拖动平移，滚轮缩放`)}"></canvas><div class="s3-tip" hidden></div></div>${/* 3.10 V1083：不写“22 个楼层未上传楼层图”，只在配置的 3D 模型页写 */ ""}<div class="s3-tools" role="group" aria-label="3D 视图">${f ? `<span class="s3-cur">${esc(f.name)}</span>${btn("整栋", "s3Focus", { id: "" }, "ghost sm")}` : ""}${tb("复位视角", "rotate-ccw", "s3Reset")}${tb("只看本层", "layers", "s3Only", !!ui.only, f ? "" : "先点选一层")}${tb("显示外墙", "brick-wall", "s3Walls", S.walls ?? !S.focus)}</div><div class="ov2-zoom ws-zoom" role="group" aria-label="缩放">${iconBtn("缩小", "minus", "s3Zoom", { k: 0.8 }).replace("<button ", '<button data-tip-at="top" ')}${iconBtn("放大", "plus", "s3Zoom", { k: 1.25 }).replace("<button ", '<button data-tip-at="top" ')}</div><div class="ov2-maprow">${legend}</div></div>${ovTimeline()}</section>`;
 }
 // 绘制后挂上画布；重新绘制页面时保留视角
 onAfterRender(() => {
@@ -91327,7 +91597,7 @@ defineActions({
     U.ovbPh = a.value === "3d" ? "3d" : "photo";
     render();
   },
-  // 空间页的显示方式：楼层图 | 3D | 清单；楼层图与 3D 记住上次的选择。选 3D 时为整栋楼
+  // 空间页的显示方式：楼层图 | 清单 | 3D（3.10 V1077）；楼层图与 3D 记住上次的选择。选 3D 时为整栋楼
   ovView: (a) => {
     const v = a.value === "list" ? "list" : a.value === "3d" ? "3d" : "plan";
     if (v !== "list") sp3Pref(v);
@@ -91422,7 +91692,7 @@ const M3 = (() => {
             id: r.id,
             pts: r.pts.map((p) => [p[0] - x0, p[1] - y0]),
             fill: step === "3" && fl ? (!v ? "#FBE9D0" : v === "none" ? "#EEF1F5" : n > 1 ? "#DCE8F7" : "#DDF0E5") : "#FFFFFF",
-            tip: `${r.name}${step === "3" && fl ? " · " + (!v ? "未对应" : v === "none" ? "不对应" : (zs.find((z) => z.id === v)?.name || "") + (n > 1 ? " · 多个房间对应一个功能区" : "")) : ""}`,
+            tip: `${r.name}${step === "3" && fl ? " · " + (!v ? "未对应" : v === "none" ? "忽略" : (zs.find((z) => z.id === v)?.name || "") + (n > 1 ? " · 多个房间对应一个功能区" : "")) : ""}`,
             pick: true,
           };
         });
@@ -91471,9 +91741,56 @@ const M3 = (() => {
       st = F.floorStack(data(), U.b).reverse(),
       ok = edit(),
       why = s3WhyText(st.filter((x) => x.why));
-    return `<div class="m3-sec"><h3>白模</h3><p class="m3-p">按各层楼层图、比例尺与层高自动生成：楼板加功能区挤出，功能区高 2.4 m，墙为半透明。${why ? `<br><span class="m3-muted">${esc(why)}，只画楼板轮廓。</span>` : ""}</p>${fld("标准层高", "m3Std", `<span class="m3-num"><input class="input" id="m3Std" inputmode="decimal" value="${esc(String(F.storyHeight(bb)))}"${ok ? "" : " disabled"} aria-describedby="m3Std-u"><small id="m3Std-u">m</small></span>`)}</div><div class="m3-sec"><h3>各层层高</h3><ul class="m3-hl">${st
+    return `<div class="m3-sec"><h3>白模</h3><p class="m3-p">按各层楼层图、比例尺与层高自动生成：楼板加功能区挤出（高 2.4 m），墙半透明。${why ? `<br><span class="m3-muted">${esc(why)}，只画楼板轮廓。</span>` : ""}</p>${fld("标准层高", "m3Std", `<span class="m3-num"><input class="input" id="m3Std" inputmode="decimal" value="${esc(String(F.storyHeight(bb)))}"${ok ? "" : " disabled"} aria-describedby="m3Std-u"><small id="m3Std-u">m</small></span>`)}</div>${whitePanel()}<div class="m3-sec"><h3>各层层高</h3><ul class="m3-hl">${st
       .map(({ f, height }) => `<li><span>${esc(f.name)}</span><span class="m3-num"><input class="input" id="m3H-${esc(f.id)}" inputmode="decimal" value="${f.height > 0 ? esc(String(f.height)) : ""}" placeholder="${esc(String(F.storyHeight(bb)))}"${ok ? "" : " disabled"} aria-label="层高（${esc(f.name)}）"><small>m</small></span></li>`)
       .join("")}</ul></div>`;
+  }
+  // 3.10 E1192：白模的“对齐”一节：基准为有楼层图与比例尺的最低一层，其他楼层用两个参考点对齐到基准
+  function whitePanel() {
+    const W = F.whiteAlign(data(), U.b),
+      ok = edit();
+    if (!W.base) return "";
+    const rows = W.rows.filter((r) => r.state !== "base"),
+      done = rows.filter((r) => r.state === "auto" || r.state === "done").length,
+      cur = U.m3f ? rows.find((r) => r.f.id === U.m3f && r.state !== "auto") || null : null,
+      A = cur && U.m3w?.fid === cur.f.id ? U.m3w : null,
+      bn = W.base.name,
+      txt = (r) => (r.state === "base" ? ["基准", "m3-muted"] : r.state === "auto" ? ["自动对齐", "ok"] : r.state === "pending" ? ["待对齐", "warn"] : r.state === "review" ? ["待复核", "warn"] : [`偏差 ${s3n(r.t.dev, 2)} m · ${r.t.grade}`, r.t.dev > 0.5 ? "warn" : "ok"]),
+      sub = (r) => (r.state === "auto" ? `与 ${bn} 同一个 ${String(r.f.planSource?.fileType || "").toUpperCase() === "PDF" ? "PDF" : "DXF"}` : ""),
+      list = `<ul class="m3-al">${W.rows
+        .map((r) => {
+          const [t, c] = txt(r),
+            s = sub(r);
+          return `<li><button type="button" class="m3-alr${U.m3f === r.f.id ? " on" : ""}" data-act="m3Floor" data-id="${esc(r.f.id)}"><span>${esc(r.f.name)}${s ? `<small>${esc(s)}</small>` : ""}</span><em class="${c}">${esc(t)}</em></button></li>`;
+        })
+        .join("")}</ul>`,
+      n = A ? A.pts.length + A.ref.length : 0,
+      guide = !cur
+        ? ""
+        : A
+          ? `已点 ${n} / 4 个参考点：${A.pts.length < 2 ? `在 ${cur.f.name} 楼层图上点第 ${A.pts.length + 1} 个` : `在 ${bn} 楼层图上点第 ${A.ref.length + 1} 个`}`
+          : cur.state === "review"
+            ? "楼层图已替换，请重新选点核对"
+            : cur.t
+              ? "已对齐；可重新选点"
+              : `先在 ${cur.f.name} 楼层图上依次点两个参考点（如柱角），再在 ${bn} 楼层图上点同样的两个点`,
+      same = !!cur?.t && rows.some((r) => r !== cur && r.state !== "auto" && F.samePlanSize(r.f.dimensions, cur.f.dimensions));
+    return `<div class="m3-sec"><h3>对齐${rows.length ? ` <small>已对齐 ${fmt(done)} / ${fmt(rows.length)}</small>` : ""}</h3><p class="m3-p">${rows.length ? `基准为 ${esc(bn)}（有楼层图的最低一层）。其他楼层用两个参考点对齐到基准；同一个 DXF 或多页 PDF 拆出的楼层自动对齐。` : `只有 ${esc(bn)} 有楼层图与比例尺，其他楼层设好后在这里对齐到它。`}</p>${list}</div>${cur && ok ? `<div class="m3-sec"><p class="m3-p" role="status">${esc(guide)}</p><div class="m3-acts">${btn(A || cur.t ? "重新选点" : "开始选点", "m3WAlignStart", {}, "sm")}${A ? btn("取消选点", "m3WAlignStop", {}, "ghost sm") : ""}${same && !A ? btn("应用到其他楼层", "m3WAlignAll", {}, "ghost sm") : ""}</div></div>` : ""}`;
+  }
+  // 白模选点：左为该层楼层图，右为基准层楼层图
+  function whiteStage() {
+    const A = U.m3w,
+      bf = F.whiteAlign(data(), U.b).base,
+      f = A && g("floors", A.fid);
+    if (!f || !bf || f.id === bf.id) return "";
+    const ra = f.dimensions.width / f.dimensions.height,
+      rb = bf.dimensions.width / bf.dimensions.height,
+      stack = ra > 1 && rb > 1,
+      half = (fl, pick, pts, r, cls) => {
+        const m = F.floorMeters(fl);
+        return `<figure class="m3-half"><figcaption>${esc(fl.name)} 楼层图${fl === bf ? "（基准）" : ""}</figcaption><div class="m3-pick m3-plan" data-pick="${pick}" style="aspect-ratio:${fl.dimensions.width}/${fl.dimensions.height};width:min(100%, calc((${stack ? "50cqh - 70px" : "100cqh - 100px"}) * ${r.toFixed(4)}))"><img src="${esc(fl.image)}" alt="${esc(fl.name)} 楼层图" draggable="false">${pts.map((p, i) => `<span class="m3-pt ${cls}" style="left:${(p[0] / m.w) * 100}%;top:${(p[1] / m.h) * 100}%" aria-hidden="true">${i + 1}</span>`).join("")}</div></figure>`;
+      };
+    return `<div class="m3-split${stack ? " v" : ""}"${stack ? "" : ` style="grid-template-columns:minmax(0, ${ra.toFixed(3)}fr) minmax(0, ${rb.toFixed(3)}fr)"`}>${half(f, "wp", A.pts, ra, "d")}${half(bf, "wr", A.ref, rb, "s")}</div>`;
   }
   function stepBar(S) {
     const cur = U.m3s || "1",
@@ -91572,12 +91889,12 @@ const M3 = (() => {
       if (v && v !== "none") counts[v] = (counts[v] || 0) + 1;
     });
     const tabs2 = rows.length > 1 ? `<div class="m3-fls">${rows.map((x) => btn(esc(x.f.name), "m3Floor", { id: x.f.id }, "ghost sm" + (x.f.id === cur.id ? " on" : ""))).join("")}</div>` : "",
-      opts = [["", "请选择功能区"], ...zs.map((z) => [z.id, z.name]), ["none", "不对应"]];
+      opts = [["", "请选择功能区"], ...zs.map((z) => [z.id, z.name]), ["none", "忽略"]]; // 3.10 V1081：原“不对应”与“未对应”只差一个字
     return `<div class="m3-sec"><h3>对应 <small>${esc(cur.name)}</small></h3>${tabs2}<table class="t m3-t m3-rt"><thead><tr><th scope="col">模型房间</th><th scope="col">功能区</th></tr></thead><tbody>${[...s.rooms]
       .sort((p, q) => !!mm.roomMap?.[p.id] - !!mm.roomMap?.[q.id] || M.byName(p, q))
       .map((r) => {
         const v = mm.roomMap?.[r.id] || "",
-          stx = !v ? ["未对应", "warn"] : v === "none" ? ["不对应", "m3-muted"] : counts[v] > 1 ? ["多个房间对应一个功能区", "info"] : ["已对应", "ok"];
+          stx = !v ? ["未对应", "warn"] : v === "none" ? ["忽略", "m3-muted"] : counts[v] > 1 ? ["多个房间对应一个功能区", "info"] : ["已对应", "ok"];
         return `<tr><td><b>${esc(r.name)}</b><em class="${stx[1]}">${stx[0]}</em></td><td>${ok ? select("m3R-" + r.id, opts, v, r.name + " 对应功能区") : esc(v && v !== "none" ? g("zones", v)?.name || "—" : "—")}</td></tr>`;
       })
       .join("")}</tbody></table></div>`;
@@ -91609,12 +91926,15 @@ const M3 = (() => {
     else if (mm.status === "converting") panel = `<div class="m3-sec"><h3>${esc(mm.file?.name || "")}</h3><p class="m3-p">${esc(F.modelKindText(mm.kind))} · ${fileSize(mm.file?.size || 0)}</p>${wsNotice("正在转换并按楼层拆分，完成后通知你。转换期间运营端照常显示原来的 3D。")}${ok ? `<div class="m3-acts">${btn("取消上传", "m3Revert", {}, "sm")}</div>` : ""}</div>`;
     else if (mm.status === "failed") panel = `<div class="m3-sec">${wsNotice(esc(mm.error || "转换失败，请检查文件后重新上传"), "error")}</div>`;
     else panel = stepBar(steps) + (step === "1" ? floorsPanel(mm) : step === "2" ? alignPanel(mm) : roomsPanel(mm));
-    const view = mm?.status === "ready" && step === "2" ? alignStage(mm) : `<div class="s3-host" id="s3Host" data-view="m3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(bb.name)} 3D 模型：拖动环绕，右键或 Shift 拖动平移，滚轮缩放"></canvas><div class="s3-tip" hidden></div></div><div class="s3-tools" role="group" aria-label="3D 视图">${U.m3f && step !== "2" ? `<span class="s3-cur">${esc(g("floors", U.m3f)?.name || "")}</span>${btn("整栋", "m3Floor", { id: "" }, "ghost sm")}` : ""}${iconBtn("复位视角", "rotate-ccw", "m3Reset").replace("<button ", '<button data-tip-at="top" ')}${ok && !U.m3f ? btn("设为默认视角", "m3SetView", {}, "ghost sm") : ""}</div><div class="ov2-zoom ws-zoom" role="group" aria-label="缩放">${iconBtn("缩小", "minus", "s3Zoom", { k: 0.8 })}${iconBtn("放大", "plus", "s3Zoom", { k: 1.25 })}</div>`;
+    const view = mm?.status === "ready" && step === "2" ? alignStage(mm) : !mm && U.m3w ? whiteStage() : `<div class="s3-host" id="s3Host" data-view="m3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(bb.name)} 3D 模型：拖动环绕，右键或 Shift 拖动平移，滚轮缩放"></canvas><div class="s3-tip" hidden></div></div><div class="s3-tools" role="group" aria-label="3D 视图">${U.m3f && step !== "2" ? `<span class="s3-cur">${esc(g("floors", U.m3f)?.name || "")}</span>${btn("整栋", "m3Floor", { id: "" }, "ghost sm")}` : ""}${iconBtn("复位视角", "rotate-ccw", "m3Reset").replace("<button ", '<button data-tip-at="top" ')}${ok && !U.m3f ? btn("设为默认视角", "m3SetView", {}, "ghost sm") : ""}</div><div class="ov2-zoom ws-zoom" role="group" aria-label="缩放">${iconBtn("缩小", "minus", "s3Zoom", { k: 0.8 })}${iconBtn("放大", "plus", "s3Zoom", { k: 1.25 })}</div>`;
     stage = `<div class="m3-stage">${view}</div>`;
+    // 3.10 E1192：白模待对齐、待复核的层后面为橙点，悬停写状态
+    const WR = !mm ? F.whiteAlign(data(), U.b).rows : [];
     const nav = `<nav class="ovf-fl m3-fl" aria-label="楼层"><h3>楼层</h3><ul><li><button type="button" class="ovf-fr${U.m3f ? "" : " on"}" data-act="m3Floor" data-id=""><span>整栋</span></button></li>${fs
       .map((f) => {
-        const x = st.find((y) => y.f.id === f.id);
-        return `<li><button type="button" class="ovf-fr${U.m3f === f.id ? " on" : ""}" data-act="m3Floor" data-id="${esc(f.id)}"${x?.meters ? "" : ` data-tip="${esc(x?.why || "")}"`}><span>${esc(f.name)}</span>${x?.meters ? "" : '<i class="m3-off" aria-hidden="true"></i>'}</button></li>`;
+        const x = st.find((y) => y.f.id === f.id),
+          ws = { pending: "待对齐", review: "待复核" }[WR.find((r) => r.f.id === f.id)?.state] || "";
+        return `<li><button type="button" class="ovf-fr${U.m3f === f.id ? " on" : ""}" data-act="m3Floor" data-id="${esc(f.id)}"${x?.meters ? (ws ? ` data-tip="${ws}"` : "") : ` data-tip="${esc(x?.why || "")}"`}><span>${esc(f.name)}</span>${x?.meters ? (ws ? '<i class="m3-off m3-wait" aria-hidden="true"></i>' : "") : '<i class="m3-off" aria-hidden="true"></i>'}</button></li>`;
       })
       .join("")}</ul></nav>`;
     const narrow = isMobile() ? `<p class="m3-narrow">${esc(wideHint("编辑 3D 模型"))}</p>` : "";
@@ -91658,6 +91978,48 @@ document.addEventListener("click", (e) => {
       bb.model3d.align = { ...(bb.model3d.align || {}), [fid]: { src, dst, dev: t.dev, at: M.now() } };
       bb.model3d.dirty = true;
       M.record(db, "3D 模型对齐", bb.id, `${bb.name} · ${f.name} · 偏差 ${t.dev} m`);
+    }).then(() => {
+      render();
+      msg(t.dev > 0.5 ? `偏差 ${s3n(t.dev, 2)} m，较大，请检查比例尺或重新选点` : `${f.name} 已对齐，偏差 ${s3n(t.dev, 2)} m`);
+    });
+    return;
+  }
+  render();
+});
+// 3.10 E1192：白模对齐时先在该层楼层图上点两个参考点，再在基准层楼层图上点同样的两个点
+document.addEventListener("click", (e) => {
+  const box = e.target.closest?.(".m3-pick[data-pick^='w']");
+  if (!box || !U.m3w || !canEdit()) return;
+  const A = U.m3w,
+    bf = F.whiteAlign(data(), U.b).base,
+    f = g("floors", A.fid);
+  if (!f || !bf) return;
+  const r = box.getBoundingClientRect(),
+    fx = (e.clientX - r.left) / r.width,
+    fy = (e.clientY - r.top) / r.height,
+    at = (fl) => ((m) => [+(fx * m.w).toFixed(3), +(fy * m.h).toFixed(3)])(F.floorMeters(fl));
+  if (box.dataset.pick === "wp") {
+    if (A.pts.length >= 2) return;
+    A.pts.push(at(f));
+  } else {
+    if (A.pts.length < 2 || A.ref.length >= 2) return;
+    A.ref.push(at(bf));
+  }
+  if (A.pts.length === 2 && A.ref.length === 2) {
+    const t = F.alignSim(A.pts, A.ref);
+    if (!t) {
+      U.m3w = { fid: A.fid, pts: [], ref: [] };
+      msg("两个参考点离得太近，请重新选点");
+      render();
+      return;
+    }
+    const { fid, pts, ref } = A;
+    U.m3w = null;
+    transaction((db) => {
+      const bb = M.get(db, "buildings", U.b);
+      if (!bb || bb.model3d) throw Error("3D 模型已变化，请重新打开");
+      bb.whiteAlign = { ...(bb.whiteAlign || {}), [fid]: { pts, ref, base: bf.id, dev: t.dev, at: M.now() } };
+      M.record(db, "3D 白模对齐", bb.id, `${bb.name} · ${f.name} · 偏差 ${t.dev} m`);
     }).then(() => {
       render();
       msg(t.dev > 0.5 ? `偏差 ${s3n(t.dev, 2)} m，较大，请检查比例尺或重新选点` : `${f.name} 已对齐，偏差 ${s3n(t.dev, 2)} m`);
@@ -91724,16 +92086,16 @@ defineActions({
     closePop();
     // 从楼层的换图复核“去对齐”打开时先回到楼宇，再进入对齐步骤的该层
     if (U.f) route("projects", { p: U.p, b: U.b });
-    Object.assign(U, { m3: U.b, m3s: a.s || "1", m3f: a.f || null, m3a: null, m3cam: null, spaceInfo: null });
+    Object.assign(U, { m3: U.b, m3s: a.s || "1", m3f: a.f || null, m3a: null, m3w: null, m3cam: null, spaceInfo: null });
     render();
   },
   m3Close: () => {
-    Object.assign(U, { m3: null, m3a: null, m3cam: null });
+    Object.assign(U, { m3: null, m3a: null, m3w: null, m3cam: null });
     render();
   },
   m3Floor: (a) => {
     s3SaveCam();
-    Object.assign(U, { m3f: a.id || null, m3a: null, m3cam: null });
+    Object.assign(U, { m3f: a.id || null, m3a: null, m3w: null, m3cam: null });
     render();
   },
   m3Reset: () => {
@@ -91782,6 +92144,42 @@ defineActions({
       ids.forEach((fid) => (mm.align[fid] = { ...M.copy(al), from: src, at: M.now() }));
       mm.dirty = true;
       M.record(db, "3D 模型对齐", bb.id, `${bb.name} · 把 ${M.floor(db, src)?.name} 的对齐用到 ${ids.length} 个楼层`);
+    });
+    closeModal(true);
+    render();
+    msg("已应用到其他楼层");
+  },
+  // 3.10 E1192：白模对齐的选点与“应用到其他楼层”（图纸尺寸相同的楼层）
+  m3WAlignStart: () => {
+    if (!U.m3f) return;
+    U.m3w = { fid: U.m3f, pts: [], ref: [] };
+    render();
+  },
+  m3WAlignStop: () => {
+    U.m3w = null;
+    render();
+  },
+  m3WAlignAll: () => {
+    const W = F.whiteAlign(data(), U.b),
+      cur = W.rows.find((r) => r.f.id === U.m3f),
+      others = cur?.t ? W.rows.filter((r) => r !== cur && !["base", "auto"].includes(r.state) && F.samePlanSize(r.f.dimensions, cur.f.dimensions)) : [];
+    if (!others.length) return msg("没有图纸尺寸相同的其他楼层");
+    modal("应用到其他楼层", `<p>把 ${esc(cur.f.name)} 的对齐用到图纸尺寸相同的 ${fmt(others.length)} 个楼层（${esc(others.map((r) => r.f.name).join("、"))}）？已对齐的楼层会被替换。</p>`, btn("取消", "close") + btn("应用", "m3WAlignAllGo", {}, "primary"), false);
+  },
+  m3WAlignAllGo: async () => {
+    const src = U.m3f;
+    await transaction((db) => {
+      const bb = M.get(db, "buildings", U.b),
+        W = F.whiteAlign(db, U.b),
+        cur = W.rows.find((r) => r.f.id === src),
+        al = bb?.whiteAlign?.[src];
+      if (!cur?.t || !al) throw Error("对齐已变化，请重新打开");
+      const ids = W.rows.filter((r) => r !== cur && !["base", "auto"].includes(r.state) && F.samePlanSize(r.f.dimensions, cur.f.dimensions)).map((r) => r.f.id);
+      ids.forEach((fid) => {
+        const { review, ...rest } = M.copy(al);
+        bb.whiteAlign[fid] = { ...rest, from: src, at: M.now() };
+      });
+      M.record(db, "3D 白模对齐", bb.id, `${bb.name} · 把 ${M.floor(db, src)?.name} 的对齐用到 ${ids.length} 个楼层`);
     });
     closeModal(true);
     render();
@@ -92302,10 +92700,12 @@ document.addEventListener("change", (e) => {
   if (key === "pi") piRender();
   else
     for (const it of U.bu.items.filter((x) => x.cadKey === key && !x.error)) {
+      it.pv = null;
       it.thumb = cadThumb(it);
       const slot = document.querySelector(`[data-thumb="${it.key}"]`);
       if (slot) slot.innerHTML = `<img src="${it.thumb}" style="transform:rotate(${it.rotation}deg)" alt="已旋转 ${it.rotation} 度的楼层图缩略图">`;
     }
+  if (key !== "pi") document.querySelector(`[data-cadpv="${CSS.escape(key)}"]`)?.replaceWith(...new DOMParser().parseFromString(buCadPv(key), "text/html").body.childNodes);
 });
 // 对应列表一行的缩略图（长边 72）
 function cadThumb(it) {
@@ -92316,6 +92716,23 @@ function cadThumb(it) {
   c.height = Math.max(1, Math.round(r.canvas.height * k));
   c.getContext("2d").drawImage(r.canvas, 0, 0, c.width, c.height);
   return c.toDataURL("image/png");
+}
+// 3.10 V1076：一个 DXF 有几张平面图时，图层下按张预览（随图层勾选与旋转重画，点开为大图），下一行写图纸单位与比例尺（原只有 56 的缩略图）
+function cadPreview(it) {
+  const r = cadCanvas(it.cad, it.cad.sheets[it.sheet], it.cad.hidden, 640);
+  return cadTurn(r.canvas, it.rotation || 0).toDataURL("image/png");
+}
+function buCadPv(k) {
+  const bu = U.bu,
+    cad = bu?.cads?.[k],
+    its = cad ? bu.items.filter((x) => x.cadKey === k && !x.error) : [];
+  if (!its.length) return "";
+  return `<div class="bu-cadpv" data-cadpv="${esc(k)}"><div class="bu-cadpv-s">${its
+    .map((it) => {
+      if (!it.pv || it.pvRot !== it.rotation) Object.assign(it, { pv: cadPreview(it), pvRot: it.rotation });
+      return `<button type="button" class="bu-cadpv-f" data-act="buInspect" data-key="${esc(it.key)}" aria-label="${esc(`查看第 ${it.sheet + 1} 张平面图`)}"><img src="${it.pv}" alt=""><span>第 ${it.sheet + 1} / ${cad.sheets.length} 张</span></button>`;
+    })
+    .join("")}</div><p class="bu-cadpv-n">图纸单位：${esc(cadUnitText(cad))} · 比例尺按图纸单位自动设置</p></div>`;
 }
 // 生成 DXF 楼层图：返回画布与每米像素数（按图纸单位）
 function cadPlan(it, edge) {
@@ -98467,6 +98884,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.10",
+    date: "2026-11-06",
+    notes: ["新增：3D 模型可把各层楼层图用两个参考点对齐，换图后提示复核。", "新增：楼层图支持上传 DWG，转换后与 DXF 一样选图层；一个文件有几张平面图时逐张显示。", "改进：电能表经通讯管理机以网口接入；LC20 支持 1–10 V 调光。", "改进：固件升级只在实际传输与生效时暂停检测、算检修中，时段外自动暂停。", "改进：室内环境参考范围按季节分行，告警规则加 VOC、NOx 指数。"],
+  },
   {
     version: "3.09",
     date: "2026-11-06",
@@ -111892,6 +112314,7 @@ function demoX(hash, fn) {
       demoIn();
       demoFwClear();
       demo3dClear();
+      demoTwinClear();
       // 上一项留下的楼层图模式、选择、面板、回放（2.70 V674）与网关离线都先清掉
       Object.assign(U, { devFilterOpen: false, scalePoints: null, drawZone: false, checksOpen: false, checkFocus: null, point: null, opsSel: [], opsZSel: [], opsSelMode: null, opsDrawer: null, opsZone: null, scEd: null, ovAt: null, ovAtF: null, ovView: null, ovDev: null, ovbPh: null, s3: null, m3: null, m3s: null, m3f: null, m3a: null, m3cam: null, m3up: null }); // 2.81：功能区清单、检视器里的单台设备也清掉；3.09：3D 视图与 3D 模型页也清掉
       if (Demo.ctl.gwOffline) actions.demoGw();
@@ -112291,9 +112714,13 @@ const DEMO_ITEMS = [
   ["楼宇", "cfg-building-edit", "编辑楼宇", "E栋", demoX(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}`, () => actions.spaceForm({ kind: "buildings", id: DEMO_IDS.building }))],
   ["楼宇", "cfg-plan-upload", "上传楼层图", "E栋 · 已选好一张图片", demoX(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}`, () => demoPlanFile().then((f) => openPlanFiles(DEMO_IDS.building, null, [f])))],
   // 3.09 V1043 第 5 条：一个 DXF 文件里两张平面图，按图中的“八层平面图”“九层平面图”建议楼层
+  // 3.10 E1193：DWG 先“转换中”，转为 DXF 后同 DXF（转换服务接入前用 DXF 样例）
+  ["楼宇", "cfg-plan-dwg", "上传 DWG 楼层图", "E栋 · 转换后选图层", demoX(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}`, () => openPlanFiles(DEMO_IDS.building, null, [new File([new Uint8Array([0x41, 0x43, 0x31, 0x30, 0x33, 0x32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])], "E栋_标准层平面图.dwg", { type: "application/acad" })]))],
   ["楼宇", "cfg-plan-dxf", "上传 DXF 楼层图", "E栋 · 一个文件两张平面图", demoX(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}`, () => openPlanFiles(DEMO_IDS.building, null, [demoDxfFile()]))],
   // 3.09 V1043、V1049：3D 模型（楼宇“更多”第一组）
   ["3D 模型", "cfg-pg-3d", "3D 模型", "E栋 · 自动生成", demoPg(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}`, () => actions.m3Open())],
+  // 3.10 E1192：白模对齐（8F、9F 用与 7F 同尺寸的楼层图，8F 已对齐，9F 在本层楼层图上点了 2 个参考点）
+  ["3D 模型", "cfg-3d-wa", "3D 模型 · 白模对齐", "E栋 · 9F · 已点 2 / 4 个参考点", demoX(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}`, () => demoWhiteStage())],
   ["3D 模型", "cfg-3d-upload", "上传 3D 模型", "E栋 · 已选好 IFC 文件", demoX(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}`, () => (actions.m3Open(), m3UploadDialog({ name: "E栋_建筑模型.ifc", size: 90596966 })))],
   ["3D 模型", "cfg-3d-floors", "3D 模型 · 楼层", "E栋 · 设备平台未选择", demoX(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}`, () => (demo3dStage("floors"), actions.m3Open({ s: "1" })))],
   ["3D 模型", "cfg-3d-align", "3D 模型 · 对齐", "E栋 · 7F · 已点 2 / 4 个参考点", demoX(() => `#projects?p=${DEMO_IDS.project}&b=${DEMO_IDS.building}`, () => (demo3dStage("align"), actions.m3Open({ s: "2", f: DEMO_IDS.floor }), (U.m3a = { fid: DEMO_IDS.floor, src: [], dst: [[0.6, 1.3], [63.3, 24]] }), render()))],
@@ -112490,6 +112917,8 @@ const DEMO_ITEMS = [
   ["数据分析", "an-event", "事件", "能源 · 9 月 16 日", // 2.66 V555：事件弹层锚在图上的标记，等图画好后从标记打开
   demoX("#analysis?tab=energy", () => demoAfter(() => { const el = $(`[data-act="anEvt"][data-k^="${Demo.TODAY - 8 * Demo.DAY}:${Demo.DAY}"]`); if (el) actions.anEvt({ k: el.dataset.k }, el); }))],
   ["数据分析", "an-note", "加备注", "能源 · 9 月 16 日", demoX("#analysis?tab=energy", () => actions.anNoteAdd({ t: Demo.TODAY - 8 * Demo.DAY, step: Demo.DAY }))],
+  // 3.10 V1068：F栋 5F 接入一层（按 E栋 7F 折算，只在数据分析中出现），勾选 E栋、F栋对比
+  ["数据分析", "an-cmp", "分级对比", "E栋、F栋各接入一层 · 勾选对比", demoX(() => `#analysis?p=${DEMO_IDS.project}&tab=energy`, () => demoTwinStage())],
   ["数据分析", "ai-suggest", "AI 建议", "实验室 B 重新下发配置", demoX("#analysis?tab=energy", () => actions.aiAdopt({ id: "labb-hold" }))],
   ["数据分析", "ops-pg-saving", "数据分析 · 能源 · 节电量", "", demoPg("#analysis?tab=saving")],
   ["数据分析", "an-measure", "登记措施", "能源 › 节电量", demoX("#analysis?tab=saving", () => actions.anMeasureForm())],
@@ -113091,10 +113520,66 @@ const V13_DEMO_RELEASES = [
 ];
 // 3.09 V1043、V1049：E栋上传 IFC 模型的示例（楼层、对齐、对应三步）只放在内存里，打开其他条目时清掉。
 // 模型平面坐标与楼层图相差 90° 转动与平移（米）；7F 的房间来自功能区，几处名称不同（电梯前室、内走道、“705 办公室”），实验室 E 在模型中为东西两间，另有管井
+// 3.10 V1068：分级对比示例给 F栋、F栋 5F 加的面积、用途与接入都还原
+const demoTwinClear = () => {
+  const db = data();
+  [...db.buildings, ...db.floors]
+    .filter((o) => o.demoTwin)
+    .forEach((o) => {
+      const s = o.demoTwin;
+      delete o.demoTwin;
+      Object.keys(s).forEach((k) => (s[k] === undefined ? delete o[k] : (o[k] = s[k])));
+    });
+};
+function demoTwinStage() {
+  const db = data(),
+    fb = db.buildings.find((b) => b.projectId === DEMO_IDS.project && b.name === "F栋"),
+    f5 = fb && db.floors.find((f) => f.buildingId === fb.id && f.name === "5F");
+  if (!f5) return;
+  fb.demoTwin = { area: fb.area ?? null, usage: fb.usage ?? null };
+  f5.demoTwin = { area: f5.area ?? null };
+  Object.assign(fb, { area: 19800, usage: "办公" });
+  f5.area = 1460;
+  U.anLv = "buildings";
+  U.anCmp = { key: anCmpKey(), ids: [g("floors", DEMO_IDS.floor).buildingId, fb.id] };
+  render();
+}
 const demo3dClear = () => {
   const b = data().buildings.find((x) => x.id === DEMO_IDS.building);
   if (b?.model3d?.demoStage) delete b.model3d;
+  // 3.10 E1192：白模对齐示例给 8F、9F 加的楼层图与对齐都还原
+  if (b?.demoWhite) {
+    delete b.whiteAlign;
+    delete b.demoWhite;
+    data()
+      .floors.filter((f) => f.demoPlan)
+      .forEach((f) => {
+        const o = f.demoPlan;
+        delete f.demoPlan;
+        ["image", "planVersion", "dimensions", "scale", "planSource"].forEach((k) => (o[k] === undefined ? delete f[k] : (f[k] = o[k])));
+      });
+  }
 };
+function demoWhiteStage() {
+  const db = data(),
+    b = db.buildings.find((x) => x.id === DEMO_IDS.building),
+    f7 = db.floors.find((x) => x.id === DEMO_IDS.floor),
+    fl = (n) => db.floors.find((x) => x.buildingId === b.id && x.name === n),
+    f8 = fl("8F"),
+    f9 = fl("9F"),
+    at = new Date(Demo.NOW - Demo.DAY / 6).toISOString();
+  [f8, f9].forEach((f) => {
+    f.demoPlan = M.copy({ image: f.image, planVersion: f.planVersion, dimensions: f.dimensions, scale: f.scale, planSource: f.planSource });
+    Object.assign(f, { image: f7.image, planVersion: 1, dimensions: { ...f7.dimensions }, scale: { ...M.copy(f7.scale), planVersion: 1 }, planSource: { fileName: `E栋_${f.name}平面图.pdf`, fileType: "pdf", pages: 1, sha256: "demo-" + f.id, at } });
+  });
+  const pts = [[0.9, 1.6], [63.6, 24.2]],
+    ref = [[0.6, 1.3], [63.3, 24]];
+  b.demoWhite = true;
+  b.whiteAlign = { [f8.id]: { pts, ref, base: f7.id, dev: F.alignSim(pts, ref).dev, at } };
+  actions.m3Open({ f: f9.id });
+  U.m3w = { fid: f9.id, pts: [[0.9, 1.6], [63.6, 24.2]], ref: [] };
+  render();
+}
 function demo3dStage(stage) {
   const db = data(),
     b = db.buildings.find((x) => x.id === DEMO_IDS.building),
@@ -113234,7 +113719,10 @@ function demoFwStage(stage) {
     pilot: true,
     pilotIds,
     pilotState: "passed",
-    status: stage,
+    // 3.10 E1186、E1188：10:30 在升级时段与生效时段之外，任务自动暂停，阶段条停在暂停前的阶段，所涉设备不算检修中
+    status: "paused",
+    autoPause: true,
+    pausedAt: stage,
     progress: stage === "running" ? 45 : null,
     at,
     by: "王敏 · 机构管理员",
