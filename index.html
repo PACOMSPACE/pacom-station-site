@@ -8030,6 +8030,31 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 @media (max-width:850px) {
   :is(#app, #dlg)[data-page] .btn.ws-source-back { width:44px; height:44px; min-height:44px; padding:0; }
 }
+  /* 放在 project 层：.ws-notice 等通用规则在本层，base 层的覆盖不生效 */
+  /* 3.08 V1044–V1046：升级弹窗的升级、生效两个时段与“先试点”，下发前检查每行一个勾或一个提醒；任务详情的阶段条与带操作的提醒 */
+  #dlg .fw-range { display: flex; align-items: center; gap: 6px; }
+  #dlg .fw-range > .input { flex: 1 1 0; min-width: 0; }
+  #dlg .fw-range > span { color: var(--text3); }
+  #dlg label.fw-pilot { flex-wrap: wrap; align-items: center; }
+  #dlg label.fw-pilot > small { flex-basis: 100%; padding-left: 24px; font-size: 12px; line-height: 18px; color: var(--text3); }
+  .fw-checks { margin: 16px 0 0; }
+  #dlg .fw-checks h4 { margin: 0 0 4px; font-size: 14px; line-height: 22px; font-weight: 500; color: var(--text); }
+  .fw-checks ul { list-style: none; margin: 0; padding: 0; }
+  .fw-checks li { display: grid; grid-template-columns: 16px 7.5em minmax(0, 1fr); gap: 8px; padding: 4px 0; font-size: 14px; line-height: 22px; }
+  .fw-checks li > svg { margin-top: 3px; color: var(--good); }
+  .fw-checks li.warn > svg { color: var(--warn); }
+  .fw-checks li > span:first-of-type { color: var(--text2); }
+  .fw-stages { display: flex; gap: 4px; list-style: none; margin: 0 0 16px; padding: 0; }
+  .fw-stages li { flex: 1 1 0; min-width: 0; padding-top: 6px; border-top: 3px solid #e5e5e5; font-size: 12px; line-height: 18px; color: var(--text3); }
+  .fw-stages li.done { border-top-color: #2E9461; color: var(--text2); }
+  .fw-stages li.on { border-top-color: #030303; color: var(--text); font-weight: 500; }
+  /* 手机上六格太窄，只写当前阶段 */
+  @media (max-width: 600px) { .fw-stages li:not(.on) { font-size: 0; } }
+  .fw-note { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+  #dlg .fw-note > .ws-notice { flex: 1 1 auto; min-width: 0; margin: 0; }
+  #dlg .fw-impact { margin: 12px 0 0; }
+  .chip.fw-sec { margin-left: 6px; padding: 0 8px; border-radius: 999px; background: #efefef; color: #636363; font-size: 12px; line-height: 18px; font-weight: 500; }
+  .v13-g6-fw { margin: 0; padding: 12px 0; border-top: 1px solid #ebebeb; font-size: 14px; line-height: 22px; color: var(--text2); }
 }
 
 /* 2.14 E248：项目、楼宇列表同一套列宽规则（行用网格排列，读屏仍为表格）；行高 52，单元格上下 8、左右 12；名称 14/21 字重 480，
@@ -35583,7 +35608,7 @@ const StationModel = (() => {
     gw: { name: "边缘网关", model: "EG20", icon: "gw", access: "gateway" },
     lc: { name: "照明控制器", model: "LC20", icon: "bulb", access: "mesh" },
     ms: { name: "多功能传感器", model: "MS20", icon: "sensor", access: "mesh" },
-    fc: { name: "风机盘管温控器", model: "FC20", icon: "thermo", access: "mesh" },
+    fc: { name: "风机盘管温控器", model: "FC20", icon: "thermo", access: "cell" }, // 3.08 V1047：4G 直连平台，不是 Mesh 节点
     aq: { name: "空气质量监测仪", model: "AQ20", icon: "aq", access: "mesh" },
     vg: { name: "空调网关", model: "VG2x", icon: "gw", access: "system" },
     idu: { name: "多联机内机", model: "", icon: "ac", access: "system" },
@@ -35739,6 +35764,8 @@ const StationModel = (() => {
   const networks = (db, fid) => db.networks.filter((n) => n.floorIds.includes(fid));
   const bound = (p) => p.binding === "bound";
   const access = (p) => p.access || catalog[p.type]?.access;
+  // 3.08 V1047：现场绑定、随设备网络交付的设备（网关、Mesh 设备与 4G 设备）；只有 Mesh 设备是网络节点
+  const field = (p) => ["mesh", "gateway", "cell"].includes(access(p));
   // 操作人取当前登录成员（由页面提供）；取不到时记为 null，显示“未记录”，不写固定的占位名称。
   let actorSource = null;
   const setActorSource = (fn) => (actorSource = typeof fn === "function" ? fn : null);
@@ -35791,7 +35818,7 @@ const StationModel = (() => {
       if (!(p.x >= 0 && p.x <= 100 && p.y >= 0 && p.y <= 100)) throw Error("设备必须放在楼层图范围内");
       const t = catalog[p.type];
       if (!t) throw Error("无效的设备类型");
-      if (["mesh", "gateway"].includes(access(p))) {
+      if (field(p)) {
         const n = look("networks", p.networkId);
         if (!n?.floorIds.includes(p.floorId)) throw Error("请先选择服务本层的设备网络");
       }
@@ -35890,7 +35917,7 @@ const StationModel = (() => {
       x,
       y,
       name: pointName(db, fid, type),
-      networkId: ["mesh", "gateway"].includes(t.access) ? nid : null,
+      networkId: ["mesh", "gateway", "cell"].includes(t.access) ? nid : null,
       binding: "pending",
       planVersion: f.planVersion || 1,
       version: 1,
@@ -35949,7 +35976,7 @@ const StationModel = (() => {
   function nextTask(db, n) {
     const ps = networkPoints(db, n.id),
       gw = ps.find((p) => p.type === "gw"),
-      ds = ps.filter((p) => access(p) === "mesh");
+      ds = ps.filter((p) => ["mesh", "cell"].includes(access(p)));
     if (!gw) return { step: 0, title: "继续图纸规划", detail: "", action: "mark" };
     if (!bound(gw))
       return { step: 1, title: "用 App 绑定网关", detail: "", action: "app" };
@@ -36317,7 +36344,7 @@ const StationModel = (() => {
       ps,
       nets: db.networks.filter((n) => n.projectId === pid && n.floorIds.some((f) => fs.includes(f))),
       missingPlans: fs.filter((id) => !floor(db, id)?.image),
-      pending: ps.filter((p) => ["mesh", "gateway"].includes(access(p)) && !bound(p)).length,
+      pending: ps.filter((p) => field(p) && !bound(p)).length,
     };
   }
   // 代入名称与编号（规范 2 6，2026-10-08 用户确认，Account 核查 B9c）：代入的文字与相邻汉字之间不加空格；以英文字母或数字开头或结尾时，
@@ -36347,6 +36374,7 @@ const StationModel = (() => {
     byName,
     byHeight,
     access,
+    field,
     catalog,
     get,
     floor,
@@ -36523,6 +36551,8 @@ const StationFlowModel = ((M) => {
     );
   };
   const meshPoints = (db, nid) => M.networkPoints(db, nid).filter((p) => M.access(p) === "mesh");
+  // 3.08 V1047：随本网络现场绑定、配置同步、功能验证与交付的设备：Mesh 设备与 4G 设备（FC20）。节点、中继、代理、网络检测、参数估算与固件只计 Mesh 设备
+  const fieldPoints = (db, nid) => M.networkPoints(db, nid).filter((p) => ["mesh", "cell"].includes(M.access(p)));
   const gateway = (db, nid) => M.networkPoints(db, nid).find((p) => p.type === "gw");
   const isConnected = (p) => (M.access(p) === "system" ? !!(p.hardwareId && p.connectionReceiptId) : M.bound(p));
   // 当前仍在网内的绑定：已恢复出厂的设备保留历史绑定记录，但已清除入网与配置，不计入当前已绑定（2026-10-05 核查 P6）。
@@ -36676,8 +36706,8 @@ const StationFlowModel = ((M) => {
     return [
       ...new Set([
         ...M.pointIssues(db, p).filter((x) => !["配置待应用", "功能未验证"].includes(x)),
-        ...(M.bound(p) && M.access(p) === "mesh" && !p.fieldReset && syncState(db, p, cx) !== "已同步" ? [syncState(db, p, cx)] : []),
-        ...(M.bound(p) && M.access(p) === "mesh" && (!p.functionReceiptId || p.verifiedVersion !== desired(db, p.id)?.version)
+        ...(M.bound(p) && ["mesh", "cell"].includes(M.access(p)) && !p.fieldReset && syncState(db, p, cx) !== "已同步" ? [syncState(db, p, cx)] : []),
+        ...(M.bound(p) && ["mesh", "cell"].includes(M.access(p)) && (!p.functionReceiptId || p.verifiedVersion !== desired(db, p.id)?.version)
           ? ["功能未验证"]
           : []),
         ...(p.fieldReset && !p.replacing ? ["已恢复出厂"] : []),
@@ -36714,7 +36744,8 @@ const StationFlowModel = ((M) => {
     if (w) return { by: "window", until: w.until, reason: w.reason, id: w.id, kind: w.kind };
     const run = (x) => at(x.startedAt || x.at) <= t && (x.status === "running" || (!!x.completedAt && t < at(x.completedAt))),
       task = (db.maintenanceTasks || []).find((x) => x.networkId === nid && (!x.pointId || x.pointId === p.id) && x.taskKind !== "access" && run(x)),
-      fw = (db.firmwareTasks || []).find((x) => (x.pointIds || []).includes(p.id) && run(x));
+      // 3.08 V1044：固件试点、传输与生效期间所涉设备算检修中
+      fw = (db.firmwareTasks || []).find((x) => (x.pointIds || []).includes(p.id) && (["pilot", "activating"].includes(x.status) || run(x)));
     return task || fw ? { by: "task", until: null, reason: (task || fw).name, id: (task || fw).id, kind: "task" } : null;
   }
   // Electrical ownership and data reception are independent planning relations.
@@ -36858,7 +36889,7 @@ const StationFlowModel = ((M) => {
   // 返回 { moved, removed }：一起改的点位编号与去掉的关系条数（供电、照明分区、占用联动）。
   function networkMoveProblem(db, p) {
     if (!p) return "找不到点位";
-    if (!["mesh", "gateway"].includes(M.access(p))) return "只有设备网络中的设备可以改所属设备网络";
+    if (!M.field(p)) return "只有设备网络中的设备可以改所属设备网络";
     if (M.bound(p) || p.fieldReset) return "已绑定：改设备网络须先移除设备，再在另一个网络重新标记";
     if (p.type === "lc" && db.points.some((m) => m.type === "ms" && m.powerId === p.id && (M.bound(m) || m.fieldReset)))
       return "本照明控制器有已绑定的 MS20：改设备网络须先移除这些 MS20，再在另一个网络重新标记";
@@ -37187,6 +37218,7 @@ const StationFlowModel = ((M) => {
     );
   }
   function plannedItems(db, p, cx) {
+    if (M.access(p) === "cell") return cellItems(db, p, cx || indexOf(db));
     if (M.access(p) !== "mesh") return [];
     cx ||= indexOf(db);
     const n = cx.networks.get(p.networkId),
@@ -37240,6 +37272,14 @@ const StationFlowModel = ((M) => {
         : []),
     ];
   }
+  // 3.08 V1047：4G 设备（FC20）由平台直接下发：上报周期与功能区占用来源（平台转发同一功能区 MS20 的占用）；没有 Mesh 密钥、分组与节点角色
+  function cellItems(db, p, cx) {
+    const t = templates(cx.networks.get(p.networkId));
+    return [
+      { key: "report", label: "上报参数", value: { status: t.report.other } },
+      { key: "occupancy", label: "占用来源（平台转发）", value: (cx.byZoneMesh.get(p.zoneId) || []).filter((s) => s.type === "ms").map((s) => s.id).sort() },
+    ];
+  }
   function reconcile(db, previous) {
     prepare(db);
     // 整次保存共用一份索引（点位在保存计算中不变；照明分区整理后相关部分重建）。
@@ -37254,7 +37294,7 @@ const StationFlowModel = ((M) => {
     }));
     db.systemGroups = systemGroups(db, cx);
     cx.groups = [...db.groups, ...db.systemGroups];
-    for (const p of db.points.filter((p) => M.access(p) === "mesh")) {
+    for (const p of db.points.filter((p) => ["mesh", "cell"].includes(M.access(p)))) {
       const items = plannedItems(db, p, cx),
         signature = JSON.stringify(items),
         old = desired(db, p.id);
@@ -37481,7 +37521,6 @@ const StationFlowModel = ((M) => {
       ["温湿度", (ms * 1.5) / r.climate, `周期 ${r.climate.toLocaleString("zh-CN")} 秒＋变化触发余量`],
       ["气压", ms / r.pressure, `每 ${r.pressure.toLocaleString("zh-CN")} 秒`],
       ["LC20 状态", c("lc") / r.controller, `每 ${r.controller.toLocaleString("zh-CN")} 秒；本版不启用设备能量计量`],
-      ["FC20", c("fc") / r.other, `每 ${r.other.toLocaleString("zh-CN")} 秒`],
       // V1.3 §16.2：AQ20 每 60 秒发布，CO₂ 变化 ≥ 50 ppm 或 PM2.5 ≥ 5 μg/m³ 时提前发布（最短 10 秒），按 1.5 倍计变化余量
       ["AQ20", (c("aq") * 1.5) / (r.aq || 60), `每 ${(r.aq || 60).toLocaleString("zh-CN")} 秒＋变化触发余量`],
       ["控制与查询余量", ps.length / 1500, "按规划节点数量估算"],
@@ -37720,7 +37759,7 @@ const StationFlowModel = ((M) => {
     return Number.isFinite(d.getTime()) && d.toISOString().slice(0, 10) === value;
   }
   function freezeDeliverySnapshot(db, network, extra = {}) {
-    const mesh = meshPoints(db, network.id), fields = (obj, names) => Object.fromEntries(names.map(k => [k, obj?.[k] ?? null]));
+    const mesh = meshPoints(db, network.id), field = fieldPoints(db, network.id), fields = (obj, names) => Object.fromEntries(names.map(k => [k, obj?.[k] ?? null]));
     return M.copy({
       ...extra,
       formatVersion: 2,
@@ -37737,9 +37776,9 @@ const StationFlowModel = ((M) => {
       ttl: templates(network).ttl,
       networkParameters: templates(network),
       deviations: parameterDiffs(network).length,
-      devices: mesh.map(p => ({ ...fields(p, ["id", "name", "type", "floorId", "hardwareId", "deviceUuid", "serial", "bindingReceiptId", "firmwareVersion", "functionReceiptId", "verifiedVersion"]), desiredVersion: desired(db, p.id)?.version ?? null, receipts: (db.receipts || []).filter(r => r.pointId === p.id).map(r => fields(r, ["id", "kind", "configurationVersion", "key", "status", "at"])) })),
+      devices: field.map(p => ({ ...fields(p, ["id", "name", "type", "floorId", "hardwareId", "deviceUuid", "serial", "bindingReceiptId", "firmwareVersion", "functionReceiptId", "verifiedVersion"]), desiredVersion: desired(db, p.id)?.version ?? null, receipts: (db.receipts || []).filter(r => r.pointId === p.id).map(r => fields(r, ["id", "kind", "configurationVersion", "key", "status", "at"])) })),
       // 设备验证所依据的功能测试回执（2026-10-05 核查 H7）：照明控制器或单独测试、覆盖的设备、测试时的目标配置版本与测试项目
-      functionTests: [...new Set(mesh.map(p => p.functionReceiptId).filter(Boolean))].map(id => (db.testReceipts || []).find(r => r.id === id)).filter(Boolean).map(r => fields(r, ["id", "kind", "unitId", "name", "pointIds", "versions", "items", "passed", "executor", "at", "networkVersion", "serviceReceiptId"])),
+      functionTests: [...new Set(field.map(p => p.functionReceiptId).filter(Boolean))].map(id => (db.testReceipts || []).find(r => r.id === id)).filter(Boolean).map(r => fields(r, ["id", "kind", "unitId", "name", "pointIds", "versions", "items", "passed", "executor", "at", "networkVersion", "serviceReceiptId"])),
     });
   }
   // 导出权限（规范 2 5、ORG03）只按角色判断，不逐人授权（R14，取代 Account B11 与待决定事项 G-1）：机构管理员与配置人员可导出全部。
@@ -38342,7 +38381,7 @@ const StationFlowModel = ((M) => {
   // 不含设备身份（序列号、设备 UUID）与网络密钥，也不是绑定、验证或交付报告。
   const INSTALL_NOTICE = "安装资料按已保存的规划生成，用于布线与安装；不代表设备绑定、配置已应用、功能验证或交付，不含设备身份与网络密钥。";
   const INSTALL_KINDS = { pdf: { label: "PDF 现场安装图", ext: "pdf" }, sheet: { label: "CSV 设备清单", ext: "zip", fmt: "CSV" } };
-  const INSTALL_ORDER = ["gw", "lc", "ms", "fc", "aq"];
+  const INSTALL_ORDER = ["gw", "lc", "ms", "aq", "fc"]; // 3.08 V1047：4G 设备排在 Mesh 设备之后
   const CTRL_NAMES = { dim: "0–10 V 调光", switch: "开关" };
   // 规划检查各项在设备行中的简称（按检查项编号的前缀）；未列出的写规划检查原文。
   const INSTALL_ISSUES = {
@@ -39385,7 +39424,7 @@ const StationFlowModel = ((M) => {
   }
   function nextTask(db, n) {
     const gw = gateway(db, n.id),
-      ps = meshPoints(db, n.id);
+      ps = fieldPoints(db, n.id);
     if (!gw) return { step: 0, title: "继续图纸规划", action: "mark" };
     if (!M.bound(gw)) return { step: 1, title: "用 App 绑定网关", action: "app" };
     if (!ps.length) return { step: 2, title: "标记设备", action: "mark" };
@@ -39415,7 +39454,7 @@ const StationFlowModel = ((M) => {
   // 测试单位：照明分区（其中的 LC20 与已确认接线的 MS20）一起测；不在照明控制器中的 Mesh 设备单独测
   // cx：查找索引，逐网络统计时由调用方传入同一份（5000 个点位时配置进度原先在这里逐台遍历全部点位，约 0.5 秒）。
   function testUnits(db, n, cx = indexOf(db)) {
-    const ps = meshPoints(db, n.id),
+    const ps = fieldPoints(db, n.id),
       inNet = new Set(ps.map((p) => p.id)),
       used = new Set(),
       units = [];
@@ -39484,7 +39523,7 @@ const StationFlowModel = ((M) => {
       devicesDone: devices.filter((r) => r.done).length,
       total: rows.reduce((s, r) => s + r.total, 0),
       verified: rows.reduce((s, r) => s + r.verified, 0),
-      reset: meshPoints(db, n.id).filter((p) => p.fieldReset).length,
+      reset: fieldPoints(db, n.id).filter((p) => p.fieldReset).length,
     };
   }
   // 记下一条测试回执；全部项目通过时，回执点名的设备按测试时的目标配置版本记为已验证。failed：未通过的测试项目
@@ -39785,8 +39824,11 @@ const StationFlowModel = ((M) => {
       lastDelivery: last ? { id: last.id, version: last.networkVersion, at: last.at } : null,
     };
   }
+  // 3.08 V1044：进行中的固件升级任务（下发到全部生效与核对）
+  const firmwareActive = (db, nid) => (db.firmwareTasks || []).filter((t) => ["queued", "pilot", "running", "paused", "verified", "activating", "checking"].includes(t.status) && t.networkIds?.includes(nid));
   function deliveryChecks(db, n) {
-    const ps = meshPoints(db, n.id),
+    const ps = fieldPoints(db, n.id),
+      fw = firmwareActive(db, n.id),
       gw = gateway(db, n.id),
       h = latestHealth(db, n.id, true),
       // 安全待办（规范 DELIVER01）：已移除、拆走或丢失的设备仍持有网络密钥，完成密钥更新前不能交付
@@ -39800,7 +39842,7 @@ const StationFlowModel = ((M) => {
     return [
       {
         label: "网关与设备全部绑定",
-        ok: !!gw && boundNow(gw) && ps.length > 0 && ps.every(boundNow),
+        ok: !!gw && boundNow(gw) && ps.length > 0 && !unbound.length,
         action: "app",
         detail: !gw ? "未标记网关" : !boundNow(gw) ? "网关未绑定" : !ps.length ? "没有设备" : [reset ? `${reset} 台待重新绑定` : "", unbound.length - reset ? `${unbound.length - reset} 台待绑定` : ""].filter(Boolean).join("，"),
       },
@@ -39818,13 +39860,15 @@ const StationFlowModel = ((M) => {
         detail: !h ? "未检测" : h.networkVersion !== n.version ? "网络已变更，需复测" : !h.passed ? "未通过" : "",
       },
       { label: "安全待办全部处理", ok: !keys, action: "keys", detail: keys ? `已移除待密钥更新 ${keys} 台` : "" },
+      // 3.08 V1044：固件升级进行中时多一条，完成后自动网络检测
+      ...(fw.length ? [{ label: "固件升级完成", ok: false, action: "firmware", detail: "固件升级进行中，完成后自动网络检测" }] : []),
     ];
   }
   // 相较最近一次交付的变化与需重新验证的事项（规范 SPACE06）：按交付快照中冻结的服务楼层、设备、目标配置与固件版本、
   // 网络参数、中继节点与代理节点逐项对比当前网络；需重新验证的事项与交付条件同一计算，写出台数。没有快照时返回 null。
   function deliveryChanges(db, n, snap, paramLabel = (k) => k) {
     if (!snap?.devices) return null;
-    const now = meshPoints(db, n.id),
+    const now = fieldPoints(db, n.id),
       was = new Map(snap.devices.map((d) => [d.id, d])),
       cur = new Set(now.map((p) => p.id)),
       names = (xs) => xs.slice(0, 3).map((x) => x.name || x.id).join("、") + (xs.length > 3 ? ` 等 ${xs.length} 台` : ""),
@@ -40290,7 +40334,7 @@ const StationFlowModel = ((M) => {
   function copyZone(db, srcId, targetIds) {
     const src = M.get(db, "zones", srcId);
     if (!src) throw Error("找不到来源功能区");
-    const srcPoints = db.points.filter((p) => p.zoneId === srcId && M.access(p) === "mesh");
+    const srcPoints = db.points.filter((p) => p.zoneId === srcId && ["mesh", "cell"].includes(M.access(p)));
     if (!srcPoints.length) throw Error("来源功能区还没有设备");
     if (!src.spaceType) throw Error("先设置来源功能区的空间类型");
     const made = [];
@@ -40298,7 +40342,7 @@ const StationFlowModel = ((M) => {
       const t = M.get(db, "zones", tid);
       if (!t || t.id === srcId) continue;
       if (t.spaceType !== src.spaceType) throw Error(`“${t.name}”不是“${src.spaceType}”，未复制`);
-      if (db.points.some((p) => p.zoneId === tid && M.access(p) === "mesh")) throw Error(`“${t.name}”已有设备，未复制`);
+      if (db.points.some((p) => p.zoneId === tid && ["mesh", "cell"].includes(M.access(p)))) throw Error(`“${t.name}”已有设备，未复制`);
       // 每台沿用来源点位自己的设备网络，不静默改归第一个网络（核查 D15）；目标楼层须在该网络的服务范围内。
       const lost = srcPoints.map((p) => M.get(db, "networks", p.networkId)).find((n) => !n?.floorIds.includes(t.floorId));
       if (srcPoints.some((p) => !M.get(db, "networks", p.networkId)?.floorIds.includes(t.floorId)))
@@ -40360,12 +40404,12 @@ const StationFlowModel = ((M) => {
   // 供电来自房间外 LC20 的 MS20 复制后为系统建议，跨房间的照明分区只复制房间内的 LC20。弹窗逐项列出，不静默丢弃。
   function copyZoneScope(db, srcId) {
     const inRoom = db.points.filter((p) => p.zoneId === srcId),
-      mesh = inRoom.filter((p) => M.access(p) === "mesh"),
+      mesh = inRoom.filter((p) => ["mesh", "cell"].includes(M.access(p))),
       ids = new Set(mesh.map((p) => p.id)),
       name = (id) => M.get(db, "points", id)?.name || "已删除的点位";
     return {
       mesh,
-      others: inRoom.filter((p) => M.access(p) !== "mesh"),
+      others: inRoom.filter((p) => !["mesh", "cell"].includes(M.access(p))),
       followOut: mesh.flatMap((p) => (p.type === "lc" ? (p.followIds || []).filter((id) => !ids.has(id)).map((id) => ({ lc: p.name, ms: name(id) })) : [])),
       powerOut: mesh.filter((p) => p.type === "ms" && p.powerId && !ids.has(p.powerId)).map((p) => ({ ms: p.name, lc: name(p.powerId) })),
       groupsOut: (db.circuitGroups || []).filter((g) => g.controllerIds.some((id) => ids.has(id)) && !g.controllerIds.every((id) => ids.has(id))),
@@ -40447,7 +40491,7 @@ const StationFlowModel = ((M) => {
     const ids = new Set(pointIds),
       ps = db.points.filter((p) => p.floorId === srcFid && ids.has(p.id)),
       n = M.get(db, "networks", networkId),
-      meshy = (p) => ["mesh", "gateway"].includes(M.access(p));
+      meshy = (p) => M.field(p);
     if (!ps.length) throw Error("请至少选择一台设备");
     if (ps.some(meshy) && !n?.floorIds.includes(targetFid)) throw Error(`请为${zhSub(t.name)}选择服务本层的设备网络`);
     // 一个设备网络只有一个网关：目标网络已有网关时不复制网关，范围内有多台时只复制第一台。
@@ -40667,7 +40711,7 @@ const StationFlowModel = ((M) => {
     return out;
   }
   // 发送与重传参数随固件版本登记（规范 HEALTH01，取值见规范 6.1）：按型号与起始固件版本登记；网络参数弹窗按本网络设备上报的固件列出。
-  const TRANSMIT = [{ types: ["lc", "ms", "fc", "aq"], from: "1.0.0", relay: [0, 20], network: [2, 20], periodic: [0, 0], event: [1, 50] }];
+  const TRANSMIT = [{ types: ["lc", "ms", "aq"], from: "1.0.0", relay: [0, 20], network: [2, 20], periodic: [0, 0], event: [1, 50] }];
   const versionCompare = (a, b) => {
     const x = String(a).split(".").map(Number),
       y = String(b).split(".").map(Number);
@@ -40726,6 +40770,7 @@ const StationFlowModel = ((M) => {
     scopedNetworks,
     inventory,
     meshPoints,
+    fieldPoints,
     gateway,
     isConnected,
     boundNow,
@@ -40835,6 +40880,7 @@ const StationFlowModel = ((M) => {
     changeSinceDelivery,
     nextTask,
     deliveryChecks,
+    firmwareActive,
     deliveryChanges,
     verifiedNow,
     TEST_ITEMS,
@@ -41270,7 +41316,7 @@ function buildDemoWorkspace(seed) {
   // 绑定、配置、验证回执（示例）
   let serial = 1000;
   const hex = (n) => n.toString(16).toUpperCase().padStart(4, "0");
-  for (const p of db.points.filter((p) => ["mesh", "gateway"].includes(M.access(p)))) {
+  for (const p of db.points.filter(M.field)) {
     serial++;
     const d = F.desired(db, p.id);
     Object.assign(p, {
@@ -41385,26 +41431,44 @@ function buildDemoWorkspace(seed) {
   reset.fieldResetAt = at(2880);
   reset.telemetry.demoOffline = true;
   reset.telemetry.offlineSince = at(2880);
+  // 同型号不同固件版本分行（FC20 为 4G 设备，3.08 V1047 起不在平台固件升级中，只显示版本）
   const fcOld = db.points.find((p) => p.type === "fc" && p.zoneId === zoneId("o702"));
-  // 固件只提示“有新版本”（2026-10-09 用户确认，ABB 对比 BP52）：正式发布目录中 FC20 最新为 1.1.1，这台显示“有新版本 1.1.1”
   fcOld.firmwareVersion = "1.1.0";
-  // 固件升级任务（示例，规范 DEVICE07）：FC20 升级到 1.1.1，在交付前的无人时段完成；fcOld 传输完成后没有回报新版本，记为“未确认”
-  const fcs = db.points.filter((p) => p.type === "fc" && p.networkId === net.id).sort(M.byName);
+  // 固件升级任务（示例，规范 DEVICE07；3.08 V1044–V1046）：LC20 升级到 1.3.2，在交付前的无人时段完成，先试点 2 台；
+  // lcOld 生效后没有回报新版本，记为“未确认”；lcBack 生效后启动失败，自动回退到 1.3.1，可再试 1 次。
+  // 正式发布目录中 LC20 最新为 1.3.3（1.3.4 已撤回），型号行显示“有新版本 1.3.3”
+  const lcs = db.points.filter((p) => p.type === "lc" && p.networkId === net.id).sort(M.byName),
+    lcOld = lcs.find((p) => p.zoneId === zoneId("o702")),
+    lcBack = lcs.find((p) => p.zoneId === zoneId("o701"));
+  lcOld.firmwareVersion = lcBack.firmwareVersion = "1.3.1";
   db.firmwareTasks.push({
-    id: "fw-demo-fc-111",
-    name: "FC20 升级到 1.1.1",
-    type: "fc",
-    releaseId: "rel-demo-fc-111",
-    targetVersion: "1.1.1",
+    id: "fw-demo-lc-132",
+    name: "LC20 升级到 1.3.2",
+    type: "lc",
+    releaseId: "rel-demo-lc-132",
+    targetVersion: "1.3.2",
     networkIds: [net.id],
     windowStart: "22:00",
     windowEnd: "06:00",
+    effStart: "02:00",
+    effEnd: "05:00",
+    pilot: true,
+    pilotIds: [lcs.at(-1).id, lcs[0].id],
+    pilotState: "passed",
     status: "completed",
     at: day(14, "21:30"),
     by: "王敏 · 机构管理员",
-    serviceReceiptId: "svc-fw-fc-111",
-    pointIds: fcs.map((p) => p.id),
-    results: fcs.map((p) => (p === fcOld ? { pointId: p.id, status: "unconfirmed", version: "1.1.0" } : { pointId: p.id, status: "completed", version: "1.1.1" })),
+    serviceReceiptId: "svc-fw-lc-132",
+    rate: 14,
+    check: "配置与平台记录一致，自动网络检测通过",
+    pointIds: lcs.map((p) => p.id),
+    results: lcs.map((p) =>
+      p === lcOld
+        ? { pointId: p.id, status: "unconfirmed", version: "1.3.1" }
+        : p === lcBack
+          ? { pointId: p.id, status: "failed", fail: "rollback", version: "1.3.1" }
+          : { pointId: p.id, status: "completed", version: "1.3.2" },
+    ),
   });
   // 场景（引用分组）
   const scene = (id, kind, name, extra) =>
@@ -43985,7 +44049,7 @@ function deviceSummary(kind, id) {
   const ps = data().points.filter((p) =>
       kind === "projects" ? M.projectOfFloor(data(), p.floorId) === id : g("floors", p.floorId)?.buildingId === id,
     ),
-    mesh = ps.filter((p) => ["mesh", "gateway"].includes(M.access(p)));
+    mesh = ps.filter(M.field);
   return { total: ps.length, mesh: mesh.length, bound: mesh.filter(F.boundNow).length };
 }
 const deviceText = (s, short = false) =>
@@ -44274,7 +44338,7 @@ function floorPage() {
   const canvasBottom = `<div class="ws-canvas-bottom">${floorPick()}${zoomPill(planWord(f.buildingId), U.zoom, "zoom", "fit")}${hint ? `<span class="mk-hint">${hint}</span>` : ""}</div>`,
     layerTop = viewing ? "" : `<div class="ws-canvas-top mk-layer-top"><div class="spatial-layer-controls">${menuTrigger(btn("图层" + ico("chevron", "ic16"), "mkLayers", {}, "sm sp-layer-btn mk-layers-btn"))}</div></div>`,
     hidden = `${(U.mkHide || []).map((k) => " hide-pt-" + k).join("")}${U.mkNames === false ? " hide-names" : ""}`;
-  const pts = M.points(data(), f.id).filter((p) => p.positionAttached !== false);
+  const pts = M.points(data(), f.id).filter((p) => p.positionAttached !== false && !(U.mode === "roles" && M.access(p) === "cell")); // 3.08 V1047：网络模式不显示 4G 设备
   return (
     body +
     `<div class="ws-workbench mk-bench ${viewing ? "viewing" : "editing"}${overlay ? " mk-overlay" : ""}${panelOpen ? " with-panel" : ""}">${floorRail()}<div class="ws-canvas-col">${canvasTop}${layerTop}${!viewing ? canvasOverlay(checks) : ""}<div class="ws-canvas-viewport" id="canvasViewport"${viewing ? "" : ` role="tabpanel" aria-labelledby="mode-${esc(U.mode)}"`}><div class="ws-plan${hidden} ${U.joinFrom ? "picking" : ""}${U.mode === "roles" ? " mk-netmode" : ""}${ptDots(($("#canvasViewport")?.clientWidth || mkBenchWidth() - mkPlanInset() - (panelOpen && !overlay && !mkStacked() ? MK_PANEL_W : 0)) * U.zoom) ? " pt-dots" : ""}" id="floorCanvas" style="width:${U.zoom * 100}%" tabindex="0" aria-label="${esc(b.name + " " + f.name)}${planWord(f.buildingId)}${U.page === "devices" && U.mode === "mark" && canEdit() ? "；选择设备类型后点击或拖放" : ""}"><img src="${esc(f.image)}" alt="${zhSub(esc(b.name + " " + f.name), "r")}楼层图" draggable="false">${U.mkZones === false ? "" : renderZones()}${renderGroupHulls()}${renderRelations()}${renderRoleCoverage(net)}${pts.map(renderPoint).join("")}</div></div>${canvasBottom}</div>${viewing || !panelOpen ? "" : planningPanel(net)}</div>`
@@ -44330,7 +44394,7 @@ function mkMoreItems() {
   );
 }
 function progressBar(n) {
-  const ps = n ? F.meshPoints(data(), n.id) : [],
+  const ps = n ? F.fieldPoints(data(), n.id) : [],
     gw = n ? F.gateway(data(), n.id) : null,
     checks = n ? F.deliveryChecks(data(), n) : [],
     task = U.dirty ? { step: 0 } : n ? F.nextTask(data(), n) : { step: 0 },
@@ -46246,7 +46310,7 @@ function placePoint(type, xy) {
     // 第一次放置网关或 Mesh 设备时直接放下，同时建立本层设备网络“楼宇 · 楼层”：默认模板、只服务本层，随“保存规划”保存
     // （2026-10-17 用户确认，设备核查 E147：原先先弹出“规划设备网络”，要填名称、模板并勾选项目全部楼层）。
     // 跨楼层或改模板在设备网络 › 网络更多 › 编辑服务范围中修改。
-    autoNet = ["gateway", "mesh"].includes(type === "aq" ? U.accessMode || t.access : t.access) && !n;
+    autoNet = ["gateway", "mesh", "cell"].includes(type === "aq" ? U.accessMode || t.access : t.access) && !n;
   // 一个设备网络只有一个网关（核查 D15）：已有网关时不再放置，结束连续标记并说明。
   const gw = type === "gw" && n && data().points.find((p) => p.networkId === n.id && p.type === "gw");
   if (gw) {
@@ -54735,7 +54799,10 @@ function gatewayReady(db, n) {
   if (F.communication(db, gw) !== "在线") return { ok: false, why: "网关离线或状态未知，需先恢复网关" };
   return { ok: true };
 }
-const ACTIVE_FW = ["queued", "running", "paused"];
+// 3.08 V1044：进行中的任务（下发到全部生效与核对）；FW_XFER 为传输期间（网络检测与批量配置暂停），FW_KEYS 为密钥更新暂停的阶段（从下发到全部生效）
+const ACTIVE_FW = ["queued", "pilot", "running", "paused", "verified", "activating", "checking"];
+const FW_XFER = ["pilot", "running"];
+const FW_KEYS = ["queued", "pilot", "running", "paused", "verified", "activating"];
 const activeFirmware = (db, nid) => db.firmwareTasks.filter((t) => ACTIVE_FW.includes(t.status) && t.networkIds?.includes(nid));
 const runningHealth = (db, nid) => db.healthRecords.filter((h) => h.networkId === nid && h.status === "running");
 const runningKeys = (db, nid) => db.maintenanceTasks.filter((t) => t.networkId === nid && t.taskKind === "keys" && t.status === "running");
@@ -54836,7 +54903,7 @@ function inventoryView() {
   const db = data(),
     cx = F.index(db),
     all = F.inventory(db, U),
-    mesh = all.filter((p) => ["mesh", "gateway"].includes(M.access(p))),
+    mesh = all.filter(M.field),
     bound = all.filter(F.connectedNow),
     // 2.82 定稿 5.5（KW39）：状态分段“全部、离线、需处理、待绑定”。
     // 2.84 E1106：每台设备只归一个分段。离线 = 真正通信离线（已恢复出厂的不算，它写“待重新绑定”）；待绑定 = 从未绑定；
@@ -54983,6 +55050,7 @@ const devAccessHtml = (p) => nwJoin({
   gateway: ["网关上联"],
   system: p.type === "aq" ? ["RS-485", "系统接入"] : ["系统接入"],
   pending: [p.type === "ls" ? "适配节点" : "非 Mesh"],
+  cell: ["4G"], // 3.08 V1047
 }[M.access(p)]);
 // 2.56 E549：“设备”列两行，名称与“LC20 · 照明控制器”；第三方设备没有型号，只写类型。
 function devNameCell(p) {
@@ -55074,12 +55142,12 @@ function devNetworkCell(db, p) {
   const n = p.networkId && g("networks", p.networkId),
     access = M.access(p),
     conn = access === "system" && p.connectionId && g("connections", p.connectionId),
-    via = access === "system" ? conn?.protocol || (p.type === "aq" ? "RS-485" : "系统接入") : { mesh: "Mesh", gateway: "网关上联", pending: p.type === "ls" ? "适配节点" : "非 Mesh" }[access] || "",
-    to = conn || (access !== "system" && n),
+    via = access === "system" ? conn?.protocol || (p.type === "aq" ? "RS-485" : "系统接入") : { mesh: "Mesh", gateway: "网关上联", cell: "4G", pending: p.type === "ls" ? "适配节点" : "非 Mesh" }[access] || "",
+    to = conn || (!["system", "cell"].includes(access) && n),
     text = [via, to?.name].filter(Boolean).join(" · "),
     // 一行写完（行高保持 56）；电脑上放不下时省略，完整名称在悬停提示里
     long = [...text].reduce((w, c) => w + (c.charCodeAt(0) > 255 ? 14 : 8), 0) > 150;
-  return devLedgerLabel("接入") + (to ? btn(nwWords(text), conn ? "connectionInfo" : "networkInfo", long ? { id: to.id, tip: text } : { id: to.id }, "ghost flow-lk flow-lk-ref") : access === "system" ? nwWords(text) : `<span class="muted">尚未规划</span>`);
+  return devLedgerLabel("接入") + (to ? btn(nwWords(text), conn ? "connectionInfo" : "networkInfo", long ? { id: to.id, tip: text } : { id: to.id }, "ghost flow-lk flow-lk-ref") : ["system", "cell"].includes(access) ? nwWords(text) : `<span class="muted">尚未规划</span>`);
 }
 // 2.88 E1126：“位置”列写楼栋、楼层与功能区（E栋 · 7F · 实验室 E）；未放置、未归属功能区的灰字接在楼层后。
 // 3.04 V1029：电脑上写在一行，放不下时省略，只在省略时悬停显示全文。
@@ -55319,7 +55387,7 @@ function netDeliverCard(db, n) {
     ok = checks.filter((c) => c.ok).length,
     redo = netNeedsRedeliver(db, n),
     delivered = everDelivered(db, n.id) && !redo && F.networkState(db, n) === "已交付",
-    ps = F.meshPoints(db, n.id),
+    ps = F.fieldPoints(db, n.id),
     running = db.maintenanceTasks.filter((t) => t.networkId === n.id && t.status === "running"),
     last = v13NetStage(db, n).last,
     sm = "ghost sm";
@@ -55333,6 +55401,7 @@ function netDeliverCard(db, n) {
     }
     if (c.action === "health") return btn("网络检测", "deliveryResolve", { id: n.id, kind: "health" }, sm);
     if (c.action === "keys") return isAdmin() ? btn("密钥更新", "deliveryResolve", { id: n.id, kind: "keys" }, sm) : "";
+    if (c.action === "firmware") return btn("升级任务", "deliveryResolve", { id: n.id, kind: "firmware" }, sm);
     return "";
   };
   // 已交付但有未满足的条件（如移除设备后待密钥更新）时仍列出，不写“与交付时一致”
@@ -55376,7 +55445,7 @@ const healthTimeCell = (h) =>
 function healthBlock(db, n) {
   const gr = gatewayReady(db, n);
   if (!gr.ok) return gr.why;
-  if (activeFirmware(db, n.id).length) return "本网络有固件升级任务进行中，升级期间不能网络检测";
+  if (activeFirmware(db, n.id).some((t) => FW_XFER.includes(t.status))) return "本网络正在传输固件，传输期间不能网络检测";
   if (runningKeys(db, n.id).length) return "密钥更新进行中，完成后再网络检测";
   if (runningHealth(db, n.id).length) return "已有网络检测在进行";
   return "";
@@ -55625,14 +55694,14 @@ function groupOver(group, caps) {
   return caps.some((c) => (ids.has(c.p.id) || group.pointIds.includes(c.p.id)) && (c[key] > c.subscriptionLimit || c.scenes > c.sceneLimit));
 }
 // 设备信息“规划”页签（规范 DEVICE08）：角色与关系、规划资料，与设备标记的属性同一来源，只读。
-const ACCESS_TEXT = { mesh: "Mesh", gateway: "网关上联", system: "系统接入" };
+const ACCESS_TEXT = { mesh: "Mesh", gateway: "网关上联", system: "系统接入", cell: "4G" };
 function deviceRelations(db, p) {
   const n = p.networkId && g("networks", p.networkId),
     z = p.zoneId && g("zones", p.zoneId),
     names = (xs) => xs.map((x) => esc(x.name)).join("、"),
     access = M.access(p),
     rows = [
-      ["设备网络", n ? esc(n.name) : access === "system" ? "不属于设备网络（系统接入）" : "尚未规划"],
+      ["设备网络", access === "cell" ? "不属于设备网络（4G 直连）" : n ? esc(n.name) : access === "system" ? "不属于设备网络（系统接入）" : "尚未规划"],
       ["功能区", z ? esc(z.name) : "未归属功能区"],
     ];
   if (p.type === "gw") rows.push(["节点类型", "网关"], ["服务楼层", n ? esc(n.floorIds.map((fid) => where(fid)).join("、")) : "—"]);
@@ -56355,7 +56424,7 @@ function showBindingPreparation(nid) {
   U.bindingNetwork = n.id;
   const db = data(),
     gw = F.gateway(db, n.id),
-    ps = F.meshPoints(db, n.id),
+    ps = F.fieldPoints(db, n.id),
     delivered = everDelivered(db, n.id),
     checks = F.planChecks(db, { networkId: n.id }),
     blocks = checks.blocks,
@@ -57023,6 +57092,9 @@ function deliveryShort(c) {
 // 2.65 E958：确认存档一步写这次交付的实际数据
 function deliveryArchiveRows(db, n, proxies) {
   const mesh = F.meshPoints(db, n.id),
+    // 3.08 V1047：4G 设备（FC20）随本网络功能验证与交付，单独写台数
+    field = F.fieldPoints(db, n.id),
+    cells = field.length - mesh.length,
     gw = F.gateway(db, n.id),
     h = F.latestHealth(db, n.id, true),
     isOff = v13AppOffOf(db, n.projectId),
@@ -57031,8 +57103,8 @@ function deliveryArchiveRows(db, n, proxies) {
   return [
     ["设备网络", `${n.name}（v${n.version}）`],
     ["服务楼层", n.floorIds.map(where).join("；")],
-    ["设备", `网关 ${gw ? 1 : 0} 台、节点 ${mesh.length} 台${proxies.length ? `（代理 ${proxies.length} 台常开）` : ""}`],
-    ["功能验证", `${mesh.filter((p) => F.verifiedNow(db, p)).length} / ${mesh.length} 台`],
+    ["设备", `网关 ${gw ? 1 : 0} 台、节点 ${mesh.length} 台${proxies.length ? `（代理 ${proxies.length} 台常开）` : ""}${cells ? `、4G 设备 ${cells} 台` : ""}`],
+    ["功能验证", `${field.filter((p) => F.verifiedNow(db, p)).length} / ${field.length} 台`],
     ["网络检测", h ? `${v13Date(h.at, false, n.projectId)}${h.passed ? "通过" : "未通过"}` : "未检测"],
     ["参数", `生效 ${params} 行`],
   ];
@@ -57120,7 +57192,7 @@ function showMaintenance(kind, pointId, nid, reason) {
   let block = "";
   if (kind === "keys") {
     if (!gr.ok) block = gr.why;
-    else if (activeFirmware(db, n.id).length) block = "固件升级进行中，结束后再更新密钥";
+    else if (activeFirmware(db, n.id).some((t) => FW_KEYS.includes(t.status))) block = "固件升级全部生效后再更新密钥";
     else if (runningKeys(db, n.id).length) block = "密钥更新正在进行";
   }
   if (kind === "remote") {
@@ -57195,33 +57267,48 @@ function showMaintenance(kind, pointId, nid, reason) {
     false,
   );
 }
-// 固件发布来自 PACOM 运营后台（只列正式发布、标明“不需要重新绑定”的版本）。
-const fwReleases = (type) => {
+// 固件发布来自 PACOM 运营后台（只列正式发布、标明“不需要重新绑定”的版本）。3.08 V1046：已撤回的版本不能选
+const fwAllReleases = (type) => {
   const rs = data().firmwareReleases.length ? data().firmwareReleases : SIM() && typeof V13_DEMO_RELEASES !== "undefined" ? V13_DEMO_RELEASES : [];
-  return rs.filter((r) => (!type || r.type === type) && r.published && r.compositionUnchanged);
+  return rs.filter((r) => !type || r.type === type);
 };
+const fwReleases = (type) => fwAllReleases(type).filter((r) => r.published && r.compositionUnchanged && !r.withdrawn);
 // 有新版本（2026-10-09 用户确认，ABB 对比 BP52）：同型号已正式发布、比设备回报版本新的最高版本；没有目标版本，不计入需处理
 const fwVer = (a, b) => String(a).localeCompare(String(b), "en", { numeric: true });
 const fwNewerOf = (type, version) => {
-  if (!type || !version || type === "gw") return null;
+  if (!type || !version || M.catalog[type]?.access !== "mesh") return null; // 3.08 V1047：只有 Mesh 设备在平台升级（网关自行更新，FC20 为 4G 设备）
   const v = fwReleases(type).map((r) => r.version).sort(fwVer).pop();
   return v && fwVer(v, version) > 0 ? v : null;
 };
 const fwNewer = (p) => fwNewerOf(p?.type, p?.firmwareVersion);
+// 3.08 V1044、V1046：任务按阶段走“等待时段 → 传输中 → 等待生效 → 生效中 → 核对中 → 已完成”，先试点时在传输前多“试点中”
 const FW_STATE = {
   draft: "草稿",
   queued: "等待时段", // 2.65 E1006：原“已下发 · 等待无人时段”
-  running: "升级中",
+  pilot: "试点中",
+  pilotFailed: "试点失败",
+  running: "传输中",
   paused: "已暂停",
+  verified: "等待生效",
+  activating: "生效中",
+  checking: "核对中",
   completed: "已完成",
   cancelled: "已取消",
+  withdrawn: "已停止 · 版本已撤回",
 };
+const FW_STAGES = ["queued", "running", "verified", "activating", "checking", "completed"];
 const fwPoints = (db, t) => t.pointIds.map((id) => M.get(db, "points", id)).filter(Boolean);
 // 发布版本的适用条件：硬件版本与可升级的起始固件版本（规范 DEVICE07）
 const fwCondition = (r) =>
   `${r.hardwareVersions?.length ? "硬件 " + r.hardwareVersions.map(esc).join("、") : "硬件版本未登记"} · ${r.fromVersion ? `从 ${esc(r.fromVersion)} 及以上升级` : "起始版本不限"}`;
-// 逐台结果（规范 DEVICE07）：传输完成但设备尚未回报新版本时为“未确认”，不算完成也不算失败，以设备回报为准
-const FW_RESULT = { waiting: "等待时段", downloading: "传输中", completed: "已完成", unconfirmed: "未确认", failed: "失败", cancelled: "已取消" }; // 2.65 E854：取消时未开始的设备为“已取消”
+// 逐台结果（规范 DEVICE07）：传输完成但设备尚未回报新版本时为“未确认”，不算完成也不算失败，以设备回报为准。
+// 3.08 V1044、V1046：传输后先“已验证”（仍运行旧版本），生效条件不满足时“等待无人”（LC20）或“等待场景结束”（MS20、AQ20），
+// 连续 3 晚未生效为“需人工安排”；生效后回读版本为“已生效”。失败分传输失败、验证失败、自动回退三类
+const FW_RESULT = { waiting: "等待时段", downloading: "传输中", verified: "已验证", holdOcc: "等待无人", holdScene: "等待场景结束", manual: "需人工安排", completed: "已生效", unconfirmed: "未确认", failed: "失败", cancelled: "已取消" }; // 2.65 E854：取消时未开始的设备为“已取消”
+const FW_FAIL = { transfer: () => "传输失败 · 信号弱", verify: () => "验证失败 · 文件不完整或签名不符", rollback: (r) => `已自动回退到 ${r.version || "原版本"}` };
+const fwResultText = (r) => (r.status === "failed" && FW_FAIL[r.fail] ? FW_FAIL[r.fail](r) : r.reason || FW_RESULT[r.status] || r.status);
+// 可重试：传输失败（任务内已自动重传 3 次）；自动回退的可再试 1 次；验证失败不重试，联系支持
+const fwRetryable = (r) => r.status === "failed" && (r.fail === "transfer" || (r.fail === "rollback" && !(r.retries >= 1)) || !r.fail);
 // 2.65 E850：最近一次任务结果为“未确认”的设备不计入可升级，也不排进新任务；设备回报旧版本时结果转为“失败”，在原任务中重试
 const fwPendingTask = (db, pid) => {
   const t = db.firmwareTasks
@@ -57229,25 +57316,43 @@ const fwPendingTask = (db, pid) => {
     .sort((a, b) => String(b.at || "").localeCompare(String(a.at || "")))[0];
   return t && t.results.find((r) => r.pointId === pid).status === "unconfirmed" ? t : null;
 };
-// 2.65 E860：新建任务的名称按型号与版本自动填写（如“FC20 升级到 1.1.1”），改过名称后不再自动改
-const fwNewDraft = (type = "fc", releaseId = "") => ({ name: "", autoName: true, type, releaseId, networkIds: [], windowStart: "22:00", windowEnd: "06:00", unoccupied: false });
-// 2.53 E505：全部回报前任务状态写“N 台未确认”（原为“已完成”）
+// 2.65 E860：新建任务的名称按型号与版本自动填写（如“LC20 升级到 1.3.3”），改过名称后不再自动改。
+// 3.08 V1044、V1045：加生效时段（默认 02:00–05:00，在升级时段之内）与“先试点”（默认勾选）
+const fwNewDraft = (type = "lc", releaseId = "") => ({ name: "", autoName: true, type, releaseId, networkIds: [], windowStart: "22:00", windowEnd: "06:00", effStart: "02:00", effEnd: "05:00", pilot: true, unoccupied: false });
+// 2.53 E505：全部回报前任务状态写“N 台未确认”（原为“已完成”）；3.08：传输中写本网络进度，自动暂停写何时继续
 const fwStateText = (t) => {
   const n = (t.results || []).filter((r) => r.status === "unconfirmed").length;
-  return t.status === "completed" && n ? `${n} 台未确认` : FW_STATE[t.status] || t.status;
+  if (t.status === "completed" && n) return `${n} 台未确认`;
+  if (t.status === "running" && t.progress != null) return `传输中 · 本网络 ${t.progress}%`;
+  if (t.status === "paused" && t.autoPause) return `已暂停 · 今晚 ${t.windowStart} 继续`;
+  return FW_STATE[t.status] || t.status;
 };
+// 预计时长：按该网络上一次升级的实测速度（台/晚）估算；没有记录时写“首次升级，传输后按实测更新”
+function fwNights(db, nids, n, except) {
+  const rates = nids.map((nid) => db.firmwareTasks.filter((t) => t.id !== except && t.rate && t.networkIds?.includes(nid)).sort((a, b) => String(b.at || "").localeCompare(String(a.at || "")))[0]?.rate);
+  return !n ? null : rates.length && rates.every(Boolean) ? Math.max(1, Math.ceil(n / Math.min(...rates))) : null;
+}
+const fwNightsText = (k) => (k ? `约需 ${k} 晚` : "首次升级，传输后按实测更新");
+// 时间段 a–b 是否落在 s–e 之内（都可跨午夜）
+const fwMin = (x) => (/^\d{1,2}:\d{2}$/.test(x || "") ? Number(x.split(":")[0]) * 60 + Number(x.split(":")[1]) : null);
+function fwWithin(a, b, s, e) {
+  const [A, B, S, E] = [a, b, s, e].map(fwMin);
+  if ([A, B, S, E].includes(null)) return false;
+  const off = (x) => (x - S + 1440) % 1440, len = off(E) || 1440;
+  return off(A) <= len && off(B) <= len && off(A) <= off(B);
+}
 function renderFirmware() {
   const db = data(),
     ns = F.scopedNetworks(db, U),
     tasks = db.firmwareTasks.filter((t) => !t.networkIds?.length || t.networkIds.some((id) => ns.some((n) => n.id === id))),
-    // 2.58 E624：没有设备的型号不列；全无设备时为页面空状态“尚无设备”
-    models = ["lc", "ms", "fc", "aq"]
+    // 2.58 E624：没有设备的型号不列；全无设备时为页面空状态“尚无设备”。3.08 V1047：只列 Mesh 型号，FC20 为 4G 设备
+    models = ["lc", "ms", "aq"]
       .map((type) => [type, scopePoints().filter((p) => p.type === type && M.access(p) === "mesh" && F.boundNow(p))])
       .filter(([, ps]) => ps.length);
   if (!models.length && !tasks.length) return empty("尚无设备", "", "", "upgrade");
-  // 2.15 E325、2.53 E503–E505 起：型号表四列（型号、设备、当前版本、可升级）；2.58 E624：型号两行（“FC20”，下一行“风机盘管温控器”）；
-  // 版本只有一个写“1.3.2”，多个写“1.1.1 · 22 台、1.1.0 · 1 台”；可升级写“1.1.1 · 1 台”，升级为行尾 28 图标按钮（悬停显示）；
-  // 签名未验证时不给升级按钮；任务表去掉“型号 / 版本”列。2.88 E1138：去掉独立的“新建升级任务”，升级从型号行的“升级”进入
+  // 2.15 E325、2.53 E503–E505 起：型号表四列（型号、设备、当前版本、可升级）；2.58 E624：型号两行（“LC20”，下一行“照明控制器”）；
+  // 版本只有一个写“1.3.2”，多个写“1.3.2 · 22 台、1.3.1 · 1 台”；签名未验证时不给升级按钮；任务表去掉“型号 / 版本”列。
+  // 2.88 E1138：去掉独立的“新建升级任务”，升级从型号行的“升级”进入
   return `<section class="flow-space fw-models"><div class="flow-section-head"><h3>型号与版本</h3></div>${
     models.length
       ? table(
@@ -57256,20 +57361,29 @@ function renderFirmware() {
           models.map(([type, ps]) => {
             const dist = {},
               releases = fwReleases(type),
-              latest = releases.map((r) => r.version).sort((a, b) => b.localeCompare(a, "en", { numeric: true }))[0];
+              latest = releases.map((r) => r.version).sort(fwVer).pop(),
+              rel = releases.find((r) => r.version === latest);
             ps.forEach((p) => (dist[p.firmwareVersion || "尚未回报"] = (dist[p.firmwareVersion || "尚未回报"] || 0) + 1));
             const vs = Object.entries(dist),
               pend = ps.map((p) => fwPendingTask(db, p.id)).filter(Boolean),
-              low = latest ? ps.filter((p) => p.firmwareVersion && p.firmwareVersion.localeCompare(latest, "en", { numeric: true }) < 0 && !fwPendingTask(db, p.id)).length : 0,
-              signed = releases.find((r) => r.version === latest)?.signature?.verified,
-              up = !!latest && !!low && signed;
+              low = latest ? ps.filter((p) => p.firmwareVersion && fwVer(p.firmwareVersion, latest) < 0 && !fwPendingTask(db, p.id)).length : 0,
+              signed = rel?.signature?.verified,
+              // 3.08 V1045：可升级台数与升级弹窗一致，离线与低于起始版本的不计
+              ready = low ? ps.filter((p) => p.firmwareVersion && fwVer(p.firmwareVersion, latest) < 0 && !fwPendingTask(db, p.id) && F.communication(db, p) !== "离线" && !(rel?.fromVersion && fwVer(p.firmwareVersion, rel.fromVersion) < 0)).length : 0,
+              up = !!latest && !!ready && signed,
+              top = ps.map((p) => p.firmwareVersion).filter(Boolean).sort(fwVer).pop(),
+              // 3.08 V1046：发布方撤回比设备当前版本新的版本时写“1.3.4 已撤回”
+              wd = fwAllReleases(type).filter((r) => r.withdrawn && (!top || fwVer(r.version, top) > 0)).map((r) => r.version).sort(fwVer).pop(),
+              wdLine = wd ? `<small class="flow-sub">${esc(wd)} 已撤回</small>` : "";
             return [
               `${M.catalog[type].model}<small class="flow-sub">${esc(M.catalog[type].name)}</small>`,
               ps.length,
               vs.length === 1 ? esc(vs[0][0]) : nwJoin(vs.map(([v, c]) => `${v} · ${c} 台`), "、"),
-              // 2.88 E1138：有新版本时写“有新版本 1.1.2”，行内给“升级”文字按钮（一个弹窗下发）；签名未验证时写明，不给按钮
-              // 只剩上次任务未回报的设备时写“等待 N 台回报”（点开那个任务），不写“已是最新”
-              !latest || !low ? (pend.length ? btn(`等待 ${pend.length} 台回报`, "firmwareDetail", { id: pend[0].id }, "ghost flow-lk") : "已是最新") : nwText(`有新版本 ${latest}`) + `<small class="flow-sub">${signed ? `${low} 台可升级` : `<span class="v13-warn">签名未验证</span>`}</small>`,
+              // 2.88 E1138：有新版本时写“有新版本 1.3.3”，行内给“升级”文字按钮；签名未验证时写明，不给按钮。
+              // 3.08 V1046：安全更新带中性灰“安全更新”标签，悬停写发布说明
+              !latest || !low
+                ? (pend.length ? btn(`等待 ${pend.length} 台回报`, "firmwareDetail", { id: pend[0].id }, "ghost flow-lk") : "已是最新") + wdLine
+                : `<span class="fw-new"${rel?.notes ? ` data-tip="${esc(rel.notes)}"` : ""}>${nwText(`有新版本 ${latest}`)}${rel?.security ? `<span class="chip fw-sec">安全更新</span>` : ""}</span><small class="flow-sub">${!signed ? `<span class="v13-warn">签名未验证</span>` : ready ? `${ready} 台可升级` : "可升级的设备离线"}</small>${wdLine}`,
               up && canEdit() ? btn("升级", "fwUpgradeType", { type }, "ghost sm") : "",
             ];
           }),
@@ -57278,7 +57392,7 @@ function renderFirmware() {
   }</section><section class="flow-space fw-tasks"><div class="flow-section-head"><h3>升级任务</h3></div>${
     tasks.length
       ? table(
-          ["任务", "范围", "执行时段", "进度", "状态", ""],
+          ["任务", "范围", "升级时段", "进度", "状态", ""],
           tasks.map((t) => {
             const rs = t.results || [];
             return {
@@ -57289,9 +57403,7 @@ function renderFirmware() {
                 `<b class="flow-name">${nwText(t.name)}</b>`,
                 nwJoin(t.networkIds.map((id) => g("networks", id)?.name || id), "、") || "未选择",
                 esc(fwWindowText(t)),
-                t.serviceReceiptId
-                  ? `${rs.filter((x) => x.status === "completed").length} / ${rs.length} 台` // 2.53 E505：未确认台数只写在状态列，进度格不再重复
-                  : "未下发",
+                t.serviceReceiptId ? `已生效 ${rs.filter((x) => x.status === "completed").length} / ${rs.length} 台` : "未下发",
                 devState(fwStateText(t)),
                 "",
               ],
@@ -57300,12 +57412,12 @@ function renderFirmware() {
         )
       : // 2.58 E635：次要区块为空只写一行灰字
         `<p class="muted">尚无升级任务</p>`
-  }</section>`; // 2.25 E410：删去页底“同一设备网络同一时间只升级一个型号”（新建升级任务里已写“一次一个型号”）
+  }</section>`;
 }
 // 升级时段按所属项目的时区执行并写出时区名称（2026-10-09 用户确认，ABB 对比 BP53）；所选网络属于不同时区的项目时逐项目列出
 // 2.25 E414：项目在中国标准时间时只写“22:00–06:00”；其他时区写“22:00–06:00（UTC+09:00）”，只用一层括号。
-function fwWindowText(d) {
-  const w = `${d.windowStart}–${d.windowEnd}`,
+function fwWindowText(d, s = d.windowStart, e = d.windowEnd) {
+  const w = `${s}–${e}`,
     zone = (tz) => (!tz || tz === "Asia/Shanghai" || tzOffset(tz) == null ? "" : `（UTC${tzOffset(tz)}）`),
     prs = [...new Set((d.networkIds || []).map((id) => g("networks", id)?.projectId).filter(Boolean))].map((pid) => g("projects", pid)).filter(Boolean);
   if (!prs.length) return `${w}${U.p && g("projects", U.p) ? zone(g("projects", U.p).timezone) : ""}`;
@@ -57313,14 +57425,47 @@ function fwWindowText(d) {
   return zones.size === 1 ? `${w}${[...zones][0]}` : prs.map((pr) => `${pr.name} ${w}${zone(pr.timezone) || "（UTC+08:00）"}`).join("；");
 }
 let firmwareDraft = null;
-// 2.88 E1138：升级一个弹窗：目标版本（默认最新）、范围（默认全部可升级的设备网络）、时段（默认 22:00–06:00，核对无人），
-// 下方一行写影响台数与时段；任务名称自动生成“FC20 升级到 1.1.2”。原为四步向导“型号与版本、范围、时段、确认影响”并要填任务名称。
+// 2.88 E1138：升级一个弹窗，任务名称自动生成“LC20 升级到 1.3.3”。3.08 V1044、V1045：字段为目标版本、范围、升级时段、生效时段、
+// 先试点，其下列出下发前检查，再写影响与“已核对这是服务范围的无人时段”。离线、低于起始版本的设备不选
+const fwCandidates = (db, d, nid) => F.meshPoints(db, nid).filter((p) => p.type === d.type && F.boundNow(p) && !fwPendingTask(db, p.id));
 const fwTargets = (db, d, rel, nid) =>
-  F.meshPoints(db, nid).filter((p) => p.type === d.type && F.boundNow(p) && !fwPendingTask(db, p.id) && (!rel || (p.firmwareVersion || "").localeCompare(rel.version, "en", { numeric: true }) < 0));
+  fwCandidates(db, d, nid).filter((p) => (!rel || fwVer(p.firmwareVersion || "", rel.version) < 0) && F.communication(db, p) !== "离线" && !(rel?.fromVersion && p.firmwareVersion && fwVer(p.firmwareVersion, rel.fromVersion) < 0));
+// 信号弱：最近一次网络检测中到达率低于 95% 或 4 跳以上
+const fwWeak = (r) => r && ((r.reach != null && r.reach < 95) || (r.hops || 0) >= 4);
+// 试点：每个网络 2 台（离网关跳数最多、最少的各 1 台，跳数取最近一次网络检测，没有检测结果时任选 2 台）；可升级设备不超过 2 台的网络不单独试点
+function fwPilotIds(db, ps, nid) {
+  if (ps.length <= 2) return [];
+  const rs = F.latestHealth(db, nid)?.results || [],
+    hop = (p) => rs.find((r) => r.pointId === p.id)?.hops,
+    known = ps.filter((p) => hop(p) != null).sort((a, b) => hop(a) - hop(b) || M.byName(a, b));
+  return known.length >= 2 ? [known.at(-1).id, known[0].id] : [...ps].sort(M.byName).slice(0, 2).map((p) => p.id);
+}
+// 下发前检查（V1045）：每行一个勾或一个提醒；gate 为不能下发的原因
+function fwChecks(db, d, rel) {
+  const nets = d.networkIds.map((id) => g("networks", id)).filter(Boolean),
+    cand = nets.flatMap((n) => fwCandidates(db, d, n.id).filter((p) => !rel || fwVer(p.firmwareVersion || "", rel.version) < 0)),
+    off = cand.filter((p) => F.communication(db, p) === "离线"),
+    old = rel?.fromVersion ? cand.filter((p) => p.firmwareVersion && fwVer(p.firmwareVersion, rel.fromVersion) < 0 && !off.includes(p)) : [],
+    gwBad = nets.filter((n) => !gatewayReady(db, n).ok),
+    healthOf = (n) => F.latestHealth(db, n.id)?.results || [],
+    tested = nets.filter((n) => healthOf(n).length),
+    weak = nets.flatMap((n) => fwTargets(db, d, rel, n.id).filter((p) => fwWeak(healthOf(n).find((r) => r.pointId === p.id))));
+  const rows = [
+    ["网关", !gwBad.length, gwBad.length ? `${gwBad.map((n) => n.name).join("、")} 网关离线，不能下发` : "网关在线，可分发"],
+    ["签名", !!rel?.signature?.verified, rel?.signature?.verified ? `已验证 · 签名方 ${rel.signature.signer || "PACOM"}` : "签名未验证，不能下发"],
+    ["硬件与起始版本", !old.length, old.length ? `${old.length} 台低于起始版本 ${rel.fromVersion}，已排除` : rel ? `全部符合（${fwCondition(rel).replace(/<[^>]+>/g, "")}）` : "—"],
+    ["离线设备", !off.length, off.length ? `${off.length} 台离线，已排除；上线后可再建任务` : "没有离线设备"],
+    ["信号弱", !weak.length, !tested.length ? "尚无网络检测结果" : weak.length ? `${weak.length} 台信号弱，可能需要多次重传` : "最近一次网络检测信号正常"],
+    ["组成数据", true, "不改变组成数据，升级后不需要重新绑定"],
+  ];
+  return { rows, gate: !rel ? "" : gwBad.length ? "网关离线，不能下发" : !rel.signature?.verified ? "签名未验证，不能下发" : "" };
+}
+const fwCheckHtml = (c) =>
+  `<div class="fw-checks"><h4>下发前检查</h4><ul>${c.rows.map(([l, ok, t]) => `<li class="${ok ? "ok" : "warn"}">${ico(ok ? "check" : "alert", "ic16")}<span>${esc(l)}</span><span>${esc(t)}</span></li>`).join("")}</ul></div>`;
 function showFirmware(id) {
   if (!firmwareDraft || id) {
     const old = id ? g("firmwareTasks", id) : null;
-    firmwareDraft = old ? M.copy(old) : fwNewDraft();
+    firmwareDraft = old ? { ...fwNewDraft(old.type), ...M.copy(old) } : fwNewDraft();
   }
   const db = data(),
     d = firmwareDraft,
@@ -57329,40 +57474,42 @@ function showFirmware(id) {
     ns = F.scopedNetworks(db, U),
     busy = (nid) => activeFirmware(db, nid).some((t) => t.id !== d.id);
   if (!d.id && !d.netInit) {
-    d.networkIds = ns.filter((n) => !busy(n.id) && fwTargets(db, d, rel, n.id).length).map((n) => n.id);
+    d.networkIds = ns.filter((n) => !busy(n.id) && gatewayReady(db, n).ok && fwTargets(db, d, rel, n.id).length).map((n) => n.id);
     d.netInit = true;
   }
   if (d.autoName) d.name = rel ? `${M.catalog[d.type].model} 升级到 ${rel.version}` : `${M.catalog[d.type].model} 固件升级`;
-  const n = d.networkIds.reduce((a, nid) => a + fwTargets(db, d, rel, nid).length, 0),
-    winOk = d.windowStart && d.windowEnd && d.windowStart !== d.windowEnd;
   const body = `${fld(
     "目标版本",
     "fwRelease",
     select("fwRelease", [["", "请选择"], ...rs.map((r) => [r.id, r.version + " · " + r.hardwareVersions.join(" / ")])], d.releaseId, "目标版本"),
     rel?.notes ? esc(rel.notes) : "",
-  )}${rel ? infoRows([["硬件与固件条件", { html: fwCondition(rel) }], ["签名验证", rel.signature?.verified ? `已验证 · ${rel.signature.signer || "发布签名"}` : "待服务核验"]]) : ""}${
-    !rs.length ? note("尚未取得该型号的正式发布版本，不能下发。") : ""
-  }<fieldset class="ws-checks flow-scroll-list flow-space"><legend>范围</legend>${
+  )}${!rs.length ? note("尚未取得该型号的正式发布版本，不能下发。") : ""}<fieldset class="ws-checks flow-scroll-list flow-space"><legend>范围</legend>${
     ns
       .map((x) => {
         const b = busy(x.id),
+          gwOff = !gatewayReady(db, x).ok,
           k = fwTargets(db, d, rel, x.id).length;
-        return `<label><input name="fwNetworks" type="checkbox" value="${x.id}" ${d.networkIds.includes(x.id) ? "checked" : ""} ${b ? "disabled" : ""}>${esc(x.name)}<small>${b ? "已有升级任务进行中" : rel ? `${k} 台可升级` : `${F.meshPoints(db, x.id).filter((p) => p.type === d.type && M.bound(p)).length} 台已绑定`}</small></label>`;
+        return `<label><input name="fwNetworks" type="checkbox" value="${x.id}" ${d.networkIds.includes(x.id) ? "checked" : ""} ${b || gwOff ? "disabled" : ""}>${esc(x.name)}<small>${b ? "已有升级任务进行中" : gwOff ? "网关离线" : rel ? `${k} 台可升级` : `${F.meshPoints(db, x.id).filter((p) => p.type === d.type && M.bound(p)).length} 台已绑定`}</small></label>`;
       })
       .join("") || '<p class="muted">尚无设备网络</p>'
-  }</fieldset><div class="ws-form-row">${fld("开始时间", "fwStart", input("fwStart", d.windowStart, "", "time"), fwTzHint(d))}${fld("结束时间", "fwEnd", input("fwEnd", d.windowEnd, "", "time"))}</div><label class="row small"><input id="fwUnoccupied" type="checkbox" ${d.unoccupied ? "checked" : ""}>已核对这是服务范围的无人时段</label><p class="fw-impact" id="fwImpact">${fwImpactText(n, d, rel, winOk)}</p>`;
+  }</fieldset><div class="ws-form-row">${fld("升级时段", "fwStart", `<span class="fw-range">${input("fwStart", d.windowStart, "", "time")}<span aria-hidden="true">–</span>${input("fwEnd", d.windowEnd, "", "time").replace("<input ", '<input aria-label="升级时段结束" ')}</span>`, fwTzHint(d))}${fld("生效时段", "fwEffStart", `<span class="fw-range">${input("fwEffStart", d.effStart, "", "time")}<span aria-hidden="true">–</span>${input("fwEffEnd", d.effEnd, "", "time").replace("<input ", '<input aria-label="生效时段结束" ')}</span>`, "在升级时段之内")}</div><label class="row small fw-pilot"><input id="fwPilot" type="checkbox" ${d.pilot ? "checked" : ""}>先试点<small>每个网络先升级 2 台，运行 24 小时没有新的故障告警再继续；可升级设备不超过 2 台的网络不单独试点</small></label><div id="fwChecks">${rel ? fwCheckHtml(fwChecks(db, d, rel)) : ""}</div><p class="fw-impact" id="fwImpact">${fwImpactText(db, d, rel)}</p><label class="row small"><input id="fwUnoccupied" type="checkbox" ${d.unoccupied ? "checked" : ""}>已核对这是服务范围的无人时段</label>`;
   modal(
     d.id ? "修改升级任务" : `升级 ${M.catalog[d.type].model}`,
     body,
     btn("取消", "close") + execBtn("下发升级", "dispatchFirmware"),
   );
 }
-const fwImpactText = (n, d, rel, winOk) =>
-  esc(
-    !rel
-      ? "选择目标版本后计算影响台数"
-      : `将升级 ${n} 台${winOk ? `，在 ${fwWindowText(d)} 执行` : ""}；每个设备网络约需数小时，期间照明控制与上报变慢，网络检测、批量配置和密钥更新暂停`,
+// 影响（V1044）：如“将升级 23 台：今晚 22:00 起传输，约需 2 晚；全部验证后在 02:00–05:00 分批生效，有人的功能区延后。”
+function fwImpactText(db, d, rel) {
+  if (!rel) return "选择目标版本后计算影响台数";
+  const n = d.networkIds.reduce((a, nid) => a + fwTargets(db, d, rel, nid).length, 0),
+    pilot = d.pilot ? d.networkIds.reduce((a, nid) => a + fwPilotIds(db, fwTargets(db, d, rel, nid), nid).length, 0) : 0,
+    winOk = d.windowStart && d.windowEnd && d.windowStart !== d.windowEnd,
+    hold = d.type === "lc" ? "有人的功能区延后" : "场景执行中的设备延后";
+  return esc(
+    `将升级 ${n} 台${pilot ? `，先试点 ${pilot} 台` : ""}：${winOk ? `今晚 ${d.windowStart} 起传输，` : ""}${fwNightsText(fwNights(db, d.networkIds, n, d.id))}；全部验证后在 ${d.effStart}–${d.effEnd} 分批生效，${hold}。传输期间照明控制与上报变慢，网络检测与批量配置暂停；密钥更新暂停到全部生效。`,
   );
+}
 // 2.65 E858：项目不在中国标准时间时，在时间字段下写按哪个时区执行
 function fwTzHint(d) {
   const off = (pr) => (!pr.timezone || pr.timezone === "Asia/Shanghai" || tzOffset(pr.timezone) == null ? "+08:00" : tzOffset(pr.timezone)),
@@ -57376,11 +57523,23 @@ function readFirmwareStep() {
   d.releaseId = value("fwRelease");
   d.networkIds = checked("fwNetworks");
   // 时刻框填了但认不出时写明格式（Lovable 核查第 322 条，2026-10-11 用户确认）
-  wsDtCheck("fwStart", "fwEnd");
+  wsDtCheck("fwStart", "fwEnd", "fwEffStart", "fwEffEnd");
   d.windowStart = value("fwStart");
   d.windowEnd = value("fwEnd");
+  d.effStart = value("fwEffStart");
+  d.effEnd = value("fwEffEnd");
+  d.pilot = !!$("#fwPilot")?.checked;
   d.unoccupied = !!$("#fwUnoccupied")?.checked;
 }
+function fwRefresh() {
+  readFirmwareStep();
+  const d = firmwareDraft,
+    rel = fwReleases(d?.type).find((r) => r.id === d?.releaseId);
+  if (!d) return;
+  if ($("#fwChecks")) $("#fwChecks").innerHTML = rel ? fwCheckHtml(fwChecks(data(), d, rel)) : "";
+  if ($("#fwImpact")) $("#fwImpact").textContent = fwImpactText(data(), d, rel).replace(/&amp;/g, "&");
+}
+// 任务详情（V1046）：阶段条、资料行（范围、升级时段、生效时段、试点、下发、状态、预计、升级后核对）、提醒与逐台结果
 function showFirmwareDetail(id) {
   const db = data(),
     t = g("firmwareTasks", id);
@@ -57388,50 +57547,69 @@ function showFirmwareDetail(id) {
   const rs = t.results || [],
     byNet = t.networkIds.map((nid) => {
       const sub = rs.filter((r) => g("points", r.pointId)?.networkId === nid);
-      return [
-        esc(g("networks", nid)?.name || nid),
-        sub.length,
-        sub.filter((r) => r.status === "completed").length,
-        sub.filter((r) => r.status === "unconfirmed").length,
-        sub.filter((r) => r.status === "failed").length,
-      ];
+      return [esc(g("networks", nid)?.name || nid), sub.length, sub.filter((r) => r.status === "completed").length, sub.filter((r) => r.status === "unconfirmed").length, sub.filter((r) => r.status === "failed").length];
     }),
-    label = FW_RESULT,
-    unconfirmed = rs.filter((r) => r.status === "unconfirmed").length;
-  // 2.25 E395：只有“关闭”时不放底部按钮（右上角关闭和 Esc），有其他操作时“关闭”与操作同排。
+    count = (st) => rs.filter((r) => r.status === st),
+    unconfirmed = count("unconfirmed").length,
+    manual = count("manual"),
+    vfail = rs.filter((r) => r.status === "failed" && r.fail === "verify"),
+    retry = rs.filter(fwRetryable),
+    live = ACTIVE_FW.includes(t.status),
+    edit = canEdit();
+  // 阶段条：试点中、试点失败按“传输中”一格显示；暂停按暂停前的阶段
+  const cur = { pilot: "running", pilotFailed: "running", paused: t.pausedAt || "running", withdrawn: t.stoppedAt || "running", cancelled: null }[t.status] ?? t.status,
+    ci = FW_STAGES.indexOf(cur),
+    stages = t.status === "draft" || t.status === "cancelled" ? "" : `<ol class="fw-stages">${FW_STAGES.map((s, i) => `<li class="${i < ci || t.status === "completed" ? "done" : i === ci ? "on" : ""}">${FW_STATE[s]}</li>`).join("")}</ol>`;
+  const pilotText = !t.pilot
+    ? "不试点"
+    : !t.pilotIds?.length
+      ? "不单独试点（可升级设备不超过 2 台）"
+      : nwJoin([t.pilotIds.map((x) => g("points", x)?.name || x).join("、"), t.pilotState === "passed" ? "已通过" : t.pilotState === "failed" ? "未通过，任务停止" : t.pilotState === "observe" ? `观察中，${t.pilotLeft || "24 小时"}后没有新的故障告警即继续` : "等待时段"]);
   const acts =
     t.status === "draft"
-      ? canEdit()
+      ? edit
         ? btn("修改", "firmwareEdit", { id }, "primary")
         : ""
-      : ACTIVE_FW.includes(t.status) && canEdit()
+      : (live || t.status === "pilotFailed") && edit
         ? btn("取消任务", "firmwareCancelAsk", { id }, "ghost") +
           // 2.65 E1006：开始前可以修改（没有草稿）
           (t.status === "queued" ? btn("修改", "firmwareEdit", { id }) : "") +
-          (t.status === "paused" ? execBtn("继续", "firmwareControl", { id, op: "resume" }, "config", "") : execBtn("暂停", "firmwareControl", { id, op: "pause" }, "config", ""))
-        : rs.some((r) => r.status === "failed") && canEdit()
+          // 3.08 V1045：机构管理员可跳过试点后的 24 小时观察
+          (t.status === "pilot" && t.pilotState === "observe" && isAdmin() ? execBtn("跳过等待", "firmwareControl", { id, op: "skip" }, "admin", "") : "") +
+          // 3.08 V1044：传输未完时可先让已验证的设备生效
+          (["running", "paused"].includes(t.status) && count("verified").length ? execBtn("先让已验证的生效", "firmwareControl", { id, op: "early" }, "config", "") : "") +
+          (["running", "paused", "queued"].includes(t.status) ? (t.status === "paused" ? execBtn("继续", "firmwareControl", { id, op: "resume" }, "config", "") : t.status === "running" ? execBtn("暂停", "firmwareControl", { id, op: "pause" }, "config", "") : "") : "") +
+          (retry.length && t.status !== "pilotFailed" ? execBtn("重试失败的设备", "firmwareControl", { id, op: "retry" }, "config", "") : "")
+        : retry.length && edit && !["cancelled", "withdrawn"].includes(t.status)
           ? execBtn("重试失败的设备", "firmwareControl", { id, op: "retry" })
           : "";
-  // 2.47 E470：标题写对象名称（如“FC20 升级到 1.1.1”），不再另起“任务”一行
+  const notices = [
+    unconfirmed ? wsNotice(`${unconfirmed === 1 ? esc(g("points", rs.find((r) => r.status === "unconfirmed").pointId)?.name || "1 台设备") + " " : unconfirmed + " 台设备"}尚未回报新版本，设备上线后状态自动更新；仍未回报请到现场核对。`, "warning") : "",
+    // V1044：连续 3 晚未生效的设备由人工安排；立即生效时灯会短暂熄灭
+    manual.length ? `<div class="fw-note">${wsNotice(`${manual.length} 台连续 3 晚未能生效，需人工安排。立即生效时${t.type === "lc" ? "这些功能区的灯会短暂熄灭" : "设备会短暂离线"}。`, "warning")}${edit ? btn("立即生效", "firmwareNowAsk", { id }, "sm") : ""}</div>` : "",
+    vfail.length ? `<div class="fw-note">${wsNotice(`${vfail.length} 台验证失败：文件不完整或签名不符，不能重试。`, "error", false)}${btn("联系支持", "auSupport", { from: "firmware" }, "sm")}</div>` : "",
+    t.status === "withdrawn" ? wsNotice(`发布方已撤回 ${esc(t.targetVersion)}，任务已停止，未升级的设备不再升级。`, "warning") : "",
+  ].join("");
+  // 2.47 E470：标题写对象名称（如“LC20 升级到 1.3.2”），不再另起“任务”一行
   modal(
     esc(t.name),
-    // 2.53 E505：标题已写型号与版本，不再另列；加“范围”（任务网络服务的楼层）
-    `${kv([
+    `${stages}${kv([
       ["范围", placeText([...new Set(t.networkIds.flatMap((nid) => g("networks", nid)?.floorIds || []))])],
-      ["时段", esc(fwWindowText(t))],
+      ["升级时段", esc(fwWindowText(t))],
+      ["生效时段", esc(fwWindowText(t, t.effStart || "02:00", t.effEnd || "05:00"))],
+      ["试点", t.pilot && t.pilotIds?.length ? pilotText : esc(pilotText)],
       ...(t.status !== "draft" && t.at ? [["下发", esc([t.by, v13Date(t.at, true, g("networks", t.networkIds[0])?.projectId)].filter(Boolean).join(" · "))]] : []), // 2.65 E855
-      ["状态", fwStateText(t) + (t.serviceReceiptId?.startsWith("demo-") ? " " + simTag() : "")],
-    ])}${/* 2.88 E1138：只有一个网络时不列汇总表 */ t.networkIds.length > 1 ? table(["设备网络", "#设备", "#已完成", "#未确认", "#失败"], byNet, "未选择设备网络。") : ""}${
-      unconfirmed
-        ? wsNotice(`${unconfirmed === 1 ? esc(g("points", rs.find((r) => r.status === "unconfirmed").pointId)?.name || "1 台设备") : unconfirmed + " 台设备"} 尚未回报新版本，设备上线后状态自动更新；仍未回报请到现场核对。`, "warning")
-        : ""
-    }${table(
+      ["状态", esc(fwStateText(t)) + (t.serviceReceiptId?.startsWith("demo-") ? " " + simTag() : "")],
+      ...(live ? [["预计", esc(fwNightsText(fwNights(db, t.networkIds, rs.length, t.id)))]] : []),
+      // V1046：回读版本后自动核对配置，不一致的重新下发，再自动做一次网络检测
+      ...(t.check ? [["升级后核对", esc(t.check)]] : []),
+    ])}${notices}${/* 2.88 E1138：只有一个网络时不列汇总表 */ t.networkIds.length > 1 ? table(["设备网络", "#设备", "#已生效", "#未确认", "#失败"], byNet, "未选择设备网络。") : ""}${table(
       ["设备", "当前版本", "结果"],
-      // 2.53 E505：未确认和失败的排在最前
-      [...rs].sort((a, b) => ["failed", "unconfirmed"].includes(b.status) - ["failed", "unconfirmed"].includes(a.status)).map((r) => [
+      // 2.53 E505：失败、需人工安排、未确认的排在最前
+      [...rs].sort((a, b) => ["failed", "manual", "unconfirmed"].includes(b.status) - ["failed", "manual", "unconfirmed"].includes(a.status)).map((r) => [
         esc(g("points", r.pointId)?.name || r.pointId),
         esc(r.version || g("points", r.pointId)?.firmwareVersion || "—"),
-        esc(r.reason || label[r.status] || r.status),
+        esc(fwResultText(r)) + (t.pilotIds?.includes(r.pointId) ? `<small class="flow-sub">试点</small>` : ""),
       ]),
       t.status === "draft" ? "草稿尚未下发。" : "尚无逐台结果。",
     )}`,
@@ -57545,7 +57723,6 @@ const NP_ROWS = [
   ["温湿度", "npClimate", "climate", [["npTemp", "tempChange", "温度变化"], ["npHumidity", "humidityChange", "湿度变化"]]],
   ["气压", "npPressure", "pressure", []],
   ["LC20 状态", "npController", "controller", []],
-  ["FC20 状态", "npOther", "other", []],
   ["AQ20 空气质量", "npAq", "aq", []],
 ];
 const npRangeText = (fid, minOff) => {
@@ -57723,7 +57900,6 @@ function readParameters(vals = null) {
       climate: num("npClimate"),
       pressure: num("npPressure"),
       controller: num("npController"),
-      other: num("npOther"),
       aq: num("npAq"),
       luxChange: num("npLuxChange"),
       luxAbsolute: num("npLuxAbsolute"),
@@ -57769,7 +57945,7 @@ function showRoleSuggestions(id) {
 function showConfigurationList(id, scope = "") {
   const n = g("networks", id);
   if (!n) return;
-  const rows = F.meshPoints(data(), id).map((p) => [p, F.syncState(data(), p)]),
+  const rows = F.fieldPoints(data(), id).map((p) => [p, F.syncState(data(), p)]),
     open = rows.filter(([, st]) => st !== "已同步"),
     cur = scope || (open.length ? "open" : "all"),
     shown = cur === "open" ? open : rows.slice().sort((a, b) => (a[1] === "已同步") - (b[1] === "已同步"));
@@ -57804,7 +57980,7 @@ function showConfigurationList(id, scope = "") {
       "全部设备已同步",
     )}`,
     btn("关闭", "close") +
-      (canEdit() && F.meshPoints(data(), id).some((p) => F.boundNow(p) && F.syncState(data(), p) !== "已同步")
+      (canEdit() && F.fieldPoints(data(), id).some((p) => F.boundNow(p) && F.syncState(data(), p) !== "已同步")
         ? execBtn("补齐待同步配置", "syncConfig", { id })
         : ""),
   );
@@ -58428,7 +58604,7 @@ defineActions({
       t = F.nextTask(data(), n);
     if (t.action === "mark") actions.markNetwork(a);
     else if (t.action === "app") {
-      const pending = F.meshPoints(data(), n.id).filter((p) => !F.boundNow(p)),
+      const pending = F.fieldPoints(data(), n.id).filter((p) => !F.boundNow(p)),
         reset = pending.filter((p) => p.fieldReset);
       if (!M.bound(F.gateway(data(), n.id))) showBindingPreparation(a.id);
       else if (reset.length === pending.length && reset.length) showMaintenance("remote", reset[0].id, n.id);
@@ -58691,6 +58867,12 @@ defineActions({
     if (a.kind === "health") openNetworkHealth(a.id);
     // 安全待办：已移除设备的密钥更新（机构管理员），原因预选“已移除设备”
     if (a.kind === "keys") showMaintenance("keys", null, a.id, "lost-device");
+    // 3.08 V1044：固件升级进行中，打开设备 › 固件与该网络的升级任务
+    if (a.kind === "firmware") {
+      route("devices", { tab: "firmware" }, { remember: true });
+      const t = activeFirmware(data(), a.id)[0];
+      if (t) showFirmwareDetail(t.id);
+    }
   },
   fieldChange: (a) => showFieldChange(a.id),
   // 网络页“记录”中的现场改动（网络页顶部提示、配置进度的下一步与配置同步进入）
@@ -58904,7 +59086,7 @@ defineActions({
       off = 0,
       held = 0;
     await transaction((db) => {
-      for (const p of F.meshPoints(db, a.id).filter((p) => F.boundNow(p) && (!a.point || p.id === a.point))) {
+      for (const p of F.fieldPoints(db, a.id).filter((p) => F.boundNow(p) && (!a.point || p.id === a.point))) {
         const d = F.desired(db, p.id);
         if (!d || F.syncState(db, p) === "已同步") continue;
         // 有待并入的现场改动：并入之前不按规划下发（2026-10-05 核查 H4）
@@ -59027,6 +59209,10 @@ defineActions({
     if (!rel) throw fieldErr("fwRelease", "请选择目标版本");
     if (!d.networkIds.length) throw nameFieldErr("fwNetworks", "请至少选择一个设备网络");
     if (!d.windowStart || !d.windowEnd || d.windowStart === d.windowEnd) throw fieldErr("fwEnd", "结束时间不能与开始时间相同");
+    if (!d.effStart || !d.effEnd || d.effStart === d.effEnd) throw fieldErr("fwEffEnd", "结束时间不能与开始时间相同");
+    if (!fwWithin(d.effStart, d.effEnd, d.windowStart, d.windowEnd)) throw fieldErr("fwEffEnd", "生效时段须在升级时段之内");
+    const gate = fwChecks(data(), d, rel).gate;
+    if (gate) throw Error(gate);
     if (!d.unoccupied) throw Error("请先核对这是服务范围的无人时段");
     if (d.autoName) d.name = `${M.catalog[d.type].model} 升级到 ${rel.version}`;
     const db0 = data();
@@ -59035,17 +59221,10 @@ defineActions({
       if (runningHealth(db0, nid).length || runningKeys(db0, nid).length) throw Error(`${zhSub(g("networks", nid).name, "r")}正在网络检测或密钥更新`);
     }
     await transaction((db) => {
-      const ids = db.points
-        .filter(
-          (p) =>
-            d.networkIds.includes(p.networkId) &&
-            p.type === d.type &&
-            F.boundNow(p) &&
-            M.access(p) === "mesh" &&
-            !fwPendingTask(db, p.id) &&
-            (p.firmwareVersion || "").localeCompare(rel.version, "en", { numeric: true }) < 0,
-        )
-        .map((p) => p.id);
+      // 3.08 V1045：离线、低于起始版本的设备不选；先试点时每个网络 2 台
+      const per = d.networkIds.map((nid) => [nid, fwTargets(db, d, rel, nid)]),
+        ids = per.flatMap(([, ps]) => ps.map((p) => p.id)),
+        pilotIds = d.pilot ? per.flatMap(([nid, ps]) => fwPilotIds(db, ps, nid)) : [];
       if (!ids.length) throw Error("所选网络没有可升级到该版本的设备");
       db.firmwareTasks = db.firmwareTasks.filter((t) => t.id !== d.id);
       db.firmwareTasks.unshift({
@@ -59055,6 +59234,8 @@ defineActions({
         targetVersion: rel.version,
         pointIds: ids,
         results: ids.map((pointId) => ({ pointId, status: "waiting" })),
+        pilotIds,
+        pilotState: pilotIds.length ? "waiting" : null,
         status: "queued",
         at: M.now(),
         by: v13Actor(),
@@ -59065,28 +59246,55 @@ defineActions({
     closeModal(true);
     firmwareDraft = null;
     render();
-    msg("网关已接收升级任务，将在下一个无人时段开始");
+    msg(`网关已接收升级任务，今晚 ${d.windowStart} 起传输`);
   },
   firmwareControl: async (a) => {
     if (a.op !== "cancel" && !SIM()) return;
     await transaction((db) => {
       const t = M.get(db, "firmwareTasks", a.id);
-      if (a.op === "pause") t.status = "paused";
-      if (a.op === "resume") t.status = "queued";
+      // 3.08 V1044：暂停记下暂停前的阶段，继续时回到该阶段；V1045：机构管理员跳过试点后的观察；“先让已验证的生效”
+      if (a.op === "pause") Object.assign(t, { pausedAt: ["pilot", "running"].includes(t.status) ? t.status : "running", status: "paused", autoPause: false });
+      if (a.op === "resume") t.status = t.pausedAt || "queued";
+      if (a.op === "skip") Object.assign(t, { pilotState: "passed", status: "running", pilotLeft: null });
+      if (a.op === "early") t.early = true;
       if (a.op === "cancel") {
         t.status = "cancelled";
         (t.results || []).filter((r) => r.status === "waiting").forEach((r) => (r.status = "cancelled"));
       }
       if (a.op === "retry") {
-        t.results.filter((r) => r.status === "failed").forEach((r) => Object.assign(r, { status: "waiting", reason: "" }));
+        t.results.filter(fwRetryable).forEach((r) => Object.assign(r, { status: "waiting", reason: "", retries: (r.retries || 0) + (r.fail === "rollback" ? 1 : 0), fail: undefined }));
         t.status = "queued";
       }
-      M.record(db, "固件任务 · " + { pause: "暂停", resume: "继续", cancel: "取消", retry: "重试失败项" }[a.op], t.id, t.name);
+      M.record(db, "固件任务 · " + { pause: "暂停", resume: "继续", cancel: "取消", retry: "重试失败项", skip: "跳过等待", early: "先让已验证的生效" }[a.op], t.id, t.name);
     });
     closeModal(true);
     render();
     showFirmwareDetail(a.id);
     if (a.op === "cancel") msg("已取消升级任务");
+    if (a.op === "early") msg("已验证的设备将在今晚生效时段生效");
+  },
+  // 3.08 V1044：连续 3 晚未生效的设备“立即生效”，先确认
+  firmwareNowAsk: (a) => {
+    const t = g("firmwareTasks", a.id);
+    if (!t) return;
+    const n = (t.results || []).filter((r) => r.status === "manual").length;
+    modal(
+      `立即生效 ${n} 台？`,
+      `<p class="flow-lead">${t.type === "lc" ? "这些设备会重启，所在功能区的灯会短暂熄灭，随后按“断电恢复”设定恢复。" : "这些设备会重启并短暂离线。"}</p>`,
+      btn("返回", "firmwareDetail", { id: a.id }) + execBtn("立即生效", "firmwareNow", { id: a.id }, "config", "primary"),
+    );
+  },
+  firmwareNow: async (a) => {
+    if (!SIM()) return;
+    await transaction((db) => {
+      const t = M.get(db, "firmwareTasks", a.id);
+      t.results.filter((r) => r.status === "manual").forEach((r) => (r.status = "unconfirmed"));
+      M.record(db, "固件任务 · 立即生效", t.id, t.name);
+    });
+    closeModal(true);
+    render();
+    showFirmwareDetail(a.id);
+    msg("已下发生效命令，设备回报新版本后状态自动更新");
   },
   // 2.65 E853：取消升级任务前先确认
   firmwareCancelAsk: (a) =>
@@ -59138,16 +59346,8 @@ document.addEventListener("input", (e) => {
     readFirmwareStep();
     showFirmware();
     modalDirty = true;
-  } else if (firmwareDraft && $("#fwImpact") && (e.target.name === "fwNetworks" || ["fwStart", "fwEnd"].includes(e.target.id))) {
-    readFirmwareStep();
-    const d = firmwareDraft,
-      rel = fwReleases(d.type).find((r) => r.id === d.releaseId);
-    $("#fwImpact").textContent = fwImpactText(
-      d.networkIds.reduce((a, nid) => a + fwTargets(data(), d, rel, nid).length, 0),
-      d,
-      rel,
-      d.windowStart && d.windowEnd && d.windowStart !== d.windowEnd,
-    );
+  } else if (firmwareDraft && $("#fwImpact") && (e.target.name === "fwNetworks" || ["fwStart", "fwEnd", "fwEffStart", "fwEffEnd", "fwPilot"].includes(e.target.id))) {
+    fwRefresh(); // 3.08 V1045：同时更新下发前检查
   }
   if (e.target.id?.startsWith("batch-")) batchPreview();
   if (e.target.id === "devPageSel") {
@@ -59531,7 +59731,7 @@ function mkNetPanel(p) {
 function mkNetworkField(p) {
   const db = data(),
     nets = M.networks(db, p.floorId);
-  if (nets.length < 2 || !["mesh", "gateway"].includes(M.access(p))) return "";
+  if (nets.length < 2 || !M.field(p)) return "";
   const why = F.networkMoveProblem(db, p),
     control = select("pe-networkId", [...nets].sort(M.byName).map((n) => [n.id, n.name]), p.networkId || "", "设备网络"),
     text = why ? `${why}。` : p.type === "lc" && canEdit() ? "改设备网络时，接线的 MS20 一起改" : "";
@@ -60095,7 +60295,7 @@ function copyTargets(src) {
   return data()
     .zones.filter((z) => z.floorId === src.floorId && z.id !== src.id && z.spaceType === src.spaceType)
     .sort(M.byName)
-    .map((z) => ({ z, busy: data().points.some((p) => p.zoneId === z.id && M.access(p) === "mesh") }));
+    .map((z) => ({ z, busy: data().points.some((p) => p.zoneId === z.id && ["mesh", "cell"].includes(M.access(p))) }));
 }
 // 复制前逐项列出复制、不复制与复制后待重选的内容（核查 D15）：不静默丢弃网关、非 Mesh 点位和功能区外的关系；写明设备网络。
 function copyZoneContent(sc, zoneId) {
@@ -60946,7 +61146,7 @@ const DC_STEPS = ["选择源楼层与范围", "选择目标楼层", "设备网�
 const DC_DIRTY = "有尚未保存的规划修改，请先保存规划或取消修改，再复制设备到其他楼层";
 const DC_REL = { power: ["接线", "条"], groups: ["照明分区", "个"], follow: ["占用联动", "条"] };
 const dcSources = (bid) => sortedFloors(bid).filter((f) => f.image && data().points.some((p) => p.floorId === f.id));
-const dcMeshy = (p) => ["mesh", "gateway"].includes(M.access(p));
+const dcMeshy = (p) => M.field(p);
 const dcScope = (d, db = data()) => F.deviceCopyScope(db, d.src, d.keys);
 // 范围按设备服务的功能区分项（只列有设备的功能区），最后一项为“未归属功能区的设备”。
 function dcGroups(fid) {
@@ -69652,7 +69852,7 @@ function v13SeasonOverlap(a, b) {
 const V13_STAGES = ["规划中", "已建立", "设备已绑定", "网络检测通过", "已交付"];
 function v13NetStage(db, n) {
   const gw = F.gateway(db, n.id),
-    ps = F.meshPoints(db, n.id),
+    ps = F.fieldPoints(db, n.id),
     h = F.latestHealth(db, n.id, true);
   const reached = [
     true,
@@ -69894,14 +70094,14 @@ function v13Progress(db, pid, bid = null) {
   });
   // 2 设备（E191）：标记数量一句，规划检查一句；有阻止或提示时每个设备网络一行
   const mk = (a) => allPts.filter((p) => M.access(p) === a).length,
-    marked = mk("gateway") + mk("mesh") + mk("system"),
+    marked = mk("gateway") + mk("mesh") + mk("cell") + mk("system"),
     aqMiss = allPts.filter((p) => p.type === "aq" && !p.aqPos && !p.aqRep).length,
     byNet = new Map();
   for (const r of [...B, ...H]) for (const nm of r.names) byNet.set(nm, { b: (byNet.get(nm)?.b || 0) + (r.category === "阻止" ? 1 : 0), h: (byNet.get(nm)?.h || 0) + (r.category === "提示" ? 1 : 0) });
   rows.push({
     k: "设备",
     st: st("设备"),
-    sum: !marked ? "尚未标记设备" : nwJoin([`网关 ${mk("gateway")} 台、节点 ${v13N(mk("mesh"))} 台、系统接入 ${mk("system")} 台`, pc.state !== "done" ? "规划检查未执行" : B.length || H.length ? `规划检查：阻止 ${B.length} · 提示 ${H.length}` : "规划检查通过"]),
+    sum: !marked ? "尚未标记设备" : nwJoin([`网关 ${mk("gateway")} 台、节点 ${v13N(mk("mesh"))} 台${mk("cell") ? `、4G 设备 ${mk("cell")} 台` : ""}、系统接入 ${mk("system")} 台`, pc.state !== "done" ? "规划检查未执行" : B.length || H.length ? `规划检查：阻止 ${B.length} · 提示 ${H.length}` : "规划检查通过"]),
     info: "“阻止”项清零才能现场绑定",
     // 2.65 E937：项目里还没有上传楼层图的楼层时不放“标记设备”
     action: db.floors.some((f) => f.image && M.projectOfFloor(db, f.id) === pid) ? { label: "标记设备", act: "v13MarkDir", args: {}, who: "config" } : null,
@@ -69966,7 +70166,7 @@ function v13Progress(db, pid, bid = null) {
     todos: appTodos,
   });
   // 6 验证与交付（E195、E183）：功能验证、参数现场验证、相较交付的改动各一行；交付记录移到设备网络表头
-  const meshPts = nets.flatMap((n) => F.meshPoints(db, n.id)),
+  const meshPts = nets.flatMap((n) => F.fieldPoints(db, n.id)), // 3.08 V1047：含 4G 设备（FC20）
     verified = meshPts.filter((p) => F.verifiedNow(db, p)).length,
     cx = F.index(db),
     tests = nets.map((n) => F.testCoverage(db, n, cx)),
@@ -69995,6 +70195,9 @@ function v13Progress(db, pid, bid = null) {
     })
     .sort((a, b) => a.rank - b.rank),
     unverLines = unver.slice(0, 5).map((x) => `<button type="button" class="v13-link v13-unver" data-act="v13VerifyRec" data-id="${esc(x.id || "")}">${esc(x.text)}</button>`).concat(unver.length > 5 ? [`等 ${unver.length - 5} 项`] : []);
+  // 3.08 V1044：固件升级进行中时写明，完成后自动网络检测
+  const fwNets = nets.filter((n) => F.firmwareActive(db, n.id).length);
+  if (fwNets.length) body6.push(`<p class="v13-g6-fw">${fwNets.length < nets.length ? esc(fwNets.map((n) => n.name).join("、")) + "：" : ""}固件升级进行中，完成后自动网络检测</p>`);
   if (meshPts.length) body6.push(grp(`功能验证 ${v13N(verified)} / ${v13N(meshPts.length)} 台`, verified < meshPts.length ? unverLines : []));
   if (DS.redo.length) body6.push(grp("相较交付的改动", DS.redo.flatMap(([n, xs]) => xs.map((s) => `${DS.redo.length > 1 ? esc(n.name) + " · " : ""}${esc(v13ChangeText(stages.find(([x]) => x.id === n.id)?.[1].last, s))}`))));
   rows.push({
@@ -70039,9 +70242,9 @@ function v13Progress(db, pid, bid = null) {
   if (!cur) next = { text: "各环节都已完成", ...(attention.total ? { attn: attention } : {}) }; // 2.88 E1106：后接“● 离线 N · ● 需处理 N”
   const counted = rows.filter((r) => r.st !== "skip");
   // 2.89 E1174：配置进度页的指标卡与详情卡用到设备数量、功能验证台数与“验证与交付”展开的两组内容
-  const counts = { gw: mk("gateway"), mesh: mk("mesh"), sys: mk("system") },
+  const counts = { gw: mk("gateway"), mesh: mk("mesh"), cell: mk("cell"), sys: mk("system") },
     verify = { done: verified, total: meshPts.length, reset: meshPts.filter((p) => p.fieldReset && !F.verifiedNow(db, p)).length },
-    verifyParts = { pending: verified < meshPts.length ? unverLines : [], changes: DS.redo.flatMap(([n, xs]) => xs.map((s) => `${DS.redo.length > 1 ? esc(n.name) + " · " : ""}${esc(v13ChangeText(stages.find(([x]) => x.id === n.id)?.[1].last, s))}`)) };
+    verifyParts = { pending: [...(fwNets.length ? [`${fwNets.length < nets.length ? esc(fwNets.map((n) => n.name).join("、")) + "：" : ""}固件升级进行中，完成后自动网络检测`] : []), ...(verified < meshPts.length ? unverLines : [])], changes: DS.redo.flatMap(([n, xs]) => xs.map((s) => `${DS.redo.length > 1 ? esc(n.name) + " · " : ""}${esc(v13ChangeText(stages.find(([x]) => x.id === n.id)?.[1].last, s))}`)) };
   return { DS, SC, rows, next, attention, counts, verify, verifyParts, done: counted.filter((r) => r.st === "done").length, total: counted.length, out: !!bid && !SC.floorIds.length && db.floors.some((f) => f.buildingId === bid) };
 }
 // 六段进度条（E186）：已完成深蓝、待处理提醒橙、未开始浅灰；始终六段（E213）
@@ -70069,7 +70272,7 @@ function depLastDelivery(db, pid) {
 function depDevSplit(db, pid) {
   const all = F.inventory(db, { p: pid }),
     off = all.filter((p) => devOffline(db, p)),
-    pending = all.filter((p) => ["mesh", "gateway"].includes(M.access(p)) && !F.boundNow(p) && !p.fieldReset && !off.includes(p)),
+    pending = all.filter((p) => M.field(p) && !F.boundNow(p) && !p.fieldReset && !off.includes(p)),
     need = all.filter((p) => !off.includes(p) && !pending.includes(p) && (needsAttention(db, p) || devReadFails(p) > 0)).length;
   return { off: off.length, need, total: off.length + need, args: { p: pid } };
 }
@@ -70095,7 +70298,7 @@ function v13StatusPage() {
     ]);
   // 设备数量的提前提示（BP35）
   const allPts = db.points.filter((p) => DS.floorsUsed.some((f) => f.id === p.floorId)),
-    quotaText = typeof auQuotaText === "function" ? auQuotaText("plan", allPts.filter((p) => ["mesh", "gateway"].includes(M.access(p)) && !F.boundNow(p)).length + allPts.filter((p) => M.access(p) === "system" && !F.connectedNow(p)).length) : "",
+    quotaText = typeof auQuotaText === "function" ? auQuotaText("plan", allPts.filter((p) => M.field(p) && !F.boundNow(p)).length + allPts.filter((p) => M.access(p) === "system" && !F.connectedNow(p)).length) : "",
     quotaLine = quotaText ? `<div class="v13-quota-note">${wsNotice(esc(quotaText), "warning")}</div>` : "";
   // 步骤表：每行状态图标与步骤名、完成情况（有提示时写“N 项提示”，下一行琥珀点写内容）、行末“去处理”或 ›（进入该步骤的页面）；
   // “验证与交付”行末为展开箭头，展开写待处理与相较交付的改动（默认展开）
@@ -70137,7 +70340,7 @@ function v13StatusPage() {
         [
           setCell("部署范围", esc(depScopeText(db, F.spaceSummary(db, pid).scope))),
           setCell("设备网络", nets.length ? nets.map((n) => nwText(n.name)).join("、") : "尚无"),
-          setCell("设备", c.gw + c.mesh + c.sys ? nwJoin([`网关 ${c.gw} 台`, `节点 ${v13N(c.mesh)} 台`, `系统接入 ${c.sys} 台`]) : "尚未标记设备"),
+          setCell("设备", c.gw + c.mesh + c.cell + c.sys ? nwJoin([`网关 ${c.gw} 台`, `节点 ${v13N(c.mesh)} 台`, c.cell ? `4G 设备 ${c.cell} 台` : "", `系统接入 ${c.sys} 台`]) : "尚未标记设备"), // 3.08 V1047
           setCell("状态", state ? `<span class="ds-st ${state[1] === "ok" ? "ok" : "warn"}">${state[0]}</span>` : esc(v13NextWord(G, !canEdit()))),
           setCell("上次交付", esc(depLastDelivery(db, pid) || "尚未交付")),
           setCell("交付后改动", redoN ? `${redoN} 项参数` : "无"),
@@ -70285,7 +70488,7 @@ function v13DeployState(db, scope, withParams = !scope.b) {
   // 原为：设备（按网络的绑定与配置，绑定并应用即已具备）→ 系统接入 → 应用设置（含规划检查的阻止项）→ 验证与交付。
   const fids = new Set(floorsUsed.map((f) => f.id)),
     marked = db.points.filter((p) => fids.has(p.floorId)),
-    meshMarked = marked.some((p) => ["mesh", "gateway"].includes(M.access(p))),
+    meshMarked = marked.some(M.field),
     sysMarked = marked.some((p) => M.access(p) === "system"),
     // 本次没有系统接入（没有启用的连接、多联机，也没有尚未建连接的系统接入设备）时，这一组不算流程中的一步
     sysSkip = !connsOn.length && !vrfOn.length && !(sysMarked && !conns.length);
@@ -72996,7 +73199,7 @@ const DemoService = (() => {
   }
   function health() {
     const db = data(),
-      ps = db.points.filter((p) => p.floorId === DEMO_IDS.floor && ["mesh", "gateway"].includes(M.access(p))),
+      ps = db.points.filter((p) => p.floorId === DEMO_IDS.floor && M.field(p)),
       off = ps.filter(offline),
       gw = ps.find((p) => p.type === "gw"),
       hopOf = (p) => {
@@ -78728,7 +78931,7 @@ function anSummary() {
     occ = u.length ? u.reduce((n, r) => n + anSpaceAvg(r), 0) / u.length : null,
     least = [...u].sort((a, b) => anSpaceAvg(a) - anSpaceAvg(b))[0],
     occH = Array.from({ length: 24 }, (_, h) => { const xs = u.map((r) => r.cells[h]).filter((v) => v != null); return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null; }),
-    ps = data().points.filter((p) => p.floorId === OPS_SCOPE.floor && ["mesh", "gateway"].includes(M.access(p))),
+    ps = data().points.filter((p) => p.floorId === OPS_SCOPE.floor && M.field(p)),
     eps = ps.length ? anOffEpisodes(ps, rg.from, rg.to) : [],
     offMs = eps.reduce((n, x) => n + Math.max(0, x.to - x.from), 0),
     online = ps.length && rg.to > rg.from ? 100 * (1 - offMs / (ps.length * (rg.to - rg.from))) : null,
@@ -80862,7 +81065,7 @@ function anDevDiag(p) {
 }
 // 期间平均在线率（报告“告警与处理”一节，2.66 V642）：本层接入设备网络的设备，离线时长按离线时段累计
 function anOnlineAvg(from, end) {
-  const ps = data().points.filter((p) => p.floorId === OPS_SCOPE.floor && ["mesh", "gateway"].includes(M.access(p))),
+  const ps = data().points.filter((p) => p.floorId === OPS_SCOPE.floor && M.field(p)),
     tot = ps.length * Math.max(0, end - from);
   if (!(tot > 0)) return null;
   const off = anOffEpisodes(ps, from, end).reduce((n, x) => n + Math.max(0, Math.min(x.to, end) - Math.max(x.from, from)), 0);
@@ -80879,7 +81082,7 @@ function anHealth() {
     // 2.66 V629：通信成功率取期间内最低一次
     low = reach.filter((r) => r.v != null).sort((a, b) => a.v - b.v)[0],
     info = (k, t) => opsInfo(k, esc(t)),
-    ps = data().points.filter((p) => p.floorId === OPS_SCOPE.floor && ["mesh", "gateway"].includes(M.access(p))),
+    ps = data().points.filter((p) => p.floorId === OPS_SCOPE.floor && M.field(p)),
     end = rg.to,
     // 2.66 V618：所选期间整段早于数据起点时不画、不算
     ds = Demo.dataStart(),
@@ -89342,14 +89545,15 @@ function obRels(k, o) {
     ...(db.groups || []).filter((x) => (x.pointIds || []).some((id) => pidSet.has(id))).map((x) => `<li><span class="ob-rel-t">${esc(x.name)}</span><small>设备分组 · ${(x.pointIds || []).length} 台</small></li>`),
   ]);
   // 网络与网关：设备网络打开网络详情，系统连接打开连接详情
-  const nets = [...new Set(ps.map((p) => p.networkId).filter(Boolean))].map((id) => g("networks", id)).filter(Boolean),
+  const nets = [...new Set(ps.filter((p) => M.access(p) !== "cell").map((p) => p.networkId).filter(Boolean))].map((id) => g("networks", id)).filter(Boolean),
     conns = [...new Set(ps.map((p) => p.connectionId).filter(Boolean))].map((id) => g("connections", id)).filter(Boolean),
     gws = [...new Map([...nets.map((n) => F.gateway(db, n.id)), ...conns.map((c) => g("points", c.collect?.gatewayId))].filter((p) => p && !(k === "dev" && p.id === o.id)).map((p) => [p.id, p])).values()];
   // 设备的节点类型（网关另写服务楼层）；没有规划设备网络的写“尚未规划”
   const node = [];
   if (k === "dev") {
     const n0 = o.networkId && g("networks", o.networkId);
-    if (!n0 && M.access(o) !== "system") node.push(trow("尚未规划", "设备网络"));
+    if (M.access(o) === "cell") node.push(trow("4G 直连", "接入"));
+    else if (!n0 && M.access(o) !== "system") node.push(trow("尚未规划", "设备网络"));
     if (o.type === "gw") node.push(trow("网关", "节点类型"), ...(n0 ? [trow(n0.floorIds.map((fid) => where(fid)).join("、"), "服务楼层")] : []));
     else if (M.access(o) === "mesh") node.push(trow(o.relay && o.proxy ? "中继节点 · 代理节点" : o.relay ? "中继节点" : o.proxy ? "代理节点" : "普通节点", "节点类型", o.relay && o.proxy ? " · 同一台兼任中继和代理，建议分开" : ""));
   }
@@ -91208,7 +91412,7 @@ function aiExplain(c) {
     if (!out.length) out.push(`${esc(label)}没有有效的占用数据。`);
   } else {
     // 设备健康：在线记录逐台写出过问题的设备；照明控制器连带离线的占用传感器并入同一句
-    const ps = data().points.filter((p) => p.floorId === OPS_SCOPE.floor && ["mesh", "gateway"].includes(M.access(p))),
+    const ps = data().points.filter((p) => p.floorId === OPS_SCOPE.floor && M.field(p)),
       eps = anOffEpisodes(ps, rg.from, rg.to),
       h = Demo.health(),
       resets = h.resets.filter((p) => { const t = Date.parse(p.fieldResetAt); return (t >= rg.from && t < rg.to) || (t < rg.from && p.telemetry?.demoOffline); }),
@@ -96391,6 +96595,11 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "3.08",
+    date: "2026-11-06",
+    notes: ["改进：固件升级分传输与生效两步，生效时避开有人的功能区，整层不会同时熄灭。", "新增：升级前可先试点 2 台，并列出下发前检查。", "改进：升级任务按阶段显示进度，失败写明原因与处理方法。", "改进：FC20 风机盘管温控器按 4G 设备显示，不再计入设备网络节点。"],
+  },
+  {
     version: "3.07",
     date: "2026-11-06",
     notes: ["新增：运营菜单加“空间”，在楼层图上查看并控制照明与空调；总览只看。", "新增：空间的清单可看全部楼层的功能区与冷热源。", "改进：总览的项目与楼宇加室内环境达标，并可切换为表格对比。", "改进：数据分析可按项目、楼宇或楼层对比，勾选多项画在同一张图上。", "新增：新建楼宇可只管理其中几层。"],
@@ -100863,7 +101072,7 @@ function auLicSync(id = AUTH.org) {
 }
 // 设备（已绑定或已接入）：Mesh 设备与网关按已绑定计（EG20 与配套的 WA20 合计 1 台），系统接入设备按已接入计；已恢复出厂的不计（BP6、BP35）。
 function auDevUse() {
-  const pts = (data()?.points || []).filter((p) => ["mesh", "gateway", "system"].includes(M.access(p))),
+  const pts = (data()?.points || []).filter((p) => ["mesh", "gateway", "cell", "system"].includes(M.access(p))),
     used = pts.filter((p) => F.connectedNow(p)).length;
   return { used, planned: pts.length - used };
 }
@@ -101229,7 +101438,7 @@ function auSubIntro(admin, pendNote) {
 function auDevCard(cap) {
   const use = auDevUse(), pct = cap ? (use.used / cap) * 100 : 0, d = data();
   const by = {};
-  for (const p of (d?.points || []).filter((p) => ["mesh", "gateway", "system"].includes(M.access(p)) && F.connectedNow(p))) {
+  for (const p of (d?.points || []).filter((p) => ["mesh", "gateway", "cell", "system"].includes(M.access(p)) && F.connectedNow(p))) {
     const pj = g("projects", g("buildings", g("floors", p.floorId)?.buildingId)?.projectId)?.name || "其他";
     by[pj] = (by[pj] || 0) + 1;
   }
@@ -109803,6 +110012,7 @@ function demoX(hash, fn) {
     () => demoModeNow() === "demo" && g("floors", DEMO_IDS.floor),
     () => {
       demoIn();
+      demoFwClear();
       // 上一项留下的楼层图模式、选择、面板、回放（2.70 V674）与网关离线都先清掉
       Object.assign(U, { devFilterOpen: false, scalePoints: null, drawZone: false, checksOpen: false, checkFocus: null, point: null, opsSel: [], opsZSel: [], opsSelMode: null, opsDrawer: null, opsZone: null, scEd: null, ovAt: null, ovAtF: null, ovView: null, ovDev: null }); // 2.81：功能区清单、检视器里的单台设备也清掉
       if (Demo.ctl.gwOffline) actions.demoGw();
@@ -110253,8 +110463,11 @@ const DEMO_ITEMS = [
   ["设备分组", "cfg-pg-groups", "设备分组", "", demoPg(() => `#devices?p=${DEMO_IDS.project}&tab=groups`)],
   ["设备分组", "cfg-group-new", "新建设备分组", "设备分组", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=groups`, () => actions.groupForm({}))],
   ["固件升级", "cfg-pg-firmware", "固件升级", "", demoPg(() => `#devices?p=${DEMO_IDS.project}&tab=firmware`)],
-  ["固件升级", "cfg-fw-new", "升级", "固件 › FC20 升级", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=firmware`, () => actions.fwUpgradeType({ type: "fc" }))],
-  ["固件升级", "cfg-fw-task", "升级任务详情", "固件 › FC20 升级到 1.1.1", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=firmware`, () => actions.firmwareDetail({ id: "fw-demo-fc-111" }))],
+  ["固件升级", "cfg-fw-new", "升级", "固件 › LC20 升级", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=firmware`, () => actions.fwUpgradeType({ type: "lc" }))],
+  ["固件升级", "cfg-fw-task", "升级任务详情", "固件 › LC20 升级到 1.3.2", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=firmware`, () => actions.firmwareDetail({ id: "fw-demo-lc-132" }))],
+  // 3.08 V1044–V1046：进行中的两个阶段
+  ["固件升级", "cfg-fw-xfer", "升级任务 · 传输中", "固件 › MS20 升级到 1.3.3", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=firmware`, () => demoFwStage("running"))],
+  ["固件升级", "cfg-fw-act", "升级任务 · 生效中", "固件 › LC20 升级到 1.3.3", demoX(() => `#devices?p=${DEMO_IDS.project}&tab=firmware`, () => demoFwStage("activating"))],
   ["应用设置", "cfg-pg-set-general", "应用设置 · 通用", "", demoPg(() => demoSetHash("general"))],
   ["应用设置", "cfg-set-standard", "修改适用标准", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.v13ProfileEdit())],
   ["应用设置", "cfg-set-hours", "工作时间", "应用设置 › 通用", demoX(() => demoSetHash("general"), () => actions.workHoursOpen({ p: DEMO_IDS.project }))],
@@ -110947,18 +111160,89 @@ const V13_DEMO_RELEASES = [
     signature: { verified: true, signer: "PACOM 固件发布签名" },
     notes: "修复 1.3.1 的 0–10 V 下限映射问题",
   },
+  // 3.08 V1046：LC20 1.3.3 为最新；1.3.4 已撤回；MS20 1.3.3 为安全更新（FC20 为 4G 设备，不在平台固件升级中）
   {
-    id: "rel-demo-fc-111",
-    type: "fc",
-    version: "1.1.1",
+    id: "rel-demo-lc-133",
+    type: "lc",
+    version: "1.3.3",
     published: true,
     compositionUnchanged: true,
-    hardwareVersions: ["FC20 A"],
-    fromVersion: "1.0.0",
+    hardwareVersions: ["LC20-NDALI RevD"],
+    fromVersion: "1.2.0",
     signature: { verified: true, signer: "PACOM 固件发布签名" },
-    notes: "防冻保护在关机状态下也生效",
+    notes: "同一照明分区内多台控制器同步调光",
+  },
+  {
+    id: "rel-demo-lc-134",
+    type: "lc",
+    version: "1.3.4",
+    published: true,
+    withdrawn: true,
+    compositionUnchanged: true,
+    hardwareVersions: ["LC20-NDALI RevD"],
+    fromVersion: "1.3.2",
+    signature: { verified: true, signer: "PACOM 固件发布签名" },
+    notes: "断电恢复后亮度偶尔回到 100%，已撤回",
+  },
+  {
+    id: "rel-demo-ms-133",
+    type: "ms",
+    version: "1.3.3",
+    published: true,
+    security: true,
+    compositionUnchanged: true,
+    hardwareVersions: ["MS20 B"],
+    fromVersion: "1.2.0",
+    signature: { verified: true, signer: "PACOM 固件发布签名" },
+    notes: "修复占用上报可被重放的问题",
   },
 ];
+// 3.08 V1044–V1046：升级任务进行中的示例（传输中、生效中）只放在内存里，不写入示例数据（否则会挡住网络检测与密钥更新的示例）；打开其他条目时清掉
+const demoFwClear = () => {
+  const db = data();
+  if (db.firmwareTasks?.some((t) => t.demoStage)) db.firmwareTasks = db.firmwareTasks.filter((t) => !t.demoStage);
+};
+function demoFwStage(stage) {
+  const db = data(),
+    net = db.networks.find((n) => n.floorIds?.includes(DEMO_IDS.floor)),
+    type = stage === "running" ? "ms" : "lc",
+    ps = F.meshPoints(db, net.id).filter((p) => p.type === type && F.boundNow(p) && F.communication(db, p) !== "离线" && !fwPendingTask(db, p.id)).sort(M.byName),
+    pilotIds = [ps.at(-1).id, ps[0].id],
+    at = new Date(Demo.NOW - (stage === "running" ? 1 : 2) * Demo.DAY).toISOString(),
+    // 传输中：试点 2 台已生效，部分已验证，其余传输中，1 台传输失败；生效中：等待无人、需人工安排、验证失败与自动回退各有
+    res = (p, i) =>
+      pilotIds.includes(p.id)
+        ? { status: "completed", version: "1.3.3" }
+        : stage === "running"
+          ? i === 3 ? { status: "failed", fail: "transfer" } : i < ps.length / 2 ? { status: "verified" } : { status: "downloading" }
+          : i === 2 ? { status: "failed", fail: "verify" } : i === 4 ? { status: "failed", fail: "rollback", version: "1.3.2" } : i === 5 || i === 7 ? { status: "manual" } : i % 3 === 0 ? { status: "holdOcc" } : { status: "completed", version: "1.3.3" };
+  demoFwClear();
+  db.firmwareTasks.unshift({
+    id: "fw-demo-stage-" + stage,
+    demoStage: true,
+    name: `${M.catalog[type].model} 升级到 1.3.3`,
+    type,
+    releaseId: `rel-demo-${type}-133`,
+    targetVersion: "1.3.3",
+    networkIds: [net.id],
+    windowStart: "22:00",
+    windowEnd: "06:00",
+    effStart: "02:00",
+    effEnd: "05:00",
+    pilot: true,
+    pilotIds,
+    pilotState: "passed",
+    status: stage,
+    progress: stage === "running" ? 45 : null,
+    at,
+    by: "王敏 · 机构管理员",
+    serviceReceiptId: "demo-svc-fw-" + stage,
+    pointIds: ps.map((p) => p.id),
+    results: ps.map((p, i) => ({ pointId: p.id, ...res(p, i) })),
+  });
+  render();
+  actions.firmwareDetail({ id: "fw-demo-stage-" + stage });
+}
 /* ---------- 审计日志中的示例事件 ---------- */
 // 部署 App 凭账户登录，每次下载与现场连接记下账户、手机和时间（2026-10-09 用户确认，ABB 对比 BP9、BP21）
 const DEMO_AUDIT_IP = { 李工: "113.108.12.46", 王敏: "183.6.88.21", 陈晓: "120.236.4.77", PACOM: "47.106.20.15" };
