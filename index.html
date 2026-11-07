@@ -32821,7 +32821,7 @@ col.al-w200 { width: 200px; }
 .ops-plan.mini.mn > .ops-zone.code > .ops-zl.mn .ops-zn { font-size: 0; line-height: 0; }
 .ops-plan.mini.mn > .ops-zone.code > .ops-zl.mn .ops-zn::after { content: attr(data-code); display: block; font-size: 12px; line-height: 16px; }
 .ov3 .ops-plan.ov > .ops-zone > .ops-zl { min-width: 0; }
-.ov3 .ops-plan.ov > .ops-zone .ops-zn { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov3 .ops-plan.ov > .ops-zone .ops-zn { display: block; min-width: 0; overflow: hidden; text-overflow: clip; white-space: nowrap; } /* 3.21 V1172：不用省略号（原 ellipsis，差 1px 时露出“样品准备…”） */
 .ov3 .ops-plan.ov > .ops-zone.noname .ops-zn { display: none; }
 /* V736 时间轴与负荷图：非告警事件（场景执行、手动）的圆点为 #636363，告警仍按级别着色 */
 .ov2-mk.ov3-dot:is(.run, .man):not(.al) { border-radius: 50%; background: #636363; }
@@ -34919,6 +34919,8 @@ p.an4-links { display: flex; margin: 0; }
 .ov3 .ops-plan.ov > .ops-zone.on.zfloat.zup > .ops-zl { top: auto; bottom: calc(100% + 2px); }
 .ov3 .ops-plan.ov > .ops-zone.on.zfloat.zup.zup2 > .ops-zl { bottom: calc(100% + 9px); } /* 右上角标伸出上边线 7 */
 .ov3 .ops-plan.ov > .ops-zone.on.zfloat.zdn > .ops-zl { top: calc(100% + 2px); }
+/* 3.21 L17-4：挪到边线外的标签压在楼层图外的浅底上，与编辑模式的功能区标签同一写法：内边距 2px 6px、圆角 6、白底、1px #DEDEDE 内描边，11px #030303；功能区里面的标签不变 */
+.ov3 .ops-plan.ov > .ops-zone.on.zfloat:is(.zup, .zdn) .ops-zn { padding: 2px 6px; border-radius: 6px; background: #fff; color: #030303; box-shadow: inset 0 0 0 1px #dedede; }
 /* 3.20 E1266：系统接入表的接入点第二行“经 …”一行写，放不下时省略（悬停显示全文）；手机卡片仍为一行“网关 · 经 …” */
 .conn-list .conn-sep { display: none; }
 @media (min-width: 600px) {
@@ -76943,7 +76945,9 @@ function opsPlanLayout(plan) {
         b0 = b?.firstChild?.nodeType === 3 ? b.firstChild.data : null,
         cmp = () => (b0 != null && /\d,\d/.test(b0) ? ((b.firstChild.data = b0.replace(/(\d),(?=\d)/g, "$1")), true) : false),
         uncmp = () => b0 != null && (b.firstChild.data = b0);
-      if (zn && zn.scrollWidth > W) z.classList.add("noname");
+      // 3.21 V1172：名称框本身装不下（scrollWidth 比 clientWidth 大，哪怕 1px）也算放不下，不靠省略号截断
+      const znOver = () => !!zn && zn.clientWidth > 0 && zn.scrollWidth > zn.clientWidth;
+      if (zn && (zn.scrollWidth > W || znOver())) z.classList.add("noname");
       if (zn && !z.classList.contains("noname") && icons.length && icons.some((r) => cross(rect(zn), r))) z.classList.add("noname");
       // 2.70 V669：总览楼层图放不下时先去掉数值，再去掉名称；名称一行放不下就只填色（悬停提示与读屏有名称和数值）
       // 3.06 V1032：名称一行放不下时同 SPACE04 先写编号（705、7-1），再以省略号截断（至少一个字加省略号），读数缩到 12 写在名称下；
@@ -76952,7 +76956,7 @@ function opsPlanLayout(plan) {
         const al = /\bal[012]\b/.test(z.className),
           // 3.10 V1067：名称框裁掉超出部分，编号（7-1）比块宽时 zl.scrollWidth 量不到，另看名称框本身的内容宽（原手机上只剩“7”）
           // 3.19 V1167：编号、11 号字与分行的名称压住设备图标时也不写（同上面一行放得下时的判断；原“设备”视图露出“7”“70”），选中的功能区除外
-          ok = () => zl.offsetHeight <= H && zl.scrollWidth <= W + 1 && (!zn || zn.scrollHeight <= zn.clientHeight + 1) && (!zn || z.classList.contains("ell") || zn.scrollWidth <= W + 1) && (!b || b.scrollWidth <= W + 1) && zfIn() && (!z.classList.contains("ell") || opsEll2(zn)) && (!zn || z.classList.contains("on") || !icons.some((r) => cross(rect(zn), r))),
+          ok = () => zl.offsetHeight <= H && zl.scrollWidth <= W + 1 && (!zn || zn.scrollHeight <= zn.clientHeight + 1) && (!zn || z.classList.contains("ell") || (zn.scrollWidth <= W && !znOver())) && (!b || b.scrollWidth <= W + 1) && zfIn() && (!z.classList.contains("ell") || opsEll2(zn)) && (!zn || z.classList.contains("on") || !icons.some((r) => cross(rect(zn), r))),
           tryAs = (k) => {
             z.classList.remove("noname");
             z.classList.add(...k.split(" "), "v12");
@@ -100127,6 +100131,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.21",
+    date: "2026-11-07",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
   {
     version: "3.20",
     date: "2026-11-07",
