@@ -29649,6 +29649,9 @@ td .ops-lvl.sq {
   .list-frame.grp-list > .tw > .t > thead > tr > th:nth-child(3) { width: 96px; }
   .list-frame.grp-list > .tw > .t > thead > tr > th:is(:nth-child(4), :nth-child(5)) { width: 160px; }
   .list-frame.grp-list > .tw > .t > thead > tr > th:nth-child(6) { width: 120px; }
+  /* 3.18 V1163：没有“同步”列时被引用 120、行尾 44 */
+  .list-frame.grp-list.nosync > .tw > .t > thead > tr > th:nth-child(5) { width: 120px; }
+  .list-frame.grp-list.nosync > .tw > .t > thead > tr > th:nth-child(6) { width: 44px; }
 }
 /* 2.58 E630、E637：表格行的操作只用 28 透明圆形图标按钮，行悬停或键盘聚焦时显示，触屏一直显示 */
 :is(.t, .ops-t) .iconbtn.round.row-act {
@@ -30061,6 +30064,24 @@ textarea.rpt-auto {
 @media (max-width: 599.98px) {
   #app[data-page="devices"] .list-frame.grp-list > .tw.flow-table > table.t > tbody > tr > td:has(> .grp-norefs) { display: none; }
 }
+/* 3.18 L17-1：“接入”第二行的网络、连接名称是辅助信息，#636363，悬停加下划线并变为 #030303（同“状态”第二行） */
+#app .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td > small.dev-sub-a > .flow-lk-ref { color: var(--ds-ink-2); }
+#app .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td > small.dev-sub-a > .flow-lk-ref:hover { color: var(--ds-ink); }
+/* 3.18 V1166：“Mesh”本身是链接时与正文同样大小、颜色，悬停加下划线 */
+#app .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td > .dev-acc-lk { display: inline; height: auto; min-height: 0; padding: 0; font-weight: 400; vertical-align: baseline; }
+/* 3.18 E1257：放不下规范列宽时（1366 及更窄），型号、类型、功能区、位置一行省略并按比例收窄，每列不小于 72；“设备”不小于 200，接入、状态不变 */
+@media (min-width: 600px) {
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td:is(:nth-last-child(6), :nth-last-child(7)) { max-width: 0; }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:is(:nth-last-child(4), :nth-last-child(5), :nth-last-child(6), :nth-last-child(7)) { min-width: 72px; }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(8) { min-width: 200px; }
+  /* 词间断点（ws-words 加的 wbr）在省略的一行里不生效，否则长名称仍会折行 */
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) .dev-place wbr { display: none; }
+}
+/* 3.18 E1258：AI 诊断提示条到工具栏 16（工具栏原有上外边距 20） */
+.dev-ai + .ws-inventory-tools { margin-top: 0; }
+/* 3.18 E1260：右侧面板里小标题不带浏览器默认外边距，标题到表 12，节与节之间 24（原标题上下各多 21，标题到表 33） */
+.v13-drawer .flow-section-head > h4 { margin: 0; }
+.v13-drawer .flow-section-head.flow-group-h { margin-top: 24px; }
 
 }
 @layer base {
@@ -30420,6 +30441,8 @@ button.ov-fl:hover { background: var(--ov-navy-2); }
 .ops-plan.ov > .ops-zone.need::before,
 .ops-plan.ov > .ops-zone.sel::before { box-shadow: inset 0 0 0 2px var(--ov-navy); }
 .ops-plan.ov > .ops-zone.on { z-index: 2; }
+/* 3.18 V1162：“设备”视图里选中的功能区不另起层叠，名称（白底，ds.css .ops-zl 层 3）才能在设备图标之上 */
+.ops-plan.ov.ic > .ops-zone.on { z-index: auto; }
 .ops-plan.ov > .ops-zone.on::before { box-shadow: inset 0 0 0 2.2px var(--ov-navy), 0 6px 14px rgba(20, 27, 45, 0.22); }
 .ops-plan.ov:has(> .ops-zone.hi) > .ops-zone:not(.hi),
 .ops-plan.ov:has(> .ops-zone.need) > .ops-zone:not(.need) { opacity: 0.32; }
@@ -33036,7 +33059,11 @@ button.ev-r:hover { background: var(--v3-sel); }
 .an-sc-pt:hover { box-shadow: 0 0 0 2px var(--v3-navy); }
 .popitem[aria-disabled="true"] small { display: block; font-size: 12px; line-height: 18px; color: var(--v3-mute); }
 .ov3 .ops-plan.ov > .ops-zone.sm .ops-zn { display: block; font-size: 11px; line-height: 16px; white-space: nowrap; } /* 3.16 V1141 */
-.ov3 .ops-plan.ov > .ops-zone.sm.sm2 .ops-zn { max-height: 48px; overflow: hidden; white-space: normal; } /* 3.17 V1157：11 号字一行放不下时分行写（最多三行） */
+.ov3 .ops-plan.ov > .ops-zone.sm.sm2 .ops-zn { max-height: 48px; overflow: hidden; white-space: normal; word-break: keep-all; overflow-wrap: normal; } /* 3.17 V1157：11 号字一行放不下时分行写（最多三行）；3.18 E1261：只在空格与词之间断开 */
+.ops-plan.ov > .ops-zone:not(.sm2) .ops-zn wbr { display: none; } /* 3.18 E1261：词间断点只在分行（sm2）时生效，其余仍按一行判断 */
+/* 3.18 V1162：选中的窄功能区，名称为一行白底标签，居中压在功能区上，可伸出功能区，不竖排 */
+.ov3 .ops-plan.ov > .ops-zone.on.zfloat, .ov3 .ops-plan.ov > .ops-zone.on.zfloat .ops-zl { overflow: visible; }
+.ov3 .ops-plan.ov > .ops-zone.on.zfloat .ops-zn { width: max-content; max-width: none; max-height: none; overflow: visible; white-space: nowrap; padding: 0 4px; border-radius: 4px; background: #fff; }
 
 }
 @layer base {
@@ -40415,7 +40442,9 @@ const StationFlowModel = ((M) => {
     // 原为“本网络网关与设备已绑定”“功能验证记录有效”“最近一次网络检测通过”“安全待办已处理”，读起来像已经做到。
     const unbound = ps.filter((p) => !boundNow(p)),
       reset = unbound.filter((p) => p.fieldReset).length,
-      unsynced = ps.filter((p) => syncState(db, p) !== "已同步").length,
+      // 3.18 V1165：配置同步只计已绑定的设备（同设备网络指标卡，V1161），待绑定、待重新绑定的归“网关与设备全部绑定”
+      bp = ps.filter(boundNow),
+      unsynced = bp.filter((p) => syncState(db, p) !== "已同步").length,
       unverified = ps.filter((p) => !verifiedNow(db, p)).length;
     return [
       {
@@ -40424,7 +40453,7 @@ const StationFlowModel = ((M) => {
         action: "app",
         detail: !gw ? "未标记网关" : !boundNow(gw) ? "网关未绑定" : !ps.length ? "没有设备" : [reset ? `${reset} 台待重新绑定` : "", unbound.length - reset ? `${unbound.length - reset} 台待绑定` : ""].filter(Boolean).join("，"),
       },
-      { label: "当前版本配置全部同步", ok: ps.length > 0 && ps.every((p) => syncState(db, p) === "已同步"), action: "config", detail: ps.length && unsynced ? `${unsynced} 台未同步` : "" },
+      { label: "当前版本配置全部同步", ok: bp.length > 0 && !unsynced, action: "config", detail: unsynced ? `${unsynced} 台未同步` : "" },
       {
         label: "功能验证全部有效",
         ok: ps.length > 0 && ps.every((p) => verifiedNow(db, p)),
@@ -56239,8 +56268,9 @@ function renderInventory() {
       cells: [
         ...(picking ? [`<input type="checkbox" class="ws-ck" name="devSel" value="${p.id}" aria-label="选择${zhSub(esc(p.name), "l")}" ${sel.has(p.id) ? "checked" : ""}>`] : []),
         devNameCell(p),
-        devLedgerLabel("型号") + esc(M.catalog[p.type]?.model || ""), // 3.16：经系统接入、没有型号的设备留空（表里不写“—”）
-        devLedgerLabel("类型") + esc(M.catalog[p.type]?.name || ""),
+        // 3.18 E1257：型号、类型一行写，放不下时省略，省略时悬停显示全文（同位置、功能区）
+        devLedgerLabel("型号") + (M.catalog[p.type]?.model ? `<span class="dev-place" data-tip="${esc(M.catalog[p.type].model)}" data-tip-trunc>${esc(M.catalog[p.type].model)}</span>` : ""), // 3.16：经系统接入、没有型号的设备留空（表里不写“—”）
+        devLedgerLabel("类型") + (M.catalog[p.type]?.name ? `<span class="dev-place" data-tip="${esc(M.catalog[p.type].name)}" data-tip-trunc>${esc(M.catalog[p.type].name)}</span>` : ""),
         devZoneCell(p),
         devPlaceCell(p),
         devNetworkCell(db, p),
@@ -56275,6 +56305,9 @@ function devNetworkCell(db, p) {
     to = conn || (!["system", "cell"].includes(access) && n),
     text = [via, to?.name].filter(Boolean).join(" · ");
   // 3.17 V1154：两行写完，不省略：第一行写接入方式（协议），第二行小字写网络或连接名称，点它打开网络详情或连接详情（原为一行，放不下时省略）
+  // 3.18 V1166（L17-2）：网络名称与“位置”列相同（如“E栋 · 7F”）时不写第二行，第一行“Mesh”本身是链接，读屏写出网络名称
+  if (to && !conn && via && p.floorId && to.name === floorText(p.floorId))
+    return devLedgerLabel("接入") + `<button class="btn ghost flow-lk flow-lk-ref dev-acc-lk" data-act="networkInfo" data-id="${esc(to.id)}" aria-label="${esc(`${via}，${to.name}`)}">${nwWords(via)}</button>`;
   if (to) return devLedgerLabel("接入") + `${via ? nwWords(via) : ""}<small class="flow-sub dev-sub-a">${btn(nwWords(to.name), conn ? "connectionInfo" : "networkInfo", { id: to.id }, "ghost flow-lk flow-lk-ref")}</small>`;
   return devLedgerLabel("接入") + (["system", "cell"].includes(access) ? nwWords(text) : `<span class="muted">尚未规划</span>`);
 }
@@ -56791,6 +56824,8 @@ function renderGroups() {
     caps = F.capacities(db),
     q = (U.gq || "").trim().toLowerCase(),
     shown = q ? custom.filter((x) => x.name.toLowerCase().includes(q)) : custom,
+    // 3.18 V1163：所有分组都同步正常时不显示“同步”列（原为整列空白）
+    hasSync = custom.some((x) => groupSyncCell(x, caps)),
     // 2.84 E1105：“+ 新建设备分组”放在页签行右端；工具栏只留搜索
     // 3.17 L16-4：搜索框与设备列表同在左侧、宽 320（原在表格上方右侧、宽 210）
     bar = custom.length ? `<div class="ws-inventory-tools"><div class="ws-search">${ico("search", "ic16")}<input id="groupQuery" aria-label="搜索设备分组" placeholder="搜索分组名称" value="${esc(U.gq || "")}"></div></div>` : "";
@@ -56799,9 +56834,9 @@ function renderGroups() {
   // 2.88 E1117：空状态写用途并给主按钮，页签行的同名按钮隐藏
   if (!custom.length) { const add = devHeadAdd; devHeadAdd = ""; return bar + empty("尚无设备分组", "把多台设备编为一组，供场景与定时统一控制。", add, "blocks"); }
   // 3.16 E1163：列为名称、用途、设备数、范围、同步、被引用；点一行在右侧 360 面板看详情
-  return `${bar}<div class="dev-ledger-frame list-frame grp-list">${noChev(
+  return `${bar}<div class="dev-ledger-frame list-frame grp-list${hasSync ? "" : " nosync"}">${noChev(
     table(
-      ["名称", "用途", "#设备数", "范围", "同步", "被引用", ""],
+      ["名称", "用途", "#设备数", "范围", ...(hasSync ? ["同步"] : []), "被引用", ""],
       shown.map((group) => {
         const ps = group.pointIds.map((id) => g("points", id)).filter(Boolean),
           refs = groupRefs(group.id);
@@ -56809,7 +56844,7 @@ function renderGroups() {
           act: "groupDetail",
           args: { id: group.id },
           // 分组名称每一项整体不换行，只在“ · ”处换行（Lovable 核查第 315 条）
-          cells: [nwDots(group.name), groupUse(group), `${ps.length} 台`, groupScopeCell(ps), groupSyncCell(group, caps), refs.length ? `${refs.length} 个场景` : `<span class="muted grp-norefs">—</span>`, canEdit() ? rowAct("编辑", "edit", "groupForm", { id: group.id }) : ""],
+          cells: [nwDots(group.name), groupUse(group), `${ps.length} 台`, groupScopeCell(ps), ...(hasSync ? [groupSyncCell(group, caps)] : []), refs.length ? `${refs.length} 个场景` : `<span class="muted grp-norefs">—</span>`, canEdit() ? rowAct("编辑", "edit", "groupForm", { id: group.id }) : ""],
         };
       }),
       "没有找到匹配的分组",
@@ -57384,8 +57419,10 @@ function devInfoSub(p) {
   const c = M.catalog[p.type] || {}, z = g("zones", p.zoneId),
     xs = [c.model, c.name, placeText(p.floorId)].filter(Boolean).map(esc);
   if (p.type === "gw") {
-    const n = data().points.filter((x) => x.networkId === p.networkId && x.id !== p.id).length;
-    if (p.networkId && n) xs.push(`下级设备 ${n} 台`);
+    // 3.18 E1259：同运营侧栏 obPoints：同一网络的设备（含待重新绑定的）加经这台网关采集的系统接入设备（原只数同一网络，少 8 台）
+    const cs = new Set(data().connections.filter((c) => c.collect?.gatewayId === p.id).map((c) => c.id)),
+      n = data().points.filter((x) => x.id !== p.id && ((p.networkId && x.networkId === p.networkId) || cs.has(x.connectionId))).length;
+    if (n) xs.push(`下级设备 ${n} 台`);
   } else if (z) xs.push(typeof obLink === "function" && U.role !== "member" ? obLink("zone", z.id, z.name) : esc(z.name));
   return xs.length ? `<p class="ob-keys">${xs.join('<i aria-hidden="true">·</i>')}</p>` : "";
 }
@@ -59155,8 +59192,9 @@ function showRoleSuggestions(id) {
 function showConfigurationList(id, scope = "") {
   const n = g("networks", id);
   if (!n) return;
-  const rows = F.fieldPoints(data(), id).map((p) => [p, F.syncState(data(), p)]),
-    open = rows.filter(([, st]) => st !== "已同步"),
+  // 3.18 V1165、E1256：“未同步”只计已绑定的设备（同指标卡与交付条件）；“全部”仍列未绑定的点位，同步状态写“待重新绑定”“待绑定”，待完成项写“现场绑定”
+  const rows = F.fieldPoints(data(), id).map((p) => [p, F.boundNow(p) ? F.syncState(data(), p) : p.fieldReset ? "待重新绑定" : "待绑定"]),
+    open = rows.filter(([p, st]) => F.boundNow(p) && st !== "已同步"),
     cur = scope || (open.length ? "open" : "all"),
     shown = cur === "open" ? open : rows.slice().sort((a, b) => (a[1] === "已同步") - (b[1] === "已同步"));
   // 2.47 E468：标题与打开它的按钮“查看逐项配置”“逐项配置”一致
@@ -59180,10 +59218,12 @@ function showConfigurationList(id, scope = "") {
           `<b class="flow-name">${esc(p.name)}</b>`,
           `v${F.desired(data(), p.id)?.version || 1}`,
           stateBadge(st),
-          F.configItems(data(), p)
-            .filter((i) => i.receipt?.status !== "applied")
-            .map((i) => i.label)
-            .join("、") || "—",
+          F.boundNow(p)
+            ? F.configItems(data(), p)
+                .filter((i) => i.receipt?.status !== "applied")
+                .map((i) => i.label)
+                .join("、") || "—"
+            : "现场绑定",
           "",
         ],
       })),
@@ -59317,7 +59357,8 @@ function groupSheet(group) {
       ["设备网络", "#已应用", "同步"],
       ns.map((nid) => {
         const sub = ps.filter((p) => p.networkId === nid);
-        return [esc(g("networks", nid)?.name), `${applied(sub)} / ${sub.length}`, stateBadge(applied(sub) === sub.length ? "已同步" : "待同步")];
+        // 3.18 V1163：同步正常时留空，没同步完写“未同步 N 台”（同列表，V1159）
+        return [esc(g("networks", nid)?.name), `${applied(sub)} / ${sub.length}`, applied(sub) === sub.length ? "" : badge(`未同步 ${sub.length - applied(sub)} 台`, "warn")];
       }),
     )}<div class="flow-section-head flow-group-h"><h4>成员</h4></div>${table(
       ["成员", "状态"],
@@ -76745,6 +76786,20 @@ const zoneCode = (n) => {
 };
 const zoneCodeAttr = (n) => (zoneCode(n) ? ` data-code="${esc(zoneCode(n))}"` : "");
 // 3.10 V1053：省略号前至少放得下两个字（如“样品…”），放不下两个字时不写名称（原至少一个字，“卫…”看不出名称）；按页面上同样式文字的实际字宽判断
+// 3.18 E1261：功能区名称按词切分，只在两个汉字词之间加可断点（数字、字母与符号连在一起不拆，如“7-1”），配合 word-break: keep-all
+const ZN_SEG = typeof Intl !== "undefined" && Intl.Segmenter ? new Intl.Segmenter("zh", { granularity: "word" }) : null;
+function znWbr(zn) {
+  if (!ZN_SEG || zn.dataset.wbr || zn.firstElementChild) return;
+  const han = (t) => /^[\u4e00-\u9fff]+$/.test(t), segs = [];
+  for (const { segment: t } of ZN_SEG.segment(zn.textContent)) {
+    const pv = segs[segs.length - 1];
+    // 单个汉字（间、室、区）与相邻的词连写，不单独成行：“样品 / 准备间”，“卫生间”整词放不下时不分行
+    if (pv && han(t) && han(pv) && (t.length === 1 || pv.length === 1)) segs[segs.length - 1] = pv + t;
+    else segs.push(t);
+  }
+  zn.dataset.wbr = "1";
+  zn.innerHTML = segs.map((t, i) => (i && han(t) && han(segs[i - 1]) ? "<wbr>" : "") + esc(t)).join("");
+}
 const opsEll2W = new Map();
 const opsEll2 = (zn) => {
   const cs = getComputedStyle(zn),
@@ -76819,7 +76874,8 @@ function opsPlanLayout(plan) {
         zn = zl?.querySelector(".ops-zn"),
         b = zl?.querySelector("b");
       if (!zl) return;
-      z.classList.remove("narrow", "bare", "noname", "noval", "v14", "v12", "row", "tight", "ell", "code", "nozf");
+      // 3.18：重排时一并清除上次的 11 号字、分行与浮出标签（sm、sm2、zfloat），选中换了也按新状态排
+      z.classList.remove("narrow", "bare", "noname", "noval", "v14", "v12", "row", "tight", "ell", "code", "nozf", "sm", "sm2", "zfloat");
       const m = /^(.*\d)\s*(ppm|μg\/m³|℃)$/.exec(z.dataset.zv || "");
       // 3.06 V1038：状态词与“局部”跟在读数后（“1,080 ppm · 差”“46 · CO₂”）
       if (b) b.innerHTML = (m ? `${esc(m[1])}<i class="u"> ${esc(m[2])}</i>` : esc(z.dataset.zv)) + (z.dataset.zf || "").split("|").filter(Boolean).map((t) => `<em class="zf${t === "局部" ? " part" : ""}">${esc(t)}</em>`).join("");
@@ -76877,9 +76933,12 @@ function opsPlanLayout(plan) {
           };
         if (zn?.dataset.code && tryAs("code")) return;
         if (zn && tryAs("sm")) return; // 3.16 V1141：编号也放不下时名称缩到 11 号字，仍放不下不写名称；不用省略号（原 V1032 以省略号截断）
-        if (zn && tryAs("sm sm2")) return; // 3.17 V1157：11 号字一行仍放不下时分行写（最多三行），再放不下才不写名称
+        // 3.18 V1162：每行至少放得下两个字（11 号字两字加内边距 30）才分行，不逐字竖排（V819 已去掉竖排）
+        // 3.18 E1261：分行只在空格或词与词之间断开（如“样品 / 准备间”），一个词一行放不下时 ok() 不通过，不分行
+        if (zn && W >= 30 && (znWbr(zn), tryAs("sm sm2"))) return; // 3.17 V1157：11 号字一行仍放不下时分行写（最多三行），再放不下才不写名称
         // 3.17 V1157：选中的功能区（含“在图上查看”）一定写名称：11 号字分行，不写读数
-        if (zn && z.classList.contains("on")) return void (z.classList.remove("noname"), z.classList.add("sm", "sm2", "v12", "noval"));
+        // 3.18 V1162：分行也放不下时，名称写成一行白底标签，居中压在功能区上，可伸出功能区，在设备图标之上
+        if (zn && z.classList.contains("on")) return void (z.classList.remove("noname"), z.classList.add("sm", "v12", "noval", "zfloat"));
         // 3.10 V1053：名称放不下时不写名称，只写读数（原只有告警块写读数，其余只填色）；读数也放不下才只填色
         if (b) {
           z.classList.add("v12");
@@ -84956,10 +85015,10 @@ function scSchedule(ss) {
         tip = `${x.when} ${x.s.name} · ${x.act}${x.rec ? (ok ? " · 全部生效" : ` · ${x.rec.ok} / ${x.rec.n} 台生效`) : x.stop ? " · 已停用" : x.past ? " · 无记录" : " · 待执行"}`;
       if (x.tick)
         return x.rec
-          ? `<button type="button" class="sc-pin sc-tick dot ${cls}" style="left:${X(h)}%" data-act="opsSceneRecs" data-key="${esc(`定时：${x.s.name}`)}" data-at="${x.rec.at}" aria-label="${esc(`${Demo.md(d)} ${tip}，查看操作记录`)}" data-tip="${esc(tip)}"></button>`
+          ? `<button type="button" class="sc-pin sc-tick dot ${cls}" style="left:${X(h)}%" data-act="opsSceneRecs" data-key="${esc(`定时：${x.s.name}`)}" data-at="${x.rec.at}" aria-label="${esc(`${Demo.md(d)} ${tip}，查看执行记录`)}" data-tip="${esc(tip)}"></button>`
           : `<button type="button" class="sc-pin sc-tick dot ${cls}" style="left:${X(h)}%" data-act="opsSceneInfo" data-id="${x.s.id}" aria-label="${esc(`${Demo.md(d)} ${tip}`)}" data-tip="${esc(tip)}"></button>`;
       return x.rec
-        ? `<button type="button" class="sc-pin ${cls}" style="left:${X(h)}%" data-act="opsSceneRecs" data-key="${esc(`定时：${x.s.name}`)}" data-at="${x.rec.at}" aria-label="${esc(`${Demo.md(d)} ${tip}，查看操作记录`)}" data-tip="${esc(tip)}">${mark}${esc(x.tn)}</button>`
+        ? `<button type="button" class="sc-pin ${cls}" style="left:${X(h)}%" data-act="opsSceneRecs" data-key="${esc(`定时：${x.s.name}`)}" data-at="${x.rec.at}" aria-label="${esc(`${Demo.md(d)} ${tip}，查看执行记录`)}" data-tip="${esc(tip)}">${mark}${esc(x.tn)}</button>`
         : `<button type="button" class="sc-pin ${cls}" style="left:${X(h)}%" data-act="opsSceneInfo" data-id="${x.s.id}" aria-label="${esc(`${Demo.md(d)} ${tip}`)}" data-tip="${esc(tip)}">${esc(x.tn)}</button>`;
     },
     rows = days
@@ -99996,12 +100055,21 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "3.18",
+    date: "2026-11-07",
+    notes: [
+      "改进：逐项配置的“未同步”只计已绑定的设备，“全部”也列出待绑定的设备；网关写出全部下级设备。",
+      "改进：设备列表在较窄的窗口里各列保持一行；功能区名称分行时不拆开词语。",
+      "修复已知问题，优化界面细节。",
+    ],
+  },
+  {
     version: "3.17",
     date: "2026-11-07",
     notes: [
-      "改进：设备列表的“接入”写全网络或连接名称；分组同步正常时留空，没同步完的写未同步台数。",
+      "改进：分组写出未同步配置的台数；设备列表的“接入”写出所属网络或连接。",
       "改进：近 30 天离线记录不计状态未知的时段；设备网络的配置同步按已绑定的设备计。",
-      "改进：手机上设备页的标题行可直接新建；功能区名称在楼层图上分行写全。",
+      "修复已知问题，优化界面细节。",
     ],
   },
   {
