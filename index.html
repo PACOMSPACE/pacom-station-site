@@ -3934,6 +3934,7 @@ details[open] > summary::before {
 .ws-zone > span[data-fit=short] > .zn-full, .sp-zone-label[data-fit=short] > .zn-full { display: none; }
 .ws-zone > span[data-fit=short] > .zn-short, .sp-zone-label[data-fit=short] > .zn-short { display: inline; }
 .ws-zone > span[data-fit=none], .sp-zone-label[data-fit=none] { visibility: hidden; }
+.ws-zone > span[data-hid], .sp-zone-label[data-hid] { visibility: hidden; } /* 3.23 V1173：被选中标签压住的名称在选中期间不写；悬停该功能区时下面的规则仍显示全名 */
 .ws-zone > span[data-pad*=x], .sp-zone-label[data-pad*=x] { padding-left: 1px; padding-right: 1px; }
 .ws-zone > span[data-pad*=y], .sp-zone-label[data-pad*=y] { padding-top: 0; padding-bottom: 0; }
 .ws-zone.on > span, .ws-zone.draft > span, .ws-plan:not(.hide-names) .ws-zone:hover > span,
@@ -34921,7 +34922,9 @@ p.an4-links { display: flex; margin: 0; }
 .ov3 .ops-plan.ov > .ops-zone.on.zfloat.zdn > .ops-zl { top: calc(100% + 2px); }
 /* 3.21 L17-4、3.22 E1269：选中功能区的白底全名标签全站一种写法：内边距 2px 6px、圆角 6、白底、1px #DEDEDE 内描边、12/18 #030303；
    查看页功能区里与边线外、编辑页选中、草稿与悬停相同（原查看页 0 4px、圆角 4、11 号，编辑页圆角 4、白底 90%、没有描边） */
-.ov3 .ops-plan.ov > .ops-zone.on.zfloat .ops-zn { padding: 2px 6px; border-radius: 6px; background: #fff; color: #030303; box-shadow: inset 0 0 0 1px #dedede; font-size: 12px; line-height: 18px; }
+/* 3.23 L17-5：选中的功能区名称一律写成上面的白底标签（原写得下时与没选中的一样，1920 宽看不出选中）；写得下全名且不压住设备图标时留在名称原位置，否则按 V1170 浮出 */
+.ov3 .ops-plan.ov > .ops-zone.on .ops-zn { padding: 2px 6px; border-radius: 6px; background: #fff; color: #030303; box-shadow: inset 0 0 0 1px #dedede; font-size: 12px; line-height: 18px; }
+.ov3 .ops-plan.ov > .ops-zone.znhid .ops-zn { visibility: hidden; } /* 3.23 V1173：被选中标签压住的其他功能区名称在选中期间不写 */
 .ws-zone:is(.on, .draft) > span, .ws-plan:not(.hide-names) .ws-zone:hover > span,
 .sp-zone-label:is(.on, .draft), .ws-plan:not(.hide-names) .flow-zone-polygon:hover + .sp-zone-label { padding: 2px 6px; border-radius: 6px; background: #fff; color: #030303; box-shadow: inset 0 0 0 1px #dedede; font-size: 12px; line-height: 18px; }
 /* 3.20 E1266：系统接入表的接入点第二行“经 …”一行写，放不下时省略（悬停显示全文）；手机卡片仍为一行“网关 · 经 …” */
@@ -49596,6 +49599,16 @@ function fitZoneLabels() {
           if (covered) poly.insertAdjacentHTML("afterbegin", `<title>${esc(full)}</title>`);
         }
       }
+    });
+    // 3.23 V1173：选中、草稿的白底标签压住其他功能区的名称时（原 1440 宽选中“会议室 7-1”盖住“实验室 A”），那些名称在选中期间不写，
+    // 同查看页；悬停功能区与读屏照旧，换选或取消选中后重排时恢复。边缘 2px 以内的接触不算压住
+    const isSel = (s) => ["on", "draft"].some((c) => (s.classList.contains("sp-zone-label") ? s : s.parentElement).classList.contains(c)),
+      selRects = labels.filter(isSel).map((s) => s.getBoundingClientRect()).filter((r) => r.width);
+    labels.forEach((s) => {
+      const m = s.getBoundingClientRect(),
+        hid = !isSel(s) && s.dataset.fit !== "none" && selRects.some((r) => r.left < m.right - 2 && r.right > m.left + 2 && r.top < m.bottom - 2 && r.bottom > m.top + 2);
+      if (hid) s.dataset.hid = "1";
+      else delete s.dataset.hid;
     });
   };
   run();
@@ -76923,6 +76936,7 @@ function opsPlanLayout(plan) {
       // 3.18：重排时一并清除上次的 11 号字、分行与浮出标签（sm、sm2、zfloat），选中换了也按新状态排
       z.classList.remove("narrow", "bare", "noname", "noval", "v14", "v12", "row", "tight", "ell", "code", "nozf", "sm", "sm2", "zfloat", "zup", "zup2", "zdn"); // 3.20 V1170：含挪到边线外的标签
       zl.style.removeProperty("--zdx"); // 3.22：清除上次左右挪开的距离
+      z.classList.remove("znhid"); // 3.23 V1173：清除上次被选中标签压住而不写的名称
       const m = /^(.*\d)\s*(ppm|μg\/m³|℃)$/.exec(z.dataset.zv || "");
       // 3.06 V1038：状态词与“局部”跟在读数后（“1,080 ppm · 差”“46 · CO₂”）
       if (b) b.innerHTML = (m ? `${esc(m[1])}<i class="u"> ${esc(m[2])}</i>` : esc(z.dataset.zv)) + (z.dataset.zf || "").split("|").filter(Boolean).map((t) => `<em class="zf${t === "局部" ? " part" : ""}">${esc(t)}</em>`).join("");
@@ -77039,6 +77053,8 @@ function opsPlanLayout(plan) {
     const clip = rect(plan.closest(".ops-plan-scroll") || plan);
     plan.querySelectorAll(":scope > .ops-zone.on").forEach((z) => {
       const zn = z.querySelector(".ops-zl .ops-zn");
+      // 3.23 L17-5：选中的功能区一定写名称，矮得只填色（bare）时也写成白底一行标签（原 1440 宽“状态”视图选中“走廊”没有名称）
+      if (zn && z.classList.contains("bare") && plan.closest?.(".ov2")) z.classList.remove("bare", "noname"), z.classList.add("sm", "v12", "noval", "zfloat");
       if (!zn || !zn.offsetWidth) return;
       const inset = (m) => ({ left: m.left + 2, right: m.right - 2, top: m.top + 2, bottom: m.bottom - 2 }),
         devs = [...plan.querySelectorAll(":scope > .ops-dev")].map((e) => inset(rect(e))),
@@ -77082,6 +77098,19 @@ function opsPlanLayout(plan) {
       const zn = z.querySelector(".ops-zl .ops-zn"),
         bd = plan.querySelector(`:scope > .ops-zbadge[data-key="zb-${CSS.escape(z.dataset.id || "")}"]`);
       if (zn && bd && cross(rect(zn), rect(bd))) z.classList.add("zup2");
+    });
+    // 3.23 V1173：选中的白底标签压住其他功能区的名称时（原 1440 宽选中“会议室 7-1”盖住“实验室 A”的“实”），那些名称在选中期间不写，
+    // 同压住设备图标就不写；悬停提示与读屏照旧，取消选中后重排时恢复。边缘 2px 以内的接触不算压住
+    plan.querySelectorAll(":scope > .ops-zone.on").forEach((z) => {
+      const zn = z.querySelector(".ops-zl .ops-zn");
+      if (!zn || !zn.offsetWidth) return;
+      const r = rect(zn);
+      plan.querySelectorAll(":scope > .ops-zone:not(.on)").forEach((o) => {
+        const on = o.querySelector(".ops-zl .ops-zn");
+        if (!on || !on.offsetWidth) return;
+        const m = rect(on);
+        if (cross(r, { left: m.left + 2, right: m.right - 2, top: m.top + 2, bottom: m.bottom - 2 })) o.classList.add("znhid");
+      });
     });
     return;
   }
@@ -100142,6 +100171,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.23",
+    date: "2026-11-07",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
   {
     version: "3.22",
     date: "2026-11-07",
