@@ -34913,6 +34913,21 @@ p.an4-links { display: flex; margin: 0; }
 /* 3.13【错】楼层图“设备”视图：功能区名称放在设备图标之上，白底衬出（原图标压住“样品准备间”“701”“702”） */
 .ops-plan.ic .ops-zone .ops-zl { position: relative; z-index: 3; pointer-events: none; }
 .ops-plan.ic .ops-zone .ops-zn { padding: 0 4px; border-radius: 4px; background: rgba(255, 255, 255, 0.9); }
+/* 3.20 V1170：选中功能区的白底一行标签在功能区上部水平居中（规范“居中压在功能区上”，原贴左）；
+   压住设备图标时贴在上边线外居中（zup），上方离图边不够时贴下边线外（zdn），层次仍在设备图标之上 */
+.ov3 .ops-plan.ov > .ops-zone.on.zfloat > .ops-zl { position: absolute; top: 6px; left: 50%; margin: 0; max-width: none; transform: translateX(-50%); }
+.ov3 .ops-plan.ov > .ops-zone.on.zfloat.zup > .ops-zl { top: auto; bottom: calc(100% + 2px); }
+.ov3 .ops-plan.ov > .ops-zone.on.zfloat.zup.zup2 > .ops-zl { bottom: calc(100% + 9px); } /* 右上角标伸出上边线 7 */
+.ov3 .ops-plan.ov > .ops-zone.on.zfloat.zdn > .ops-zl { top: calc(100% + 2px); }
+/* 3.20 E1266：系统接入表的接入点第二行“经 …”一行写，放不下时省略（悬停显示全文）；手机卡片仍为一行“网关 · 经 …” */
+.conn-list .conn-sep { display: none; }
+@media (min-width: 600px) {
+  .dev-ledger-frame.conn-list .dev-ledger-table > tbody > tr > td > small.conn-via { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+}
+@media (max-width: 599px) {
+  .conn-list .conn-sep { display: inline; }
+  .dev-ledger-frame.conn-list .dev-ledger-table > tbody > tr > td > small.conn-via { display: inline; margin: 0; font-size: inherit; line-height: inherit; color: inherit; white-space: nowrap; }
+}
 
 /* 3.13 V1119：场景页右侧栏的工作日历：现在、工作时间、节假日表、季节，下方为修改按钮 */
 .sc-cal > * { margin: 0; }
@@ -67503,10 +67518,11 @@ function renderConnections() {
           act: "connectionInfo",
           args: { id: c.id },
           cells: [
-            // 采集位置的各段（网关名、接口名“RS-485 口 2”）各自整体不拆开，只在“ · ”处换行（2.01 配置区核查 E43）
+            // 3.20 E1266：接入点分两行，同设备列表“接入”列：第一行写网关（或“云端”）；第二行 12/18 #636363 写“经 …”，
+            // 一行写，放不下时省略，省略时悬停显示全文；行高 56。手机卡片仍为一行“网关 · 经 …”（原只在“ · ”处换行，2.01 E43）
             nwText(c.name),
             devLedgerLabel("协议") + esc(c.protocol),
-            devLedgerLabel("接入点") + (c.collect ? nwSeps(collectWhere(c).replace(/^网关 /, "")) : `<span class="muted">未登记</span>`),
+            devLedgerLabel("接入点") + (c.collect ? connWhereHtml(c) : `<span class="muted">未登记</span>`),
             devLedgerLabel("服务楼层") + placeHtml(c.floorIds),
             devLedgerLabel("数据点") + nwText(`${c.mappings.length}${w ? ` · 可写 ${w}` : ""}`),
             devLedgerLabel("状态") + connStatusHtml(connStatus(c)),
@@ -67515,6 +67531,10 @@ function renderConnections() {
       }),
     ).replace('<table class="t">', '<table class="t dev-ledger-table net-ledger">')}${connQueryHit(cs).length ? "" : `<p class="flow-none conn-q-none">没有符合条件的连接</p>`}<div class="dev-ledger-foot"><p role="status">共 ${connQueryHit(cs).length} 个连接</p></div></div>`
   );
+}
+function connWhereHtml(c) {
+  const [at, via] = collectWhere(c).replace(/^网关 /, "").split(" · 经 ");
+  return nwSeps(at) + (via ? `<span class="conn-sep"> · </span><small class="flow-sub conn-via ws-words-off" data-tip="${esc("经 " + via)}" data-tip-trunc>${esc("经 " + via)}</small>` : "");
 }
 // 2.89 E1167：搜索按连接名称、协议、接入点与服务楼层筛选
 function connQueryHit(cs) {
@@ -76896,7 +76916,7 @@ function opsPlanLayout(plan) {
         b = zl?.querySelector("b");
       if (!zl) return;
       // 3.18：重排时一并清除上次的 11 号字、分行与浮出标签（sm、sm2、zfloat），选中换了也按新状态排
-      z.classList.remove("narrow", "bare", "noname", "noval", "v14", "v12", "row", "tight", "ell", "code", "nozf", "sm", "sm2", "zfloat");
+      z.classList.remove("narrow", "bare", "noname", "noval", "v14", "v12", "row", "tight", "ell", "code", "nozf", "sm", "sm2", "zfloat", "zup", "zup2", "zdn"); // 3.20 V1170：含挪到边线外的标签
       const m = /^(.*\d)\s*(ppm|μg\/m³|℃)$/.exec(z.dataset.zv || "");
       // 3.06 V1038：状态词与“局部”跟在读数后（“1,080 ppm · 差”“46 · CO₂”）
       if (b) b.innerHTML = (m ? `${esc(m[1])}<i class="u"> ${esc(m[2])}</i>` : esc(z.dataset.zv)) + (z.dataset.zf || "").split("|").filter(Boolean).map((t) => `<em class="zf${t === "局部" ? " part" : ""}">${esc(t)}</em>`).join("");
@@ -77005,6 +77025,29 @@ function opsPlanLayout(plan) {
       if (nameOk && oneName()) return;
       z.classList.add("bare");
     });
+    // 3.20 V1170：选中的功能区名称压住设备图标时（如“在图上查看”的设备在功能区左上），写成白底一行标签，
+    // 先放在功能区上部居中；仍压住时贴在功能区上边线外或下边线外居中，取压住设备图标与其他功能区角标少的一边（相同时在上方），
+    // 超出图的可视范围的一边不用。仍在设备图标之上，读屏名称不变。边缘 2px 以内的接触不算压住
+    const clip = rect(plan.closest(".ops-plan-scroll") || plan);
+    plan.querySelectorAll(":scope > .ops-zone.on").forEach((z) => {
+      const zn = z.querySelector(".ops-zl .ops-zn");
+      if (!zn || !zn.offsetWidth) return;
+      const inset = (m) => ({ left: m.left + 2, right: m.right - 2, top: m.top + 2, bottom: m.bottom - 2 }),
+        devs = [...plan.querySelectorAll(":scope > .ops-dev")].map((e) => inset(rect(e))),
+        marks = [...devs, ...[...plan.querySelectorAll(`:scope > .ops-zbadge:not([data-key="zb-${CSS.escape(z.dataset.id || "")}"])`)].map((e) => inset(rect(e)))],
+        onDev = () => devs.some((m) => cross(rect(zn), m)),
+        hits = () => {
+          const r = rect(zn);
+          return r.top < clip.top || r.bottom > clip.bottom ? Infinity : marks.filter((m) => cross(r, m)).length;
+        };
+      if (!onDev()) return;
+      z.classList.remove("noname", "bare");
+      z.classList.add("sm", "v12", "noval", "zfloat");
+      if (!onDev()) return;
+      // 上方压住相邻功能区右上角标（伸出上边线 7）时再上移到角标之上（zup2）
+      const [n, cs] = [["zup"], ["zup", "zup2"], ["zdn"]].map((c) => (z.classList.add(...c), [hits(), z.classList.remove(...c)][0])).map((v, i) => [v, [["zup"], ["zup", "zup2"], ["zdn"]][i]]).sort((a, b) => a[0] - b[0])[0];
+      if (n < Infinity) z.classList.add(...cs);
+    });
     const blockers = [...plan.querySelectorAll(":scope > .ops-zone:not(.bare) .ops-zl, :scope > .ov-offdot, :scope > .ops-dev")].map(rect);
     plan.querySelectorAll(":scope > .ops-zbadge").forEach((bd) => {
       bd.classList.remove("br", "bl", "tl", "tr");
@@ -77018,6 +77061,12 @@ function opsPlanLayout(plan) {
         return false;
       });
       if (ok === undefined) bd.classList.remove("br", "bl", "tl");
+    });
+    // 3.20 V1170：本功能区的右上角标伸出上边线，压住上边线外的标签时，标签再上移到角标之上
+    plan.querySelectorAll(":scope > .ops-zone.zup:not(.zup2)").forEach((z) => {
+      const zn = z.querySelector(".ops-zl .ops-zn"),
+        bd = plan.querySelector(`:scope > .ops-zbadge[data-key="zb-${CSS.escape(z.dataset.id || "")}"]`);
+      if (zn && bd && cross(rect(zn), rect(bd))) z.classList.add("zup2");
     });
     return;
   }
@@ -100078,6 +100127,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.20",
+    date: "2026-11-07",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
   {
     version: "3.19",
     date: "2026-11-07",
