@@ -34920,6 +34920,7 @@ p.an4-links { display: flex; margin: 0; }
 .ov3 .ops-plan.ov > .ops-zone.on.zfloat.zup > .ops-zl { top: auto; bottom: calc(100% + 2px); }
 .ov3 .ops-plan.ov > .ops-zone.on.zfloat.zup.zup2 > .ops-zl { bottom: calc(100% + 9px); } /* 右上角标伸出上边线 7 */
 .ov3 .ops-plan.ov > .ops-zone.on.zfloat.zdn > .ops-zl { top: calc(100% + 2px); }
+.ov3 .ops-plan.ov > .ops-zone.on.zfloat.zmid > .ops-zl { top: 50%; transform: translate(calc(-50% + var(--zdx, 0px)), -50%); } /* 3.24 L17-6：矮的功能区里上下居中 */
 /* 3.21 L17-4、3.22 E1269：选中功能区的白底全名标签全站一种写法：内边距 2px 6px、圆角 6、白底、1px #DEDEDE 内描边、12/18 #030303；
    查看页功能区里与边线外、编辑页选中、草稿与悬停相同（原查看页 0 4px、圆角 4、11 号，编辑页圆角 4、白底 90%、没有描边） */
 /* 3.23 L17-5：选中的功能区名称一律写成上面的白底标签（原写得下时与没选中的一样，1920 宽看不出选中）；写得下全名且不压住设备图标时留在名称原位置，否则按 V1170 浮出 */
@@ -76937,6 +76938,7 @@ function opsPlanLayout(plan) {
       z.classList.remove("narrow", "bare", "noname", "noval", "v14", "v12", "row", "tight", "ell", "code", "nozf", "sm", "sm2", "zfloat", "zup", "zup2", "zdn"); // 3.20 V1170：含挪到边线外的标签
       zl.style.removeProperty("--zdx"); // 3.22：清除上次左右挪开的距离
       z.classList.remove("znhid"); // 3.23 V1173：清除上次被选中标签压住而不写的名称
+      z.classList.remove("zmid"); // 3.24 L17-6：清除上次上下居中
       const m = /^(.*\d)\s*(ppm|μg\/m³|℃)$/.exec(z.dataset.zv || "");
       // 3.06 V1038：状态词与“局部”跟在读数后（“1,080 ppm · 差”“46 · CO₂”）
       if (b) b.innerHTML = (m ? `${esc(m[1])}<i class="u"> ${esc(m[2])}</i>` : esc(z.dataset.zv)) + (z.dataset.zf || "").split("|").filter(Boolean).map((t) => `<em class="zf${t === "局部" ? " part" : ""}">${esc(t)}</em>`).join("");
@@ -77063,21 +77065,26 @@ function opsPlanLayout(plan) {
         hits = (dx) => {
           const r = rect(zn);
           return r.top < clip.top || r.bottom > clip.bottom || (dx && (r.left < clip.left || r.right > clip.right)) ? Infinity : marks.filter((m) => cross(r, m)).length;
-        };
+        },
+        // 3.24 L17-6：留在功能区里的浮出标签伸出下边线时（原“走廊”20 高，标签上留 6、下伸出 8，像挂在下边线上），上下居中对齐功能区
+        mid = () => z.classList.contains("zfloat") && rect(zn).bottom > rect(z).bottom + 0.5 && z.classList.add("zmid");
+      mid();
       if (!onDev()) return;
       z.classList.remove("noname", "bare");
       z.classList.add("sm", "v12", "noval", "zfloat");
+      mid();
       if (!onDev()) return;
       // 上方压住相邻功能区右上角标（伸出上边线 7）时再上移到角标之上（zup2）
       // 3.22：上、上移、下三处都压住时，标签左右挪开最少的距离（每次 2，不超过 24 与功能区半宽），不再压住；都不行时取压住少的一处
       const C = [["zup"], ["zup", "zup2"], ["zdn"]],
         zl = z.querySelector(".ops-zl"),
-        at = (c, dx) => (z.classList.add(...c), zl.style.setProperty("--zdx", dx + "px"), [hits(dx), z.classList.remove(...c), zl.style.removeProperty("--zdx")][0]);
+        at = (c, dx) => (z.classList.remove("zmid"), z.classList.add(...c), zl.style.setProperty("--zdx", dx + "px"), [hits(dx), z.classList.remove(...c), zl.style.removeProperty("--zdx")][0]);
       const [n, cs] = C.map((c) => at(c, 0)).map((v, i) => [v, C[i]]).sort((a, b) => a[0] - b[0])[0];
       let best = n === 0 ? [cs, 0] : null;
       for (let d = 2, lim = Math.min(24, rect(z).width / 2); !best && d <= lim; d += 2) for (const dx of [d, -d]) for (const c of C) if (!best && at(c, dx) === 0) best = [c, dx];
       if (best) (z.classList.add(...best[0]), best[1] && zl.style.setProperty("--zdx", best[1] + "px"));
       else if (n < Infinity) z.classList.add(...cs);
+      else mid(); // 3.24：三处都超出图的可视范围时留在功能区里
     });
     const blockers = [...plan.querySelectorAll(":scope > .ops-zone:not(.bare) .ops-zl, :scope > .ov-offdot, :scope > .ops-dev")].map(rect);
     plan.querySelectorAll(":scope > .ops-zbadge").forEach((bd) => {
@@ -100171,6 +100178,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.24",
+    date: "2026-11-07",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
   {
     version: "3.23",
     date: "2026-11-07",
