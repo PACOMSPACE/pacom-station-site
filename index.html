@@ -11274,6 +11274,8 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
 .flow-cond > span{color:var(--text)}
 .flow-cond b{font-weight: 500}
 .flow-why{font-size: 14px;line-height: 22px;color:var(--text3)}
+/* 3.28 Account 237：弹窗标题行右侧的操作（交付快照“下载 PDF”），在关闭按钮左边 */
+.dialog .dh > .dh-act { margin-left: auto; flex: none; }
 .v13-task-projects .card{position:relative}
 .v13-task-main{padding:0;border:0;background:none;font:inherit;color:inherit;cursor:pointer;text-align:left}
 .v13-task-main::after{content:"";position:absolute;inset:0;border-radius:inherit}
@@ -34989,6 +34991,8 @@ p.an4-links { display: flex; margin: 0; }
   #app[data-sp-ed] .ws-canvas-col { padding: 0; border-radius: 16px; background: #fff; box-shadow: var(--ds-sh-xs); }
   #app[data-sp-ed] .ws-canvas-top { height: 48px; min-height: 48px; margin: 0; padding: 0 16px 0 20px; border-bottom: 1px solid #ebebeb; flex-wrap: nowrap; justify-content: flex-start; }
   #app[data-sp-ed] .ws-canvas-top > .spatial-layer-controls { position: static; margin-left: auto; }
+  /* 3.28 E1280：面板覆盖画布时“图层”让出面板宽度，停在面板左边看得见的画布里（原被面板盖住）；面板收起后回到图卡右端 */
+  #app[data-sp-ed] .sp-bench.with-panel.sp-overlay .ws-canvas-top > .spatial-layer-controls { margin-right: var(--ds-side); }
   #app[data-sp-ed] .ws-canvas-viewport { border-radius: 0; }
   #app[data-sp-ed] .ws-workbench.viewing .ws-canvas-bottom { left: 16px; }
   #app[data-sp-ed] .ws-canvas-bottom { padding: 0 16px 12px; }
@@ -40868,6 +40872,8 @@ const StationFlowModel = ((M) => {
     for (const lc of ps.filter((p) => p.type === "lc")) {
       const lb = lcLoadBlocks(lc);
       if (lb.driver) blocks.push({ ...lb.driver, ids: [lc.id] });
+      // 3.28 V1183：消防应急照明回路不能由 LC20 控制（X-09，GB 51309 3.3.2），阻止现场绑定
+      if (lc.emergency) blocks.push({ id: "emg-" + lc.id, text: `${zhSub(lc.name, "r")}为消防应急照明回路，不能由 LC20 控制`, ids: [lc.id] });
       const own = powerCount.get(lc.id) || 0;
       if (own > L.msPerLc)
         blocks.push({ id: "ms-" + lc.id, text: `${zhSub(lc.name, "r")}接线 MS20 ${own} 台，超过规划上限 ${L.msPerLc} 台`, ids: [lc.id] });
@@ -41211,7 +41217,7 @@ const StationFlowModel = ((M) => {
         };
       if (p.access) q.access = p.access;
       if (p.type === "lc")
-        Object.assign(q, { ctrl: p.ctrl || "dim", driverModel: p.driverModel || "", drivers: p.drivers ?? null, fixtureWatts: p.fixtureWatts ?? null }, p.localSensorPlan ? { localSensorPlan: p.localSensorPlan } : {});
+        Object.assign(q, { ctrl: p.ctrl || "dim", driverModel: p.driverModel || "", drivers: p.drivers ?? null, fixtureWatts: p.fixtureWatts ?? null }, p.localSensorPlan ? { localSensorPlan: p.localSensorPlan } : {}, p.emergency ? { emergency: true } : {}); // 3.28 V1183：消防应急照明回路随照明负载复制
       // 设备登记与 LC20 照明负载一样随设备复制（规范 DEVICE01）：FC20 的水系统、水温传感器与电加热，多联机外机登记，电能表所接负载。
       // 多联机调试确认是现场调试的记录，不复制；内机的所属外机在下面按复制范围对应。
       if (p.type === "fc" && p.fcSpec) q.fcSpec = clone(p.fcSpec);
@@ -42462,6 +42468,8 @@ const DEPLOY_TABS = ["networks", "connections", "firmware"];
 const DEPLOY_ITEMS = [["status", "进度"], ["networks", "设备网络"], ["connections", "系统接入"], ["firmware", "固件升级"]];
 const devDeploy = () => U.page === "devices" && DEPLOY_TABS.includes(U.tab || "");
 const navPage = () => (devDeploy() ? "deployment" : curPage());
+// 3.28 V1185、E1284（OPS08）：对象页的侧栏保持来源页高亮（从设备、告警与工单、数据分析、搜索结果等进入时；原一律高亮“总览”），直接打开地址时为“总览”
+const navOn = () => (U.page === "overview" && U.obj && U.source?.page ? (U.source.page === "devices" && DEPLOY_TABS.includes(U.source.tab || "") ? "deployment" : U.source.page === "overview" && U.source.sp ? "space" : U.source.page) : navPage());
 const devSeg = () => `<span class="dev-hseg">${segSm([["inventory", "设备"], ["groups", "分组"]], U.tab === "groups" ? "groups" : "inventory", "tab", "wsPagePanel", "设备与分组")}</span>`;
 // 2.84 E1105：设备网络、系统接入、设备分组的新建按钮放在页签行右端（不再在页签下单独占一行）；各列表渲染时写入，页头随后取用
 let devTabAdd = "";
@@ -43372,7 +43380,7 @@ function modal(title, body, foot = "", wide = true, options = {}) {
   el.id = "dlg";
   el.dataset.page=U.page;
   // wide 为 "xl" 时是整块设置和目录用的 1200 宽（Lovable 核查第 359 条）
-  el.innerHTML = `<section class="dialog ${wide ? "wide" : ""}${wide === "xl" ? " xl" : ""}" role="${options.alert ? "alertdialog" : "dialog"}" aria-modal="true" aria-label="${esc(title)}"><div class="dh"><h2>${wsTitleHtml(title)}${options.titleInfo || ""}</h2>${options.noClose ? "" : iconBtn("关闭", "x", "close")}</div><div class="db" id="dlgBody">${body}<div class="form-error" id="formError" role="alert"></div></div>${options.footer === false || wsCloseOnlyFoot(foot, options) ? "" : `<div class="df">${foot || btn("关闭", "close")}</div>`}</section>`;
+  el.innerHTML = `<section class="dialog ${wide ? "wide" : ""}${wide === "xl" ? " xl" : ""}" role="${options.alert ? "alertdialog" : "dialog"}" aria-modal="true" aria-label="${esc(title)}"><div class="dh"><h2>${wsTitleHtml(title)}${options.titleInfo || ""}</h2>${options.headAct || ""}${options.noClose ? "" : iconBtn("关闭", "x", "close")}</div><div class="db" id="dlgBody">${body}<div class="form-error" id="formError" role="alert"></div></div>${options.footer === false || wsCloseOnlyFoot(foot, options) ? "" : `<div class="df">${foot || btn("关闭", "close")}</div>`}</section>`;
   if (options.sheet) {
     el.classList.add("ds-bsheet");
     el.classList.toggle("ds-bs-full", bsFull);
@@ -44421,7 +44429,7 @@ function wsNavItem(k, l, i) {
   const al = k === "alarms" ? wsAlarmCount() : null,
     name = al ? `${l} · ${al.n} 条重要及以上待确认` : l;
   // 侧栏图标统一 1.5 线宽（规范第 61 行）：线条图标（XI，默认 1.6）在这里改为 1.5（2.01 配置区核查 E54）
-  const on = navPage() === k,
+  const on = navOn() === k,
     tip = k === "space" ? `${name} · 楼层图与功能区控制` : name;
   return `<a href="${esc(wsNavHref(k))}" class="navitem ${on ? "on" : ""}" data-act="nav" data-page="${k}" aria-label="${esc(name)}" ${on ? 'aria-current="page"' : ""} data-tip="${esc(tip)}"><span class="ib">${ico(i).replace('stroke-width="1.6"', 'stroke-width="1.5"')}</span><span class="navlabel">${esc(l)}</span>${al ? `<span class="ws-nav-count l${al.lvl}" aria-hidden="true">${al.n > 99 ? "99+" : al.n}</span>` : ""}</a>`;
 }
@@ -55873,7 +55881,7 @@ const isAdmin = () => U.role === "admin";
 const kv = (rows) => `<dl class="kv">${rows.map(([l, v]) => `<dt>${esc(l)}</dt><dd>${v ?? "—"}</dd>`).join("")}</dl>`;
 // 权限说明前用锁，钥匙只表示密钥（2.01 配置区核查 E48）
 const roleNote = (who) =>
-  `<span class="flow-why">${ico("lock", "ic16")}${who === "admin" ? "需机构管理员" : "需配置人员或机构管理员"}</span>`;
+  `<span class="flow-why">${ico("lock", "ic16")}${who === "admin" ? "需机构管理员" : who === "operate" ? "需运营人员、配置人员或机构管理员" : "需配置人员或机构管理员"}</span>`; // 3.28 E1281：运营人员也能做的写明
 /* 执行类操作需要现场服务回执：已连接服务时执行，未连接时按钮不可用、只保存草稿（演示层以“示例数据”提供服务）。 */
 const SIM = () => !!U.demo;
 const simId = (k) => "demo-svc-" + k + "-" + Date.now().toString(36);
@@ -58343,7 +58351,7 @@ function showDelivery(step = 0, nid) {
       // “执行密钥更新”是浅色按钮、离说明 16，黑色只留底部的“查看下一步”（规范 79；Lovable 核查第 402 条，2026-10-11 用户确认）
       (U.deliverySecurity === "refresh"
         ? `<div class="flow-key-act">${execBtn("执行密钥更新", "maintenance", { kind: "keys", net: n.id, reason: "delivery" }, "admin", "")}</div>`
-        : "");
+        : "") + deliveryRevokeField(n);
   else
     body +=
       // 2.65 E958：只列这次要存档的实际数据；E961：检查未通过时不另画红框，原因只写在底部按钮旁。
@@ -58368,6 +58376,20 @@ function showDelivery(step = 0, nid) {
             ? `<span class="flow-why">确认后生成交付记录，不能修改</span>` + execBtn("确认交付", "confirmDelivery", { id: n.id }, "admin")
             : unavailable("确认交付")),
   );
+}
+// 3.28 Account 236：交付时可收回部署人员授权（等保 2.0 GB/T 22239-2019 访问控制：及时删除或停用多余、过期的账户，最小权限）：
+// 列出授权为指定项目（含本项目）的配置人员，默认不勾，仅机构管理员可勾；确认交付时一并收回，对方的部署 App 随即看不到本项目
+function deliveryRevokable(pid) {
+  const pn = g("projects", pid)?.name;
+  return typeof auMembers === "function" && pn ? auMembers().filter((m) => m.role === "config" && Array.isArray(m.scope) && m.scope.includes(pn)) : [];
+}
+function deliveryRevokeField(n) {
+  const ms = deliveryRevokable(n.projectId),
+    sel = U.deliveryRevoke?.net === n.id ? U.deliveryRevoke.uids : [];
+  if (!ms.length) return "";
+  return `<fieldset class="ws-checks flow-space flow-revoke"><legend>收回部署人员授权（可选）</legend>${ms
+    .map((m) => `<label><input name="deliveryRevoke" type="checkbox" value="${esc(m.uid)}" ${sel.includes(m.uid) ? "checked" : ""} ${isAdmin() ? "" : "disabled"}>${esc(m.name)}<small>${esc(m.account || "")}</small></label>`)
+    .join("")}${isAdmin() ? "" : `<p>${roleNote("admin")}</p>`}</fieldset>`;
 }
 // 2.88 E1146：未满足条件的短名，用在按钮行左端的说明里（如“待重新绑定、未验证”）
 function deliveryShort(c) {
@@ -59414,14 +59436,12 @@ function groupSheet(group) {
       ...(groupSyncCell(group, F.capacities(db)) ? [["同步", { html: groupSyncCell(group, F.capacities(db)) }]] : []),
       // 3.17 V1160：没有引用时与表格同写“—”（原为“无”）；同步正常时不列“同步”一行（V1159）
       ["被引用", refs.length ? refs.map((x) => esc(x.name)).join("、") : { html: `<span class="muted">—</span>` }],
-    ])}<div class="flow-section-head flow-group-h"><h4>同步情况</h4></div>${table(
-      ["设备网络", "#已应用", "同步"],
-      ns.map((nid) => {
-        const sub = ps.filter((p) => p.networkId === nid);
-        // 3.18 V1163：同步正常时留空，没同步完写“未同步 N 台”（同列表，V1159）
-        return [esc(g("networks", nid)?.name), `${applied(sub)} / ${sub.length}`, applied(sub) === sub.length ? "" : badge(`未同步 ${sub.length - applied(sub)} 台`, "warn")];
-      }),
-    )}<div class="flow-section-head flow-group-h"><h4>成员</h4></div>${table(
+    ])}${
+      // 3.28 E1262：同步正常时不列“同步情况”表（原有一行、“同步”一格空着）；有未同步的成员时只列没同步完的网络
+      ((pend) => pend.length ? `<div class="flow-section-head flow-group-h"><h4>同步情况</h4></div>${table(["设备网络", "#已应用", "同步"], pend.map((x) => [esc(g("networks", x.nid)?.name), `${x.a} / ${x.sub.length}`, badge(`未同步 ${x.sub.length - x.a} 台`, "warn")]))}` : "")(
+        ns.map((nid) => ((sub) => ({ nid, sub, a: applied(sub) }))(ps.filter((p) => p.networkId === nid))).filter((x) => x.a < x.sub.length),
+      )
+    }<div class="flow-section-head flow-group-h"><h4>成员</h4></div>${table(
       ["成员", "状态"],
       ps.map((p) => [`<button type="button" class="v13-link" data-act="deviceInfo" data-id="${p.id}">${esc(p.name)}</button>`, devState(F.bindingLabel(p))]),
     )}`;
@@ -60532,7 +60552,9 @@ defineActions({
     if (!F.deliveryChecks(db0, n).every((c) => c.ok)) throw Error("交付条件尚未全部具备");
     const P = v13Profile(db0, n.projectId),
       rc = n.projectId === U.p ? v13Counts(v13RegData().states) : null,
-      h = F.latestHealth(db0, n.id, true);
+      h = F.latestHealth(db0, n.id, true),
+      // 3.28 Account 236：安全处理里勾选的部署人员，确认交付时收回其对本项目的授权
+      rvMs = U.deliveryRevoke?.net === n.id && isAdmin() ? deliveryRevokable(n.projectId).filter((m) => U.deliveryRevoke.uids.includes(m.uid)) : [];
     await transaction((db) => {
       const live = M.get(db, "networks", n.id);
       if (!isAdmin() || !live || live.version !== n.version || !F.deliveryChecks(db, live).every(c => c.ok)) throw Error("权限、网络版本或交付条件已变化，请重新检查；未生成交付记录");
@@ -60555,10 +60577,20 @@ defineActions({
         }),
       });
       M.record(db, "交付确认", n.id, `${n.name} · v${n.version}`);
+      if (rvMs.length) M.record(db, "收回部署人员授权", n.id, rvMs.map((m) => m.name).join("、"));
     });
+    const pn = g("projects", n.projectId)?.name;
+    for (const m of rvMs) {
+      const before = auPermText(m);
+      m.changed = { at: auNow(), by: auMe().name, role: m.role, scope: m.scope };
+      m.scope = m.scope.filter((x) => x !== pn);
+      auLog("收回部署人员授权", `${m.name}：${before} → ${auPermText(m)}`);
+    }
+    if (rvMs.length) auSave();
+    U.deliveryRevoke = null;
     closeModal(true);
     render();
-    msg(`已交付${zhSub(n.name, "l")}`);
+    msg(`已交付${zhSub(n.name, "l")}${rvMs.length ? `，已收回 ${rvMs.map((m) => m.name).join("、")} 的部署授权` : ""}`);
   }),
   dispatchFirmware: async () => {
     readFirmwareStep();
@@ -60708,6 +60740,7 @@ document.addEventListener("input", (e) => {
     $("#parameterEstimate").textContent = parameterEstimate(g("networks", formState.networkId), readParameters());
     npRefresh();
   }
+  if (e.target.name === "deliveryRevoke") U.deliveryRevoke = { net: U.deliveryNetwork, uids: [...document.querySelectorAll('input[name="deliveryRevoke"]:checked')].map((x) => x.value) }; // 3.28 Account 236
   if (e.target.id === "deliverySecurity") {
     U.deliverySecurity = e.target.value;
     showDelivery(U.deliveryStep || 1, U.deliveryNetwork); // 2.73 E1092：安全处理为第 2 步
@@ -61238,7 +61271,7 @@ function lcMeters(p) {
 }
 function driverFields(p) {
   if (!canEdit())
-    return `${roRow("控制类型", M.ctrlText(p.ctrl))}${drvField(p, "未选择")}${roRow("驱动台数", p.drivers)}${roRow("每台灯具功率（W）", p.fixtureWatts)}<div class="mk-meters" data-meters="${p.id}">${lcMeters(p)}</div>`;
+    return `${roRow("控制类型", M.ctrlText(p.ctrl))}${drvField(p, "未选择")}${roRow("驱动台数", p.drivers)}${roRow("每台灯具功率（W）", p.fixtureWatts)}<div class="mk-meters" data-meters="${p.id}">${lcMeters(p)}</div>${p.emergency ? roRow("消防应急照明回路", "是") : ""}`;
   // 分段选择用紧凑页签（.seg.sm：32 高的轨道、26 高的选中块、14 号字，触屏不放大）（全面设计核查第 147 条（2026-10-12 用户确认）；原为 28 高、13 号字的 .mk-seg）
   // 2.65 E757：分段上方写标签“控制类型”（与类型、原厂限温等同一样式）
   return `<div class="field mk-hvac"><span class="mk-hvac-label" id="pe-ctrl-label">控制类型</span><div class="seg sm mk-opt" role="radiogroup" aria-labelledby="pe-ctrl-label">${[
@@ -61250,7 +61283,7 @@ function driverFields(p) {
       ([v, l]) =>
         `<button type="button" role="radio" tabindex="${(p.ctrl || "dim") === v ? 0 : -1}" aria-checked="${(p.ctrl || "dim") === v}" class="${(p.ctrl || "dim") === v ? "on" : ""}" data-act="peCtrl" data-point="${p.id}" data-value="${v}"${dis()}>${l}</button>`,
     )
-    .join("")}</div></div>${drvField(p, "请选择")}<div class="mk-2col">${fld("驱动台数", "pe-drivers", peInput("drivers", p.drivers, "number", ' min="0" max="99" step="1" inputmode="numeric"'))}${fld("每台灯具功率（W）", "pe-fixtureWatts", peInput("fixtureWatts", p.fixtureWatts, "number", ' min="0" max="1000" step="1" inputmode="numeric"'))}</div><div class="mk-meters" data-meters="${p.id}">${lcMeters(p)}</div>`;
+    .join("")}</div></div>${drvField(p, "请选择")}<div class="mk-2col">${fld("驱动台数", "pe-drivers", peInput("drivers", p.drivers, "number", ' min="0" max="99" step="1" inputmode="numeric"'))}${fld("每台灯具功率（W）", "pe-fixtureWatts", peInput("fixtureWatts", p.fixtureWatts, "number", ' min="0" max="1000" step="1" inputmode="numeric"'))}</div><div class="mk-meters" data-meters="${p.id}">${lcMeters(p)}</div><div class="mk-toggles"><label><input type="checkbox" id="pe-emergency" ${p.emergency ? "checked" : ""}${dis()}>消防应急照明回路</label></div>`; // 3.28 V1183：勾选后规划检查列为阻止项
 }
 // 接线: n/10; kept as a named block so the zero-sensor explanation stays testable.
 function relationPointTools(p) {
@@ -61957,7 +61990,7 @@ function commitField(el, quiet) {
         else if (field === "drivers") p.drivers = num(raw, 99);
         else if (field === "fixtureWatts") p.fixtureWatts = num(raw, 1000);
         else if (field === "powerId") Object.assign(p, { powerId: raw || null, powerSuggested: false });
-        else if (field === "relay" || field === "proxy") p[field] = raw;
+        else if (field === "relay" || field === "proxy" || field === "emergency") p[field] = raw;
         else if (field === "connectionId") p.connectionId = raw || null;
         else if (field === "rxId") {
           if (raw && !db.points.some((x) => x.id === raw && x.type === "lc" && x.floorId === p.floorId)) throw Error("请选择本层的照明控制器");
@@ -70473,6 +70506,19 @@ function v13FwGap(db, pid, code) {
   const vers = [...new Set(low.map((p) => p.firmwareVersion))].sort((a, b) => (v13FwLt(a, b) ? -1 : 1));
   return { all: low.length === ps.length, n: low.length, text: `${low.length < ps.length ? low.length + " 台 " : ""}${v13FwModel(m[0])} 固件 ${vers.join("、")} 不支持，需 ${m[1]} 及以上` };
 }
+// 3.28 Y50：部署进度“设备网络”一步的固件提示：本项目启用的参数里各型号要求的最高最低固件，已绑定设备低于它的台数（同下发包的判断）
+function depFwLow(db, pid) {
+  const P = v13Profile(db, pid),
+    need = new Map();
+  for (const r of v13Rows(db, pid)) {
+    const m = V13_MIN_FW[r.code];
+    if (!m || (need.has(m[0]) && !v13FwLt(need.get(m[0]), m[1])) || v13TplOf(r.code, P?.tplVersion)?.platform || v13Applies(r, P, db, pid) !== true) continue;
+    need.set(m[0], m[1]);
+  }
+  return [...need]
+    .map(([type, v]) => ({ type, v, n: db.points.filter((p) => p.type === type && p.firmwareVersion && M.bound(p) && M.projectOfFloor(db, p.floorId) === pid && v13FwLt(p.firmwareVersion, v)).length }))
+    .filter((x) => x.n);
+}
 // 2.65 E997：单独设置的上级值取上级当前的值与来源（功能区 → 楼层 → 楼宇 → 项目，取最近一级的单独设置）；原为模板值
 function v13UpOf(r, rows, P) {
   if (!r.parentId) return null;
@@ -71611,6 +71657,8 @@ function v13Progress(db, pid, bid = null) {
     st: nets.length && delivered === nets.length && !DS.redo.length ? "done" : st("设备网络"),
     sum: !nets.length ? "尚未规划设备网络" : `${nets.length} 个网络 · ${tested === nets.length ? "网络检测通过" : [toBind && `${toBind} 个待完成设备绑定与配置`, toTest && `${toTest} 个待网络检测`, tested && `${tested} 个网络检测通过`].filter(Boolean).join(" · ")}${keysDue ? ` · ${keysDue} 项待密钥更新` : ""}`,
     // 2.15 E352：没有待办，不能展开（原展开后只有“各网络见下方设备网络表”）
+    // 3.28 Y50：固件低于最低固件时加提示行与“固件升级”（打开 部署 › 固件升级），不阻止交付
+    todos: depFwLow(db, pid).map((x) => ({ text: `${v13N(x.n)} 台 ${v13FwModel(x.type)} 固件低于 ${x.v}，部分参数不下发`, label: "固件升级", btn: "固件升级", act: "depFirmware", args: {}, who: "config" })),
     notes: [],
   });
   // 4 系统接入（E193）：只列没通过的连接和待确认的调试项。始终计入“N / 6”（E213，2026-10-21 用户确认；原为本次没有系统接入时不计入）：
@@ -71798,7 +71846,7 @@ function v13StatusPage() {
         parts = r.k === "验证与交付" ? G.verifyParts : null,
         body = parts ? [parts.pending.length ? `<div class="dep-g"><h4>待处理</h4>${parts.pending.map((x) => `<p>${x}</p>`).join("")}</div>` : "", parts.changes.length ? `<div class="dep-g"><h4>相较交付的改动</h4>${parts.changes.map((x) => `<p>${x}</p>`).join("")}</div>` : ""].join("") : "",
         open = !!body && (U.v13Open?.[r.k] ?? true),
-        todoBtn = todos.length && (hint || r.st === "todo") && v13WhoOk(todos[0].who) ? btn("去处理", todos[0].act, todos[0].args, "sm") : "",
+        todoBtn = todos.length && (hint || r.st === "todo") && v13WhoOk(todos[0].who) ? btn(todos[0].btn || "去处理", todos[0].act, todos[0].args, "sm") : "", // 3.28 Y50：固件提示的按钮写“固件升级”
         rowAct = r.k === "验证与交付" && r.action && !sameAsNext(r.action) ? v13StepBtn(r.action, "sm") : "",
         tail = body
           ? `<button type="button" class="iconbtn dep-tog" data-act="v13Sec" data-k="${r.k}" data-open="${open}" aria-expanded="${open}" aria-label="${open ? "收起" : "展开"}${r.k}">${ico("chevron", "ic16")}</button>`
@@ -72037,34 +72085,63 @@ function v13TestSummary(s) {
     lcs = new Set(c.flatMap((r) => (r.pointIds || []).filter((id) => type.get(id) === "lc"))).size;
   return `照明控制器 ${lcs} 台（${c.length} 次照明测试）、单独测试 ${s.functionTests.length - c.length} 台，覆盖 ${new Set(s.functionTests.flatMap((r) => r.pointIds || [])).size} 台`;
 }
+// 3.28 Account 237：交付快照的资料行，弹窗与下载的 PDF 共用
+function v13SnapRows(d) {
+  const s = d.snapshot || {};
+  return [
+    ["设备网络", s.networkName || "未记录（历史记录没有冻结网络名称）"],
+    ["网络版本", "v" + d.networkVersion],
+    ["服务范围", s.floors ? s.floors.map(f => [f.buildingName, f.name].filter(Boolean).join(" · ") || "未记录名称") /* 2.84 E1112：写“E栋 · 7F” */.join("；") : "未记录（不以当前范围回填）"],
+    ["确认人", d.by || "—"],
+    ["确认时间", v13Date(d.at)],
+    ["交付回执", d.serviceReceiptId ? "已取得" : "无有效交付回执"], // 2.53 E495：不写内部编号
+    ["节点", s.nodes != null ? s.nodes + " 台" : "未记录"],
+    ["中继节点", s.relays != null ? s.relays + " 台" : "未记录"],
+    ["最大跳数", s.ttl != null && s.ttl !== true ? String(s.ttl) : "未记录"], // 2.88 E1134：原“默认 TTL”；2.65 E825：原在“技术明细”折叠区
+    ["代理节点", s.proxies != null ? (s.proxies ? s.proxies + " 台常开" : "无") : "未记录"],
+    ["网络检测结果", s.health || "未记录"],
+    ["功能测试回执", v13TestSummary(s)],
+    ["偏离模板的记录", s.deviations != null ? s.deviations + " 项" : "未记录"],
+    // 2.88 E1134：没有参数明细时不显示“参数”一行
+    ...(s.params ? [["参数", s.params]] : []),
+  ];
+}
 function v13SnapshotModal(id) {
   const d = g("deliveries", id);
   if (!d) return;
   const s = d.snapshot || {};
   modal(
     "交付快照",
-    `${infoRows([
-      ["设备网络", s.networkName || "未记录（历史记录没有冻结网络名称）"],
-      ["网络版本", "v" + d.networkVersion],
-      ["服务范围", s.floors ? s.floors.map(f => [f.buildingName, f.name].filter(Boolean).join(" · ") || "未记录名称") /* 2.84 E1112：写“E栋 · 7F” */.join("；") : "未记录（不以当前范围回填）"],
-      ["确认人", d.by || "—"],
-      ["确认时间", v13Date(d.at)],
-      ["交付回执", d.serviceReceiptId ? "已取得" : "无有效交付回执"], // 2.53 E495：不写内部编号
-      ["节点", s.nodes != null ? s.nodes + " 台" : "未记录"],
-      ["中继节点", s.relays != null ? s.relays + " 台" : "未记录"],
-      ["最大跳数", s.ttl != null && s.ttl !== true ? String(s.ttl) : "未记录"], // 2.88 E1134：原“默认 TTL”；2.65 E825：原在“技术明细”折叠区
-      ["代理节点", s.proxies != null ? (s.proxies ? s.proxies + " 台常开" : "无") : "未记录"],
-      ["网络检测结果", s.health || "未记录"],
-      ["功能测试回执", v13TestSummary(s)],
-      ["偏离模板的记录", s.deviations != null ? s.deviations + " 项" : "未记录"],
-      // 2.88 E1134：没有参数明细时不显示“参数”一行
-      ...(s.params ? [["参数", s.params]] : []),
-    ])}${s.devices ? `<details><summary>冻结的设备身份与版本 · ${s.devices.length} 台</summary><div class="tw v13-mini"><table class="t"><thead><tr><th>设备</th><th>硬件身份</th><th>固件 / 配置</th><th>功能测试回执</th></tr></thead><tbody>${s.devices.map(p => `<tr><td>${esc(p.name || p.id)}</td><td>${esc(p.serial || p.deviceUuid || p.hardwareId || "未记录")}</td><td>${esc(p.firmwareVersion || "未记录")} / ${p.desiredVersion != null ? `v${esc(p.desiredVersion)}` : "未记录"}</td><td>${v13TestCell(s, p)}</td></tr>`).join("")}</tbody></table></div></details>` : wsNotice("该历史记录未冻结设备身份、固件与配置版本，不能用当前资料代替。", "warning")}${s.parameters ? `<details><summary>冻结的参数值 · ${s.parameters.length} 项</summary><div class="tw v13-mini"><table class="t"><thead><tr><th>配置项</th><th>当时的值 / 范围</th><th>版本与依据</th><th>生效记录</th></tr></thead><tbody>${s.parameters.map(p => `<tr><td>${esc(p.item || p.code)}</td><td>${esc(p.value)}<div class="v13-meta">${esc(p.scopeLabel || p.scopeId)}</div></td><td>v${p.parameterVersion}<div class="v13-meta">${esc("clause" in p ? p.clause || "没有外部标准依据" : "未记录")}</div></td><td>${esc(p.approver || "未记录")}<div class="v13-meta">${esc(p.approvedAt ? v13Date(p.approvedAt) : "未记录")}</div></td></tr>`).join("")}</tbody></table></div></details>` : ""}`, // 2.53 E495：“参数”一行已写未记录，不再加黄色提示
+    `${infoRows(v13SnapRows(d))}${s.devices ? `<details><summary>冻结的设备身份与版本 · ${s.devices.length} 台</summary><div class="tw v13-mini"><table class="t"><thead><tr><th>设备</th><th>硬件身份</th><th>固件 / 配置</th><th>功能测试回执</th></tr></thead><tbody>${s.devices.map(p => `<tr><td>${esc(p.name || p.id)}</td><td>${esc(p.serial || p.deviceUuid || p.hardwareId || "未记录")}</td><td>${esc(p.firmwareVersion || "未记录")} / ${p.desiredVersion != null ? `v${esc(p.desiredVersion)}` : "未记录"}</td><td>${v13TestCell(s, p)}</td></tr>`).join("")}</tbody></table></div></details>` : wsNotice("该历史记录未冻结设备身份、固件与配置版本，不能用当前资料代替。", "warning")}${s.parameters ? `<details><summary>冻结的参数值 · ${s.parameters.length} 项</summary><div class="tw v13-mini"><table class="t"><thead><tr><th>配置项</th><th>当时的值 / 范围</th><th>版本与依据</th><th>生效记录</th></tr></thead><tbody>${s.parameters.map(p => `<tr><td>${esc(p.item || p.code)}</td><td>${esc(p.value)}<div class="v13-meta">${esc(p.scopeLabel || p.scopeId)}</div></td><td>v${p.parameterVersion}<div class="v13-meta">${esc("clause" in p ? p.clause || "没有外部标准依据" : "未记录")}</div></td><td>${esc(p.approver || "未记录")}<div class="v13-meta">${esc(p.approvedAt ? v13Date(p.approvedAt) : "未记录")}</div></td></tr>`).join("")}</tbody></table></div></details>` : ""}`, // 2.53 E495：“参数”一行已写未记录，不再加黄色提示
     // 2.47 E469：只读弹窗不放底部“关闭”，用右上角关闭
     "",
     false,
-    { footer: false },
+    // 3.28 Account 237：右上“下载 PDF”，机构管理员与配置人员可用
+    { footer: false, headAct: canEdit() ? btn(ico("download", "ic16") + "下载 PDF", "v13SnapPdf", { id }, "sm dh-act") : "" },
   );
+}
+// 3.28 Account 237、Y52：交付快照的 PDF（竣工验收归档，GB 50339-2013 留存系统检测与试运行记录）：资料行、设备身份与版本、参数值
+function v13SnapReport(d) {
+  const s = d.snapshot || {},
+    NA = "未记录",
+    name = s.networkName || g("networks", d.networkId)?.name || NA,
+    txt = (h) => {
+      const e = document.createElement("div");
+      e.innerHTML = String(h).replace(/<div class="v13-meta">/g, " · <div>");
+      return e.textContent.replace(/\s+/g, " ").trim();
+    },
+    blocks = [{ t: "h1", text: "交付快照" }, { t: "lead", text: name }, { t: "kv", rows: v13SnapRows(d) }];
+  if (s.devices)
+    blocks.push(
+      { t: "h2", text: `设备身份与版本 · ${s.devices.length} 台` },
+      { t: "table", cols: [["设备", 0.26], ["硬件身份", 0.26], ["固件 / 配置", 0.18], ["功能测试回执", 0.3]], rows: s.devices.map((p) => [p.name || p.id, p.serial || p.deviceUuid || p.hardwareId || NA, `${p.firmwareVersion || NA} / ${p.desiredVersion != null ? "v" + p.desiredVersion : NA}`, txt(v13TestCell(s, p))]) },
+    );
+  if (s.parameters)
+    blocks.push(
+      { t: "h2", text: `参数值 · ${s.parameters.length} 项` },
+      { t: "table", cols: [["配置项", 0.3], ["当时的值 / 范围", 0.3], ["版本与依据", 0.22], ["生效记录", 0.18]], rows: s.parameters.map((p) => [p.item || p.code, `${p.value} · ${p.scopeLabel || p.scopeId}`, `v${p.parameterVersion} · ${"clause" in p ? p.clause || "没有外部标准依据" : NA}`, `${p.approver || NA} · ${p.approvedAt ? v13Date(p.approvedAt) : NA}`]) },
+    );
+  return { title: `交付快照 · ${name}`, subject: "交付快照", footer: `网络 v${d.networkVersion} · 交付 ${v13Date(d.at)}`, blocks };
 }
 // 项目的交付记录（2026-10-05 核查 P13）：配置参数、配置进度与“交付”弹窗的“交付记录”都打开这一个弹窗，列与配置进度“验证与交付”相同
 function v13DeliveriesModal(pid = U.p) {
@@ -72146,13 +72223,16 @@ pages.deployment = () => {
     st = depState(G),
     nx = G.next,
     // 2.81 E1100：“部署范围 · …”在标题行右侧；2.89 E1174：一个楼层时写楼层（如“部署范围 · E栋 · 7F”），前面“交付记录”，后面唯一的主按钮为下一步
-    actionsBar = btn("交付记录", "v13Deliveries", { p: U.p }) + btn(`部署范围 · ${depScopeText(db, F.spaceSummary(db, U.p).scope)}`, "scopeEntry") + (nx.act && v13WhoOk(nx.who) ? btn(esc(nx.label), nx.act, nx.args, "primary") : "");
+    actionsBar = btn("交付记录", "v13Deliveries", { p: U.p }) + btn(`部署范围 · ${depScopeText(db, F.spaceSummary(db, U.p).scope)}`, "scopeEntry") + (nx.act && v13WhoOk(nx.who) ? btn(esc(nx.label), nx.act, nx.args, "primary") : nx.act && nx.label && nx.label !== "重新交付" ? `<span class="flow-next-text dep-next-ro">下一步：${esc(nx.label.replace(/^现场：/, ""))}${roleNote(nx.who)}</span>` : "");
+    // 3.28 E1281：当前角色不能执行时，主按钮的位置写灰字“下一步：标记设备”与锁形说明；重新交付只看标题后的“需重新交付”（E1009）
   const row = tabRow(actionsBar);
   PAGE_CATEGORY_HEADERS.set("deployment", { actions: actionsBar, tag: st ? `<span class="chip ${st[1]} dep-tag">${st[0]}</span>` : "" });
   return row + v13StatusPage();
 };
 // 部署页的位置选择（配置参数、配置进度中切换项目）由 chooseLocation（workflow-ui.js）处理（2026-10-03 D2）。
 defineActions({
+  // 3.28 Y50：部署进度“设备网络”一步的固件提示打开 部署 › 固件升级
+  depFirmware: () => route("devices", { tab: "firmware" }, { remember: true }),
   // 照明控制参数“确认保存规划”中按“继续编辑”：回到表单，保留填写（BP64）
   v13LightBack: () => {
     const o = U.lightPending;
@@ -72482,6 +72562,31 @@ defineActions({
     );
   },
   v13Snapshot: (a, el) => (dlgBackPush(el), v13SnapshotModal(a.id), dlgBackMark()),
+  // 3.28 Account 237：下载交付快照 PDF，写入审计日志的安全事件“下载交付快照”
+  v13SnapPdf: async (a) => {
+    if (!canEdit()) throw Error("需配置人员或机构管理员");
+    const d = g("deliveries", a.id),
+      b = $('[data-act="v13SnapPdf"]');
+    if (!d || !b || b.disabled) return;
+    const name = d.snapshot?.networkName || g("networks", d.networkId)?.name || "设备网络",
+      label = b.innerHTML,
+      safe = (x) => String(x).replace(/ · /g, "-").replace(/[\\/:*?"<>|\s]+/g, "-"),
+      t = projectTime(d.at, false, d.projectId || g("networks", d.networkId)?.projectId).replace(/[-: ]/g, "").replace(/^(\d{8})(\d{4})$/, "$1-$2");
+    b.disabled = true;
+    b.textContent = "正在生成…";
+    try {
+      const bytes = await buildReportPdf(v13SnapReport(d), { by: v13Actor() });
+      if (!canEdit()) throw Error("下载授权已变化，未下载文件");
+      downloadBlob(`PACOM-交付快照-${safe(name)}-v${d.networkVersion}-${t}.pdf`, bytes, "application/pdf");
+    } finally {
+      if (b.isConnected) (b.disabled = false), (b.innerHTML = label);
+    }
+    if (typeof auLog === "function") {
+      auLog("下载交付快照", `${name} · 网络 v${d.networkVersion}`, "security");
+      if (typeof auSave === "function") auSave();
+    }
+    msg(`已下载交付快照 PDF · 网络 v${d.networkVersion}`);
+  },
   // 配置进度的组：点组名展开或收起（E90），状态记在 U.v13Open，重新绘制不变
   v13Sec: (a) => {
     U.v13Open = { ...(U.v13Open || {}), [a.k]: a.open !== "true" };
@@ -89225,7 +89330,7 @@ function ovTabbar() {
   ];
   // 2.66 V432：“告警”标签加角标（高 16 胶囊、白字，底色取最高级别，超过 99 写“99+”），计数规则与侧栏相同
   const al = typeof wsAlarmCount === "function" ? wsAlarmCount() : null;
-  return `<nav class="ov-tabbar" aria-label="运营">${t.map(([p, i, l]) => `<button type="button" data-act="nav" data-page="${p}"${curPage() === p ? ' aria-current="page" class="on"' : ""}${p === "alarms" && al ? ` aria-label="${l} · ${al.n} 条重要及以上待确认"` : ""}>${ico(i)}<span>${l}</span>${p === "alarms" && al ? `<em class="ov-tbn l${al.lvl}" aria-hidden="true">${al.n > 99 ? "99+" : al.n}</em>` : ""}</button>`).join("")}</nav>`;
+  return `<nav class="ov-tabbar" aria-label="运营">${t.map(([p, i, l]) => `<button type="button" data-act="nav" data-page="${p}"${navOn() === p ? ' aria-current="page" class="on"' : ""}${p === "alarms" && al ? ` aria-label="${l} · ${al.n} 条重要及以上待确认"` : ""}>${ico(i)}<span>${l}</span>${p === "alarms" && al ? `<em class="ov-tbn l${al.lvl}" aria-hidden="true">${al.n > 99 ? "99+" : al.n}</em>` : ""}</button>`).join("")}</nav>`;
 }
 
 /* ---------- 3.07 V1034、V1037：空间（原总览楼层级） ----------
@@ -100184,6 +100289,16 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.28",
+    date: "2026-11-07",
+    notes: [
+      "改进：交付时可收回部署人员的项目授权，交付快照可下载 PDF。",
+      "改进：照明控制器可标为消防应急照明回路，规划检查会阻止现场绑定。",
+      "改进：部署进度提前提示固件低于要求的设备；不能执行下一步的角色也能看到下一步。",
+      "修复已知问题，优化界面细节。",
+    ],
+  },
   {
     version: "3.27",
     date: "2026-11-07",
