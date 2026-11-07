@@ -10737,10 +10737,11 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
 .lk.rule-n { font-variant-numeric: tabular-nums; }
 /* 2.88 E1127：设备筛选为挂在“筛选”按钮下的面板，无遮罩，改动即时生效，底部只有“重置” */
 .dev-filter-wrap { position:relative; display:inline-flex; }
-.dev-filter-panel { position:absolute; top:calc(100% + 4px); right:0; z-index:40; width:min(480px, calc(100vw - 32px)); max-height:min(70vh, 560px); overflow:auto; padding:16px; border-radius:12px; background:#fff; box-shadow:var(--pop); text-align:left; }
+.dev-filter-panel { position:absolute; top:calc(100% + 4px); left:0; right:auto; z-index:40; width:min(480px, calc(100vw - 32px)); max-height:min(70vh, 560px); overflow:auto; padding:16px; border-radius:12px; background:#fff; box-shadow:var(--pop); text-align:left; }
 .dev-filter-panel > .field, .dev-filter-panel > .ws-form-row, .dev-filter-panel > fieldset { margin:0 0 12px; }
 .dev-filter-foot { display:flex; justify-content:flex-start; margin-top:12px; padding-top:12px; border-top:1px solid var(--line2); }
 .dev-filter-foot > .btn { margin-left:-14px; }
+.dev-filter-panel.end { left:auto; right:0; } /* 3.17 E1246：默认与按钮左对齐（原右对齐，1440 宽时伸到侧栏下），右边放不下时右对齐 */
 @media (max-width:640px) { .dev-filter-panel { position:fixed; top:auto; right:16px; left:16px; bottom:16px; width:auto; max-height:70vh; } }
 /* 2.88 E1132：局部检测“按功能区”两列勾选，台数在名称后；“网关附近”下一行列出这几台 */
 #dlg .flow-health-zones { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:4px 16px; margin-top:8px; }
@@ -30038,6 +30039,28 @@ textarea.rpt-auto {
 /* E545：缩放胶囊到头的按钮置灰，用全站禁用样式 */
 .ws-zoom .iconbtn[aria-disabled="true"] { opacity: var(--disabled-opacity); cursor: not-allowed; }
 .ws-zoom .iconbtn[aria-disabled="true"]:hover { background: none; color: inherit; }
+/* 3.17 L16-6：右侧面板里的表为紧凑表（表头 36、12/18，行 40，单元格 6/8），不再外套描边 */
+#app .v13-drawer.ds-sheet .tw.flow-table { box-shadow: none; }
+#app .v13-drawer.ds-sheet .tw.flow-table > .t > thead > tr > th { height: 36px; padding: 6px 8px; font-size: 12px; line-height: 18px; }
+#app .v13-drawer.ds-sheet .tw.flow-table > .t > tbody > tr > :is(td, th) { height: 40px; padding: 6px 8px; }
+/* 3.17 L16-7：面板标题行的关闭按钮与“详情 ›”同为 28（触屏仍为 44） */
+@media (min-width: 851px) and (pointer: fine) {
+  .ds-sheet > .v13-dh > .iconbtn.round { width: 28px; height: 28px; min-width: 28px; min-height: 28px; }
+}
+/* 3.17 L16-9：网络详情指标的单位与总览指标块同为 12/18、400、#636363（原 12/18、600） */
+.ws-stat-grid > div > b small { font-size: 12px; line-height: 18px; font-weight: 400; color: var(--ds-ink-2); }
+/* 3.17 V1154：设备列表“接入”第二行写网络或连接名称，写全、不省略 */
+.dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td > small.flow-sub.dev-sub-a { display: block; max-width: none; overflow: visible; white-space: normal; text-overflow: clip; }
+#app .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td > small.dev-sub-a > .flow-lk-ref { display: inline; vertical-align: baseline; height: auto; min-height: 0; padding: 0; text-align: left; }
+/* 3.17：设备列表“类型”128、“功能区”128（原 120、136）：最长的类型名“空气质量监测仪”一行写完，所有行等高 56（原 AQ20 的行为 60） */
+@media (min-width: 600px) {
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(5),
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(6) { width: 128px; }
+}
+/* 3.17 E1247：手机上分组没有引用时不写“被引用”这一格（原裸写“—”） */
+@media (max-width: 599.98px) {
+  #app[data-page="devices"] .list-frame.grp-list > .tw.flow-table > table.t > tbody > tr > td:has(> .grp-norefs) { display: none; }
+}
 
 }
 @layer base {
@@ -30742,7 +30765,7 @@ button.ov-fl:hover { background: var(--ov-navy-2); }
 .ov-insp.stale :is(.ov-itemp, .ov-itile b, .ov-step b),
 .ops-my.stale :is(.ov-mv b, .ov-step b) { color: var(--ov-ink-3); }
 @media (max-width: 600px) {
-  .ov-tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); background: rgba(255, 255, 255, 0.96); box-shadow: 0 -1px 0 var(--ov-line), 0 -8px 24px rgba(20, 27, 45, 0.06); }
+  .ov-tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); background: rgba(255, 255, 255, 0.96); box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.08), 0 -8px 24px rgba(0, 0, 0, 0.06); } /* 3.17 L16-12：顶部阴影用中性黑（原偏蓝） */
   .ov-tabbar button { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; padding: 4px 0; border: 0; background: none; font: inherit; font-size: 12px; line-height: 16px; color: var(--ov-ink-3); }
   .ov-tabbar button .ic { width: 22px; height: 22px; }
   .ov-tabbar button.on { color: var(--ov-navy); font-weight: 600; }
@@ -32077,7 +32100,7 @@ li.none .ov2-fr > small { font-size: 12px; line-height: 18px; }
 .ai2-basis dd { margin: 0; }
 .sug-badge { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: #eef0f3; color: #4b5563; font-size: 12px; line-height: 18px; font-weight: 500; white-space: nowrap; }
 /* 页签行右端的“⋯”与对比选择 */
-#app[data-page="analysis"] .an-more { width: 32px; padding: 0; justify-content: center; }
+#app[data-page="analysis"] .an-more { width: 28px; height: 28px; min-height: 28px; padding: 0; justify-content: center; } /* 3.17 L16-11：图标按钮为 28 正方形（原 32×28） */
 /* 2.82 KW27：设备健康侧栏“当前离线”：整行进入设备的对象页 */
 .an-offl > .an-item { padding: 0; }
 .an-offl-b { display: flex; flex: 1 1 auto; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; min-height: 40px; padding: 4px 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
@@ -32767,7 +32790,8 @@ col.al-w200 { width: 200px; }
 /* V741 检视器“今天”图：最后一个刻度“24:00”与图的右端右对齐 */
 .ov-trk-ax .ov-trk-p span:last-child { transform: translateX(-100%); }
 /* V742 运营四页：主文字统一 #030303，次要文字统一 #636363（与 2.62 全站样式一致）；页头标题、告警标签、联动句、悬停卡、报告数字等原写死的 #141B2D、#4F5869 也已改为这两色 */
-#app:is([data-page="overview"], [data-page="analysis"], [data-page="alarms"], [data-page="scenes"]) { --ov-ink: #030303; --ov-ink-2: #636363; --ov-ink-3: #636363; }
+/* 3.17 L16-12：设备页手机底栏的文字与其他页同为 #636363（原为 #6B7280） */
+#app:is([data-page="overview"], [data-page="analysis"], [data-page="alarms"], [data-page="scenes"], [data-page="devices"]) { --ov-ink: #030303; --ov-ink-2: #636363; --ov-ink-3: #636363; }
 /* V743 运营四页：所有按钮和文字按钮 14/22、字重 400（高度仍按 V698） */
 #app:is([data-page="overview"], [data-page="analysis"], [data-page="alarms"], [data-page="scenes"]) :is(.btn, .ov3-tb) { font-size: 14px; line-height: 22px; font-weight: 400; }
 /* V744 手机：▾ 紧跟标题，隔 4（位置按钮占满一行时不再两端对齐） */
@@ -33012,6 +33036,7 @@ button.ev-r:hover { background: var(--v3-sel); }
 .an-sc-pt:hover { box-shadow: 0 0 0 2px var(--v3-navy); }
 .popitem[aria-disabled="true"] small { display: block; font-size: 12px; line-height: 18px; color: var(--v3-mute); }
 .ov3 .ops-plan.ov > .ops-zone.sm .ops-zn { display: block; font-size: 11px; line-height: 16px; white-space: nowrap; } /* 3.16 V1141 */
+.ov3 .ops-plan.ov > .ops-zone.sm.sm2 .ops-zn { max-height: 48px; overflow: hidden; white-space: normal; } /* 3.17 V1157：11 号字一行放不下时分行写（最多三行） */
 
 }
 @layer base {
@@ -33322,10 +33347,13 @@ button.ev-r:hover { background: var(--v3-sel); }
 #app .phead > .dep-tag { margin: 0 auto 0 8px; } /* 2.89 E1174：配置进度的状态标签紧跟范围按钮 */
 #app:is([data-page="projects"], [data-page="devices"], [data-page="settings"], [data-page="deployment"]) .phead > h1 { flex: none; margin: 0; font-size: var(--ds-fs-5); line-height: var(--ds-lh-5); font-weight: 600; color: var(--ds-ink); }
 /* KW31 手机：范围按钮已在页头。2.81 V789：“更多”放在标题行右端（与总览一致），页签行上方不再单独一行 */
-#app .phead > .cfg-head-more { display: none; }
+#app .phead > .cfg-head-more, #app .phead > .ws-mob-add { display: none; }
 @media (max-width: 850px) {
   .ops-overview-nav > .ops-overview-location:not(:has(> .ws-location)) { display: none; }
   #app .phead > .cfg-head-more { display: grid; flex: none; width: 44px; height: 44px; margin-left: auto; }
+  /* 3.17 E1247：“＋”在“⋯”左侧，44 */
+  #app .phead > .ws-mob-add { display: grid; place-items: center; flex: none; width: 44px; height: 44px; margin-left: auto; }
+  #app .phead > .ws-mob-add + .cfg-head-more { margin-left: 0; }
   #app .phead > .cfg-head-more ~ .v13-head { margin-left: 0; }
   /* 2.84 V838：手机“更多”在第 2 行右端，后面的空演示容器不再分走左右余量 */
   #app .phead > .ov-head-more ~ .v13-head { margin-left: 0; }
@@ -34243,7 +34271,7 @@ button.cfg-kpi.click[aria-expanded="true"] { box-shadow: var(--ds-sh-xs), inset 
 .cfg-tag.bad { background: #fbe4e2; color: #b42318; }
 .cfg-kpi-v { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; white-space: nowrap; }
 .cfg-kpi-v > b { font-size: var(--ds-fs-5); line-height: var(--ds-lh-5); font-weight: 600; font-variant-numeric: tabular-nums; }
-.cfg-kpi-v > small { font-size: var(--ds-fs-2); line-height: var(--ds-lh-2); color: var(--ds-ink-2); }
+.cfg-kpi-v > small { font-size: var(--ds-fs-1); line-height: var(--ds-lh-1); font-weight: 400; color: var(--ds-ink-2); } /* 3.17 L16-9：单位与总览指标块同为 12/18、400、#636363（原 14/22） */
 .cfg-kpi-bar { display: block; height: 4px; margin-top: 12px; border-radius: 2px; background: var(--ds-line); overflow: hidden; }
 .cfg-kpi-bar > i { display: block; height: 100%; border-radius: 2px; background: var(--ds-good); }
 .cfg-kpi-bar.warn > i { background: var(--ds-warn); }
@@ -34795,7 +34823,9 @@ p.an4-links { display: flex; margin: 0; }
 /* 2.91 V945：工作区页面标题 20/28、字重 600，电脑与手机相同（登录与账户入口页按第 3 章）；指标卡、空调卡里的 24/32 数值不改 */
 #app .main > .panel > .phead h1, #app .main > .panel > .phead h1 .ob-name { font-size: var(--ds-fs-4); line-height: var(--ds-lh-4); font-weight: 600; }
 /* 范围按钮去掉后，标题后面没有实时标记或状态标签时由标题把右侧操作推到右端 */
-#app .main > .panel > .phead > h1:not(:has(+ :is(.ops-live, .dep-tag))) { margin-right: auto; }
+#app .main > .panel > .phead > h1:not(:has(+ :is(.ops-live, .dep-tag, .dev-hseg))) { margin-right: auto; }
+/* 3.17 L16-3：设备页“设备 | 分组”紧跟标题，位置固定，右侧只放操作按钮（原在右侧按钮中间，切换时随按钮移位） */
+#app .main > .panel > .phead > .dev-hseg { margin-left: 4px; margin-right: auto; } /* E1244：与标题间距 16（标题行间距 12 加 4） */
 #app .main > .panel > .phead > h1:not(.ob-title) { padding-block: 2px; } /* 标题行与 32 高的按钮同高，各页标题以下的内容同一位置 */
 
 /* 3.12 V1091：分段里不可用的一项（如勾选对比的“单位面积”）为浅灰字，悬停写原因 */
@@ -34851,7 +34881,8 @@ p.an4-links { display: flex; margin: 0; }
 .dep-last { margin: 0 0 16px; font-size: 14px; line-height: 22px; color: var(--ds-ink-2); }
 
 /* 3.13 V1126：设备页 AI 诊断提示条；“近 30 天在线率”右侧面板 */
-.dev-ai { margin: 0 0 16px; padding: 12px 16px; border-radius: 12px; background: var(--ds-surface); box-shadow: var(--ds-sh-xs); }
+/* 3.17 L16-5：AI 诊断为信息提示条（白底、1px #DEDEDE、无阴影，上下 10、左右 16），放在状态分段与工具条之间；原为带阴影的卡，在分段上方。只写下边距，右侧打开设备信息时与表格一起收窄（V1155） */
+.dev-ai { margin-bottom: 16px; padding: 10px 16px; border-radius: 12px; background: var(--ds-surface); box-shadow: inset 0 0 0 1px #dedede; }
 .dev-ai .ai2 { max-width: none; }
 .dev-rate-top { margin: 0 0 20px; }
 .dev-rate-v { margin: 0; font-size: 28px; line-height: 36px; font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -43638,6 +43669,7 @@ function readRoute() {
   const [page, query] = location.hash.slice(1).split("?"),
     q = new URLSearchParams(query || "");
   U.page = TITLES[page] || BARE[page] || page === "deployment" ? page : page ? "notfound" : "projects";
+  U.bareRoute = !page; // 3.17 账户 219：不带 # 的地址（网站首页）按总览处理，不算旧的 #projects 地址
   U.badPath = U.page === "notfound" ? location.hash : "";
   U.missing = null;
   for (const k of ["p", "b", "f", "tab", "net", "ntab", "conn", "ctab"]) U[k] = q.get(k) || null;
@@ -44126,8 +44158,8 @@ const opsHeadActsHtml = () => {
   const acts = typeof opsHeadActs !== "undefined" ? opsHeadActs : "";
   return acts ? `<span class="ops-hacts" id="opsPageActs">${acts}</span>${menuTrigger(iconBtn("更多", "more", "pageMore", { pageactions: "opsPageActs" })).replace('class="iconbtn round"', 'class="iconbtn round ws-page-more ov-head-more ops-head-more"')}` : "";
 };
-function pageCategoryHeader(page, active, { live = "", actions = "", meta = "", tools = "", cat = page } = {}) {
-  PAGE_CATEGORY_HEADERS.set(page, { actions });
+function pageCategoryHeader(page, active, { live = "", actions = "", meta = "", tools = "", cat = page, add = "" } = {}) {
+  PAGE_CATEGORY_HEADERS.set(page, { actions, add });
   const group = page === "overview" ? "overviewTitleActions" : "pageCategoryTitleActions";
   const more = actions ? menuTrigger(iconBtn("更多", "more", "pageMore", { pageactions: group })).replace('class="iconbtn round"', 'class="iconbtn round ws-page-more"') : "";
   // 2.91 V946：位置在位置行（wsLocRow），页签行不再放位置选择；数据分析、告警与工单、场景选了楼宇后，页签行右边先放“全部楼层”筛选
@@ -44148,8 +44180,11 @@ function pageCategoryTitleActions() {
   if (!actions) return "";
   const id = U.page === "overview" ? "overviewTitleActions" : "pageCategoryTitleActions",
     // 2.81 V789：项目、设备、应用设置、配置进度在手机上“更多”放在标题行右端，与总览一致（原在页签行上方单独一行）
-    more = CFG_HEAD_SCOPE_PAGES.includes(U.page) ? menuTrigger(iconBtn("更多", "more", "pageMore", { pageactions: id })).replace('class="iconbtn round"', 'class="iconbtn round ws-page-more cfg-head-more"') : "";
-  return `<span id="${id}" class="ws-overview-title-actions ws-page-acts">${actions}</span>${more}`;
+    more = CFG_HEAD_SCOPE_PAGES.includes(U.page) ? menuTrigger(iconBtn("更多", "more", "pageMore", { pageactions: id })).replace('class="iconbtn round"', 'class="iconbtn round ws-page-more cfg-head-more"') : "",
+    // 3.17 E1247：手机上“⋯”左侧为 44 的“＋”（新建设备分组、规划设备网络、新建系统连接），读屏写全名；电脑上不显示
+    add = PAGE_CATEGORY_HEADERS.get(U.page)?.add || "",
+    mobAdd = add ? `<button type="button" class="iconbtn round ws-mob-add"${(add.match(/ data-(?!tip)[\w-]+="[^"]*"/g) || []).join("")} aria-label="${esc(add.replace(/<[^>]+>/g, "").trim())}">${ico("plus", "ic16")}</button>` : "";
+  return `<span id="${id}" class="ws-overview-title-actions ws-page-acts">${actions}</span>${mobAdd}${more}`;
 }
 // 视图切换是一组按钮，名称“视图”（Lovable 核查第 344 条，2026-10-11 用户确认）。按 Lovable 视图切换的样式（项目页核查 E201，2026-10-21 用户确认；
 // 原为三个 32 的圆形按钮、选中黑色实心）：浅灰全圆轨道，选中项在浅蓝胶囊里显示图标与名称，其余只显示 16 的图标，未选中项之间有 1×12 分隔线；
@@ -44943,7 +44978,9 @@ function projGo() {
   Object.assign(U, { page: "overview", sp: false, tab: U.p ? "info" : "", view: "cards", mode: floorDefaultMode("overview"), spaceInfo: null, m3: null, obj: null, otab: null, buildingMark: false, buildingSplit: null });
   if (!U.p) U.source = null; // 全部项目与原先的项目目录相同，清除来源返回（规范 2 4）
   // 3.16 E1243：不带项目的原地址停在总览的全部项目（不自动进入唯一接入的项目），原表格视图打开表格
-  if (!U.p) Object.assign(U, { b: null, opsKeep: "next", ovSV: v0 === "list" ? "table" : U.ovSV });
+  // 3.17 账户 219：网站首页（不带 #）不在此列，照常从全部项目往下进入唯一接入运行数据的项目与楼宇（规范“本账户在本机构还没有记下位置时”）
+  if (!U.p && !U.bareRoute) Object.assign(U, { b: null, opsKeep: "next", ovSV: v0 === "list" ? "table" : U.ovSV });
+  U.bareRoute = false;
   return true;
 }
 function spEdFix() {
@@ -44994,7 +45031,7 @@ const spRedoOk = (top = U.spUndo?.at(-1)) => {
 // 功能区的新建、改边界、删除照旧立即保存，撤销为上一次功能区修改；设备、照明分区、网络的改动累积，到“保存规划”一次保存
 function spEdBar(extra = "") {
   const f = currentFloor();
-  if (U.spEd === "3d" || !f) return `<div class="toolbar ws-toolbar ws-head-tb sp-ed-tb"><span class="sp"></span>${U.spEd === "3d" ? M3.acts() : ""}${btn("完成", "spEdDone")}</div>`; // 3.16 V1144
+  if (U.spEd === "3d" || !f) return `<div class="toolbar ws-toolbar ws-head-tb sp-ed-tb"><span class="sp"></span>${U.spEd === "3d" ? M3.acts() : ""}${btn("完成", "spEdDone")}${U.spEd === "3d" ? M3.more() : ""}</div>`; // 3.16 V1144；3.17 V1158：“⋯”在“完成”右边
   const zones = U.page === "projects",
     mac = typeof IS_APPLE !== "undefined" && IS_APPLE,
     keys = { 撤销: mac ? "⌘Z" : "Ctrl+Z", 重做: mac ? "⇧⌘Z" : "Ctrl+Shift+Z" },
@@ -45433,7 +45470,7 @@ pages.devices = () => {
   // 2.65 E722：项目没有楼层时设备列表、设备分组、设备网络与设备标记同一空状态
   const none = ["inventory", "groups", "networks"].includes(tab) ? devNoFloors() : "",
     body = none || (tab === "networks" ? networkList() : tab === "connections" ? connectionList() : tab === "groups" ? groupList() : tab === "firmware" ? renderFirmware() : renderInventory()),
-    head = pageCategoryHeader("devices", tab, { actions: (tab === "inventory" && !none && typeof devRateBtn === "function" ? devRateBtn() : "") + btn("修改记录", "changes") + devHeadAdd, tools: devTabAdd, cat: DEPLOY_TABS.includes(tab) ? "deployment" : "devices" }); // 3.13 V1126：“近 30 天在线率”在标题行右侧
+    head = pageCategoryHeader("devices", tab, { actions: (tab === "inventory" && !none && typeof devRateBtn === "function" ? devRateBtn() : "") + btn("修改记录", "changes") + devHeadAdd, add: devHeadAdd, tools: devTabAdd, cat: DEPLOY_TABS.includes(tab) ? "deployment" : "devices" }); // 3.13 V1126：“近 30 天在线率”在标题行右侧
   devTabAdd = devHeadAdd = "";
   return head + body;
 };
@@ -47748,7 +47785,12 @@ defineActions({
   // 切换页签：告警页同时关闭告警详情侧面板（2026-09-30；2026-10-03 D2 并入原运营模块的包装）。
   tab: (a) => {
     // 3.16 V1109：部署的“进度”是配置进度页，其余三个页签是设备页
-    if (U.page === "deployment" && DEPLOY_TABS.includes(a.value)) return route("devices", { p: U.p, b: null, f: null, tab: a.value, net: null });
+    // 3.17 E1249：从“进度”到设备网络、系统接入、固件升级时带记住的楼宇（与侧栏“部署”的链接相同；原固定为全部楼宇）
+    if (U.page === "deployment" && DEPLOY_TABS.includes(a.value)) {
+      const L = locOwner() && U.role !== "member" ? locFor("devices") : null, m = U.memory.devices || {},
+        b = L && L.p === U.p ? L.b : m.p === U.p ? m.b : null;
+      return route("devices", { p: U.p, b: b || null, f: null, tab: a.value, net: null });
+    }
     if (devDeploy() && a.value === "status") return route("deployment", { p: U.p, b: null, f: null, tab: "status", net: null });
     if (typeof opsHistoryReplace === "function") opsHistoryReplace();
     if (U.page === "alarms") U.opsDrawer = null;
@@ -50355,6 +50397,7 @@ function sourceLabel() {
 }
 function sourceBack() {
   if (U.spEd) return ""; // 3.14 E1207：空间的编辑以“完成”回到楼层图，不另放来源返回
+  if (devDeploy() && U.source?.page === "deployment") return ""; // 3.17 E1250：部署四个页签之间不加来源返回（从“进度”的行进入设备网络等）
   // 设备网络详情自带“返回”，不重复显示来源返回。
   // 从配置进度“应用设置”表的“工作日历”进入场景 › 定时时同样有来源返回（ABB 对比 IA3）
   // 从总览、数据分析的“查看设置”进入应用设置时同样有来源返回（2.05 总览核查 V111）；从配置进度进入时同样（2.65 E938）；从场景 › 定时的“工作日历”进入时同样（2.66 V484）
@@ -55566,7 +55609,8 @@ document.addEventListener("change", (e) => {
   if (name) name.placeholder = outdoor ? "例如：室外停车场" : "例如：E栋";
   // 室外区域用语（2026-10-04 用户确认）：面积、图片、说明、标题与主按钮随类型改写；室外区域不设“主要用途”。
   // 说明框的高度调整柄读屏名称随标签一并改写（第 9 步 G4，与 wsProjectTextareas 的写法相同）。
-  const setLabel = (id, t) => { const l = dlg?.querySelector(`label[for="${id}"]`); if (l) l.textContent = t; dlg?.querySelector(`[data-space-resize="${id}"]`)?.setAttribute("aria-label", `调整${t}输入框高度；按上下方向键调整`); };
+  // 3.17 E1251：“选填”与楼宇相同为灰色小字（optLabel；原改写成“（选填）”）
+  const setLabel = (id, t) => { const l = dlg?.querySelector(`label[for="${id}"]`), n = t.replace(/（选填）$/, ""); if (l) l.innerHTML = optLabel(t); dlg?.querySelector(`[data-space-resize="${id}"]`)?.setAttribute("aria-label", `调整${n}输入框高度；按上下方向键调整`); };
   setLabel("spaceRegion", outdoor ? "占地面积（选填）" : mgPart() ? "管理面积（选填）" : "建筑面积（选填）");
   setLabel("spaceImage", outdoor ? "区域图片（选填）" : "楼宇图片（选填）");
   setLabel("spaceDescription", outdoor ? "区域说明（选填）" : "楼宇说明（选填）");
@@ -55819,13 +55863,17 @@ function devRate30(db, ps) {
     ds = Demo.dataStart?.(),
     from = Math.max(to - 30 * Demo.DAY, ds ? Date.parse(ds + "T00:00:00+08:00") : 0),
     unkAt = Math.min(to, Math.max(from, Demo.ctl?.gwOfflineAt || to)),
-    endOf = new Map(ps.map((p) => [p.id, devStatus(db, p) === "unk" ? unkAt : to])),
+    unkIds = new Set(ps.filter((p) => devStatus(db, p) === "unk").map((p) => p.id)),
+    endOf = new Map(ps.map((p) => [p.id, unkIds.has(p.id) ? unkAt : to])),
     span = ps.reduce((n, p) => n + Math.max(0, endOf.get(p.id) - from), 0);
   if (!(span > 0)) return null;
   const raw = anOffEpisodes(ps.filter((p) => M.access(p) !== "system"), from, to).filter((x) => endOf.has(x.p.id)),
     conn = typeof anConnEps === "function" ? anConnEps(from, to) : [];
   ps.filter((p) => M.access(p) === "system" && p.connectionId).forEach((p) => conn.filter((x) => x.c.id === p.connectionId).forEach((x) => x.eps.forEach((e) => raw.push({ ...e, p }))));
-  const eps = raw.map((x) => ({ ...x, to: Math.min(x.to, endOf.get(x.p.id)) })).filter((x) => x.to > x.from || (x.to === x.from && endOf.get(x.p.id) === to)),
+  // 3.17 V1156：状态未知的设备不计状态未知的时段：离线记录截到网关离线时，网关离线起才有的不计（不足 1 分钟的一并不计），也不写“未恢复”
+  const eps = raw
+      .map((x) => (unkIds.has(x.p.id) ? { ...x, to: Math.min(x.to, unkAt), open: false } : { ...x, to: Math.min(x.to, to) }))
+      .filter((x) => (unkIds.has(x.p.id) ? x.to - x.from >= Demo.MIN : x.to > x.from || x.to === x.from)),
     off = eps.reduce((n, x) => n + Math.max(0, x.to - x.from), 0),
     days = Array.from({ length: Math.ceil((to - from) / Demo.DAY) }, (_, i) => {
       const a = Math.max(from, Demo.dayStart(to) - (Math.ceil((to - from) / Demo.DAY) - 1 - i) * Demo.DAY),
@@ -55833,7 +55881,7 @@ function devRate30(db, ps) {
         den = ps.reduce((n, p) => n + Math.max(0, Math.min(b, endOf.get(p.id)) - a), 0);
       return b > a && den > 0 ? 100 * (1 - eps.reduce((n, x) => n + Math.max(0, Math.min(b, x.to) - Math.max(a, x.from)), 0) / den) : null;
     });
-  return { rate: 100 * (1 - off / span), n: ps.length, unk: [...endOf.values()].filter((t) => t < to).length, eps, from, to, days };
+  return { rate: 100 * (1 - off / span), n: ps.length, unk: unkIds.size, eps, from, to, days };
 }
 const devRatePct = (v) => (v >= 100 ? "100" : (Math.floor(v * 10) / 10).toFixed(1));
 function devRateBtn() {
@@ -56168,7 +56216,8 @@ function renderInventory() {
     // 卡片底部一行：共 N 台；筛选后“108 台中的 6 台”；超过一页时写本页范围，翻页在右边。
     count = pages > 1 ? `第 ${fmt(start + 1)}–${fmt(Math.min(ps.length, start + DEV_PAGE))} 台，共 ${fmt(ps.length)} 台` : ps.length < all.length ? `${fmt(all.length)} 台中的 ${fmt(ps.length)} 台` : `共 ${fmt(all.length)} 台`,
     foot = `<div class="dev-ledger-foot"><p role="status">${count}</p>${devPager(n, pages)}</div>`;
-  return `${devAiBar(db, offline, needs, unknown)}${segRow}<div class="ws-inventory-tools"><div class="ws-search">${ico("search", "ic16")}<input id="deviceQuery" aria-label="搜索设备" placeholder="名称、UUID 或序列号" value="${esc(U.q)}"></div><span class="dev-filter-wrap">${btn("筛选" + (devFiltered() ? ` · ${devFilterCount()}` : ""), "deviceFilters", {}, U.devFilterOpen ? "ghost on" : "ghost").replace("<button ", `<button aria-expanded="${!!U.devFilterOpen}" `)}${U.devFilterOpen ? devFilterPanel() : ""}</span>${pick ? `<span class="dev-tools-end">${pick}</span>` : ""}</div><div class="ws-tabpanel" id="devFilterPanel">${devFilterSummary(all)}<div class="dev-ledger-frame">${devLedgerTable(
+  // 3.17 L16-5：AI 诊断提示条在状态分段与工具条之间（原在分段上方）
+  return `${segRow}${devAiBar(db, offline, needs, unknown)}<div class="ws-inventory-tools"><div class="ws-search">${ico("search", "ic16")}<input id="deviceQuery" aria-label="搜索设备" placeholder="名称、UUID 或序列号" value="${esc(U.q)}"></div><span class="dev-filter-wrap">${btn("筛选" + (devFiltered() ? ` · ${devFilterCount()}` : ""), "deviceFilters", {}, U.devFilterOpen ? "ghost on" : "ghost").replace("<button ", `<button aria-expanded="${!!U.devFilterOpen}" `)}${U.devFilterOpen ? devFilterPanel() : ""}</span>${pick ? `<span class="dev-tools-end">${pick}</span>` : ""}</div><div class="ws-tabpanel" id="devFilterPanel">${devFilterSummary(all)}<div class="dev-ledger-frame">${devLedgerTable(
     [
       ...(picking
         ? [`<input type="checkbox" class="ws-ck" id="devSelAll" aria-label="${pages > 1 ? "选择本页" : "选择当前结果"}" ${rows.length && rows.every((p) => sel.has(p.id)) ? "checked" : ""}><label class="dev-ledger-select-text" for="devSelAll">${pages > 1 ? "选择本页" : "选择当前结果"}</label>`]
@@ -56224,10 +56273,10 @@ function devNetworkCell(db, p) {
     conn = access === "system" && p.connectionId && g("connections", p.connectionId),
     via = access === "system" ? conn?.protocol || "系统接入" : { mesh: "Mesh", gateway: "网关上联", cell: "4G", pending: p.type === "ls" ? "经照明控制器" : "经网关" }[access] || "",
     to = conn || (!["system", "cell"].includes(access) && n),
-    text = [via, to?.name].filter(Boolean).join(" · "),
-    // 一行写完（行高保持 56）；电脑上放不下时省略，完整名称在悬停提示里
-    long = [...text].reduce((w, c) => w + (c.charCodeAt(0) > 255 ? 14 : 8), 0) > 150;
-  return devLedgerLabel("接入") + (to ? btn(nwWords(text), conn ? "connectionInfo" : "networkInfo", long ? { id: to.id, tip: text } : { id: to.id }, "ghost flow-lk flow-lk-ref") : ["system", "cell"].includes(access) ? nwWords(text) : `<span class="muted">尚未规划</span>`);
+    text = [via, to?.name].filter(Boolean).join(" · ");
+  // 3.17 V1154：两行写完，不省略：第一行写接入方式（协议），第二行小字写网络或连接名称，点它打开网络详情或连接详情（原为一行，放不下时省略）
+  if (to) return devLedgerLabel("接入") + `${via ? nwWords(via) : ""}<small class="flow-sub dev-sub-a">${btn(nwWords(to.name), conn ? "connectionInfo" : "networkInfo", { id: to.id }, "ghost flow-lk flow-lk-ref")}</small>`;
+  return devLedgerLabel("接入") + (["system", "cell"].includes(access) ? nwWords(text) : `<span class="muted">尚未规划</span>`);
 }
 // 2.88 E1126：“位置”列写楼栋、楼层与功能区（E栋 · 7F · 实验室 E）；未放置、未归属功能区的灰字接在楼层后。
 // 3.04 V1029：电脑上写在一行，放不下时省略，只在省略时悬停显示全文。
@@ -56284,11 +56333,14 @@ function netListKpis(db, ns) {
     off = st.filter((s) => s === "off").length,
     bad = st.filter((s) => s === "bad").length,
     unk = st.filter((s) => s === "unk").length,
-    synced = bound.filter((p) => F.syncState(db, p) === "已同步").length;
+    synced = bound.filter((p) => F.syncState(db, p) === "已同步").length,
+    reset = nodes.filter((p) => !F.boundNow(p) && p.fieldReset).length;
   return cfgKpis([
-    { label: "已绑定", v: bound.length, of: nodes.length, unit: "台", tone: "ink", foot: nodes.length > bound.length ? esc(`待绑定 ${nodes.length - bound.length} 台`) : "全部已绑定" },
+    // 3.17 E1248：恢复出厂的写“待重新绑定 N 台”，与从未绑定的“待绑定 N 台”分开（原都写“待绑定”）
+    { label: "已绑定", v: bound.length, of: nodes.length, unit: "台", tone: "ink", foot: esc([reset ? `待重新绑定 ${reset} 台` : "", nodes.length - bound.length - reset > 0 ? `待绑定 ${nodes.length - bound.length - reset} 台` : ""].filter(Boolean).join(" · ")) || "全部已绑定" },
     { label: "离线", v: off, unit: "台", foot: [bad ? cfgDot("warn", `异常 ${bad} 台`) : "", unk ? cfgDot("off", `状态未知 ${unk} 台`) : ""].join("") || (off ? "" : "没有离线与异常") },
-    { label: "配置同步", v: synced, of: nodes.length, unit: "台", foot: synced < bound.length ? esc(`未同步 ${bound.length - synced} 台`) : "" },
+    { label: "配置同步", v: synced, of: bound.length, unit: "台", // 3.17 L16-9：分母为已绑定台数，与“未同步 N 台”相加一致（原为全部规划台数）
+      foot: synced < bound.length ? esc(`未同步 ${bound.length - synced} 台`) : "" },
   ]);
 }
 function renderNetworkList() {
@@ -56481,7 +56533,7 @@ function netSyncCard(n) {
   const db = data(),
     rows = F.fieldPoints(db, n.id)
       .map((p) => [p, F.syncState(db, p)])
-      .filter(([, st]) => st !== "已同步");
+      .filter(([p, st]) => st !== "已同步" && F.boundNow(p)); // 3.17 E1248：与设备网络指标卡同一口径，只计已绑定的设备（待重新绑定的另在“已绑定”脚注）
   if (!rows.length) return "";
   return `<section class="card cfg-card cfg-tcard flow-space net-sync"><div class="cfg-card-h"><h3>配置同步 · ${rows.length} 台未同步</h3></div>${table(
     ["设备", "功能区", "目标版本", "状态"],
@@ -56740,7 +56792,8 @@ function renderGroups() {
     q = (U.gq || "").trim().toLowerCase(),
     shown = q ? custom.filter((x) => x.name.toLowerCase().includes(q)) : custom,
     // 2.84 E1105：“+ 新建设备分组”放在页签行右端；工具栏只留搜索
-    bar = custom.length ? `<div class="ws-section-toolbar"><div class="ws-search">${ico("search", "ic16")}<input id="groupQuery" aria-label="搜索设备分组" placeholder="搜索分组名称" value="${esc(U.gq || "")}"></div></div>` : "";
+    // 3.17 L16-4：搜索框与设备列表同在左侧、宽 320（原在表格上方右侧、宽 210）
+    bar = custom.length ? `<div class="ws-inventory-tools"><div class="ws-search">${ico("search", "ic16")}<input id="groupQuery" aria-label="搜索设备分组" placeholder="搜索分组名称" value="${esc(U.gq || "")}"></div></div>` : "";
   devHeadAdd = canEdit() ? btn(ico("plus", "ic16") + "新建设备分组", "groupForm", {}, "primary") : ""; // 3.16：在标题行右端
   // 2.67 E1023：空状态图标与“设备分组”页签同为 blocks（原为“全部楼层”的 layers）
   // 2.88 E1117：空状态写用途并给主按钮，页签行的同名按钮隐藏
@@ -56756,7 +56809,7 @@ function renderGroups() {
           act: "groupDetail",
           args: { id: group.id },
           // 分组名称每一项整体不换行，只在“ · ”处换行（Lovable 核查第 315 条）
-          cells: [nwDots(group.name), groupUse(group), `${ps.length} 台`, groupScopeCell(ps), groupSyncCell(group, caps), refs.length ? `${refs.length} 个场景` : `<span class="muted">—</span>`, canEdit() ? rowAct("编辑", "edit", "groupForm", { id: group.id }) : ""],
+          cells: [nwDots(group.name), groupUse(group), `${ps.length} 台`, groupScopeCell(ps), groupSyncCell(group, caps), refs.length ? `${refs.length} 个场景` : `<span class="muted grp-norefs">—</span>`, canEdit() ? rowAct("编辑", "edit", "groupForm", { id: group.id }) : ""],
         };
       }),
       "没有找到匹配的分组",
@@ -56770,7 +56823,8 @@ function groupSyncCell(group, caps) {
     applied = bound.filter((p) => F.syncState(data(), p) === "已同步");
   if (groupOver(group, caps)) return badge("容量不足", "crit");
   if (!bound.length) return badge("尚未下发");
-  return applied.length === ps.length ? "已同步" : `${badge("待同步", "warn")}<small class="flow-sub">已应用 ${applied.length} / ${ps.length}</small>`;
+  // 3.17 V1159：同步正常时留空（同 V1118），没同步完只写“未同步 N 台”（原为“已同步”，或“待同步”加“已应用 a / n”）
+  return applied.length === ps.length ? "" : badge(`未同步 ${ps.length - applied.length} 台`, "warn");
 }
 // 2.58 E614、E615：网络详情“组地址”页签：设备网络自动维护的组地址，给工程人员查看同步情况；按楼层分组（组标题写楼层），
 // 名称统一为“对象 · 类型”，列为组地址、类型、成员、同步。原为“设备分组”页底部折叠的“自动维护的设备分组”。
@@ -59235,6 +59289,14 @@ function showFunctionChecks(id) {
   const body = document.getElementById("dlgBody");
   if (body) body.scrollTop = 0;
 }
+// 3.17 E1246：筛选面板默认与“筛选”按钮左对齐，右边超出窗口时改为右对齐
+function devFilterPlace() {
+  document.querySelectorAll(".dev-filter-panel").forEach((el) => {
+    el.classList.remove("end");
+    if (el.getBoundingClientRect().right > innerWidth - 16) el.classList.add("end");
+  });
+}
+if (typeof onAfterRender === "function") onAfterRender(devFilterPlace);
 // 3.16 E1163：自定义分组的用途与引用它的场景（场景、定时、联动）
 const groupUse = (group) => ({ 照明: "照明控制", 空调: "空调控制", 仅管理: "状态上报" })[group.usage] || "状态上报";
 const groupRefs = (id) => (data().scenes || []).filter((s) => s.groupId === id || (s.actions || []).some((a) => (a.groupIds || []).includes(id)));
@@ -59248,8 +59310,9 @@ function groupSheet(group) {
       ["用途", groupUse(group)],
       ["设备数", `${ps.length} 台`],
       ["范围", { html: groupScopeCell(ps) }],
-      ["同步", { html: groupSyncCell(group, F.capacities(db)) }],
-      ["被引用", refs.length ? refs.map((x) => esc(x.name)).join("、") : "无"],
+      ...(groupSyncCell(group, F.capacities(db)) ? [["同步", { html: groupSyncCell(group, F.capacities(db)) }]] : []),
+      // 3.17 V1160：没有引用时与表格同写“—”（原为“无”）；同步正常时不列“同步”一行（V1159）
+      ["被引用", refs.length ? refs.map((x) => esc(x.name)).join("、") : { html: `<span class="muted">—</span>` }],
     ])}<div class="flow-section-head flow-group-h"><h4>同步情况</h4></div>${table(
       ["设备网络", "#已应用", "同步"],
       ns.map((nid) => {
@@ -59673,6 +59736,7 @@ defineActions({
     msg(`已结束${zhSub(name, "l")}的检修`);
   },
   // 2.88 E1127：“筛选”打开挂在按钮下的面板（无遮罩），勾选即时生效，按钮写已选数“筛选 · 2”，底部只留“重置”；再点按钮、按 Esc 或点面板外关闭。
+  // 3.17 E1246：面板与“筛选”按钮左对齐，右边放不下时才右对齐（devFilterPlace）
   deviceFilters: () => {
     U.devFilterOpen = !U.devFilterOpen;
     render();
@@ -76793,7 +76857,7 @@ function opsPlanLayout(plan) {
           ok = () => zl.offsetHeight <= H && zl.scrollWidth <= W + 1 && (!zn || zn.scrollHeight <= zn.clientHeight + 1) && (!zn || z.classList.contains("ell") || zn.scrollWidth <= W + 1) && (!b || b.scrollWidth <= W + 1) && zfIn() && (!z.classList.contains("ell") || opsEll2(zn)),
           tryAs = (k) => {
             z.classList.remove("noname");
-            z.classList.add(k, "v12");
+            z.classList.add(...k.split(" "), "v12");
             if (ok()) return true;
             const zf = zfOff();
             if (zf && ok()) return true;
@@ -76807,12 +76871,15 @@ function opsPlanLayout(plan) {
               if (ok()) return true;
               z.classList.remove("noval");
             }
-            z.classList.remove(k, "v12");
+            z.classList.remove(...k.split(" "), "v12");
             z.classList.add("noname");
             return false;
           };
         if (zn?.dataset.code && tryAs("code")) return;
         if (zn && tryAs("sm")) return; // 3.16 V1141：编号也放不下时名称缩到 11 号字，仍放不下不写名称；不用省略号（原 V1032 以省略号截断）
+        if (zn && tryAs("sm sm2")) return; // 3.17 V1157：11 号字一行仍放不下时分行写（最多三行），再放不下才不写名称
+        // 3.17 V1157：选中的功能区（含“在图上查看”）一定写名称：11 号字分行，不写读数
+        if (zn && z.classList.contains("on")) return void (z.classList.remove("noname"), z.classList.add("sm", "sm2", "v12", "noval"));
         // 3.10 V1053：名称放不下时不写名称，只写读数（原只有告警块写读数，其余只填色）；读数也放不下才只填色
         if (b) {
           z.classList.add("v12");
@@ -85173,7 +85240,7 @@ function scWhenHint() {
 // 联动按应用类型映射触发来源与执行对象（SCENE03 第2条）；没有可执行对象的类型不能保存（启用以来源、执行对象与服务验证为准）
 const LINK_APPS = {
   占用: { source: "功能区占用", target: "照明场景或“恢复自动”" },
-  新风: { source: "CO₂", target: "新风机组或风阀", none: "本项目还没有接入新风设备（在“设备 › 系统接入”登记新风机组或风阀后可选），暂不能保存" },
+  新风: { source: "CO₂", target: "新风机组或风阀", none: "本项目还没有接入新风设备（在“部署 › 系统接入”登记新风机组或风阀后可选），暂不能保存" },
   净化: { source: "PM2.5", target: "空气净化设备", none: "本项目还没有接入空气净化设备，暂不能保存" },
 };
 // 2.46 运营核查 V217：有已接入并验证可写的新风或空气净化设备时，联动才出现这两类（none 表示本项目没有这类设备）；
@@ -92943,7 +93010,7 @@ const M3 = (() => {
       pub = ok && steps && (mm.dirty || mm.published?.version !== mm.version) ? (why ? `<button type="button" class="btn" aria-disabled="true" data-tip="${esc(why)}">发布</button>` : btn("发布", "m3Publish")) : "",
       up = ok ? btn(ico("upload", "ic16") + (mm ? "替换模型" : "上传模型"), "m3Upload", {}, "primary") : "";
     // 3.16 V1144：空间的编辑里“⋯”“发布”“上传模型”在页面标题行“完成”左侧（spEdBar），不另起一行；楼宇与模型状态写在面板第一节
-    if (U.spEd) return more + pub + up;
+    if (U.spEd) return pub + up; // 3.17 V1158：“⋯”在“完成”右边（M3.more，spEdBar），与四种模式一致
     return `<div class="flow-heading sub-head m3-head"><div><div class="flow-title-row">${back}<h2>3D 模型</h2></div><p>${esc(bb.name)} · ${esc(S.text)}</p></div>${more || pub || up ? `<div class="flow-head-acts">${more}${pub}${up}</div>` : ""}</div>`;
   }
   function page() {
@@ -92979,7 +93046,7 @@ const M3 = (() => {
     }
     return `<div class="m3">${U.spEd ? "" : head()}${narrow}<div class="m3-body">${nav}${stage}<aside class="m3-panel" aria-label="3D 模型设置">${panel}</aside></div></div>`;
   }
-  return { page, acts: head, scene: () => (document.getElementById("s3Host")?.dataset.view === "m3" ? draftScene() : null), pick, guessFloor };
+  return { page, acts: head, more: () => (canEdit() ? menuTrigger(iconBtn("更多", "more", "m3More")) : ""), scene: () => (document.getElementById("s3Host")?.dataset.view === "m3" ? draftScene() : null), pick, guessFloor };
 })();
 // 对齐时在两边各点两个参考点（先楼层图，后模型）
 document.addEventListener("click", (e) => {
@@ -99929,11 +99996,20 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "3.17",
+    date: "2026-11-07",
+    notes: [
+      "改进：设备列表的“接入”写全网络或连接名称；分组同步正常时留空，没同步完的写未同步台数。",
+      "改进：近 30 天离线记录不计状态未知的时段；设备网络的配置同步按已绑定的设备计。",
+      "改进：手机上设备页的标题行可直接新建；功能区名称在楼层图上分行写全。",
+    ],
+  },
+  {
     version: "3.16",
     date: "2026-11-07",
     notes: [
-      "改进：侧栏按对象分为八项；设备网络、系统接入与固件升级并入“部署”的页签，“应用设置”改名为“项目设置”。",
-      "改进：数据分析分能源、室内环境、空间使用与报告四个页签。",
+      "改进：侧栏按对象分为八项，“配置进度”改为“部署”，设备网络、系统接入与固件升级是它的页签；“应用设置”改为“项目设置”。",
+      "改进：设备页分“设备”“分组”；数据分析分能源、室内环境、空间使用与报告四个页签。",
       "改进：设备网络详情列出尚未同步配置的设备，网关与网络资料合为一张卡片。",
       "改进：空间“编辑”的功能区可以重做，手机上也能撤销、重做，面板的收起方式与查看页相同。",
       "改进：网关离线时，近 30 天在线率只扣除状态未知的时段；楼宇卡的照明写明亮灯、离线与手动的台数。",
@@ -101219,7 +101295,7 @@ const AU_TERMS = [
   ["配置人员", "配置空间、设备、网络与项目设置，用部署 App 绑定设备的角色，同时具有运营人员的权限；不能管理成员与订阅。", "机构设置 › 成员、角色与权限"],
   ["普通成员", "按功能区授权的角色，只看到“我的区域”，可以控制授权功能区的灯光与空调并报修；没有搜索、导出和告警通知。", "机构设置 › 成员、角色与权限，我的区域"],
   ["设备标识", "设备有几种标识：平时在页面和现场资料中用点位名称；现场核对与报修用序列号；绑定时部署 App 读取 UUID；联系 PACOM 支持时提供内部标识。", "详情页 › 信息，设备"],
-  ["设备数量", "订阅约定的可绑定或接入的设备台数，规划点位不计入。", "机构设置 › 订阅与用量"],
+  ["设备数量", "订阅约定的可绑定或接入的设备台数，规划点位不计入。", "机构设置 › 订阅与订单"],
   ["设备网络", "一个网关和它连接的 Mesh 设备组成一个设备网络，服务范围可以跨楼层；网络版本、网络检测和交付都按网络进行。", "部署 › 设备网络"],
   ["授权范围", "成员能访问的项目，可选全部项目或指定项目，由机构管理员在邀请、批准或修改成员时设置；普通成员按功能区授权。", "机构设置 › 成员"],
   ["网关", "楼内的边缘网关，连接设备网络和平台；控制、场景和联动由网关在楼内执行。", "部署 › 设备网络，网关的详情页"],
@@ -101240,9 +101316,9 @@ const AU_TERMS = [
   ["中继节点", "转发其他设备消息的节点，由 MS20 或 LC20 担任，网关附近与楼梯间、竖井附近优先；每层中继一般不超过本层节点数的 10%。", "空间 › 编辑（“网络”模式），部署 › 设备网络 › 网络详情"],
   ["主照度传感器", "照明分区中用来按照度调光的那台 MS20，图上标 ★；每个照明分区只有一个，其余 MS20 的照度只作诊断。", "空间 › 编辑（“照明分区”模式）"],
   ["组地址", "设备网络按功能区、照明控制器和整层自动维护的 Mesh 组地址，场景与联动按组下发。", "设备网络 › 网络详情 › 组地址"],
-  ["AI 用量包", "另行购买的 token，先用本月额度再用用量包；不设有效期，订阅有效时可用。", "机构设置 › 订阅与用量"],
+  ["AI 用量包", "另行购买的 token，先用本月额度再用用量包；不设有效期，订阅有效时可用。", "机构设置 › 订阅与订单"],
   // 2.64 账户第 667 条：“词元”一律改为“token”，按字母开头排在最后
-  ["token", "AI 处理文字的计量单位，问题、引用的数据和回答越长，用的 token 越多；每月额度与用量包都按 token 计。", "机构设置 › 订阅与用量"],
+  ["token", "AI 处理文字的计量单位，问题、引用的数据和回答越长，用的 token 越多；每月额度与用量包都按 token 计。", "机构设置 › 订阅与订单"],
   ["UUID", "设备出厂时的唯一标识（Mesh 设备 UUID），绑定时由部署 App 读取；可以用它搜索设备。", "详情页 › 信息，搜索，设备列表"],
 ];
 // “更新说明”“术语”与“联系支持”一样替换“帮助”弹窗打开，关闭后焦点回到机构入口。
@@ -101256,7 +101332,7 @@ const AU_RELEASE_MONTHS = {
   // 3.16 Account 214：11 月汇总（第 2 行按 3.16 的侧栏写）
   "2026-11": [
     "新增：功能区与设备有详情页；空间可在楼层图或 3D 上查看并控制照明与空调，楼层图支持 DWG、DXF。",
-    "改进：侧栏按对象分为八项，部署工作集中在“部署”；总览的项目与楼宇页分“概况”“信息”，设备标记并入空间的“编辑”。",
+    "改进：侧栏按对象分为八项，“配置进度”改为“部署”，“应用设置”改为“项目设置”；总览的项目与楼宇页分“概况”“信息”。",
     "改进：告警与工单分待处理、处理中、已结束，工单完成后自动核验；定时可跟随工作时间或日出日落。",
     "改进：各页设备数一致，设备列表显示近 30 天在线率与 AI 诊断；固件升级分传输与生效两步，可先试点。",
     "改进：订阅、续费与增加设备数量在机构设置内办理；删除机构只需输入当前密码，30 天内可恢复。",
@@ -101343,7 +101419,7 @@ const HELP_TOPICS = [
 const HELP_UPDATED = "2026-11-04";
 const HELP_ARTICLES = [
   { id: "acct-apply", topic: "account", title: "创建机构", roles: "", upd: "2026-11-07", sum: "填写机构名称、行业和所在地区即可创建，你是机构管理员；规划、配置和邀请成员无需订阅，绑定或接入设备、使用智能助手前须订阅。",
-    steps: ["在登录页点“注册”，选“创建新机构”，先创建账户，再绑定手机号码。已有账户的，在“尚未加入机构”页选“创建新机构”；已加入其他机构的，在机构菜单点“创建机构”；账户还没有绑定手机号码的先绑定。", "填写机构名称、行业和所在地区，点“创建机构”。机构名称请填写营业执照等登记证书上的完整名称。", "创建后进入新机构的总览，点“新建项目”创建项目，再上传楼层图和规划设备；在“机构设置 › 成员”邀请成员。", "要绑定或接入设备、使用智能助手时，在“机构设置 › 订阅与用量”订阅，见《订阅、续费与付款》。"],
+    steps: ["在登录页点“注册”，选“创建新机构”，先创建账户，再绑定手机号码。已有账户的，在“尚未加入机构”页选“创建新机构”；已加入其他机构的，在机构菜单点“创建机构”；账户还没有绑定手机号码的先绑定。", "填写机构名称、行业和所在地区，点“创建机构”。机构名称请填写营业执照等登记证书上的完整名称。", "创建后进入新机构的总览，点“新建项目”创建项目，再上传楼层图和规划设备；在“机构设置 › 成员”邀请成员。", "要绑定或接入设备、使用智能助手时，在“机构设置 › 订阅与订单”订阅，见《订阅、续费与付款》。"],
     faq: [["个人可以创建机构吗？", "可以创建并规划；订阅时须填写机构全称和统一社会信用代码，由平台核对工商登记信息。"], ["机构已经在用了怎么办？", "不要重复创建，在登录页点“注册”，选“加入已有机构”。"], ["同一个统一社会信用代码能订阅几个机构？", "可以订阅多个，如各园区分开管理，机构之间数据完全隔离。"], ["建错了机构怎么办？", "未订阅的机构可以在“机构设置 › 数据导出与删除”删除，30 天内可在“我的账户 › 我的机构”恢复。"]], rel: ["acct-join", "acct-sub"] },
   { id: "acct-join", topic: "account", title: "加入已有机构", roles: "", sum: "用机构的邀请码、邀请链接、二维码或邮件邀请加入，角色由机构管理员确定。",
     upd: "2026-10-31",
@@ -101395,27 +101471,27 @@ const HELP_ARTICLES = [
   { id: "assistant", topic: "ops", title: "AI 提问与对话", roles: "机构管理员、配置人员、运营人员、查看人员", upd: "2026-10-31", sum: "按 ⌘K 或 Ctrl+K 提问，对话自动保存 12 个月，只有你看得到。",
     steps: ["按 ⌘K 或 Ctrl+K 打开“搜索或提问”，输入问题后回车。", "问“这里有哪些问题？”查看当前位置的温度、空气、能耗与设备问题，并直接处理。", "在同一次打开中追问会记在同一个对话里；在“最近对话”或“全部对话”中继续。", "点回答下方的依据，打开回答所说的页面核对。"],
     faq: [["打开旧对话时数据会变吗？", "会按当前数据重新回答，并写出数据截至时间。"]], rel: ["savings", "control"] },
-  { id: "alarm", topic: "alarm", title: "处理告警", roles: "机构管理员、运营人员", upd: "2026-11-03", sum: "告警与工单在一张列表中，从发生、确认、派工、处理、恢复到核验都记在同一条上。",
-    steps: ["在“告警与工单 › 未处理”查看未恢复、还没有派工的告警与报修；用搜索与“筛选”按级别、类型、规则或负责人查找。点一行进入详情，写可能原因与排查步骤，确认与派工在右上，暂缓与关闭在“⋯”里；“‹”回到列表。", "点“确认”表示已知晓；需要现场处理时点“派工”，指定负责人和计划完成时间，这条移到“处理中”。暂时不处理的在“⋯”里点“暂缓”，不需要处理的点“关闭”，都要写原因。", "过了计划完成时间仍未完成的工单标“逾期”，并给负责人与派工人各发一次“工单已逾期”；改了计划完成时间后按新时间重新判断。", "工单完成后进入“待核验”：24 小时内同一告警再次触发，或告警仍未恢复，回到“处理中”并标“需返工”；否则转为“已结束”。现场已确认处理好的，可在详情中点“通过”提前结束。", "已恢复、已关闭与已核验的在“已结束”中按期间查看。", "在总览、详情页或通知中点一条告警，都进入这条告警的详情；趋势图标出告警时段，可换为近 24 小时或近 7 天。"],
+  { id: "alarm", topic: "alarm", title: "处理告警", roles: "机构管理员、运营人员", upd: "2026-11-07", sum: "告警与工单在一张列表中，从发生、确认、派工、处理、恢复到核验都记在同一条上。",
+    steps: ["在“告警与工单 › 待处理”查看未恢复、还没有派工的告警与报修；用搜索与“筛选”按级别、类型、规则或负责人查找。点一行进入详情，写可能原因与排查步骤，确认与派工在右上，暂缓与关闭在“⋯”里；“‹”回到列表。", "点“确认”表示已知晓；需要现场处理时点“派工”，指定负责人和计划完成时间，这条移到“处理中”。暂时不处理的在“⋯”里点“暂缓”，不需要处理的点“关闭”，都要写原因。", "过了计划完成时间仍未完成的工单标“逾期”，并给负责人与派工人各发一次“工单已逾期”；改了计划完成时间后按新时间重新判断。", "工单完成后进入“已结束”，标“核验中”：24 小时内同一告警再次触发，或告警仍未恢复，回到“处理中”并标“需返工”；否则核验通过。现场已确认处理好的，可在详情中点“通过”提前结束核验。", "已恢复、已关闭与已核验的在“已结束”中按期间查看。", "在总览、详情页或通知中点一条告警，都进入这条告警的详情；趋势图标出告警时段，可换为近 24 小时或近 7 天。"],
     faq: [["能耗异常告警恢复后会怎样？", "恢复 7 晚后，平台用同一指标比较前后各 7 晚，结果写在告警详情的“效果”，改善的计入节电量。"], ["同一告警反复触发又很快恢复怎么办？", "近 7 天触发 10 次以上、平均 10 分钟内自行恢复且没有派工时，总览“需要处理”会建议加长该规则的持续时间，点“调整规则”确认后保存。"]], rel: ["savings", "offline", "alarm-notify"] },
   // 2.58 账户第 549–552 条：机构设置“通知”页删去的说明收在这里
-  { id: "alarm-notify", topic: "alarm", title: "告警通知", roles: "机构管理员", upd: "2026-11-02", sum: "告警按事件以短信或邮件通知，一个根因只通知一次。",
+  { id: "alarm-notify", topic: "alarm", title: "告警通知", roles: "机构管理员", upd: "2026-11-07", sum: "告警按事件以短信或邮件通知，一个根因只通知一次。",
     steps: ["在“机构设置 › 通知”按事件勾选短信或邮件。短信发到接收人已验证的手机号码，邮件发到接收人的登录电子邮箱。", "告警与新报修发给项目授权范围内的机构管理员、配置人员和运营人员，查看人员可选择接收告警邮件；安全事件只发给机构管理员，必须以邮件发送；交付与部署发给机构管理员和项目授权范围内的配置人员。", "成员可在“我的账户 › 通知偏好”关闭部分渠道，不影响告警本身。", "一个根因只通知一次；告警升到更高级别时按新级别再通知一次；紧急告警恢复时再告知一次。", "紧急告警发生 30 分钟后仍未确认也未恢复，再给项目授权范围内的机构管理员发一次短信，不受免打扰限制。", "每个项目每 10 分钟最多发一条告警通知，其间的新告警合成一条；紧急告警立即发出。", "通知写级别、位置与告警名称，如“紧急告警：E栋 7F 实验室 E 漏水”，附直达链接；未登录时先登录，之后直接打开这条告警。", "部署期尚未交付的设备网络，其告警只进入部署进度的待办，不发送通知。", "设备网络交付后，有人用部署 App 下载网络资料或连接该网络时，同一账户、同一网络每天只以邮件告知机构管理员第一次，之后的只记入审计日志；交付前的只记入审计日志。密钥更新和登录设备被退出逐次告知。"],
     faq: [], rel: ["alarm"] },
   { id: "scene", topic: "scene", title: "场景、定时与联动", roles: "机构管理员、运营人员", upd: "2026-11-03", sum: "照明控制器在本地自动控制，场景管理网关或跨系统动作，定时与联动引用场景。",
     steps: ["占用联动与感应调光由照明控制器在本地执行，网关离线时照常工作。", "点场景页右上角的“新建”，在弹窗里用一句话描述，如“工作日 8 点开灯，19 点后无人关灯”，核对草稿后点“确认保存”；也可点“逐项填写”逐条设定动作。", "在“定时”选择执行时间与场景；时间可以引用工作时间的开始与结束，室外与门厅照明可选日落后或日出前若干分钟；同一个场景一天要执行几次时，在“其他时刻”里添加。", "在“联动”选择触发条件与执行的场景。", "执行后有设备没有生效的，2 分钟后自动补发一次；仍不一致的产生告警，写明哪几台没有执行。"],
     faq: [["为什么不在定时里直接设定照明？", "定时与联动引用场景，不重复建立同一照明控制器的照明控制，避免冲突。"]], rel: ["calendar", "control"] },
-  { id: "calendar", topic: "scene", title: "设置工作日历", roles: "机构管理员、运营人员", sum: "工作时间与节假日表决定照明、空调与定时的工作日安排。",
+  { id: "calendar", topic: "scene", title: "设置工作日历", roles: "机构管理员、运营人员", upd: "2026-11-07", sum: "工作时间与节假日表决定照明、空调与定时的工作日安排。",
     steps: ["在“项目设置 › 通用 › 工作日历”设置工作时间。", "登记当年的节假日表：放假日期与调休上班日，可按国务院办公厅通知填入。", "引用工作时间开始或结束的定时随之改变。", "在定时页点“查看有人时间”，对照空间使用的按小时有人时间占比调整工作时间。"],
     faq: [["没有登记节假日表会怎样？", "工作日按周一至周五计算，法定节假日照常执行工作日的定时。"]], rel: ["scene"] },
-  { id: "report", topic: "analysis", title: "周报、月报与年报", roles: "机构管理员、配置人员、运营人员、查看人员", upd: "2026-11-03", sum: "AI 起草，生成 3 小时后自动发布，期间可修改或暂不发布。",
-    steps: ["在“数据分析 › 摘要”点“全部报告”进入报告页，左为报告清单，右为所选报告；点“‹ 报告”回到摘要。", "周报每周一、月报每月 1 日、年报每年 1 月 1 日 09:00 由 AI 起草，并按通知偏好告知机构管理员与配置人员。", "12:00 自动发布，遇节假日顺延到下一个工作日 12:00；在此之前可编辑草稿的说明文字（数字不能改），或点“暂不发布”改为手动发布。", "报告期间数据覆盖不完整（缺数、网关离线）的一期不自动发布，处理后手动发布。", "清单里的状态：统计中（期间未结束）、待发布（需手动发布）、已发布。发布后各节文字与数据截至固定，按通知偏好给接收人发邮件。", "自己新建报告时选周报、月报或自定义期间，名称按期间自动生成，可以修改；默认包含全部五节内容。"],
+  { id: "report", topic: "analysis", title: "周报、月报与年报", roles: "机构管理员、配置人员、运营人员、查看人员", upd: "2026-11-07", sum: "AI 起草，生成 3 小时后自动发布，期间可修改或暂不发布。",
+    steps: ["在“数据分析 › 报告”查看，左为报告清单，右为所选报告；手机上点“‹ 报告”回到清单。", "周报每周一、月报每月 1 日、年报每年 1 月 1 日 09:00 由 AI 起草，并按通知偏好告知机构管理员与配置人员。", "12:00 自动发布，遇节假日顺延到下一个工作日 12:00；在此之前可编辑草稿的说明文字（数字不能改），或点“暂不发布”改为手动发布。", "报告期间数据覆盖不完整（缺数、网关离线）的一期不自动发布，处理后手动发布。", "清单里的状态：统计中（期间未结束）、待发布（需手动发布）、已发布。发布后各节文字与数据截至固定，按通知偏好给接收人发邮件。", "自己新建报告时选周报、月报或自定义期间，名称按期间自动生成，可以修改；默认包含全部五节内容。"],
     faq: [["自建报告也会自动发布吗？", "不会，自建报告手动发布；未发布的可以删除。"], ["期间还没结束能编辑吗？", "不能。期间结束后才能编辑和发布，如 9 月月报 10 月 1 日起可编辑。"]], rel: ["savings"] },
   { id: "savings", topic: "analysis", title: "节电量", roles: "机构管理员、配置人员、运营人员、查看人员", upd: "2026-11-03", sum: "在数据分析 › 能源 › 节电量查看节电量、目标进度、节能措施与对标。",
     steps: ["照明：工作时间内按驱动功率满亮度为基准，减去按亮度与驱动功率估算的用电；工作时间以外和当天未亮灯的功能区不计。", "按来源分为感应调光、恒照度控制、其他调暗（定时、手动）与已核实的改进，也可按功能区查看。", "已核实的改进来自能耗异常告警的效果核实与节能措施；采用 AI 建议并下发成功后自动记一条节能措施，其他已实施的措施手动登记；节能措施按实施前后同类时段比较核实。", "节电量的副文写比满亮度运行少用的比例；累计节电量为单独一张卡；登记电价后同时写出约多少元。"],
     faq: [["节电量是计量值吗？", "是估算值，数值旁标“估算”。"]], rel: ["alarm", "report"] },
-  { id: "offline", topic: "trouble", title: "设备离线与未回报", roles: "机构管理员、运营人员", upd: "2026-11-02", sum: "先查网关，再查单台设备的电源与设备网络。",
-    steps: ["在“设备 › 设备列表”点状态分段“离线”，列出当前离线的设备；点一行，侧栏写最近通信时间与上级网关。", "网关离线时其下设备状态未知：检查网关的上联与机房网络。", "单台离线：检查电源与断路器，再看设备网络的网络检测结果。", "控制未回报：点“重新查询”；仍无回报时检查该设备是否在线。", "已恢复出厂的设备脱离设备网络，需要远程重新绑定或现场用部署 App 绑回原点位。", "系统接入的设备没有数据：在“设备 › 系统接入”点该连接进入连接详情，在“概况”查看运行与验证结果，在“数据映射”核对各点的读数。“数据分析 › 设备健康”同样列出各连接的中断记录、原因与处理办法。", "BACnet/IP 现场改过设备或对象后，在“数据映射”点“设备发现”，按“新发现”“有变化”“已找不到”三组勾选后加入或更新映射；找不到的不会自动删除。"],
+  { id: "offline", topic: "trouble", title: "设备离线与未回报", roles: "机构管理员、运营人员", upd: "2026-11-07", sum: "先查网关，再查单台设备的电源与设备网络。",
+    steps: ["在“设备”页点状态分段“离线”，列出当前离线的设备；点一行，右侧设备信息写最近通信时间与上级网关。", "网关离线时其下设备状态未知：检查网关的上联与机房网络。", "单台离线：检查电源与断路器，再看设备网络的网络检测结果。", "控制未回报：点“重新查询”；仍无回报时检查该设备是否在线。", "已恢复出厂的设备脱离设备网络，需要远程重新绑定或现场用部署 App 绑回原点位。", "系统接入的设备没有数据：在“部署 › 系统接入”点该连接进入连接详情，在“概况”查看运行与验证结果，在“数据映射”核对各点的读数。", "BACnet/IP 现场改过设备或对象后，在“数据映射”点“设备发现”，按“新发现”“有变化”“已找不到”三组勾选后加入或更新映射；找不到的不会自动删除。"],
     faq: [["网关离线时灯还会自动开关吗？", "会，照明控制器在本地继续执行占用联动与感应调光。"]], rel: ["control", "alarm"] },
   { id: "security", topic: "security", title: "数据与 AI 服务", roles: "", upd: "2026-10-31", sum: "数据与 AI 服务均在中国境内，数据不用于模型训练。",
     steps: ["运行数据存放在中国境内。", "AI 使用中国境内的模型服务，你的数据不用于模型训练。", "AI 只给建议和起草，由你检查后保存或确认下发。"],
@@ -104492,11 +104568,11 @@ function auQuotaText(where, need = 0) {
     quota = od ? od.quota : l.quota;
   if (l.state === "none" && !od)
     return where === "plan"
-      ? "本机构尚未订阅：部署 App 不能绑定，系统接入设备不能接入。请机构管理员在“机构设置 › 订阅与用量”中订阅。"
-      : "本机构尚未订阅，系统接入设备不能接入。请机构管理员在“机构设置 › 订阅与用量”中订阅。";
-  if (where === "system" && used >= quota) return `本机构已达订阅的设备数量（${fmt(quota)} 台），新的系统接入设备不能接入。请机构管理员在“机构设置 › 订阅与用量”中增加设备数量。`;
+      ? "本机构尚未订阅：部署 App 不能绑定，系统接入设备不能接入。请机构管理员在“机构设置 › 订阅与订单”中订阅。"
+      : "本机构尚未订阅，系统接入设备不能接入。请机构管理员在“机构设置 › 订阅与订单”中订阅。";
+  if (where === "system" && used >= quota) return `本机构已达订阅的设备数量（${fmt(quota)} 台），新的系统接入设备不能接入。请机构管理员在“机构设置 › 订阅与订单”中增加设备数量。`;
   if (where === "plan" && need > 0 && used + need > quota)
-    return `按规划还要绑定或接入 ${fmt(need)} 台，本机构还可绑定或接入 ${fmt(Math.max(0, quota - used))} 台。达到设备数量后部署 App 不能绑定、系统接入不能接入新设备，请机构管理员在“机构设置 › 订阅与用量”中增加设备数量。`;
+    return `按规划还要绑定或接入 ${fmt(need)} 台，本机构还可绑定或接入 ${fmt(Math.max(0, quota - used))} 台。达到设备数量后部署 App 不能绑定、系统接入不能接入新设备，请机构管理员在“机构设置 › 订阅与订单”中增加设备数量。`;
   return "";
 }
 // AI 每月额度 = 1000 万 token + 每台设备 2.5 万 token（第 2 条）；每月 1 日 0:00（中国标准时间）重置。
@@ -113549,7 +113625,7 @@ function demoRcptFail() {
 // 每个页面（含各页签）一项，页面上的状态与弹窗列在其后（目录中缩进）；“被移出机构”“申请未获批准”与“选择机构”“尚未加入机构”看到的页面相同，不再单列。
 const DEMO_CATS = [
   ["账户", ["登录", "登录验证", "重置密码", "注册：加入", "注册：创建机构", "受邀加入", "已登录：加入或创建机构", "进入机构", "订阅与订单", "机构设置", "我的账户", "隐私和法律"]],
-  ["日常使用", ["总览", "全部项目", "项目", "楼宇", "我的区域", "空间", "空间编辑", "3D 模型", "设备", "设备分组", "场景", "告警与工单", "数据分析"]],
+  ["日常使用", ["总览", "项目", "楼宇", "我的区域", "空间", "空间编辑", "3D 模型", "设备", "设备分组", "场景", "告警与工单", "数据分析"]],
   ["建设与规则", ["部署进度", "设备网络", "网络详情", "系统接入", "固件升级", "项目设置"]],
   ["通用", ["智能助手", "异常与维护", "机构菜单与帮助"]],
 ];
@@ -113777,30 +113853,10 @@ const DEMO_ITEMS = [
   ["隐私和法律", "legal-terms", "使用条款", "隐私和法律", demoHead(() => (demoOut(), demoShow("legal", "terms")))],
   ["隐私和法律", "legal-service", "服务协议", "隐私和法律", demoHead(() => (demoOut(), demoShow("legal", "service")))],
   ["总览", "ops-pg-all", "总览 · 全部项目", "", demoPg(() => ((U.opsKeep = "next"), "#overview?tab=general"))], // 2.81 KW25：按用户自己选的这一级显示，不自动进入下一级
-  ["总览", "ops-pg-project", "总览 · 项目", "广实2号园", demoPg(() => ((U.opsKeep = "next"), `#overview?tab=general&p=${DEMO_IDS.project}`))], // 2.93 V958：停在项目级
-  [
-    "总览",
-    "empty-ops",
-    "所选范围没有运行数据",
-    "总览",
-    demoNeeds(
-      "示例数据中没有尚未接入运行数据的项目",
-      () => demoFind("projects", (x) => !OPS_SCOPE.project || x.id !== OPS_SCOPE.project),
-      (p) => (demoIn(), demoHash(`#overview?p=${p.id}`)),
-    ),
-  ],
-  ["总览", "ops-pg-building", "总览 · 楼宇", "E栋", demoPg(() => ((U.opsKeep = "next"), `#overview?tab=general&b=${DEMO_IDS.building}`))],
-  // 3.09 V1040：楼宇详情卡的“照片 | 3D”
-  ["总览", "ops-bld-3d", "楼宇详情 · 3D 缩略图", "E栋", demoX(() => ((U.opsKeep = "next"), (U.ovbPh = "3d"), `#overview?tab=general&b=${DEMO_IDS.building}`))],
-  // 3.15 V1128、E1216：侧栏不设“项目”；全部项目的卡片、表格在总览，新建项目、导出与回收站在配置进度的全部项目表
-  ["全部项目", "cfg-pg-grid", "全部项目 · 卡片", "总览", demoPg(() => ((U.opsKeep = "next"), (U.ovSV = "cards"), "#overview?tab=general"))],
-  ["全部项目", "cfg-project-new", "新建项目", "部署进度 · 全部项目", demoX("#deployment", () => actions.spaceForm({ kind: "projects" }))],
-  ["全部项目", "cfg-project-export", "导出项目资料", "部署进度 · 全部项目", demoX("#deployment", () => actions.exAllOpen({}))],
-  ["全部项目", "cfg-trash", "回收站", "部署进度 · 全部项目", demoX("#deployment", () => actions.trashAll({}))],
-  ["全部项目", "empty-projects", "尚无项目", "没有项目时的总览", () => (demoIn(), demoOpeningBlank(), demoHash("#overview"))],
+  ["总览", "empty-projects", "尚无项目", "没有项目时的总览", () => (demoIn(), demoOpeningBlank(), demoHash("#overview"))],
   // 空间选择器搜索无结果（2026-10-08 Editor 核查 E31）：打开“全部项目”，展开位置菜单并搜索“滨江”；任何数据中都能打开。
   [
-    "全部项目",
+    "总览",
     "empty-search",
     "没有匹配的位置",
     "位置菜单搜索无结果",
@@ -113818,7 +113874,24 @@ const DEMO_ITEMS = [
       });
     },
   ],
-  ["全部项目", "cfg-pg-list", "全部项目 · 表格", "总览", demoPg(() => ((U.opsKeep = "next"), (U.ovSV = "table"), "#overview?tab=general"))],
+  ["总览", "cfg-pg-list", "全部项目 · 表格", "总览", demoPg(() => ((U.opsKeep = "next"), (U.ovSV = "table"), "#overview?tab=general"))],
+  ["总览", "ops-pg-project", "总览 · 项目", "广实2号园", demoPg(() => ((U.opsKeep = "next"), `#overview?tab=general&p=${DEMO_IDS.project}`))], // 2.93 V958：停在项目级
+  [
+    "总览",
+    "empty-ops",
+    "所选范围没有运行数据",
+    "总览",
+    demoNeeds(
+      "示例数据中没有尚未接入运行数据的项目",
+      () => demoFind("projects", (x) => !OPS_SCOPE.project || x.id !== OPS_SCOPE.project),
+      (p) => (demoIn(), demoHash(`#overview?p=${p.id}`)),
+    ),
+  ],
+  ["总览", "ops-pg-building", "总览 · 楼宇", "E栋", demoPg(() => ((U.opsKeep = "next"), `#overview?tab=general&b=${DEMO_IDS.building}`))],
+  // 3.09 V1040：楼宇详情卡的“照片 | 3D”
+  ["总览", "ops-bld-3d", "楼宇详情 · 3D 缩略图", "E栋", demoX(() => ((U.opsKeep = "next"), (U.ovbPh = "3d"), `#overview?tab=general&b=${DEMO_IDS.building}`))],
+  // 3.15 V1128、E1216：侧栏不设“项目”；全部项目的卡片、表格在总览，新建项目、导出与回收站在配置进度的全部项目表
+  // 3.17 E1253：“全部项目”一组取消：卡片与“总览 · 全部项目”是同一页，删去；新建项目、导出项目资料、回收站在部署进度 · 全部项目；其余并入“总览”
   // 3.15 V1128：项目、楼宇的资料在总览项目页、楼宇页的“信息”页签
   ["项目", "cfg-pg-project", "项目 · 信息", "总览 · 广实2号园", demoPg(() => `#overview?p=${DEMO_IDS.project}&tab=info`)],
   ["项目", "cfg-project-edit", "编辑项目", "广实2号园 · 信息", demoX(() => `#overview?p=${DEMO_IDS.project}&tab=info`, () => actions.spaceForm({ kind: "projects", id: DEMO_IDS.project }))],
@@ -113973,6 +114046,9 @@ const DEMO_ITEMS = [
   ["数据分析", "rpt-edit", "编辑草稿", "2026 年第 38 周运行周报", demoX(() => ((U.opsReport = "r-w38"), (U.opsRpDoc = true), "#analysis?tab=reports"), () => actions.aiReportEdit({ id: "r-w38" }))],
   ["数据分析", "rpt-publish", "发布报告", "2026 年第 38 周运行周报", demoX(() => ((U.opsReport = "r-w38"), (U.opsRpDoc = true), "#analysis?tab=reports"), () => actions.aiReportPublish({ id: "r-w38" }))],
   ["部署进度", "cfg-pg-dep-all", "部署进度 · 全部项目", "", demoPg("#deployment")],
+  ["部署进度", "cfg-project-new", "新建项目", "部署进度 · 全部项目", demoX("#deployment", () => actions.spaceForm({ kind: "projects" }))],
+  ["部署进度", "cfg-project-export", "导出项目资料", "部署进度 · 全部项目", demoX("#deployment", () => actions.exAllOpen({}))],
+  ["部署进度", "cfg-trash", "回收站", "部署进度 · 全部项目", demoX("#deployment", () => actions.trashAll({}))],
   ["部署进度", "cfg-pg-dep", "部署进度", "广实2号园", demoPg(demoDepHash)],
   ["部署进度", "cfg-dep-scope", "部署范围", "部署进度", demoX(demoDepHash, () => actions.scopeEntry({ p: DEMO_IDS.project }))],
   ["部署进度", "cfg-dep-package", "预览下发包", "部署进度 · 验证与交付", demoX(demoDepHash, () => actions.v13Bundle())],
@@ -115379,7 +115455,8 @@ function wsProjectTextareas(root) {
     const doc=input.ownerDocument||document,shell=doc.createElement('div');shell.className='ws-textarea-shell';
     input.before(shell);shell.append(input);
     const handle=doc.createElement('button');handle.type='button';handle.className='ws-resize';handle.dataset.spaceResize=input.id;
-    const label=(root.querySelector(`label[for="${input.id}"]`)||document.querySelector(`label[for="${input.id}"]`))?.textContent||'说明';
+    // 3.17 E1251：读屏名称不读灰色小字“选填”
+    const lab=root.querySelector(`label[for="${input.id}"]`)||document.querySelector(`label[for="${input.id}"]`),label=lab?((x)=>(x.querySelectorAll('.fld-opt').forEach((o)=>o.remove()),x.textContent.trim()))(lab.cloneNode(true))||'说明':'说明';
     handle.setAttribute('aria-label',`调整${label}输入框高度；按上下方向键调整`);handle.disabled=wsResizeLocked(input);shell.append(handle);
   }
 }
