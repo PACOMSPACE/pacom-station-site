@@ -51641,7 +51641,8 @@ function spaceFloorPage() {
     );
   // 3.14 E1207：“新建功能区”在面板的功能区表上方，图卡左上只在绘制、调整边界时显示绘制工具
   const zDrawing = !!(U.drawZone || U.zoneDraft || U.spatialEdit);
-  const top = floorModeTabs() + (U.planAlign ? spAlignTop() : edit && !U.scalePoints
+  // 3.26 E1274：绘制、调整边界或设置比例尺时，图卡上方这一行换成绘制工具（原与模式切换重叠），结束或取消后恢复模式切换
+  const top = (U.spEd && (zDrawing || U.scalePoints) ? "" : floorModeTabs()) + (U.planAlign ? spAlignTop() : edit && !U.scalePoints
     ? isMobile() ? `<span class="sp-mobile-note">${spMobileNote()}</span>` : U.spEd && !zDrawing ? "" : spatialControl("新建功能区")
     : U.scalePoints ? `<div class="spatial-drawing-controls" role="group" aria-label="设置比例尺">${btn("取消", "spScaleCancel", {}, "spatial-drawing-trigger")}</div>` : "");
   // 2.73 E1065：取点时画布左上（新建功能区的位置）放 32 高的“取消”，操作提示仍在左下
@@ -100181,6 +100182,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.26",
+    date: "2026-11-07",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
   {
     version: "3.25",
     date: "2026-11-07",
