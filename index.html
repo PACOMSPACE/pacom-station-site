@@ -30069,7 +30069,7 @@ textarea.rpt-auto {
 #app .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td > small.dev-sub-a > .flow-lk-ref:hover { color: var(--ds-ink); }
 /* 3.18 V1166：“Mesh”本身是链接时与正文同样大小、颜色，悬停加下划线 */
 #app .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td > .dev-acc-lk { display: inline; height: auto; min-height: 0; padding: 0; font-weight: 400; vertical-align: baseline; }
-/* 3.18 E1257：放不下规范列宽时（1366 及更窄），型号、类型、功能区、位置一行省略并按比例收窄，每列不小于 72；“设备”不小于 200，接入、状态不变 */
+/* 3.18 E1257：放不下规范列宽时（1366 及更窄），型号、类型、功能区、位置一行省略并按比例收窄，每列不小于 72；“设备”不小于 200，接入、状态不变（3.19 L17-3 起六列一起等比例收窄，见文末） */
 @media (min-width: 600px) {
   .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td:is(:nth-last-child(6), :nth-last-child(7)) { max-width: 0; }
   .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:is(:nth-last-child(4), :nth-last-child(5), :nth-last-child(6), :nth-last-child(7)) { min-width: 72px; }
@@ -30082,6 +30082,25 @@ textarea.rpt-auto {
 /* 3.18 E1260：右侧面板里小标题不带浏览器默认外边距，标题到表 12，节与节之间 24（原标题上下各多 21，标题到表 33） */
 .v13-drawer .flow-section-head > h4 { margin: 0; }
 .v13-drawer .flow-section-head.flow-group-h { margin-top: 24px; }
+/* 3.19 L17-3、E1265：窗口放不下规范列宽时，除“设备”外的六列从规范宽度（型号 88、类型 128、功能区 128、位置 112、接入 160、状态 200）等比例收窄，
+   到下限为止（72、72、104、72、136、184；状态第二行“最近通信 12 月 24 日 09:22”宽 144，另有缩进 16，加内边距 24），“设备”不小于 200（原只有前四列收窄，“功能区”被压到 92，短名称也省略）。
+   等比例系数 t 按“先到下限的列先停”算：状态、接入、型号、功能区、位置、类型依次到下限，t 取各段反解的最小值；--dl-a 为六列可分的总宽（表宽减“设备”200、行尾 56） */
+@media (min-width: 600px) {
+  .dev-ledger-frame > .tw:has(> .dev-ledger-table:not(.net-ledger)) { container-type: inline-size; }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) { --dl-a: calc(100cqw - 256px); }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(7) { width: max(72px, min(88px, calc(var(--dl-a) * 88 / 816), calc((var(--dl-a) - 184px) * 88 / 616), calc((var(--dl-a) - 320px) * 88 / 456), calc((var(--dl-a) - 392px) * 88 / 368), calc((var(--dl-a) - 496px) * 88 / 240), calc((var(--dl-a) - 568px) * 88 / 128))); min-width: 72px; }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(6) { width: max(72px, min(128px, calc(var(--dl-a) * 128 / 816), calc((var(--dl-a) - 184px) * 128 / 616), calc((var(--dl-a) - 320px) * 128 / 456), calc((var(--dl-a) - 392px) * 128 / 368), calc((var(--dl-a) - 496px) * 128 / 240), calc((var(--dl-a) - 568px) * 128 / 128))); min-width: 72px; }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(5) { width: max(104px, min(128px, calc(var(--dl-a) * 128 / 816), calc((var(--dl-a) - 184px) * 128 / 616), calc((var(--dl-a) - 320px) * 128 / 456), calc((var(--dl-a) - 392px) * 128 / 368), calc((var(--dl-a) - 496px) * 128 / 240), calc((var(--dl-a) - 568px) * 128 / 128))); min-width: 104px; }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(4) { width: max(72px, min(112px, calc(var(--dl-a) * 112 / 816), calc((var(--dl-a) - 184px) * 112 / 616), calc((var(--dl-a) - 320px) * 112 / 456), calc((var(--dl-a) - 392px) * 112 / 368), calc((var(--dl-a) - 496px) * 112 / 240), calc((var(--dl-a) - 568px) * 112 / 128))); min-width: 72px; }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(3) { width: max(136px, min(160px, calc(var(--dl-a) * 160 / 816), calc((var(--dl-a) - 184px) * 160 / 616), calc((var(--dl-a) - 320px) * 160 / 456), calc((var(--dl-a) - 392px) * 160 / 368), calc((var(--dl-a) - 496px) * 160 / 240), calc((var(--dl-a) - 568px) * 160 / 128))); min-width: 136px; }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(2) { width: max(184px, min(200px, calc(var(--dl-a) * 200 / 816), calc((var(--dl-a) - 184px) * 200 / 616), calc((var(--dl-a) - 320px) * 200 / 456), calc((var(--dl-a) - 392px) * 200 / 368), calc((var(--dl-a) - 496px) * 200 / 240), calc((var(--dl-a) - 568px) * 200 / 128))); min-width: 184px; }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td:is(:nth-last-child(2), :nth-last-child(3), :nth-last-child(4), :nth-last-child(5), :nth-last-child(6), :nth-last-child(7)) { max-width: 0; }
+  .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td > small.flow-sub { max-width: 100%; }
+  #app .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td > small.flow-sub.dev-sub-a { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  #app .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > tbody > tr > td > small.dev-sub-a > .flow-lk-ref { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  /* 右侧打开设备信息时只留“设备”“状态”，状态仍为 200 */
+  #pbody:has(> #wsSheet) .dev-ledger-frame .dev-ledger-table:not(.net-ledger) > thead > tr > th[scope=col]:nth-last-child(2) { width: 200px; min-width: 200px; }
+}
 
 }
 @layer base {
@@ -56308,7 +56327,8 @@ function devNetworkCell(db, p) {
   // 3.18 V1166（L17-2）：网络名称与“位置”列相同（如“E栋 · 7F”）时不写第二行，第一行“Mesh”本身是链接，读屏写出网络名称
   if (to && !conn && via && p.floorId && to.name === floorText(p.floorId))
     return devLedgerLabel("接入") + `<button class="btn ghost flow-lk flow-lk-ref dev-acc-lk" data-act="networkInfo" data-id="${esc(to.id)}" aria-label="${esc(`${via}，${to.name}`)}">${nwWords(via)}</button>`;
-  if (to) return devLedgerLabel("接入") + `${via ? nwWords(via) : ""}<small class="flow-sub dev-sub-a">${btn(nwWords(to.name), conn ? "connectionInfo" : "networkInfo", { id: to.id }, "ghost flow-lk flow-lk-ref")}</small>`;
+  // 3.19 E1265：第二行一行写，放不下时省略，省略时悬停显示全文（第一行接入方式写全）
+  if (to) return devLedgerLabel("接入") + `${via ? nwWords(via) : ""}<small class="flow-sub dev-sub-a"><button class="btn ghost flow-lk flow-lk-ref" data-act="${conn ? "connectionInfo" : "networkInfo"}" data-id="${esc(to.id)}" data-tip="${esc(to.name)}" data-tip-trunc>${esc(to.name)}</button></small>`;
   return devLedgerLabel("接入") + (["system", "cell"].includes(access) ? nwWords(text) : `<span class="muted">尚未规划</span>`);
 }
 // 2.88 E1126：“位置”列写楼栋、楼层与功能区（E栋 · 7F · 实验室 E）；未放置、未归属功能区的灰字接在楼层后。
@@ -59227,7 +59247,8 @@ function showConfigurationList(id, scope = "") {
           "",
         ],
       })),
-      "全部设备已同步",
+      // 3.19 E1264：“全部”里仍有待绑定、待重新绑定的点位时不写“全部设备已同步”
+      rows.some(([p]) => !F.boundNow(p)) ? "已绑定的设备都已同步" : "全部设备已同步",
     )}`,
     btn("关闭", "close") +
       (canEdit() && F.fieldPoints(data(), id).some((p) => F.boundNow(p) && F.syncState(data(), p) !== "已同步")
@@ -76910,7 +76931,8 @@ function opsPlanLayout(plan) {
       if (z.classList.contains("noname") && plan.closest?.(".ov2")) {
         const al = /\bal[012]\b/.test(z.className),
           // 3.10 V1067：名称框裁掉超出部分，编号（7-1）比块宽时 zl.scrollWidth 量不到，另看名称框本身的内容宽（原手机上只剩“7”）
-          ok = () => zl.offsetHeight <= H && zl.scrollWidth <= W + 1 && (!zn || zn.scrollHeight <= zn.clientHeight + 1) && (!zn || z.classList.contains("ell") || zn.scrollWidth <= W + 1) && (!b || b.scrollWidth <= W + 1) && zfIn() && (!z.classList.contains("ell") || opsEll2(zn)),
+          // 3.19 V1167：编号、11 号字与分行的名称压住设备图标时也不写（同上面一行放得下时的判断；原“设备”视图露出“7”“70”），选中的功能区除外
+          ok = () => zl.offsetHeight <= H && zl.scrollWidth <= W + 1 && (!zn || zn.scrollHeight <= zn.clientHeight + 1) && (!zn || z.classList.contains("ell") || zn.scrollWidth <= W + 1) && (!b || b.scrollWidth <= W + 1) && zfIn() && (!z.classList.contains("ell") || opsEll2(zn)) && (!zn || z.classList.contains("on") || !icons.some((r) => cross(rect(zn), r))),
           tryAs = (k) => {
             z.classList.remove("noname");
             z.classList.add(...k.split(" "), "v12");
@@ -76931,6 +76953,8 @@ function opsPlanLayout(plan) {
             z.classList.add("noname");
             return false;
           };
+        // 3.19 E1263：选中的功能区一行写不下全名时直接写白底一行全名标签（同 SPACE04“选中显示全名”），不先写编号、不分行
+        if (zn && z.classList.contains("on")) return void (z.classList.remove("noname"), z.classList.add("sm", "v12", "noval", "zfloat"));
         if (zn?.dataset.code && tryAs("code")) return;
         if (zn && tryAs("sm")) return; // 3.16 V1141：编号也放不下时名称缩到 11 号字，仍放不下不写名称；不用省略号（原 V1032 以省略号截断）
         // 3.18 V1162：每行至少放得下两个字（11 号字两字加内边距 30）才分行，不逐字竖排（V819 已去掉竖排）
@@ -100055,11 +100079,15 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "3.19",
+    date: "2026-11-07",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
+  {
     version: "3.18",
     date: "2026-11-07",
     notes: [
-      "改进：逐项配置的“未同步”只计已绑定的设备，“全部”也列出待绑定的设备；网关写出全部下级设备。",
-      "改进：设备列表在较窄的窗口里各列保持一行；功能区名称分行时不拆开词语。",
+      "改进：逐项配置的“未同步”只计已绑定的设备，“全部”也列出待绑定的设备；网关的下级设备包括经它采集的系统接入设备。",
       "修复已知问题，优化界面细节。",
     ],
   },
