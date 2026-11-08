@@ -35017,6 +35017,7 @@ p.an4-links { display: flex; margin: 0; }
   #app[data-sp-ed] .ws-canvas-col { padding: 0; border-radius: 16px; background: #fff; box-shadow: var(--ds-sh-xs); }
   #app[data-sp-ed] .ws-canvas-top { height: 48px; min-height: 48px; margin: 0; padding: 0 16px 0 20px; border-bottom: 1px solid #ebebeb; flex-wrap: nowrap; justify-content: flex-start; }
   #app[data-sp-ed] .ws-canvas-top > .spatial-layer-controls { position: static; margin-left: auto; }
+  #app[data-sp-ed] .mk-bench.mk-overlay.with-panel .ws-canvas-top { margin-right: var(--ds-side); } /* 3.32 V1202：设备模式的面板覆盖展开时，“图层”移到面板左边 */
   /* 3.28 E1280：面板覆盖画布时“图层”让出面板宽度，停在面板左边看得见的画布里（原被面板盖住）；面板收起后回到图卡右端 */
   #app[data-sp-ed] .sp-bench.with-panel.sp-overlay .ws-canvas-top > .spatial-layer-controls { margin-right: var(--ds-side); }
   #app[data-sp-ed] .ws-canvas-viewport { border-radius: 0; }
@@ -35078,9 +35079,14 @@ p.an4-links { display: flex; margin: 0; }
 /* 手机：标题行只放规划检查（图标）、“保存规划”“完成”与“⋯”，撤销、重做收起 */
 @media (max-width: 600px) {
   .sp-ed-tb .mk-hist, .sp-ed-tb .sp-ed-n { display: none; }
-  .sp-ed-tb .mk-pill > span { display: none; }
-  .sp-ed-tb .mk-pill { padding-inline: 8px; }
   .sp-ed-tb > * { flex: none; } /* 3.16 E1237：“⋯”保持圆形，不被挤窄 */
+  /* 3.32 E1310：页头在 360 宽也放得下：规划检查收进“⋯”（与撤销、重做同组），“⋯”点击区 44，楼层名过长时省略 */
+  .sp-ed-tb > .mk-pill, .sp-ed-tb > .sp { display: none; }
+  #app[data-sp-full] .phead > .sp-ed-tb.ws-head-tb.toolbar > .btn.btn:not(#_) { padding-inline: 12px; } /* 高于全站按钮左右 22 的规则 */
+  #app[data-sp-full] .sp-ed-tb > .iconbtn { width: 44px; min-width: 44px; height: 44px; }
+  #app[data-sp-full] .phead { padding-inline: 16px; flex-wrap: nowrap; }
+  #app[data-sp-full] .phead > h1 { flex: 1 1 auto; white-space: nowrap; }
+  #app[data-sp-full] .phead > .sp-ed-tb { flex: 0 0 auto; gap: 4px; }
 }
 @media (max-width: 850px) {
   #app[data-sp-ed] .mk-bench .ws-canvas-top { height: auto; flex-direction: column; align-items: flex-end; gap: 8px; padding-right: 0; }
@@ -41450,7 +41456,7 @@ const StationFlowModel = ((M) => {
   function connectionChecks(db, c) {
     const receipt = (kind) => (c.verifications || []).find((r) => r.kind === kind && r.version === (c.version || 1)),
       state = (kind) => receipt(kind)?.status || "未验证",
-      apps = [...(db.configs || []).filter((x) => x.projectId === c.projectId && x.values?.connectionId === c.id), ...(hvacConnection(db, c) ? ["暖通空调"] : [])];
+      apps = [...(db.configs || []).filter((x) => x.projectId === c.projectId && energyConnIds(x.values).includes(c.id)), ...(hvacConnection(db, c) ? ["暖通空调"] : [])];
     return [
       { key: "connection", label: "连接", state: state("connection") },
       { key: "data", label: "数据", state: c.mappings?.length ? state("data") : "无映射" },
@@ -41676,6 +41682,10 @@ const StationFlowModel = ((M) => {
   };
 })(typeof module !== "undefined" ? require("./workspace-model.js") : StationModel);
 if (typeof module !== "undefined") module.exports = StationFlowModel;
+// 3.32 E1304：能耗设置的计量来源可多选（connectionIds）；更早保存的只有一个 connectionId
+function energyConnIds(v) {
+  return v?.connectionIds?.length ? [...v.connectionIds] : v?.connectionId ? [v.connectionId] : [];
+}
 
 /* demo-data.js — 演示层：示例数据（E栋 7F 按 V1.3 规划完整部署并交付），所有数值均为示例。
    只在演示版加载，正式版不包含本文件。数据模式：示例数据（demo）、本地规划（current）；
@@ -43654,7 +43664,8 @@ function locApply(page) {
 const curPage = () => (U.page === "overview" && U.sp ? "space" : U.spEd ? "space" : U.page);
 function route(page, scope = {}, opts = {}) {
   guard(() => {
-    const sp = page === "space" || (page === "overview" && (scope.obj ? obMenuOf(scope.obj) === "space" : "sp" in scope ? !!scope.sp || !!scope.f : !!scope.f || (U.page === "overview" && !!U.sp && !opts.restore)));
+    const wasFull = spFull(),
+      sp = page === "space" || (page === "overview" && (scope.obj ? obMenuOf(scope.obj) === "space" : "sp" in scope ? !!scope.sp || !!scope.f : !!scope.f || (U.page === "overview" && !!U.sp && !opts.restore)));
     if (page === "space") page = "overview";
     const memKey = sp ? "space" : page;
     closePop();
@@ -43667,8 +43678,6 @@ function route(page, scope = {}, opts = {}) {
     // 2.13 E225：项目页切换层级时停靠的信息面板保持展开，内容换成所到层级的信息（楼层页除外，楼层页右侧是功能区面板）。
     const keepInfo = U.page === "projects" && page === "projects" && !!U.spaceInfo && infoDocked();
     if (opts.remember) U.history.push(from);
-    // 3.30 部署流程第三节第 6 条：从部署进度进入编辑器时记下打开它的按钮，回来时找回
-    if (opts.remember && U.page === "deployment" && page !== "deployment") U.spEdRet = wsFocusDesc(document.activeElement);
     if (!U.spEd && !U.obj) U.memory[devDeploy() ? "devDeploy" : curPage()] = snapshot(); // 3.31：对象页不记作菜单的本页记忆（侧栏回到设备、空间时打开列表与楼层图） // 3.16：部署的设备页签不记作设备页的记忆；3.14：编辑不记作空间的本页记忆（侧栏回到空间时打开楼层图）
     if (typeof opsRouteLeaving === "function") opsRouteLeaving(page, scope);
     if (U.f) U.floorViewport[U.f] = { zoom: U.zoom, x: U.canvasScrollX || 0, y: U.canvasScrollY || 0 };
@@ -43754,7 +43763,8 @@ function route(page, scope = {}, opts = {}) {
     // 来源返回：从配置进度、配置参数、设备、总览进入项目空间时记住来源；回到来源、离开项目、换项目或上行到全部项目时清除。
     if ("source" in opts) U.source = opts.source;
     else if (opts.remember && fromLabel && page !== from.page)
-      U.source = { ...from, ...(fromInfo ? { spaceInfo: fromInfo } : {}), label: fromLabel, ...(from.page === "deployment" ? { scrollTop: $("#pbody")?.scrollTop || 0 } : {}) };
+      // 3.30 部署流程第三节第 6 条、3.32 E1319：从部署进度离开时记下滚动与打开它的按钮（focus），“返回部署进度”展开原来的步骤并找回
+      U.source = { ...from, ...(fromInfo ? { spaceInfo: fromInfo } : {}), label: fromLabel, ...(from.page === "deployment" ? { scrollTop: $("#pbody")?.scrollTop || 0, focus: wsFocusDesc(document.activeElement) } : {}) };
     const src = U.source;
     if (src && (opts.root || (page === "projects" && !U.p) || (U.p && src.p && U.p !== src.p) || (page === src.page && U.tab === (src.tab || "") && U.b === src.b && U.f === src.f && (U.obj || null) === (src.obj || null))))
       U.source = null;
@@ -43767,6 +43777,12 @@ function route(page, scope = {}, opts = {}) {
     U.nextScroll = opts.restore && U.memory[memKey] ? U.memory[memKey].scroll || 0 : scope.scroll || 0;
     syncRoute();
     render();
+    // 3.32 E1309：进入整页编辑器时焦点在“←”（“去处理”“下一项”另把焦点放到要做的动作上）
+    if (!wasFull && spFull())
+      requestAnimationFrame(() => {
+        const a = document.activeElement;
+        if (!a || a === document.body || !a.isConnected) $("#app .sp-ed-back")?.focus({ preventScroll: true });
+      });
   });
 }
 function syncRoute(replace = false) {
@@ -45214,7 +45230,8 @@ function spEdBar(extra = "") {
     redo = zones ? hist("重做", "redo", "spRedo", spRedoOk() && canEdit()) : hist("重做", "redo", "redo", U.redo.length);
   return `<div class="toolbar ws-toolbar ws-head-tb sp-ed-tb" role="toolbar" aria-label="编辑"><span class="sp"></span><span class="mk-hist">${undo}${redo}</span>${checks ? checkPill(checks).replace('data-act="checksToggle"', `data-act="${zones ? "spEdChecks" : "checksToggle"}"`) : ""}${planSaveBtn(`保存规划${n ? `<span class="sp-ed-n">${n}</span>` : ""}`, "savePlan", "primary")}${btn("完成", "spEdDone")}${menuTrigger(iconBtn("更多", "more", "spEdMore"))}${extra}</div>`;
 }
-// “⋯”：上传楼层图、设置比例尺、设置北向、楼层资料 │ 复制功能区到其他楼层、复制设备到其他楼层、现场安装资料
+// “⋯”：更换楼层图、楼层图版本、设置比例尺、设置北向、楼层资料、修改记录 │ 复制功能区到其他楼层、复制设备到其他楼层、现场安装资料
+// （3.32 E1311：加“楼层图版本”与本层“修改记录”；E1310：手机上规划检查与撤销、重做同在第一组）
 function spEdMoreItems() {
   const f = currentFloor();
   if (!f) return "";
@@ -45225,15 +45242,22 @@ function spEdMoreItems() {
     zones = U.page === "projects",
     off = (html, on) => (on ? html : html.replace("<button ", "<button disabled ")),
     // 3.16 E1237：手机上标题行不放撤销、重做，收进“⋯”的第一组
-    hist = matchMedia("(max-width: 600px)").matches
-      ? off(it("undo", "撤销", zones ? "spUndo" : "undo"), zones ? !!U.spUndo?.length && canEdit() : !!U.undo.length) + off(it("redo", "重做", zones ? "spRedo" : "redo"), zones ? spRedoOk() && canEdit() : !!U.redo.length) + "<hr>"
+    phone = matchMedia("(max-width: 600px)").matches,
+    ck = phone && f.image ? F.planChecks(data(), { floorId: f.id }) : null,
+    hist = phone
+      ? off(it("undo", "撤销", zones ? "spUndo" : "undo"), zones ? !!U.spUndo?.length && canEdit() : !!U.undo.length) +
+        off(it("redo", "重做", zones ? "spRedo" : "redo"), zones ? spRedoOk() && canEdit() : !!U.redo.length) +
+        (ck ? it(ck.blocks.length ? "alert" : "check", `规划检查${ck.blocks.length || ck.hints.length ? ` · 阻止 ${ck.blocks.length} · 提示 ${ck.hints.length}` : ""}`, zones ? "spEdChecks" : "checksToggle") : "") +
+        "<hr>"
       : "";
   return [
     hist,
     it("upload", (f.image ? "更换" : "上传") + w, "spEdAct", { do: "uploadPlan" }),
+    f.image ? it("image", w + "版本", "planVersions") : "",
     f.image ? it("ruler", "设置比例尺", "spEdAct", { do: "scale" }) : "",
     f.image ? it("rotate-ccw", "设置北向", "spEdAct", { do: "northForm" }) : "",
     it("info", out ? "总平面资料" : "楼层资料", "spaceForm", { kind: "floors", id: f.id }),
+    it("file-text", "修改记录", "floorRecords"),
     f.image && !out ? "<hr>" + it("copy", "复制功能区到其他楼层", "zcForm", { source: f.id }) + it("copy", "复制设备到其他楼层", "spEdAct", { do: "dcForm" }) : f.image ? "<hr>" : "",
     f.image && n ? it("download", "现场安装资料", "installKit", { id: n.id }) : "",
   ].join("");
@@ -45294,20 +45318,16 @@ function spEdFloorList(fs) {
 }
 function spEdLeave() {
   const f = U.spEd === "3d" ? null : U.f,
-    s = U.source,
-    ret = U.spEdRet;
+    s = U.source;
   U.depQ = null;
-  U.spEdRet = null;
   if (U.spEd === "3d") U.ovView = "3d";
-  else if (s && spEdFrom() !== "空间") {
-    // 3.30 部署流程第三节第 6 条：回到打开编辑器的页面；部署进度展开原来的步骤，焦点回到原按钮（该条已处理时回到步骤行）
-    const k = ret?.depStep?.replace(/^v13-step-/, "");
-    if (s.page === "deployment" && k) U.v13Open = { ...(U.v13Open || {}), [k]: true };
-    actions.sourceBack();
-    if (U.page === "deployment" && ret) wsFocusBack(ret);
-    return;
-  }
-  route("space", { p: U.p, b: U.b, f, tab: "" });
+  // 3.30 部署流程第三节第 6 条：回到打开编辑器的页面；部署进度展开原来的步骤，焦点回到原按钮（该条已处理时回到步骤行）；
+  // 3.32 E1318：从网络详情打开的回到这个网络的详情与原页签
+  else if (s && spEdFrom() !== "空间") return actions.sourceBack();
+  // 3.32 E1309、V1203：回到空间时恢复原来的图层页签与滚动（“楼层图 | 列表”不变），楼层为编辑器里的当前层，焦点回到“编辑”
+  const sp = s?.page === "overview" && s.sp ? s : null;
+  route("space", { p: U.p, b: U.b, f, tab: U.spEd === "3d" ? "" : sp?.tab || "", scroll: sp?.scroll || 0 }, { source: null });
+  requestAnimationFrame(() => $('#app [data-act="spEdOpen"]')?.focus({ preventScroll: true }));
 }
 defineActions({
   // 空间标题行的“编辑”：楼层图时打开该层的编辑（上次用的模式，默认“功能区”），3D 时打开 3D 模型的配置
@@ -47981,9 +48001,10 @@ defineActions({
     if (U.page === "deployment" && DEPLOY_TABS.includes(a.value)) {
       const L = locOwner() && U.role !== "member" ? locFor("devices") : null, m = U.memory.devices || {},
         b = L && L.p === U.p ? L.b : m.p === U.p ? m.b : null;
-      return route("devices", { p: U.p, b: b || null, f: null, tab: a.value, net: null });
+      return route("devices", { p: U.p, b: b || null, f: null, tab: a.value, net: null }, { source: null });
     }
-    if (devDeploy() && a.value === "status") return route("deployment", { p: U.p, b: null, f: null, tab: "status", net: null });
+    if (devDeploy() && a.value === "status") return route("deployment", { p: U.p, b: null, f: null, tab: "status", net: null }, { source: null });
+    if (devDeploy()) U.source = null; // 3.32 E1319：在部署页签之间切换后不再显示“返回部署进度”
     if (typeof opsHistoryReplace === "function") opsHistoryReplace();
     if (U.page === "alarms") U.opsDrawer = null;
     return guard(() => {
@@ -50599,7 +50620,9 @@ function sourceLabel() {
 }
 function sourceBack() {
   if (U.spEd) return ""; // 3.14 E1207：空间的编辑以“完成”回到楼层图，不另放来源返回
-  if (devDeploy() && U.source?.page === "deployment") return ""; // 3.17 E1250：部署四个页签之间不加来源返回（从“进度”的行进入设备网络等）
+  // 3.17 E1250：部署四个页签之间不加来源返回（从“进度”的行进入设备网络等）；网络详情、连接详情的返回按钮改写“返回部署进度”（3.32 E1319）；
+  // 3.32 E1319：固件升级从进度进入时页头有“返回部署进度”
+  if (devDeploy() && U.source?.page === "deployment" && U.tab !== "firmware") return "";
   // 设备网络详情自带“返回”，不重复显示来源返回。
   // 从配置进度“应用设置”表的“工作日历”进入场景 › 定时时同样有来源返回（ABB 对比 IA3）
   // 从总览、数据分析的“查看设置”进入应用设置时同样有来源返回（2.05 总览核查 V111）；从配置进度进入时同样（2.65 E938）；从场景 › 定时的“工作日历”进入时同样（2.66 V484）
@@ -51097,12 +51120,20 @@ defineActions({
   sourceBack: () => {
     const s = U.source;
     if (!s) return;
-    const { label, spaceInfo, scrollTop, ...scope } = s;
+    const { label, spaceInfo, scrollTop, focus, prev, ...scope } = s;
     // 2.65 E931：回到配置进度时恢复原滚动位置
     if (scrollTop) U.restoreScroll = scrollTop;
+    // 3.32 E1319：回到部署进度时展开原来的步骤，焦点回到原按钮（该条已处理时回到步骤行）
+    const k = s.page === "deployment" && focus?.depStep ? focus.depStep.replace(/^v13-step-/, "") : "";
+    if (k) U.v13Open = { ...(U.v13Open || {}), [k]: true };
     // 信息面板中的对象已不存在时不再打开，只回到来源页（核查 S12）。
     const info = spaceInfo && (spaceInfo.kind === "all" || g(spaceInfo.kind, spaceInfo.id)) ? spaceInfo : null;
-    route(s.page, info ? { ...scope, spaceInfo: info } : scope, { source: null });
+    // 3.32 E1318：来源可以接续（部署进度 › 网络详情 › 楼层编辑器），回到上一层时恢复它的来源
+    route(s.page, info ? { ...scope, spaceInfo: info } : scope, { source: prev || null });
+    if (focus) {
+      if (U.page === "deployment") wsFocusBack(focus);
+      else requestAnimationFrame(() => wsFindDesc(focus)?.focus({ preventScroll: true }));
+    }
     // 来源返回后焦点在空间选择器上（项目页；核查 R22）。
     if (U.page === "projects") requestAnimationFrame(() => $("#app .ws-locrow button.ws-locseg")?.focus({ preventScroll: true }));
   },
@@ -51155,18 +51186,20 @@ function spFixGo(a) {
   goFloor(fid);
   // 有未保存修改时 goFloor 先询问放弃；未离开原处则不继续。
   if (U.f !== fid || U.page !== "projects") return;
-  if (a.fix === "upload") return actions.uploadPlan({ f: fid });
-  if (a.fix === "scale" && f.image) return actions.scale();
   const at = (sel) => requestAnimationFrame(() => $(sel)?.focus({ preventScroll: true }));
-  if (a.fix === "review") { U.spTab = "floor"; U.spPanel = true; render(); return at(".sp-plan-review [data-act=planReviewDone]"); }
+  // 3.32 E1308：焦点跟到要做的动作上（规范 SPACE04“去处理”）：上传为空状态的“上传楼层图”（在编辑器外时打开上传弹窗），
+  // 比例尺为楼层图（画布左上为“取消”），换图复核为“完成复核”，未设类型为“空间类型”，划分功能区为“新建功能区”
+  if (a.fix === "upload") return U.spEd ? at('#app .ws-empty [data-act="uploadPlan"]') : actions.uploadPlan({ f: fid });
+  if (a.fix === "scale" && f.image) return actions.scale(), at("#floorCanvas");
+  if (a.fix === "review") { U.spPanel = true; render(); return at(".sp-plan-review [data-act=planReviewDone]"); }
   if (a.fix === "type") {
     const z = data().zones.filter((x) => x.floorId === fid && !x.spaceType).sort(M.byName)[0];
     if (!z) return;
-    Object.assign(U, { zone: z.id, spTab: "zones" });
+    Object.assign(U, { zone: z.id, spPanel: true });
     syncRoute(); render();
     return at("#spZType-control");
   }
-  if (a.fix === "draw") { U.spTab = "zones"; render(); return at(isMobile() ? "#floorCanvas" : ".spatial-drawing-trigger"); }
+  if (a.fix === "draw") { U.spPanel = true; render(); return at(isMobile() ? "#floorCanvas" : '#app .sp-ed-panel [data-act="startZone"]'); }
 }
 // 3.30 部署流程第四节第 2 项：“下一项”条复用逐层查看条（第 14 章 §17）：“待办 3 / 12 · E栋 · 8F · 设置比例尺”与“退出”“下一项”（最后一项为“完成”）。
 // 按部署进度“空间资料”的待办顺序走，跳过已处理的待办；“退出”只关闭这一条，留在编辑器；离开编辑器即结束
@@ -51187,6 +51220,8 @@ const depQCur = () => (U.depQ && U.page === "projects" && U.spEd === "zones" && 
 function depQNextIdx(q) {
   const live = new Set(depQTodos(q.p).map((x) => x.f + "|" + x.fix));
   for (let j = q.i + 1; j < q.items.length; j++) if (live.has(q.items[j].f + "|" + q.items[j].fix)) return j;
+  // 3.32 E1307：走到最后一条后，接着从这一步第一条未处理的走；没有其他未处理的才是“完成”
+  for (let j = 0; j < q.i; j++) if (live.has(q.items[j].f + "|" + q.items[j].fix)) return j;
   return -1;
 }
 function depQBar(f) {
@@ -53523,11 +53558,18 @@ defineActions({
     modal(
       planWord(f.buildingId) + "版本",
       `<div class="tw"><table class="t plan-versions"><thead><tr><th>版本</th><th>上传时间</th><th>上传人</th><th aria-label="操作"></th></tr></thead><tbody>${F.planVersions(data(), f)
-        .map((v) => `<tr><td>v${v.version}${v.restoredFrom ? `<small>由 v${v.restoredFrom} 恢复</small>` : ""}</td><td>${v.at ? esc(projectDate(v.at, U.p)) : "—"}</td><td>${esc(v.actor || "—")}</td><td class="act">${v.current ? '<span class="muted">当前</span>' : ed ? btn("恢复", "planRevert", { version: v.version }, "sm") : ""}</td></tr>`)
+        // 3.32 E1311：当前版本行末给机构管理员“下载原件”（上传时保存了原件）
+        .map((v) => `<tr><td>v${v.version}${v.restoredFrom ? `<small>由 v${v.restoredFrom} 恢复</small>` : ""}</td><td>${v.at ? esc(projectDate(v.at, U.p)) : "—"}</td><td>${esc(v.actor || "—")}</td><td class="act">${v.current ? '<span class="muted">当前</span>' + (U.role === "admin" && f.planSource?.fileId ? btn("下载原件", "planOriginal", { f: f.id }, "sm") : "") : ed ? btn("恢复", "planRevert", { version: v.version }, "sm") : ""}</td></tr>`)
         .join("")}</tbody></table></div>`,
       btn("关闭", "close"),
       false,
     );
+  },
+  // 3.32 E1311：编辑器“⋯”的“修改记录”：本层的修改记录
+  floorRecords: () => {
+    const f = currentFloor();
+    if (!f) return;
+    modal(`修改记录 · ${floorText(f.id)}`, recordsTable(data().records.filter((r) => r.objectId === f.id)), btn("关闭", "close"), false);
   },
   planReviewDone: async () => {
     const actor = typeof v13Actor === "function" ? v13Actor() : null, fid = U.f, keep = !!$("#planKeepCal")?.checked;
@@ -56454,6 +56496,8 @@ function devNoFloors() {
       ? empty("尚无项目", "", btn(ico("plus", "ic16") + "新建项目", "spaceForm", { kind: "projects" }, "primary"), "building-2")
       : empty("当前没有可访问的项目", "需机构管理员授权", typeof auAccessBtn === "function" ? auAccessBtn() : "", "building-2");
   if (F.scopedFloors(db, { p: U.p, b: U.b }).some((f) => allowed.has(M.building(db, f.buildingId)?.projectId))) return "";
+  // 3.32 V1201：项目还没有楼宇时写“还没有楼宇”，“新建楼宇”在本页打开弹窗（新建楼宇在部署里完成；原“前往项目”绕回总览）
+  if (U.p && !db.buildings.some((b) => b.projectId === U.p)) return empty("还没有楼宇", "", canEdit() ? btn(ico("plus", "ic16") + "新建楼宇", "v13NewBuilding", { p: U.p }, "primary") : "", "building-2");
   return empty("尚无楼层", "", canEdit() ? btn("前往项目", "markDirProjects", {}, "primary") : "", "building-2");
 }
 function renderInventory() {
@@ -56723,7 +56767,11 @@ function networkHead(n) {
   // 返回与项目页返回上一级同一写法（全面设计核查第 38 条，2026-10-12 用户确认，规范第 124 行）：32 的圆形按钮，名称写明去哪“返回设备网络”。
   // 2.15 E321（2026-10-21 HONG 按建议）：返回按钮放在网络名前、同一行（Lovable 子页面的写法），工具行只有位置选择器和右侧的“楼层图”“⋯”；
   // 标题 18/24、字重 480。原为工具行最左、位置选择器前。E322：去掉标题旁的“已交付”标签，状态只看步骤条。
-  const back = `<button class="btn ws-parent-back" data-act="networkListBack" aria-label="返回设备网络" data-tip="返回设备网络">${ico("back", "ic16")}</button>`;
+  // 3.32 E1319：从部署进度进入时写“返回部署进度”，回到进度原来展开的步骤，焦点回到原按钮
+  const back =
+    U.source?.page === "deployment"
+      ? `<button class="btn ws-parent-back" data-act="sourceBack" aria-label="返回部署进度" data-tip="返回部署进度">${ico("back", "ic16")}</button>`
+      : `<button class="btn ws-parent-back" data-act="networkListBack" aria-label="返回设备网络" data-tip="返回设备网络">${ico("back", "ic16")}</button>`;
   // 2.65 E800：所有角色都写“楼层图”，可编辑者打开即为标记；下一步只用标题行主按钮
   // 2.67 E1028：带边框的 32 高按钮（原为无边框）；手机上收进“网络更多”的第一项
   // 2.81 E1100（KW31 补“子页面的返回、名称与操作同一行”）：“楼层图”“⋯”放到“‹ 网络名”这一行的右端，与下一步主按钮同一组；原为标题上方单独一行工具栏
@@ -60145,19 +60193,23 @@ defineActions({
         : n.floorIds.includes(U.f)
           ? U.f
           : n.floorIds.find((id) => g("floors", id).image) || n.floorIds[0],
-      f = g("floors", fid);
+      f = g("floors", fid),
+      // 3.32 E1317：从部署进度打开时同样进入“设备”模式（edit=mark），“←”回进度；
+      // E1318：从网络详情打开时“←”写“返回设备网络”，回到这个网络的详情与原页签（网络详情从进度进来时，再返回为“返回部署进度”）
+      dev = U.page === "devices" || U.page === "deployment",
+      fromNet = U.page === "devices" && U.tab === "networks" && !!U.net;
     route(
-      U.page === "devices" ? "devices" : "projects",
+      dev ? "devices" : "projects",
       {
         p: n.projectId,
         b: f.buildingId,
         f: fid,
         net: n.id,
-        tab: U.page === "devices" ? "mark" : "",
+        tab: dev ? "mark" : "",
         mode: a.mode || "mark",
         zoom: U.f === fid ? U.zoom : 1,
       },
-      { remember: true },
+      fromNet ? { remember: true, source: { ...snapshot(), label: "设备网络", focus: wsFocusDesc(document.activeElement), prev: U.source || null } } : { remember: true },
     );
   },
   nextNetwork: (a) => {
@@ -65187,17 +65239,26 @@ function reportCarbonText(r) {
 }
 // 计量点：所选连接中的电能数据点（单位为 kWh、Wh 或 MWh，BP57），逐个写表计层级、分项、计入方式与覆盖楼层（1.54 之前只登记一个总表数据点）。
 // 倍率（含 CT/PT）、额定功率与起始底数只在系统接入的数据映射登记，这里只读显示（2026-10-09 用户确认，ABB 对比 BP117 方案A：原先另填“互感器倍率”）
+// 3.32 E1304：conn 可为多个连接（计量来源多选）；保存的计量点按连接与数据点对应（不同连接的寄存器地址可能相同），
+// 更早保存、没有写连接的计量点属于原来唯一的计量来源；所属总表写“连接|数据点”（ref）
 function energyPoints(conn, v = {}) {
-  const ms = energyMappings(conn),
-    saved = v.points || (v.meterKey ? [{ key: v.meterKey, level: "total", use: "total" }] : null),
+  const cs = (Array.isArray(conn) ? conn : [conn]).filter(Boolean),
+    // 没有写计量来源的计量点（只传一个连接时）属于这个连接
+    ids = energyConnIds(v).length ? energyConnIds(v) : cs.length === 1 ? [cs[0].id] : [],
+    old = v.points || (v.meterKey ? [{ key: v.meterKey, level: "total", use: "total" }] : null),
+    ms = cs.flatMap((c) => energyMappings(c).map((m) => ({ ...m, c }))),
     hasTotal = ms.some((m) => energyKindOf(m.name) === "");
   return ms.map((m) => {
-    const s = saved?.find((x) => x.key === m.key),
+    const mine = old && ids.includes(m.c.id) ? old.filter((x) => (x.conn || ids[0]) === m.c.id) : null,
+      saved = mine?.length ? mine : null,
+      s = saved?.find((x) => x.key === m.key),
       legacy = s?.kind === ENERGY_LEGACY_ALL,
       level = s?.level || (s ? (legacy || !s.kind ? "total" : "sub") : energyKindOf(m.name) === "" ? "total" : "sub"),
       kind = level === "total" ? "" : (!legacy && ENERGY_KINDS.includes(s?.kind) && s.kind) || energyKindOf(m.name) || "其他";
     return {
       key: m.key,
+      conn: m.c.id,
+      ref: m.c.id + "|" + m.key,
       name: m.name,
       scale: m.scale ?? 1,
       unit: normUnit(m.unit),
@@ -65208,22 +65269,27 @@ function energyPoints(conn, v = {}) {
       level,
       kind,
       use: s?.use || (saved ? "off" : hasTotal && level !== "total" ? "sub" : "total"),
-      floorIds: s?.floorIds || [...(conn.floorIds || [])],
-      parent: s?.parent || "",
+      floorIds: s?.floorIds || [...(m.c.floorIds || [])],
+      parent: s?.parent ? (String(s.parent).includes("|") ? s.parent : m.c.id + "|" + s.parent) : "",
     };
   }).map((p, i, ps) => ({ ...p, parent: p.parent || energyParentOf(p, ps) }));
 }
 // 分表的所属总表（2026-10-09 用户确认，能耗方案 EN8、EN9，BP116）：没有登记时，只有一块计入总量的总表覆盖该分表的全部楼层才自动带入
 function energyParentOf(p, ps) {
-  const ts = ps.filter((t) => t.key !== p.key && t.level === "total" && t.use === "total" && p.floorIds.every((f) => t.floorIds.includes(f)));
-  return ts.length === 1 ? ts[0].key : "";
+  const ts = ps.filter((t) => t.ref !== p.ref && t.level === "total" && t.use === "total" && p.floorIds.every((f) => t.floorIds.includes(f)));
+  return ts.length === 1 ? ts[0].ref : "";
 }
 // 表单中改为“仅作分项”时：所属总表还没选、且按当前的分项、计入方式与覆盖楼层只有一块总表覆盖时自动带入
+// 表单中勾选的计量来源，按系统接入的顺序（与计量点各行的顺序一致）
+const energyFormConns = () => {
+  const ids = checked("appConnection");
+  return data().connections.filter((c) => ids.includes(c.id));
+};
 function energyParentFill(i) {
-  const conn = g("connections", value("appConnection")),
+  const conns = energyFormConns(),
     input = $("#appParent" + i);
-  if (!conn || !input || input.value) return;
-  const ps = energyPoints(conn, {}).map((p, j) => ({ key: p.key, level: value("appLevel" + j) || p.level, kind: value("appKind" + j) || p.kind, use: value("appUse" + j) || p.use, floorIds: checked("appCover" + j) })),
+  if (!conns.length || !input || input.value) return;
+  const ps = energyPoints(conns, {}).map((p, j) => ({ ref: p.ref, key: p.key, level: value("appLevel" + j) || p.level, kind: value("appKind" + j) || p.kind, use: value("appUse" + j) || p.use, floorIds: checked("appCover" + j) })),
     key = ps[i] && energyParentOf(ps[i], ps),
     button = input.nextElementSibling;
   if (!key) return;
@@ -65283,10 +65349,11 @@ function overviewBasisSnapshot(pid, span) {
   const db = data(), project = g("projects", pid);
   if (!project || !mayViewProject(pid, db)) return null;
   const energy = latestConfig("能耗", pid), v = energy?.values || {},
-    source = v.connectionId && g("connections", v.connectionId),
+    // 3.32 E1304：计量来源可多选
+    sources = energyConnIds(v).map((id) => g("connections", id)).filter((c) => c?.projectId === pid),
     // 删除或跨项目的来源不能借用；旧保存的点位编号仍列明，避免误把缺失来源当作没有计量点。
-    connection = source?.projectId === pid ? source : null,
-    meters = energy && connection ? energyPoints(connection, v).filter((p) => p.use !== "off") : (v.points || []).filter((p) => p.use !== "off").map((p) => ({ ...p, name: p.key, unavailable: true })),
+    connection = sources[0] || null,
+    meters = energy && connection ? energyPoints(sources, v).filter((p) => p.use !== "off") : (v.points || []).filter((p) => p.use !== "off").map((p) => ({ ...p, name: p.key, unavailable: true })),
     check = connection ? F.connectionChecks(db, connection)[1]?.state || "未验证" : null,
     day = span?.[1] || projectTime(dateNow(), false, pid, true).slice(0, 10), from = span?.[0] || day.slice(0, 8) + "01",
     carbons = db.configs.filter((c) => c.projectId === pid && c.kind === "碳排放").sort((a, b) => b.version - a.version),
@@ -65302,7 +65369,7 @@ function overviewBasisSnapshot(pid, span) {
 }
 function overviewBasisMeterHtml(meters) {
   if (!meters.length) return '<p class="muted small">尚未登记使用的计量点。</p>';
-  return `<ul class="ops-statistics-meters">${meters.map((p) => `<li><span>${esc(p.name || p.key)} · ${esc(ENERGY_USES.find(([k]) => k === p.use)?.[1] || "未登记计入方式")}</span><small class="muted">${p.unavailable ? "原计量来源不存在或不属于本项目" : `覆盖 ${esc((p.floorIds || []).length ? coverNames(p.floorIds) : "未登记")}${p.parent ? ` · 所属总表 ${esc(p.parent)}` : ""}`}</small></li>`).join("")}</ul>`;
+  return `<ul class="ops-statistics-meters">${meters.map((p) => `<li><span>${esc(p.name || p.key)} · ${esc(ENERGY_USES.find(([k]) => k === p.use)?.[1] || "未登记计入方式")}</span><small class="muted">${p.unavailable ? "原计量来源不存在或不属于本项目" : `覆盖 ${esc((p.floorIds || []).length ? coverNames(p.floorIds) : "未登记")}${p.parent ? ` · 所属总表 ${esc(meters.find((q) => q.ref === p.parent)?.name || p.parent)}` : ""}`}</small></li>`).join("")}</ul>`;
 }
 // 统计口径弹窗分能耗、碳排放两节，每节标题右端“查看设置 ›”，不放底部按钮；碳排放一节收进原“核算口径”卡的内容，也写最近修改与活动数据
 // （2.07，数据分析核查 V130、V140，2026-10-17 用户确认：原底部为“查看能耗设置”“查看碳排放设置”两个按钮）
@@ -65363,12 +65430,14 @@ function showOverviewBasis(project, sec) {
   // 2.66 V652：能源选中“用电碳排放”时，“统计口径”打开后定位到碳排放一节；室内环境定位到室内环境一节
   if (sec) requestAnimationFrame(() => { const el = document.querySelector(`#dlg [data-sec="${sec}"]`); el?.scrollIntoView?.({ block: "start" }); el?.focus?.({ preventScroll: true }); });
 }
-function energyPointsHtml(connId, v) {
-  const conn = g("connections", connId);
-  if (!conn) return `<p class="muted small appset-points-tip">选择计量来源后，逐个登记其中的电能数据点。</p>`;
-  const ps = energyPoints(conn, connId === v.connectionId ? v : {}),
-    dataState = F.connectionChecks(data(), conn)[1].state,
-    fs = conn.floorIds || [];
+// 3.32 E1304：ids 为勾选的计量来源；多个来源时各计量点写所属连接
+function energyPointsHtml(ids, v) {
+  const conns = data().connections.filter((c) => [].concat(ids || []).includes(c.id));
+  if (!conns.length) return `<p class="muted small appset-points-tip">选择计量来源后，逐个登记其中的电能数据点。</p>`;
+  const ps = energyPoints(conns, v),
+    multi = conns.length > 1,
+    stateOf = (p) => F.connectionChecks(data(), g("connections", p.conn))[1].state,
+    dataState = conns.every((c) => F.connectionChecks(data(), c)[1].state === "已通过") ? "已通过" : "未验证";
   if (!ps.length) return `<p class="muted small appset-points-tip">所选连接没有电能数据点（单位为 kWh、Wh 或 MWh）；先在系统接入的数据映射中登记。</p>`;
   return (
     // 2.70 E1055：“计量点”与“计量来源”同为字段名样式，ⓘ 紧跟名称，不写个数（下面的卡片逐个列出）
@@ -65376,7 +65445,7 @@ function energyPointsHtml(connId, v) {
     ps
       .map(
         (p, i) =>
-          `<fieldset class="appset-point" data-key="${esc(p.key)}"><legend>${esc(p.name)}<small>${esc(p.key)} · 倍率 ${esc(p.scale)}${p.unit !== "kWh" ? ` · 单位 ${esc(p.unit)}，换算为 kWh` : ""} · 数据验证${dataState === "已通过" ? "已通过" : "未验证"}</small></legend><div class="ws-form-row">${fld(
+          `<fieldset class="appset-point" data-key="${esc(p.ref)}"><legend>${esc(p.name)}<small>${multi ? esc(g("connections", p.conn)?.name || "") + " · " : ""}${esc(p.key)} · 倍率 ${esc(p.scale)}${p.unit !== "kWh" ? ` · 单位 ${esc(p.unit)}，换算为 kWh` : ""} · 数据验证${stateOf(p) === "已通过" ? "已通过" : "未验证"}</small></legend><div class="ws-form-row">${fld(
             "表计层级",
             "appLevel" + i,
             select("appLevel" + i, ENERGY_LEVELS, p.level, "表计层级"),
@@ -65384,11 +65453,11 @@ function energyPointsHtml(connId, v) {
             "计入方式",
             "appUse" + i,
             select("appUse" + i, ENERGY_USES, p.use, "计入方式"),
-          )}</div><div class="ws-form-row"><fieldset class="ws-checks appset-cover"><legend>覆盖楼层</legend>${fs
+          )}</div><div class="ws-form-row"><fieldset class="ws-checks appset-cover"><legend>覆盖楼层</legend>${(g("connections", p.conn)?.floorIds || [])
             .map((f) => `<label><input type="checkbox" name="appCover${i}" value="${f}" ${p.floorIds.includes(f) ? "checked" : ""}>${esc(coverNames([f]))}</label>`)
             .join("")}</fieldset></div>${
             // 仅作分项（分表）时登记所属总表（能耗方案 EN8、EN9）
-            `<div class="ws-form-row" data-show="sub" data-sub="${i}"${p.use === "sub" ? "" : " hidden"}>${fld("所属总表", "appParent" + i, select("appParent" + i, [["", "请选择"], ...ps.filter((q) => q.key !== p.key).map((q) => [q.key, q.name])], p.parent, "所属总表"), "须为计入总量的总表")}</div>`
+            `<div class="ws-form-row" data-show="sub" data-sub="${i}"${p.use === "sub" ? "" : " hidden"}>${fld("所属总表", "appParent" + i, select("appParent" + i, [["", "请选择"], ...ps.filter((q) => q.ref !== p.ref).map((q) => [q.ref, multi ? `${g("connections", q.conn)?.name || ""} · ${q.name}` : q.name])], p.parent, "所属总表"), "须为计入总量的总表")}</div>`
           }</fieldset>`,
       )
       .join("") +
@@ -65406,12 +65475,16 @@ function energyDemandIn(ev, ym) {
 // 基本电费的计费容量：按需量时为该月各进线适用的核定需量之和；更早保存、没有逐行登记的版本按原先的“容量或核定需量”
 const energyBasicQty = (ev, ym) => (ev?.basicBy === "demand" && ev.demands?.length ? energyDemandIn(ev, ym) : ev?.basicQty || 0);
 // 进线表：所选连接中单位为 kWh 的数据点；换了计量来源时重列
-function energyLineSelect(id, connId, cur = "", label = "进线表") {
-  const ms = kwhMappings(g("connections", connId));
-  return select(id, [["", "请选择"], ...ms.map((m) => [m.key, m.name])], ms.some((m) => m.key === cur) ? cur : "", label);
+// 3.32 E1304：计量来源多选时，选项写所属连接，取值为“连接|数据点”
+function energyLineSelect(id, connIds, cur = "", label = "进线表") {
+  const cs = data().connections.filter((c) => [].concat(connIds || []).includes(c.id)),
+    multi = cs.length > 1,
+    ms = cs.flatMap((c) => kwhMappings(c).map((m) => ({ v: multi ? c.id + "|" + m.key : m.key, ref: c.id + "|" + m.key, key: m.key, name: multi ? `${c.name} · ${m.name}` : m.name }))),
+    hit = cur ? ms.find((m) => m.v === cur) || ms.find((m) => m.ref === cur) || ms.find((m) => m.key === cur) : null;
+  return select(id, [["", "请选择"], ...ms.map((m) => [m.v, m.name])], hit?.v || "", label);
 }
-const energyDemandRow = (i, connId, d = {}) =>
-  `<tr><td data-line="appDemMeter${i}">${energyLineSelect("appDemMeter" + i, connId, d.meter, "进线表")}</td><td>${input("appDemKw" + i, d.kw ?? "", "", "number").replace("<input ", '<input aria-label="核定需量 kW" ')}</td><td>${input("appDemFrom" + i, d.from || "", "", "month").replace("<input ", '<input aria-label="生效月份" ')}</td></tr>`;
+const energyDemandRow = (i, connIds, d = {}) =>
+  `<tr><td data-line="appDemMeter${i}">${energyLineSelect("appDemMeter" + i, connIds, d.meter, "进线表")}</td><td>${input("appDemKw" + i, d.kw ?? "", "", "number").replace("<input ", '<input aria-label="核定需量 kW" ')}</td><td>${input("appDemFrom" + i, d.from || "", "", "month").replace("<input ", '<input aria-label="生效月份" ')}</td></tr>`;
 // 需量限制可选的负荷（能耗方案 EN6）：只列本平台控制的照明（LC20）与空调（FC20、多联机内机），按楼层；家用分体空调只计量，不在可选之列（HV7）
 function energyLimitLoads(pid) {
   const db = data(),
@@ -65585,6 +65658,7 @@ const carbonIsPublished = (v) => CARBON_PUBLISHED.some((x) => Number(v?.factor) 
 const CARBON_CO2_ONLY = "所用排放因子只含 CO₂";
 function energyForm(pid, entries, v, ro) {
   const conns = data().connections.filter((c) => c.projectId === pid),
+    ids = energyConnIds(v),
     tariff = v.tariff || "none",
     two = v.twoEnergy || "flat",
     by = v.basicBy || "capacity",
@@ -65596,9 +65670,12 @@ function energyForm(pid, entries, v, ro) {
     show = (key, on) => ` data-show="${key}"${on ? "" : " hidden"}`;
   return `${
     conns.length
-      ? fld("计量来源" + opsInfo("计量来源", esc("总表与其下分表不能重复计入项目总量；分项、计入方式和覆盖范围须对应同一计量边界。缺失、复位与补采分别保留来源质量，不补0。")), "appConnection", select("appConnection", [["", "请选择"], ...conns.map((c) => [c.id, c.name])], v.connectionId || "", "计量来源"))
+      ? // 3.32 E1304：计量来源可多选，逐个勾选系统连接（原先只能选一个，第二个连接的电能表无法设为计量点）
+        `<fieldset class="ws-checks appset-cover appset-src" id="appConnection"><legend>计量来源${opsInfo("计量来源", esc("可勾选多个系统连接。总表与其下分表不能重复计入项目总量；分项、计入方式和覆盖范围须对应同一计量边界。缺失、复位与补采分别保留来源质量，不补0。"))}</legend>${conns
+          .map((c) => `<label><input type="checkbox" name="appConnection" value="${esc(c.id)}"${ids.includes(c.id) ? " checked" : ""}>${esc(c.name)}</label>`)
+          .join("")}</fieldset>`
       : `<div class="field"><span class="appset-k">计量来源</span><input type="hidden" id="appConnection" value=""><p class="appset-none">本项目尚未登记系统连接。${ro ? "" : btn("前往系统接入", "appGoConnections", {}, "ghost sm")}</p></div>`
-  }<div id="appPoints">${conns.length ? energyPointsHtml(v.connectionId, v) : ""}</div>${fld("计量边界", "appBoundary", input("appBoundary", v.boundary || "", "例如：E栋全楼，含空调"))}${
+  }<div id="appPoints">${conns.length ? energyPointsHtml(ids, v) : ""}</div>${fld("计量边界", "appBoundary", input("appBoundary", v.boundary || "", "例如：E栋全楼，含空调"))}${
     // 有光伏、储能或自备电源时不判定“分表之和超过总表”（2026-10-09 用户确认，能耗方案 EN8、EN9）
     `<div class="ws-check-field appset-check"><label class="row small"><input type="checkbox" id="appOwnGen" name="appOwnGen" value="1"${v.ownGen ? " checked" : ""}>本项目有光伏、储能或自备电源</label><small class="muted">勾选后不判定“分表之和超过总表”</small></div>`
   }<div class="ws-form-row appset-coal">${fld(
@@ -65662,7 +65739,7 @@ function energyForm(pid, entries, v, ro) {
   )}<div${show("capacity", tariff === "two" && by !== "demand")}>${fld("容量 kVA", "appBasicQty", input("appBasicQty", by === "demand" ? "" : (v.basicQty ?? ""), "", "number"))}</div></div>${
     // 按需量：按进线逐行登记核定需量与生效月份；需量限制默认关闭，开启时选可限制的负荷与顺序（能耗方案 EN6、EN9）
     `<div class="appset-dem"${show("demand", tariff === "two" && by === "demand")}><table class="appset-tou-t appset-dem-t"><thead><tr><th>进线表${opsInfo("进线表", esc("每路进线一行；核定需量逐月变更时另起一行，填写新的生效月份。没有使用的行留空。"))}</th><th>核定需量 kW</th><th>生效月份</th></tr></thead><tbody id="appDemandRows">${dems
-      .map((d, i) => energyDemandRow(i, v.connectionId, d))
+      .map((d, i) => energyDemandRow(i, ids, d))
       .join("")}</tbody></table>${ro ? "" : btn("添加一行", "appDemandAdd", {}, "ghost sm")}<div class="ws-check-field appset-check"><label class="row small"><input type="checkbox" id="appDemandLimit" name="appDemandLimit" value="1"${
       lim.on ? " checked" : ""
     }>开启需量限制</label><small class="muted">开启后达核定需量时按顺序限制所选负荷</small></div><div class="appset-lim"${show("dlimit", tariff === "two" && by === "demand" && !!lim.on)}><table class="appset-tou-t appset-lim-t"><thead><tr><th>可限制的负荷</th><th>限制顺序</th></tr></thead><tbody>${
@@ -65718,7 +65795,7 @@ function energyForm(pid, entries, v, ro) {
     )}<div></div></div><fieldset class="appset-point appset-pf"><legend>功率因数考核<span class="fld-opt">选填</span><small>按供电合同或电费单登记</small></legend>${fld(
       "进线表",
       "appPfMeter",
-      `<div data-line="appPfMeter">${energyLineSelect("appPfMeter", v.connectionId, pf.meter, "进线表")}</div>`,
+      `<div data-line="appPfMeter">${energyLineSelect("appPfMeter", ids, pf.meter, "进线表")}</div>`,
     )}<div class="ws-form-row">${fld(
       "考核标准",
       "appPfStd",
@@ -65807,7 +65884,7 @@ function appPartApply(kind, part) {
     el.classList.toggle("set-off", cur !== part);
   }
 }
-function applicationForm(kind, project, part = "") {
+function applicationForm(kind, project, part = "", add = "") {
   const pid = project || U.p;
   if (!pid)
     return modal(
@@ -65826,11 +65903,12 @@ function applicationForm(kind, project, part = "") {
     // 位置为“全部项目”时，总览 › 能源与数据分析的两个设置按钮打开的是有运行数据的项目，另写一句明确将修改哪个项目（原先页面写“全部项目”，看不出改的是哪个项目）
     pname = g("projects", pid)?.name || "",
     sub = `<p class="ops-modal-sub">${esc([pname, cur ? "" : "尚未保存"].filter(Boolean).join(" · "))}${!U.p && !ro ? `。位置为“全部项目”，这里修改的是${esc(zhSub(pname))}的${kind}设置。` : ""}</p>`;
-  // appConn 与 appSnap：切换计量来源前判断计量点与进线表有没有未保存的修改（总览核查第 51 条）
-  formState = { kind: "configs", appKind: kind, projectId: pid, appConn: v.connectionId || "" };
+  // appConn：当前勾选的计量来源；增减来源时按新的来源重列计量点与进线表，保留其余来源上尚未保存的修改（3.32 E1304）
+  formState = { kind: "configs", appKind: kind, projectId: pid, appConn: energyConnIds(v).join(",") };
   // 2.46 E458：标题与按钮一致，节能基线未设置时“设置节能基线”，电费账单未登记时“登记电费账单”，已有内容时“修改…”
   // 2.53 E519：年度用电目标未设置时“设置年度用电目标”
-  const verb = (pt?.[0] === "baseline" && v.baseline?.method !== "period") || (pt?.[0] === "target" && !v.target) || (pt?.[0] === "boundary" && !v.boundary) ? "设置" : pt?.[0] === "bills" && !v.bills?.length ? "设置" : "修改"; // 2.88 E1140：原“登记电费账单”
+  // 3.32 E1304：从部署进度“设置计量点”打开（带上要加进计量来源的连接）时标题为“设置计量点”
+  const verb = (pt?.[0] === "points" && add) || (pt?.[0] === "baseline" && v.baseline?.method !== "period") || (pt?.[0] === "target" && !v.target) || (pt?.[0] === "boundary" && !v.boundary) ? "设置" : pt?.[0] === "bills" && !v.bills?.length ? "设置" : "修改"; // 2.88 E1140：原“登记电费账单”
   modal(
     pt ? verb + pt[2] : kind + "设置",
     (pt ? "" : sub) + (ro ? wsNotice("需要配置权限才能修改。", "info", false) : "") + `<div id="appParts">${kind === "能耗" ? energyForm(pid, entries, v, ro) : carbonForm(pid, entries, v, ro)}</div>`,
@@ -65866,7 +65944,13 @@ function applicationForm(kind, project, part = "") {
     U.appBasePick = null;
   }
   if (ro) $("#dlgBody").querySelectorAll("input:not([type=hidden]), textarea, [role=combobox]").forEach((x) => (x.disabled = true));
-  if (kind === "能耗") formState.appSnap = energySwitchSnap();
+  // 3.32 E1304：从部署进度的待办打开时，把该连接加进计量来源并列出它的电能数据点（算作修改，“保存”可点）
+  const addBox = add && !ro && kind === "能耗" ? [...document.querySelectorAll('#dlg input[name="appConnection"]')].find((x) => x.value === add) : null;
+  if (addBox && !addBox.checked) {
+    addBox.checked = true;
+    energySwitchSource();
+    wsGateSync($("#dlg"));
+  }
 }
 // 基期的检查（2.08 Y16：电费账单补齐计量不足的月份，基期内每个月有完整计量或电费账单即可）
 // 2.65 E911：选定开始和结束后立即检查，报错写在“基期结束”下，如“2025 年 10 月等 3 个月没有计量数据或电费账单”，“保存”不可用
@@ -65893,31 +65977,26 @@ function appBaseLive() {
   ok.value = bad ? "" : "1";
   if (typeof wsGateSync === "function") wsGateSync(document);
 }
-// 计量点与计费的进线表（功率因数考核、核定需量）的当前取值；切换计量来源会按新来源重列这些字段（总览核查第 51 条）
-const energySwitchSnap = () => JSON.stringify([...document.querySelectorAll("#appPoints input, #dlg [data-line] input")].map((x) => (x.type === "checkbox" ? x.checked : x.value)));
-// 切换计量来源（总览核查第 51 条，2026-10-12 用户确认）：计量点或进线表有未保存的修改时先确认放弃，“继续编辑”退回原来的来源；
-// 原先直接按新来源重列，已改的计量点、功率因数与核定需量的进线表被清掉
-function energySwitchSource(id) {
+// 3.32 E1304（取代总览核查第 51 条的“切换前确认放弃”）：计量来源可多选，勾选或取消一个连接时按新的来源重列计量点，
+// 仍勾选的连接上尚未保存的计量点修改照旧保留；新加的连接按已保存的设置，没有保存过时按默认写法；
+// 功率因数考核与核定需量的进线表按新的来源重列，所选的表仍在时保留（能耗方案 EN9）
+function energySwitchSource() {
   const s = formState,
-    apply = () => {
-      const ctl = $("#appConnection-control"),
-        opts = JSON.parse(ctl?.dataset.options || "[]");
-      $("#appConnection").value = id;
-      if (ctl) ctl.querySelector("span").textContent = opts.find(([x]) => String(x) === id)?.[1] || "请选择";
-      $("#appPoints").innerHTML = energyPointsHtml(id, latestConfig("能耗", s.projectId)?.values || {});
-      // 功率因数考核与核定需量的进线表按新的计量来源重列（能耗方案 EN9）
-      document.querySelectorAll("#dlg [data-line]").forEach((x) => (x.innerHTML = energyLineSelect(x.dataset.line, id)));
-      s.appConn = id;
-      s.appSnap = energySwitchSnap();
-      modalDirty = true;
-    };
-  if (s.appSnap == null || energySwitchSnap() === s.appSnap) return apply();
-  // 先退回原来的来源，确认放弃后再切换
-  const ctl = $("#appConnection-control"),
-    opts = JSON.parse(ctl?.dataset.options || "[]");
-  $("#appConnection").value = s.appConn;
-  if (ctl) ctl.querySelector("span").textContent = opts.find(([x]) => String(x) === s.appConn)?.[1] || "请选择";
-  askDiscard(apply, "切换计量来源会按新来源重列计量点与进线表：计量点或计费（进线表）中有尚未保存的修改", "，切换后不会保留。");
+    ids = energyFormConns().map((c) => c.id);
+  if (ids.join(",") === s.appConn) return;
+  const prev = s.appConn ? s.appConn.split(",") : [],
+    cfg = latestConfig("能耗", s.projectId)?.values || {},
+    cfgIds = energyConnIds(cfg),
+    keep = energyPoints(
+      data().connections.filter((c) => prev.includes(c.id)),
+      {},
+    ).map((p, i) => ({ conn: p.conn, key: p.key, level: value("appLevel" + i) || p.level, kind: value("appKind" + i) || p.kind, use: value("appUse" + i) || p.use, floorIds: checked("appCover" + i), parent: value("appParent" + i) })),
+    old = (cfg.points || []).map((p) => ({ ...p, conn: p.conn || cfgIds[0] })).filter((p) => !prev.includes(p.conn)),
+    lines = [...document.querySelectorAll("#dlg [data-line]")].map((x) => [x, value(x.dataset.line)]);
+  $("#appPoints").innerHTML = energyPointsHtml(ids, { connectionIds: [...new Set([...prev, ...cfgIds])], points: [...keep, ...old] });
+  for (const [x, cur] of lines) x.innerHTML = energyLineSelect(x.dataset.line, ids, cur);
+  s.appConn = ids.join(",");
+  modalDirty = true;
 }
 function appTariffShow() {
   const t = value("appTariff") || "none",
@@ -65952,16 +66031,16 @@ function touValues() {
 }
 // 保存校验（规范 APP01）：计量点不重复计入（同一电能表、同一楼层的同类用电、标为已含在总表内却没有总表）、基期的数据与电价登记
 function energyValues(pid) {
-  const connectionId = value("appConnection"),
-    conn = g("connections", connectionId);
-  if (!conn) throw Error(data().connections.some((c) => c.projectId === pid) ? "请选择计量来源" : "本项目尚未登记系统连接，请先在系统接入中登记");
-  const base = energyPoints(conn, {}),
+  // 3.32 E1304：计量来源可多选；计量点写所属连接（conn），所属总表写“连接|数据点”
+  const conns = energyFormConns();
+  if (!conns.length) throw Error(data().connections.some((c) => c.projectId === pid) ? "请选择计量来源" : "本项目尚未登记系统连接，请先在系统接入中登记");
+  const base = energyPoints(conns, {}),
     points = base.map((p, i) => {
       const level = value("appLevel" + i) || p.level;
-      return { key: p.key, level, kind: level === "total" ? "" : value("appKind" + i) || p.kind || "其他", use: value("appUse" + i) || p.use, floorIds: checked("appCover" + i) };
+      return { conn: p.conn, key: p.key, ref: p.ref, level, kind: level === "total" ? "" : value("appKind" + i) || p.kind || "其他", use: value("appUse" + i) || p.use, floorIds: checked("appCover" + i) };
     }),
-    name = (p) => `“${base.find((b) => b.key === p.key).name}”`,
-    device = (p) => base.find((b) => b.key === p.key).deviceId;
+    name = (p) => `“${base.find((b) => b.ref === p.ref).name}”`,
+    device = (p) => base.find((b) => b.ref === p.ref).deviceId;
   if (!points.length) throw Error("所选连接没有电能数据点（单位为 kWh、Wh 或 MWh）；先在系统接入的数据映射中登记");
   if (!points.some((p) => p.use === "total")) throw Error("至少一个计量点计入总量");
   for (const p of points.filter((x) => x.use !== "off")) if (!p.floorIds.length) throw Error(`请选择${zhSub(name(p))}覆盖的楼层`);
@@ -65985,10 +66064,10 @@ function energyValues(pid) {
     if (p.use !== "sub") return;
     p.parent = value("appParent" + i) || energyParentOf(p, points);
     if (!p.parent) throw Error(`请为${zhSub(name(p))}选择所属总表`);
-    const t = points.find((x) => x.key === p.parent);
+    const t = points.find((x) => x.ref === p.parent);
     if (!t || t.level !== "total" || t.use !== "total") throw Error(`${zhSub(name(p), "r")}的所属总表须为计入总量的总表`);
   });
-  const vs = { connectionId, points, boundary: value("appBoundary").trim(), ownGen: checked("appOwnGen").length > 0 };
+  const vs = { connectionIds: conns.map((c) => c.id), connectionId: conns[0].id, points: points.map(({ ref, ...p }) => p), boundary: value("appBoundary").trim(), ownGen: checked("appOwnGen").length > 0 };
   // 折标系数（BP121）：当量值或等价值，等价值须填大于 0 的系数
   vs.coal = { basis: value("appCoalBasis") === "equiv" ? "equiv" : "equal" };
   if (vs.coal.basis === "equiv") {
@@ -66139,6 +66218,7 @@ const APP_FIELDS = {
   碳排放: { method: "核算口径", factor: "排放因子", unit: "因子单位", year: "因子年份", region: "适用地区", source: "来源与版本", purpose: "核算用途", from: "适用期间", to: "适用期间", boundary: "核算边界" },
   能耗: {
     connectionId: "计量来源",
+    connectionIds: "计量来源",
     points: "计量点",
     boundary: "计量边界",
     ownGen: "光伏、储能或自备电源",
@@ -66176,9 +66256,14 @@ const appNorm = (x) =>
       : x;
 const appSame = (a, b) => JSON.stringify(appNorm(a)) === JSON.stringify(appNorm(b));
 // 较早保存的版本没有的字段按表单的默认值补齐后再比较（如未勾选自备电源、折标按当量值、不设基线、不计算费用），原样保存不算修改
+// 3.32 E1304：更早保存的只有一个计量来源、计量点不写连接、所属总表只写数据点，按现在的写法补齐后再比较
+const appEnergyNorm = (v) => {
+  const ids = energyConnIds(v);
+  return { ...v, connectionIds: ids, connectionId: ids[0], points: v.points?.map((p) => ({ ...p, conn: p.conn || ids[0], parent: p.parent && !String(p.parent).includes("|") ? (p.conn || ids[0]) + "|" + p.parent : p.parent })) };
+};
 const appDefaults = (kind, v = {}) =>
   kind === "能耗"
-    ? { ownGen: false, coal: { basis: "equal" }, baseline: { method: "none" }, tariff: "none", ...v }
+    ? appEnergyNorm({ ownGen: false, coal: { basis: "equal" }, baseline: { method: "none" }, tariff: "none", ...v })
     : { method: "CO2", unit: "kg/kWh", purpose: CARBON_USES[0], ...v };
 // 保存前的说明（总览核查第 52 条）：改了哪些字段（碳排放设置写原值与新值）、生效期间，以及对日常核算与报告的影响
 function appChangeHtml(kind, pid, old, vs, n) {
@@ -66985,7 +67070,7 @@ function connVerifySection(c) {
     receipt = (key) => (c.verifications || []).find((r) => r.kind === key && r.version === (c.version || 1)),
     apps = [
       ...data()
-        .configs.filter((x) => x.projectId === c.projectId && x.values.connectionId === c.id)
+        .configs.filter((x) => x.projectId === c.projectId && energyConnIds(x.values).includes(c.id))
         .map((x) => x.kind + "设置 v" + x.version),
       ...(F.hvacConnection(data(), c) ? ["暖通空调（按设备登记）"] : []),
     ],
@@ -67333,7 +67418,11 @@ function renderConnectionPage() {
   const c = g("connections", U.conn),
     tab = CONN_TABS.some(([k]) => k === U.ctab) ? U.ctab : "summary",
     st = connStatus(c),
-    back = `<button class="btn ws-parent-back" data-act="connectionListBack" aria-label="返回系统接入" data-tip="返回系统接入">${ico("back", "ic16")}</button>`,
+    // 3.32 E1319：从部署进度进入时写“返回部署进度”，回到进度原来展开的步骤，焦点回到原按钮
+    back =
+      U.source?.page === "deployment"
+        ? `<button class="btn ws-parent-back" data-act="sourceBack" aria-label="返回部署进度" data-tip="返回部署进度">${ico("back", "ic16")}</button>`
+        : `<button class="btn ws-parent-back" data-act="connectionListBack" aria-label="返回系统接入" data-tip="返回系统接入">${ico("back", "ic16")}</button>`,
     // 2.89 E1168：名称下一行先写状态，再写“每 5 分钟采集 · 协议 · 网关 … · 接口”；服务楼层在“连接参数”卡里，不在这里重复
     sub = [c.collect?.period && c.protocol !== "MQTT" ? `每 ${collectPeriodText(c.collect.period)}采集` : "", c.protocol, c.collect ? collectWhere(c) : ""].filter(Boolean).join(" · "),
     more = connMoreItems(c),
@@ -67656,7 +67745,7 @@ function ruleEnableFoot(r, live, on, edit) {
 // 按设备登记关联暖通空调的打开暖通空调设置（2.36 S18）；尚未关联时打开能耗设置。
 function appSettingButtons(c) {
   const kinds = [
-    ...new Set(data().configs.filter((x) => x.projectId === c.projectId && x.values.connectionId === c.id).map((x) => x.kind)),
+    ...new Set(data().configs.filter((x) => x.projectId === c.projectId && energyConnIds(x.values).includes(c.id)).map((x) => x.kind)),
     ...(F.hvacConnection(data(), c) ? ["暖通空调"] : []),
   ];
   return (kinds.length ? kinds : ["能耗"]).map((kind) => btn(`打开${kind}设置`, "applicationSettings", { kind, project: c.projectId })).join("");
@@ -67824,7 +67913,7 @@ defineActions({
   operationRecords: () => actions.opsRecords(),
   lightingSettings: (a) => showLightingSettings(a.zone, a.floor, a.type),
   saveLighting,
-  applicationSettings: (a) => (a.part ? applicationForm(a.kind, a.project, a.part) : showApplicationSettings(a.kind, a.project, a.floor)),
+  applicationSettings: (a) => (a.part ? applicationForm(a.kind, a.project, a.part, a.add || "") : showApplicationSettings(a.kind, a.project, a.floor)),
   setEnergyQuick: (a) => appQuick(a.kind, setCtx().pid, { [a.k]: a.v === "true" }),
   overviewBasis: (a) => showOverviewBasis(a.project, a.sec),
   appBillAdd: () => {
@@ -67859,7 +67948,7 @@ defineActions({
   appDemandAdd: () => {
     const tb = $("#appDemandRows");
     if (!tb) return;
-    tb.insertAdjacentHTML("beforeend", energyDemandRow(tb.rows.length, value("appConnection")));
+    tb.insertAdjacentHTML("beforeend", energyDemandRow(tb.rows.length, checked("appConnection")));
     tb.rows[tb.rows.length - 1].querySelector("[role=combobox]")?.focus();
   },
   // 能耗设置没有系统连接时（2026-10-08 Vision 核查 V25）
@@ -68516,7 +68605,7 @@ document.addEventListener("input", (e) => {
   if (e.target.id === "analysisPeriod") U.analysisPeriod = e.target.value;
   // 能耗设置：换计量来源时重列计量点；计费方式与节能基线只显示所需的字段（规范 APP01，2026-10-08 Vision 核查 V25）
   // 计量点或进线表有未保存的修改时先确认放弃（总览核查第 51 条，见 energySwitchSource）
-  if (e.target.id === "appConnection" && $("#appPoints") && formState?.appKind === "能耗" && e.target.value !== formState.appConn) energySwitchSource(e.target.value);
+  if (e.target.name === "appConnection" && $("#appPoints") && formState?.appKind === "能耗") energySwitchSource();
   if (["appTariff", "appTwoEnergy", "appBasicBy", "appDemandLimit"].includes(e.target.id)) appTariffShow();
   if (["appBaseline", "appBaseFrom", "appBaseTo"].includes(e.target.id) || /^appBill[MK]\d/.test(e.target.id)) appBaseLive();
   // 计入方式为“仅作分项”时登记所属总表，还没选的按当前表单自动带入（能耗方案 EN8、EN9）
@@ -71749,7 +71838,7 @@ function v13AppTodos(db, pid, en) {
   if (!P.registered) out.push({ text: "适用标准未登记", label: "登记适用标准", act: "v13ProfileEdit", args: {}, who: "config" });
   const pt = v13ProfileTodo(P).find((x) => x.required);
   if (pt) out.push({ text: pt.text, label: "修改设计条件", act: "v13DesignEdit", args: {}, who: "config" });
-  if (!M.get(db, "projects", pid)?.holidays?.[year]) out.push({ text: `${year} 年节假日表未登记`, label: "登记", act: "holidaysOpen", args: { p: pid, year }, who: "operate" });
+  if (!M.get(db, "projects", pid)?.holidays?.[year]) out.push({ text: `${year} 年节假日表未登记`, label: "设置节假日表", act: "holidaysOpen", args: { p: pid, year }, who: "operate" });
   if (F.appOn(en, ["energy"])) {
     const c = last("能耗");
     if (!c || !(c.values?.points || []).some((x) => x.use === "total")) out.push({ text: "启用了能耗，尚未设置计量点", label: "设置计量点", act: "applicationSettings", args: { kind: "能耗", project: pid, part: "points" }, who: "config" });
@@ -71875,14 +71964,14 @@ function v13Progress(db, pid, bid = null) {
   // 设备完成之前为未开始；设备完成后本次没有系统接入设备、连接和多联机时记为已完成，仍可“管理系统接入”补登连接
   const conns = DS.conns.filter((x) => !DS.connOff.has(x.id)),
     connOk = conns.filter((x) => v13ConnVerified(x, db)).length,
-    energyConn = db.configs.filter((c) => c.projectId === pid && c.kind === "能耗").sort((a, b) => b.version - a.version)[0]?.values?.connectionId,
+    energyConn = energyConnIds(db.configs.filter((c) => c.projectId === pid && c.kind === "能耗").sort((a, b) => b.version - a.version)[0]?.values), // 3.32 E1304：计量来源可多选
     vrf = DS.vrfOff ? [] : DS.vrf,
     sysTodos = [];
   for (const x of conns) {
     const miss = F.connectionChecks(db, x).filter((c) => c.state === "未验证").map((c) => c.label + "验证");
     if (miss.length) sysTodos.push({ text: `${x.name} ${miss.join("、")}未通过`, label: "查看连接", act: "connectionInfo", args: { id: x.id }, who: "config" });
-    if (F.appOn(DS.en, ["energy"]) && x.id !== energyConn && db.points.some((p) => p.connectionId === x.id && p.type === "meter"))
-      sysTodos.push({ text: `${x.name}的电能表未设为计量点`, label: "设置计量点", act: "applicationSettings", args: { kind: "能耗", project: pid, part: "points" }, who: "config" }); // 2.65 E1008；3.29 在进度里打开计量点弹窗
+    if (F.appOn(DS.en, ["energy"]) && !energyConn.includes(x.id) && db.points.some((p) => p.connectionId === x.id && p.type === "meter"))
+      sysTodos.push({ text: `${x.name}的电能表未设为计量点`, label: "设置计量点", act: "applicationSettings", args: { kind: "能耗", project: pid, part: "points", add: x.id }, who: "config" }); // 2.65 E1008；3.29 在进度里打开计量点弹窗；3.32 E1304：打开时把这个连接加进计量来源
   }
   for (const v of vrf)
     for (const it of v.items.filter((i) => i.state !== "done"))
@@ -71892,7 +71981,8 @@ function v13Progress(db, pid, bid = null) {
   rows.push({
     k: "系统接入",
     st: DS.sysSkip ? (rows[1].st === "done" ? "done" : "none") : st("系统接入"),
-    sum: DS.sysSkip ? "没有需要接入的系统" : nwJoin([conns.length ? `${connOk} 个连接验证通过${conns.length - connOk ? `，${conns.length - connOk} 个待验证` : ""}` : "", vrf.length ? `多联机调试 ${vrf.filter((u) => u.done).length} / ${vrf.length}` : ""]),
+    // 3.32 E1320：设备完成之前、本次范围里没有系统接入设备时写“尚未标记系统接入设备”（原先就写“没有需要接入的系统”）
+    sum: DS.sysSkip ? (rows[1].st === "done" ? "没有需要接入的系统" : "尚未标记系统接入设备") : nwJoin([conns.length ? `${connOk} 个连接验证通过${conns.length - connOk ? `，${conns.length - connOk} 个待验证` : ""}` : "", vrf.length ? `多联机调试 ${vrf.filter((u) => u.done).length} / ${vrf.length}` : ""]),
     action: { label: "管理系统接入", act: "openConnections", args: {}, who: "any" },
     todos: sysTodos,
     // 3.30 L17-10、V1197：多联机调试都确认后，展开区待办上方写一行与小号按钮“查看记录”（原在收起时摘要下另写一行）
@@ -72065,6 +72155,46 @@ function depNotifyCtl(pid, key, what = "", primary = false) {
     : btn(primary ? "通知机构管理员确认" : "通知机构管理员", "depNotify", { p: pid, k: key, ...(what ? { what } : {}) }, primary ? "primary" : "sm");
 }
 const depTodoKey = (t) => `${t.act}:${t.args?.id || t.args?.p || t.args?.f || ""}`;
+// 3.32 Account 250：只有机构管理员能做的待办（密钥更新、更换网关等）完成、从待办里消失时，清除它的“已通知机构管理员”，
+// 之后同一事项再出现时恢复为按钮（交付确认与设备数量另行处理）
+function depNotifyPrune(pid, rows) {
+  const p = typeof D === "undefined" || !D ? W?.projects?.find((x) => x.id === pid) : null,
+    ks = Object.keys(p?.adminNotify || {}).filter((k) => k !== "deliver" && k !== "quota");
+  if (!ks.length) return;
+  const live = new Set(rows.flatMap((r) => r.todos || []).filter((t) => t.who === "admin").map(depTodoKey));
+  for (const k of ks) if (!live.has(k)) delete p.adminNotify[k];
+}
+// 3.32 E1305：同一楼宇里只有一条待办的楼层，同一种待办（上传楼层图、比例尺、划分功能区、空间类型、换图复核）合成一条，
+// 如“A栋 5 个楼层未上传楼层图”配“上传楼层图”（可一次选多张，按楼层对应）；一层有 2 条以上不同的待办时才按楼层归组
+const DEP_MERGE = { upload: "未上传楼层图", scale: "比例尺未设置", draw: "尚未划分功能区", type: "有功能区未选空间类型", review: "已更换楼层图，功能区与点位位置待核对" };
+function depMergeTodos(items) {
+  const db = data(),
+    fix = (t) => (t.act === "depUpload" ? "upload" : t.args?.fix),
+    per = new Map(),
+    groups = new Map(),
+    out = [];
+  for (const t of items) if (t.fl) per.set(t.fl, (per.get(t.fl) || 0) + 1);
+  for (const t of items) {
+    const f = t.fl && per.get(t.fl) === 1 && DEP_MERGE[fix(t)] ? M.floor(db, t.fl) : null,
+      k = f && f.kind !== "site" ? f.buildingId + "|" + fix(t) : null;
+    if (!k) out.push(t);
+    else if (groups.has(k)) groups.get(k).push(t);
+    else {
+      const g0 = [t];
+      groups.set(k, g0);
+      out.push(g0);
+    }
+  }
+  return out.map((x) => {
+    if (!Array.isArray(x)) return x;
+    if (x.length === 1) return x[0];
+    const t = x[0],
+      b = M.building(db, M.floor(db, t.fl)?.buildingId),
+      f = fix(t),
+      fls = x.map((y) => y.fl);
+    return { ...t, fl: null, fls, text: `${b?.name || ""} ${x.length} 个楼层${DEP_MERGE[f]}`, args: f === "upload" ? { b: b?.id, fs: fls.join(",") } : t.args };
+  });
+}
 // 交付待确认时通知写明要做什么，如“E栋 · 7F 待交付：密钥更新、确认存档”
 function depDeliverWhat(db, pid) {
   const G = v13Progress(db, pid);
@@ -72115,6 +72245,7 @@ function v13StatusPage() {
   // 3.29 部署流程第三节第 3 条：每一步都可展开（沿用“验证与交付”的展开写法），默认展开第一个未完成的步骤；展开区列出全部待办，每条一个 28 高次按钮
   // （当前角色不能执行的不放按钮，E935）；待办多于 5 条时按楼层归组（“E栋 · 7F · 3 项待处理”，点开列明细），已完成的楼层合并为“其余 N 个楼层已完成”；
   // “空间资料”行常驻“新建楼宇”“新建室外区域”（这一步已完成也显示，供交付后加建）。原先只有“验证与交付”可展开，其余行写前 3 条与一个“去处理”
+  depNotifyPrune(pid, rows);
   const first = rows.find((r) => r.st === "todo" || r.st === "none"),
     // 归在楼层下的条目去掉开头的楼层名（楼层行已写）
     noFl = (text, fl) => (fl && text.startsWith(floorText(fl)) ? text.slice(floorText(fl).length).replace(/^\s*·?\s*/, "") : text),
@@ -72123,18 +72254,26 @@ function v13StatusPage() {
     // 每个楼层的第一条待办带 id，供总览楼层表“未上传”、空间空楼层“去部署”定位到这一层
     flId = (t) => (t.fl && !seenFl.has(t.fl) ? (seenFl.add(t.fl), ` id="dep-fl-${esc(t.fl)}"`) : ""),
     tdLine = (t, fl) =>
-      `<div class="dep-td"${flId(t)}${t.fl ? ` data-fl="${esc(t.fl)}"` : ""}><span>${esc(noFl(t.text, fl))}${t.who === "admin" && !v13WhoOk("admin") ? roleNote("admin") : ""}</span>${v13WhoOk(t.who) ? btn(esc(t.btn || t.label), t.act, t.args, "sm") : t.who === "admin" && canEdit() ? depNotifyCtl(pid, depTodoKey(t), t.text) : ""}</div>`,
+      `<div class="dep-td"${flId(t)}${t.fl ? ` data-fl="${esc(t.fl)}"` : ""}${t.fls ? ` data-fls="${esc(t.fls.join(" "))}"` : ""}><span>${esc(noFl(t.text, fl))}${t.who === "admin" && !v13WhoOk("admin") ? roleNote("admin") : ""}</span>${v13WhoOk(t.who) ? btn(esc(t.btn || t.label), t.act, t.args, "sm") : t.who === "admin" && canEdit() ? depNotifyCtl(pid, depTodoKey(t), t.text) : ""}</div>`,
     grouped = (k, items, line, word) => {
+      // 3.32 E1305：空间资料里同一楼宇只有这一条待办的楼层，同一种待办合成一条（如“A栋 5 个楼层未上传楼层图”）
+      if (k === "空间资料") items = depMergeTodos(items);
       if (items.length <= 5 || !items.some((t) => t.fl)) return items.map(line).join("");
       const by = new Map();
       for (const t of items.filter((t) => t.fl)) by.set(t.fl, [...(by.get(t.fl) || []), t]);
+      // 3.32 E1305：空间资料只有一层有 2 条以上待办时才按楼层归组，其余各条照列
+      const solo = new Set(k === "空间资料" ? [...by].filter(([, ts]) => ts.length < 2).map(([fl]) => fl) : []);
       return (
-        items.filter((t) => !t.fl).map(line).join("") +
+        items.filter((t) => !t.fl || solo.has(t.fl)).map(line).join("") +
         [...by]
+          .filter(([fl]) => !solo.has(fl))
           .map(([fl, ts]) => {
             const key = k + ":" + fl,
-              on = !!U.depGrp?.[key];
-            return `<div class="dep-fg${on ? " open" : ""}" id="dep-fg-${esc(fl)}"><button type="button" class="dep-fgb" data-act="depGrp" data-k="${esc(key)}" aria-expanded="${on}">${ico("chevR", "ic16")}<span>${esc(floorText(fl))} · ${ts.length} ${word}</span></button>${on ? `<div class="dep-fgl">${ts.map((t) => line(t, fl)).join("")}</div>` : ""}</div>`;
+              on = !!U.depGrp?.[key],
+              // 3.32 E1306、V1199：组名与摘要同一算法，必需项为待处理，比例尺等为提示，如“A栋 · 4F · 1 项待处理 · 1 项提示”
+              nReq = ts.filter((t) => !t.hint).length,
+              cnt = word === "项待处理" ? [nReq && `${nReq} 项待处理`, ts.length - nReq && `${ts.length - nReq} 项提示`].filter(Boolean).join(" · ") : `${ts.length} ${word}`;
+            return `<div class="dep-fg${on ? " open" : ""}" id="dep-fg-${esc(fl)}"><button type="button" class="dep-fgb" data-act="depGrp" data-k="${esc(key)}" aria-expanded="${on}">${ico("chevR", "ic16")}<span>${esc(floorText(fl))} · ${cnt}</span></button>${on ? `<div class="dep-fgl">${ts.map((t) => line(t, fl)).join("")}</div>` : ""}</div>`;
           })
           .join("") +
         // 已完成的楼层合并为一行（空间资料的这一行在 notes 里）
@@ -72162,7 +72301,13 @@ function v13StatusPage() {
               : "",
         open = !!body && (U.v13Open?.[r.k] ?? r === first),
         rowAct = r.k === "验证与交付" && r.action && !sameAsNext(r.action) ? v13StepBtn(r.action, "sm") : "",
-        build = r.k === "空间资料" && canEdit() ? btn("新建楼宇", "v13NewBuilding", { p: pid }, "sm") + btn("新建室外区域", "depNewOutdoor", { p: pid }, "sm") : "",
+        build =
+          r.k === "空间资料" && canEdit()
+            ? btn("新建楼宇", "v13NewBuilding", { p: pid }, "sm") + btn("新建室外区域", "depNewOutdoor", { p: pid }, "sm")
+            : // 3.32 E1316：本次范围里有楼层已有楼层图时，“设备”行末常驻“标记设备”；为下一步时在页头，行末不重复
+              r.k === "设备" && canEdit() && r.action && DS.floorsUsed.some((f) => f.image) && !sameAsNext(r.action)
+              ? btn("标记设备", "depMark", {}, "sm")
+              : "",
         tail = body
           ? `<button type="button" class="iconbtn dep-tog" data-act="v13Sec" data-k="${r.k}" data-open="${open}" aria-expanded="${open}" aria-label="${open ? "收起" : "展开"}${r.k}">${ico("chevron", "ic16")}</button>`
           : r.noGo
@@ -72932,7 +73077,13 @@ defineActions({
     actions.ovNewOutdoor();
   },
   // 3.29：上传楼层图在进度里选文件，打开原来的上传弹窗（单层或多层）
-  depUpload: (a) => actions.uploadPlan({ f: a.f }),
+  // 3.32 E1305：合成的一条“A栋 5 个楼层未上传楼层图”从楼宇选文件（可多选，按楼层对应）；从总览楼层表“未上传”定位来的预选该层
+  depUpload: (a) => (a.fs ? actions.uploadPlan({ b: a.b, f: a.fs.split(",").includes(U.depUpFl) ? U.depUpFl : "" }) : actions.uploadPlan({ f: a.f })),
+  // 3.32 E1316：“设备”行末的“标记设备”：整页打开楼层编辑器的“设备”模式，回来时“设备”一步保持展开，焦点回到这个按钮
+  depMark: () => {
+    U.v13Open = { ...(U.v13Open || {}), 设备: true };
+    actions.v13MarkDir();
+  },
   // 3.29：AQ20 未登记安装位置的设备在进度里打开登记弹窗（批量修改设备里的采集位置与代表性）
   depAqReg: (a) => {
     const db = data(),
@@ -73044,7 +73195,8 @@ defineActions({
     U.v13Open = { ...(U.v13Open || {}), 空间资料: true };
     U.depGrp = { ...(U.depGrp || {}), ["空间资料:" + fid]: true };
     render();
-    const td = document.getElementById("dep-fl-" + fid) || document.getElementById("dep-fg-" + fid),
+    U.depUpFl = fid;
+    const td = document.getElementById("dep-fl-" + fid) || document.getElementById("dep-fg-" + fid) || document.querySelector(`.dep-td[data-fls~="${CSS.escape(fid)}"]`),
       el = td || document.getElementById("v13-step-空间资料");
     if (el && $("#pbody")) $("#pbody").scrollTop = el.getBoundingClientRect().top - $("#pbody").getBoundingClientRect().top + $("#pbody").scrollTop - 80;
     (td ? td.querySelector(".btn, .dep-fgb") || td : el?.querySelector(".dep-tog") || el)?.focus?.({ preventScroll: true });
@@ -80419,9 +80571,9 @@ const costText = (cost, label) =>
 // 计量口径：引用能耗设置的计量点、计入方式与计量边界；与本页统计的电能表不一致时提示（规范 ANALYSIS01）
 function energyCounted() {
   const c = latestConfig("能耗", OPS_SCOPE.project),
-    conn = c && g("connections", c.values.connectionId);
-  if (!c || !conn) return null;
-  const counted = energyPoints(conn, c.values).filter((p) => p.use === "total");
+    conns = c ? energyConnIds(c.values).map((id) => g("connections", id)).filter(Boolean) : [];
+  if (!c || !conns.length) return null;
+  const counted = energyPoints(conns, c.values).filter((p) => p.use === "total");
   // 只写计量点名称，不写寄存器地址（2.01 运营核查 V94：原为“照明插座 40001、空调末端 40011”）；地址只在能耗设置的计量点详情里
   const ns = counted.map((p) => (p.level === "total" ? p.name : p.kind));
   return { c, counted, names: ns.join("、") + (ns.length > 1 ? `${["", "", "两", "三", "四", "五", "六", "七", "八", "九"][ns.length] || ns.length + " "}个计量点` : "") };
@@ -100750,12 +100902,23 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "3.32",
+    date: "2026-11-08",
+    notes: [
+      "新增：能耗设置的计量来源可选多个系统连接。",
+      "改进：部署进度把同类待办合成一条，可一次上传多个楼层的楼层图；“设备”一步常驻“标记设备”。",
+      "改进：从部署进度或设备网络进入的页面，返回时回到原来的步骤或网络。",
+      "改进：楼层编辑器的“⋯”加入楼层图版本与修改记录。",
+      "修复已知问题，优化界面细节。",
+    ],
+  },
+  {
     version: "3.31",
     date: "2026-11-08",
     notes: [
-      "改进：各菜单页的一级切换统一为页面页签，筛选与视图切换用同一种紧凑样式。",
-      "改进：功能区与设备的详情页归入空间与设备菜单，从任何地方打开，左侧都高亮所在菜单。",
-      "改进：楼宇页的楼宇详情加入设备数与离线、异常数，右侧“需要处理”同时列出处理中的事项。",
+      // 3.32 账户第 251 条：外观变化合进“修复已知问题”，不写规范用语
+      "改进：功能区与设备的详情页归入空间与设备，从任何地方打开，侧栏都高亮所在菜单。",
+      "改进：总览楼宇页的详情加入设备数与离线、异常数，“需要处理”同时列出处理中的事项。",
       "改进：空间不再显示用电图层，今日用电在数据分析的能源中查看。",
       "修复已知问题，优化界面细节。",
     ],
@@ -102178,12 +102341,12 @@ const AU_TERMS = [
 // 没写汇总的月份取当月各版本的前 5 条新增与改进
 const AU_RELEASE_FIX = "修复已知问题，优化界面细节。";
 const AU_RELEASE_MONTHS = {
-  // 3.29 Account 243：11 月汇总（每次发布同时更新；第 3 行按 3.29 的侧栏写，3.30 加楼层编辑器整页）
+  // 3.29 Account 243：11 月汇总（每次发布同时更新；第 3 行按 3.29 的侧栏写，3.30 加楼层编辑器整页；3.32 账户第 252 条第 1 行写详情页所在菜单，第 4 行加计量来源多选）
   "2026-11": [
-    "新增：功能区与设备有详情页；空间可在楼层图或 3D 上查看并控制照明与空调，楼层图支持 DWG、DXF。",
+    "新增：功能区与设备有详情页，分别在空间与设备中打开；空间可在楼层图或 3D 上查看并控制照明与空调，楼层图支持 DWG、DXF。",
     "新增：部署进度可查看与添加项目成员；交付时可收回部署授权，交付快照可下载 PDF；照明控制器可标为消防应急照明回路。", // 3.30 Account 248
     "改进：侧栏分为三组，“配置进度”改为“部署”，“应用设置”改为“运行设置”；部署的待办在部署进度里直接完成，楼层编辑器整页打开。",
-    "改进：告警与工单分待处理、处理中、已结束，工单完成后自动核验；定时可跟随工作时间或日出日落。",
+    "改进：告警与工单分待处理、处理中、已结束，工单完成后自动核验；定时可跟随工作时间或日出日落；能耗的计量来源可选多个系统连接。",
     "改进：设备列表显示近 30 天在线率与 AI 诊断，固件升级可先试点；订阅、续费与增加设备数量在机构设置内办理。",
   ],
   "2026-10": [
