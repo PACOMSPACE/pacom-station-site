@@ -34117,7 +34117,7 @@ b.spc-src-n { cursor: auto; }
 .ovb-lg i.ln { width: 12px; height: 2px; border-radius: 1px; }
 .ovb-ch > footer { margin-top: 12px; }
 .ovb-axu { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; line-height: 18px; color: var(--ds-ink-2); }
-.ovb-ech { flex: 1; min-height: 0; }
+.ovb-ech { flex: 1; min-height: 0; min-width: 0; overflow: hidden; } /* 3.33 V1204：重画前图表不撑出卡片 */
 .ovb-ech > svg { display: block; }
 .ovb-tk { font-size: 12px; fill: var(--ds-ink-2); font-variant-numeric: tabular-nums; }
 .ovb-tk.d { fill: var(--ds-ink); }
@@ -34213,10 +34213,10 @@ b.spc-src-n { cursor: auto; }
 .ovf-tabs { display: flex; gap: 24px; height: 100%; }
 .ovf-name { flex: none; margin: 0 16px 0 0; font-size: 16px; line-height: 24px; font-weight: 600; color: var(--ds-ink); white-space: nowrap; }
 .ovf-pick { display: none; flex: none; }
-.ovf-tab { position: relative; height: 100%; padding: 0; border: 0; background: none; font: inherit; font-size: 14px; line-height: 22px; color: var(--ds-ink-2); white-space: nowrap; cursor: pointer; }
+.ovf-tab { position: relative; height: 100%; padding: 0; border: 0; background: none; font: inherit; font-size: 14px; line-height: 22px; font-weight: 500; color: var(--ds-ink-2); white-space: nowrap; cursor: pointer; } /* 3.33 L17-13：卡片内文字页签与页面页签同一外观（未选中 500），行高随卡片 */
 .ovf-tab:hover { color: var(--ds-ink); }
 .ovf-tab.on { font-weight: 600; color: var(--ds-ink); }
-.ovf-tab.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: #030303; }
+.ovf-tab.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: #202a44; }
 .ovf-tab:focus-visible { outline: 2px solid #00aeef; outline-offset: -2px; border-radius: 6px; }
 .ovf-bar > .sp { flex: 1; }
 .ovf-seg { display: inline-flex; padding: 2px; border-radius: 6px; background: #f3f4f6; }
@@ -34370,7 +34370,7 @@ button.cfg-kpi.click[aria-expanded="true"] { box-shadow: var(--ds-sh-xs), inset 
 .seg.seg-cat.seg-text > button { position: relative; height: 40px; min-width: 0; padding: 0; border-radius: 0; background: none; box-shadow: none; font-size: var(--ds-fs-2); line-height: var(--ds-lh-2); font-weight: 500; color: var(--ds-ink-2); }
 .seg.seg-cat.seg-text > button:not(.on):hover { color: var(--ds-ink); }
 .seg.seg-cat.seg-text > button.on { background: none; box-shadow: none; font-weight: 600; color: var(--ds-ink); }
-.seg.seg-cat.seg-text > button.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--ds-ink); }
+.seg.seg-cat.seg-text > button.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: #202a44; } /* 3.33 L17-13：下沿同页面页签 */
 .conn-head ~ .seg.seg-text, .conn-head ~ .seg-cat-row:has(> .seg-text) { margin-bottom: 16px; box-shadow: inset 0 -1px 0 var(--ds-line); }
 .conn-head ~ .seg-cat-row:has(> .seg-text) > .seg-text { box-shadow: none; }
 /* 系统接入：搜索 240 宽，在“新建系统连接”左边；表格列宽（协议 140、采集位置 240、服务楼层 120、数据点 120、状态 200），采集位置在电脑上一行写下 */
@@ -35036,6 +35036,7 @@ p.an4-links { display: flex; margin: 0; }
 /* 面板标题行“功能区 N”与“新建功能区”；功能区紧凑表：表头 36、行 40、单元格内边距 6 / 8，选中行叠黑 8% */
 .sp-ed-panel .sp-panel-h { display: flex; align-items: center; gap: 8px; }
 .sp-ed-panel .sp-ed-newb { margin-left: auto; }
+.sp-ed-panel .sp-ed-newb[aria-pressed="true"] { background: var(--sel); box-shadow: none; } /* 3.33 E1321：绘制中为按下状态 */
 .sp-ed-zt > .sp-ed-th, .sp-ed-zt > button { display: grid; grid-template-columns: minmax(0, 1fr) 96px 40px; align-items: center; gap: 0; }
 .sp-ed-zt > .sp-ed-th { height: 36px; padding: 0 8px; font-size: 12px; line-height: 18px; color: var(--ds-ink-2); border-bottom: 1px solid #ebebeb; }
 .sp-ed-zt > .sp-ed-th > span:last-child, .sp-ed-zt small.num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -45263,11 +45264,12 @@ function spEdMoreItems() {
   ].join("");
 }
 // 在图上查看：空间该层的“设备”视图，选中这台（在功能区内时打开功能区面板的设备详情）
-function spLocate(p) {
+// 3.33 V1205：src 为来源（设备对象页的“在图上查看”带上，页头为“返回设备”）
+function spLocate(p, src = null) {
   const f = g("floors", p.floorId),
     b = f && g("buildings", f.buildingId);
   if (!b) return;
-  route("space", { p: b.projectId, b: b.id, f: f.id, tab: "" }, { remember: true });
+  route("space", { p: b.projectId, b: b.id, f: f.id, tab: "" }, src ? { source: src } : { remember: true });
   Object.assign(U, { ovIcons: true, spLoc: p.id, ovView: "plan" });
   if (typeof Demo !== "undefined" && Demo.on() && p.zoneId && Demo.zoneOf(p.zoneId)) {
     Object.assign(U, { opsZone: p.zoneId, ovDev: p.id });
@@ -45343,6 +45345,30 @@ defineActions({
     if (!fid) return;
     const m = U.spEdLast && U.spEdLast !== "zones" ? U.spEdLast : null;
     goFloor(fid, m || "zones", null, m ? "devices" : "projects");
+  },
+  // 3.33 E1322、E1324：功能区对象页“⋯ › 编辑”与全局搜索楼层、功能区行尾的“编辑空间”“查看空间资料”（原调用的 switchTo 没有定义，点了没有反应）：
+  // 能编辑的人打开该层 空间 › 编辑（功能区模式），功能区同时选中；只读的人打开空间该层楼层图，功能区同时选中
+  switchTo: (a) => {
+    closeModal(true);
+    closePop();
+    const z = a.kind === "zones" ? g("zones", a.id) : null,
+      f = g("floors", z ? z.floorId : a.id),
+      b = f && g("buildings", f.buildingId);
+    if (!b) return;
+    if (canEdit())
+      return guard(() => {
+        goFloor(f.id, "zones", null, "projects");
+        if (z && U.f === f.id) {
+          Object.assign(U, { zone: z.id, spPanel: true });
+          syncRoute();
+          render();
+        }
+      });
+    route("space", { p: b.projectId, b: b.id, f: f.id, tab: "" }, { remember: true });
+    if (z && U.f === f.id) {
+      U.opsZone = z.id;
+      render();
+    }
   },
   // 完成：没有未保存的改动时回到空间该层的楼层图；有时弹窗三选一（继续编辑、放弃改动、保存规划），Esc 为继续编辑
   spEdDone: () => {
@@ -50627,7 +50653,7 @@ function sourceBack() {
   // 从配置进度“应用设置”表的“工作日历”进入场景 › 定时时同样有来源返回（ABB 对比 IA3）
   // 从总览、数据分析的“查看设置”进入应用设置时同样有来源返回（2.05 总览核查 V111）；从配置进度进入时同样（2.65 E938）；从场景 › 定时的“工作日历”进入时同样（2.66 V484）
   // 项目页的来源返回也在页头（2.91 V946：旧选择器左边的返回随选择器删去）。
-  const s = ((["deployment", "devices"].includes(U.page) && U.tab !== "network") || (U.page === "projects" && cfgHeadScopeOn()) || (U.page === "alarms" && U.source?.page === "analysis") || (U.page === "scenes" && U.source?.page === "deployment") || (U.page === "settings" && ["overview", "analysis", "deployment", "scenes"].includes(U.source?.page)) || (U.page === "overview" && U.obj)) && U.source;
+  const s = ((["deployment", "devices"].includes(U.page) && U.tab !== "network") || (U.page === "projects" && cfgHeadScopeOn()) || (U.page === "alarms" && U.source?.page === "analysis") || (U.page === "scenes" && U.source?.page === "deployment") || (U.page === "settings" && ["overview", "analysis", "deployment", "scenes"].includes(U.source?.page)) || (U.page === "overview" && U.obj) || (U.page === "overview" && U.sp && !!U.source?.obj)) && U.source; // 3.33 V1205：从设备对象页“在图上查看”进入空间时为“返回设备”
   // 3.29 E1289：代入的名称按规范 2 6，以字母或数字开头时留空格，如“返回 E-7F-MS20-35”
   return s ? `<button class="btn ws-source-back" data-act="sourceBack" aria-label="返回${esc(zhSub(s.label, "l"))}">${ico("back", "ic16")}<span>返回${esc(zhSub(s.label, "l"))}</span></button>` : "";
 }
@@ -52004,7 +52030,7 @@ function spacePanel(f, docked = false) {
   ).replace('class="seg"', 'class="seg seg-cat sp-tabs"'); // 2.65 E686：切换内容的页签用类别页签
   // 3.14 E1207：空间的编辑里面板只有功能区表，标题写“功能区 N”；楼层资料在标题行“⋯”
   if (U.spEd)
-    return `<aside class="sp-panel sp-ed-panel${docked ? " docked" : ""}" aria-label="功能区">${spPanelHead(`<h3 class="sp-ed-h">功能区${f.image ? `<span class="sp-tab-n">${zn}</span>` : ""}</h3>${canEdit() && f.image && zn && !isMobile() && !U.zoneDraft ? btn(ico("plus", "ic16") + "新建功能区", "startZone", {}, "sm sp-ed-newb") : ""}`)}<div class="sp-body" data-key="${esc(body)}" id="${esc(body)}">${!U.zoneDraft ? planReviewBanner(f) : ""}${!f.image ? `<div class="sp-noplan">${empty("尚未上传" + planWord(f.buildingId), "", "", "layers")}</div>` : U.zoneDraft ? spDraftBody(f) : U.zone && g("zones", U.zone) ? spZoneBody(f, g("zones", U.zone)) : spZoneList(f)}</div></aside>`;
+    return `<aside class="sp-panel sp-ed-panel${docked ? " docked" : ""}" aria-label="功能区">${spPanelHead(`<h3 class="sp-ed-h">功能区${f.image ? `<span class="sp-tab-n">${zn}</span>` : ""}</h3>${canEdit() && f.image && zn && !isMobile() && !U.zoneDraft ? btn(ico("plus", "ic16") + "新建功能区", "startZone", {}, "sm sp-ed-newb").replace("<button ", `<button aria-pressed="${!!U.drawZone}" `) /* 3.33 E1321：绘制中为按下状态 */ : ""}`)}<div class="sp-body" data-key="${esc(body)}" id="${esc(body)}">${!U.zoneDraft ? planReviewBanner(f) : ""}${!f.image ? `<div class="sp-noplan">${empty("尚未上传" + planWord(f.buildingId), "", "", "layers")}</div>` : U.zoneDraft ? spDraftBody(f) : U.zone && g("zones", U.zone) ? spZoneBody(f, g("zones", U.zone)) : spZoneList(f)}</div></aside>`;
   return `<aside class="sp-panel${docked ? " docked" : ""}" aria-label="${isOutdoor(f.buildingId) ? "功能区与总平面" : "功能区与楼层"}">${spPanelHead(f.image ? tabBar : "")}<div class="sp-body" data-key="${esc(body)}" id="${esc(body)}"${f.image ? ` role="tabpanel" aria-labelledby="spTab-${tab}"` : ""}>${!U.zoneDraft ? planReviewBanner(f) : ""}${tab === "floor" && !U.zoneDraft ? spFloorBody(f) : !f.image ? `<div class="sp-noplan">${empty("尚未上传" + planWord(f.buildingId), "", "", "layers")}</div>` : U.zoneDraft ? spDraftBody(f) : U.zone && g("zones", U.zone) ? spZoneBody(f, g("zones", U.zone)) : spZoneList(f)}</div></aside>`;
 }
 // 功能区类型筛选（2026-10-03 A9）：本层超过 20 个功能区才显示类型胶囊，否则只用搜索框旁的“类型 ▾”下拉。
@@ -59512,7 +59538,7 @@ function showConfigurationList(id, scope = "") {
     `${infoRows([
       ["设备网络", n.name],
       ["网络版本", "v" + n.version],
-    ])}${fieldBar(data(), n)}<div class="seg ws-kind-seg flow-cfg-seg" role="radiogroup" aria-label="同步状态">${[
+    ])}${fieldBar(data(), n)}<div class="seg sm ws-kind-seg flow-cfg-seg" role="radiogroup" aria-label="同步状态">${[
       ["open", `未同步 ${open.length}`],
       ["all", `全部 ${rows.length}`],
     ]
@@ -72139,7 +72165,8 @@ function depMembers(pid = U.p) {
     .sort((a, b) => DEP_MEM_ROLES.indexOf(a.role) - DEP_MEM_ROLES.indexOf(b.role));
 }
 // 未验证的一条：说明文字与“去处理”（打开该设备对象页的“记录”）
-const depUnverTd = (text, id) => `<div class="dep-td"><span>${esc(text)}</span>${id ? btn("去处理", "v13VerifyRec", { id }, "sm") : ""}</div>`;
+// 3.33 账户第 255 条：“去处理”只给配置人员与机构管理员（E935），其他角色只留文字
+const depUnverTd = (text, id) => `<div class="dep-td"><span>${esc(text)}</span>${id && v13WhoOk("config") ? btn("去处理", "v13VerifyRec", { id }, "sm") : ""}</div>`;
 // 已通知机构管理员的时间：当天写“22:30”，更早写日期
 function depNtfTime(at, pid = U.p) {
   const d = projectTime(at, false, pid);
@@ -88679,6 +88706,13 @@ function ovDrawEnergy() {
     rows = OPS.ovEnergy;
   if (!el || !rows) return;
   // 2.91 V946：图卡高 318，图高随卡内剩余高度（电脑 204）
+  // 3.33 V1204：卡片宽度变化（窗口从宽变窄、侧栏收起）时按新宽度重画；原只在窗口 resize 时重画，那时卡片可能还是原来的宽度，图表超出卡片
+  if (typeof ResizeObserver === "function" && OPS.ovEchEl !== el) {
+    OPS.ovEchRo ||= new ResizeObserver(() => ovDrawEnergy());
+    OPS.ovEchRo.disconnect();
+    OPS.ovEchRo.observe(el);
+    OPS.ovEchEl = el;
+  }
   const W = Math.max(240, Math.floor(el.clientWidth)),
     H = Math.max(160, Math.floor(el.clientHeight) || 204);
   if (el.dataset.w === `${W}x${H}`) return;
@@ -88728,7 +88762,9 @@ function ovDetDevs(ps) {
   const c = devCounts(data(), ps),
     f = c.off ? "offline" : c.bad ? "issues" : "all",
     part = (n, t, tone) => `<span class="ovb-dd-s${n ? ` ds-st ${tone}` : ""}">${t} ${fmt(n)}</span>`;
-  return `<button type="button" class="ovb-dd" data-act="opsGo" data-page="devices" data-tab="inventory" data-devf="${f}">${fmt(c.all)} 台<small>${[part(c.off, "离线", "bad"), part(c.bad, "异常", "warn"), c.unk ? part(c.unk, "状态未知", "") : ""].filter(Boolean).join('<i aria-hidden="true">·</i>')}</small></button>`;
+  // 3.33 V1207：读屏名称带“设备”，如“设备 108 台，离线 2 · 异常 5”
+  const al = `设备 ${fmt(c.all)} 台，${[`离线 ${fmt(c.off)}`, `异常 ${fmt(c.bad)}`, c.unk ? `状态未知 ${fmt(c.unk)}` : ""].filter(Boolean).join(" · ")}`;
+  return `<button type="button" class="ovb-dd" data-act="opsGo" data-page="devices" data-tab="inventory" data-devf="${f}" aria-label="${esc(al)}">${fmt(c.all)} 台<small>${[part(c.off, "离线", "bad"), part(c.bad, "异常", "warn"), c.unk ? part(c.unk, "状态未知", "") : ""].filter(Boolean).join('<i aria-hidden="true">·</i>')}</small></button>`;
 }
 function ovBldNet(b, fids) {
   return `<section class="ovb-card ovb-net" aria-label="设备">${ovDevLine(ovDevsAt(b.projectId, fids))}</section>`;
@@ -88762,12 +88798,22 @@ function ovBldQuick(fids, c, num) {
   }
   // 3.31 运营区第 5 项（Y53）：与空间楼层页同名“需要处理”，列待处理与处理中，第二行写位置与状态，标题后写“待处理 4 · 处理中 1”
   xs = xs.concat(Demo.on() && OPS_SCOPE.project ? alTabList("tasks").filter((it) => !fids || fids.has(ovItFloor(it))) : []);
-  const rows = xs.slice(0, 5).map((it) => {
-    const al = alIsAl(it),
-      name = al ? alarmTitle(it.a).title : tkTitle(it.t),
-      place = al ? alAt(alarmFloor(it.a), alLocOnly(it.a), alarmTitle(it.a).title) : alTaskAt(it.t);
-    return `<li><button type="button" class="ovb-qr ovb-pd" data-act="${it.t ? "opsTask" : "opsAlarm"}" data-id="${esc(it.id)}"><span><b>${esc(name)}</b><small>${[esc(place), alStatus(it)].filter(Boolean).join(" · ")}</small></span></button></li>`; // 3.14 Lovable T1：整行可点，不放箭头
-  });
+  // 3.33 V1206：与空间楼层面板同一顺序与写法：已恢复的放后，先按级别、再按开始时间（新的在前）；第二行“位置 · 设备 · 持续时间 · 状态”，
+  // 有负责人的处理中写“李工处理中”（原按状态排，处理中的重要告警排在后面，第二行没有持续时间）
+  const lv = (it) => (it.a ? lvlRank(it.a.level) : 3),
+    rec = (it) => it.a?.state === "recovered";
+  const rows = xs
+    .sort((x, y) => rec(x) - rec(y) || lv(x) - lv(y) || alBegin(y) - alBegin(x))
+    .slice(0, 5)
+    .map((it) => {
+      const al = alIsAl(it),
+        a = it.a,
+        name = al ? alarmTitle(a).title : tkTitle(it.t),
+        place = al ? alAt(alarmFloor(a), alLocOnly(a), alarmTitle(a).title) : alTaskAt(it.t),
+        dur = a ? (rec(it) ? alDur(a) : durRow(alarmStart(a))) : durRow(Date.parse(it.t.at)),
+        who = it.st === "tasks" && it.t?.assignee && !it.rw && !taskReworked(it.t) && !taskOverdue(it.t) ? nwText(it.t.assignee) : "";
+      return `<li><button type="button" class="ovb-qr ovb-pd" data-act="${it.t ? "opsTask" : "opsAlarm"}" data-id="${esc(it.id)}"><span><b>${esc(name)}</b><small>${[esc(place), esc(dur), who + alStatus(it)].filter(Boolean).join(" · ")}</small></span></button></li>`; // 3.14 Lovable T1：整行可点，不放箭头
+    });
   return `<section class="ovb-card ovb-qp ovb-pend${num ? " sm" : ""}" aria-label="需要处理"><header><h3>需要处理</h3>${ovNeedHead(fids)}</header>${rows.length ? `<ul>${rows.join("")}</ul>` : `<p class="ovb-pd-none">没有需要处理的事项</p>`}</section>`;
 }
 function ovBuilding(c) {
@@ -92616,7 +92662,7 @@ function obTrendCard(k, o, V) {
     seg = hasMap ? segSm([["trend", "趋势"], ["map", "位置"]], pane, "opsObjPane", "", "趋势与位置") : "<h3>趋势</h3>";
   if (pane === "map") {
     const zid = k === "zone" ? o.id : o.zoneId,
-      open = zid ? btn("在图上查看", "opsOpenZone", { id: zid, tab: "general" }, "ghost sm") : ""; // 3.31 运营区第 4 项：原“在总览中打开”
+      open = k === "dev" && o.floorId ? btn("在图上查看", "opsDevLocate", { id: o.id }, "ghost sm") : zid ? btn("在图上查看", "opsOpenZone", { id: zid, tab: "general" }, "ghost sm") : ""; // 3.31 运营区第 4 项：原“在总览中打开”；3.33 V1205
     return `<section class="ob-card ob-trc ob-map"><header>${seg}<span class="sp"></span>${open}</header>${obMapBody(k, o)}</section>`;
   }
   if (!V) return `<section class="ob-card ob-trc"><header>${seg}</header><p class="ob-none">所在楼层尚未接入运行数据，没有趋势</p></section>`;
@@ -92989,7 +93035,7 @@ defineActions({
       zid = x.k === "zone" ? x.id : x.o.zoneId && g("zones", x.o.zoneId) ? x.o.zoneId : null,
       item = (icon, label, act, args = {}) => btn(ico(icon, "ic16") + label, act, args, "popitem"),
       top = [
-        obLive(x.k, x.o) ? (zid ? item("map", "在图上查看", "opsOpenZone", { id: zid, tab: "general" }) : item("map", "在图上查看", "opsDrill", { p: L.p, b: L.b || "", f: L.f || "" })) : "", // 3.31 运营区第 4 项：原“在总览中打开”
+        obLive(x.k, x.o) ? (x.k === "dev" && x.o.floorId ? item("map", "在图上查看", "opsDevLocate", { id: x.id }) : zid ? item("map", "在图上查看", "opsOpenZone", { id: zid, tab: "general" }) : item("map", "在图上查看", "opsDrill", { p: L.p, b: L.b || "", f: L.f || "" })) : "", // 3.31 运营区第 4 项：原“在总览中打开”；3.33 V1205：设备选中这台
         zid ? item("wrench", "报修", "opsZoneRepair", { id: zid }) : "",
         canEdit() ? item("edit", "编辑", "opsObjEdit", { o: U.obj }) : "",
       ].join(""),
@@ -93008,13 +93054,23 @@ defineActions({
     if (!c) return;
     showConnectionDetail(c.id); // 2.81 E1094：打开连接详情页
   },
-  // 属性的“编辑”：功能区到项目页，设备到设备标记
+  // 属性的“编辑”：功能区打开该层 空间 › 编辑并选中（3.33 E1322：原调用的 switchTo 没有定义）；
+  // 设备打开该层 空间 › 编辑的“设备”模式并选中这台（3.33 E1323：原走“在图上查看”，只能查看）
   opsObjEdit: (a) => {
     closePop();
     const x = obParse(a.o);
     if (!x) return;
     if (x.k === "zone") return actions.switchTo({ kind: "zones", id: x.id });
-    return actions.locatePoint({ id: x.id });
+    const p = g("points", x.id);
+    if (!p) return;
+    if (p.unplaced) return actions.placeAgain({ id: p.id });
+    guard(() => goFloor(p.floorId, "mark", p.id, "devices"));
+  },
+  // 3.33 V1205：设备的“在图上查看”打开空间该层的“设备”显示，选中这台设备并打开它的面板，页头“返回设备”
+  opsDevLocate: (a) => {
+    closePop();
+    const p = g("points", a.id);
+    if (p) spLocate(p, { ...snapshot(), label: "设备" });
   },
 });
 
@@ -100902,13 +100958,24 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "3.33",
+    date: "2026-11-08",
+    notes: [
+      "改进：对象页与搜索结果里的“编辑”“编辑空间”打开楼层编辑器，并选中该功能区或设备。",
+      "改进：设备的“在图上查看”选中这台设备并打开它的面板，可返回设备。",
+      "改进：楼宇页的“需要处理”与空间楼层面板同一顺序与写法。",
+      "改进：绘制功能区时，顶行写当前的绘制工具。",
+      "修复已知问题，优化界面细节。",
+    ],
+  },
+  {
     version: "3.32",
     date: "2026-11-08",
     notes: [
-      "新增：能耗设置的计量来源可选多个系统连接。",
       "改进：部署进度把同类待办合成一条，可一次上传多个楼层的楼层图；“设备”一步常驻“标记设备”。",
       "改进：从部署进度或设备网络进入的页面，返回时回到原来的步骤或网络。",
       "改进：楼层编辑器的“⋯”加入楼层图版本与修改记录。",
+      "改进：能耗设置的计量来源可选多个系统连接。", // 3.33 账户第 254 条：原写“新增”
       "修复已知问题，优化界面细节。",
     ],
   },
@@ -116387,7 +116454,9 @@ function spatialControl(label,building=false) {
   const split=building&&U.buildingSplit;
   const undo=building?!!U.buildingUndo?.length&&!split:!!U.spUndo?.length;
   const edit=!!U.spatialEdit;
-  const trigger=btn((editing?(split?SPLIT_GLYPH:spatialGlyph(shape)):ico('plus','ic16'))+label,building?'markBuilding':'startZone',{},'spatial-drawing-trigger').replace('>',' aria-haspopup="menu" aria-expanded="false">');
+  // 3.33 E1321：选择工具后，功能区的入口写当前工具的图标与名称（如“矩形 ▾”），点开仍为四种工具；屏上只剩面板里一个“新建功能区”
+  const tool=!building&&editing?ZONE_TOOLS.find(([s])=>s===shape)?.[1]:'';
+  const trigger=btn((editing?(split?SPLIT_GLYPH:spatialGlyph(shape)):ico('plus','ic16'))+(tool?tool+ico('chevron','ic16'):label),building?'markBuilding':'startZone',{},'spatial-drawing-trigger').replace('>',` aria-haspopup="menu" aria-expanded="false"${tool?` aria-label="绘制工具：${tool}"`:''}>`);
   const undoButton=iconBtn('撤销范围修改','undo','spatialUndo').replace('>',!U.spatialCanUndo&&!undo?' disabled>':'>');
   if(split?.ids){
     const pick=`<label class="spatial-split-pick"><span>调整楼层</span>${select('splitFloor',[['','选择楼层'],...split.ids.map(id=>[id,g('floors',id)?.name||''])],split.sel||'','调整楼层')}</label>`;
