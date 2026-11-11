@@ -97619,7 +97619,15 @@ const S3V = (() => {
     }
     // 3.48：名称与数值写在功能区中间（S.cl）；放不下时用短名（如“7-1”），再放不下截短，太小的不写；数值在名称下一行
     x.textAlign = "center";
-    for (const n of names.filter((n) => n.c)) {
+    // 3.56 V1486：标注互不压叠。大功能区先写；与已写的标注重叠时只写数值，仍重叠就不写（只显示颜色，名称与数值悬停时显示）
+    const drawn = [],
+      bx = (t) => { const xs = t.map((p) => p[0]), ys = t.map((p) => p[1]); return (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys)); },
+      clash = (r) => drawn.some((d) => r[0] < d[0] + d[2] && d[0] < r[0] + r[2] && r[1] < d[1] + d[3] && d[1] < r[1] + r[3]),
+      cxs = names.filter((n) => n.c).flatMap((n) => n.t.map((p) => p[0])),
+      span = cxs.length ? Math.max(...cxs) - Math.min(...cxs) : 0;
+    x.canvas._span = span;
+    // 画面变窄、楼层图宽不到 300 时不写标注
+    for (const n of span < 300 ? [] : names.filter((n) => n.c).sort((p, q) => bx(q.t) - bx(p.t))) {
       const xs = n.t.map((p) => p[0]),
         w = Math.max(...xs) - Math.min(...xs) - 6;
       x.font = "400 11px Figtree, 'PingFang SC', 'Microsoft YaHei', sans-serif";
@@ -97636,7 +97644,20 @@ const S3V = (() => {
       if (!s2 && s && x.measureText(s).width > w && n.short && n.short.length >= 2) s = n.short;
       if (!s2 && s && x.measureText(s).width > w) s = "";
       if (w < 16) continue;
-      const y0 = n.c[1] - (n.val ? 7 : 0) - (s2 ? 6 : 0);
+      const box = (a, b, v) => {
+        x.font = "400 11px Figtree, 'PingFang SC', 'Microsoft YaHei', sans-serif";
+        let bw = Math.max(a ? x.measureText(a).width : 0, b ? x.measureText(b).width : 0);
+        x.font = "600 10px Figtree, 'PingFang SC', 'Microsoft YaHei', sans-serif";
+        if (v) bw = Math.max(bw, x.measureText(v).width);
+        const k = (a ? 1 : 0) + (b ? 1 : 0) + (v ? 1 : 0);
+        return [n.c[0] - bw / 2 - 2, n.c[1] - (k * 13) / 2 - 1, bw + 4, k * 13 + 2];
+      };
+      let r = box(s, s2, n.val);
+      if (clash(r) && n.val) (s = ""), (s2 = ""), (r = box("", "", n.val));
+      if (clash(r) || (!s && !n.val)) continue;
+      drawn.push(Object.assign(r, { t: [s, s2, n.val].filter(Boolean).join(" ") }));
+      x.font = "400 11px Figtree, 'PingFang SC', 'Microsoft YaHei', sans-serif";
+      const y0 = n.c[1] - (n.val && s ? 7 : 0) - (s2 ? 6 : 0);
       x.textBaseline = "middle";
       x.lineWidth = 3;
       x.strokeStyle = "rgba(255,255,255,.85)";
@@ -97649,13 +97670,14 @@ const S3V = (() => {
         }
       }
       if (n.val) {
-        const yv = y0 + (s2 ? 26 : 13);
+        const yv = s ? y0 + (s2 ? 26 : 13) : n.c[1];
         x.font = `${n.dim ? 400 : 600} 10px Figtree, 'PingFang SC', 'Microsoft YaHei', sans-serif`;
         x.strokeText(n.val, n.c[0], yv);
         x.fillStyle = n.dim ? "#7A828F" : "#1F2A30"; // 3.48：“无测点”等写灰色（最终图 2-5）
         x.fillText(n.val, n.c[0], yv);
       }
     }
+    x.canvas._lb = drawn; // 供检查读取已写的标注
     // 3.48：说明框（告警详情、设备、场景）：白底圆角，左侧色点，两行文字，放在功能区或设备右下方
     if (S.call?.pt) {
       const c = S.call,
@@ -108866,6 +108888,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.56",
+    date: "2026-11-11",
+    notes: ["改进：楼层图上的名称与数值不再互相压叠；画面变窄时只显示颜色，悬停查看名称与数值。"],
+  },
   {
     version: "3.55",
     date: "2026-11-11",
