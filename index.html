@@ -36214,6 +36214,7 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   .ov3-flr.on { background: rgba(0, 0, 0, 0.08); color: #030303; font-weight: 500; }
   .ov3-flr:focus-visible { outline: none; box-shadow: inset 0 0 0 2px #00aeef; }
   .ov3-fdot { position: absolute; top: 3px; right: 4px; width: 6px; height: 6px; }
+  .ov3-fall { display: none; }
   .ov3-fsep { flex: none; height: 1px; margin: 4px 2px; background: rgba(114, 114, 112, 0.16); }
   .ov3-nofl > .ov3-np-c { margin-left: 80px; }
   .ov3-npb { margin-top: 16px; }
@@ -36273,9 +36274,11 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
     box-shadow: 0 0 0 1px #fff, 0 0 0 2px rgba(119, 119, 113, 0.16), 0 2px 1px rgba(0, 0, 0, 0.04), 0 4px 3px -1.5px rgba(0, 0, 0, 0.04), 0 7px 6px -3px rgba(0, 0, 0, 0.04); }
   .ov3-fh { display: block; flex: none; margin: 0 8px 8px; font-size: 14px; line-height: 22px; font-weight: 600; color: #030303; }
   .ov3-flr { display: flex; align-items: center; justify-content: space-between; gap: 4px; width: 104px; height: 32px; padding: 0 8px; border-radius: 12px; color: #030303; font-size: 14px; line-height: 22px; font-weight: 400; }
-  .ov3-flr.np, .ov3-flr.on { color: #030303; font-weight: 400; }
+  .ov3-flr.on { color: #030303; font-weight: 400; }
+  .ov3-flr.np:not(.on) { color: #636363; font-weight: 400; } /* 3.58 V1488：按 3.46，没有楼层图的层 #636363 */
   .ov3-fdot { position: static; width: 6px; height: 6px; }
-  .ov3-fsep { margin: 4px 8px; }
+  .ov3-fsep { display: none; } /* 3.58 V1489：按 3.46，“全部楼层”下不加分隔线 */
+  .ov3-fall { display: inline; }
 }
 @media (min-width: 851px) {
   .ws3-tl { left: 152px; }
@@ -100087,12 +100090,12 @@ function ov3Scene(s) {
 function ov3FloorCol(b, s) {
   const on = s.mode === "3d" ? s.cur : s.mode === "2d" ? s.cur : s.sel,
     row = (fid, name, plan, due) =>
-      `<button type="button" class="ov3-flr${(fid || null) === (on || null) ? " on" : ""}${plan ? "" : " np"}" data-act="ov3Floor" data-to="${esc(fid || "")}"${fid ? ` data-fid="${esc(fid)}"` : ""} aria-pressed="${(fid || null) === (on || null)}" aria-label="${esc([name, plan ? "" : "未上传楼层图", due ? `待处理 ${due.n} 项` : ""].filter(Boolean).join("，"))}">${esc(name)}${due ? ov3Dot(due.lvl, "ov3-fdot") : ""}</button>`,
+      `<button type="button" class="ov3-flr${(fid || null) === (on || null) ? " on" : ""}${plan ? "" : " np"}" data-act="ov3Floor" data-to="${esc(fid || "")}"${fid ? ` data-fid="${esc(fid)}"` : ""} aria-pressed="${(fid || null) === (on || null)}" aria-label="${esc([name, plan ? "" : "未上传楼层图", due ? `待处理 ${due.n} 项` : ""].filter(Boolean).join("，"))}">${fid ? esc(name) : '<span>全部<span class="ov3-fall">楼层</span></span>' /* 3.58 V1489：电脑写“全部楼层”，手机行宽 48 仍写“全部” */}${due ? ov3Dot(due.lvl, "ov3-fdot") : ""}</button>`,
     rows = s.st
       .slice()
       .reverse()
       .map((x) => row(x.f.id, x.f.name, !!x.f.image, ov3Due(b.projectId, b.id, x.f.id)));
-  return `<div class="ov3-fcol" role="group" aria-label="楼层"><b class="ov3-fh" aria-hidden="true">楼层</b>${s.has3 ? row(null, "全部", true, null) + '<span class="ov3-fsep" aria-hidden="true"></span>' : ""}${rows.join("")}</div>`;
+  return `<div class="ov3-fcol" role="group" aria-label="楼层"><b class="ov3-fh" aria-hidden="true">楼层</b>${s.has3 ? row(null, "全部楼层", true, null) + '<span class="ov3-fsep" aria-hidden="true"></span>' : ""}${rows.join("")}</div>`;
 }
 function ov3Bldg() {
   const b = g("buildings", U.b),
@@ -100841,8 +100844,8 @@ function ws3FloorCol(sc) {
     st = F.floorStack(data(), sc.bid),
     has3 = s3Has(sc.bid),
     row = (fid, name, plan, due) =>
-      `<button type="button" class="ov3-flr${(fid || null) === (sc.fid || null) ? " on" : ""}${plan ? "" : " np"}" data-act="ws3Floor" data-to="${esc(fid || "")}"${fid ? ` data-fid="${esc(fid)}"` : ""} aria-pressed="${(fid || null) === (sc.fid || null)}" aria-label="${esc([name, plan ? "" : "未上传楼层图", due ? `待处理 ${due.n} 项` : ""].filter(Boolean).join("，"))}">${esc(name)}${due ? ov3Dot(due.lvl, "ov3-fdot") : ""}</button>`;
-  return `<div class="ov3-fcol" role="group" aria-label="楼层"><b class="ov3-fh" aria-hidden="true">楼层</b>${has3 ? row(null, "全部", true, null) + '<span class="ov3-fsep" aria-hidden="true"></span>' : ""}${st
+      `<button type="button" class="ov3-flr${(fid || null) === (sc.fid || null) ? " on" : ""}${plan ? "" : " np"}" data-act="ws3Floor" data-to="${esc(fid || "")}"${fid ? ` data-fid="${esc(fid)}"` : ""} aria-pressed="${(fid || null) === (sc.fid || null)}" aria-label="${esc([name, plan ? "" : "未上传楼层图", due ? `待处理 ${due.n} 项` : ""].filter(Boolean).join("，"))}">${fid ? esc(name) : '<span>全部<span class="ov3-fall">楼层</span></span>' /* 3.58 V1489：电脑写“全部楼层”，手机行宽 48 仍写“全部” */}${due ? ov3Dot(due.lvl, "ov3-fdot") : ""}</button>`;
+  return `<div class="ov3-fcol" role="group" aria-label="楼层"><b class="ov3-fh" aria-hidden="true">楼层</b>${has3 ? row(null, "全部楼层", true, null) + '<span class="ov3-fsep" aria-hidden="true"></span>' : ""}${st
     .slice()
     .reverse()
     .map((x) => row(x.f.id, x.f.name, !!x.f.image, ov3Due(b.projectId, b.id, x.f.id)))
@@ -108887,6 +108890,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.58",
+    date: "2026-11-11",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
   {
     version: "3.57",
     date: "2026-11-11",
