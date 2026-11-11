@@ -36860,8 +36860,11 @@ img.img-off { display: none !important; }
 .ws3-body.ws3-an > .ws3-grp + .ws3-list { margin-top: -16px; } /* 只在间距 16 的数据分析页签（弹性布局）；其他页的列表区为普通排版，原本就是 44 */
 /* V1468：纵轴刻度与柱子同一比例：三个刻度的中线分别落在图顶、一半与柱底（0 对齐柱底） */
 .ws3-yax { height: 130px; }
-/* V1472：报告面板打开时画面（含图例与地图）让出面板宽度（面板 400 + 两侧 8），不被盖住 */
-@media (min-width: 851px) { #app.is-ov3 .ov3x:has(> .ws3-drawer) > .ov3-view { margin-right: 416px; } }
+/* 3.57 V1487：报告面板占满右侧画面区（与画面卡同位置、圆角 16、外边距 8），画面连同楼层卡片、图层、地图按钮与图例隐藏；关闭后回到原画面与原取景（画面不改尺寸，取景不变）。各电脑宽度同一规则 */
+@media (min-width: 851px) {
+  #app.is-ov3 .ov3x:has(> .ws3-drawer) > .ov3-view { visibility: hidden; }
+  #app.is-ov3 .ov3x > .ws3-drawer { left: 400px; width: auto; }
+}
 /* V1480：页签行放不下时两端渐隐与滚动按钮（按钮在页签行里贴住两端，负外边距不占位；底色同所在面板：电脑 #F5F5F5，手机 #FAFAFA），滚到头的一端不显示 */
 .ws3-tabsx { --ws3-tabbg: #f5f5f5; }
 .ws3-tabnx { position: sticky; z-index: 1; flex: none; display: flex; align-items: center; width: 48px; height: 40px; padding: 0; border: 0; color: #030303; cursor: pointer; }
@@ -101877,8 +101880,6 @@ onAfterRender(() => {
     upd();
   }
 });
-// 3.55 V1484：画面卡变宽、变窄（报告面板开关）时，同一画布按新宽度重新取景
-const ws3Refit = () => (S3_LIVE?.host?.isConnected ? S3_LIVE.api.reset() : null);
 defineActions({
   ws3Tab: (a) => {
     closePop();
@@ -102087,15 +102088,13 @@ defineActions({
   // 3.52 菜单与页签方案：标题行“报告”打开报告清单（单份报告整页打开）
   ws3Reports: () => {
     closePop();
-    // 3.55 V1484：面板开关后画面宽度变了，画面按新宽度重新取景（不沿用记下的视角），楼层图留在楼层卡片右侧
-    if (!isMobile()) return (U.anRpt = !U.anRpt), ws3Cam(null), render(), requestAnimationFrame(() => (ws3Refit(), $(".ws3-drawer .ws3-dh h2")?.focus?.()));
+    // 3.57 V1487：报告面板占满画面区，画面不改尺寸，开关都不重新取景
+    if (!isMobile()) return (U.anRpt = !U.anRpt), render(), requestAnimationFrame(() => $(".ws3-drawer .ws3-dh h2")?.focus?.());
     route("analysis", { p: U.p, b: U.b, f: U.f, tab: "reports" }, { remember: true });
   },
   ws3RptClose: () => {
     U.anRpt = false;
-    ws3Cam(null); // 3.55 V1484
-    render();
-    requestAnimationFrame(ws3Refit);
+    render(); // 3.57 V1487：回到原画面与原取景
     requestAnimationFrame(() => $(".ws3-rpt")?.focus());
   },
   ws3AnBack: () => route("analysis", { p: U.p, b: U.b, f: U.f, tab: "energy" }),
@@ -108888,6 +108887,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.57",
+    date: "2026-11-11",
+    notes: ["改进：数据分析的报告面板占满右侧画面，关闭后回到原来的楼层图视角。"],
+  },
   {
     version: "3.56",
     date: "2026-11-11",
