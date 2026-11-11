@@ -4601,6 +4601,11 @@ details[open] > summary::before {
   --tip-from: translateX(-2px);
   transform-origin: left center;
 }
+/* 3.62 提示在按钮左侧（画面右上的浮动按钮）：从右往左出现 */
+#tip.ws-tip-left:where(:not([data-page=console], [data-page=app])) {
+  --tip-from: translateX(2px);
+  transform-origin: right center;
+}
 #tip.ws-tip-closing:where(:not([data-page=console], [data-page=app])) {
   animation: ws-tip-out 100ms ease both;
 }
@@ -29755,9 +29760,10 @@ button.ops-circ-row:hover {
 .ops-need-s.todo {
   display: inline-block;
   padding: 0 6px;
-  border-radius: 9px;
-  background: #fdf1d6;
+  border-radius: 4px; /* 3.62 补 3.61 V1530：同徽章，提示色 16% 底、圆角 4 */
+  background: rgba(210, 154, 16, 0.16);
   color: #8a5a00;
+  font-weight: 500;
 }
 /* 2.53 V250：感应调光时序 */
 .v13-seq {
@@ -36161,8 +36167,8 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   .ov3-st-go { margin: -6px; padding: 6px; border: 0; border-radius: 8px; background: none; font: inherit; text-align: left; cursor: pointer; }
   .ov3-st-go:hover { background: rgba(0, 0, 0, 0.04); }
   .ov3-st-ic.ov3-st-al { background: rgba(219, 106, 30, 0.16); color: #db6a1e; } /* 3.61 V1534：重要 16%（原 #FCEFE6） */
-  .ov3-st-ic.ov3-st-al.l0 { background: #fbe9e7; color: #d0382b; }
-  .ov3-st-ic.ov3-st-al.l2 { background: #fbf3e0; color: #d29a10; }
+  .ov3-st-ic.ov3-st-al.l0 { background: rgba(208, 56, 43, 0.16); color: #d0382b; } /* 3.62 补 3.61 V1526：紧急、提示同为 16% */
+  .ov3-st-ic.ov3-st-al.l2 { background: rgba(210, 154, 16, 0.16); color: #d29a10; }
   .ov3-pill { flex: none; display: inline-flex; align-items: center; height: 28px; padding: 0 8px; border-radius: 6px; background: rgba(119, 119, 113, 0.16); color: #2e2e2e; font-size: 14px; line-height: 22px; white-space: nowrap; }
   /* 3.52 Lovable（规范 2 8）：正常状态只写灰字，不做标签 */
   .ov3-pill.on { height: auto; padding: 0; background: none; color: #636363; }
@@ -36642,8 +36648,6 @@ img.img-off { display: none !important; }
   }
 
   /* 总览（3.48 最终图细节核查第 5、25、28、29 项） */
-  .ov3-sat { font-weight: 500; }
-  .ov3-ctl .ov3-cb:has(> .ov3-sat) { width: auto; padding: 0 10px; }
   .ov3-redo { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 20px; padding: 12px 16px; border: var(--hw) solid var(--hc-b9bec6, #e3e5e8); border-radius: 8px; background: #fff; color: var(--ds-ink); text-align: left; font: inherit; cursor: pointer; }
   .ov3-redo:hover { background: #f7f8f9; }
   .ov3-redo > span { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
@@ -37001,7 +37005,7 @@ img.img-off { display: none !important; }
   :where(#side > .nav, .ov3x > .ov3-panel, .ov3-view, .ov3-view *) { scrollbar-width: thin; scrollbar-color: #636363 transparent; }
 }
 /* 画面浮层（V1500、V1501a–c、V1507）：毛玻璃白 48%（图例、提示卡 80%）、模糊 12、亮度 1.08、饱和度 1.4，
-   阴影为 0.5px 黑 12% 细环加两层小投影；工具组全圆、宽 40 中线对齐；“卫星”为 32 圆形按钮；图例高 40、单行全圆 */
+   阴影为 0.5px 黑 12% 细环加两层小投影；工具组全圆、宽 36 中线对齐（3.62）；图例高 40、单行全圆 */
 @media (min-width: 851px) {
   .ov3-cg, .ws3-lbtn, .ws3-miss, .ws3-lg, .ovm-note {
     -webkit-backdrop-filter: blur(12px) brightness(1.08) saturate(1.4); backdrop-filter: blur(12px) brightness(1.08) saturate(1.4);
@@ -37011,8 +37015,22 @@ img.img-off { display: none !important; }
   .ws3-miss, .ws3-lg, .ovm-note { background: rgba(255, 255, 255, 0.8); }
   .ws3-lbtn:hover { background: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05)), rgba(255, 255, 255, 0.48); }
   .ov3-cg { border-radius: 999px; }
-  .ov3-cg > .ov3-cb { width: 32px; min-width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 12px; line-height: 18px; font-weight: 500; }
+  .ov3-cg > .ov3-cb { width: 28px; min-width: 28px; height: 28px; padding: 0; border-radius: 50%; font-size: 12px; line-height: 18px; font-weight: 500; }
   .ws3-lg { box-sizing: border-box; min-height: 40px; padding: 6px 16px; border-radius: 20px; align-content: center; }
+}
+/* 3.62 地图与画面右上按钮（HONG 2026-11-11 09:35Z“按钮从40改为36，卫星图标与下方胶囊的间距缩小”、09:38Z 按 Vision 09:30Z）：
+   电脑组宽 36、按钮 28、图标 16，两组间距 8，右边距不变；复位与放大之间一条 16 宽浅灰细线（两按钮中心距 37）；
+   手机用同一种玻璃样式，两组都是 52 宽胶囊、按钮 44，中线对齐，间距 8 */
+.ov3-ctl { gap: 8px; }
+.ov3-csep { flex: none; align-self: center; width: 16px; height: var(--hw); background: var(--hc-114114112040, rgba(114, 114, 112, 0.16)); }
+@media (max-width: 850px) {
+  .ov3-ctl { align-items: center; }
+  .ov3-cg {
+    border-radius: 999px; background: rgba(255, 255, 255, 0.48);
+    -webkit-backdrop-filter: blur(12px) brightness(1.08) saturate(1.4); backdrop-filter: blur(12px) brightness(1.08) saturate(1.4);
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 2px 2px -1px rgba(0, 0, 0, 0.04), 0 4px 4px -2px rgba(0, 0, 0, 0.04);
+  }
+  .ov3-cg > .ov3-cb { width: 44px; min-width: 44px; height: 44px; padding: 0; border-radius: 50%; }
 }
 /* 3.61 楼层编辑器右侧面板四边内边距统一 20（HONG 2026-11-11 07:58Z 按 Vision 07:54Z 的建议，同 Lovable 信息卡与全站卡片内边距 20；原上 12、左右 16）：
    各模式的标题行（设备 N、照明分区 N、设备网络）离上、离左 20，下面的内容左右 20；照明分区列表的行悬停底仍离边 8 */
@@ -37247,6 +37265,8 @@ const XI = {
   upgrade: '<circle cx="12" cy="12" r="9"/><path d="m16 12-4-4-4 4"/><path d="M12 16V8"/>',
   // 拖放区的上传图标（2.13 E229）
   upload: '<path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M4 3h16"/>',
+  // 3.62 地图卫星图切换（HONG 2026-11-11 09:38Z 按 Vision 09:30Z）
+  satellite: '<path d="M13 7 9 3 5 7l4 4"/><path d="m17 11 4 4-4 4-4-4"/><path d="m8 12 4 4 6-6-4-4Z"/><path d="m16 8 3-3"/><path d="M9 21a6 6 0 0 0-6-6"/>',
   crosshair: '<circle cx="12" cy="12" r="9"/><path d="M21 12h-4"/><path d="M7 12H3"/><path d="M12 7V3"/><path d="M12 21v-4"/>',
   "trash-restore": '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M12 17v-6"/><path d="m9.5 13.5 2.5-2.5 2.5 2.5"/>',
   // 设备维护（E46）：解除位置关联、更换设备、恢复出厂、删除图上位置、处理无线适配器、设为检修中
@@ -52508,12 +52528,15 @@ function wsTipAllowed(el, keyboard) {
 // 提示气泡的位置（Lovable 核查第 111 条，2026-10-11 用户确认）：离触发处 4，默认在下方居中（侧栏在右侧），下方放不下时放到上方；
 // 靠近窗口边时整体往里移，离边 8，不压窄。尺寸用 offsetWidth/offsetHeight 量，不受出现动画的缩放影响。
 // 2.56 E544、E545：data-tip-at="right" 放在右侧（楼层轨道：离轨道 4，edge 为轨道右边），"top" 放在上方（画布底部的缩放胶囊）。
-function wsPlaceTip(tip, el, side = false, above = false, edge = null) {
+// 3.62（HONG 2026-11-11 09:38Z 按 Vision 09:30Z）："left" 放在左侧、离按钮 4、竖直居中（画面右上的浮动按钮，原先在下方挡住下一个按钮）。
+function wsPlaceTip(tip, el, side = false, above = false, edge = null, left = false) {
   const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+  if (left) side = true;
   if (!side && !above && r.bottom + 4 + h > innerHeight - 8 && r.top - 4 - h >= 8) above = true;
   tip.classList.toggle("ws-tip-up", !side && above);
+  tip.classList.toggle("ws-tip-left", left);
   Object.assign(tip.style, {
-    left: Math.max(8, Math.min(innerWidth - w - 8, side ? (edge ?? r.right) + 4 : r.left + (r.width - w) / 2)) + "px",
+    left: Math.max(8, Math.min(innerWidth - w - 8, left ? r.left - 4 - w : side ? (edge ?? r.right) + 4 : r.left + (r.width - w) / 2)) + "px",
     top: Math.max(8, Math.min(innerHeight - h - 8, side ? r.top + (r.height - h) / 2 : above ? r.top - 4 - h : r.bottom + 4)) + "px",
   });
 }
@@ -52533,7 +52556,7 @@ function wsShowTip(el, keyboard = false) {
     else tip.textContent = el.dataset.tip;
     document.body.append(tip);
     const at = el.dataset.tipAt;
-    wsPlaceTip(tip, el.querySelector("[data-trunc]") || el, side || at === "right", at === "top", at === "right" ? el.closest(".ws-rail-track")?.getBoundingClientRect().right : null);
+    wsPlaceTip(tip, el.querySelector("[data-trunc]") || el, side || at === "right", at === "top", at === "right" ? el.closest(".ws-rail-track")?.getBoundingClientRect().right : null, at === "left");
     wsTipAnchor = el;
     const ids = new Set((el.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
     ids.add("tip");
@@ -99825,8 +99848,10 @@ function ov3MapHtml(lv, focus = null, pinVal = null) {
     .map((m, i) => `<button type="button" class="ovm-pin${m.off ? " off" : ""}${focus && m.bid === focus ? " sel" : ""}"${focus && m.bid === focus ? ' aria-current="true"' : ""} data-act="ov3Go" ${Object.entries(m.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")} data-i="${i}" aria-label="${esc(m.label)}" data-tip="${esc(m.name)}"><span class="ovm-pin-n">${esc(m.name)}${m.val ? `<b class="ovm-pin-v">${esc(m.val)}</b>` : ""}</span><svg class="ovm-pin-ic" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29s10-9.2 10-17A10 10 0 0 0 2 12c0 7.8 10 17 10 17z"/><circle cx="12" cy="12" r="4"/></svg>${m.due ? ov3Dot(m.due.lvl, "ovm-pin-dot") : ""}</button>`)
     .join("");
   const sat = !!U.ov3Sat;
-  return `<section class="ov3-view ov3-map" aria-label="${esc(name)} 地图"><div class="ovm" id="ovmHost" data-key="${esc(key)}"><canvas class="ovm-cv" tabindex="0" role="img" aria-label="${esc(name)} 地图：拖动平移，右键或按住 Ctrl 拖动旋转与倾斜，滚轮缩放"></canvas><div class="ovm-pins">${pinHtml}</div><div class="ovm-attr">${sat && PACOM_MAP.provider === "osm" ? "影像 © Esri" : MAP_ATTRIBUTION()}</div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb(sat ? "标准地图" : "卫星图", "", "ov3Sat", { "aria-pressed": String(sat) }, `<span class="ov3-mode ov3-sat">${sat ? "标准" : "卫星"}</span>`)}</div><div class="ov3-cg">${ov3Cb("定位：回到初始视角", "crosshair", "ov3MapLoc")}${ov3Cb("放大", "plus", "ov3MapZoom", { "data-k": "2" })}${ov3Cb("缩小", "minus", "ov3MapZoom", { "data-k": "0.5" })}</div></div></section>`;
+  return `<section class="ov3-view ov3-map" aria-label="${esc(name)} 地图"><div class="ovm" id="ovmHost" data-key="${esc(key)}"><canvas class="ovm-cv" tabindex="0" role="img" aria-label="${esc(name)} 地图：拖动平移，右键或按住 Ctrl 拖动旋转与倾斜，滚轮缩放"></canvas><div class="ovm-pins">${pinHtml}</div><div class="ovm-attr">${sat && PACOM_MAP.provider === "osm" ? "影像 © Esri" : MAP_ATTRIBUTION()}</div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb("卫星图", "satellite", "ov3Sat", { "aria-pressed": String(sat) })}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3MapLoc")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3MapZoom", { "data-k": "2" })}${ov3Cb("缩小", "minus", "ov3MapZoom", { "data-k": "0.5" })}</div></div></section>`;
 }
+// 3.62（HONG 2026-11-11 09:35Z、09:38Z 按 Vision 09:30Z）：复位与放大之间一条分隔线，把“复位”和“缩放”分开
+const OV3_CSEP = '<i class="ov3-csep" aria-hidden="true"></i>';
 const ov3Cb = (label, icon, act, attrs = {}, inner = "") =>
   `<button type="button" class="ov3-cb" data-act="${act}" aria-label="${esc(label)}" data-tip="${esc(String(label).split("：")[0])}" data-tip-at="left"${Object.entries(attrs).map(([k, v]) => ` ${k}="${esc(v)}"`).join("")}>${inner || ico(icon, "ic16")}</button>`;
 
@@ -100282,7 +100307,7 @@ function ov3Bldg() {
     curName = s.cur ? g("floors", s.cur)?.name || "" : "全部";
   S3_PEND = S;
   const tip = d2 ? "拖动平移，滚轮缩放" : "拖动旋转，右键拖动平移，滚轮缩放";
-  return `<section class="ov3-view ov3-cv${d2 ? " is2d" : ""}" aria-label="${esc(`${b.name} ${d2 ? "2D" : "3D"}`)}">${col}<div class="s3-host ov3-s3" id="s3Host" data-view="ov3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${b.name} · ${curName} ${d2 ? "2D" : "3D"} 视图：${tip}`)}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl">${s.has3 ? `<div class="ov3-cg">${ov3Cb(`切换到 ${d2 ? "3D" : "2D"}`, "", "ov3Mode", {}, `<span class="ov3-mode">${d2 ? "3D" : "2D"}</span>`)}</div>` : ""}<div class="ov3-cg">${ov3Cb("定位：回到初始视角", "crosshair", "ov3Reset")}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div></section>`;
+  return `<section class="ov3-view ov3-cv${d2 ? " is2d" : ""}" aria-label="${esc(`${b.name} ${d2 ? "2D" : "3D"}`)}">${col}<div class="s3-host ov3-s3" id="s3Host" data-view="ov3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${b.name} · ${curName} ${d2 ? "2D" : "3D"} 视图：${tip}`)}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl">${s.has3 ? `<div class="ov3-cg">${ov3Cb(`切换到 ${d2 ? "3D" : "2D"}`, "", "ov3Mode", {}, `<span class="ov3-mode">${d2 ? "3D" : "2D"}</span>`)}</div>` : ""}<div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3Reset")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div></section>`;
 }
 // 点 3D 里的楼层：进入该层（隐藏上面的楼层；没有 3D 的层切到 2D，没有楼层图的层写“未上传楼层图”）
 function ov3Pick(h) {
@@ -101107,7 +101132,7 @@ function ws3Canvas(sc, o) {
     has3 = s3Has(sc.bid);
   S3_PEND = S;
   const tip = d2 ? "拖动平移，滚轮缩放" : "拖动旋转，右键拖动平移，滚轮缩放";
-  return `<section class="ov3-view ov3-cv ws3-cv${d2 ? " is2d" : ""}" aria-label="${esc(`${b.name}${f ? " · " + f.name : ""} ${d2 ? "2D" : "3D"}`)}">${col}${tl}<div class="s3-host ov3-s3" id="s3Host" data-view="ws3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${b.name} · ${f ? f.name : "全部楼层"} ${d2 ? "2D" : "3D"} 视图：${tip}`)}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl">${has3 && sc.fid && !o.mode ? `<div class="ov3-cg">${ov3Cb(`切换到 ${d2 ? "3D" : "2D"}`, "", "ws3ModeSw", {}, `<span class="ov3-mode">${d2 ? "3D" : "2D"}</span>`)}</div>` : ""}<div class="ov3-cg">${ov3Cb("定位：回到初始视角", "crosshair", "ws3Reset")}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div>${legend}</section>`;
+  return `<section class="ov3-view ov3-cv ws3-cv${d2 ? " is2d" : ""}" aria-label="${esc(`${b.name}${f ? " · " + f.name : ""} ${d2 ? "2D" : "3D"}`)}">${col}${tl}<div class="s3-host ov3-s3" id="s3Host" data-view="ws3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${b.name} · ${f ? f.name : "全部楼层"} ${d2 ? "2D" : "3D"} 视图：${tip}`)}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl">${has3 && sc.fid && !o.mode ? `<div class="ov3-cg">${ov3Cb(`切换到 ${d2 ? "3D" : "2D"}`, "", "ws3ModeSw", {}, `<span class="ov3-mode">${d2 ? "3D" : "2D"}</span>`)}</div>` : ""}<div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ws3Reset")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div>${legend}</section>`;
 }
 // 项目范围：右侧与项目总览同一地图（点楼宇进入本页的该楼宇）
 function ws3Map(sc, pinVal = null) {
@@ -109171,6 +109196,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.62",
+    date: "2026-11-11",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
   {
     version: "3.61",
     date: "2026-11-11",
