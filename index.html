@@ -76,7 +76,7 @@
   --field-focus:
     inset 0 2px 2px -1px rgba(0, 0, 0, 0.04), inset 0 4px 4px -2px rgba(0, 0, 0, 0.02), 0 1px 0 #fff, inset 0 0 0 1px #00aeef;
   /* "PACOM Quotes" 只含中文双引号“”（全角，Editor 核查 E32；见 build.py），其余字符照旧由 Figtree 与中文字体显示 */
-  --ff: "PACOM Quotes", Figtree, "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --ff: "PACOM Quotes", Figtree, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif; /* 3.60：中文依次为苹方、微软雅黑、Noto Sans SC（HONG 2026-11-11 07:32Z 定，去掉原第二个中文字体） */
 }
 @media (min-resolution: 2dppx) {
   :root {
@@ -36940,6 +36940,11 @@ img.img-off { display: none !important; }
 .navitem > .ws-nav-count.l1 { color: #a53803; background: linear-gradient(rgba(219, 106, 30, 0.16), rgba(219, 106, 30, 0.16)), #fff; }
 .navitem > .ws-nav-count.l2 { color: #8a5a00; background: linear-gradient(rgba(210, 154, 16, 0.16), rgba(210, 154, 16, 0.16)), #fff; }
 .collapsed .navitem > .ws-nav-count { border-radius: 4px; }
+/* 3.60 V1537：收起时数字外圈与所在菜单项同色（侧栏底 #F0F0F0；悬停叠黑 4%、当前项 8%、当前项再悬停 8% 上再叠 4%），不出现一圈浅边 */
+.collapsed .navitem > .ws-nav-count { box-shadow: 0 0 0 2px #f0f0f0; }
+.collapsed .navitem:hover > .ws-nav-count { box-shadow: 0 0 0 2px #e6e6e6; }
+.collapsed .navitem.on > .ws-nav-count { box-shadow: 0 0 0 2px #dddddd; }
+.collapsed .navitem.on:hover > .ws-nav-count { box-shadow: 0 0 0 2px #d4d4d4; }
 /* V1494（HONG 06:17Z）：机构行 36 高、离底 8，标识 20、圆角 8、1px 内描边，在 x16，名称 x44 与菜单文字对齐，悬停时名称 #030303；收起时 36×36 */
 @media (min-width: 851px) {
   #side .orgbtn { width: auto; gap: 0; padding-left: 0; }
@@ -36970,6 +36975,11 @@ img.img-off { display: none !important; }
   .ws3-row:is(.ws3-scr, .ws3-devr) + .ws3-row::before { left: 8px; right: 8px; }
   .ws3-row:is(.ws3-scr, .ws3-devr) > .ws3-row-hit { padding-left: 8px; padding-right: 8px; }
   .ws3-exp { flex-basis: calc(100% - 16px); margin-left: 8px; margin-right: 8px; }
+  /* 3.60 V1536：楼层页功能区列表等可点的普通列表行（数据分析室内环境、占用、设备健康，运行设置照明）同告警列表：离边 8、圆角 8，
+     行间为离内容边 0 的细线（行内左右 8），分组行不画底线；只读的行不变 */
+  .ov3x > .ov3-panel .ws3-grp:not(.ws3-grp-a) { border-bottom: 0; }
+  .ov3x > .ov3-panel .ws3-list > button.ws3-row:not(.ws3-alr, .ws3-scr, .ws3-devr) { width: calc(100% + 16px); margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-bottom: 0; border-radius: 8px; }
+  .ov3x > .ov3-panel .ws3-list > button.ws3-row:not(.ws3-alr, .ws3-scr, .ws3-devr) + button.ws3-row::before { content: ""; position: absolute; left: 8px; right: 8px; top: 0; border-top: 1px solid rgba(114, 114, 112, 0.16); }
   /* V1496：位置行、标题行与页签固定，下面的内容滚动（各行的固定位置由脚本按实际高度写入） */
   .ov3x > .ov3-panel > .ov3-stk { position: sticky; z-index: 5; background-color: #f5f5f5; box-shadow: -16px 0 #f5f5f5, 16px 0 #f5f5f5; }
   .ov3x > .ov3-panel > .ws-locrow.ov3-stk { box-shadow: -16px 0 #f5f5f5, 16px 0 #f5f5f5, 0 -10px #f5f5f5, -16px -10px #f5f5f5, 16px -10px #f5f5f5; }
@@ -109102,6 +109112,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.60",
+    date: "2026-11-11",
+    notes: ["修复已知问题，优化界面细节。"],
+  },
   {
     version: "3.59",
     date: "2026-11-11",
