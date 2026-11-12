@@ -51451,11 +51451,9 @@ async function readImage(file) {
   });
   return { url, ...size };
 }
-// 地图服务集中配置（2.54 E527）：provider 为 "osm" 时用 OpenStreetMap 标准瓦片（一层）与 Nominatim 地址检索、反查，坐标按 WGS 84 记录，不需要 Key；
-// 为 "tianditu" 时用天地图矢量底图与注记（WMTS 球面墨卡托）与天地图地理编码，key 为天地图浏览器端 Key（为空时按“地图服务尚未配置”处理），坐标按 CGCS2000 记录，
-// approval 为随底图显示的审图号。两种坐标相差在厘米级，不做转换：接天地图只改 provider、key、approval 三项，已存的位置照用。
-// 请求失败时按“底图未加载”处理：不能在地图上落点，弹窗中的地图隐藏，保存后在空间检查记“位置待核对”（2.14 E258）。
-const PACOM_MAP = { provider: "osm", key: "", approval: "" };
+// 天地图浏览器端 tk 由构建注入，调用范围由天地图域名白名单控制。已保存的位置仍使用原坐标和坐标来源。
+// 审图号来自国家天地图 JS API 同一套矢量和影像底图的来源标识。
+const PACOM_MAP = { provider: "tianditu", key: "4b52b4848e9aff6350b9d2af831e2042", approval: "GS（2026）4921号" };
 const mapConfigured = () => PACOM_MAP.provider === "osm" || !!(PACOM_MAP.provider === "tianditu" && PACOM_MAP.key);
 const mapCrs = () => (PACOM_MAP.provider === "osm" ? "WGS84" : "CGCS2000");
 // 天气数据服务（2.44 配置核查 E442）：与天地图一样上线前开通，key 为空时室外温湿度只能指定室外传感器；示例数据模拟已开通（与执行服务相同）
@@ -51466,8 +51464,14 @@ const weatherConfigured = () => !!PACOM_WEATHER.key;
 const geoRecheckHint = () => (mapConfigured() ? "检索地址或在地图上重新落点。" : "地图服务尚未配置，暂不能检索或落点；位置不变时选“位置无需调整”。");
 const tdtTiles = (layer) =>
   `https://t{s}.tianditu.gov.cn/${layer}_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${layer}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${encodeURIComponent(PACOM_MAP.key)}`;
-const tdtGeocodeUrl = (q) => `https://api.tianditu.gov.cn/geocoder?ds=${encodeURIComponent(JSON.stringify({ keyWord: q }))}&tk=${encodeURIComponent(PACOM_MAP.key)}`;
+const tdtGeocodeUrl = (q) => `https://api.tianditu.gov.cn/geocoder?ds=${encodeURIComponent(JSON.stringify({ keyWord: q }))}&type=geocode&tk=${encodeURIComponent(PACOM_MAP.key)}`;
 const tdtReverseUrl = (lat, lng) => `https://api.tianditu.gov.cn/geocoder?postStr=${encodeURIComponent(JSON.stringify({ lon: lng, lat, ver: 1 }))}&type=geocode&tk=${encodeURIComponent(PACOM_MAP.key)}`;
+const tdtPlacesUrl = (q, map) => {
+  const bounds = map.getBounds(),
+    mapBound = [Math.max(-180, bounds.getWest()), Math.max(-90, bounds.getSouth()), Math.min(180, bounds.getEast()), Math.min(90, bounds.getNorth())].join(","),
+    query = { keyWord: q, level: map.getZoom(), mapBound, queryType: 1, start: 0, count: 6 };
+  return `https://api.tianditu.gov.cn/v2/search?postStr=${encodeURIComponent(JSON.stringify(query))}&type=query&tk=${encodeURIComponent(PACOM_MAP.key)}`;
+};
 const OSM_TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 // Nominatim 只在点检索或落点后请求，不做边输入边检索（使用规定每秒不超过 1 次）。
 const osmSearchUrl = (q) => `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(q)}&countrycodes=cn&accept-language=zh-CN&limit=1&addressdetails=1`;
@@ -51525,16 +51529,16 @@ function mapBase(el, center, zoom, onOff) {
     n.textContent = "部分底图未能加载，已确认的位置仍保留";
     el.parentElement.append(n);
   };
-  // OpenStreetMap 一层瓦片（底图与注记在一起）；天地图为底图与注记两层，按注记层判断是否加载。
-  const top =
-    PACOM_MAP.provider === "osm"
-      ? L.tileLayer(OSM_TILES, { maxZoom: 18, attribution: MAP_ATTRIBUTION() })
-      : (L.tileLayer(tdtTiles("vec"), { subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"], maxZoom: 18, attribution: MAP_ATTRIBUTION() }).addTo(m),
-        L.tileLayer(tdtTiles("cva"), { subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"], maxZoom: 18 }));
-  top
-    .addTo(m)
-    .on("tileload", () => (el.dataset.tileOk = "true"))
-    .on("tileerror", tileError);
+  const osm = PACOM_MAP.provider === "osm", options = { subdomains: "01234567", maxZoom: 18 };
+  // 以底图为准，注记单独成功或首张瓦片失败都不能决定地图是否可用。
+  const base = L.tileLayer(osm ? OSM_TILES : tdtTiles("vec"), { ...options, attribution: MAP_ATTRIBUTION() });
+  let failed = false;
+  base.on("loading", () => (failed = false));
+  base.on("tileload", () => (el.dataset.tileOk = "true"));
+  base.on("tileerror", () => (failed = true));
+  base.on("load", () => { if (failed) tileError(); });
+  base.addTo(m);
+  if (!osm) L.tileLayer(tdtTiles("cva"), options).addTo(m);
   return m;
 }
 function blueMarker(lat, lng, m) {
@@ -51572,7 +51576,7 @@ function initGeoMap() {
   if (isB && !s.sameLocation) projectDot();
   // 底图未加载时不能对照街道落点（空白地图上随手一点会把错误坐标记为已核对），点击不改变位置。
   geoMap.on("click", (e) => {
-    if (formState?.mapOff) return geoStatus("底图未加载，不能在地图上落点。");
+    if (formState?.mapOff || !geoMap.getContainer().dataset.tileOk) return geoStatus("底图未加载，不能在地图上落点。");
     setGeoPosition(e.latlng.lat, e.latlng.lng);
   });
 }
@@ -51585,26 +51589,25 @@ function setGeoPosition(lat, lng, label, comp) {
   formState.verifiedAddress = value("spaceAddress").trim();
   formState.verifiedLocation = M.copy(formState.location);
   if (formState.kind === "projects") {
+    formState.regionPending = false;
     formState.region = comp ? regionOf(comp) : null;
-    if (!comp) reverseRegion(lat, lng);
-    else formAutoZone();
-    if ($("#regionText")) $("#regionText").textContent = regionLine();
+    if (comp) formAutoZone();
   }
   formState.marker?.remove();
   formState.marker = blueMarker(lat, lng, geoMap);
   modalDirty = true;
-  if (label) formState.suggestedAddress = label;
+  formState.suggestedAddress = label || "";
   // 楼宇移动标记即单独定位，地图上用小灰点标出项目位置（E257）
-  if (formState.kind === "buildings") {
+  const building = formState.kind === "buildings";
+  if (building) {
     formState.sameLocation = false;
     projectDot();
-    return geoStatus(label ? `已选地点：${esc(label)}。${btn("填入详细地址", "useGeoAddress", {}, "ghost sm")}${btn("恢复为项目位置", "geoSameProject", {}, "ghost sm")}` : undefined);
   }
-  geoStatus(
-    label
-      ? `已设为地图位置 · ${esc(label)}${btn("填入详细地址", "useGeoAddress", {}, "ghost sm")}`
-      : "已落点",
-  );
+  geoStatus(label
+    ? `${building ? "已选地点：" : "已设为地图位置 · "}${esc(label)}${btn("填入详细地址", "useGeoAddress", {}, "ghost sm")}${building ? btn("恢复为项目位置", "geoSameProject", {}, "ghost sm") : ""}`
+    : "已落点 · 正在查询附近地址…");
+  if (!comp && (!building || !label)) reverseGeoPosition(lat, lng, !label);
+  if ($("#regionText")) $("#regionText").textContent = regionLine();
 }
 // 楼宇单独定位时，在表单地图上用小灰点标出项目位置，便于对照（E257）
 function projectDot() {
@@ -51631,17 +51634,20 @@ const osmComp = (a) =>
     ? { nation: a.country || "中国", province: a.state || a.city, city: a.city || a.state, county: a.district || a.county || a.city_district || a.suburb || "", road: a.road || "", address: a.house_number || "" }
     : null;
 // 反查地图位置：返回天地图字段的行政区与按从大到小拼好的地址，取不到时抛错。
+async function mapJson(url) {
+  const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  if (!response.ok) throw Error("地图服务暂不可用");
+  return response.json();
+}
 async function reverseComp(lat, lng) {
   const osm = PACOM_MAP.provider === "osm",
-    r = await fetch(osm ? osmReverseUrl(lat, lng) : tdtReverseUrl(lat, lng));
-  if (!r.ok) throw Error();
-  const j = await r.json();
+    j = await mapJson(osm ? osmReverseUrl(lat, lng) : tdtReverseUrl(lat, lng));
   if (osm) {
     const comp = osmComp(j?.address);
     if (!comp) throw Error();
     return { comp, label: geoLabel({ addressComponent: comp }) };
   }
-  if (String(j.status) !== "0") throw Error();
+  if (String(j.status) !== "0" || !j.result) throw Error("无法查询附近地址");
   return { comp: j.result?.addressComponent || null, label: geoLabel(j.result) };
 }
 // 逆地理编码的行政区：国家、省、市（直辖市的市与省相同）。
@@ -51654,29 +51660,57 @@ function regionLine() {
   if (!mapConfigured()) return "所在地：地图服务尚未配置，暂不能识别";
   return formState?.location ? "所在地：未能识别，可重新选点" : "所在地：在地图上选点后自动识别";
 }
-// 地图落点没有地址：向地图服务反查所在的省、市；固定原表单与请求，旧结果不覆盖新的选择。
-async function reverseRegion(lat, lng) {
+// 项目与楼宇都可以反查附近地址；只有项目的反查结果用于登记所在地。
+async function reverseGeoPosition(lat, lng, showNearby) {
   const target = formState;
   if (!target) return;
-  const token = (U.regionRequest = (U.regionRequest || 0) + 1);
-  target.regionPending = true;
+  const token = U.regionRequest, project = target.kind === "projects";
+  if (project) target.regionPending = true;
+  let result;
   try {
-    const { comp } = await reverseComp(lat, lng);
-    if (token === U.regionRequest && formState === target) target.region = regionOf(comp);
+    result = await reverseComp(lat, lng);
   } catch {
-    // 所在地保持未识别；保存为“未取得”，不猜测城市。
+    // 手填地址和已选位置都保留。
   }
   if (token !== U.regionRequest || formState !== target) return;
-  target.regionPending = false;
-  formAutoZone();
-  if ($("#regionText")) $("#regionText").textContent = regionLine();
+  if (project) {
+    target.region = regionOf(result?.comp);
+    target.regionPending = false;
+    formAutoZone();
+    if ($("#regionText")) $("#regionText").textContent = regionLine();
+  }
+  if (showNearby) {
+    const label = result?.label, restore = project ? "" : btn("恢复为项目位置", "geoSameProject", {}, "ghost sm");
+    target.suggestedAddress = label || "";
+    geoStatus((label ? `附近地址：${esc(label)}${btn("填入详细地址", "useGeoAddress", {}, "ghost sm")}` : "已落点 · 暂未查到附近地址") + restore);
+  }
 }
-// 地址检索：返回地址对应的一个位置。天地图地理编码不带行政区，再反查行政区与标准地址；Nominatim 结果自带地址字段（2.54 E527）。
+function tdtSearchPoint(lat, lng) {
+  if (lat == null || lng == null || lat === "" || lng === "" || !Number.isFinite(+lat) || !Number.isFinite(+lng) || Math.abs(+lat) > 90 || Math.abs(+lng) > 180) return null;
+  return { lat: +lat, lng: +lng };
+}
+async function tdtAddressResults(q, map) {
+  const address = await mapJson(tdtGeocodeUrl(q)).catch(() => null);
+  const location = String(address?.status) === "0" ? address.result?.location || address.location : null;
+  const point = tdtSearchPoint(location?.lat, location?.lon);
+  if (point) return [{ ...point, label: location.keyWord || q }];
+  if (!map) throw Error("地图未加载");
+  const result = await mapJson(tdtPlacesUrl(q, map));
+  if (String(result.status?.infocode) !== "1000") throw Error("地点检索暂不可用");
+  return (Array.isArray(result.pois) ? result.pois : []).flatMap((poi) => {
+    const [lng, lat] = String(poi.lonlat || "").trim().split(/[,\s]+/), location = tdtSearchPoint(lat, lng);
+    if (!location) return [];
+    const label = [...new Set([poi.name, poi.address].filter(Boolean))].join(" · ");
+    return [{ ...location, label: label || q }];
+  });
+}
+// 先匹配详细地址，再在地图当前范围内查找地点候选。
 async function searchGeo() {
   const q = value("mapSearch").trim(),
     el = $("#geoResults"), target = formState;
   if (!q || !el) return;
-  const token = ++U.geoRequest || (U.geoRequest = 1);
+  const token = (U.geoRequest = (U.geoRequest || 0) + 1);
+  U.geoResults = [];
   el.hidden = false;
   const same = () => token === U.geoRequest && formState === target && $("#geoResults") === el && value("mapSearch").trim() === q;
   if (!mapConfigured()) {
@@ -51685,32 +51719,20 @@ async function searchGeo() {
   }
   el.innerHTML = '<p class="muted">正在检索…</p>';
   try {
-    const osm = PACOM_MAP.provider === "osm",
-      r = await fetch(osm ? osmSearchUrl(q) : tdtGeocodeUrl(q));
-    if (!r.ok) throw Error("检索服务暂不可用");
-    const j = await r.json();
-    if (!same()) return;
-    let item = null;
-    if (osm) {
+    let items;
+    if (PACOM_MAP.provider === "osm") {
+      const j = await mapJson(osmSearchUrl(q));
       const f = Array.isArray(j) ? j.find((x) => Number.isFinite(+x?.lat) && Number.isFinite(+x?.lon)) : null,
         comp = f ? osmComp(f.address) : null;
       // 地点名称（如楼宇、园区）接在道路门牌之后
-      if (f) item = { lat: +f.lat, lng: +f.lon, label: (comp ? [...new Set([comp.province, comp.city, comp.county, comp.road, comp.address, f.name].filter(Boolean))].join("") : "") || q, comp };
+      items = f ? [{ lat: +f.lat, lng: +f.lon, label: (comp ? [...new Set([comp.province, comp.city, comp.county, comp.road, comp.address, f.name].filter(Boolean))].join("") : "") || q, comp }] : [];
     } else {
-      const loc = String(j.status) === "0" && j.location && Number.isFinite(+j.location.lat) && Number.isFinite(+j.location.lon) ? j.location : null;
-      if (loc) {
-        item = { lat: +loc.lat, lng: +loc.lon, label: loc.keyWord || q, comp: null };
-        try {
-          const rv = await reverseComp(item.lat, item.lng);
-          item.comp = rv.comp;
-          item.label = rv.label || item.label;
-        } catch {}
-        if (!same()) return;
-      }
+      items = await tdtAddressResults(q, geoMap);
     }
-    U.geoResults = item ? [item] : [];
-    el.innerHTML = item
-      ? btn(esc(item.label), "geoResult", { index: 0 }, "popitem")
+    if (!same()) return;
+    U.geoResults = items;
+    el.innerHTML = items.length
+      ? items.map((item, index) => btn(esc(item.label), "geoResult", { index }, "popitem")).join("")
       : '<p class="muted">未找到地点，可直接在地图选点。</p>';
   } catch (err) {
     if (same()) el.innerHTML = '<p class="muted">地址检索暂不可用，请在地图上选点</p>';
@@ -99880,12 +99902,12 @@ const OVM = (() => {
       t.im.decoding = "async";
       t.im.onload = () => {
         t.ok = true;
-        for (const s of t.wait || []) s.ok++, s.redraw();
+        for (const s of t.wait || []) s.redraw();
         t.wait = null;
       };
       t.im.onerror = () => {
         t.err = true;
-        for (const s of t.wait || []) s.bad++, s.redraw();
+        for (const s of t.wait || []) s.redraw();
         t.wait = null;
       };
       t.wait = [];
@@ -99998,14 +100020,16 @@ const OVM = (() => {
       b = v.sa * v.se * c.k * u,
       cc = -v.sa * c.k * u,
       d = v.ca * v.se * c.k * u;
+    let baseDrawn = false, baseFailed = false;
     if ((tx1 - tx0 + 1) * (ty1 - ty0 + 1) <= 400)
-      for (const L of st.layers)
+      for (const [layerIndex, L] of st.layers.entries())
         for (let ty = ty0; ty <= ty1; ty++)
           for (let tx = tx0; tx <= tx1; tx++) {
             const xi = ((tx % n) + n) % n,
               o = P(-WORLD / 2 + tx * S, -WORLD / 2 + ty * S);
             let t = img(fillUrl(L, tz, xi, ty), st),
               dz = 0;
+            if (layerIndex === 0 && t.err) baseFailed = true;
             // 本级没取到时用已取到的上一级放大顶替
             while (!t.ok && dz < 4 && tz - dz > 1) {
               dz++;
@@ -100013,6 +100037,7 @@ const OVM = (() => {
               if (pt?.ok) t = pt;
             }
             if (!t.ok) continue;
+            if (layerIndex === 0) baseDrawn = true;
             x.setTransform(dpr * a, dpr * b, dpr * cc, dpr * d, dpr * o[0], dpr * o[1]);
             if (!dz) x.drawImage(t.im, -0.3, -0.3, 256.6, 256.6);
             else {
@@ -100053,15 +100078,16 @@ const OVM = (() => {
       el.style.setProperty("--y", Math.round(q[1]) + "px");
       el.hidden = off;
     });
-    // 一张底图都没取到时写原因（标记照常显示）
+    // 根据当前图层和视野里的底图瓦片显示状态，旧图层或注记的成功不会掩盖失败。
+    st.host.dataset.basemap = !st.layers.length ? "unset" : baseDrawn ? "ready" : baseFailed ? "error" : "loading";
     const note = st.host.querySelector(".ovm-note"),
-      why = !st.layers.length ? "地图服务尚未配置" : st.bad && !st.ok ? "无法访问地图服务" : "";
+      why = !st.layers.length ? "地图服务尚未配置" : baseFailed && !baseDrawn ? "无法访问地图服务" : "";
     if (why && !note) st.host.insertAdjacentHTML("beforeend", `<div class="ovm-note" role="status"><b>底图未加载</b>${why}</div>`);
     else if (!why) note?.remove();
   }
   function mount(host, D, opt = {}) {
     const cv = host.querySelector("canvas"),
-      st = { host, cv, cam: { cx: 0, cy: 0, k: 1, az: 0, el: null, ...(opt.cam || {}) }, fitted: !!opt.cam, ok: 0, bad: 0, hits: [] };
+      st = { host, cv, cam: { cx: 0, cy: 0, k: 1, az: 0, el: null, ...(opt.cam || {}) }, fitted: !!opt.cam, hits: [] };
     let raf = 0;
     st.redraw = () => {
       cancelAnimationFrame(raf);
