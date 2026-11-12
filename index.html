@@ -36255,7 +36255,7 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   .ov3-flist.fade-b { mask-image: linear-gradient(#000 calc(100% - 16px), transparent); }
   .ov3-flist.fade-t.fade-b { mask-image: linear-gradient(transparent, #000 16px, #000 calc(100% - 16px), transparent); }
   .ov3-fslide { position: absolute; top: calc(2px + (var(--floor-step) - 32px) / 2); left: calc((100% - 32px) / 2); width: 32px; height: 32px; border-radius: 50%; background: var(--btn-bg); box-shadow: var(--btn); pointer-events: none; transform: translateY(calc(var(--floor-row) * (var(--floor-step) + var(--floor-gap)))); transition: transform 150ms ease-out; }
-  :is(.ov3-flr, .ov3-fhome, .ov3-farrow) { position: relative; isolation: isolate; flex: none; display: grid; place-items: center; width: 100%; padding: 0; border: 0; border-radius: 0; background: none; color: #636363; cursor: pointer; transition: color 150ms ease-out; }
+  :is(.ov3-flr, .ov3-fhome, .ov3-farrow) { position: relative; isolation: isolate; flex: none; display: grid; place-items: center; width: 100%; padding: 0; border: 0; border-radius: 0; background: none; color: #636363; cursor: pointer; -webkit-user-select: none; user-select: none; transition: color 150ms ease-out; }
   .ov3-flr { height: var(--floor-step); font-size: 14px; line-height: 22px; font-weight: 400; letter-spacing: normal; font-variant-numeric: proportional-nums; }
   .ov3-flr > span { display: block; max-width: 30px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ov3-fhome { height: var(--floor-hit); }
@@ -37014,10 +37014,24 @@ img.img-off { display: none !important; }
 @media (min-width: 851px) and (pointer: fine) {
   .collapsed #side .orgbtn.au-orgbtn { height: 36px; min-height: 36px; }
 }
+/* 独立楼层图层工具为右侧的视图和缩放控件留出操作空间。 */
+.ws3-floor-fit { container: ws3-floor-view / inline-size; }
+.ws3-floor-fit > .ws3-tl { right: 64px; flex-wrap: wrap; align-items: flex-start; pointer-events: none; }
+.ws3-floor-fit > .ws3-tl > * { pointer-events: auto; }
+.ws3-floor-fit > .ws3-tl > .ws3-lbtn { flex: none; }
+.ws3-floor-fit > .ws3-tl > .ws3-miss { box-sizing: border-box; max-width: 100%; min-height: 32px; height: auto; }
+.ws3-floor-fit > .ws3-tl > .ws3-miss > :is(.ic, button) { flex: none; }
+.ws3-floor-fit > .ws3-tl > .ws3-miss > span { min-width: 0; overflow-wrap: anywhere; }
+@media (min-width: 851px) {
+  @container ws3-floor-view (width < 360px) {
+    .ws3-floor-fit > .ws3-tl { top: 60px; }
+  }
+}
 /* 左栏（V1509、V1497、V1496、V1506） */
 @media (min-width: 851px) {
   /* V1509：左栏可拖动调宽：默认 400，最窄 320，最宽为工作区 70%；拖动后的宽度记在本机 */
-  .ov3x { --ov3-lwc: clamp(320px, var(--ov3-lw, 400px), 70%); position: relative; grid-template-columns: var(--ov3-lwc) minmax(0, 1fr); }
+  .ov3x { --ov3-lwc: clamp(320px, var(--ov3-lw, 400px), var(--ov3-lw-max, 70%)); position: relative; grid-template-columns: var(--ov3-lwc) minmax(0, 1fr); }
+  .ws3x[data-pg="space"][data-lv="f"]:has(> .ws3-cv) { --ov3-view-min: 360px; --ov3-lw-max: min(70%, calc(100% - var(--ov3-view-min) - 8px)); }
   #app.is-ov3 .ov3x > .ws3-drawer { left: var(--ov3-lwc); }
   .ov3-sep { position: absolute; top: 12px; bottom: 12px; left: calc(var(--ov3-lwc) - 2px); z-index: 7; width: 4px; cursor: col-resize; touch-action: none; outline: none; }
   .ov3-sep::after { content: ""; position: absolute; top: 0; bottom: 0; left: 1px; width: 2px; opacity: 0; transition: opacity 150ms; background: #00aeef;
@@ -52601,6 +52615,7 @@ function wsHideTip(immediate = false) {
 }
 function wsTipAllowed(el, keyboard) {
   if (!el?.isConnected || !el.dataset.tip || el.closest("[inert]")) return false;
+  if (el.matches(".ov3-flr") && (ov3FloorTipTimers.has(el.parentElement) || !ov3FloorInView(el))) return false;
   // 信息面板已打开时，信息按钮不再显示与面板标题重复的提示（Esc 直接关闭面板）。
   if (el.getAttribute("aria-controls") === "wsSpaceInfo" && el.getAttribute("aria-expanded") === "true") return false;
   if (!keyboard && lastPointer === "touch") return false;
@@ -97680,7 +97695,7 @@ const S3V = (() => {
     const sw = Math.max(1, Math.max(...xs) - Math.min(...xs)),
       sh = Math.max(1, Math.max(...ys) - Math.min(...ys));
     // 3.49 V1357：S.inset 为画面上被楼层列、按钮、图例占去的边距（新页面），平面放在其余区域内并尽量占满宽
-    const I = S.inset || null,
+    const I = typeof S.inset === "function" ? S.inset(st.cv, { width: W, height: H, modelWidth: sw, modelHeight: sh }) : S.inset || null,
       aw = I ? W - I.l - I.r : W * (S.fitCoverage ?? 0.84),
       ah = I ? H - I.t - I.b : H * (S.fitCoverage ?? 0.8);
     Object.assign(st.cam, { tx: c.tx, ty: c.ty, tz: c.tz, px: 0, py: 0, k: Math.max(0.01, Math.min(aw / sw, ah / sh)) });
@@ -97705,6 +97720,7 @@ const S3V = (() => {
     // 3.48：新页面的单层 3D 与整栋同一朝向（S.cam0）
     return S.flat ? { az: 0, el: 90 } : S.cam0 ? { ...S.cam0 } : S.focus ? { az: -28, el: 58 } : { az: -32, el: 30, ...(S.view || {}) };
   }
+  const autoFit = (st) => typeof st.S.inset === "function" && !st.cam.userAdjusted;
   // 绘制：自下而上逐层（相机在上方，较低的层先画）；层内先画楼板，再画功能区的墙（由远到近），最后画顶面
   function draw(st) {
     const cv = st.cv,
@@ -97713,11 +97729,12 @@ const S3V = (() => {
       W = cv.clientWidth,
       H = cv.clientHeight;
     if (!W || !H) return;
-    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) {
+    const resized = cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr);
+    if (resized) {
       cv.width = Math.round(W * dpr);
       cv.height = Math.round(H * dpr);
     }
-    if (!st.fitted) {
+    if (!st.fitted || (resized && autoFit(st))) {
       fit(st, S, W, H);
       st.fitted = true;
     }
@@ -98017,6 +98034,8 @@ const S3V = (() => {
     const cv = host.querySelector("canvas"),
       tip = host.querySelector(".s3-tip"),
       st = { cv, S, cam: { ...home(S), ...(opt.cam || {}) }, fitted: !!opt.cam?.k };
+    if (autoFit(st)) st.fitted = false;
+    const adjust = () => { if (typeof st.S.inset === "function") st.cam.userAdjusted = true; };
     let raf = 0;
     const redraw = () => {
       cancelAnimationFrame(raf);
@@ -98067,6 +98086,7 @@ const S3V = (() => {
       }
       const dx = p[0] - prev[0],
         dy = p[1] - prev[1];
+      if (dx || dy) adjust();
       drag.moved += Math.abs(dx) + Math.abs(dy);
       if (drag.pan || st.S.flat) {
         st.cam.px += dx;
@@ -98095,6 +98115,7 @@ const S3V = (() => {
     cv.addEventListener("pointerleave", () => tip && (tip.hidden = true));
     cv.addEventListener("contextmenu", (e) => e.preventDefault());
     function zoomAt(f, at) {
+      adjust();
       const W = cv.clientWidth,
         H = cv.clientHeight,
         k2 = clamp(st.cam.k * f, 0.2, 400),
@@ -98125,6 +98146,7 @@ const S3V = (() => {
       else if (k === "-" || k === "_") zoomAt(0.8);
       else if (k === "0") api.reset();
       else return;
+      if (k !== "0") adjust();
       e.preventDefault();
       redraw();
     });
@@ -98133,16 +98155,18 @@ const S3V = (() => {
     const api = {
       st,
       set(S2, keep = true) {
-        const refocus = S2.focus !== st.S.focus || S2.only !== st.S.only || !!S2.flat !== !!st.S.flat || String(S2.zc || "") !== String(st.S.zc || ""); // 3.48：2D、3D 切换回到各自的初始视角；3.49：打开、关闭功能区详情时重新取景
+        const refocus = S2.focus !== st.S.focus || S2.only !== st.S.only || !!S2.flat !== !!st.S.flat || String(S2.zc || "") !== String(st.S.zc || "") || typeof S2.inset !== typeof st.S.inset;
         st.S = S2;
         if (!keep || refocus) {
           Object.assign(st.cam, home(S2));
-          st.fitted = false;
+          delete st.cam.userAdjusted;
         }
+        if (!keep || refocus || autoFit(st)) st.fitted = false;
         redraw();
       },
       reset() {
         Object.assign(st.cam, home(st.S));
+        delete st.cam.userAdjusted;
         st.fitted = false;
         redraw();
       },
@@ -100492,7 +100516,7 @@ function ov3FloorRail(bid, pid, stack, has3, active, action) {
       return `<button type="button" class="ov3-flr${on ? " on" : ""}" data-key="${esc(f.id)}" data-act="${action}" data-to="${esc(f.id)}" data-fid="${esc(f.id)}" tabindex="${index === Math.max(0, selected) ? 0 : -1}" aria-pressed="${on}" aria-label="${esc(label)}" data-tip="${esc(tip)}" data-tip-at="right"><span>${esc(floorRailLabel(f.name))}</span>${due ? ov3Dot(due.lvl, "ov3-fdot") : ""}</button>`;
     }),
     home = has3 ? `<button type="button" class="ov3-fhome" aria-label="全部楼层" aria-pressed="${!active}" data-act="${action}" data-to="" data-tip="全部楼层" data-tip-at="right"><span>${ico("building")}</span></button>` : "",
-    arrow = (dir, word) => `<button type="button" class="ov3-farrow" data-act="ov3RailScroll" data-dir="${dir}" aria-label="向${word}滚动楼层" aria-disabled="true" data-tip="向${word}滚动楼层" data-tip-at="right">${ico("chevron", "ic16")}</button>`;
+    arrow = (dir, word) => `<button type="button" class="ov3-farrow" data-act="ov3RailScroll" data-dir="${dir}" tabindex="-1" aria-label="向${word}滚动楼层" aria-disabled="true" data-tip="向${word}滚动楼层" data-tip-at="right">${ico("chevron", "ic16")}</button>`;
   return `<div class="ov3-fcol" data-key="${esc(action + ":" + bid)}">${home}<div class="ov3-ftrack" data-morph-classes="scrollable">${arrow(-1, "上")}<div class="ov3-flist" role="group" aria-label="楼层" data-morph-classes="fade-t fade-b"><span class="ov3-fslide" aria-hidden="true"${selected < 0 ? " hidden" : ` style="--floor-row:${selected}"`}></span>${rows.join("")}</div>${arrow(1, "下")}</div></div>`;
 }
 function ov3FloorCol(b, s) {
@@ -100549,8 +100573,20 @@ function ov3SyncFloorScroll(list) {
     canDown = overflow && list.scrollTop + list.clientHeight < list.scrollHeight - 1;
   up.setAttribute("aria-disabled", String(!canUp));
   down.setAttribute("aria-disabled", String(!canDown));
+  up.tabIndex = canUp ? 0 : -1;
+  down.tabIndex = canDown ? 0 : -1;
   list.classList.toggle("fade-t", canUp);
   list.classList.toggle("fade-b", canDown);
+}
+function ov3FloorInView(row, pointerY) {
+  const list = row.parentElement,
+    rail = list.getBoundingClientRect(),
+    bounds = row.getBoundingClientRect();
+  if (!rail.height || bounds.top < rail.top - 0.5 || bounds.bottom > rail.bottom + 0.5) return false;
+  if (pointerY == null) return true;
+  const top = rail.top + (list.scrollTop > 1 ? 16 : 0),
+    bottom = rail.bottom - (list.scrollTop + list.clientHeight < list.scrollHeight - 1 ? 16 : 0);
+  return pointerY >= top && pointerY < bottom;
 }
 function ov3RevealFloor(list, selected) {
   if (!selected || !list.clientHeight) return;
@@ -100572,6 +100608,21 @@ function ov3RailTabStop(list, row) {
 function ov3FocusedFloor(list) {
   const row = document.activeElement;
   return row?.parentElement === list && row.matches(".ov3-flr") ? row : null;
+}
+const ov3FloorTipTimers = new WeakMap();
+function ov3RailTipScroll(list) {
+  clearTimeout(ov3FloorTipTimers.get(list));
+  if (list.contains(wsTipAnchor) || list.contains(wsTipPending)) wsHideTip(true);
+  ov3FloorTipTimers.set(list, setTimeout(() => {
+    ov3FloorTipTimers.delete(list);
+    if (!list.isConnected) return;
+    const hovered = lastPointer !== "touch" && list.querySelector(".ov3-flr:hover");
+    if (hovered && ov3FloorInView(hovered)) wsShowTip(hovered);
+    else {
+      const focused = ov3FocusedFloor(list);
+      if (focused?.matches(":focus-visible")) wsShowTip(focused, true);
+    }
+  }, 120));
 }
 function ov3RailKey(event) {
   const button = event.target.closest?.(".ov3-flr");
@@ -100606,17 +100657,32 @@ onAfterRender(() => {
     const floorAt = (event) => event.target.closest?.(".ov3-flr")?.dataset.fid || null;
     list.addEventListener("mouseover", (event) => ov3Hl(floorAt(event)));
     list.addEventListener("mouseleave", () => ov3Hl(null));
+    // 渐隐区域仍可滚动。拦截点按前的焦点迁移，也拦截触屏随后派发的 click。
+    list.addEventListener("pointerdown", (event) => {
+      const row = event.target.closest(".ov3-flr");
+      if (row && !ov3FloorInView(row, event.clientY)) event.preventDefault();
+    }, true);
+    list.addEventListener("click", (event) => {
+      const row = event.target.closest(".ov3-flr");
+      if (event.detail > 0 && row && !ov3FloorInView(row, event.clientY)) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }, true);
     list.addEventListener("focusin", (event) => {
       const row = event.target.closest(".ov3-flr");
       ov3RailTabStop(list, row);
-      ov3RevealFloor(list, row);
+      if (row?.matches(":focus-visible")) ov3RevealFloor(list, row);
     });
     list.addEventListener("focusout", (event) => {
       if (!list.contains(event.relatedTarget)) {
         ov3RailTabStop(list, list.querySelector(".ov3-flr.on") || list.querySelector(".ov3-flr"));
       }
     });
-    list.addEventListener("scroll", () => ov3SyncFloorScroll(list), { passive: true });
+    list.addEventListener("scroll", () => {
+      ov3SyncFloorScroll(list);
+      ov3RailTipScroll(list);
+    }, { passive: true });
     list.addEventListener("keydown", ov3RailKey);
   }
   ov3SyncFloorScroll(list);
@@ -101393,11 +101459,28 @@ function ws3Scene(sc, o) {
       r = f?.zones.find((x) => x.id === o.center);
     if (r) S.zc = [...S3V.centroid(r.pts), f.z0 + (r.zh ?? f.zh ?? 2.4)];
   }
-  // 3.49 V1357：左上按钮、图例占去的边距（画布本身在楼层列右边）
-  S.inset = { l: isMobile() ? 16 : 152, t: 64, r: 24, b: 56 }; // 3.53 V1406：电脑上楼层卡片宽 120，画面从卡片右边算起
+  // 非独立楼层的运行画面保留原取景边距。
+  S.inset = { l: isMobile() ? 16 : 152, t: 64, r: 24, b: 56 };
   const view = d2 ? { flat: true } : { view: { az: 30, el: 45 }, ...(sc.fid ? { cam0: { az: 30, el: 50 } } : {}) };
   // 整栋（楼层列“全部”）不写房间名和数值，只看着色与告警描边（最终图 2-3）
   return { ...S, ...view, noLabels: true, cl: !!sc.fid, names: false };
+}
+function ws3FloorInsets(canvas, { width, height, modelWidth, modelHeight }) {
+  const view = canvas.closest(".ws3-cv"),
+    frame = canvas.getBoundingClientRect(),
+    layer = view.querySelector(":scope > .ws3-tl")?.getBoundingClientRect(),
+    legend = view.querySelector(":scope > .ws3-lg")?.getBoundingClientRect(),
+    controls = view.querySelector(":scope > .ov3-ctl")?.getBoundingClientRect(),
+    pad = 16,
+    inset = { l: pad, r: pad, t: layer ? layer.bottom - frame.top + pad : pad, b: legend ? frame.bottom - legend.top + pad : pad },
+    scale = ({ l, r, t, b }) => Math.min((width - l - r) / modelWidth, (height - t - b) / modelHeight);
+  if (!controls) return inset;
+  const below = controls.bottom - frame.top + pad,
+    modelTop = (height + inset.t - inset.b - scale(inset) * modelHeight) / 2;
+  if (modelTop >= below) return inset;
+  const belowControls = { ...inset, t: below },
+    besideControls = { ...inset, r: frame.right - controls.left + pad };
+  return scale(belowControls) >= scale(besideControls) ? belowControls : besideControls;
 }
 function ws3Canvas(sc, o) {
   // 3.53 V1418：项目范围时，o.mapVal 给楼宇标记写数值；o.alt 为列表所在的楼宇或楼层（画面显示它，不放楼层列）
@@ -101421,10 +101504,12 @@ function ws3Canvas(sc, o) {
   const mode = o.mode || (sc.fid ? ws3Mode(sc.bid) : "3d"),
     d2 = mode === "2d",
     S = ws3Scene(sc, o),
+    floorFit = sc.fid && ws3Pg() === "space",
     has3 = s3Has(sc.bid);
+  if (floorFit) S.inset = ws3FloorInsets;
   S3_PEND = S;
   const tip = d2 ? "拖动平移，滚轮缩放" : "拖动旋转，右键拖动平移，滚轮缩放";
-  return `<section class="ov3-view ov3-cv ws3-cv${d2 ? " is2d" : ""}" aria-label="${esc(`${b.name}${f ? " · " + f.name : ""} ${d2 ? "2D" : "3D"}`)}">${col}${tl}<div class="s3-host ov3-s3" id="s3Host" data-view="ws3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${b.name} · ${f ? f.name : "全部楼层"} ${d2 ? "2D" : "3D"} 视图：${tip}`)}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl">${has3 && sc.fid && !o.mode ? `<div class="ov3-cg">${ov3Cb(`切换到 ${d2 ? "3D" : "2D"}`, "", "ws3ModeSw", {}, `<span class="ov3-mode">${d2 ? "3D" : "2D"}</span>`)}</div>` : ""}<div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ws3Reset")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div>${legend}</section>`;
+  return `<section class="ov3-view ov3-cv ws3-cv${floorFit ? " ws3-floor-fit" : ""}${d2 ? " is2d" : ""}" aria-label="${esc(`${b.name}${f ? " · " + f.name : ""} ${d2 ? "2D" : "3D"}`)}">${col}${tl}<div class="s3-host ov3-s3" id="s3Host" data-view="ws3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${b.name} · ${f ? f.name : "全部楼层"} ${d2 ? "2D" : "3D"} 视图：${tip}`)}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl">${has3 && sc.fid && !o.mode ? `<div class="ov3-cg">${ov3Cb(`切换到 ${d2 ? "3D" : "2D"}`, "", "ws3ModeSw", {}, `<span class="ov3-mode">${d2 ? "3D" : "2D"}</span>`)}</div>` : ""}<div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ws3Reset")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div>${legend}</section>`;
 }
 // 项目范围：右侧与项目总览同一地图（点楼宇进入本页的该楼宇）
 function ws3Map(sc, pinVal = null) {
@@ -102384,7 +102469,11 @@ try {
   const v = Math.round(+localStorage.getItem(OV3_LW_KEY));
   if (v >= 320) ov3LwSet(v);
 } catch {}
-const ov3LwMax = (x) => Math.max(320, Math.floor(x.clientWidth * 0.7));
+const ov3LwMax = (x) => {
+  const limit = x.clientWidth * 0.7,
+    minView = parseFloat(getComputedStyle(x).getPropertyValue("--ov3-view-min"));
+  return Math.max(320, Math.floor(Number.isFinite(minView) ? Math.min(limit, x.clientWidth - minView - 8) : limit));
+};
 function ov3SepVal(x, sep) {
   const pn = x.querySelector(":scope > .ov3-panel");
   if (!pn) return;
@@ -102450,7 +102539,14 @@ function ov3SepWire(x, sep) {
     dispatchEvent(new Event("resize"));
   });
 }
+const ov3LayoutObserver = typeof ResizeObserver === "function" ? new ResizeObserver((entries) => {
+  for (const { target } of entries) {
+    const sep = target.querySelector(":scope > .ov3-sep");
+    if (sep) ov3SepVal(target, sep);
+  }
+}) : null;
 onAfterRender(() => {
+  ov3LayoutObserver?.disconnect();
   for (const x of document.querySelectorAll(".ov3x")) {
     let sep = x.querySelector(":scope > .ov3-sep");
     if (!x.querySelector(":scope > .ov3-view")) {
@@ -102470,6 +102566,7 @@ onAfterRender(() => {
       ov3SepWire(x, sep);
     }
     ov3SepVal(x, sep);
+    ov3LayoutObserver?.observe(x);
   }
   ov3Stick();
 });
