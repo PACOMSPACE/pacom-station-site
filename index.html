@@ -99911,12 +99911,12 @@ function ov3MapHtml(lv, focus = null, pinVal = null) {
     .join("");
   const sat = !!U.ov3Sat,
     layerLabel = sat ? "切换到标准地图（当前为卫星地图）" : "切换到卫星地图（当前为标准地图）";
-  return `<section class="ov3-view ov3-map" aria-label="${esc(name)} 地图"><div class="ovm" id="ovmHost" data-key="${esc(key)}"><canvas class="ovm-cv" tabindex="0" role="img" aria-label="${esc(name)} 地图：拖动平移，右键或按住 Ctrl 拖动旋转与倾斜，滚轮缩放"></canvas><div class="ovm-pins">${pinHtml}</div><div class="ovm-scale" role="img" hidden><span class="ovm-scale-label"></span><span class="ovm-scale-bar" aria-hidden="true"></span></div><div class="ovm-attr">${sat && PACOM_MAP.provider === "osm" ? "影像 © Esri" : MAP_ATTRIBUTION()}</div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb(layerLabel, sat ? "satellite" : "map", "ov3MapLayer")}</div><div class="ov3-cg">${ov3Cb("回正北", "", "ov3MapNorth", {}, OV3_NORTH_ICON, "ovm-compass")}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3MapLoc")}${OV3_CSEP}${ov3Cb("放大", "", "ov3MapZoom", { "data-k": "2" }, OV3_MAP_PLUS_ICON)}${ov3Cb("缩小", "minus", "ov3MapZoom", { "data-k": "0.5" })}</div></div></section>`;
+  return `<section class="ov3-view ov3-map" aria-label="${esc(name)} 地图"><div class="ovm" id="ovmHost" data-key="${esc(key)}"><canvas class="ovm-cv" tabindex="0" role="img" aria-label="${esc(name)} 地图：拖动平移，右键或按住 Ctrl 拖动旋转与倾斜，滚轮缩放"></canvas><div class="ovm-pins">${pinHtml}</div><div class="ovm-scale" role="img" hidden><span class="ovm-scale-label"></span><span class="ovm-scale-bar" aria-hidden="true"></span></div><div class="ovm-attr">${sat && PACOM_MAP.provider === "osm" ? "影像 © Esri" : MAP_ATTRIBUTION()}</div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb(layerLabel, sat ? "satellite" : "map", "ov3MapLayer", { "data-tip": sat ? "标准地图" : "卫星视图" })}</div><div class="ov3-cg">${ov3Cb("回正北", "", "ov3MapNorth", {}, OV3_NORTH_ICON, "ovm-compass")}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3MapLoc")}${OV3_CSEP}${ov3Cb("放大", "", "ov3MapZoom", { "data-k": "2" }, OV3_MAP_PLUS_ICON)}${ov3Cb("缩小", "minus", "ov3MapZoom", { "data-k": "0.5" })}</div></div></section>`;
 }
 // 3.62（HONG 2026-11-11 09:35Z、09:38Z 按 Vision 09:30Z）：复位与放大之间一条分隔线，把“复位”和“缩放”分开
 const OV3_CSEP = '<i class="ov3-csep" aria-hidden="true"></i>';
-const ov3Cb = (label, icon, act, attrs = {}, inner = "", className = "") =>
-  `<button type="button" class="ov3-cb${className ? ` ${className}` : ""}" data-act="${act}" aria-label="${esc(label)}" data-tip="${esc(String(label).split("：")[0])}" data-tip-at="left"${Object.entries(attrs).map(([k, v]) => ` ${k}="${esc(v)}"`).join("")}>${inner || ico(icon, "ic16")}</button>`;
+const ov3Cb = (label, icon, act, { "data-tip": tip = String(label).split("：")[0], ...attrs } = {}, inner = "", className = "") =>
+  `<button type="button" class="ov3-cb${className ? ` ${className}` : ""}" data-act="${act}" aria-label="${esc(label)}" data-tip="${esc(tip)}" data-tip-at="left"${Object.entries(attrs).map(([k, v]) => ` ${k}="${esc(v)}"`).join("")}>${inner || ico(icon, "ic16")}</button>`;
 
 // 地图：Web 墨卡托瓦片按相机仿射画在 canvas 上（正交投影，与 空间 › 3D 同一投影）。
 // 缩放 < 16 或画面里没有 3D 楼宇时为平面（只剩标记）；放大到街区时自动倾斜（16 到 17.5 由 90° 过渡到 55°），楼宇在原位立起。
@@ -99928,8 +99928,9 @@ const OVM = (() => {
     FLAT_Z = 16,
     TILT_Z = 17.5,
     TILT_EL = 55,
-    FIT_MIN_Z = 3,
+    FIT_MIN_Z = 2,
     FIT_MAX_Z = 19,
+    FIT_COVERAGE = 0.55,
     LOCAL_Z = 17,
     clamp = (v, a, b) => Math.max(a, Math.min(b, v)),
     wx = (lng) => R * lng * RAD,
@@ -100033,8 +100034,7 @@ const OVM = (() => {
     if (fp) return Object.assign(c, { cx: wx(fp.lng), cy: wy(fp.lat), k: kOf(LOCAL_Z) });
     const ox = wx(first.lng), oy = wy(first.lat),
       ca = Math.cos(c.az * RAD), sa = Math.sin(c.az * RAD),
-      pad = Math.min(120, Math.min(W, H) * 0.18),
-      aw = W - 2 * pad, ah = H - 2 * pad,
+      aw = W * FIT_COVERAGE, ah = H * FIT_COVERAGE,
       vertical = [];
     let left = Infinity, right = -Infinity;
     const add = (X, Y, Z = 0) => {
