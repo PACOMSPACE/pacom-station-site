@@ -99862,8 +99862,15 @@ function ov3NoPlanMap(b) {
 /* ---------- 地图（全部项目、项目） ---------- */
 // 天地图的卫星图包含影像底图与注记；OpenStreetMap 使用 Esri World Imagery 作为卫星图。
 const SAT_TILES = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
-const OV3_NORTH_ICON = LI('<path d="m12 3 5 9H7z" fill="currentColor" stroke="none"/><path d="m7 12 5 9 5-9"/>', "ic16 ovm-compass-needle");
-const OV3_PLUS_ICON = LI('<path d="M5 12h14M12 5v14"/>', "ic16");
+// 24 单位网格内以 16 单位主轮廓统一视觉大小。LI 共用线宽和圆端。
+const OV3_TOOL_ICONS = {
+  map: LI('<path d="m4 7 5-2 6 2 5-2v12l-5 2-6-2-5 2zM9 5v12M15 7v12"/>', "ic16"),
+  satellite: LI('<path d="m8 12 4 4 6-6-4-4zM9 11 5 7l3-3 4 4m5 3 3 3-3 3-3-3M9 20a5 5 0 0 0-5-5"/>', "ic16"),
+  north: LI('<path d="m12 4 7 16-7-4-7 4z"/>', "ic16 ovm-compass-needle"),
+  "rotate-ccw": LI('<path d="M4 12a8 8 0 1 0 8-8 8.7 8.7 0 0 0-5.9 2.4L4 8.5M4 4v4.5h4.5"/>', "ic16"),
+  plus: LI('<path d="M4 12h16M12 4v16"/>', "ic16"),
+  minus: LI('<path d="M4 12h16"/>', "ic16"),
+};
 const ov3Loc = (o, p = null) => {
   const l = o?.location?.lat != null ? o.location : o?.sameLocation && p?.location?.lat != null ? p.location : null;
   return l && Number.isFinite(+l.lat) && Number.isFinite(+l.lng) ? { lat: +l.lat, lng: +l.lng } : null;
@@ -99908,12 +99915,12 @@ function ov3MapHtml(lv, focus = null, pinVal = null) {
     .join("");
   const sat = !!U.ov3Sat,
     layerLabel = sat ? "切换到标准地图（当前为卫星地图）" : "切换到卫星地图（当前为标准地图）";
-  return `<section class="ov3-view ov3-map" aria-label="${esc(name)} 地图"><div class="ovm" id="ovmHost" data-key="${esc(key)}"><canvas class="ovm-cv" tabindex="0" role="img" aria-label="${esc(name)} 地图：拖动平移，右键或按住 Ctrl 拖动旋转与倾斜，滚轮缩放"></canvas><div class="ovm-pins">${pinHtml}</div><div class="ovm-scale" role="img" hidden><span class="ovm-scale-label"></span><span class="ovm-scale-bar" aria-hidden="true"></span></div><div class="ovm-attr">${sat && PACOM_MAP.provider === "osm" ? "影像 © Esri" : MAP_ATTRIBUTION()}</div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb(layerLabel, sat ? "satellite" : "map", "ov3MapLayer", { "data-tip": sat ? "标准地图" : "卫星视图" })}</div><div class="ov3-cg">${ov3Cb("回正北", "", "ov3MapNorth", {}, OV3_NORTH_ICON, "ovm-compass")}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3MapLoc")}${OV3_CSEP}${ov3Cb("放大", "", "ov3MapZoom", { "data-k": "2" }, OV3_PLUS_ICON)}${ov3Cb("缩小", "minus", "ov3MapZoom", { "data-k": "0.5" })}</div></div></section>`;
+  return `<section class="ov3-view ov3-map" aria-label="${esc(name)} 地图"><div class="ovm" id="ovmHost" data-key="${esc(key)}"><canvas class="ovm-cv" tabindex="0" role="img" aria-label="${esc(name)} 地图：拖动平移，右键或按住 Ctrl 拖动旋转与倾斜，滚轮缩放"></canvas><div class="ovm-pins">${pinHtml}</div><div class="ovm-scale" role="img" hidden><span class="ovm-scale-label"></span><span class="ovm-scale-bar" aria-hidden="true"></span></div><div class="ovm-attr">${sat && PACOM_MAP.provider === "osm" ? "影像 © Esri" : MAP_ATTRIBUTION()}</div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb(layerLabel, sat ? "satellite" : "map", "ov3MapLayer", { "data-tip": sat ? "标准地图" : "卫星视图" })}</div><div class="ov3-cg">${ov3Cb("回正北", "north", "ov3MapNorth", {}, "", "ovm-compass")}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3MapLoc")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3MapZoom", { "data-k": "2" })}${ov3Cb("缩小", "minus", "ov3MapZoom", { "data-k": "0.5" })}</div></div></section>`;
 }
 // 3.62（HONG 2026-11-11 09:35Z、09:38Z 按 Vision 09:30Z）：复位与放大之间一条分隔线，把“复位”和“缩放”分开
 const OV3_CSEP = '<i class="ov3-csep" aria-hidden="true"></i>';
 const ov3Cb = (label, icon, act, { "data-tip": tip = String(label).split("：")[0], ...attrs } = {}, inner = "", className = "") =>
-  `<button type="button" class="ov3-cb${className ? ` ${className}` : ""}" data-act="${act}" aria-label="${esc(label)}" data-tip="${esc(tip)}" data-tip-at="left"${Object.entries(attrs).map(([k, v]) => ` ${k}="${esc(v)}"`).join("")}>${inner || ico(icon, "ic16")}</button>`;
+  `<button type="button" class="ov3-cb${className ? ` ${className}` : ""}" data-act="${act}" aria-label="${esc(label)}" data-tip="${esc(tip)}" data-tip-at="left"${Object.entries(attrs).map(([k, v]) => ` ${k}="${esc(v)}"`).join("")}>${inner || OV3_TOOL_ICONS[icon] || ico(icon, "ic16")}</button>`;
 
 // 地图：Web 墨卡托瓦片按相机仿射画在 canvas 上（正交投影，与 空间 › 3D 同一投影）。
 // 缩放 < 16 或画面里没有 3D 楼宇时为平面（只剩标记）；放大到街区时自动倾斜（16 到 17.5 由 90° 过渡到 55°），楼宇在原位立起。
@@ -100466,7 +100473,7 @@ function ov3Bldg() {
     curName = s.cur ? g("floors", s.cur)?.name || "" : "全部";
   S3_PEND = S;
   const tip = d2 ? "拖动平移，滚轮缩放" : "拖动旋转，右键拖动平移，滚轮缩放";
-  return `<section class="ov3-view ov3-cv${d2 ? " is2d" : ""}" aria-label="${esc(`${b.name} ${d2 ? "2D" : "3D"}`)}">${col}<div class="s3-host ov3-s3" id="s3Host" data-view="ov3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${b.name} · ${curName} ${d2 ? "2D" : "3D"} 视图：${tip}`)}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl">${s.has3 ? `<div class="ov3-cg">${ov3Cb(`切换到 ${d2 ? "3D" : "2D"}`, "", "ov3Mode", {}, `<span class="ov3-mode">${d2 ? "3D" : "2D"}</span>`)}</div>` : ""}<div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3Reset")}${OV3_CSEP}${ov3Cb("放大", "", "ov3CvZoom", { "data-k": "1.25" }, OV3_PLUS_ICON)}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div></section>`;
+  return `<section class="ov3-view ov3-cv${d2 ? " is2d" : ""}" aria-label="${esc(`${b.name} ${d2 ? "2D" : "3D"}`)}">${col}<div class="s3-host ov3-s3" id="s3Host" data-view="ov3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${b.name} · ${curName} ${d2 ? "2D" : "3D"} 视图：${tip}`)}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl">${s.has3 ? `<div class="ov3-cg">${ov3Cb(`切换到 ${d2 ? "3D" : "2D"}`, "", "ov3Mode", {}, `<span class="ov3-mode">${d2 ? "3D" : "2D"}</span>`)}</div>` : ""}<div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3Reset")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div></section>`;
 }
 // 点 3D 里的楼层：进入该层（隐藏上面的楼层；没有 3D 的层切到 2D，没有楼层图的层写“未上传楼层图”）
 function ov3Pick(h) {
@@ -101302,7 +101309,7 @@ function ws3Canvas(sc, o) {
     has3 = s3Has(sc.bid);
   S3_PEND = S;
   const tip = d2 ? "拖动平移，滚轮缩放" : "拖动旋转，右键拖动平移，滚轮缩放";
-  return `<section class="ov3-view ov3-cv ws3-cv${d2 ? " is2d" : ""}" aria-label="${esc(`${b.name}${f ? " · " + f.name : ""} ${d2 ? "2D" : "3D"}`)}">${col}${tl}<div class="s3-host ov3-s3" id="s3Host" data-view="ws3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${b.name} · ${f ? f.name : "全部楼层"} ${d2 ? "2D" : "3D"} 视图：${tip}`)}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl">${has3 && sc.fid && !o.mode ? `<div class="ov3-cg">${ov3Cb(`切换到 ${d2 ? "3D" : "2D"}`, "", "ws3ModeSw", {}, `<span class="ov3-mode">${d2 ? "3D" : "2D"}</span>`)}</div>` : ""}<div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ws3Reset")}${OV3_CSEP}${ov3Cb("放大", "", "ov3CvZoom", { "data-k": "1.25" }, OV3_PLUS_ICON)}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div>${legend}</section>`;
+  return `<section class="ov3-view ov3-cv ws3-cv${d2 ? " is2d" : ""}" aria-label="${esc(`${b.name}${f ? " · " + f.name : ""} ${d2 ? "2D" : "3D"}`)}">${col}${tl}<div class="s3-host ov3-s3" id="s3Host" data-view="ws3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${b.name} · ${f ? f.name : "全部楼层"} ${d2 ? "2D" : "3D"} 视图：${tip}`)}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl">${has3 && sc.fid && !o.mode ? `<div class="ov3-cg">${ov3Cb(`切换到 ${d2 ? "3D" : "2D"}`, "", "ws3ModeSw", {}, `<span class="ov3-mode">${d2 ? "3D" : "2D"}</span>`)}</div>` : ""}<div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ws3Reset")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div>${legend}</section>`;
 }
 // 项目范围：右侧与项目总览同一地图（点楼宇进入本页的该楼宇）
 function ws3Map(sc, pinVal = null) {
