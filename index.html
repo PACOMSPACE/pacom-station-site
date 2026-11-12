@@ -36229,19 +36229,27 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   .ov3-cv { background: #d7dfe2; }
   .ov3-cv.is2d { background: #edf1f4; }
   .ov3-cv > .ov3-s3 { position: absolute; inset: 0 0 0 80px; }
-  /* 楼层列（细节核查第 1 项）：画面左侧，距左 16、距上 16；每项 48×27；当前项深色；没有楼层图的层灰字；超过一屏列内滚动 */
-  .ov3-fcol { position: absolute; top: 16px; left: 16px; z-index: 4; display: flex; flex-direction: column; max-height: calc(100% - 32px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: 4px; border-radius: 12px; background: rgba(255, 255, 255, 0.88); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); box-shadow: var(--floating-sm); }
-  .ov3-fcol::-webkit-scrollbar { display: none; }
-  .ov3-flr { position: relative; flex: none; display: grid; place-items: center; width: 48px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: #2e2e2e; font: inherit; font-size: 12px; line-height: 18px; font-weight: 400; font-variant-numeric: tabular-nums; cursor: pointer; }
-  /* 3.52 Lovable：当前层叠黑 8%、#030303 字重 500；其他层 #2E2E2E，悬停叠黑 4%；没有楼层图的层 #636363 */
-  .ov3-flr:hover { background: rgba(0, 0, 0, 0.04); }
-  .ov3-flr.np { color: #636363; font-weight: 400; }
-  .ov3-flr.on { background: rgba(0, 0, 0, 0.08); color: #030303; font-weight: 500; }
-  .ov3-flr:focus-visible { outline: none; box-shadow: inset 0 0 0 2px #00aeef; }
-  .ov3-fdot { position: absolute; top: 2px; right: 3px; width: 8px; height: 8px; }
-  .ov3-fall { display: none; }
-  .ov3-fsep { flex: none; height: var(--hw); margin: 4px 2px; background: var(--hc-114114112040, rgba(114, 114, 112, 0.16)); }
-  .ov3-nofl > .ov3-np-c { margin-left: 80px; }
+  /* 竖向楼层轨道：36px 凹槽，32px 白色滑块；触屏仅扩展透明点按区。 */
+  .ov3-fcol { --floor-hit: 36px; --floor-step: 32px; --floor-gap: 2px; position: absolute; top: 16px; left: 16px; z-index: 4; display: flex; width: var(--floor-hit); max-height: calc(100% - 32px); }
+  .ov3-fcol::before { content: ""; position: absolute; inset: 0 auto 0 50%; transform: translateX(-50%); width: 36px; border-radius: 18px; background: linear-gradient(#00000005, #00000005), rgba(255, 255, 255, 0.82); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 var(--hw) #0000001a, inset 0 2px 3px -1px #0000000a; pointer-events: none; }
+  .ov3-flist { position: relative; display: flex; flex-direction: column; gap: var(--floor-gap); width: 100%; min-height: 0; padding-block: 2px; border-radius: 18px; overflow: auto; overscroll-behavior: contain; scrollbar-width: none; }
+  .ov3-flist::-webkit-scrollbar { display: none; }
+  .ov3-fslide { position: absolute; top: calc(2px + (var(--floor-step) - 32px) / 2); left: calc((100% - 32px) / 2); width: 32px; height: 32px; border-radius: 50%; background: var(--btn-bg); box-shadow: var(--btn); pointer-events: none; transform: translateY(calc(var(--floor-row) * (var(--floor-step) + var(--floor-gap)))); transition: transform 150ms ease-out; }
+  .ov3-flr { position: relative; flex: none; display: grid; place-items: center; width: 100%; height: var(--floor-step); padding: 0; border: 0; background: none; color: #2e2e2e; font: inherit; font-size: 12px; line-height: 18px; font-weight: 400; font-variant-numeric: tabular-nums; cursor: pointer; transition: color 150ms ease-out; }
+  .ov3-flr > span { display: block; max-width: 30px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ov3-flr.np { color: #636363; }
+  .ov3-flr.on { color: #030303; }
+  @media (hover: hover) { .ov3-flr:hover { color: #030303; } }
+  .ov3-flr:focus-visible { outline: none; }
+  .ov3-flr:focus-visible::after { content: ""; position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); width: 32px; height: 32px; border-radius: 50%; box-shadow: inset 0 0 0 2px #00aeef; pointer-events: none; }
+  .ov3-fdot { position: absolute; top: calc((var(--floor-step) - 32px) / 2 + 4px); right: calc((100% - 32px) / 2 + 4px); width: 5px; height: 5px; }
+  @media (max-width: 850px), (pointer: coarse) {
+    .ov3-fcol { --floor-hit: 44px; --floor-step: 44px; --floor-gap: 0px; left: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ov3-fslide, .ov3-flr { transition: none; }
+  }
+  .ov3-nofl > .ov3-np-c { margin-left: 64px; }
   .ov3-npb { margin-top: 16px; }
   .ov3-noplan { display: grid; place-items: center; background: #f4f5f7; }
   .ov3-np-c { display: flex; flex-direction: column; align-items: center; gap: 4px; max-width: 400px; padding: 24px; text-align: center; }
@@ -36293,23 +36301,8 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   #app.is-ov3 .ov3x > .ov3-view { margin: 8px 8px 8px 0; border-radius: 16px; overflow: hidden; isolation: isolate; background-color: #fafafa;
     box-shadow: 0 0 0 var(--hw) #fff, 0 0 0 var(--hr) var(--hc-ring, rgba(119, 119, 113, 0.16)), 0 2px 1px rgba(0, 0, 0, 0.04), 0 4px 3px -1.5px rgba(0, 0, 0, 0.04), 0 7px 6px -3px rgba(0, 0, 0, 0.04); }
 }
-/* 3.53 V1406（Vision 3.52 复看）：楼层选择器按 3.46 楼层卡片：白卡片 r16、内边距 12 8，标题“楼层”14/22/600；
-   行 104×32、圆角 12、内边距 0 8、14/22/400 #030303，当前行叠黑 8%，待处理圆点在行右端；位置仍在画面左侧 */
-.ov3-fh { display: none; }
 @media (min-width: 851px) {
-  .ov3-fcol { width: 120px; padding: 12px 8px; border-radius: 16px; background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none;
-    box-shadow: 0 0 0 var(--hw) #fff, 0 0 0 var(--hr) var(--hc-ring, rgba(119, 119, 113, 0.16)), 0 2px 1px rgba(0, 0, 0, 0.04), 0 4px 3px -1.5px rgba(0, 0, 0, 0.04), 0 7px 6px -3px rgba(0, 0, 0, 0.04); }
-  .ov3-fh { display: block; flex: none; margin: 0 8px 8px; font-size: 14px; line-height: 22px; font-weight: 600; color: #030303; }
-  .ov3-flr { display: flex; align-items: center; justify-content: space-between; gap: 4px; width: 104px; height: 32px; padding: 0 8px; border-radius: 12px; color: #030303; font-size: 14px; line-height: 22px; font-weight: 400; }
-  .ov3-flr.on { color: #030303; font-weight: 400; }
-  .ov3-flr.np:not(.on) { color: #636363; font-weight: 400; } /* 3.58 V1488：按 3.46，没有楼层图的层 #636363 */
-  .ov3-fdot { position: static; width: 8px; height: 8px; }
-  .ov3-fsep { display: none; } /* 3.58 V1489：按 3.46，“全部楼层”下不加分隔线 */
-  .ov3-fall { display: inline; }
-}
-@media (min-width: 851px) {
-  .ws3-tl { left: 152px; }
-  .ov3-nofl > .ov3-np-c { margin-left: 144px; }
+  .ws3-tl { left: 68px; }
 }
 /* 3.53 V1410：首页“信息”在面板里：照片、基本资料（标签 96 宽）、楼宇或楼层列表、文件 */
 .ov3-iid > h2 { margin-top: 0; }
@@ -36915,7 +36908,7 @@ img.img-off { display: none !important; }
 /* V1483、V1485：数据分析指标同一行两格顶部对齐（标签或副行折行时数值仍在同一高度） */
 .ws3-kpis .ov3-st { align-items: flex-start; }
 /* V1484：有楼层卡片时图例不伸到卡片上（卡片占画面左侧 152），放不下时在卡片右侧折行 */
-@media (min-width: 851px) { .ov3-view:has(.ov3-fcol) .ws3-lg { max-width: calc(100% - 168px); } }
+@media (min-width: 851px) { .ov3-view:has(.ov3-fcol) .ws3-lg { max-width: calc(100% - 84px); } }
 .ws3-kpis .ov3-st-t > small > .ops-info-wrap { margin-block: -3px; } /* V1483：ⓘ 不撑高 18 的标签行 */
 .ws3-kpis .ov3-st-t > small:has(> .ops-info-wrap) { display: flex; align-items: center; height: 18px; }
 .ws3-kpis .ov3-st-t > .ov3-st-sub { white-space: normal; } /* 放不下时只在“ · ”处换行（各项整体不拆） */
@@ -100445,16 +100438,22 @@ function ov3Scene(s) {
     name: g("buildings", bid)?.name || "",
   };
 }
-// 楼层列：当前项深色；有待处理的层右上圆点（按该层最高级别）；没有楼层图的层灰字
+// 共用竖向楼层轨道。用一个指示块跟随选中行，渲染时保留轨道和按钮节点。
+function ov3FloorRail(bid, pid, stack, has3, active, action) {
+  const floors = stack.slice().reverse().map(({ f }) => ({
+    id: f.id, name: f.name, plan: !!f.image, due: ov3Due(pid, bid, f.id),
+  }));
+  if (has3) floors.unshift({ id: null, name: "全部楼层", plan: true });
+  const selected = floors.findIndex(({ id }) => id === (active || null)),
+    rows = floors.map(({ id, name, plan, due }, index) => {
+      const on = index === selected,
+        label = [name, plan ? "" : "未上传楼层图", due ? `待处理 ${due.n} 项` : ""].filter(Boolean).join("，");
+      return `<button type="button" class="ov3-flr${on ? " on" : ""}${plan ? "" : " np"}" data-key="${esc(id || "all-floors")}" data-act="${action}" data-to="${esc(id || "")}"${id ? ` data-fid="${esc(id)}"` : ""} aria-pressed="${on}" aria-label="${esc(label)}" data-tip="${esc(label)}" data-tip-at="right"><span>${esc(id ? name : "全部")}</span>${due ? ov3Dot(due.lvl, "ov3-fdot") : ""}</button>`;
+    });
+  return `<div class="ov3-fcol" data-key="${esc(action + ":" + bid)}"><div class="ov3-flist" role="group" aria-label="楼层">${selected >= 0 ? `<span class="ov3-fslide" aria-hidden="true" style="--floor-row:${selected}"></span>` : ""}${rows.join("")}</div></div>`;
+}
 function ov3FloorCol(b, s) {
-  const on = s.mode === "3d" ? s.cur : s.mode === "2d" ? s.cur : s.sel,
-    row = (fid, name, plan, due) =>
-      `<button type="button" class="ov3-flr${(fid || null) === (on || null) ? " on" : ""}${plan ? "" : " np"}" data-act="ov3Floor" data-to="${esc(fid || "")}"${fid ? ` data-fid="${esc(fid)}"` : ""} aria-pressed="${(fid || null) === (on || null)}" aria-label="${esc([name, plan ? "" : "未上传楼层图", due ? `待处理 ${due.n} 项` : ""].filter(Boolean).join("，"))}">${fid ? esc(name) : '<span>全部<span class="ov3-fall">楼层</span></span>' /* 3.58 V1489：电脑写“全部楼层”，手机行宽 48 仍写“全部” */}${due ? ov3Dot(due.lvl, "ov3-fdot") : ""}</button>`,
-    rows = s.st
-      .slice()
-      .reverse()
-      .map((x) => row(x.f.id, x.f.name, !!x.f.image, ov3Due(b.projectId, b.id, x.f.id)));
-  return `<div class="ov3-fcol" role="group" aria-label="楼层"><b class="ov3-fh" aria-hidden="true">楼层</b>${s.has3 ? row(null, "全部楼层", true, null) + '<span class="ov3-fsep" aria-hidden="true"></span>' : ""}${rows.join("")}</div>`;
+  return ov3FloorRail(b.id, b.projectId, s.st, s.has3, s.mode === "none" ? s.sel : s.cur, "ov3Floor");
 }
 function ov3Bldg() {
   const b = g("buildings", U.b),
@@ -100495,24 +100494,33 @@ function ov3Hl(fid) {
   }
   if (ch) S3_LIVE.api.redraw();
 }
-onAfterRender(() => {
-  const col = document.querySelector(".ov3-fcol");
-  if (!col || col.dataset.wired) return;
-  col.dataset.wired = "1";
-  const at = (e) => e.target.closest?.(".ov3-flr")?.dataset.fid || null;
-  col.addEventListener("mouseover", (e) => ov3Hl(at(e)));
-  col.addEventListener("focusin", (e) => ov3Hl(at(e)));
-  col.addEventListener("mouseleave", () => ov3Hl(null));
-  col.addEventListener("focusout", () => ov3Hl(null));
-  // 超过一屏时列内滚动，当前层保持可见
-  const on = col.querySelector(".ov3-flr.on");
-  if (on) {
-    const v = col.scrollHeight > col.clientHeight ? "Top" : "Left",
-      pos = v === "Top" ? on.offsetTop : on.offsetLeft,
-      len = v === "Top" ? col.clientHeight : col.clientWidth,
-      sz = v === "Top" ? on.offsetHeight : on.offsetWidth;
-    if (pos < col["scroll" + v] || pos + sz > col["scroll" + v] + len) col["scroll" + v] = pos - (len - sz) / 2;
+const ov3RailSelection = new WeakMap();
+function ov3RevealFloor(list, selected) {
+  if (!selected || !list.clientHeight) return;
+  const top = selected.offsetTop,
+    bottom = top + selected.offsetHeight;
+  if (top < list.scrollTop || bottom > list.scrollTop + list.clientHeight) {
+    list.scrollTop = top - (list.clientHeight - selected.offsetHeight) / 2;
   }
+}
+onAfterRender(() => {
+  const list = document.querySelector(".ov3-flist");
+  if (!list || !list.clientHeight) return;
+  if (!ov3RailSelection.has(list)) {
+    const floorAt = (event) => event.target.closest?.(".ov3-flr")?.dataset.fid || null;
+    list.addEventListener("mouseover", (event) => ov3Hl(floorAt(event)));
+    list.addEventListener("focusin", (event) => ov3Hl(floorAt(event)));
+    list.addEventListener("mouseleave", () => ov3Hl(null));
+    list.addEventListener("focusout", () => ov3Hl(null));
+  }
+  const selected = list.querySelector(".ov3-flr.on");
+  if (ov3RailSelection.get(list) === selected) return;
+  ov3RailSelection.set(list, selected);
+  ov3RevealFloor(list, selected);
+});
+window.addEventListener("resize", () => {
+  const list = document.querySelector(".ov3-flist");
+  if (list) ov3RevealFloor(list, list.querySelector(".ov3-flr.on"));
 });
 
 defineActions({
@@ -101212,18 +101220,9 @@ const ws3Cam = (cam) => {
   if (cam === undefined) return m[key] || null;
   m[key] = cam;
 };
-// 楼层列：同楼宇总览（当前项深色；有待处理的层右上圆点；没有楼层图的层灰字）；点“全部”看整栋
 function ws3FloorCol(sc) {
-  const b = g("buildings", sc.bid),
-    st = F.floorStack(data(), sc.bid),
-    has3 = s3Has(sc.bid),
-    row = (fid, name, plan, due) =>
-      `<button type="button" class="ov3-flr${(fid || null) === (sc.fid || null) ? " on" : ""}${plan ? "" : " np"}" data-act="ws3Floor" data-to="${esc(fid || "")}"${fid ? ` data-fid="${esc(fid)}"` : ""} aria-pressed="${(fid || null) === (sc.fid || null)}" aria-label="${esc([name, plan ? "" : "未上传楼层图", due ? `待处理 ${due.n} 项` : ""].filter(Boolean).join("，"))}">${fid ? esc(name) : '<span>全部<span class="ov3-fall">楼层</span></span>' /* 3.58 V1489：电脑写“全部楼层”，手机行宽 48 仍写“全部” */}${due ? ov3Dot(due.lvl, "ov3-fdot") : ""}</button>`;
-  return `<div class="ov3-fcol" role="group" aria-label="楼层"><b class="ov3-fh" aria-hidden="true">楼层</b>${has3 ? row(null, "全部楼层", true, null) + '<span class="ov3-fsep" aria-hidden="true"></span>' : ""}${st
-    .slice()
-    .reverse()
-    .map((x) => row(x.f.id, x.f.name, !!x.f.image, ov3Due(b.projectId, b.id, x.f.id)))
-    .join("")}</div>`;
+  const b = g("buildings", sc.bid);
+  return ov3FloorRail(b.id, b.projectId, F.floorStack(data(), b.id), s3Has(b.id), sc.fid, "ws3Floor");
 }
 // 场景：o.zone(z, s, m, fp) 着色；o.dev(p) 设备点；o.call 说明框；o.sel 选中的功能区；o.slab 楼层“全部”时的楼板颜色
 function ws3Scene(sc, o) {
