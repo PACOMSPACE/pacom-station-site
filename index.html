@@ -36235,6 +36235,7 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
     --floor-step: 32px;
     --floor-gap: 2px;
     --floor-arrow: 28px;
+    --floor-clearance: 32px;
     --floor-track-bg: color-mix(in srgb, #777771 4%, #fafafa);
     --floor-track-shadow: inset 0 2px 2px -1px #0000000a, inset 0 4px 4px -2px #0000000a, inset 0 0 0 var(--hw) #0000001f;
     position: absolute;
@@ -36245,16 +36246,19 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
     flex-direction: column;
     gap: 8px;
     width: var(--floor-hit);
-    max-height: calc(100% - 32px);
+    max-height: calc(100% - var(--floor-clearance));
   }
   .ov3-ftrack { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; min-height: 0; }
   .ov3-ftrack::before { content: ""; position: absolute; z-index: -1; inset: 0 auto 0 50%; transform: translateX(-50%); width: 36px; border-radius: 18px; background: var(--floor-track-bg); box-shadow: var(--floor-track-shadow); pointer-events: none; }
   .ov3-flist { position: relative; display: flex; flex-direction: column; gap: var(--floor-gap); width: 100%; min-height: 0; padding-block: 2px; overflow: auto; overscroll-behavior: contain; scrollbar-width: none; }
+  .ov3-flist.snap-rows { box-sizing: border-box; max-height: var(--floor-list-height); padding-block: var(--floor-snap-padding); scroll-snap-type: y mandatory; scroll-padding-block: var(--floor-snap-padding); }
+  .ov3-flist.snap-rows > .ov3-flr { scroll-snap-align: start; }
   .ov3-flist::-webkit-scrollbar { display: none; }
   .ov3-flist.fade-t { mask-image: linear-gradient(transparent, #000 16px); }
   .ov3-flist.fade-b { mask-image: linear-gradient(#000 calc(100% - 16px), transparent); }
   .ov3-flist.fade-t.fade-b { mask-image: linear-gradient(transparent, #000 16px, #000 calc(100% - 16px), transparent); }
   .ov3-fslide { position: absolute; top: calc(2px + (var(--floor-step) - 32px) / 2); left: calc((100% - 32px) / 2); width: 32px; height: 32px; border-radius: 50%; background: var(--btn-bg); box-shadow: var(--btn); pointer-events: none; transform: translateY(calc(var(--floor-row) * (var(--floor-step) + var(--floor-gap)))); transition: transform 150ms ease-out; }
+  .ov3-flist.snap-rows > .ov3-fslide { top: calc(var(--floor-snap-padding) + (var(--floor-step) - 32px) / 2); }
   :is(.ov3-flr, .ov3-fhome, .ov3-farrow) { position: relative; isolation: isolate; flex: none; display: grid; place-items: center; width: 100%; padding: 0; border: 0; border-radius: 0; background: none; color: #636363; cursor: pointer; -webkit-user-select: none; user-select: none; transition: color 150ms ease-out; }
   .ov3-flr { height: var(--floor-step); font-size: 14px; line-height: 22px; font-weight: 400; letter-spacing: normal; font-variant-numeric: proportional-nums; }
   .ov3-flr > span { display: block; max-width: 30px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -36276,7 +36280,7 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   .ov3-fhome:focus-visible::before { width: 36px; height: 36px; }
   .ov3-fdot { position: absolute; top: calc((var(--floor-step) - 32px) / 2 + 3px); right: calc((100% - 32px) / 2 + 3px); width: 6px; height: 6px; pointer-events: none; }
   @media (max-width: 850px), (pointer: coarse) {
-    .ov3-fcol { --floor-hit: 44px; --floor-step: 44px; --floor-gap: 0px; --floor-arrow: 44px; left: 12px; gap: 4px; }
+    .ov3-fcol { --floor-hit: 44px; --floor-step: 44px; --floor-gap: 0px; --floor-arrow: 44px; --floor-snap-padding: 16px; left: 12px; gap: 4px; }
     .ov3-fcol:has(> .ov3-fhome) { top: 12px; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -36502,6 +36506,8 @@ img.img-off { display: none !important; }
   .ws3-lg { position: absolute; right: 16px; bottom: 16px; z-index: 4; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 6px; max-width: calc(100% - 120px); padding: 10px 12px;  color: var(--ds-ink); font-size: 12px; line-height: 18px; border-radius: 12px; background: rgba(255, 255, 255, 0.88); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); box-shadow: var(--floating-sm); }
   .ws3-lg-t { flex: none; margin-right: 4px; font-weight: 500; }
   .ws3-lg-n { color: #636363; }
+  .ws3-lg-item { display: inline-flex; flex: none; align-items: center; gap: 4px; white-space: nowrap; }
+  .ws3-lg-item > :is(.ws3-sw, .ws3-dot, .ws3-ring) { margin-left: 0; }
   .ws3-sw { display: inline-block; flex: none; width: 12px; height: 12px; margin-left: 6px; border: var(--hw) solid var(--hc-000030, rgba(0, 0, 0, 0.12)); border-radius: 3px; vertical-align: -2px; }
   .ws3-sw-ln { border: 2px solid currentColor; background: #fff; }
   .ws3-sw-ln0 { border: 1px solid #9ca3af; background: #fff; }
@@ -37033,11 +37039,15 @@ img.img-off { display: none !important; }
   .ov3x { --ov3-lwc: clamp(320px, var(--ov3-lw, 400px), var(--ov3-lw-max, 70%)); position: relative; grid-template-columns: var(--ov3-lwc) minmax(0, 1fr); }
   .ws3x[data-pg="space"][data-lv="f"]:has(> .ws3-cv) { --ov3-view-min: 360px; --ov3-lw-max: min(70%, calc(100% - var(--ov3-view-min) - 8px)); }
   #app.is-ov3 .ov3x > .ws3-drawer { left: var(--ov3-lwc); }
-  .ov3-sep { position: absolute; top: 12px; bottom: 12px; left: calc(var(--ov3-lwc) - 2px); z-index: 7; width: 4px; cursor: col-resize; touch-action: none; outline: none; }
-  .ov3-sep::after { content: ""; position: absolute; top: 0; bottom: 0; left: 1px; width: 2px; opacity: 0; transition: opacity 150ms; background: #00aeef;
+  .ov3-sep { --ov3-sep-inset: 2px; position: absolute; top: 12px; bottom: 12px; left: calc(var(--ov3-lwc) - var(--ov3-sep-inset)); z-index: 7; width: 4px; cursor: col-resize; touch-action: none; outline: none; }
+  .ov3-sep[hidden] { display: none; }
+  .ov3-sep::after { content: ""; position: absolute; top: 0; bottom: 0; left: calc(var(--ov3-sep-inset) - 1px); width: 2px; opacity: 0; transition: opacity 150ms; background: #00aeef;
     -webkit-mask-image: linear-gradient(transparent, #000 120px, #000 calc(100% - 120px), transparent); mask-image: linear-gradient(transparent, #000 120px, #000 calc(100% - 120px), transparent); }
   .ov3-sep:hover::after, .ov3-sep.drag::after { opacity: 1; transition: none; }
-  .ov3-sep:focus-visible::after { left: 1.5px; width: 1px; opacity: 1; background: #636363; -webkit-mask-image: none; mask-image: none; }
+  .ov3-sep:focus-visible::after { left: calc(var(--ov3-sep-inset) - 0.5px); width: 1px; opacity: 1; background: #636363; -webkit-mask-image: none; mask-image: none; }
+  @media (pointer: coarse) {
+    .ws3x[data-pg="space"][data-lv="f"] > .ov3-sep { --ov3-sep-inset: 4px; width: 24px; }
+  }
   body.ov3-dragging, body.ov3-dragging * { cursor: col-resize !important; user-select: none !important; }
   /* V1497：左栏内容离边 16，列表行悬停底离边 8 */
   #app:has(> #side:not(.au-side)) .ov3x > .ov3-panel { padding-left: 16px; padding-right: 16px; }
@@ -46878,7 +46888,12 @@ MOBILE_MQ?.addEventListener?.("change", () => {
     if (isMobile() && inSide) $(":is(#wtop, .phead) > .mobnav")?.focus({ preventScroll: true });
     else if (!isMobile() && focused?.matches(":is(#wtop, .phead) > .mobnav")) $(".ws-side-toggle")?.focus({ preventScroll: true });
   }
-  if (U.page === "projects" && U.f && !BARE[U.page] && !$("#dlg")?.classList.contains("show")) render();
+  const floor = $('.ws3x[data-pg="space"][data-lv="f"]');
+  if (floor) {
+    // 跨宽度时仍显示正在查看的楼层图，并重新生成手机切换栏。
+    if (isMobile() && floor.querySelector(":scope > .ws3-floor-fit")) U.ws3Mob = "plan";
+    render();
+  } else if (U.page === "projects" && U.f && !BARE[U.page] && !$("#dlg")?.classList.contains("show")) render();
 });
 // 跨宽度仅在没有手动偏好时采用新宽度默认值；≤850 的抽屉不受影响。
 SIDE_MID_MQ?.addEventListener?.("change", () => {
@@ -52615,7 +52630,8 @@ function wsHideTip(immediate = false) {
 }
 function wsTipAllowed(el, keyboard) {
   if (!el?.isConnected || !el.dataset.tip || el.closest("[inert]")) return false;
-  if (el.matches(".ov3-flr") && (ov3FloorTipTimers.has(el.parentElement) || !ov3FloorInView(el))) return false;
+  const floorRail = el.closest(".ov3-fcol");
+  if (floorRail && (ov3FloorTipTimers.has(floorRail.querySelector(".ov3-flist")) || !ov3RailTipVisible(el))) return false;
   // 信息面板已打开时，信息按钮不再显示与面板标题重复的提示（Esc 直接关闭面板）。
   if (el.getAttribute("aria-controls") === "wsSpaceInfo" && el.getAttribute("aria-expanded") === "true") return false;
   if (!keyboard && lastPointer === "touch") return false;
@@ -100517,7 +100533,7 @@ function ov3FloorRail(bid, pid, stack, has3, active, action) {
     }),
     home = has3 ? `<button type="button" class="ov3-fhome" aria-label="全部楼层" aria-pressed="${!active}" data-act="${action}" data-to="" data-tip="全部楼层" data-tip-at="right"><span>${ico("building")}</span></button>` : "",
     arrow = (dir, word) => `<button type="button" class="ov3-farrow" data-act="ov3RailScroll" data-dir="${dir}" tabindex="-1" aria-label="向${word}滚动楼层" aria-disabled="true" data-tip="向${word}滚动楼层" data-tip-at="right">${ico("chevron", "ic16")}</button>`;
-  return `<div class="ov3-fcol" data-key="${esc(action + ":" + bid)}">${home}<div class="ov3-ftrack" data-morph-classes="scrollable">${arrow(-1, "上")}<div class="ov3-flist" role="group" aria-label="楼层" data-morph-classes="fade-t fade-b"><span class="ov3-fslide" aria-hidden="true"${selected < 0 ? " hidden" : ` style="--floor-row:${selected}"`}></span>${rows.join("")}</div>${arrow(1, "下")}</div></div>`;
+  return `<div class="ov3-fcol" data-key="${esc(action + ":" + bid)}">${home}<div class="ov3-ftrack" data-morph-classes="scrollable">${arrow(-1, "上")}<div class="ov3-flist" role="group" aria-label="楼层" data-morph-classes="fade-t fade-b snap-rows"><span class="ov3-fslide" aria-hidden="true"${selected < 0 ? " hidden" : ` style="--floor-row:${selected}"`}></span>${rows.join("")}</div>${arrow(1, "下")}</div></div>`;
 }
 function ov3FloorCol(b, s) {
   return ov3FloorRail(b.id, b.projectId, s.st, s.has3, s.mode === "none" ? s.sel : s.cur, "ov3Floor");
@@ -100561,13 +100577,33 @@ function ov3Hl(fid) {
   }
   if (ch) S3_LIVE.api.redraw();
 }
+function ov3SizeFloorList(list) {
+  if (!list.clientHeight) return;
+  const track = list.parentElement,
+    rail = track.parentElement,
+    style = getComputedStyle(rail),
+    buffer = parseFloat(style.getPropertyValue("--floor-snap-padding")),
+    step = parseFloat(style.getPropertyValue("--floor-step")),
+    arrow = parseFloat(style.getPropertyValue("--floor-arrow")),
+    home = track.previousElementSibling,
+    room = rail.parentElement.clientHeight - parseFloat(style.getPropertyValue("--floor-clearance")) - (home ? home.offsetHeight + parseFloat(style.rowGap) : 0),
+    rows = list.childElementCount - 1,
+    complete = Math.floor((room - 2 * (arrow + buffer)) / step);
+  // 触屏滚动停稳时，首尾完整行都在渐隐缓冲之外，保留整行的点按范围。
+  const height = buffer && rows * step + 4 > room + 1 && complete > 0 ? `${complete * step + 2 * buffer}px` : "";
+  list.classList.toggle("snap-rows", !!height);
+  if (list.style.getPropertyValue("--floor-list-height") !== height) {
+    if (height) list.style.setProperty("--floor-list-height", height);
+    else list.style.removeProperty("--floor-list-height");
+  }
+}
 function ov3SyncFloorScroll(list) {
   if (!list.clientHeight) return;
   const track = list.parentElement,
     up = list.previousElementSibling,
     down = list.nextElementSibling,
     available = list.clientHeight + up.offsetHeight + down.offsetHeight,
-    overflow = list.scrollHeight > available + 1;
+    overflow = list.classList.contains("snap-rows") || list.scrollHeight > available + 1;
   track.classList.toggle("scrollable", overflow);
   const canUp = overflow && list.scrollTop > 1,
     canDown = overflow && list.scrollTop + list.clientHeight < list.scrollHeight - 1;
@@ -100594,8 +100630,9 @@ function ov3RevealFloor(list, selected) {
     bottom = top + selected.offsetHeight,
     start = list.scrollTop,
     end = start + list.clientHeight,
-    safeTop = start + (start > 1 ? 18 : 0),
-    safeBottom = end - (end < list.scrollHeight - 1 ? 18 : 0);
+    inset = list.classList.contains("snap-rows") ? 16 : 18,
+    safeTop = start + (start > 1 ? inset : 0),
+    safeBottom = end - (end < list.scrollHeight - 1 ? inset : 0);
   if (top < safeTop || bottom > safeBottom) list.scrollTop = top - (list.clientHeight - selected.offsetHeight) / 2;
 }
 function ov3RailTabStop(list, row) {
@@ -100610,17 +100647,23 @@ function ov3FocusedFloor(list) {
   return row?.parentElement === list && row.matches(".ov3-flr") ? row : null;
 }
 const ov3FloorTipTimers = new WeakMap();
+function ov3RailTipVisible(button) {
+  if (button.matches(".ov3-flr") && !ov3FloorInView(button)) return false;
+  const { left, top, width, height } = button.getBoundingClientRect();
+  return !!width && !!height && button.contains(document.elementFromPoint(left + width / 2, top + height / 2));
+}
 function ov3RailTipScroll(list) {
+  const rail = list.parentElement.parentElement;
   clearTimeout(ov3FloorTipTimers.get(list));
-  if (list.contains(wsTipAnchor) || list.contains(wsTipPending)) wsHideTip(true);
+  if (rail.contains(wsTipAnchor) || rail.contains(wsTipPending)) wsHideTip(true);
   ov3FloorTipTimers.set(list, setTimeout(() => {
     ov3FloorTipTimers.delete(list);
     if (!list.isConnected) return;
-    const hovered = lastPointer !== "touch" && list.querySelector(".ov3-flr:hover");
-    if (hovered && ov3FloorInView(hovered)) wsShowTip(hovered);
+    const hovered = lastPointer !== "touch" && rail.querySelector("button[data-tip]:hover");
+    if (hovered && ov3RailTipVisible(hovered)) wsShowTip(hovered);
     else {
-      const focused = ov3FocusedFloor(list);
-      if (focused?.matches(":focus-visible")) wsShowTip(focused, true);
+      const focused = document.activeElement;
+      if (rail.contains(focused) && focused.matches("button[data-tip]:focus-visible") && ov3RailTipVisible(focused)) wsShowTip(focused, true);
     }
   }, 120));
 }
@@ -100639,9 +100682,19 @@ function ov3RailKey(event) {
 }
 const ov3RailSelection = new WeakMap();
 let ov3ObservedRail = null;
-const ov3RailObserver = typeof ResizeObserver === "function" ? new ResizeObserver(([entry]) => {
-  const list = entry.target;
-  if (!list.isConnected) return;
+function ov3RailOuterScroll(event) {
+  const list = ov3ObservedRail,
+    rail = list?.parentElement?.parentElement,
+    target = event.target,
+    focused = document.activeElement;
+  if (!rail || target === list || !target.contains?.(rail)) return;
+  if (rail.contains(wsTipAnchor) || rail.contains(wsTipPending) || ov3FloorTipTimers.has(list) || (rail.contains(focused) && focused.matches(":focus-visible"))) ov3RailTipScroll(list);
+}
+document.addEventListener("scroll", ov3RailOuterScroll, { capture: true, passive: true });
+const ov3RailObserver = typeof ResizeObserver === "function" ? new ResizeObserver(() => {
+  const list = ov3ObservedRail;
+  if (!list?.isConnected) return;
+  ov3SizeFloorList(list);
   ov3SyncFloorScroll(list);
   ov3RevealFloor(list, ov3FocusedFloor(list) || list.querySelector(".ov3-flr.on"));
 }) : null;
@@ -100650,7 +100703,10 @@ onAfterRender(() => {
   if (list !== ov3ObservedRail) {
     ov3RailObserver?.disconnect();
     ov3ObservedRail = list;
-    if (list) ov3RailObserver?.observe(list);
+    if (list) {
+      ov3RailObserver?.observe(list);
+      ov3RailObserver?.observe(list.closest(".ov3-view"));
+    }
   }
   if (!list) return;
   if (!ov3RailSelection.has(list)) {
@@ -100685,6 +100741,7 @@ onAfterRender(() => {
     }, { passive: true });
     list.addEventListener("keydown", ov3RailKey);
   }
+  ov3SizeFloorList(list);
   ov3SyncFloorScroll(list);
   const selected = list.querySelector(".ov3-flr.on"),
     focused = ov3FocusedFloor(list),
@@ -101173,6 +101230,9 @@ const ws3DevC = (st) => (st === "off" ? WS3C.devOff : st === "bad" ? WS3C.devBad
 function ws3FloorPts(fid) {
   return data().points.filter((p) => p.floorId === fid && p.x != null && M.catalog[p.type]);
 }
+function ws3LegendItem(label, mark, style = "") {
+  return `<span class="ws3-lg-item"><span class="${mark}" aria-hidden="true"${style ? ` style="${esc(style)}"` : ""}></span>${esc(label)}</span>`;
+}
 // 每个图层：zone(z, s) → { fill, ext, tip }；val(z, s) → [右侧主值, 次值]；sub(z, s) → 第二行；rank → 排序（小的在前）；kpis；legend
 function ws3LayerDef(k, sc, AL) {
   const upd = (s) => `更新 ${ws3Upd(s)}`;
@@ -101213,7 +101273,7 @@ function ws3LayerDef(k, sc, AL) {
           ["wifi-off", "离线", ss.reduce((n, s) => n + (s.light.offline || 0), 0), "台"],
         ];
       },
-      legend: `<span class="ws3-lg-t">照明分区输出</span><span class="ws3-sw" style="background:${WS3C.lightOff}"></span>关<span class="ws3-grad"><span>1</span><i style="background:linear-gradient(90deg,${ws3LightC(1)},${ws3LightC(100)})"></i><span>100%</span></span><span class="ws3-sw ws3-sw-ln"></span>离线<span class="ws3-lg-n">数值 = 输出 · 实测照度</span>`,
+      legend: `<span class="ws3-lg-t">照明分区输出</span>${ws3LegendItem("关", "ws3-sw", `background:${WS3C.lightOff}`)}<span class="ws3-grad"><span>1</span><i style="background:linear-gradient(90deg,${ws3LightC(1)},${ws3LightC(100)})"></i><span>100%</span></span>${ws3LegendItem("离线", "ws3-sw ws3-sw-ln")}<span class="ws3-lg-n">数值 = 输出 · 实测照度</span>`,
     };
   if (k === "hvac")
     return {
@@ -101253,7 +101313,7 @@ function ws3LayerDef(k, sc, AL) {
           ["thermo", "平均室温", avg == null ? "—" : nf(avg, 1), "℃"],
         ];
       },
-      legend: `<span class="ws3-lg-t">室温</span><span class="ws3-grad"><span>24</span><i style="background:linear-gradient(90deg,${ws3TempC(24)},${ws3TempC(26)},${ws3TempC(28)})"></i><span>28 ℃</span></span>${Object.entries(WS3C.hvMode).map(([n, c]) => `<span class="ws3-dot" style="background:${c}"></span>${n}`).join("")}`,
+      legend: `<span class="ws3-lg-t">室温</span><span class="ws3-grad"><span>24</span><i style="background:linear-gradient(90deg,${ws3TempC(24)},${ws3TempC(26)},${ws3TempC(28)})"></i><span>28 ℃</span></span>${Object.entries(WS3C.hvMode).map(([n, c]) => ws3LegendItem(n, "ws3-dot", `background:${c}`)).join("")}`,
     };
   if (k === "air")
     return {
@@ -101285,7 +101345,7 @@ function ws3LayerDef(k, sc, AL) {
         });
         return AQ_BANDS.map((n, i) => [`aq${i}`, n, c[i], "个测点"]);
       },
-      legend: `<span class="ws3-lg-t">空气质量</span><span class="ws3-bands">${AQ_BANDS.map((n, i) => `<span style="background:${WS3C.air[i]}">${n}</span>`).join("")}</span><span class="ws3-lg-n">取 CO₂、PM2.5 较差的一项</span><span class="ws3-dot" style="background:#1F2A30"></span>AQ20 测点<span class="ws3-lg-n">离测点越远越淡</span>`,
+      legend: `<span class="ws3-lg-t">空气质量</span><span class="ws3-bands">${AQ_BANDS.map((n, i) => `<span style="background:${WS3C.air[i]}">${n}</span>`).join("")}</span><span class="ws3-lg-n">取 CO₂、PM2.5 较差的一项</span>${ws3LegendItem("AQ20 测点", "ws3-dot", "background:#1F2A30")}<span class="ws3-lg-n">离测点越远越淡</span>`,
     };
   if (k === "occ")
     return {
@@ -101317,7 +101377,7 @@ function ws3LayerDef(k, sc, AL) {
           ["arrow-down", `最低 · ${lo?.z.name || "—"}`, lo ? lo.o.pct : "—", "%"],
         ];
       },
-      legend: `<span class="ws3-lg-t">今日利用率</span>${["<25%", "25–50%", "50–75%", "≥75%"].map((n, i) => `<span class="ws3-sw" style="background:${WS3C.occ4[i]}"></span>${n}`).join("")}<span class="ws3-lg-n">公共区不统计</span>`,
+      legend: `<span class="ws3-lg-t">今日利用率</span>${["<25%", "25–50%", "50–75%", "≥75%"].map((n, i) => ws3LegendItem(n, "ws3-sw", `background:${WS3C.occ4[i]}`)).join("")}<span class="ws3-lg-n">公共区不统计</span>`,
     };
   if (k === "dev")
     return {
@@ -101351,7 +101411,7 @@ function ws3LayerDef(k, sc, AL) {
           ["dot-bad", "异常", c.bad, "台"],
         ];
       },
-      legend: `<span class="ws3-lg-t">状态</span><span class="ws3-dot" style="background:${WS3C.devOn}"></span>在线<span class="ws3-dot" style="background:${WS3C.devOff}"></span>离线<span class="ws3-dot" style="background:${WS3C.devBad}"></span>异常`,
+      legend: `<span class="ws3-lg-t">状态</span>${ws3LegendItem("在线", "ws3-dot", `background:${WS3C.devOn}`)}${ws3LegendItem("离线", "ws3-dot", `background:${WS3C.devOff}`)}${ws3LegendItem("异常", "ws3-dot", `background:${WS3C.devBad}`)}`,
     };
   // 状态：有人浅蓝、无人白；待处理按级别描边并带 !，处理中为空心标记
   return {
@@ -101384,7 +101444,7 @@ function ws3LayerDef(k, sc, AL) {
         ["clock", "处理中", AL.tasks.length, "项"],
       ];
     },
-    legend: `<span class="ws3-lg-t">状态</span><span class="ws3-sw" style="background:${WS3C.occ}"></span>有人<span class="ws3-sw ws3-sw-ln0"></span>无人${LVN.map((n, i) => `<span class="ws3-sw ws3-sw-al" style="border-color:${S3V.LVC[i]}"></span>${n}`).join("")}<span class="ws3-ring"></span>处理中`,
+    legend: `<span class="ws3-lg-t">状态</span>${ws3LegendItem("有人", "ws3-sw", `background:${WS3C.occ}`)}${ws3LegendItem("无人", "ws3-sw ws3-sw-ln0")}${LVN.map((n, i) => ws3LegendItem(n, "ws3-sw ws3-sw-al", `border-color:${S3V.LVC[i]}`)).join("")}${ws3LegendItem("处理中", "ws3-ring")}`,
   };
 }
 const ws3HvMode = (p) => {
@@ -102477,7 +102537,10 @@ const ov3LwMax = (x) => {
 function ov3SepVal(x, sep) {
   const pn = x.querySelector(":scope > .ov3-panel");
   if (!pn) return;
-  sep.setAttribute("aria-valuemax", String(ov3LwMax(x)));
+  const max = ov3LwMax(x);
+  sep.hidden = max <= 320;
+  sep.tabIndex = sep.hidden ? -1 : 0;
+  sep.setAttribute("aria-valuemax", String(max));
   sep.setAttribute("aria-valuenow", String(Math.round(pn.getBoundingClientRect().width)));
 }
 function ov3Stick() {
@@ -102495,47 +102558,72 @@ function ov3Stick() {
   }
 }
 function ov3SepWire(x, sep) {
-  const set = (w, save) => {
-    const max = ov3LwMax(x);
-    w = Math.round(Math.min(Math.max(w, 320), max));
-    ov3LwSet(w);
+  const clampWidth = (w) => Math.round(Math.min(Math.max(w, 320), ov3LwMax(x)));
+  const cur = () => Math.round(x.querySelector(":scope > .ov3-panel")?.getBoundingClientRect().width || 400);
+  const refresh = () => {
     ov3SepVal(x, sep);
     ov3Stick();
-    if (save) try { localStorage.setItem(OV3_LW_KEY, String(w)); } catch {}
   };
-  const cur = () => x.querySelector(":scope > .ov3-panel")?.getBoundingClientRect().width || 400;
+  const save = (w) => {
+    try { localStorage.setItem(OV3_LW_KEY, String(w)); } catch {}
+  };
   sep.addEventListener("pointerdown", (e) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || e.isPrimary === false || ov3LwMax(x) <= 320) return;
     e.preventDefault();
-    sep.setPointerCapture(e.pointerId);
+    const { pointerId, clientX } = e,
+      start = cur(),
+      style = document.documentElement.style,
+      remembered = style.getPropertyValue("--ov3-lw");
+    sep.setPointerCapture(pointerId);
     sep.classList.add("drag");
     document.body.classList.add("ov3-dragging");
-    const x0 = x.getBoundingClientRect().left;
-    let raf = 0, lastX = e.clientX;
+    let raf = 0, lastX = clientX;
     const mv = (ev) => {
+      if (ev.pointerId !== pointerId) return;
       lastX = ev.clientX;
-      if (!raf) raf = requestAnimationFrame(() => ((raf = 0), set(lastX - x0)));
+      if (!raf) raf = requestAnimationFrame(() => {
+        raf = 0;
+        const w = clampWidth(start + lastX - clientX);
+        if (w !== cur()) {
+          ov3LwSet(w);
+          refresh();
+        }
+      });
     };
-    const up = () => {
+    const up = (ev) => {
+      if (ev.pointerId !== pointerId) return;
       cancelAnimationFrame(raf);
-      set(lastX - x0, true);
       sep.classList.remove("drag");
       document.body.classList.remove("ov3-dragging");
       sep.removeEventListener("pointermove", mv);
       sep.removeEventListener("pointerup", up);
       sep.removeEventListener("pointercancel", up);
+      sep.removeEventListener("lostpointercapture", up);
+      const endX = ev.type === "pointerup" ? ev.clientX : clientX;
+      const w = clampWidth(start + endX - clientX);
+      if (endX !== clientX && w !== start && ov3LwMax(x) > 320) {
+        ov3LwSet(w);
+        save(w);
+      } else if (remembered) style.setProperty("--ov3-lw", remembered);
+      else style.removeProperty("--ov3-lw");
+      refresh();
       dispatchEvent(new Event("resize"));
     };
     sep.addEventListener("pointermove", mv);
     sep.addEventListener("pointerup", up);
     sep.addEventListener("pointercancel", up);
+    sep.addEventListener("lostpointercapture", up);
   });
   sep.addEventListener("keydown", (e) => {
-    const k = e.key;
-    const w = k === "ArrowLeft" ? cur() - 16 : k === "ArrowRight" ? cur() + 16 : k === "Home" ? 320 : k === "End" ? ov3LwMax(x) : null;
-    if (w == null) return;
+    const k = e.key, max = ov3LwMax(x), start = cur();
+    const next = k === "ArrowLeft" ? start - 16 : k === "ArrowRight" ? start + 16 : k === "Home" ? 320 : k === "End" ? max : null;
+    if (next == null || max <= 320) return;
     e.preventDefault();
-    set(w, true);
+    const w = clampWidth(next);
+    if (w === start) return;
+    ov3LwSet(w);
+    save(w);
+    refresh();
     dispatchEvent(new Event("resize"));
   });
 }
@@ -102556,7 +102644,6 @@ onAfterRender(() => {
     if (!sep) {
       sep = document.createElement("div");
       sep.className = "ov3-sep";
-      sep.tabIndex = 0;
       sep.setAttribute("role", "separator");
       sep.setAttribute("aria-orientation", "vertical");
       sep.setAttribute("aria-label", "调整左栏宽度");
