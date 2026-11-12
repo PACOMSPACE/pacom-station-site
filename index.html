@@ -55876,15 +55876,15 @@ defineActions({
         await putPlanFile({ id: source.fileId, name: pi.file.name, type: pi.file.type || pi.kind, size: pi.file.size, sha256: sha, data: pi.bytes, at: M.now() });
       } else source.sameAsPlan = true;
       if (U.pi !== pi) return;
-      const actor = typeof v13Actor === "function" ? v13Actor() : null, had = !!g("floors", request.fid)?.image,
-        rooms = planRooms(pi); // 3.43 V1271；3.45 HONG 第 8 项：PNG、PDF 同样
-      let nDraft = 0;
+      const actor = typeof v13Actor === "function" ? v13Actor() : null;
+      let had = false, nDraft = 0;
       await transaction(db => {
         const target = M.get(db, "floors", request.fid);
         if (!canEdit()) throw Error("当前权限已变化，未保存楼层图");
         if (!target || (target.planVersion || 0) !== request.version) throw Error("该楼层图已变化，请重新读取并核对后保存；没有覆盖新版本");
+        had = !!target.image; // 以存图前的事务快照区分首图与换图
         F.setPlan(db, request.fid, { image: out.image, width: out.width, height: out.height, source, widthMeters: out.widthMeters }, actor);
-        nDraft = spSetDrafts(db, target, rooms);
+        nDraft = spSetDrafts(db, target, had && pi.kind === "dxf" ? [] : planRooms(pi)); // V1271：DXF 换图清除旧草稿
       });
       if (U.pi !== pi) return;
       const f = g("floors", request.fid),
@@ -56444,8 +56444,9 @@ async function buRun(list) {
         const f = M.get(db, "floors", request.floorId);
         if (!canEdit()) throw Error("当前权限已变化，未保存此项");
         if (!f || (f.planVersion || 0) !== request.version) throw Error("目标楼层图已变化，请重新核对，不覆盖新版本");
+        const had = !!f.image;
         F.setPlan(db, request.floorId, { image: out.image, width: out.width, height: out.height, source, widthMeters: out.widthMeters }, actor);
-        nd = spSetDrafts(db, f, planRooms(sourceItem)); // 3.43 V1271；3.45 HONG 第 8 项：PNG、PDF 同样
+        nd = spSetDrafts(db, f, had && sourceItem.kind === "dxf" ? [] : planRooms(sourceItem)); // V1271：逐层判断 DXF 首图或换图
       });
       it.status = "成功";
       it.nDraft = nd; // 3.44 E1450：一次传多个文件时，结果同样写识别出的功能区
@@ -94123,7 +94124,7 @@ function ovTabbar() {
   ];
   // 2.66 V432：“告警”标签加角标（高 16 胶囊、白字，底色取最高级别，超过 99 写“99+”），计数规则与侧栏相同
   const al = typeof wsAlarmCount === "function" ? wsAlarmCount() : null;
-  return `<nav class="ov-tabbar" aria-label="运营">${t.map(([p, i, l]) => `<button type="button" data-act="nav" data-page="${p}"${navOn() === p ? ' aria-current="page" class="on"' : ""}${p === "alarms" && al ? ` aria-label="${l} · ${al.n} 条重要及以上待确认"` : ""}>${ico(i)}<span>${l}</span>${p === "alarms" && al ? `<em class="ov-tbn l${al.lvl}" aria-hidden="true">${al.n > 99 ? "99+" : al.n}</em>` : ""}</button>`).join("")}</nav>`;
+  return `<nav class="ov-tabbar" aria-label="运营">${t.map(([p, i, l]) => `<button type="button" data-act="nav" data-page="${p}"${navOn() === p ? ' aria-current="page" class="on"' : ""}${p === "alarms" && al ? ` aria-label="${l} · ${al.n} 项待处理"` : ""}>${ico(i)}<span>${l}</span>${p === "alarms" && al ? `<em class="ov-tbn l${al.lvl}" aria-hidden="true">${al.n > 99 ? "99+" : al.n}</em>` : ""}</button>`).join("")}</nav>`;
 }
 
 /* ---------- 3.07 V1034、V1037：空间（原总览楼层级） ----------
@@ -111062,13 +111063,13 @@ const HELP_ARTICLES = [
     steps: ["在“运行设置 › 通用 › 工作日历”设置工作时间。", "登记当年的节假日表：放假日期与调休上班日，可按国务院办公厅通知填入。", "引用工作时间开始或结束的定时随之改变。", "在定时页点“查看有人时间”，对照占用的按小时有人时间占比调整工作时间。"],
     faq: [["没有登记节假日表会怎样？", "工作日按周一至周五计算，法定节假日照常执行工作日的定时。"]], rel: ["scene"] },
   { id: "report", topic: "analysis", title: "周报、月报与年报", roles: "机构管理员、配置人员、运营人员、查看人员", upd: "2026-11-07", sum: "AI 起草，生成 3 小时后自动发布，期间可修改或暂不发布。",
-    steps: ["在“数据分析 › 报告”查看，左为报告清单，右为所选报告；手机上点“‹ 报告”回到清单。", "周报每周一、月报每月 1 日、年报每年 1 月 1 日 09:00 由 AI 起草，并按通知偏好告知机构管理员与配置人员。", "12:00 自动发布，遇节假日顺延到下一个工作日 12:00；在此之前可编辑草稿的说明文字（数字不能改），或点“暂不发布”改为手动发布。", "报告期间数据覆盖不完整（缺数、网关离线）的一期不自动发布，处理后手动发布。", "清单里的状态：统计中（期间未结束）、待发布（需手动发布）、已发布。发布后各节文字与数据截至固定，按通知偏好给接收人发邮件。", "自己新建报告时选周报、月报或自定义期间，名称按期间自动生成，可以修改；默认包含全部五节内容。"],
+    steps: ["进入“数据分析”，选择已接入运行数据的范围。电脑端点页头的“报告”，在右侧面板选择报告；手机端点页头的“更多”（⋯），选“报告”进入报告页。", "周报每周一、月报每月 1 日、年报每年 1 月 1 日 09:00 由 AI 起草，并按通知偏好告知机构管理员与配置人员。", "12:00 自动发布，遇节假日顺延到下一个工作日 12:00；在此之前可编辑草稿的说明文字（数字不能改），或点“暂不发布”改为手动发布。", "报告期间数据覆盖不完整（缺数、网关离线）的一期不自动发布，处理后手动发布。", "清单里的状态：统计中（期间未结束）、待发布（需手动发布）、已发布。发布后各节文字与数据截至固定，按通知偏好给接收人发邮件。", "自己新建报告时选周报、月报或自定义期间，名称按期间自动生成，可以修改；默认包含全部五节内容。"],
     faq: [["自建报告也会自动发布吗？", "不会，自建报告手动发布；未发布的可以删除。"], ["期间还没结束能编辑吗？", "不能。期间结束后才能编辑和发布，如 9 月月报 10 月 1 日起可编辑。"]], rel: ["savings"] },
   { id: "savings", topic: "analysis", title: "节电量", roles: "机构管理员、配置人员、运营人员、查看人员", upd: "2026-11-09", sum: "在数据分析 › 能源 › 调光节电查看调光节电、目标进度、节能措施与对标。",
     steps: ["照明：工作时间内按驱动功率满亮度为基准，减去按亮度与驱动功率估算的用电；工作时间以外和当天未亮灯的功能区不计。", "按来源分为感应调光、恒照度控制与其他调暗（定时、手动），也可按功能区查看。", "已核验节省单独统计，写在节能措施列表与月报：能耗异常告警处理后的效果与节能措施按 GB/T 28750 比较实施前后的实测用电，照明用 LC20 回路功率（隔离测量），没有时用电能表与对照日；采用 AI 建议并下发成功后自动记一条节能措施，其他已实施的措施手动登记。", "节电量的副文写比满亮度运行少用的比例；累计节电量为单独一张卡；登记电价后同时写出约多少元。"],
     faq: [["节电量是计量值吗？", "是估算值，数值旁标“估算”。"]], rel: ["alarm", "report"] },
   { id: "offline", topic: "trouble", title: "设备离线与未回报", roles: "机构管理员、运营人员", upd: "2026-11-07", sum: "先查网关，再查单台设备的电源与设备网络。",
-    steps: ["在“设备”页点状态分段“离线”，列出当前离线的设备；点一行，右侧设备信息写最近通信时间与上级网关。", "网关离线时其下设备状态未知：检查网关的上联与机房网络。", "单台离线：检查电源与断路器，再看设备网络的网络检测结果。", "控制未回报：点“重新查询”；仍无回报时检查该设备是否在线。", "已恢复出厂的设备脱离设备网络，需要远程重新绑定或现场用部署 App 绑回原点位。", "系统接入的设备没有数据：在“部署 › 系统接入”点该连接进入连接详情，在“概况”查看运行与验证结果，在“数据映射”核对各点的读数。", "BACnet/IP 现场改过设备或对象后，在“数据映射”点“设备发现”，按“新发现”“有变化”“已找不到”三组勾选后加入或更新映射；找不到的不会自动删除。"],
+    steps: ["在“系统部署 › 设备部署 › 设备列表”选择“离线”。点设备所在行打开设备信息，查看最近通信时间及上级网关（如有）。", "网关离线时其下设备状态未知：检查网关的上联与机房网络。", "单台离线：检查电源与断路器，再看设备网络的网络检测结果。", "控制未回报：点“重新查询”；仍无回报时检查该设备是否在线。", "已恢复出厂的设备脱离设备网络，需要远程重新绑定或现场用部署 App 绑回原点位。", "系统接入的设备没有数据时，在“系统部署 › 系统接入”打开对应连接，在“概况”查看运行与验证结果，在“数据映射”核对各点读数。", "BACnet/IP 现场改过设备或对象后，在“数据映射”点“设备发现”，按“新发现”“有变化”“已找不到”三组勾选后加入或更新映射；找不到的不会自动删除。"],
     faq: [["网关离线时灯还会自动开关吗？", "会，照明控制器在本地继续执行占用联动与感应调光。"]], rel: ["control", "alarm"] },
   { id: "security", topic: "security", title: "数据与 AI 服务", roles: "", upd: "2026-10-31", sum: "数据与 AI 服务均在中国境内，数据不用于模型训练。",
     steps: ["运行数据存放在中国境内。", "AI 使用中国境内的模型服务，你的数据不用于模型训练。", "AI 只给建议和起草，由你检查后保存或确认下发。"],
