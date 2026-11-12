@@ -5504,15 +5504,16 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 }
 /* 平面地图的比例尺和署名在右下上下排列。 */
 .leaflet-container .leaflet-control-scale {
-  margin: 0 0 4px;
+  margin: 0 8px 8px 0;
   pointer-events: none;
 }
 .leaflet-control-scale-line {
-  background: rgba(255, 255, 255, 0.76);
+  background: none;
   border-color: #2e2e2e;
   color: #2e2e2e;
   font-size: 11px;
   line-height: 14px;
+  filter: drop-shadow(0 0 1px #fff);
   text-shadow: none;
 }
 /* ≤850px 时与其他圆形图标按钮同为 44px。 */
@@ -36217,8 +36218,8 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   .ovm-attr, .leaflet-control-attribution { padding: 1px 6px; background: rgba(255, 255, 255, 0.76); color: #2e2e2e; font-size: 10px; line-height: 12px; white-space: nowrap; }
   .ovm-attr a, .leaflet-control-attribution a { color: inherit; }
   .ovm-compass-needle { transform: rotate(var(--ovm-bearing, 0deg)); }
-  /* 署名外高 14px，比例尺在其上方留 4px。 */
-  .ovm-scale { position: absolute; right: 0; bottom: 18px; z-index: 2; display: grid; justify-items: start; padding: 1px 4px 2px; border-radius: 4px; background: rgba(255, 255, 255, 0.76); color: #2e2e2e; font-size: 11px; line-height: 13px; white-space: nowrap; pointer-events: none; }
+  /* 署名外高 14px，比例尺离其上缘 8px，右端内缩 8px。 */
+  .ovm-scale { position: absolute; right: 8px; bottom: 22px; z-index: 2; display: grid; justify-items: end; color: #2e2e2e; font-size: 11px; line-height: 13px; white-space: nowrap; filter: drop-shadow(0 0 1px #fff); pointer-events: none; }
   .ovm-scale[hidden], .ovm:has(> .ovm-note) > .ovm-scale { display: none; }
   .ovm-scale-bar { box-sizing: border-box; width: var(--ovm-scale-width); height: 4px; border: solid currentColor; border-width: 0 1px 1px; }
   .ovm-note { position: absolute; left: 16px; bottom: 16px; z-index: 2; display: flex; flex-direction: column; padding: 8px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.88); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); box-shadow: var(--floating-sm); font-size: 12px; line-height: 18px; color: var(--ds-ink-2); }
@@ -36675,8 +36676,8 @@ img.img-off { display: none !important; }
   .ov3-npcard b { font-size: 14px; line-height: 22px; font-weight: 600; }
   .ov3-npcard small { color: #636363; font-size: 12px; line-height: 18px; }
   .ov3-npgo { flex: none; }
-  /* 比例尺距底 18px、外高 20px，提示卡再留 8px。 */
-  .ovm:has(> .ovm-scale:not([hidden])) ~ .ov3-npcard { bottom: 46px; }
+  /* 比例尺距底 22px、外高 17px，提示卡再留 8px。 */
+  .ovm:has(> .ovm-scale:not([hidden])) ~ .ov3-npcard { bottom: 47px; }
   @container ovm-map (max-width: 260px) {
     .ov3-npcard { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; }
   }
@@ -99864,7 +99865,8 @@ function ov3NoPlanMap(b) {
 /* ---------- 地图（全部项目、项目） ---------- */
 // 天地图的卫星图包含影像底图与注记；OpenStreetMap 使用 Esri World Imagery 作为卫星图。
 const SAT_TILES = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
-const OV3_NORTH_ICON = '<svg class="ic ic16 ovm-compass-needle" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 5 9H7z" fill="currentColor"/><path d="m7 12 5 9 5-9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const OV3_NORTH_ICON = LI('<path d="m12 3 5 9H7z" fill="currentColor" stroke="none"/><path d="m7 12 5 9 5-9"/>', "ic16 ovm-compass-needle");
+const OV3_MAP_PLUS_ICON = LI('<path d="M5 12h14M12 5v14"/>', "ic16");
 const ov3Loc = (o, p = null) => {
   const l = o?.location?.lat != null ? o.location : o?.sameLocation && p?.location?.lat != null ? p.location : null;
   return l && Number.isFinite(+l.lat) && Number.isFinite(+l.lng) ? { lat: +l.lat, lng: +l.lng } : null;
@@ -99903,13 +99905,13 @@ function ov3MapHtml(lv, focus = null, pinVal = null) {
   }
   const key = lv === "all" ? "all" : "p:" + U.p + (focus ? ":" + focus : ""),
     name = lv === "all" ? "全部项目" : g("projects", U.p)?.name || "";
-  OVM_PEND = { key, pins, b3, maxZ: lv === "all" ? 17 : 18, focus };
+  OVM_PEND = { key, pins, b3, focus };
   const pinHtml = pins
     .map((m, i) => `<button type="button" class="ovm-pin${m.off ? " off" : ""}${focus && m.bid === focus ? " sel" : ""}"${focus && m.bid === focus ? ' aria-current="true"' : ""} data-act="ov3Go" ${Object.entries(m.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")} data-i="${i}" aria-label="${esc(m.label)}" data-tip="${esc(m.name)}"><span class="ovm-pin-n">${esc(m.name)}${m.val ? `<b class="ovm-pin-v">${esc(m.val)}</b>` : ""}</span><svg class="ovm-pin-ic" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29s10-9.2 10-17A10 10 0 0 0 2 12c0 7.8 10 17 10 17z"/><circle cx="12" cy="12" r="4"/></svg>${m.due ? ov3Dot(m.due.lvl, "ovm-pin-dot") : ""}</button>`)
     .join("");
   const sat = !!U.ov3Sat,
     layerLabel = sat ? "切换到标准地图（当前为卫星地图）" : "切换到卫星地图（当前为标准地图）";
-  return `<section class="ov3-view ov3-map" aria-label="${esc(name)} 地图"><div class="ovm" id="ovmHost" data-key="${esc(key)}"><canvas class="ovm-cv" tabindex="0" role="img" aria-label="${esc(name)} 地图：拖动平移，右键或按住 Ctrl 拖动旋转与倾斜，滚轮缩放"></canvas><div class="ovm-pins">${pinHtml}</div><div class="ovm-scale" role="img" hidden><span class="ovm-scale-label"></span><span class="ovm-scale-bar" aria-hidden="true"></span></div><div class="ovm-attr">${sat && PACOM_MAP.provider === "osm" ? "影像 © Esri" : MAP_ATTRIBUTION()}</div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb(layerLabel, sat ? "satellite" : "map", "ov3MapLayer")}</div><div class="ov3-cg">${ov3Cb("回正北", "", "ov3MapNorth", {}, OV3_NORTH_ICON, "ovm-compass")}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3MapLoc")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3MapZoom", { "data-k": "2" })}${ov3Cb("缩小", "minus", "ov3MapZoom", { "data-k": "0.5" })}</div></div></section>`;
+  return `<section class="ov3-view ov3-map" aria-label="${esc(name)} 地图"><div class="ovm" id="ovmHost" data-key="${esc(key)}"><canvas class="ovm-cv" tabindex="0" role="img" aria-label="${esc(name)} 地图：拖动平移，右键或按住 Ctrl 拖动旋转与倾斜，滚轮缩放"></canvas><div class="ovm-pins">${pinHtml}</div><div class="ovm-scale" role="img" hidden><span class="ovm-scale-label"></span><span class="ovm-scale-bar" aria-hidden="true"></span></div><div class="ovm-attr">${sat && PACOM_MAP.provider === "osm" ? "影像 © Esri" : MAP_ATTRIBUTION()}</div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb(layerLabel, sat ? "satellite" : "map", "ov3MapLayer")}</div><div class="ov3-cg">${ov3Cb("回正北", "", "ov3MapNorth", {}, OV3_NORTH_ICON, "ovm-compass")}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3MapLoc")}${OV3_CSEP}${ov3Cb("放大", "", "ov3MapZoom", { "data-k": "2" }, OV3_MAP_PLUS_ICON)}${ov3Cb("缩小", "minus", "ov3MapZoom", { "data-k": "0.5" })}</div></div></section>`;
 }
 // 3.62（HONG 2026-11-11 09:35Z、09:38Z 按 Vision 09:30Z）：复位与放大之间一条分隔线，把“复位”和“缩放”分开
 const OV3_CSEP = '<i class="ov3-csep" aria-hidden="true"></i>';
@@ -99926,6 +99928,9 @@ const OVM = (() => {
     FLAT_Z = 16,
     TILT_Z = 17.5,
     TILT_EL = 55,
+    FIT_MIN_Z = 3,
+    FIT_MAX_Z = 19,
+    LOCAL_Z = 17,
     clamp = (v, a, b) => Math.max(a, Math.min(b, v)),
     wx = (lng) => R * lng * RAD,
     wy = (lat) => -R * Math.log(Math.tan(Math.PI / 4 + (clamp(lat, -85, 85) * RAD) / 2)),
@@ -99972,6 +99977,19 @@ const OVM = (() => {
   const fillUrl = (t, z, x, y) => t.replace("{z}", z).replace("{x}", x).replace("{y}", y).replace("{s}", (x + y) % 8);
   // 楼宇的世界坐标（墨卡托米），模型的米换成墨卡托米乘 1 / cos(纬度)
   const bWorld = (b) => ({ X: wx(b.lng), Y: wy(b.lat), s: 1 / Math.cos(b.lat * RAD), top: Math.max(0, ...b.S.floors.map((f) => f.z0 + f.h)) });
+  function bProjection(b, w, P) {
+    const r = -(b.north || 0) * RAD,
+      cr = Math.cos(r),
+      sr = Math.sin(r),
+      fw = b.S.foot.w / 2,
+      fd = b.S.foot.d / 2;
+    return (x, y, z) => {
+      const lx = x - fw,
+        ly = y - fd;
+      return P(w.X + (lx * cr - ly * sr) * w.s, w.Y + (lx * sr + ly * cr) * w.s, z * w.s);
+    };
+  }
+  const autoElevation = (z) => 90 - clamp((z - FLAT_Z) / (TILT_Z - FLAT_Z), 0, 1) * (90 - TILT_EL);
   // 视图的派生量：缩放级别、是否平面、仰角
   function view(st, W, H) {
     const c = st.cam,
@@ -99986,7 +100004,7 @@ const OVM = (() => {
           y = H / 2 + (dx * sa + dy * ca) * c.k;
         return x > -60 && x < W + 60 && y > -60 && y < H + 60;
       }),
-      el = !seen ? 90 : c.el != null ? c.el : z >= TILT_Z ? TILT_EL : 90 - ((z - FLAT_Z) / (TILT_Z - FLAT_Z)) * (90 - TILT_EL);
+      el = !seen ? 90 : c.el ?? autoElevation(z);
     return { z, flat: !seen, el, ca, sa, se: Math.sin(el * RAD), ce: Math.cos(el * RAD) };
   }
   function projFor(c, v, W, H) {
@@ -100005,27 +100023,76 @@ const OVM = (() => {
     return { P, inv };
   }
   function fit(st, W, H) {
-    const pts = [...st.pins.map((m) => [wx(m.lng), wy(m.lat)])];
-    for (const b of st.b3) {
-      const w = bWorld(b),
-        r = (Math.hypot(b.S.foot.w, b.S.foot.d) / 2) * w.s;
-      pts.push([w.X - r, w.Y - r], [w.X + r, w.Y + r]);
-    }
     const c = st.cam;
     // 有 3D 楼宇时初始视角略转 25°，立起的楼宇看得到两个立面（同 空间 › 3D 的初始视角）；只有标记时正北朝上
     c.az = st.b3.length ? -25 : 0;
     c.el = null;
-    if (!pts.length) return Object.assign(c, { cx: wx(105), cy: wy(35), k: kOf(4) });
+    const first = st.pins[0] || st.b3[0];
+    if (!first) return Object.assign(c, { cx: wx(105), cy: wy(35), k: kOf(4) });
     const fp = st.focus && st.pins.find((m) => m.bid === st.focus);
-    if (fp) return Object.assign(c, { cx: wx(fp.lng), cy: wy(fp.lat), k: kOf(Math.min(17, st.maxZ)) });
-    const xs = pts.map((p) => p[0]),
-      ys = pts.map((p) => p[1]),
-      w = Math.max(...xs) - Math.min(...xs),
-      h = Math.max(...ys) - Math.min(...ys),
-      pad = Math.min(120, Math.min(W, H) * 0.18);
-    c.cx = (Math.max(...xs) + Math.min(...xs)) / 2;
-    c.cy = (Math.max(...ys) + Math.min(...ys)) / 2;
-    c.k = clamp(Math.min((W - 2 * pad) / Math.max(w, 1), (H - 2 * pad) / Math.max(h, 1)), kOf(3), kOf(st.maxZ));
+    if (fp) return Object.assign(c, { cx: wx(fp.lng), cy: wy(fp.lat), k: kOf(LOCAL_Z) });
+    const ox = wx(first.lng), oy = wy(first.lat),
+      ca = Math.cos(c.az * RAD), sa = Math.sin(c.az * RAD),
+      pad = Math.min(120, Math.min(W, H) * 0.18),
+      aw = W - 2 * pad, ah = H - 2 * pad,
+      vertical = [];
+    let left = Infinity, right = -Infinity;
+    const add = (X, Y, Z = 0) => {
+      const dx = X - ox, dy = Y - oy,
+        x = dx * ca - dy * sa;
+      left = Math.min(left, x);
+      right = Math.max(right, x);
+      vertical.push([dx * sa + dy * ca, Z]);
+    };
+    for (const m of st.pins) add(wx(m.lng), wy(m.lat));
+    for (const b of st.b3) {
+      const w = bWorld(b), P = bProjection(b, w, add),
+        { foot, floors } = b.S,
+        base = Math.min(0, ...floors.map((f) => f.z0 - 0.25));
+      // 与实际绘制共用建筑朝向及尺度，计入外墙、屋顶和各层可能外伸的楼板。
+      for (const x of [0, foot.w]) for (const y of [0, foot.d]) {
+        P(x, y, base);
+        P(x, y, w.top);
+      }
+      for (const f of floors) {
+        const fw = f.w || foot.w, fd = f.d || foot.d;
+        for (const [x, y] of f.outline || [[0, 0], [fw, 0], [fw, fd], [0, fd]]) {
+          P(x, y, f.z0 - 0.25);
+          P(x, y, f.z0 + f.h);
+        }
+      }
+    }
+    const boundsY = (z) => {
+      const el = (st.b3.length ? autoElevation(z) : 90) * RAD,
+        se = Math.sin(el), ce = Math.cos(el);
+      let top = Infinity, bottom = -Infinity;
+      for (const [y, z] of vertical) {
+        const v = y * se - z * ce;
+        top = Math.min(top, v);
+        bottom = Math.max(bottom, v);
+      }
+      return { top, bottom, se };
+    };
+    const width = right - left;
+    let z = clamp(zl(aw / Math.max(1, width)), FIT_MIN_Z, FIT_MAX_Z),
+      y = boundsY(z);
+    if (!st.b3.length) {
+      const height = y.bottom - y.top;
+      z = width < 1 && height < 1 ? LOCAL_Z : clamp(Math.min(z, zl(ah / Math.max(1, height))), FIT_MIN_Z, FIT_MAX_Z);
+    } else if ((y.bottom - y.top) * kOf(z) > ah) {
+      // 俯仰角随缩放变化，逐次求满足画布高度的最大默认缩放。
+      let lo = FIT_MIN_Z, hi = z;
+      for (let i = 0; i < 14; i++) {
+        const mid = (lo + hi) / 2, b = boundsY(mid);
+        if ((b.bottom - b.top) * kOf(mid) <= ah) lo = mid;
+        else hi = mid;
+      }
+      z = lo;
+      y = boundsY(z);
+    }
+    const midX = (left + right) / 2,
+      midY = (y.top + y.bottom) / (2 * y.se);
+    Object.assign(c, { cx: ox + midX * ca + midY * sa, cy: oy - midX * sa + midY * ca, k: kOf(z) });
   }
   function draw(st) {
     const cv = st.cv,
@@ -100099,18 +100166,8 @@ const OVM = (() => {
     if (!v.flat) {
       const list = st.b3.map((bd) => ({ bd, w: bWorld(bd) })).sort((p, q) => P(p.w.X, p.w.Y)[2] - P(q.w.X, q.w.Y)[2]);
       for (const { bd, w } of list) {
-        const r = -(bd.north || 0) * RAD,
-          cr = Math.cos(r),
-          sr = Math.sin(r),
-          fw = bd.S.foot.w / 2,
-          fd = bd.S.foot.d / 2,
-          Pb = (px, py, pz) => {
-            const lx = px - fw,
-              ly = py - fd;
-            return P(w.X + (lx * cr - ly * sr) * w.s, w.Y + (lx * sr + ly * cr) * w.s, pz * w.s);
-          };
         x.lineJoin = "round";
-        const hs = S3V.paint(x, Pb, bd.S);
+        const hs = S3V.paint(x, bProjection(bd, w, P), bd.S);
         for (const h of hs) st.hits.push({ poly: h.poly, bid: bd.bid });
         tops.set(bd.bid, w.top * w.s);
       }
@@ -100154,7 +100211,7 @@ const OVM = (() => {
       raf = requestAnimationFrame(() => draw(st));
     };
     const set = (D2) => {
-      Object.assign(st, { pins: D2.pins, b3: D2.b3, maxZ: D2.maxZ || 18, sat: !!D2.sat, layers: layers(!!D2.sat), focus: D2.focus || null });
+      Object.assign(st, { pins: D2.pins, b3: D2.b3, sat: !!D2.sat, layers: layers(!!D2.sat), focus: D2.focus || null });
       st.pinEls = [...host.querySelectorAll(".ovm-pin")];
       st.compass = host.closest(".ov3-map")?.querySelector(".ovm-compass");
       st.scale = host.querySelector(".ovm-scale");
@@ -100259,7 +100316,12 @@ const OVM = (() => {
       if (/^Arrow/.test(k)) pan(k === "ArrowLeft" ? 80 : k === "ArrowRight" ? -80 : 0, k === "ArrowUp" ? 80 : k === "ArrowDown" ? -80 : 0);
       else if (k === "+" || k === "=") zoomAt(2);
       else if (k === "-" || k === "_") zoomAt(0.5);
-      else if (k === "0") st.fitted = false;
+      else if (k === "0") {
+        const w = W(), h = H();
+        if (!w || !h) return;
+        fit(st, w, h);
+        st.fitted = true;
+      }
       else return;
       e.preventDefault();
       st.redraw();
