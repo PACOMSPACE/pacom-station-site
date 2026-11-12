@@ -97641,8 +97641,8 @@ const S3V = (() => {
       sh = Math.max(1, Math.max(...ys) - Math.min(...ys));
     // 3.49 V1357：S.inset 为画面上被楼层列、按钮、图例占去的边距（新页面），平面放在其余区域内并尽量占满宽
     const I = S.inset || null,
-      aw = I ? W - I.l - I.r : W * 0.84,
-      ah = I ? H - I.t - I.b : H * 0.8;
+      aw = I ? W - I.l - I.r : W * (S.fitCoverage ?? 0.84),
+      ah = I ? H - I.t - I.b : H * (S.fitCoverage ?? 0.8);
     Object.assign(st.cam, { tx: c.tx, ty: c.ty, tz: c.tz, px: 0, py: 0, k: Math.max(0.01, Math.min(aw / sw, ah / sh)) });
     st.cam.py = -((Math.max(...ys) + Math.min(...ys)) / 2) * st.cam.k + (I ? (I.t - I.b) / 2 : 0);
     st.cam.px = -((Math.max(...xs) + Math.min(...xs)) / 2) * st.cam.k + (I ? (I.l - I.r) / 2 : 0);
@@ -99927,7 +99927,7 @@ const OVM = (() => {
     TILT_EL = 55,
     FIT_MIN_Z = 2,
     FIT_MAX_Z = 19,
-    FIT_COVERAGE = 0.55,
+    FIT_COVERAGE = 0.5,
     LOCAL_Z = 17,
     clamp = (v, a, b) => Math.max(a, Math.min(b, v)),
     wx = (lng) => R * lng * RAD,
@@ -100467,7 +100467,7 @@ function ov3Bldg() {
     const f = g("floors", s.sel);
     return `<section class="ov3-view ov3-cv ov3-noplan ov3-nofl" aria-label="${esc(`${b.name} · ${f?.name || ""}`)}">${col}<div class="ov3-np-c"><span class="ov3-np-ic" aria-hidden="true">${ico("layers")}</span><h2>${esc(f?.name || "")} 未上传${planWord}</h2>${canEdit() ? btn(ico("upload", "ic16") + "上传" + planWord, "ov3UploadPlan", { f: s.sel }, "ov3-npb") : ""}</div></section>`;
   }
-  const S = ov3Scene(s),
+  const S = { ...ov3Scene(s), fitCoverage: 0.85 },
     d2 = s.mode === "2d",
     curName = s.cur ? g("floors", s.cur)?.name || "" : "全部";
   S3_PEND = S;
