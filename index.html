@@ -5502,9 +5502,23 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 .ws-map-controls .iconbtn + button:before {
   display: none;
 }
+/* 平面地图比例尺放在缩放按钮上方，避开小屏右下的署名。 */
+.leaflet-container .leaflet-control-scale {
+  margin: 0 0 56px 12px;
+  pointer-events: none;
+}
+.leaflet-control-scale-line {
+  background: rgba(255, 255, 255, 0.76);
+  border-color: #2e2e2e;
+  color: #2e2e2e;
+  font-size: 11px;
+  line-height: 14px;
+  text-shadow: none;
+}
 /* ≤850px 时与其他圆形图标按钮同为 44px。 */
 @media (max-width:850px) {
  .ws-map-controls .iconbtn { width:44px; height:44px; }
+ .leaflet-container .leaflet-control-scale { margin-bottom:68px; }
 }
 .ws-geo {
   height: calc(100dvh - 182px);
@@ -36172,13 +36186,13 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   .ov3-cg:has(> :only-child) { border-radius: 999px; }
   .ov3-cb { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--ds-ink); cursor: pointer; }
   .ov3-cb:hover { background: rgba(0, 0, 0, 0.05); }
-  .ov3-cb[aria-pressed="true"] { background: rgba(0, 0, 0, 0.08); }
+  .ov3-cb[aria-pressed="true"], .ov3-map .ov3-cb[aria-expanded="true"] { background: rgba(0, 0, 0, 0.08); }
   .ov3-cb:focus-visible { position: relative; z-index: 1; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #00aeef; outline: none; }
   .ov3-cb > .ic { width: 16px; height: 16px; }
   .ov3-mode { font-size: 12px; line-height: 18px; font-weight: 600; }
 
   /* 地图 */
-  .ov3-map { background: #eef0ec; }
+  .ov3-map { container: ovm-map / inline-size; background: #eef0ec; }
   .ovm { position: absolute; inset: 0; }
   .ovm-cv { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; outline: none; }
   .ovm-cv:active { cursor: grabbing; }
@@ -36201,8 +36215,12 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   .ovm-pin:focus-visible { outline: none; }
   .ovm-pin:focus-visible .ovm-pin-ic { filter: drop-shadow(0 0 0 #00aeef) drop-shadow(0 0 2px #00aeef); }
   .ovm-attr { position: absolute; right: 0; bottom: 0; z-index: 2; border-top-left-radius: 6px; }
-  .ovm-attr, .leaflet-control-attribution { padding: 1px 6px; background: rgba(255, 255, 255, 0.88); color: var(--ds-ink-2); font-size: 11px; line-height: 14px; }
+  .ovm-attr, .leaflet-control-attribution { padding: 1px 6px; background: rgba(255, 255, 255, 0.76); color: #2e2e2e; font-size: 10px; line-height: 12px; }
   .ovm-attr a, .leaflet-control-attribution a { color: inherit; }
+  .ovm-compass-needle { transform: rotate(var(--ovm-bearing, 0deg)); }
+  .ovm-scale { position: absolute; left: 8px; bottom: 3px; z-index: 2; display: grid; justify-items: start; padding: 1px 4px 2px; border-radius: 4px; background: rgba(255, 255, 255, 0.76); color: #2e2e2e; font-size: 11px; line-height: 13px; white-space: nowrap; pointer-events: none; }
+  .ovm-scale[hidden], .ovm:has(> .ovm-note) > .ovm-scale { display: none; }
+  .ovm-scale-bar { box-sizing: border-box; width: var(--ovm-scale-width); height: 4px; border: solid currentColor; border-width: 0 1px 1px; }
   .ovm-note { position: absolute; left: 16px; bottom: 16px; z-index: 2; display: flex; flex-direction: column; padding: 8px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.88); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); box-shadow: var(--floating-sm); font-size: 12px; line-height: 18px; color: var(--ds-ink-2); }
   .ovm-note > b { font-size: 14px; line-height: 22px; font-weight: 500; color: var(--ds-ink); }
 
@@ -36655,6 +36673,11 @@ img.img-off { display: none !important; }
   .ov3-npcard b { font-size: 14px; line-height: 22px; font-weight: 600; }
   .ov3-npcard small { color: #636363; font-size: 12px; line-height: 18px; }
   .ov3-npgo { flex: none; }
+  @container ovm-map (max-width: 260px) {
+    .ovm-scale { bottom: 16px; }
+    .ov3-npcard { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; }
+    .ovm:has(> .ovm-scale:not([hidden])) ~ .ov3-npcard { bottom: 40px; }
+  }
 }
 
 @layer ds {
@@ -37011,8 +37034,8 @@ img.img-off { display: none !important; }
   .ws3-lg { box-sizing: border-box; min-height: 40px; padding: 6px 16px; border-radius: 20px; align-content: center; }
 }
 /* 3.62 地图与画面右上按钮（HONG 2026-11-11 09:35Z“按钮从40改为36，卫星图标与下方胶囊的间距缩小”、09:38Z 按 Vision 09:30Z）：
-   电脑组宽 36、按钮 28、图标 16，两组间距 8，右边距不变；复位与放大之间一条 16 宽浅灰细线（两按钮中心距 37）；
-   手机用同一种玻璃样式，两组都是 52 宽胶囊、按钮 44，中线对齐，间距 8 */
+   鼠标布局组宽 36、按钮 28、图标 16，组间距 8，右边距不变；复位与放大之间一条 16 宽浅灰细线（两按钮中心距 37）。
+   手机用同一种玻璃样式，竖向组宽 52、按钮 44。室外地图将图层、指北各放一组，复位和缩放共用一组。 */
 .ov3-ctl { gap: 8px; }
 .ov3-csep { flex: none; align-self: center; width: 16px; height: var(--hw); background: var(--hc-114114112040, rgba(114, 114, 112, 0.16)); }
 @media (max-width: 850px) {
@@ -37023,6 +37046,15 @@ img.img-off { display: none !important; }
     box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 2px 2px -1px rgba(0, 0, 0, 0.04), 0 4px 4px -2px rgba(0, 0, 0, 0.04);
   }
   .ov3-cg > .ov3-cb { width: 44px; min-width: 44px; height: 44px; padding: 0; border-radius: 50%; }
+}
+@media (min-width: 851px) and (pointer: coarse) {
+  .ov3-map .ov3-cg > .ov3-cb { width: 44px; min-width: 44px; height: 44px; }
+}
+/* 矮屏上有楼层图提示卡时，工具横排，避免与底部卡片重叠。 */
+@media (max-width: 850px) and (max-height: 740px) {
+  .ov3-map:has(> .ov3-npcard) > .ov3-ctl { flex-flow: row wrap; justify-content: flex-end; max-width: calc(100% - 32px); }
+  .ov3-map:has(> .ov3-npcard) .ov3-cg { flex-direction: row; }
+  .ov3-map:has(> .ov3-npcard) .ov3-csep { width: var(--hw); height: 16px; }
 }
 /* 3.61 楼层编辑器右侧面板四边内边距统一 20（HONG 2026-11-11 07:58Z 按 Vision 07:54Z 的建议，同 Lovable 信息卡与全站卡片内边距 20；原上 12、左右 16）：
    各模式的标题行（设备 N、照明分区 N、设备网络）离上、离左 20，下面的内容左右 20；照明分区列表的行悬停底仍离边 8 */
@@ -51526,6 +51558,11 @@ function mapBase(el, center, zoom, onOff) {
   let failed = false;
   base.on("loading", () => (failed = false));
   base.on("tileload", () => (el.dataset.tileOk = "true"));
+  base.once("tileload", () => {
+    const scale = L.control.scale({ position: "bottomleft", maxWidth: 80, imperial: false }).addTo(m).getContainer();
+    scale.setAttribute("role", "group");
+    scale.setAttribute("aria-label", "比例尺");
+  });
   base.on("tileerror", () => (failed = true));
   base.on("load", () => { if (failed) tileError(); });
   base.addTo(m);
@@ -99818,8 +99855,13 @@ function ov3NoPlanMap(b) {
 }
 
 /* ---------- 地图（全部项目、项目） ---------- */
-// 3.47：地图右上“卫星图”：天地图为影像底图与影像注记；原型用的 OpenStreetMap 没有影像，用 Esri World Imagery 示意
+// 天地图的卫星图包含影像底图与注记；OpenStreetMap 使用 Esri World Imagery 作为卫星图。
 const SAT_TILES = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+const OV3_MAP_LAYERS = [
+  { id: "normal", name: "普通地图", icon: "map" },
+  { id: "satellite", name: "卫星图", icon: "satellite" },
+];
+const OV3_NORTH_ICON = '<svg class="ic ic16 ovm-compass-needle" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 5 9H7z" fill="currentColor"/><path d="m7 12 5 9 5-9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const ov3Loc = (o, p = null) => {
   const l = o?.location?.lat != null ? o.location : o?.sameLocation && p?.location?.lat != null ? p.location : null;
   return l && Number.isFinite(+l.lat) && Number.isFinite(+l.lng) ? { lat: +l.lat, lng: +l.lng } : null;
@@ -99862,13 +99904,14 @@ function ov3MapHtml(lv, focus = null, pinVal = null) {
   const pinHtml = pins
     .map((m, i) => `<button type="button" class="ovm-pin${m.off ? " off" : ""}${focus && m.bid === focus ? " sel" : ""}"${focus && m.bid === focus ? ' aria-current="true"' : ""} data-act="ov3Go" ${Object.entries(m.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")} data-i="${i}" aria-label="${esc(m.label)}" data-tip="${esc(m.name)}"><span class="ovm-pin-n">${esc(m.name)}${m.val ? `<b class="ovm-pin-v">${esc(m.val)}</b>` : ""}</span><svg class="ovm-pin-ic" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29s10-9.2 10-17A10 10 0 0 0 2 12c0 7.8 10 17 10 17z"/><circle cx="12" cy="12" r="4"/></svg>${m.due ? ov3Dot(m.due.lvl, "ovm-pin-dot") : ""}</button>`)
     .join("");
-  const sat = !!U.ov3Sat;
-  return `<section class="ov3-view ov3-map" aria-label="${esc(name)} 地图"><div class="ovm" id="ovmHost" data-key="${esc(key)}"><canvas class="ovm-cv" tabindex="0" role="img" aria-label="${esc(name)} 地图：拖动平移，右键或按住 Ctrl 拖动旋转与倾斜，滚轮缩放"></canvas><div class="ovm-pins">${pinHtml}</div><div class="ovm-attr">${sat && PACOM_MAP.provider === "osm" ? "影像 © Esri" : MAP_ATTRIBUTION()}</div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb("卫星图", "satellite", "ov3Sat", { "aria-pressed": String(sat) })}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3MapLoc")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3MapZoom", { "data-k": "2" })}${ov3Cb("缩小", "minus", "ov3MapZoom", { "data-k": "0.5" })}</div></div></section>`;
+  const sat = !!U.ov3Sat,
+    layerLabel = `图层：${OV3_MAP_LAYERS[Number(sat)].name}`;
+  return `<section class="ov3-view ov3-map" aria-label="${esc(name)} 地图"><div class="ovm" id="ovmHost" data-key="${esc(key)}"><canvas class="ovm-cv" tabindex="0" role="img" aria-label="${esc(name)} 地图：拖动平移，右键或按住 Ctrl 拖动旋转与倾斜，滚轮缩放"></canvas><div class="ovm-pins">${pinHtml}</div><div class="ovm-scale" role="img" hidden><span class="ovm-scale-label"></span><span class="ovm-scale-bar" aria-hidden="true"></span></div><div class="ovm-attr">${sat && PACOM_MAP.provider === "osm" ? "影像 © Esri" : MAP_ATTRIBUTION()}</div></div><div class="ov3-ctl"><div class="ov3-cg"><button type="button" class="ov3-cb" data-act="ov3MapLayers" aria-label="${layerLabel}" aria-haspopup="menu" aria-expanded="false" data-tip="${layerLabel}" data-tip-at="left">${ico("layers", "ic16")}</button></div><div class="ov3-cg">${ov3Cb("回正北", "", "ov3MapNorth", {}, OV3_NORTH_ICON, "ovm-compass")}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3MapLoc")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3MapZoom", { "data-k": "2" })}${ov3Cb("缩小", "minus", "ov3MapZoom", { "data-k": "0.5" })}</div></div></section>`;
 }
 // 3.62（HONG 2026-11-11 09:35Z、09:38Z 按 Vision 09:30Z）：复位与放大之间一条分隔线，把“复位”和“缩放”分开
 const OV3_CSEP = '<i class="ov3-csep" aria-hidden="true"></i>';
-const ov3Cb = (label, icon, act, attrs = {}, inner = "") =>
-  `<button type="button" class="ov3-cb" data-act="${act}" aria-label="${esc(label)}" data-tip="${esc(String(label).split("：")[0])}" data-tip-at="left"${Object.entries(attrs).map(([k, v]) => ` ${k}="${esc(v)}"`).join("")}>${inner || ico(icon, "ic16")}</button>`;
+const ov3Cb = (label, icon, act, attrs = {}, inner = "", className = "") =>
+  `<button type="button" class="ov3-cb${className ? ` ${className}` : ""}" data-act="${act}" aria-label="${esc(label)}" data-tip="${esc(String(label).split("：")[0])}" data-tip-at="left"${Object.entries(attrs).map(([k, v]) => ` ${k}="${esc(v)}"`).join("")}>${inner || ico(icon, "ic16")}</button>`;
 
 // 地图：Web 墨卡托瓦片按相机仿射画在 canvas 上（正交投影，与 空间 › 3D 同一投影）。
 // 缩放 < 16 或画面里没有 3D 楼宇时为平面（只剩标记）；放大到街区时自动倾斜（16 到 17.5 由 90° 过渡到 55°），楼宇在原位立起。
@@ -99886,6 +99929,16 @@ const OVM = (() => {
     zl = (k) => Math.log2((k * WORLD) / 256),
     kOf = (z) => (256 * 2 ** z) / WORLD,
     cache = new Map();
+  function metricScale(cam) {
+    if (!Number.isFinite(cam.cy) || Math.abs(cam.cy) > WORLD / 2) return null;
+    // 墨卡托在中心纬度把地面距离放大 1/cos(纬度)，等于 cosh(墨卡托 Y / R)。
+    const pixelsPerMeter = cam.k * Math.cosh(cam.cy / R),
+      maxMeters = 80 / pixelsPerMeter;
+    if (!Number.isFinite(maxMeters) || maxMeters <= 0) return null;
+    const step = 10 ** Math.floor(Math.log10(maxMeters)),
+      meters = (maxMeters >= 5 * step ? 5 : maxMeters >= 2 * step ? 2 : 1) * step;
+    return { label: meters >= 1000 ? `${meters / 1000} km` : `${meters} m`, width: meters * pixelsPerMeter };
+  }
   function img(url, st) {
     let t = cache.get(url);
     if (!t) {
@@ -100071,6 +100124,19 @@ const OVM = (() => {
     });
     // 根据当前图层和视野里的底图瓦片显示状态，旧图层或注记的成功不会掩盖失败。
     st.host.dataset.basemap = !st.layers.length ? "unset" : baseDrawn ? "ready" : baseFailed ? "error" : "loading";
+    const bearing = Math.atan2(v.sa, v.ca * v.se) / RAD;
+    st.compass?.style.setProperty("--ovm-bearing", `${bearing}deg`);
+    if (st.scale) {
+      const scale = baseDrawn && v.el >= 89.95 ? metricScale(c) : null;
+      st.scale.hidden = !scale;
+      if (scale) {
+        if (st.scaleLabel.textContent !== scale.label) {
+          st.scaleLabel.textContent = scale.label;
+          st.scale.setAttribute("aria-label", `比例尺：${scale.label}`);
+        }
+        st.scale.style.setProperty("--ovm-scale-width", `${scale.width}px`);
+      }
+    }
     const note = st.host.querySelector(".ovm-note"),
       why = !st.layers.length ? "地图服务尚未配置" : baseFailed && !baseDrawn ? "无法访问地图服务" : "";
     if (why && !note) st.host.insertAdjacentHTML("beforeend", `<div class="ovm-note" role="status"><b>底图未加载</b>${why}</div>`);
@@ -100087,6 +100153,9 @@ const OVM = (() => {
     const set = (D2) => {
       Object.assign(st, { pins: D2.pins, b3: D2.b3, maxZ: D2.maxZ || 18, sat: !!D2.sat, layers: layers(!!D2.sat), focus: D2.focus || null });
       st.pinEls = [...host.querySelectorAll(".ovm-pin")];
+      st.compass = host.closest(".ov3-map")?.querySelector(".ovm-compass");
+      st.scale = host.querySelector(".ovm-scale");
+      st.scaleLabel = st.scale?.querySelector(".ovm-scale-label");
     };
     set(D);
     const pos = (e) => {
@@ -100205,6 +100274,15 @@ const OVM = (() => {
       reset() {
         st.fitted = false;
         st.redraw();
+      },
+      north() {
+        if (!st.fitted && W() && H()) {
+          fit(st, W(), H());
+          st.fitted = true;
+        }
+        st.cam.az = 0;
+        st.redraw();
+        opt.onCam?.({ ...st.cam });
       },
       zoom(f) {
         zoomAt(f);
@@ -100373,16 +100451,40 @@ defineActions({
     closePop();
     route("overview", { p: a.p || null, b: a.b || null, f: null, tab: "" });
   },
-  ov3Sat: () => {
-    U.ov3Sat = !U.ov3Sat;
+  ov3MapLayers: (a, el) => {
+    if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
+    const current = OV3_MAP_LAYERS[Number(!!U.ov3Sat)].id;
+    const rows = OV3_MAP_LAYERS.map(({ id, name, icon }) => {
+      const on = id === current;
+      return `<button type="button" class="popitem${on ? " on" : ""}" role="menuitemradio" aria-checked="${on}" tabindex="${on ? 0 : -1}" data-act="ov3MapLayer" data-layer="${id}">${ico(icon, "ic16")}<span>${name}</span>${on ? ico("check", "ic16 pop-check") : ""}</button>`;
+    }).join("");
+    pop(el, `<div class="ovm-layer-menu" role="menu" aria-label="图层">${rows}</div>`, true, { alignRight: true, minWidth: 152 });
+  },
+  ov3MapLayer: (a) => {
+    const anchor = $("#pop")?.anchor;
+    closePop({ restoreFocus: true });
+    if (!OV3_MAP_LAYERS.some(({ id }) => id === a.layer)) return;
+    const sat = a.layer === "satellite";
+    if (sat === !!U.ov3Sat) return;
+    if (OVM_LIVE?.api.st.fitted) (U.ov3MapCam ||= {})[OVM_LIVE.key] = { ...OVM_LIVE.api.st.cam };
+    U.ov3Sat = sat;
     render();
+    if (anchor && !anchor.isConnected) $(".ov3-map [data-act=ov3MapLayers]")?.focus({ preventScroll: true });
+  },
+  ov3MapNorth: () => {
+    closePop();
+    OVM_LIVE?.api.north();
   },
   ov3MapLoc: () => {
+    closePop();
     const c = U.ov3MapCam;
     if (c && OVM_LIVE) delete c[OVM_LIVE.key];
     OVM_LIVE?.api.reset();
   },
-  ov3MapZoom: (a) => OVM_LIVE?.api.zoom(Number(a.k) || 1),
+  ov3MapZoom: (a) => {
+    closePop();
+    OVM_LIVE?.api.zoom(Number(a.k) || 1);
+  },
   ov3Mode: () => {
     const s = ov3State();
     s3SaveCam();
