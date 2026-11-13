@@ -37265,6 +37265,39 @@ function spatialGlyph(shape) { return `<svg class="ic16 spatial-glyph" viewBox="
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const fmt = (n, d = 0) => (n == null ? "—" : Number(n).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
+// 地图与 2D／3D 查看器共用滚轮单位和相机过渡，渲染器负责保持指针下的坐标。
+function canvasWheelZoom(apply, redraw) {
+  let anchor = null, current = 0, target = 0, last = null;
+  return {
+    push(event, at, scale, min, max) {
+      // 先读 deltaMode，部分浏览器按读取顺序确定滚轮增量单位。
+      const mode = event.deltaMode, unit = mode === 1 ? 40 : mode === 2 ? event.currentTarget?.clientHeight || 800 : 1,
+        pixels = Math.max(-160, Math.min(160, event.deltaY * unit));
+      if (!pixels || !Number.isFinite(pixels) || !(scale > 0)) return;
+      current = Math.log(scale);
+      target = Math.max(Math.log(min), Math.min(Math.log(max), (anchor ? target : current) - pixels * 0.0015));
+      anchor = at;
+      if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        apply(Math.exp(target - current), anchor);
+        this.cancel();
+      }
+      redraw();
+    },
+    step(now) {
+      if (!anchor) return;
+      const dt = last === null ? 1000 / 60 : Math.max(0, Math.min(50, now - last)),
+        remaining = target - current,
+        step = Math.min(Math.abs(remaining) * -Math.expm1(-dt / 36), dt * 0.0075),
+        change = Math.abs(remaining) < 0.0004 ? remaining : Math.sign(remaining) * step;
+      last = now;
+      current += change;
+      if (change) apply(Math.exp(change), anchor);
+      if (change === remaining) this.cancel();
+      else redraw();
+    },
+    cancel() { anchor = null; last = null; },
+  };
+}
 // 时长（2026-10-08 用户确认，Editor 核查 E28；规范 2 6，同 AUTH01）：不到 60 分钟写“N 分钟”；60 分钟起写“X 小时 Y 分钟”，
 // 整小时只写“X 小时”；24 小时起写“X 天”，不足一天的部分不写（如“已 2 天无数据”）。
 const durText = (m) => {
@@ -97680,6 +97713,8 @@ function spListMoreItems() {
 const S3V = (() => {
   const RAD = Math.PI / 180,
     LVC = ["#D0382B", "#DB6A1E", "#D29A10"],
+    MIN_ZOOM = 0.2,
+    MAX_ZOOM = 400,
     clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   // 世界坐标：x 向右、y 向下（与楼层图一致）、z 向上，单位米
   function proj(c) {
@@ -97752,6 +97787,7 @@ const S3V = (() => {
       aw = I ? W - I.l - I.r : W * (S.fitCoverage ?? 0.84),
       ah = I ? H - I.t - I.b : H * (S.fitCoverage ?? 0.8);
     Object.assign(st.cam, { tx: c.tx, ty: c.ty, tz: c.tz, px: 0, py: 0, k: Math.max(0.01, Math.min(aw / sw, ah / sh)) });
+    st.cam.fitScale = st.cam.k;
     st.cam.py = -((Math.max(...ys) + Math.min(...ys)) / 2) * st.cam.k + (I ? (I.t - I.b) / 2 : 0);
     st.cam.px = -((Math.max(...xs) + Math.min(...xs)) / 2) * st.cam.k + (I ? (I.l - I.r) / 2 : 0);
     // 3.49 V1354：打开功能区详情时画面以该功能区为中心
@@ -97800,7 +97836,7 @@ const S3V = (() => {
     st.hits = paint(x, P, S);
   }
   // 3.47：画一栋楼（楼宇画布与地图共用）：P 为投影，S 为场景；S.noLabels 不写楼层名，S.names 在功能区左上角写名称，S.flat 为 2D 配色。返回点按区域
-  function paint(x, P, S) {
+  function paint(x, P, S, opacity = 1) {
     const names = [],
       hits = [],
       devHits = [],
@@ -97812,7 +97848,7 @@ const S3V = (() => {
         x.beginPath();
         pts.forEach((p, i) => (i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1])));
         x.closePath();
-        x.globalAlpha = a;
+        x.globalAlpha = a * opacity;
         if (fill) {
           x.fillStyle = fill;
           x.fill();
@@ -97824,8 +97860,9 @@ const S3V = (() => {
           x.stroke();
           x.setLineDash([]);
         }
-        x.globalAlpha = 1;
+        x.globalAlpha = opacity;
       };
+    x.globalAlpha = opacity;
     // 外墙（整栋时）：先画背面，楼层画完后再画正面
     const shell = [];
     if (walls && S.foot) {
@@ -97929,10 +97966,10 @@ const S3V = (() => {
       if (m.halo || m.sel) {
         x.beginPath();
         x.arc(m.x, m.y, (m.r || 8) + (m.sel ? 6 : 5), 0, Math.PI * 2);
-        x.globalAlpha = 0.25;
+        x.globalAlpha = 0.25 * opacity;
         x.fillStyle = m.c;
         x.fill();
-        x.globalAlpha = 1;
+        x.globalAlpha = opacity;
       }
       x.beginPath();
       x.arc(m.x, m.y, m.r || 8, 0, Math.PI * 2);
@@ -98078,6 +98115,7 @@ const S3V = (() => {
         x.fillText(c.sub, bx + 10, by + 26);
       }
     }
+    x.globalAlpha = 1;
     return [...hits.reverse(), ...devHits.reverse()];
   }
   function hitAt(st, px, py) {
@@ -98089,11 +98127,17 @@ const S3V = (() => {
       st = { cv, S, cam: { ...home(S), ...(opt.cam || {}) }, fitted: !!opt.cam?.k };
     if (autoFit(st)) st.fitted = false;
     const adjust = () => { if (typeof st.S.inset === "function") st.cam.userAdjusted = true; };
-    let raf = 0;
+    let raf = null;
     const redraw = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => draw(st));
+      if (raf != null) return;
+      raf = requestAnimationFrame((now) => {
+        raf = null;
+        if (!cv.clientWidth || !cv.clientHeight) return wheel.cancel();
+        wheel.step(now);
+        draw(st);
+      });
     };
+    const wheel = canvasWheelZoom(zoomAt, redraw);
     const ptrs = new Map();
     let drag = null;
     const pos = (e) => {
@@ -98101,6 +98145,7 @@ const S3V = (() => {
       return [e.clientX - r.left, e.clientY - r.top];
     };
     cv.addEventListener("pointerdown", (e) => {
+      wheel.cancel();
       cv.setPointerCapture?.(e.pointerId);
       ptrs.set(e.pointerId, pos(e));
       drag = { start: pos(e), last: pos(e), moved: 0, pan: e.button === 2 || e.shiftKey, pinch: ptrs.size === 2 ? null : undefined };
@@ -98167,11 +98212,26 @@ const S3V = (() => {
     cv.addEventListener("pointercancel", end);
     cv.addEventListener("pointerleave", () => tip && (tip.hidden = true));
     cv.addEventListener("contextmenu", (e) => e.preventDefault());
+    // 让大型场景可从适配比例继续缩小，已保存的比例也始终位于边界内。
+    const zoomBounds = () => [
+      Math.min(MIN_ZOOM, (st.cam.fitScale || MIN_ZOOM * 2) / 2, st.cam.k),
+      Math.max(MAX_ZOOM, st.cam.fitScale || 0, st.cam.k),
+    ];
+    function prepareZoom() {
+      const W = cv.clientWidth, H = cv.clientHeight;
+      if (!W || !H) return false;
+      if (!st.fitted) {
+        fit(st, st.S, W, H);
+        st.fitted = true;
+      }
+      return true;
+    }
     function zoomAt(f, at) {
+      if (!prepareZoom()) return;
       adjust();
       const W = cv.clientWidth,
         H = cv.clientHeight,
-        k2 = clamp(st.cam.k * f, 0.2, 400),
+        k2 = clamp(st.cam.k * f, ...zoomBounds()),
         r = k2 / st.cam.k,
         ox = at ? at[0] - W / 2 : 0,
         oy = at ? at[1] - H / 2 : 0;
@@ -98183,8 +98243,9 @@ const S3V = (() => {
       "wheel",
       (e) => {
         e.preventDefault();
-        zoomAt(Math.exp(-e.deltaY * 0.0015), pos(e));
-        redraw();
+        if (drag || !prepareZoom()) return;
+        if (tip) tip.hidden = true;
+        wheel.push(e, pos(e), st.cam.k, ...zoomBounds());
       },
       { passive: false },
     );
@@ -98199,7 +98260,10 @@ const S3V = (() => {
       else if (k === "-" || k === "_") zoomAt(0.8);
       else if (k === "0") api.reset();
       else return;
-      if (k !== "0") adjust();
+      if (k !== "0") {
+        wheel.cancel();
+        adjust();
+      }
       e.preventDefault();
       redraw();
     });
@@ -98208,9 +98272,10 @@ const S3V = (() => {
     const api = {
       st,
       set(S2, keep = true) {
-        const refocus = S2.focus !== st.S.focus || S2.only !== st.S.only || !!S2.flat !== !!st.S.flat || String(S2.zc || "") !== String(st.S.zc || "") || typeof S2.inset !== typeof st.S.inset;
+        const refocus = S2.buildingId !== st.S.buildingId || S2.focus !== st.S.focus || S2.only !== st.S.only || !!S2.flat !== !!st.S.flat || String(S2.zc || "") !== String(st.S.zc || "") || typeof S2.inset !== typeof st.S.inset;
         st.S = S2;
         if (!keep || refocus) {
+          wheel.cancel();
           Object.assign(st.cam, home(S2));
           delete st.cam.userAdjusted;
         }
@@ -98218,16 +98283,19 @@ const S3V = (() => {
         redraw();
       },
       reset() {
+        wheel.cancel();
         Object.assign(st.cam, home(st.S));
         delete st.cam.userAdjusted;
         st.fitted = false;
         redraw();
       },
       zoom(f) {
+        wheel.cancel();
         zoomAt(f);
         redraw();
       },
       dispose() {
+        wheel.cancel();
         ro?.disconnect();
         cancelAnimationFrame(raf);
       },
@@ -98307,7 +98375,7 @@ function s3Scene(bid, { colorOf = null, devsOf = null, edgeOf = null, focus = nu
       prio: m ? 2 : f.id === topId || f.kind !== "above" || f.level === 1 || f.level % 5 === 0 ? 1 : 0,
     };
   });
-  return { floors, foot, focus, only, walls, sel, view: b?.view3d || null, name: b?.name || "", why: st.filter((x) => x.why) };
+  return { floors, foot, focus, only, walls, sel, buildingId: bid, view: b?.view3d || null, name: b?.name || "", why: st.filter((x) => x.why) };
 }
 // 没有生成白模的楼层写成一句：“8F–22F 等 21 层未上传楼层图 · 7F 未设比例尺”
 function s3WhyText(why) {
@@ -98571,7 +98639,7 @@ const M3 = (() => {
       };
     });
     const fo = sel ? mm.storeys.find((s) => map[s.id] === sel)?.id || null : null;
-    return { floors, foot: { w, d }, focus: fo, only: !!fo && step !== "1", walls: false, sel: null, view: bb.view3d || null, name: bb.name, why: [] };
+    return { floors, foot: { w, d }, focus: fo, only: !!fo && step !== "1", walls: false, sel: null, buildingId: bb.id, view: bb.view3d || null, name: bb.name, why: [] };
   }
   function pick(h) {
     s3SaveCam();
@@ -100088,7 +100156,7 @@ const ov3Cb = (label, icon, act, { "data-tip": tip = String(label).split("：")[
   `<button type="button" class="ov3-cb${className ? ` ${className}` : ""}" data-act="${act}" aria-label="${esc(label)}" data-tip="${esc(tip)}" data-tip-at="left"${Object.entries(attrs).map(([k, v]) => ` ${k}="${esc(v)}"`).join("")}>${inner || OV3_TOOL_ICONS[icon] || ico(icon, "ic16")}</button>`;
 
 // 地图：Web 墨卡托瓦片按相机仿射画在 canvas 上（正交投影，与 空间 › 3D 同一投影）。
-// 缩放 < 16 或画面里没有 3D 楼宇时为平面（只剩标记）；放大到街区时自动倾斜（16 到 17.5 由 90° 过渡到 55°），楼宇在原位立起。
+// 有模型的项目在 16 至 17.5 级平滑倾斜。模型进出画面边缘不改变相机投影。
 // 左键拖动平移；右键、Ctrl 或 Shift 加拖动旋转与倾斜；滚轮或双指缩放；方向键平移，+ − 缩放，0 回到初始视角。
 const OVM = (() => {
   const R = 6378137,
@@ -100101,12 +100169,16 @@ const OVM = (() => {
     FIT_MAX_Z = 19,
     FIT_COVERAGE = 0.5,
     LOCAL_Z = 17,
+    TILE_CACHE_LIMIT = 512,
+    TILE_REQUEST_LIMIT = 48,
     clamp = (v, a, b) => Math.max(a, Math.min(b, v)),
     wx = (lng) => R * lng * RAD,
     wy = (lat) => -R * Math.log(Math.tan(Math.PI / 4 + (clamp(lat, -85, 85) * RAD) / 2)),
     zl = (k) => Math.log2((k * WORLD) / 256),
     kOf = (z) => (256 * 2 ** z) / WORLD,
-    cache = new Map();
+    cache = new Map(),
+    tileRetry = new Set();
+  let tileRequests = 0;
   function metricScale(cam) {
     if (!Number.isFinite(cam.cy) || Math.abs(cam.cy) > WORLD / 2) return null;
     // 墨卡托在中心纬度把地面距离放大 1/cos(纬度)，等于 cosh(墨卡托 Y / R)。
@@ -100117,34 +100189,74 @@ const OVM = (() => {
       meters = (maxMeters >= 5 * step ? 5 : maxMeters >= 2 * step ? 2 : 1) * step;
     return { label: meters >= 1000 ? `${meters / 1000} km` : `${meters} m`, width: meters * pixelsPerMeter };
   }
-  function img(url, st) {
-    let t = cache.get(url);
-    if (!t) {
-      t = { im: new Image(), ok: false, err: false };
-      t.im.decoding = "async";
-      t.im.onload = () => {
-        t.ok = true;
-        for (const s of t.wait || []) s.redraw();
-        t.wait = null;
-      };
-      t.im.onerror = () => {
-        t.err = true;
-        for (const s of t.wait || []) s.redraw();
-        t.wait = null;
-      };
-      t.wait = [];
-      t.im.src = url;
-      cache.set(url, t);
-    }
-    if (t.wait && !t.wait.includes(st)) t.wait.push(st);
-    return t;
-  }
   function layers(sat) {
     if (!mapConfigured()) return [];
     if (PACOM_MAP.provider === "osm") return [sat ? SAT_TILES : OSM_TILES];
     return sat ? [tdtTiles("img"), tdtTiles("cia")] : [tdtTiles("vec"), tdtTiles("cva")];
   }
   const fillUrl = (t, z, x, y) => t.replace("{z}", z).replace("{x}", x).replace("{y}", y).replace("{s}", (x + y) % 8);
+  function cachedTile(url) {
+    const tile = cache.get(url);
+    if (tile) {
+      cache.delete(url);
+      cache.set(url, tile);
+    }
+    return tile;
+  }
+  function img(layer, z, x, y, st) {
+    const url = fillUrl(layer, z, x, y), cached = cachedTile(url);
+    if (cached) {
+      cached.wait?.add(st);
+      return cached;
+    }
+    if (tileRequests >= TILE_REQUEST_LIMIT) {
+      tileRetry.add(st);
+      return null;
+    }
+    if (cache.size >= TILE_CACHE_LIMIT) {
+      for (const [key, tile] of cache) {
+        if (!tile.wait) cache.delete(key);
+        if (cache.size < TILE_CACHE_LIMIT) break;
+      }
+    }
+    const tile = { layer, z, x, y, im: new Image(), ok: false, err: false, wait: new Set([st]) };
+    const finish = (ok) => {
+      tile.ok = ok;
+      tile.err = !ok;
+      tileRequests--;
+      const waiting = new Set([...tile.wait, ...tileRetry]);
+      tileRetry.clear();
+      tile.wait = null;
+      tile.im.onload = tile.im.onerror = null;
+      for (const view of waiting) view.redraw();
+    };
+    tile.im.decoding = "async";
+    tile.im.onload = () => finish(true);
+    tile.im.onerror = () => finish(false);
+    cache.set(url, tile);
+    tileRequests++;
+    tile.im.src = url;
+    return tile;
+  }
+  function tileAncestor(layer, z, x, y) {
+    for (let dz = 1; z - dz >= 1; dz++) {
+      const parent = cachedTile(fillUrl(layer, z - dz, x >> dz, y >> dz));
+      if (parent?.ok) return parent;
+    }
+    return null;
+  }
+  function tileDescendants(layer, z) {
+    const result = new Map();
+    for (const tile of cache.values()) {
+      const dz = tile.z - z;
+      if (tile.layer !== layer || !tile.ok || dz < 1) continue;
+      const key = `${tile.x >> dz}/${tile.y >> dz}`;
+      if (!result.has(key)) result.set(key, []);
+      result.get(key).push(tile);
+    }
+    for (const tiles of result.values()) tiles.sort((a, b) => a.z - b.z);
+    return result;
+  }
   // 楼宇的世界坐标（墨卡托米），模型的米换成墨卡托米乘 1 / cos(纬度)
   const bWorld = (b) => ({ X: wx(b.lng), Y: wy(b.lat), s: 1 / Math.cos(b.lat * RAD), top: Math.max(0, ...b.S.floors.map((f) => f.z0 + f.h)) });
   function bProjection(b, w, P) {
@@ -100161,21 +100273,14 @@ const OVM = (() => {
   }
   const autoElevation = (z) => 90 - clamp((z - FLAT_Z) / (TILT_Z - FLAT_Z), 0, 1) * (90 - TILT_EL);
   // 视图的派生量：缩放级别、是否平面、仰角
-  function view(st, W, H) {
+  function view(st) {
     const c = st.cam,
       z = zl(c.k),
       ca = Math.cos(c.az * RAD),
       sa = Math.sin(c.az * RAD),
-      seen = z >= FLAT_Z && st.b3.some((b) => {
-        const w = bWorld(b),
-          dx = w.X - c.cx,
-          dy = w.Y - c.cy,
-          x = W / 2 + (dx * ca - dy * sa) * c.k,
-          y = H / 2 + (dx * sa + dy * ca) * c.k;
-        return x > -60 && x < W + 60 && y > -60 && y < H + 60;
-      }),
-      el = !seen ? 90 : c.el ?? autoElevation(z);
-    return { z, flat: !seen, el, ca, sa, se: Math.sin(el * RAD), ce: Math.cos(el * RAD) };
+      hasModels = st.b3.length > 0,
+      el = !hasModels ? 90 : c.el == null ? autoElevation(z) : 90 + (c.el - 90) * clamp(z - FLAT_Z + 1, 0, 1);
+    return { z, flat: !hasModels || z < FLAT_Z, el, ca, sa, se: Math.sin(el * RAD), ce: Math.cos(el * RAD) };
   }
   function projFor(c, v, W, H) {
     const P = (X, Y, Z = 0) => {
@@ -100278,7 +100383,7 @@ const OVM = (() => {
       st.fitted = true;
     }
     const c = st.cam,
-      v = view(st, W, H),
+      v = view(st),
       { P, inv } = projFor(c, v, W, H),
       x = cv.getContext("2d");
     st.v = v;
@@ -100297,48 +100402,67 @@ const OVM = (() => {
       tx0 = Math.floor((X0 + WORLD / 2) / S),
       tx1 = Math.floor((X1 + WORLD / 2) / S),
       ty0 = clamp(Math.floor((Y0 + WORLD / 2) / S), 0, n - 1),
-      ty1 = clamp(Math.floor((Y1 + WORLD / 2) / S), 0, n - 1),
-      u = S / 256,
-      a = v.ca * c.k * u,
-      b = v.sa * v.se * c.k * u,
-      cc = -v.sa * c.k * u,
-      d = v.ca * v.se * c.k * u;
+      ty1 = clamp(Math.floor((Y1 + WORLD / 2) / S), 0, n - 1);
+    const paintTile = (tile, tx, ty, unit, crop = null) => {
+      const o = P(-WORLD / 2 + tx * S, -WORLD / 2 + ty * S),
+        u = dpr * c.k * S / 256 * unit;
+      x.setTransform(v.ca * u, v.sa * v.se * u, -v.sa * u, v.ca * v.se * u, dpr * o[0], dpr * o[1]);
+      if (crop) x.drawImage(tile.im, ...crop, -0.3, -0.3, 256.6, 256.6);
+      else x.drawImage(tile.im, -0.3, -0.3, 256.6, 256.6);
+    };
+    tileRetry.delete(st);
     let baseDrawn = false, baseFailed = false;
-    if ((tx1 - tx0 + 1) * (ty1 - ty0 + 1) <= 400)
-      for (const [layerIndex, L] of st.layers.entries())
+    if ((tx1 - tx0 + 1) * (ty1 - ty0 + 1) <= 400) {
+      for (const [layerIndex, layer] of st.layers.entries()) {
+        const base = layerIndex === 0;
+        let finer;
         for (let ty = ty0; ty <= ty1; ty++)
           for (let tx = tx0; tx <= tx1; tx++) {
-            const xi = ((tx % n) + n) % n,
-              o = P(-WORLD / 2 + tx * S, -WORLD / 2 + ty * S);
-            let t = img(fillUrl(L, tz, xi, ty), st),
-              dz = 0;
-            if (layerIndex === 0 && t.err) baseFailed = true;
-            // 本级没取到时用已取到的上一级放大顶替
-            while (!t.ok && dz < 4 && tz - dz > 1) {
-              dz++;
-              const pt = cache.get(fillUrl(L, tz - dz, xi >> dz, ty >> dz));
-              if (pt?.ok) t = pt;
+            const xi = ((tx % n) + n) % n, tile = img(layer, tz, xi, ty, st);
+            if (tile?.ok) {
+              paintTile(tile, tx, ty, 1);
+              if (base) baseDrawn = true;
+              continue;
             }
-            if (!t.ok) continue;
-            if (layerIndex === 0) baseDrawn = true;
-            x.setTransform(dpr * a, dpr * b, dpr * cc, dpr * d, dpr * o[0], dpr * o[1]);
-            if (!dz) x.drawImage(t.im, -0.3, -0.3, 256.6, 256.6);
-            else {
-              const sub = 256 / 2 ** dz;
-              x.drawImage(t.im, (xi - ((xi >> dz) << dz)) * sub, (ty - ((ty >> dz) << dz)) * sub, sub, sub, -0.3, -0.3, 256.6, 256.6);
+            if (base && tile?.err) baseFailed = true;
+            // 加载目标级别时先用同一底图已加载的父瓦片覆盖，再用子瓦片保留已看过的细节。
+            const parent = tileAncestor(layer, tz, xi, ty);
+            if (parent) {
+              const sub = 256 / 2 ** (tz - parent.z);
+              paintTile(parent, tx, ty, 1, [(xi * sub) % 256, (ty * sub) % 256, sub, sub]);
+              if (base) baseDrawn = true;
+            }
+            // 子级回退只用于不透明底图，避免不同级别的注记重叠绘制。
+            if (base) {
+              finer ||= tileDescendants(layer, tz);
+              for (const child of finer.get(`${xi}/${ty}`) || []) {
+                const unit = 2 ** (tz - child.z);
+                paintTile(child, tx - xi + child.x * unit, child.y * unit, unit);
+                cachedTile(fillUrl(layer, child.z, child.x, child.y));
+                baseDrawn = true;
+              }
             }
           }
+      }
+      // 预取更粗的底图范围，为缩小后露出的区域保留过渡覆盖。
+      if (st.layers.length && tz > 2) {
+        const z = tz - 2, count = 2 ** z;
+        for (let y = Math.max(0, (ty0 >> 2) - 1); y <= Math.min(count - 1, (ty1 >> 2) + 1); y++)
+          for (let x = Math.floor(tx0 / 4) - 1; x <= Math.floor(tx1 / 4) + 1; x++) img(st.layers[0], z, ((x % count) + count) % count, y, st);
+      }
+    }
     x.setTransform(dpr, 0, 0, dpr, 0, 0);
     // 楼宇 3D（远的先画）
     st.hits = [];
     const tops = new Map();
-    if (!v.flat) {
+    const modelOpacity = clamp((v.z - FLAT_Z) / 0.35, 0, 1);
+    if (!v.flat && modelOpacity) {
       const list = st.b3.map((bd) => ({ bd, w: bWorld(bd) })).sort((p, q) => P(p.w.X, p.w.Y)[2] - P(q.w.X, q.w.Y)[2]);
       for (const { bd, w } of list) {
         x.lineJoin = "round";
-        const hs = S3V.paint(x, bProjection(bd, w, P), bd.S);
-        for (const h of hs) st.hits.push({ poly: h.poly, bid: bd.bid });
-        tops.set(bd.bid, w.top * w.s);
+        const hs = S3V.paint(x, bProjection(bd, w, P), bd.S, modelOpacity);
+        if (modelOpacity >= 0.5) for (const h of hs) st.hits.push({ poly: h.poly, bid: bd.bid });
+        tops.set(bd.bid, w.top * w.s * modelOpacity);
       }
     }
     // 标记：有 3D 的楼宇立起时标记在楼顶
@@ -100348,8 +100472,8 @@ const OVM = (() => {
       const roof = m.members ? Math.max(0, ...m.members.map((pin) => tops.get(pin.bid) || 0)) : tops.get(m.bid) || 0,
         q = P(wx(m.lng), wy(m.lat), roof),
         off = q[0] < -40 || q[0] > W + 40 || q[1] < -10 || q[1] > H + 60;
-      el.style.setProperty("--x", Math.round(q[0]) + "px");
-      el.style.setProperty("--y", Math.round(q[1]) + "px");
+      el.style.setProperty("--x", q[0] + "px");
+      el.style.setProperty("--y", q[1] + "px");
       el.hidden = off;
     });
     // 根据当前图层和视野里的底图瓦片显示状态，旧图层或注记的成功不会掩盖失败。
@@ -100377,8 +100501,13 @@ const OVM = (() => {
       st = { host, cv, cam: { cx: 0, cy: 0, k: 1, az: 0, el: null, ...(opt.cam || {}) }, fitted: !!opt.cam, hits: [] };
     let raf = 0;
     st.redraw = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => draw(st));
+      if (raf) return;
+      raf = requestAnimationFrame((now) => {
+        raf = 0;
+        if (!W() || !H()) return wheel.cancel();
+        wheel.step(now);
+        draw(st);
+      });
     };
     const set = (D2) => {
       Object.assign(st, { pins: D2.pins, b3: D2.b3, sat: !!D2.sat, layers: layers(!!D2.sat), focus: D2.focus || null });
@@ -100401,7 +100530,7 @@ const OVM = (() => {
         if (anchor?.dataset.act === "ov3MapGroup" && host.contains(anchor)) closePop();
       };
     function pan(dx, dy) {
-      const v = st.v || view(st, W(), H()),
+      const v = view(st),
         c = st.cam,
         rx = dx / c.k,
         ry = dy / (c.k * v.se);
@@ -100413,14 +100542,19 @@ const OVM = (() => {
         w = W(),
         h = H(),
         p = at || [w / 2, h / 2],
-        before = projFor(c, view(st, w, h), w, h).inv(p[0], p[1]);
+        before = projFor(c, view(st), w, h).inv(p[0], p[1]);
       c.k = clamp(c.k * f, kOf(2), kOf(20));
-      const after = projFor(c, view(st, w, h), w, h).inv(p[0], p[1]);
+      const after = projFor(c, view(st), w, h).inv(p[0], p[1]);
       c.cx += before[0] - after[0];
       c.cy += before[1] - after[1];
     }
+    const wheel = canvasWheelZoom((factor, at) => {
+      zoomAt(factor, at);
+      opt.onCam?.({ ...st.cam });
+    }, st.redraw);
     cv.addEventListener("pointerdown", (e) => {
       closeGroup();
+      wheel.cancel();
       cv.setPointerCapture?.(e.pointerId);
       ptrs.set(e.pointerId, pos(e));
       drag = { last: pos(e), moved: 0, rot: e.button === 2 || e.ctrlKey || e.metaKey || e.shiftKey, pinch: null };
@@ -100450,7 +100584,7 @@ const OVM = (() => {
         dy = p[1] - prev[1];
       drag.moved += Math.abs(dx) + Math.abs(dy);
       if (drag.rot) {
-        const v = st.v || view(st, W(), H());
+        const v = view(st);
         st.cam.az -= dx * 0.4;
         if (!v.flat) st.cam.el = clamp(v.el + dy * 0.3, 30, 90);
       } else pan(dx, dy);
@@ -100472,6 +100606,7 @@ const OVM = (() => {
     cv.addEventListener("pointercancel", end);
     cv.addEventListener("contextmenu", (e) => e.preventDefault());
     cv.addEventListener("dblclick", (e) => {
+      wheel.cancel();
       zoomAt(2, pos(e));
       st.redraw();
       opt.onCam?.({ ...st.cam });
@@ -100481,24 +100616,27 @@ const OVM = (() => {
       (e) => {
         closeGroup();
         e.preventDefault();
-        zoomAt(Math.exp(-e.deltaY * 0.0015), pos(e));
-        st.redraw();
-        opt.onCam?.({ ...st.cam });
+        if (!st.fitted && W() && H()) {
+          fit(st, W(), H());
+          st.fitted = true;
+        }
+        if (st.fitted && !drag) wheel.push(e, pos(e), st.cam.k, kOf(2), kOf(20));
       },
       { passive: false },
     );
     cv.addEventListener("keydown", (e) => {
       const k = e.key;
+      if (!/^Arrow/.test(k) && !["+", "=", "-", "_", "0"].includes(k)) return;
+      wheel.cancel();
       if (/^Arrow/.test(k)) pan(k === "ArrowLeft" ? 80 : k === "ArrowRight" ? -80 : 0, k === "ArrowUp" ? 80 : k === "ArrowDown" ? -80 : 0);
       else if (k === "+" || k === "=") zoomAt(2);
       else if (k === "-" || k === "_") zoomAt(0.5);
-      else if (k === "0") {
+      else {
         const w = W(), h = H();
         if (!w || !h) return;
         fit(st, w, h);
         st.fitted = true;
       }
-      else return;
       e.preventDefault();
       st.redraw();
       opt.onCam?.({ ...st.cam });
@@ -100509,14 +100647,17 @@ const OVM = (() => {
     return {
       st,
       set(D2) {
+        if (!!D2.sat !== st.sat) wheel.cancel();
         set(D2);
         st.redraw();
       },
       reset() {
+        wheel.cancel();
         st.fitted = false;
         st.redraw();
       },
       north() {
+        wheel.cancel();
         if (!st.fitted && W() && H()) {
           fit(st, W(), H());
           st.fitted = true;
@@ -100526,13 +100667,17 @@ const OVM = (() => {
         opt.onCam?.({ ...st.cam });
       },
       zoom(f) {
+        wheel.cancel();
         zoomAt(f);
         st.redraw();
         opt.onCam?.({ ...st.cam });
       },
       dispose() {
+        wheel.cancel();
         ro?.disconnect();
         cancelAnimationFrame(raf);
+        tileRetry.delete(st);
+        for (const tile of cache.values()) tile.wait?.delete(st);
       },
     };
   }
@@ -100606,6 +100751,7 @@ function ov3Scene(s) {
     asp = f.dimensions?.height / f.dimensions?.width,
     m = { w: 60, h: 60 * (asp > 0 ? asp : 0.5) };
   return {
+    buildingId: bid,
     floors: [{ id: f.id, name: f.name, z0: 0, h: 3, w: m.w, d: m.h, ghost: false, zones: data().zones.filter((z) => z.floorId === f.id).map((z) => ({ id: z.id, pts: s3ZonePts(z, m), fill: "#FFFFFF", tip: z.name })), devs: [], tip: f.name }],
     foot: { w: m.w, d: m.h },
     focus: f.id,
