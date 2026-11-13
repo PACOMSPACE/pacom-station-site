@@ -36279,7 +36279,7 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   :is(.ov3-flr, .ov3-fhome, .ov3-farrow):focus-visible::before { content: ""; position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); width: 32px; height: min(32px, 100%); border-radius: 50%; box-shadow: 0 0 0 2px var(--accent); pointer-events: none; }
   .ov3-fhome:focus-visible::before { width: 36px; height: 36px; }
   .ov3-fdot { position: absolute; top: calc((var(--floor-step) - 32px) / 2 + 3px); right: calc((100% - 32px) / 2 + 3px); width: 6px; height: 6px; pointer-events: none; }
-  @media (max-width: 850px), (pointer: coarse) {
+  @media (max-width: 850px), (any-pointer: coarse) {
     .ov3-fcol { --floor-hit: 44px; --floor-step: 44px; --floor-gap: 0px; --floor-arrow: 44px; --floor-snap-padding: 16px; left: 12px; gap: 4px; }
     .ov3-fcol:has(> .ov3-fhome) { top: 12px; }
   }
@@ -37053,7 +37053,7 @@ img.img-off { display: none !important; }
     -webkit-mask-image: linear-gradient(transparent, #000 120px, #000 calc(100% - 120px), transparent); mask-image: linear-gradient(transparent, #000 120px, #000 calc(100% - 120px), transparent); }
   .ov3-sep:hover::after, .ov3-sep.drag::after { opacity: 1; transition: none; }
   .ov3-sep:focus-visible::after { left: calc(var(--ov3-sep-inset) - 0.5px); width: 1px; opacity: 1; background: #636363; -webkit-mask-image: none; mask-image: none; }
-  @media (pointer: coarse) {
+  @media (any-pointer: coarse) {
     .ws3x[data-pg="space"][data-lv="f"] { --ov3-sep-inset: 4px; --ov3-sep-hit: 24px; }
     .ws3x[data-pg="space"][data-lv="f"] > .ws3-cv > .ov3-fcol { left: calc(var(--ov3-sep-hit) - var(--ov3-sep-inset) + 2px); }
   }
@@ -46776,6 +46776,7 @@ function render() {
   // 普通成员的浏览器标签与页面标题同为“我的区域”（ABB 对比 IA7）；写成整句，构建时的规范覆盖核对据此取出页面标题
   if (memberHome()) document.title = "我的区域 · PACOM Station";
   if (BARE[U.page]) {
+    U.ws3FloorVisit = null;
     closePop();
     $("#app").className = "bare bare-" + U.page;
     $("#app").innerHTML = BARE[U.page]();
@@ -46805,8 +46806,11 @@ function render() {
   if (typeof opsHeadActs !== "undefined") opsHeadActs = "";
   infoAutoOpen();
   const objPage = ["projects", "deployment", "devices", "overview", "analysis", "alarms", "scenes"].includes(U.page),
-    lostPage = objPage && !U.missing && U.p && typeof auAccessLostPage === "function" ? auAccessLostPage(U.p) : "";
-  const body = wsListLoadHtml(U.missing && objPage ? missingPage() : lostPage || (typeof ws3On === "function" && ws3On() ? ws3Page() : pages[U.page]()));
+    lostPage = objPage && !U.missing && U.p && typeof auAccessLostPage === "function" ? auAccessLostPage(U.p) : "",
+    missing = U.missing && objPage,
+    showWs3 = !missing && !lostPage && typeof ws3On === "function" && ws3On();
+  if (!showWs3) U.ws3FloorVisit = null;
+  const body = wsListLoadHtml(missing ? missingPage() : lostPage || (showWs3 ? ws3Page() : pages[U.page]()));
   const app = $("#app"), side = wsSideHtml(), head = wsHeadHtml(), top = wsTopHtml(), main = `${wsPageTabPanel(body)}${isMobile() || lostPage ? "" : rpHandleHtml}${!lostPage && (U.page === "projects" || devCanvas()) && U.spaceInfo && !U.m3 ? projectInformationPanel() : ""}`;
   app.className = shellClass();
   const sideEl = app.querySelector(":scope > #side"), headEl = app.querySelector(":scope > .main .phead"), topEl = app.querySelector(":scope > #wtop"), pbody = $("#pbody");
@@ -46899,13 +46903,13 @@ MOBILE_MQ?.addEventListener?.("change", () => {
   }
   const floor = $('.ws3x[data-pg="space"][data-lv="f"]');
   if (floor) {
-    const narrow = isMobile(), view = floor.querySelector(":scope > .ov3-view");
+    const narrow = isMobile(), view = floor.querySelector(":scope > .ov3-view"), visit = U.ws3FloorVisit;
     // 断点已变更，旧画布仍保留重绘前实际显示的模式。
-    if (view && (narrow || floor.dataset.mob === "plan")) {
+    if (visit && view && (narrow || floor.dataset.mob === "plan")) {
       if (view.classList.contains("ws3-floor-fit")) {
-        U.ws3ViewportMode = { bid: U.b, fid: U.f, role: U.role, mode: view.classList.contains("is2d") ? "2d" : "3d" };
+        visit.mode = view.classList.contains("is2d") ? "2d" : "3d";
       }
-      if (narrow) U.ws3Mob = "plan";
+      if (narrow) visit.showPlan = true;
     }
     render();
   } else if (U.page === "projects" && U.f && !BARE[U.page] && !$("#dlg")?.classList.contains("show")) render();
@@ -51175,7 +51179,7 @@ document.addEventListener("change", async (e) => {
 // 自上而下：提示 → 放弃确认 → 弹出菜单与下拉（含选层菜单、机构菜单）→ 查看图纸 → 弹窗 → 手机侧栏 → 地图信息卡片
 // → 各页面的详情面板（告警详情、参数行、运营后台抽屉，各模块登记）→ 楼层绘制与选中 / 楼宇标记 → 覆盖展开的楼层面板 → 逐层查看 → 楼宇页多选楼层 → 项目信息面板 → 页面临时状态。
 // 每次 Esc 只关闭最上面的一层；楼宇页与目录没有可退出的状态时不重新绘制，焦点留在原控件。
-defineLayer({ name: "tip", level: 90, prevent: true, open: () => !!$("#tip"), close: () => wsHideTip(true) });
+defineLayer({ name: "tip", level: 90, prevent: true, open: () => !!$("#tip"), close: wsDismissTip });
 // 继续编辑：回到离开前的字段与光标位置（actions.keep）。
 defineLayer({ name: "discard", level: 80, modal: "dialog", el: () => $("#discard"), open: () => !!$("#discard"), close: () => actions.keep() });
 // 弹出菜单、下拉清单、选层菜单：关闭后焦点回到打开它的按钮。
@@ -52624,6 +52628,12 @@ boot();
 
 let lastPointer = "mouse";
 let wsTipAnchor = null, wsTipPending = null, wsTipShowTimer = null, wsTipHideTimer = null;
+// Esc 关闭的楼层提示在原控件上保持关闭，直到焦点离开或指针重新进入。
+const wsDismissedFloorTips = new WeakSet();
+function wsDismissTip() {
+  if (wsTipAnchor?.closest(".ov3-fcol")) wsDismissedFloorTips.add(wsTipAnchor);
+  wsHideTip(true);
+}
 function wsHideTip(immediate = false) {
   clearTimeout(wsTipShowTimer);
   clearTimeout(wsTipHideTimer);
@@ -52646,7 +52656,7 @@ function wsHideTip(immediate = false) {
 function wsTipAllowed(el, keyboard) {
   if (!el?.isConnected || !el.dataset.tip || el.closest("[inert]")) return false;
   const floorRail = el.closest(".ov3-fcol");
-  if (floorRail && (ov3FloorTipTimers.has(floorRail.querySelector(".ov3-flist")) || !ov3RailTipVisible(el))) return false;
+  if (floorRail && (wsDismissedFloorTips.has(el) || ov3FloorTipTimers.has(floorRail.querySelector(".ov3-flist")) || !ov3RailTipVisible(el))) return false;
   // 信息面板已打开时，信息按钮不再显示与面板标题重复的提示（Esc 直接关闭面板）。
   if (el.getAttribute("aria-controls") === "wsSpaceInfo" && el.getAttribute("aria-expanded") === "true") return false;
   if (!keyboard && lastPointer === "touch") return false;
@@ -52756,6 +52766,7 @@ document.addEventListener("pointerover", e => {
   const el = e.target.closest("[data-tip]");
   if (e.pointerType === "touch" || !el || el.contains(e.relatedTarget)) return;
   lastPointer = e.pointerType || "mouse";
+  wsDismissedFloorTips.delete(el);
   wsShowTip(el);
 });
 document.addEventListener("pointerout", e => {
@@ -52776,6 +52787,7 @@ document.addEventListener("focusin", e => {
 });
 document.addEventListener("focusout", e => {
   const el = e.target.closest("[data-tip]");
+  wsDismissedFloorTips.delete(el);
   if ((el === wsTipAnchor || el === wsTipPending) && !el?.matches(":hover")) wsHideTip();
 });
 document.addEventListener("pointerdown", (e) => {
@@ -99944,7 +99956,7 @@ function ov3NoPlanMap(b) {
   const pw = ov3Out(b.id) ? "总平面图" : "楼层图",
     card = `<div class="ov3-npcard" role="note"><span><b>${esc(b.name)} 未上传${pw}</b><small>上传${pw}并放置设备后，这里显示平面和 3D；现在只在地图上显示位置。</small></span>${canEdit() ? btn(`上传${pw}`, "ov3CfgUp", { b: b.id }, "primary ov3-npgo") : ""}</div>`;
   if (!U.p) U.p = b.projectId;
-  return ov3MapHtml("p", b.id).replace(/<\/section>$/, `${card}</section>`);
+  return ov3MapHtml("p", { focus: b.id, showScale: true }).replace(/<\/section>$/, `${card}</section>`);
 }
 
 /* ---------- 地图（全部项目、项目） ---------- */
@@ -99967,7 +99979,7 @@ let OVM_PEND = null,
   OVM_LIVE = null;
 // 3.49 V1374：focus 为没有楼层图的楼宇（F栋）时，地图以它为中心，标记用选中样式
 // 3.53 V1418：pinVal(b) 给楼宇标记加数值（数据分析在项目范围时按页签写用电量、碳排放等），返回 { v, off }
-function ov3MapHtml(lv, focus = null, pinVal = null) {
+function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false } = {}) {
   const db = data(),
     pins = [],
     b3 = [];
@@ -100002,8 +100014,9 @@ function ov3MapHtml(lv, focus = null, pinVal = null) {
     .map((m, i) => `<button type="button" class="ovm-pin${m.off ? " off" : ""}${focus && m.bid === focus ? " sel" : ""}"${focus && m.bid === focus ? ' aria-current="true"' : ""} data-act="ov3Go" ${Object.entries(m.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")} data-i="${i}" aria-label="${esc(m.label)}" data-tip="${esc(m.name)}"><span class="ovm-pin-n">${esc(m.name)}${m.val ? `<b class="ovm-pin-v">${esc(m.val)}</b>` : ""}</span><svg class="ovm-pin-ic" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29s10-9.2 10-17A10 10 0 0 0 2 12c0 7.8 10 17 10 17z"/><circle cx="12" cy="12" r="4"/></svg>${m.due ? ov3Dot(m.due.lvl, "ovm-pin-dot") : ""}</button>`)
     .join("");
   const sat = !!U.ov3Sat,
-    layerLabel = sat ? "切换到标准地图（当前为卫星地图）" : "切换到卫星地图（当前为标准地图）";
-  return `<section class="ov3-view ov3-map" aria-label="${esc(name)} 地图"><div class="ovm" id="ovmHost" data-key="${esc(key)}"><canvas class="ovm-cv" tabindex="0" role="img" aria-label="${esc(name)} 地图：拖动平移，右键或按住 Ctrl 拖动旋转与倾斜，滚轮缩放"></canvas><div class="ovm-pins">${pinHtml}</div><div class="ovm-scale" role="img" hidden><span class="ovm-scale-label"></span><span class="ovm-scale-bar" aria-hidden="true"></span></div><div class="ovm-attr">${sat && PACOM_MAP.provider === "osm" ? "影像 © Esri" : MAP_ATTRIBUTION()}</div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb(layerLabel, sat ? "satellite" : "map", "ov3MapLayer", { "data-tip": sat ? "标准地图" : "卫星视图" })}</div><div class="ov3-cg">${ov3Cb("回正北", "north", "ov3MapNorth", {}, "", "ovm-compass")}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3MapLoc")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3MapZoom", { "data-k": "2" })}${ov3Cb("缩小", "minus", "ov3MapZoom", { "data-k": "0.5" })}</div></div></section>`;
+    layerLabel = sat ? "切换到标准地图（当前为卫星地图）" : "切换到卫星地图（当前为标准地图）",
+    scale = showScale ? '<div class="ovm-scale" role="img" hidden><span class="ovm-scale-label"></span><span class="ovm-scale-bar" aria-hidden="true"></span></div>' : "";
+  return `<section class="ov3-view ov3-map" aria-label="${esc(name)} 地图"><div class="ovm" id="ovmHost" data-key="${esc(key)}"><canvas class="ovm-cv" tabindex="0" role="img" aria-label="${esc(name)} 地图：拖动平移，右键或按住 Ctrl 拖动旋转与倾斜，滚轮缩放"></canvas><div class="ovm-pins">${pinHtml}</div>${scale}<div class="ovm-attr">${sat && PACOM_MAP.provider === "osm" ? "影像 © Esri" : MAP_ATTRIBUTION()}</div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb(layerLabel, sat ? "satellite" : "map", "ov3MapLayer", { "data-tip": sat ? "标准地图" : "卫星视图" })}</div><div class="ov3-cg">${ov3Cb("回正北", "north", "ov3MapNorth", {}, "", "ovm-compass")}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3MapLoc")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3MapZoom", { "data-k": "2" })}${ov3Cb("缩小", "minus", "ov3MapZoom", { "data-k": "0.5" })}</div></div></section>`;
 }
 // 3.62（HONG 2026-11-11 09:35Z、09:38Z 按 Vision 09:30Z）：复位与放大之间一条分隔线，把“复位”和“缩放”分开
 const OV3_CSEP = '<i class="ov3-csep" aria-hidden="true"></i>';
@@ -100675,7 +100688,7 @@ function ov3RailTipScroll(list) {
     ov3FloorTipTimers.delete(list);
     if (!list.isConnected) return;
     const hovered = lastPointer !== "touch" && rail.querySelector("button[data-tip]:hover");
-    if (hovered && ov3RailTipVisible(hovered)) wsShowTip(hovered);
+    if (hovered && !wsDismissedFloorTips.has(hovered) && ov3RailTipVisible(hovered)) wsShowTip(hovered);
     else {
       const focused = document.activeElement;
       if (rail.contains(focused) && focused.matches("button[data-tip]:focus-visible") && ov3RailTipVisible(focused)) wsShowTip(focused, true);
@@ -100702,7 +100715,8 @@ function ov3RailTipLayoutChange() {
     rail = list?.parentElement?.parentElement,
     focused = document.activeElement;
   if (!list?.isConnected || !rail) return;
-  if (rail.contains(wsTipAnchor) || rail.contains(wsTipPending) || ov3FloorTipTimers.has(list) || (rail.contains(focused) && focused.matches(":focus-visible"))) ov3RailTipScroll(list);
+  const focusTip = rail.contains(focused) && focused.matches(":focus-visible") && !wsDismissedFloorTips.has(focused);
+  if (rail.contains(wsTipAnchor) || rail.contains(wsTipPending) || ov3FloorTipTimers.has(list) || focusTip) ov3RailTipScroll(list);
 }
 function ov3RailOuterScroll(event) {
   const list = ov3ObservedRail,
@@ -101090,11 +101104,20 @@ function ws3Zones(sc) {
   });
 }
 const ws3Fid = (z) => g("zones", z.id)?.floorId || null;
+function ws3SyncFloorVisit(pg, sc) {
+  if (pg !== "space" || !sc.fid) {
+    U.ws3FloorVisit = null;
+    return;
+  }
+  const visit = U.ws3FloorVisit, owner = locOwner();
+  if (visit?.bid === sc.bid && visit.fid === sc.fid && visit.role === U.role && visit.owner === owner) return;
+  U.ws3FloorVisit = { bid: sc.bid, fid: sc.fid, role: U.role, owner };
+}
 const ws3Mode = (bid) => {
   ws3Pref();
   if (U.ov3M?.[bid]) return U.ov3M[bid];
-  const viewport = U.ws3ViewportMode;
-  if (viewport && viewport.bid === bid && viewport.fid === U.f && viewport.role === U.role && ws3Pg() === "space") return viewport.mode;
+  const visit = U.ws3FloorVisit;
+  if (visit?.mode && visit.bid === bid && visit.fid === U.f && ws3Pg() === "space") return visit.mode;
   return isMobile() ? "2d" : "3d";
 };
 
@@ -101599,7 +101622,7 @@ function ws3Canvas(sc, o) {
 }
 // 项目范围：右侧与项目总览同一地图（点楼宇进入本页的该楼宇）
 function ws3Map(sc, pinVal = null) {
-  return ov3MapHtml("p", null, pinVal).replace(/data-act="ov3Go"/g, 'data-act="ws3Go"');
+  return ov3MapHtml("p", { pinVal, showScale: true }).replace(/data-act="ov3Go"/g, 'data-act="ws3Go"');
 }
 // 点画面：功能区 → 列表滚到该行并选中；设备点 → 设备页选中这台；楼层（全部时）→ 进入该层
 function ws3Pick(h) {
@@ -102466,9 +102489,11 @@ function ws3Page() {
   ws3Remember();
   opsReset();
   const pg = ws3Pg(),
-    sc = ws3Scope(),
+    sc = ws3Scope();
+  ws3SyncFloorVisit(pg, sc);
+  const on = ws3MobMode(pg),
     r = { space: ws3Space, alarms: ws3Alarms, scenes: ws3Scenes, analysis: ws3Analysis, devices: ws3Devices, settings: ws3Settings }[pg](sc);
-  return `<div class="ov3x ws3x" data-pg="${pg}" data-lv="${sc.lv}"${U.ws3Mob === "plan" ? ' data-mob="plan"' : ""}>${ws3MobBar(sc)}${r.panel}${r.canvas}${r.drawer || ""}</div>`;
+  return `<div class="ov3x ws3x" data-pg="${pg}" data-lv="${sc.lv}"${on === "plan" ? ' data-mob="plan"' : ""}>${ws3MobBar(sc, on)}${r.panel}${r.canvas}${r.drawer || ""}</div>`;
 }
 // 3.49 V1370（方案第 33 项）：普通成员“我的区域”右侧加平面图：授权的功能区按有人、无人着色，其余灰色不可点；
 // 功能区都在同一个有楼层图、接入运行数据的楼层时才有；手机为“列表 | 平面图”
@@ -102501,12 +102526,15 @@ function ws3MemPick(h) {
 function ws3MemMob(on, lead = "") {
   return isMobile() ? `<div class="ws3-mob ws3-memmob"><span class="ws3-memloc">${lead}</span><div class="seg sm ws3-mob-seg" role="group" aria-label="显示">${[["list", "列表"], ["plan", "楼层图"]].map(([k, l]) => `<button type="button" class="${on === k ? "on" : ""}" aria-pressed="${on === k}" data-act="ws3MemSw" data-value="${k}">${l}</button>`).join("")}</div></div>` : "";
 }
-// 手机：列表 / 平面图上下切换（默认列表），范围选择在左（第 34 项）
-function ws3MobBar(sc) {
+// 窄屏默认列表。主动选择按页面记忆，旋转只为当前独立楼层保留画布。
+function ws3MobMode(pg) {
+  if (pg === "space" && U.ws3FloorVisit?.showPlan) return "plan";
+  return U.ws3MobByPage?.[pg] || "list";
+}
+function ws3MobBar(sc, on) {
   if (!isMobile()) return "";
   const f = sc.fid ? g("floors", sc.fid) : null,
-    b = sc.bid ? g("buildings", sc.bid) : null,
-    on = U.ws3Mob === "plan" ? "plan" : "list";
+    b = sc.bid ? g("buildings", sc.bid) : null;
   return `<div class="ws3-mob"><button type="button" class="ws3-mob-loc" data-act="ws3MobLoc" aria-haspopup="menu" aria-expanded="false"><span>${esc([b?.name, f?.name || (b ? "全部楼层" : "")].filter(Boolean).join(" · ") || g("projects", sc.pid)?.name || "")}</span>${ico("chevron", "ic16 ws3-mob-arr")}</button><div class="seg sm ws3-mob-seg" role="group" aria-label="显示">${[["list", "列表"], ["plan", "楼层图"]].map(([k, l]) => `<button type="button" class="${on === k ? "on" : ""}" aria-pressed="${on === k}" data-act="ws3MobSw" data-value="${k}">${l}</button>`).join("")}</div></div>`;
 }
 // 整宽列表时页头右侧“显示平面图”（第 30 项）
@@ -102963,7 +102991,9 @@ defineActions({
     render();
   },
   ws3MobSw: (a) => {
-    U.ws3Mob = a.value;
+    const pg = ws3Pg();
+    if (pg === "space" && U.ws3FloorVisit) U.ws3FloorVisit.showPlan = false;
+    (U.ws3MobByPage ||= {})[pg] = a.value === "plan" ? "plan" : "list";
     render();
   },
   // 去部署（空状态，第 28 项）
