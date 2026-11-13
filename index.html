@@ -37107,7 +37107,8 @@ img.img-off { display: none !important; }
   }
 }
 .ov3-ctl > .ov3-cg:has(> .ov3-csep) { gap: 2px; }
-@media (max-width: 850px), (pointer: coarse) {
+/* 主指针为鼠标时，支持触控的设备仍保留完整点按区。 */
+@media (max-width: 850px), (any-pointer: coarse) {
   .ov3-ctl { gap: 12px; }
   .ov3-ctl .ov3-cb { position: relative; }
   .ov3-ctl .ov3-cb::after { content: ""; position: absolute; inset: -6px; }
@@ -47007,6 +47008,7 @@ const buildingCountText = (list) => {
   const out = list.filter((o) => o.kind === "outdoor").length, n = list.length - out;
   return [n || !out ? `${n} 栋楼宇` : "", out ? `${out} 个室外区域` : ""].filter(Boolean).join("、");
 };
+const mapLocationKey = ({ lat, lng }) => `${(+lat).toFixed(6)},${(+lng).toFixed(6)}`;
 // 楼层计数（第 8 步 F2d）：室外区域的总平面不称“楼层”，另计“N 个总平面”（部署范围弹窗、保存提示、配置进度与检查清单共用）。
 function floorCountText(ids, db = data()) {
   const out = ids.filter((id) => M.building(db, M.floor(db, id)?.buildingId)?.kind === "outdoor").length, n = ids.length - out;
@@ -51928,7 +51930,7 @@ function initListMap() {
   listMap.on("click", hide);
   const groups = new Map();
   for (const o of ls) {
-    const key = `${(+o.location.lat).toFixed(6)},${(+o.location.lng).toFixed(6)}`;
+    const key = mapLocationKey(o.location);
     groups.set(key, [...(groups.get(key) || []), o]);
   }
   for (const group of groups.values()) {
@@ -99865,7 +99867,7 @@ function ov3Page() {
   // 新机构的“开始使用”清单（3.42 账户第 275 条）放在面板标题下
   const start = typeof ovStartCard === "function" ? ovStartCard() : "",
     panel = start ? ov3Panel(lv).replace(/<\/h1>([\s\S]*?)<\/div>/, (m) => `${m}<div class="ov3-sec ov3-start">${start}</div>`) : ov3Panel(lv);
-  return `<div class="ov3x" data-lv="${lv}">${panel}${lv === "b" ? ov3Bldg() : ov3MapHtml(lv)}</div>`;
+  return `<div class="ov3x" data-lv="${lv}">${panel}${lv === "b" ? ov3Bldg() : ov3MapHtml(lv, { groupBuildings: lv === "p" })}</div>`;
 }
 // 3.52 菜单与页签方案：首页的项目、楼宇为“概况 | 信息”两个页签（取代 3.47 的信息子页）；信息只显示，编辑在 系统部署 › 项目配置
 const ov3Tabs = (cur) => `<div class="ov3-tabsec">${ws3Tabs([["summary", "概况"], ["info", "信息"]], cur, "ovOtab").replace(/data-tab=/g, "data-value=")}</div>`;
@@ -99977,9 +99979,29 @@ const ov3Loc = (o, p = null) => {
 };
 let OVM_PEND = null,
   OVM_LIVE = null;
+function ov3GroupBuildingPins(pins) {
+  const groups = new Map();
+  for (const pin of pins) {
+    const key = mapLocationKey(pin);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(pin);
+  }
+  return [...groups.values()].map((members) => {
+    const [first] = members;
+    if (members.length === 1) return first;
+    const name = buildingCountText(members),
+      due = members.reduce((d, m) => m.due ? { n: d.n + m.due.n, lvl: Math.min(d.lvl, m.due.lvl) } : d, { n: 0, lvl: 2 });
+    return { lat: first.lat, lng: first.lng, name, members, label: `同一位置的${name}${due.n ? `，${due.n} 项待处理` : ""}：展开列表`, due: due.n ? due : null };
+  });
+}
+function ov3PinHtml(m, i, focus) {
+  const selected = focus && m.bid === focus,
+    action = m.members ? 'data-act="ov3MapGroup" aria-haspopup="menu" aria-expanded="false"' : `data-act="ov3Go" ${Object.entries(m.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")} data-tip="${esc(m.name)}"`;
+  return `<button type="button" class="ovm-pin${m.off ? " off" : ""}${selected ? " sel" : ""}"${selected ? ' aria-current="true"' : ""} ${action} data-i="${i}" aria-label="${esc(m.label)}"><span class="ovm-pin-n">${esc(m.name)}${m.val ? `<b class="ovm-pin-v">${esc(m.val)}</b>` : ""}</span><svg class="ovm-pin-ic" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29s10-9.2 10-17A10 10 0 0 0 2 12c0 7.8 10 17 10 17z"/><circle cx="12" cy="12" r="4"/></svg>${m.due ? ov3Dot(m.due.lvl, "ovm-pin-dot") : ""}</button>`;
+}
 // 3.49 V1374：focus 为没有楼层图的楼宇（F栋）时，地图以它为中心，标记用选中样式
 // 3.53 V1418：pinVal(b) 给楼宇标记加数值（数据分析在项目范围时按页签写用电量、碳排放等），返回 { v, off }
-function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false } = {}) {
+function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false, groupBuildings = false } = {}) {
   const db = data(),
     pins = [],
     b3 = [];
@@ -99998,7 +100020,7 @@ function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false } = {})
       if (!l) continue;
       const due = ov3Due(p.id, b.id);
       const pv = pinVal ? pinVal(b) : null;
-      pins.push({ ...l, name: b.name, args: { p: p.id, b: b.id }, label: `${b.name}${pv ? ` ${pv.v}` : ""}${due ? `，${due.n} 项待处理` : ""}：打开${ov3Out(b.id) ? "室外区域" : "楼宇"}${pinVal ? "" : "总览"}`, bid: b.id, due, val: pv?.v || "", off: !!pv?.off });
+      pins.push({ ...l, name: b.name, kind: b.kind, args: { p: p.id, b: b.id }, label: `${b.name}${pv ? ` ${pv.v}` : ""}${due ? `，${due.n} 项待处理` : ""}：打开${ov3Out(b.id) ? "室外区域" : "楼宇"}${pinVal ? "" : "总览"}`, bid: b.id, due, val: pv?.v || "", off: !!pv?.off });
       // 有 3D 的楼宇在原位立起自己的模型（与 空间 › 3D 同一个模型）；没有 3D 的只显示标记
       if (typeof s3Has === "function" && s3Has(b.id)) {
         const S = s3Scene(b.id, {}),
@@ -100008,11 +100030,10 @@ function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false } = {})
     }
   }
   const key = lv === "all" ? "all" : "p:" + U.p + (focus ? ":" + focus : ""),
-    name = lv === "all" ? "全部项目" : g("projects", U.p)?.name || "";
-  OVM_PEND = { key, pins, b3, focus };
-  const pinHtml = pins
-    .map((m, i) => `<button type="button" class="ovm-pin${m.off ? " off" : ""}${focus && m.bid === focus ? " sel" : ""}"${focus && m.bid === focus ? ' aria-current="true"' : ""} data-act="ov3Go" ${Object.entries(m.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")} data-i="${i}" aria-label="${esc(m.label)}" data-tip="${esc(m.name)}"><span class="ovm-pin-n">${esc(m.name)}${m.val ? `<b class="ovm-pin-v">${esc(m.val)}</b>` : ""}</span><svg class="ovm-pin-ic" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29s10-9.2 10-17A10 10 0 0 0 2 12c0 7.8 10 17 10 17z"/><circle cx="12" cy="12" r="4"/></svg>${m.due ? ov3Dot(m.due.lvl, "ovm-pin-dot") : ""}</button>`)
-    .join("");
+    name = lv === "all" ? "全部项目" : g("projects", U.p)?.name || "",
+    markers = groupBuildings ? ov3GroupBuildingPins(pins) : pins;
+  OVM_PEND = { key, pins: markers, b3, focus };
+  const pinHtml = markers.map((m, i) => ov3PinHtml(m, i, focus)).join("");
   const sat = !!U.ov3Sat,
     layerLabel = sat ? "切换到标准地图（当前为卫星地图）" : "切换到卫星地图（当前为标准地图）",
     scale = showScale ? '<div class="ovm-scale" role="img" hidden><span class="ovm-scale-label"></span><span class="ovm-scale-bar" aria-hidden="true"></span></div>' : "";
@@ -100149,7 +100170,7 @@ const OVM = (() => {
       right = Math.max(right, x);
       vertical.push([dx * sa + dy * ca, Z]);
     };
-    for (const m of st.pins) add(wx(m.lng), wy(m.lat));
+    for (const m of st.pins) for (const pin of m.members || [m]) add(wx(pin.lng), wy(pin.lat));
     for (const b of st.b3) {
       const w = bWorld(b), P = bProjection(b, w, add),
         { foot, floors } = b.S,
@@ -100281,7 +100302,8 @@ const OVM = (() => {
     st.pinEls.forEach((el, i) => {
       const m = st.pins[i];
       if (!m || !el) return;
-      const q = P(wx(m.lng), wy(m.lat), tops.get(m.bid) || 0),
+      const roof = m.members ? Math.max(0, ...m.members.map((pin) => tops.get(pin.bid) || 0)) : tops.get(m.bid) || 0,
+        q = P(wx(m.lng), wy(m.lat), roof),
         off = q[0] < -40 || q[0] > W + 40 || q[1] < -10 || q[1] > H + 60;
       el.style.setProperty("--x", Math.round(q[0]) + "px");
       el.style.setProperty("--y", Math.round(q[1]) + "px");
@@ -100330,7 +100352,11 @@ const OVM = (() => {
     const ptrs = new Map();
     let drag = null;
     const W = () => cv.clientWidth,
-      H = () => cv.clientHeight;
+      H = () => cv.clientHeight,
+      closeGroup = () => {
+        const anchor = $("#pop")?.anchor;
+        if (anchor?.dataset.act === "ov3MapGroup" && host.contains(anchor)) closePop();
+      };
     function pan(dx, dy) {
       const v = st.v || view(st, W(), H()),
         c = st.cam,
@@ -100351,6 +100377,7 @@ const OVM = (() => {
       c.cy += before[1] - after[1];
     }
     cv.addEventListener("pointerdown", (e) => {
+      closeGroup();
       cv.setPointerCapture?.(e.pointerId);
       ptrs.set(e.pointerId, pos(e));
       drag = { last: pos(e), moved: 0, rot: e.button === 2 || e.ctrlKey || e.metaKey || e.shiftKey, pinch: null };
@@ -100409,6 +100436,7 @@ const OVM = (() => {
     cv.addEventListener(
       "wheel",
       (e) => {
+        closeGroup();
         e.preventDefault();
         zoomAt(Math.exp(-e.deltaY * 0.0015), pos(e));
         st.redraw();
@@ -100796,6 +100824,17 @@ defineActions({
   ov3Go: (a) => {
     closePop();
     route("overview", { p: a.p || null, b: a.b || null, f: null, tab: "" });
+  },
+  ov3MapGroup: (a, el) => {
+    if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
+    const group = OVM_LIVE?.host.contains(el) ? OVM_LIVE.api.st.pins[Number(a.i)] : null;
+    if (!group?.members) return;
+    const rows = group.members.map((m) => {
+      const kind = m.kind === "outdoor" ? "室外区域" : "楼宇";
+      const detail = m.due ? `${kind} · 待处理 ${m.due.n} 项` : kind;
+      return `<button type="button" class="popitem ov3-ei" role="menuitem" data-act="ov3Go" data-p="${esc(m.args.p)}" data-b="${esc(m.args.b)}"><span><b>${esc(m.name)}</b><small>${esc(detail)}</small></span>${ico("chevron", "ic16 ov3-chev")}</button>`;
+    }).join("");
+    pop(el, menuBox(`同一位置 · ${group.name}`, rows));
   },
   ov3MapLayer: (_, el) => {
     const focused = document.activeElement === el;
@@ -102532,7 +102571,7 @@ function ws3MobMode(pg) {
   return U.ws3MobByPage?.[pg] || "list";
 }
 function ws3MobBar(sc, on) {
-  if (!isMobile()) return "";
+  // 与列表和画布共用响应式断点，窗口旋转时直接显示原有切换栏。
   const f = sc.fid ? g("floors", sc.fid) : null,
     b = sc.bid ? g("buildings", sc.bid) : null;
   return `<div class="ws3-mob"><button type="button" class="ws3-mob-loc" data-act="ws3MobLoc" aria-haspopup="menu" aria-expanded="false"><span>${esc([b?.name, f?.name || (b ? "全部楼层" : "")].filter(Boolean).join(" · ") || g("projects", sc.pid)?.name || "")}</span>${ico("chevron", "ic16 ws3-mob-arr")}</button><div class="seg sm ws3-mob-seg" role="group" aria-label="显示">${[["list", "列表"], ["plan", "楼层图"]].map(([k, l]) => `<button type="button" class="${on === k ? "on" : ""}" aria-pressed="${on === k}" data-act="ws3MobSw" data-value="${k}">${l}</button>`).join("")}</div></div>`;
