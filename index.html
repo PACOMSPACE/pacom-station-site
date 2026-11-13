@@ -36911,6 +36911,87 @@ img.img-off { display: none !important; }
 /* V1458：地图标点名称 12/18（站内最小字号的行高） */
 .ovm-pin-n { line-height: 18px; margin-bottom: -2px; } /* 标点总高仍为 44（名称 18 压住水滴顶端 2） */
 .ovm-pin.sel .ovm-pin-n { margin-bottom: 0; }
+
+/* 首页图钉保持固定的点击范围和落点，标签单独排布。 */
+.ovm[data-home-map] .ovm-pin {
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  justify-content: flex-end;
+  border-radius: 8px;
+  touch-action: manipulation;
+}
+.ovm[data-home-map] .ovm-pin-ic {
+  display: block;
+  flex: none;
+  width: 24px;
+  height: 30px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.22));
+}
+.ovm[data-home-map] .ovm-pin-ic > path {
+  fill: #232e32;
+  stroke: #fff;
+  stroke-width: 1.5px;
+  stroke-linejoin: round;
+}
+.ovm[data-home-map] .ovm-pin-n {
+  position: absolute;
+  left: 50%;
+  bottom: 34px;
+  width: max-content;
+  max-width: min(160px, calc(100cqi - 16px));
+  overflow: hidden;
+  margin: 0;
+  padding: 0 4px;
+  transform: translateX(-50%);
+  color: #030303;
+  font-size: 13px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  -webkit-text-stroke: 2px #fff;
+  paint-order: stroke fill;
+  text-shadow: none;
+}
+.ovm[data-home-map][data-satellite] .ovm-pin-n {
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-text-stroke: 0;
+}
+.ovm[data-home-map] .ovm-pin[data-label-hidden] .ovm-pin-n,
+.ovm[data-home-map] .ovm-pin[data-pin-occluded] { visibility: hidden; }
+.ovm[data-home-map] .ovm-pin[data-pin-active] { z-index: 1; }
+.ovm[data-home-map] .ovm-pin[data-pin-active] .ovm-pin-ic > path { fill: #030303; }
+.ovm[data-home-map] .ovm-pin:focus-visible { z-index: 1; outline: 2px solid #00aeef; box-shadow: 0 0 0 3px #fff; }
+.ovm[data-home-map] .ovm-pin:focus-visible .ovm-pin-ic { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.22)); }
+
+.ovm[data-home-map] > .ovm-summary {
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  width: 240px;
+  max-width: calc(100% - 16px);
+  max-height: calc(100% - 16px);
+  overflow: auto;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: var(--floating-sm);
+  overflow-wrap: anywhere;
+}
+.ovm-summary-title {
+  display: block;
+  margin: 0;
+  color: #030303;
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 500;
+}
+.ovm-summary-meta {
+  margin: 4px 0 0;
+  color: #636363;
+  font-size: 12px;
+  line-height: 18px;
+}
+.ovm-summary-action { width: 100%; min-height: 44px; margin-top: 8px; }
 /* V1459：手机数据分析的期间与“⋯”放在顶栏右端（与“+”同位置），页头不另占一行；首页楼层“执行场景”为顶栏右端的播放图标按钮（.ws3-runmob，沿用 V1447 的主按钮规则） */
 @media (max-width: 850px) {
   .ws3-panel > .ws3-head > .ws3-hr:has(> .ws3-per) { position: fixed; top: 8px; right: 12px; z-index: 40; display: flex; align-items: center; gap: 4px; margin: 0; }
@@ -99835,10 +99916,9 @@ function ov3Panel(lv) {
       live = ov3Live(),
       area = ov3Area(ps.flatMap((p) => ov3Blds(p.id))),
       rows = ps.map((p) => {
-        const n = ov3Blds(p.id).length,
-          al = typeof wsAlarmCount === "function" ? wsAlarmCount(p.id) : null,
+        const al = typeof wsAlarmCount === "function" ? wsAlarmCount(p.id) : null,
           on = ov3ProjLive(p.id, live);
-        return `<li><button type="button" class="ov3-prow" data-act="ov3Go" data-p="${esc(p.id)}"><span class="ov3-prow-t"><b>${esc(p.name)}</b><small>${esc([String(p.city || "").replace(/市$/, ""), p.usage, n ? `${n} 栋楼宇` : "未添加楼宇"].filter(Boolean).join(" · "))}${al ? `<em class="ov3-due">${ov3Dot(al.lvl)}待处理 ${al.n} 项</em>` : ""}</small></span><span class="ov3-pill${on ? " on" : ""}">${on ? "已接入" : "未接入"}</span></button></li>`;
+        return `<li><button type="button" class="ov3-prow" data-act="ov3Go" data-p="${esc(p.id)}"><span class="ov3-prow-t"><b>${esc(p.name)}</b><small>${esc(ov3ProjectPinMeta(p))}${al ? `<em class="ov3-due">${ov3Dot(al.lvl)}待处理 ${al.n} 项</em>` : ""}</small></span><span class="ov3-pill${on ? " on" : ""}">${on ? "已接入" : "未接入"}</span></button></li>`;
       });
     return `<aside class="ov3-panel" aria-labelledby="ov3T">${head("首页").replace('class="ov3-t"', 'class="ov3-t" id="ov3T"')}<div class="ov3-sec ov3-stats">${ov3Stat("building-2", "项目", ov3Num(ps.length), "个")}${ov3Stat("floor-plan", "建筑面积", area == null ? "—" : ov3Num(area, 1), area == null ? "" : "m²", area == null ? "" : ov3AreaNote(ps.flatMap((p) => ov3Blds(p.id))))}</div><ul class="ov3-plist" aria-label="项目">${rows.join("")}</ul></aside>`;
   }
@@ -100055,6 +100135,19 @@ const ov3Loc = (o, p = null) => {
 };
 let OVM_PEND = null,
   OVM_LIVE = null;
+function ov3ProjectPinMeta(p) {
+  const n = ov3Blds(p.id).length;
+  return [String(p.city || "").replace(/市$/, ""), p.usage, n ? `${n} 栋楼宇` : "未添加楼宇"].filter(Boolean).join(" · ");
+}
+function ov3BuildingPinMeta(b) {
+  const stack = F.floorStack(data(), b.id), plans = stack.some(({ f }) => f.image);
+  if (b.kind === "outdoor") return ["室外区域", !plans && "未上传总平面图"].filter(Boolean).join(" · ");
+  return [ov3Lvls(b), plans ? `${ov3Num(ov3Devs(b, stack))} 台设备` : "未上传楼层图"].filter(Boolean).join(" · ");
+}
+function ov3MapGroupLabel(members, nearby = false) {
+  const name = members.every((pin) => !pin.args?.b) ? `${members.length} 个项目` : buildingCountText(members);
+  return { name, nearby, label: `${nearby ? "相近位置" : "同一位置"}的${name}：展开列表` };
+}
 function ov3GroupBuildingPins(pins) {
   const groups = new Map();
   for (const pin of pins) {
@@ -100065,14 +100158,230 @@ function ov3GroupBuildingPins(pins) {
   return [...groups.values()].map((members) => {
     const [first] = members;
     if (members.length === 1) return first;
-    const name = buildingCountText(members);
-    return { lat: first.lat, lng: first.lng, name, members, label: `同一位置的${name}：展开列表` };
+    return { lat: first.lat, lng: first.lng, members, ...ov3MapGroupLabel(members) };
   });
 }
-function ov3PinHtml(m, i, focus) {
+function ov3PinHtml(m, i, focus, homeMap = false) {
   const selected = focus && m.bid === focus,
-    action = m.members ? 'data-act="ov3MapGroup" aria-haspopup="menu" aria-expanded="false"' : `data-act="ov3Go" ${Object.entries(m.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")} data-tip="${esc(m.name)}"`;
-  return `<button type="button" class="ovm-pin${m.off ? " off" : ""}${selected ? " sel" : ""}"${selected ? ' aria-current="true"' : ""} ${action} data-i="${i}" aria-label="${esc(m.label)}"><span class="ovm-pin-n">${esc(m.name)}${m.val ? `<b class="ovm-pin-v">${esc(m.val)}</b>` : ""}</span><svg class="ovm-pin-ic" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29s10-9.2 10-17A10 10 0 0 0 2 12c0 7.8 10 17 10 17z"/><circle cx="12" cy="12" r="4"/></svg>${m.due ? ov3Dot(m.due.lvl, "ovm-pin-dot") : ""}</button>`;
+    action = m.members ? 'data-act="ov3MapGroup" aria-haspopup="menu" aria-expanded="false"' : `data-act="ov3Go" ${Object.entries(m.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")}${homeMap ? "" : ` data-tip="${esc(m.name)}"`}`;
+  return `<button type="button" class="ovm-pin${m.off ? " off" : ""}${selected ? " sel" : ""}"${selected ? ' aria-current="true"' : ""} ${action} data-i="${i}" aria-label="${esc(m.label)}"><span class="ovm-pin-n">${esc(m.name)}${m.val ? `<b class="ovm-pin-v">${esc(m.val)}</b>` : ""}</span><svg class="ovm-pin-ic" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29s10-9.2 10-17A10 10 0 0 0 2 12c0 7.8 10 17 10 17z"/><circle cx="12" cy="12" r="${homeMap ? 3.5 : 4}"/></svg>${m.due ? ov3Dot(m.due.lvl, "ovm-pin-dot") : ""}</button>`;
+}
+function ov3HomePinLayout(points, width, height) {
+  const layout = points.map(({ x, y }) => ({
+    x, y, hit: [x - 22, y - 44], labelHidden: true,
+    covered: x < 22 || x > width - 22 || y < 44 || y > height,
+  }));
+  const leaders = [], cells = new Map();
+  const intersects = (a, b) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];
+  const hits = layout.map(({ hit: [left, top] }) => [left, top, left + 44, top + 44]);
+  for (const [i, current] of layout.entries()) {
+    if (current.covered) continue;
+    const col = Math.floor(current.x / 44), row = Math.floor(current.y / 44);
+    let leader;
+    for (let dy = -1; dy <= 1 && leader == null; dy++)
+      for (let dx = -1; dx <= 1 && leader == null; dx++) {
+        const other = cells.get(`${col + dx}:${row + dy}`);
+        if (other != null && intersects(hits[i], hits[other])) leader = other;
+      }
+    if (leader != null) {
+      const previous = layout[leader], pin = points[leader].pin, next = points[i].pin,
+        members = [...(previous.group?.members || pin.members || [pin]), ...(next.members || [next])];
+      previous.group = { members, ...ov3MapGroupLabel(members, true) };
+      current.covered = true;
+    } else {
+      leaders.push(i);
+      cells.set(`${col}:${row}`, i);
+    }
+  }
+  const labels = [];
+  for (const i of leaders.slice().sort((a, b) => (points[b].priority || 0) - (points[a].priority || 0))) {
+    const current = layout[i], { x, y } = current,
+      w = current.group ? Math.min(160, current.group.name.length * 13 + 8) : points[i].labelWidth,
+      box = [x - w / 2 - 2, y - 54, x + w / 2 + 2, y - 32];
+    if (box[0] < 0 || box[2] > width || box[1] < 0 ||
+        leaders.some((j) => j !== i && intersects(box, hits[j])) || labels.some((label) => intersects(box, label))) continue;
+    current.labelHidden = false;
+    labels.push(box);
+  }
+  return layout;
+}
+function ov3PinActivation(e, pointer) {
+  return e.detail !== 0 && ["touch", "pen"].includes(e.pointerType || pointer) ? "summary" : "enter";
+}
+function ov3SummaryPlacement(anchor, bounds, width, height, obstacles) {
+  const gap = 8, [left, top, right, bottom] = bounds;
+  const limit = (value, min, max) => Math.max(min, Math.min(value, max));
+  const x = limit((anchor.left + anchor.right - width) / 2, left, right - width);
+  const y = limit((anchor.top + anchor.bottom - height) / 2, top, bottom - height);
+  const candidates = [
+    [anchor.right + gap, y, height],
+    [anchor.left - gap - width, y, height],
+    [x, anchor.top - gap - height, height],
+    [x, anchor.bottom + gap, height],
+  ];
+  const fits = ([x, y, h]) => h > 0 && x >= left && x + width <= right && y >= top && y + h <= bottom &&
+    !obstacles.some((r) => x < r.right && x + width > r.left && y < r.bottom && y + h > r.top);
+  const full = candidates.find(fits);
+  if (full) return full;
+  // When the page shows only part of the map, let the summary scroll in the larger adjacent space.
+  const above = Math.min(height, anchor.top - gap - top), below = Math.min(height, bottom - anchor.bottom - gap);
+  return [[x, anchor.top - gap - above, above], [x, anchor.bottom + gap, below]]
+    .sort((a, b) => b[2] - a[2]).find((rect) => rect[2] >= 64 && fits(rect));
+}
+function ov3MapSummary(host, st) {
+  const listeners = new AbortController(), signal = listeners.signal,
+    map = host.closest(".ov3-map");
+  let current = null, pending = null, dismissed = null, showTimer, hideTimer, pointer = "";
+  const pinAt = (el) => el?.closest?.(".ovm-pin[data-act=ov3Go]");
+  const lookup = (el) => {
+    const index = Number(el.dataset.i);
+    return el.isConnected && !el.hidden && !st.pinGroups.has(index) ? st.pins[index] : null;
+  };
+  function close() {
+    clearTimeout(showTimer);
+    clearTimeout(hideTimer);
+    pending = null;
+    if (!current) return;
+    const { anchor, card } = current;
+    current = null;
+    anchor.removeAttribute("aria-describedby");
+    anchor.removeAttribute("aria-expanded");
+    anchor.removeAttribute("aria-controls");
+    anchor.removeAttribute("data-pin-active");
+    card.remove();
+    st.redraw();
+  }
+  function place(reveal = false) {
+    if (!current) return false;
+    const { anchor, card } = current, rect = anchor.getBoundingClientRect(),
+      base = host.getBoundingClientRect(), vv = window.visualViewport,
+      topBar = $("#wtop")?.getBoundingClientRect(), bottomBar = $(".ov-tabbar")?.getBoundingClientRect(),
+      vLeft = vv?.offsetLeft || 0, vTop = vv?.offsetTop || 0,
+      top = Math.max(base.top, vTop, topBar?.height ? topBar.bottom : vTop),
+      bottom = Math.min(base.bottom, vTop + (vv?.height ?? innerHeight), bottomBar?.height ? bottomBar.top : Infinity),
+      left = Math.max(base.left, vLeft), right = Math.min(base.right, vLeft + (vv?.width ?? innerWidth)),
+      visibleLabel = !anchor.hasAttribute("data-label-hidden") && anchor.querySelector(".ovm-pin-n")?.getBoundingClientRect();
+    if (!lookup(anchor) || anchor.closest("[inert]") ||
+        rect.left < left || rect.right > right ||
+        !anchor.contains(document.elementsFromPoint(rect.left + 22, rect.top + 24).find((node) => !card.contains(node)))) {
+      close();
+      return false;
+    }
+    const anchorBox = {
+      left: Math.min(rect.left, visibleLabel?.left ?? rect.left),
+      right: Math.max(rect.right, visibleLabel?.right ?? rect.right),
+      top: Math.min(rect.top, visibleLabel?.top ?? rect.top), bottom: rect.bottom,
+    };
+    const size = card.getBoundingClientRect(), width = Math.min(240, right - left - 16),
+      obstacles = [...map.querySelectorAll(".ov3-cg, .ovm-attr, .ovm-note")].map((el) => {
+        const r = el.getBoundingClientRect();
+        return { left: r.left - 6, right: r.right + 6, top: r.top - 6, bottom: r.bottom + 6 };
+      });
+    if (Math.abs(size.width - width) > 0.1) card.style.width = `${Math.max(0, width)}px`;
+    const height = card.scrollHeight + card.offsetHeight - card.clientHeight,
+      pos = width > 0 && ov3SummaryPlacement(anchorBox, [left + 8, top + 8, right - 8, bottom - 8], width, height, obstacles);
+    if (!pos) {
+      if (reveal) {
+        anchor.scrollIntoView({ block: "center", behavior: "instant" });
+        return place();
+      }
+      close();
+      return false;
+    }
+    const [x, y, maxHeight] = pos;
+    Object.assign(card.style, { left: `${x - base.left}px`, top: `${y - base.top}px`, maxHeight: `${maxHeight}px` });
+    return true;
+  }
+  function show(anchor, mode) {
+    const pin = lookup(anchor);
+    if (!pin || (mode !== "touch" && dismissed === anchor) || $("#pop") || topModalLayer() || topModalLayer("drawer")) return;
+    if (current?.anchor === anchor && current.mode === mode) return;
+    close();
+    const touch = mode === "touch", card = document.createElement("div");
+    const action = pin.args.b ? pin.kind === "outdoor" ? "打开室外区域总览" : "打开楼宇总览" : "打开项目总览";
+    card.id = "ovmSummary";
+    card.className = "ovm-summary";
+    card.setAttribute("data-morph-own", "");
+    card.setAttribute("role", touch ? "region" : "tooltip");
+    if (touch) card.setAttribute("aria-labelledby", "ovmSummaryTitle");
+    card.innerHTML = `<b class="ovm-summary-title" id="ovmSummaryTitle">${esc(pin.name)}</b>${pin.meta ? `<p class="ovm-summary-meta" id="ovmSummaryMeta">${esc(pin.meta)}</p>` : ""}${touch ? btn(action, "ov3Go", pin.args, "primary ovm-summary-action") : ""}`;
+    host.append(card);
+    current = { anchor, card, mode };
+    anchor.setAttribute("data-pin-active", "");
+    if (touch) {
+      anchor.setAttribute("aria-expanded", "true");
+      anchor.setAttribute("aria-controls", card.id);
+    } else if (pin.meta) anchor.setAttribute("aria-describedby", "ovmSummaryMeta");
+    if (place(touch)) {
+      st.redraw();
+      if (touch) card.querySelector("button")?.focus({ preventScroll: true });
+    }
+  }
+  host.addEventListener("pointerover", (e) => {
+    if (e.pointerType !== "mouse") return;
+    const el = pinAt(e.target);
+    if (current?.card.contains(e.target) || current?.anchor.contains(e.target)) clearTimeout(hideTimer);
+    if (!el || el.contains(e.relatedTarget) || current?.anchor === el) return;
+    clearTimeout(showTimer);
+    pending = el;
+    showTimer = setTimeout(() => {
+      pending = null;
+      if (el.matches(":hover")) show(el, "hover");
+    }, 180);
+  }, { signal });
+  host.addEventListener("pointerout", (e) => {
+    if (e.pointerType !== "mouse") return;
+    if (pending?.contains(e.target) && !pending.contains(e.relatedTarget)) {
+      clearTimeout(showTimer);
+      pending = null;
+    }
+    if (dismissed?.contains(e.target) && !dismissed.contains(e.relatedTarget) && !dismissed.matches(":focus-visible")) dismissed = null;
+    if (!current || current.mode === "touch") return;
+    const { anchor, card } = current;
+    if ((anchor.contains(e.target) || card.contains(e.target)) && !anchor.contains(e.relatedTarget) && !card.contains(e.relatedTarget)) {
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => {
+        if (!anchor.matches(":hover, :focus-visible") && !card.matches(":hover")) close();
+      }, 150);
+    }
+  }, { signal });
+  host.addEventListener("focusin", (e) => {
+    const el = pinAt(e.target);
+    if (el?.matches(":focus-visible")) show(el, "focus");
+  }, { signal });
+  host.addEventListener("focusout", (e) => {
+    if (dismissed === e.target && !dismissed.matches(":hover")) dismissed = null;
+    if (!current) return;
+    const { anchor, card, mode } = current;
+    if (mode === "touch" && card.contains(e.target) && !anchor.contains(e.relatedTarget) && !card.contains(e.relatedTarget)) close();
+    if (mode !== "touch" && anchor === e.target && !anchor.matches(":hover") && !card.matches(":hover")) close();
+  }, { signal });
+  document.addEventListener("pointerdown", (e) => {
+    pointer = e.pointerType;
+    if (current && !current.anchor.contains(e.target) && !current.card.contains(e.target)) close();
+  }, { capture: true, signal });
+  host.addEventListener("click", (e) => {
+    const el = pinAt(e.target);
+    const activation = ov3PinActivation(e, pointer);
+    pointer = "";
+    if (!el || activation !== "summary") return;
+    e.preventDefault();
+    e.stopPropagation();
+    if ($("#pop")) closePop();
+    show(el, "touch");
+  }, { signal });
+  const onViewport = (e) => {
+    if (current && !current.card.contains(e.target)) place();
+  };
+  document.addEventListener("scroll", onViewport, { capture: true, passive: true, signal });
+  window.visualViewport?.addEventListener("scroll", onViewport, { passive: true, signal });
+  window.visualViewport?.addEventListener("resize", onViewport, { passive: true, signal });
+  return {
+    close, place,
+    anchor: () => current?.anchor,
+    dismiss() { dismissed = current?.anchor; close(); },
+    dispose() { close(); listeners.abort(); },
+  };
 }
 function ov3PlaceGroupMenu(p) {
   const anchor = p.anchor;
@@ -100109,9 +100418,15 @@ function ov3MapGroupScroll(event) {
 document.addEventListener("scroll", ov3MapGroupScroll, { capture: true, passive: true });
 window.visualViewport?.addEventListener("scroll", ov3MapGroupScroll, { passive: true });
 window.visualViewport?.addEventListener("resize", ov3MapGroupScroll, { passive: true });
+defineLayer({
+  name: "homeMapSummary", level: 30, prevent: true,
+  open: () => !!OVM_LIVE?.api.summary?.anchor(),
+  focus: () => OVM_LIVE?.api.summary?.anchor(),
+  close: () => OVM_LIVE?.api.summary?.dismiss(),
+});
 // 3.49 V1374：focus 为没有楼层图的楼宇（F栋）时，地图以它为中心，标记用选中样式
 // 3.53 V1418：pinVal(b) 给楼宇标记加数值（数据分析在项目范围时按页签写用电量、碳排放等），返回 { v, off }
-function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false, homeProject = false } = {}) {
+function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false, homeProject = false, homeMap = lv === "all" || homeProject } = {}) {
   const db = data(),
     pins = [],
     b3 = [];
@@ -100120,7 +100435,7 @@ function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false, homePr
       const l = ov3Loc(p);
       // 全部项目地图标记用于定位，待处理状态显示在项目列表。
       const off = !ov3ProjLive(p.id);
-      if (l) pins.push({ ...l, name: p.name, args: { p: p.id }, label: `${p.name}${off ? "（未接入）" : ""}：打开项目总览`, off });
+      if (l) pins.push({ ...l, name: p.name, args: { p: p.id }, label: `${p.name}${off ? "（未接入）" : ""}：打开项目总览`, off, meta: homeMap ? ov3ProjectPinMeta(p) : "" });
     }
   } else {
     const p = g("projects", U.p);
@@ -100129,7 +100444,7 @@ function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false, homePr
       if (!l) continue;
       const due = homeProject ? null : ov3Due(p.id, b.id);
       const pv = pinVal ? pinVal(b) : null;
-      pins.push({ ...l, name: b.name, kind: b.kind, args: { p: p.id, b: b.id }, label: `${b.name}${pv ? ` ${pv.v}` : ""}${due ? `，${due.n} 项待处理` : ""}：打开${ov3Out(b.id) ? "室外区域" : "楼宇"}${pinVal ? "" : "总览"}`, bid: b.id, due, val: pv?.v || "", off: !!pv?.off });
+      pins.push({ ...l, name: b.name, kind: b.kind, args: { p: p.id, b: b.id }, label: `${b.name}${pv ? ` ${pv.v}` : ""}${due ? `，${due.n} 项待处理` : ""}：打开${ov3Out(b.id) ? "室外区域" : "楼宇"}${pinVal ? "" : "总览"}`, bid: b.id, due, val: pv?.v || "", off: !!pv?.off, meta: homeMap ? ov3BuildingPinMeta(b) : "" });
       // 首页单个项目仅用于定位楼宇。运行工作区的地图仍可叠加楼宇模型。
       if (!homeProject && typeof s3Has === "function" && s3Has(b.id)) {
         const S = s3Scene(b.id, {}),
@@ -100140,14 +100455,14 @@ function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false, homePr
   }
   const key = lv === "all" ? "all" : (homeProject ? "home:p:" : "p:") + U.p + (focus ? ":" + focus : ""),
     name = lv === "all" ? "全部项目" : g("projects", U.p)?.name || "",
-    markers = homeProject ? ov3GroupBuildingPins(pins) : pins,
+    markers = homeMap ? ov3GroupBuildingPins(pins) : pins,
     viewControls = homeProject ? "旋转" : "旋转与倾斜";
-  OVM_PEND = { key, pins: markers, b3, focus };
-  const pinHtml = markers.map((m, i) => ov3PinHtml(m, i, focus)).join("");
+  OVM_PEND = { key, pins: markers, b3, focus, homeMap };
+  const pinHtml = markers.map((m, i) => ov3PinHtml(m, i, focus, homeMap)).join("");
   const sat = !!U.ov3Sat,
     layerLabel = sat ? "切换到标准地图（当前为卫星地图）" : "切换到卫星地图（当前为标准地图）",
     scale = showScale ? '<div class="ovm-scale" role="img" hidden><span class="ovm-scale-label"></span><span class="ovm-scale-bar" aria-hidden="true"></span></div>' : "";
-  return `<section class="ov3-view ov3-map" aria-label="${esc(name)} 地图"><div class="ovm" id="ovmHost" data-key="${esc(key)}"><canvas class="ovm-cv" tabindex="0" role="img" aria-label="${esc(name)} 地图：拖动平移，右键或按住 Ctrl 拖动${viewControls}，滚轮缩放"></canvas><div class="ovm-pins">${pinHtml}</div>${scale}<div class="ovm-attr">${sat && PACOM_MAP.provider === "osm" ? "影像 © Esri" : MAP_ATTRIBUTION()}</div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb(layerLabel, sat ? "satellite" : "map", "ov3MapLayer", { "data-tip": sat ? "标准地图" : "卫星视图" })}</div><div class="ov3-cg">${ov3Cb("回正北", "north", "ov3MapNorth", {}, "", "ovm-compass")}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3MapLoc")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3MapZoom", { "data-k": "2" })}${ov3Cb("缩小", "minus", "ov3MapZoom", { "data-k": "0.5" })}</div></div></section>`;
+  return `<section class="ov3-view ov3-map" aria-label="${esc(name)} 地图"><div class="ovm" id="ovmHost" data-key="${esc(key)}"${homeMap ? ` data-home-map${sat ? " data-satellite" : ""}` : ""}><canvas class="ovm-cv" tabindex="0" role="img" aria-label="${esc(name)} 地图：拖动平移，右键或按住 Ctrl 拖动${viewControls}，滚轮缩放"></canvas><div class="ovm-pins">${pinHtml}</div>${scale}<div class="ovm-attr">${sat && PACOM_MAP.provider === "osm" ? "影像 © Esri" : MAP_ATTRIBUTION()}</div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb(layerLabel, sat ? "satellite" : "map", "ov3MapLayer", { "data-tip": sat ? "标准地图" : "卫星视图" })}</div><div class="ov3-cg">${ov3Cb("回正北", "north", "ov3MapNorth", {}, "", "ovm-compass")}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3MapLoc")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3MapZoom", { "data-k": "2" })}${ov3Cb("缩小", "minus", "ov3MapZoom", { "data-k": "0.5" })}</div></div></section>`;
 }
 // 3.62（HONG 2026-11-11 09:35Z、09:38Z 按 Vision 09:30Z）：复位与放大之间一条分隔线，把“复位”和“缩放”分开
 const OV3_CSEP = '<i class="ov3-csep" aria-hidden="true"></i>';
@@ -100465,16 +100780,51 @@ const OVM = (() => {
       }
     }
     // 标记：有 3D 的楼宇立起时标记在楼顶
+    const positions = st.pins.map((m) => {
+      const roof = m.members ? Math.max(0, ...m.members.map((pin) => tops.get(pin.bid) || 0)) : tops.get(m.bid) || 0;
+      return P(wx(m.lng), wy(m.lat), roof);
+    });
+    const active = st.summary?.anchor() || document.activeElement;
+    const layout = st.homeMap ? ov3HomePinLayout(positions.map(([x, y], i) => ({
+      x, y, pin: st.pins[i], labelWidth: st.pinWidths[i], priority: st.pinEls[i] === active ? 1 : 0,
+    })), W, H) : null;
+    const pinGroups = new Map();
     st.pinEls.forEach((el, i) => {
       const m = st.pins[i];
-      if (!m || !el) return;
-      const roof = m.members ? Math.max(0, ...m.members.map((pin) => tops.get(pin.bid) || 0)) : tops.get(m.bid) || 0,
-        q = P(wx(m.lng), wy(m.lat), roof),
-        off = q[0] < -40 || q[0] > W + 40 || q[1] < -10 || q[1] > H + 60;
-      el.style.setProperty("--x", q[0] + "px");
-      el.style.setProperty("--y", q[1] + "px");
-      el.hidden = off;
+      if (!m) return;
+      const [x, y] = positions[i], item = layout?.[i];
+      el.style.setProperty("--x", x + "px");
+      el.style.setProperty("--y", y + "px");
+      el.hidden = item ? item.covered : x < -40 || x > W + 40 || y < -10 || y > H + 60;
+      if (!item) return;
+      const group = item.group || (m.members ? m : null);
+      if (group) pinGroups.set(i, group);
+      el.toggleAttribute("data-label-hidden", item.labelHidden);
+      const nextLabel = group?.label || m.label;
+      if (el.getAttribute("aria-label") !== nextLabel) {
+        el.setAttribute("aria-label", nextLabel);
+        el.querySelector(".ovm-pin-n").textContent = group?.name || m.name;
+        el.dataset.act = group ? "ov3MapGroup" : "ov3Go";
+        if (group) {
+          el.setAttribute("aria-haspopup", "menu");
+          el.setAttribute("aria-expanded", "false");
+        } else {
+          el.removeAttribute("aria-haspopup");
+          el.removeAttribute("aria-expanded");
+        }
+      }
     });
+    if (st.homeMap) {
+      const menuAnchor = $("#pop")?.anchor;
+      if (menuAnchor && st.host.contains(menuAnchor)) {
+        const index = Number(menuAnchor.dataset.i),
+          oldGroup = st.pinGroups.get(index), newGroup = pinGroups.get(index);
+        if (!newGroup || oldGroup?.members.length !== newGroup.members.length ||
+            newGroup.members.some((m, i) => oldGroup.members[i] !== m)) closePop({ restoreFocus: !menuAnchor.hidden });
+      }
+    }
+    st.pinGroups = pinGroups;
+    if (st.summary?.anchor() && !st.summary.anchor().matches(".ovm-pin[data-act=ov3Go]:not([hidden])")) st.summary.close();
     // 根据当前图层和视野里的底图瓦片显示状态，旧图层或注记的成功不会掩盖失败。
     st.host.dataset.basemap = !st.layers.length ? "unset" : baseDrawn ? "ready" : baseFailed ? "error" : "loading";
     const bearing = Math.atan2(v.sa, v.ca * v.se) / RAD;
@@ -100498,7 +100848,7 @@ const OVM = (() => {
   function mount(host, D, opt = {}) {
     const cv = host.querySelector("canvas"),
       st = { host, cv, cam: { cx: 0, cy: 0, k: 1, az: 0, el: null, ...(opt.cam || {}) }, fitted: !!opt.cam, hits: [] };
-    let raf = 0;
+    let raf = 0, defaultFit = !opt.cam, canvasSize;
     st.redraw = () => {
       if (raf) return;
       raf = requestAnimationFrame((now) => {
@@ -100509,13 +100859,16 @@ const OVM = (() => {
       });
     };
     const set = (D2) => {
-      Object.assign(st, { pins: D2.pins, b3: D2.b3, sat: !!D2.sat, layers: layers(!!D2.sat), focus: D2.focus || null });
+      st.summary?.close();
+      Object.assign(st, { pins: D2.pins, b3: D2.b3, sat: !!D2.sat, layers: layers(!!D2.sat), focus: D2.focus || null, homeMap: !!D2.homeMap, pinGroups: new Map() });
       st.pinEls = [...host.querySelectorAll(".ovm-pin")];
+      if (st.homeMap) st.pinWidths = st.pinEls.map((el) => el.querySelector(".ovm-pin-n").offsetWidth);
       st.compass = host.closest(".ov3-map")?.querySelector(".ovm-compass");
       st.scale = host.querySelector(".ovm-scale");
       st.scaleLabel = st.scale?.querySelector(".ovm-scale-label");
     };
     set(D);
+    if (st.homeMap) st.summary = ov3MapSummary(host, st);
     const pos = (e) => {
       const r = cv.getBoundingClientRect();
       return [e.clientX - r.left, e.clientY - r.top];
@@ -100525,6 +100878,7 @@ const OVM = (() => {
     const W = () => cv.clientWidth,
       H = () => cv.clientHeight,
       closeGroup = () => {
+        st.summary?.close();
         const anchor = $("#pop")?.anchor;
         if (anchor?.dataset.act === "ov3MapGroup" && host.contains(anchor)) closePop();
       };
@@ -100548,6 +100902,7 @@ const OVM = (() => {
       c.cy += before[1] - after[1];
     }
     const wheel = canvasWheelZoom((factor, at) => {
+      defaultFit = false;
       zoomAt(factor, at);
       opt.onCam?.({ ...st.cam });
     }, st.redraw);
@@ -100566,6 +100921,7 @@ const OVM = (() => {
       }
       const prev = ptrs.get(e.pointerId) || p;
       ptrs.set(e.pointerId, p);
+      defaultFit = false;
       if (ptrs.size === 2) {
         const [a, b] = [...ptrs.values()],
           dist = Math.hypot(a[0] - b[0], a[1] - b[1]),
@@ -100606,13 +100962,15 @@ const OVM = (() => {
     cv.addEventListener("contextmenu", (e) => e.preventDefault());
     cv.addEventListener("dblclick", (e) => {
       wheel.cancel();
+      defaultFit = false;
       zoomAt(2, pos(e));
       st.redraw();
       opt.onCam?.({ ...st.cam });
     });
-    cv.addEventListener(
+    host.addEventListener(
       "wheel",
       (e) => {
+        if (e.target.closest(".ovm-summary")) return;
         closeGroup();
         e.preventDefault();
         if (!st.fitted && W() && H()) {
@@ -100626,7 +100984,9 @@ const OVM = (() => {
     cv.addEventListener("keydown", (e) => {
       const k = e.key;
       if (!/^Arrow/.test(k) && !["+", "=", "-", "_", "0"].includes(k)) return;
+      closeGroup();
       wheel.cancel();
+      defaultFit = k === "0";
       if (/^Arrow/.test(k)) pan(k === "ArrowLeft" ? 80 : k === "ArrowRight" ? -80 : 0, k === "ArrowUp" ? 80 : k === "ArrowDown" ? -80 : 0);
       else if (k === "+" || k === "=") zoomAt(2);
       else if (k === "-" || k === "_") zoomAt(0.5);
@@ -100640,23 +101000,39 @@ const OVM = (() => {
       st.redraw();
       opt.onCam?.({ ...st.cam });
     });
-    const ro = typeof ResizeObserver === "function" ? new ResizeObserver(st.redraw) : null;
+    const ro = typeof ResizeObserver === "function" ? new ResizeObserver(() => {
+      const nextSize = `${W()}×${H()}`;
+      if (st.homeMap && defaultFit && canvasSize !== nextSize) st.fitted = false;
+      canvasSize = nextSize;
+      st.redraw();
+      requestAnimationFrame(() => st.summary?.place());
+    }) : null;
     ro?.observe(cv);
+    if (st.homeMap) document.fonts?.ready.then(() => {
+      if (!host.isConnected) return;
+      st.pinWidths = st.pinEls.map((el, i) => !st.pinGroups.get(i)?.nearby && el.querySelector(".ovm-pin-n").offsetWidth || st.pinWidths[i]);
+      st.redraw();
+    });
     st.redraw();
     return {
       st,
+      summary: st.summary,
       set(D2) {
         if (!!D2.sat !== st.sat) wheel.cancel();
         set(D2);
         st.redraw();
       },
       reset() {
+        closeGroup();
         wheel.cancel();
+        defaultFit = true;
         st.fitted = false;
         st.redraw();
       },
       north() {
+        closeGroup();
         wheel.cancel();
+        defaultFit = false;
         if (!st.fitted && W() && H()) {
           fit(st, W(), H());
           st.fitted = true;
@@ -100666,12 +101042,15 @@ const OVM = (() => {
         opt.onCam?.({ ...st.cam });
       },
       zoom(f) {
+        closeGroup();
         wheel.cancel();
+        defaultFit = false;
         zoomAt(f);
         st.redraw();
         opt.onCam?.({ ...st.cam });
       },
       dispose() {
+        st.summary?.dispose();
         wheel.cancel();
         ro?.disconnect();
         cancelAnimationFrame(raf);
@@ -101015,13 +101394,15 @@ defineActions({
   },
   ov3MapGroup: (a, el) => {
     if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
-    const group = OVM_LIVE?.host.contains(el) ? OVM_LIVE.api.st.pins[Number(a.i)] : null;
+    const st = OVM_LIVE?.host.contains(el) ? OVM_LIVE.api.st : null, index = Number(a.i);
+    const group = st?.pinGroups?.get(index) || st?.pins[index];
     if (!group?.members) return;
+    st.summary?.close();
     const rows = group.members.map((m) => {
-      const kind = m.kind === "outdoor" ? "室外区域" : "楼宇";
-      return `<button type="button" class="popitem ov3-ei" role="menuitem" data-act="ov3Go" data-p="${esc(m.args.p)}" data-b="${esc(m.args.b)}"><span><b>${esc(m.name)}</b><small>${kind}</small></span>${ico("chevron", "ic16 ov3-chev")}</button>`;
+      const kind = m.args.b ? m.kind === "outdoor" ? "室外区域" : "楼宇" : "项目";
+      return `<button type="button" class="popitem ov3-ei" role="menuitem" data-act="ov3Go" data-p="${esc(m.args.p)}"${m.args.b ? ` data-b="${esc(m.args.b)}"` : ""}><span><b>${esc(m.name)}</b><small>${kind}</small></span>${ico("chevron", "ic16 ov3-chev")}</button>`;
     }).join("");
-    pop(el, menuBox(`同一位置 · ${group.name}`, rows), false, { passive: true, place: ov3PlaceGroupMenu });
+    pop(el, menuBox(`${group.nearby ? "相近位置" : "同一位置"} · ${group.name}`, rows), false, { passive: true, place: ov3PlaceGroupMenu });
     $("#pop")?.querySelector('[role="menuitem"]')?.focus({ preventScroll: true });
   },
   ov3MapLayer: (_, el) => {
