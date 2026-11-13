@@ -36703,13 +36703,16 @@ img.img-off { display: none !important; }
   .ov3-ei small { color: #636363; font-size: 12px; line-height: 18px; }
   .ov3-ehr { margin: 4px 8px; border: 0; border-top: var(--hw) solid var(--hc-114114112040, rgba(114, 114, 112, 0.16)); }
   .ov3-eh { margin: 8px 8px 2px; color: #636363; font-size: 12px; line-height: 18px; font-weight: 500; }
-  .ov3-npcard { position: absolute; left: 50%; bottom: 24px; z-index: 4; display: flex; align-items: center; gap: 24px; width: min(440px, calc(100% - 32px)); padding: 20px; border-radius: 16px; background: #fff; transform: translateX(-50%); box-shadow: 0 0 0 var(--hw) rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.1); }
+  /* 工具与无图卡片各占一行。14px 行距含工具 6px 点按外扩。 */
+  .ov3-map:has(> .ov3-npcard) { container-type: size; display: grid; grid-template-rows: 16px auto 14px minmax(0, 1fr) var(--ov3-np-bottom, 24px); }
+  .ov3-map:has(> .ov3-npcard) > .ov3-ctl { position: relative; inset: auto; grid-row: 2; justify-self: end; margin-inline: 16px; max-width: calc(100% - 32px); }
+  .ov3-npcard { position: relative; grid-row: 4; align-self: end; justify-self: center; z-index: 4; display: flex; align-items: safe center; gap: 24px; width: min(440px, calc(100% - 32px)); min-height: 0; max-height: 100%; overflow: auto; overflow-wrap: anywhere; padding: 20px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 var(--hw) rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.1); }
   .ov3-npcard > span { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
   .ov3-npcard b { font-size: 14px; line-height: 22px; font-weight: 600; }
   .ov3-npcard small { color: #636363; font-size: 12px; line-height: 18px; }
   .ov3-npgo { flex: none; }
   /* 比例尺距底 22px、外高 20px，提示卡再留 8px。 */
-  .ovm:has(> .ovm-scale:not([hidden])) ~ .ov3-npcard { bottom: 50px; }
+  .ov3-map:has(> .ovm > .ovm-scale:not([hidden])) { --ov3-np-bottom: 50px; }
   @container ovm-map (max-width: 260px) {
     .ov3-npcard { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; }
   }
@@ -36776,6 +36779,9 @@ img.img-off { display: none !important; }
   #app .main > .panel > .phead:has(> .ws-mscope) > .ws-page-more { margin: -8px -6px -8px 8px !important; } /* 3.52 范围按钮改为 28 高，“⋯”上下各 -8 不撑高范围行 */
   .ws3-mob:not(.ws-mscope) { padding: 12px 16px; }
   .ws3-mob:not(.ws-mscope) > .ws3-mob-seg { margin: -2px 0; }
+  /* 告警的 24px 选项上下各扩 10px，命中区留在原有范围行内。 */
+  .ws3x[data-pg="alarms"] > .ws3-mob > .ws3-mob-seg { flex: none; overflow: visible; }
+  .ws3x[data-pg="alarms"] > .ws3-mob > .ws3-mob-seg > button::after { content: ""; position: absolute; inset: -10px 0; }
   /* 3.50 V1381、V1382：顶栏已写页名，手机面板不再重复大标题（标题留给读屏） */
   /* 3.52：手机上本页主按钮在顶栏右端（同 3.51），面板标题行里的不显示；“报告”在“⋯”里 */
   :is(.ov3-panel > .ov3-head, .phead) > .tb-pri, .ws3-hr > .ws3-rpt { display: none; }
@@ -37117,9 +37123,9 @@ img.img-off { display: none !important; }
   .ov3-ctl .ov3-csep + .ov3-cb::after { inset-block: calc(-2px - var(--hw) / 2) -1px; }
   .ov3-ctl > .ov3-cg:has(> .ov3-csep) > .ov3-cb:last-child::after { inset-block-start: -1px; }
 }
-/* 矮屏上有楼层图提示卡时，工具横排，避免与底部卡片重叠。 */
-@media (max-width: 850px) and (max-height: 740px) {
-  .ov3-map:has(> .ov3-npcard) > .ov3-ctl { flex-flow: row wrap; align-items: flex-start; justify-content: flex-end; max-width: calc(100% - 32px); }
+/* 按画布自身高度切换无图地图的工具排列。 */
+@container ovm-map (max-height: 444px) {
+  .ov3-map:has(> .ov3-npcard) > .ov3-ctl { flex-flow: row wrap; align-items: flex-start; justify-content: flex-end; }
 }
 /* 3.61 楼层编辑器右侧面板四边内边距统一 20（HONG 2026-11-11 07:58Z 按 Vision 07:54Z 的建议，同 Lovable 信息卡与全站卡片内边距 20；原上 12、左右 16）：
    各模式的标题行（设备 N、照明分区 N、设备网络）离上、离左 20，下面的内容左右 20；照明分区列表的行悬停底仍离边 8 */
@@ -45178,7 +45184,7 @@ function pop(anchor, html, wide = false, options = {}) {
   p.anchor = anchor;
   document.body.append(p);
   // 定位写成 p.place，窗口尺寸变化（转屏、改窗口宽度）时按新位置重算（见下方 resize；交互核查第 1 条）
-  p.place = () => {
+  p.place = options.place ? () => options.place(p) : () => {
     const r = anchor.getBoundingClientRect();
     // 2.45 账户第 404 条：选择列表宽等于选择框，选项更长时随内容变宽（不超出屏幕）
     if (wide && anchor.matches?.("[role=combobox]")) Object.assign(p.style, { width: "max-content", minWidth: Math.min(r.width, innerWidth - 24) + "px", maxWidth: innerWidth - 24 + "px" });
@@ -45201,6 +45207,7 @@ function pop(anchor, html, wide = false, options = {}) {
     p.style.top = Math.max(8, Math.min(r.bottom + gap, innerHeight - pr.height - 8)) + "px";
   };
   p.place();
+  if (!p.isConnected) return;
   anchor.setAttribute("aria-expanded", "true");
   // 2.88 账户第 901 条：菜单打开时焦点在当前项（单选菜单的已选项），没有当前项时在第一项
   if (!options.passive) (p.querySelector('[role=menuitemradio][aria-checked="true"]:not([disabled])') || wsFocusables(p)[0])?.focus();
@@ -51355,6 +51362,7 @@ document.addEventListener("keydown", (e) => {
       e.preventDefault();
       items.forEach(x => x.tabIndex = x === next ? 0 : -1);
       next.focus({ preventScroll: true });
+      if (selectPop?.anchor?.dataset.act === "ov3MapGroup") ov3RevealGroupMenuItem(selectPop, next);
       return;
     }
     if (e.key === "Tab") closePop({ restoreFocus: true });
@@ -99999,6 +100007,41 @@ function ov3PinHtml(m, i, focus) {
     action = m.members ? 'data-act="ov3MapGroup" aria-haspopup="menu" aria-expanded="false"' : `data-act="ov3Go" ${Object.entries(m.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")} data-tip="${esc(m.name)}"`;
   return `<button type="button" class="ovm-pin${m.off ? " off" : ""}${selected ? " sel" : ""}"${selected ? ' aria-current="true"' : ""} ${action} data-i="${i}" aria-label="${esc(m.label)}"><span class="ovm-pin-n">${esc(m.name)}${m.val ? `<b class="ovm-pin-v">${esc(m.val)}</b>` : ""}</span><svg class="ovm-pin-ic" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29s10-9.2 10-17A10 10 0 0 0 2 12c0 7.8 10 17 10 17z"/><circle cx="12" cy="12" r="4"/></svg>${m.due ? ov3Dot(m.due.lvl, "ovm-pin-dot") : ""}</button>`;
 }
+function ov3PlaceGroupMenu(p) {
+  const anchor = p.anchor;
+  if (!anchor?.isConnected || anchor.hidden || anchor.closest("[inert]")) return closePop();
+  const r = anchor.getBoundingClientRect(), v = window.visualViewport,
+    left = v?.offsetLeft ?? 0, top = v?.offsetTop ?? 0,
+    width = v?.width ?? document.documentElement.clientWidth, height = v?.height ?? document.documentElement.clientHeight,
+    right = left + width, bottom = top + height,
+    x = r.left + r.width / 2, y = r.top + r.height / 2;
+  // 命中检测同时考虑画布裁剪和固定栏，跳过菜单自身在滚动前的位置。
+  if (x < left || x >= right || y < top || y >= bottom ||
+      !anchor.contains(document.elementsFromPoint(x, y).find((el) => !p.contains(el)))) return closePop();
+  const gap = 4, edge = 8,
+    below = bottom - r.bottom - gap - edge, above = r.top - gap - top - edge,
+    full = Math.min(p.scrollHeight + p.offsetHeight - p.clientHeight, 640, height - 24),
+    up = below < full && above > below,
+    available = up ? above : below;
+  if (available <= 0) return closePop();
+  p.style.maxHeight = `min(640px, calc(100dvh - 24px), ${available}px)`;
+  p.style.left = Math.max(left + edge, Math.min(r.left, right - p.offsetWidth - edge)) + "px";
+  p.style.top = (up ? r.top - gap - p.offsetHeight : r.bottom + gap) + "px";
+}
+function ov3RevealGroupMenuItem(p, item) {
+  const box = p.getBoundingClientRect(), row = item.getBoundingClientRect(),
+    scale = box.height / p.offsetHeight || 1,
+    top = box.top + p.clientTop * scale, bottom = top + p.clientHeight * scale;
+  if (row.top < top) p.scrollTop -= (top - row.top) / scale;
+  else if (row.bottom > bottom) p.scrollTop += (row.bottom - bottom) / scale;
+}
+function ov3MapGroupScroll(event) {
+  const p = $("#pop"), anchor = p?.anchor;
+  if (anchor?.dataset.act === "ov3MapGroup" && (event.target === window.visualViewport || event.target.contains?.(anchor))) p.place();
+}
+document.addEventListener("scroll", ov3MapGroupScroll, { capture: true, passive: true });
+window.visualViewport?.addEventListener("scroll", ov3MapGroupScroll, { passive: true });
+window.visualViewport?.addEventListener("resize", ov3MapGroupScroll, { passive: true });
 // 3.49 V1374：focus 为没有楼层图的楼宇（F栋）时，地图以它为中心，标记用选中样式
 // 3.53 V1418：pinVal(b) 给楼宇标记加数值（数据分析在项目范围时按页签写用电量、碳排放等），返回 { v, off }
 function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false, groupBuildings = false } = {}) {
@@ -100834,7 +100877,8 @@ defineActions({
       const detail = m.due ? `${kind} · 待处理 ${m.due.n} 项` : kind;
       return `<button type="button" class="popitem ov3-ei" role="menuitem" data-act="ov3Go" data-p="${esc(m.args.p)}" data-b="${esc(m.args.b)}"><span><b>${esc(m.name)}</b><small>${esc(detail)}</small></span>${ico("chevron", "ic16 ov3-chev")}</button>`;
     }).join("");
-    pop(el, menuBox(`同一位置 · ${group.name}`, rows));
+    pop(el, menuBox(`同一位置 · ${group.name}`, rows), false, { passive: true, place: ov3PlaceGroupMenu });
+    $("#pop")?.querySelector('[role="menuitem"]')?.focus({ preventScroll: true });
   },
   ov3MapLayer: (_, el) => {
     const focused = document.activeElement === el;
