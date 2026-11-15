@@ -6278,7 +6278,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-height: 100%;
+  max-height: var(--floor-track-height, 100%);
   min-height: 0;
 }
 .ws-rail-track::before, .ws-rail-home::before {
@@ -6318,7 +6318,6 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 :is(.ws-rail-scroll > button, .ws-rail-home, .rail-arrow) {
   position: relative;
   flex: none;
-  display: grid;
   place-items: center;
   width: 100%;
   padding: 0;
@@ -6332,6 +6331,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   transition: color 150ms ease-out;
 }
 .ws-rail-scroll > button {
+  display: grid;
   z-index: 1;
   isolation: isolate;
   height: var(--floor-rail-row);
@@ -6379,6 +6379,7 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 :is(.ws-rail-scroll > button, .ws-rail-home, .rail-arrow):focus-visible { outline: none; }
 :is(.ws-rail-scroll > button, .ws-rail-home, .rail-arrow):focus-visible::before { box-shadow: 0 0 0 2px var(--accent); }
 .ws-rail-home {
+  display: grid;
   isolation: isolate;
   height: var(--floor-rail-hit);
   pointer-events: auto;
@@ -19561,11 +19562,17 @@ fieldset:disabled .au-primary {
   :is(.bare-login, .bare-invite) .au-field-right .au-textbtn, .au-task :is(.au-login-actions, .au-links) .au-textbtn {
     min-height: 44px;
   }
+  /* Keep the 44px action between the two 4px outward input hit areas. */
+  :is(.bare-login, .bare-invite) .au-field-right-after {
+    padding-block-start: 10px;
+  }
   :is(.bare-login, .bare-invite) .au-field-right {
-    top: -16px;
+    top: -12px;
   }
   :is(.bare-login, .bare-invite) .au-field-right .au-textbtn {
-    padding: 16px 0 4px;
+    display: flex;
+    align-items: flex-end;
+    padding: 0;
   }
   .dialog.au-reset-dlg .au-in,
   .dialog.au-reset-dlg .au-primary {
@@ -20477,7 +20484,6 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
   .au .au-compact-form { --au-input-hit-extension: 4px; }
   .au .au-lab:has(> .au-login-forgot) { min-height: 32px; align-items: flex-end; }
   .au .au-lab .au-login-forgot { position: relative; min-height: 24px; }
-  .au .au-login-forgot::before { content: ""; position: absolute; inset: -20px 0 0; }
 }
 /* 第 17 条：账户页输入框默认边线普通屏 1px #727270 16%，2 倍屏 0.5px #727270 40%（与原来相同）；悬停不变。
    第 2 条：出错 1px 红，出错又获得焦点 2px 红，离开回 1px；红色普通屏 #FD504A 40%，2 倍屏不透明。 */
@@ -20957,7 +20963,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .au .au-field-right .au-textbtn { padding-right: 0; }
 .au .au-field-right > .au-login-forgot > span { translate: 0 -3px; }
 @media (max-width: 850px), (pointer: coarse) {
-  .au .au-field-right > .au-login-forgot > span { translate: 0 -1px; }
+  .au .au-field-right > .au-login-forgot > span { translate: none; }
 }
 /* 第 192 条：发送验证码失败与次数过多为框下 4 的红字，与同页其他提示同一样式、同一红色。 */
 .au .au-send-err, .au-account-dlg .au-send-err { display: block; color: var(--au-error-text); font: 400 14px/22px var(--ff); }
@@ -21017,6 +21023,10 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 /* 第 220 条（2026-10-26 HONG 07:26Z“要实际间距”）：重置密码弹窗（电脑和手机）最后一项到底部按钮 24（原 16），最后一项是框下一行字时也是 24；
    字段之间仍是 16（第 218 条，现状已是）。 */
 .au-account-dlg.au-reset-dlg .df { padding-top: 24px; }
+@media (max-width: 850px), (pointer: coarse) {
+  /* The scrollable body must contain the eye target below the input. */
+  .au-account-dlg.au-reset-dlg:has(> .db .au-eye) { --au-eye-hit-reserve: 4px; }
+}
 .au-account-dlg.au-reset-dlg .au-ferr.au-notice { margin-bottom: 0; }
 /* 第 226 条（2026-10-26 HONG 07:26Z“不要看起来，要实际间距”）：所有账户页表单实际间距 16 / 16 / 24：框（或框下一行字）到下一个字段名 16，最后一项到主按钮 24。
    登录页、受邀注册等现状已是；补两处：分步表单最后一个字段到主按钮（原 16），受邀注册同意勾选行到下一个字段名（原 0）。 */
@@ -21053,7 +21063,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 #app:is(.bare-join, .bare-apply, .bare-orgs) .au .au-ctl > .au-eye, #app .au-task.au .au-ctl > .au-eye { width: 28px; min-width: 28px; padding: 0; }
 #app:is(.bare-join, .bare-apply, .bare-orgs) .au .au-ctl > .au-getcode, #app .au-task.au .au-ctl > .au-getcode { padding: 0 8px; }
 @media (max-width: 850px), (pointer: coarse) {
-  #app:is(.bare-join, .bare-apply, .bare-orgs) .au .au-ctl > .au-suffix::after, #app .au-task.au .au-ctl > .au-suffix::after { content: ""; position: absolute; left: -4px; right: -4px; top: 50%; height: 44px; transform: translateY(-50%); }
+  #app:is(.bare-join, .bare-apply, .bare-orgs) .au .au-ctl > .au-suffix:not(.au-eye)::after, #app .au-task.au .au-ctl > .au-suffix:not(.au-eye)::after { content: ""; position: absolute; left: -4px; right: -4px; top: 50%; height: 44px; transform: translateY(-50%); }
 }
 /* 第 231 条：主按钮圆角 12、高 36、黑底白字、无下划线；电脑随文字宽，手机占满步骤内容宽。步骤外的主按钮、同意条款、授权说明与框左对齐
    （步骤序号 20 + 间隔 12）；步骤里的“继续”位置不变。“先完成注册”电脑与框左对齐，手机在按钮下居中。 */
@@ -21262,7 +21272,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 #app[class*="bare-"] .au .au-ctl > .au-eye { width: 28px; min-width: 28px; padding: 0; }
 #app[class*="bare-"] .au .au-ctl > .au-getcode { padding: 0 10px; }
 @media (max-width: 850px), (pointer: coarse) {
-  #app[class*="bare-"] .au .au-ctl > .au-suffix::after { content: ""; position: absolute; left: -4px; right: -4px; top: 50%; height: 44px; transform: translateY(-50%); }
+  #app[class*="bare-"] .au .au-ctl > .au-suffix:not(.au-eye)::after { content: ""; position: absolute; left: -4px; right: -4px; top: 50%; height: 44px; transform: translateY(-50%); }
 }
 /* 第 348 条：选择框高 36，文字同输入框；所在地区为省份、城市两个选择框并排，间隔 12。最后一项到“创建机构”24。 */
 #app[class*="bare-"] .au .ws-select > button.input { height: 36px; min-height: 36px; padding: 0 12px; } /* 2.45 第 403 条：箭头距右 12 */
@@ -21356,8 +21366,8 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .au-task-shell > .au-top-x::after { content: ""; position: absolute; inset: -6px; }
 @media (max-width: 600px) { .au-task-shell > .au-top-x { top: 60.5px; right: 24px; } }
 @media (max-width: 1023.98px) and (max-height: 500px) { .au-task-shell > .au-top-x { top: 36.5px; } }
-/* 数量和期限在可用宽度允许时等宽并排，窄容器中按字段换行。 */
-.au .au-qty-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 96px), 1fr)); gap: 16px 8px; align-items: start; }
+/* 并排时给 16px 数字及单位留足空间，容器不足 272px 时按字段换行。 */
+.au .au-qty-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 132px), 1fr)); gap: 16px 8px; align-items: start; }
 .au .au-qty-row > .field { min-width: 0; margin: 0; }
 .au .au-sub-form .au-qty-row .au-years-field { margin-top: 0; }
 .au .au-sub-form :is(.au-qty-field, .au-years-field) { display: block; }
@@ -33802,12 +33812,12 @@ b.spc-src-n { cursor: auto; }
 /* 2.89 账户第 129 条（972）：账户弹窗（重置密码、登录验证、加入机构、创建机构、修改密码、绑定手机号码等）三段间距统一：
    标题到第一项 24；有说明时标题到说明 8、说明到第一项 24；项与项之间 16 不变；最后一项（含框下一行字）到底部按钮 24；没有底部按钮时到弹窗底 24 */
 #dlg .dialog.au-dialog > .dh { padding-bottom: 0; border-bottom: 0; }
-#dlg .dialog.au-dialog > .db { padding-top: 24px; padding-bottom: 0; }
+#dlg .dialog.au-dialog > .db { padding-top: 24px; padding-bottom: var(--au-eye-hit-reserve, 0px); }
 #dlg .dialog.au-dialog > .db:has(> :is(p, .au-dlead):first-child) { padding-top: 8px; }
 #dlg .dialog.au-dialog > .db > :is(p, .au-dlead):first-child { margin-top: 0; margin-bottom: 24px; }
 #dlg .dialog.au-dialog > .db > :is(p, .au-dlead):first-child:is(:last-child, :has(+ .form-error:empty:last-child)) { margin-bottom: 0; }
 #dlg .dialog.au-dialog > .db:last-child { padding-bottom: 24px; }
-#dlg .dialog.au-dialog > .df { padding-top: 24px; border-top: 0; }
+#dlg .dialog.au-dialog > .df { padding-top: calc(24px - var(--au-eye-hit-reserve, 0px)); border-top: 0; }
 /* 2.89 账户第 131 条（974）：“尚未加入机构”的邀请卡片圆角 12，与“选择机构”的机构卡片和提示条相同；白底、阴影、内边距和按钮不变 */
 .au-box.au-mail-invs { border-radius: var(--ds-r-block); }
 /* ==== 2.89 总览四级（V914–V937）：标题、全部项目与项目（卡片列表加地图）、楼宇仪表板、楼层（楼层列表、图层页签、面板把手）、手机 ==== */
@@ -34839,7 +34849,7 @@ p.an4-links { display: flex; margin: 0; }
 .dev-rate-t th[scope="row"] small { display: block; font-weight: 400; }
 .dev-rate-t td.num { white-space: nowrap; }
 
-/* 3.14 E1207、L5、L8：空间 › 编辑与查看同一骨架：左 120 楼层列表卡，中间图卡（顶部 48 一行：小号分段“功能区 · 设备 · 照明分区 · 网络”与“图层”），右 360 面板 */
+/* 空间编辑：左侧楼层轨道，中间图卡，右侧按需显示详情。 */
 .sp-ed-modes { height: 28px; padding: 2px; }
 .sp-ed-modes button { height: 24px; min-width: 0; padding: 0 10px; font-size: 14px; line-height: 22px; }
 .sp-ed-modes > .seg-thumb { top: 2px; height: 24px; }
@@ -34855,8 +34865,7 @@ p.an4-links { display: flex; margin: 0; }
 .ovf-fr > i.todo { width: 8px; height: 8px; background: #d29a10; }
 @media (min-width: 851px) {
   #app[data-sp-ed] .ws-workbench { gap: 16px; border: 0; border-radius: 0; background: none; overflow: visible; }
-  #app[data-sp-ed] .ws-workbench > .ws-rail { display: none; }
-  #app[data-sp-ed] .sp-ed-fl { flex: none; width: 120px; position: static; align-self: stretch; max-height: none; }
+  #app[data-sp-ed] .ws-workbench > .ws-rail { position: static; flex: none; align-self: stretch; height: auto; margin: 0; }
   #app[data-sp-ed] .ws-canvas-col { padding: 0; border-radius: 16px; background: #fff; box-shadow: var(--ds-sh-xs); }
   #app[data-sp-ed] .ws-canvas-top { height: 48px; min-height: 48px; margin: 0; padding: 0 16px 0 20px; border-bottom: var(--hw) solid var(--hc-cdcdcd, #ebebeb); flex-wrap: nowrap; justify-content: flex-start; }
   #app[data-sp-ed] .ws-canvas-top > .spatial-layer-controls { position: static; margin-left: auto; }
@@ -34868,7 +34877,6 @@ p.an4-links { display: flex; margin: 0; }
   #app[data-sp-ed] .ws-canvas-bottom { padding: 0 16px 12px; }
   #app[data-sp-ed] .mk-bench > .ws-planning-panel { width: 360px; border: 0; border-radius: 16px; background: #fff; box-shadow: var(--ds-sh-xs); overflow: hidden; }
 }
-@media (max-width: 850px) { #app[data-sp-ed] .sp-ed-fl { display: none; } }
 /* 3.30 部署流程第三节第 6 条：楼层编辑器整页打开，不显示左侧导航与位置行；左上为 32 的“←”与楼层名，“←”与“完成”回到打开它的页面 */
 #app[data-sp-full] { grid-template-columns: minmax(0, 1fr); }
 #app[data-sp-full] > :is(.side, .side-scrim), #app[data-sp-full] .phead > .mobnav { display: none; }
@@ -35562,8 +35570,7 @@ th.r .tsort { flex-direction: row-reverse; }
 .ovi-tbl > .ovi-rest { display: block; margin: 8px 0 0; padding: 6px 20px; border: 0; background: none; font: inherit; font-size: 14px; line-height: 22px; color: var(--ds-ink-2); cursor: pointer; text-align: left; }
 .ovi-tbl > .ovi-rest:hover { color: var(--ds-ink); }
 /* 3.42 E1386：楼层编辑器左侧楼层列表与空间选层菜单中没有楼层图的层：名称次要色，后写 12/18 “无图” */
-#app[data-sp-ed] .sp-ed-fl .ovf-fr.noimg > span, .ws-floor-menu .popitem.noimg > span { color: var(--ds-ink-2); }
-#app[data-sp-ed] .sp-ed-fl .ovf-fr.noimg > small { margin-left: auto; font-size: 12px; line-height: 18px; color: var(--ds-ink-2); }
+.ws-floor-menu .popitem.noimg > span { color: var(--ds-ink-2); }
 .ws-floor-menu .popitem.noimg small { margin-left: 8px; }
 /* 3.42 V1239：占用热力图中公共区域不计入有人比例，格子灰显、名称次要色 */
 .ops-heat-c.pub { filter: grayscale(1); opacity: 0.45; }
@@ -36709,6 +36716,9 @@ img.img-off { display: none !important; }
   .ov3-ei { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-width: 240px; height: auto; min-height: 32px; padding: 4px 8px; }
   .ov3-ei > span { display: flex; flex-direction: column; text-align: left; }
   .ov3-ei small { color: #636363; font-size: 12px; line-height: 18px; }
+  @media (any-pointer: coarse), (max-width: 850px) {
+    .ws3-scope-menu > .ov3-ei { min-height: 44px; }
+  }
   .ov3-ehr { margin: 4px 8px; border: 0; border-top: var(--hw) solid var(--hc-114114112040, rgba(114, 114, 112, 0.16)); }
   .ov3-eh { margin: 8px 8px 2px; color: #636363; font-size: 12px; line-height: 18px; font-weight: 500; }
   /* 工具与无图卡片各占一行。14px 行距含工具 6px 点按外扩。 */
@@ -37773,8 +37783,15 @@ img.img-off { display: none !important; }
   }
 }
 
-@media (max-width: 600px) {
-  .dep-project-floor .dep-project-floor-grid > .dep-topo-detail { top: auto; max-height: min(65dvh, calc(100dvh - var(--project-floor-detail-top, 180px) - 8px)); }
+@media (max-width: 700px) {
+  .dep-project-floor .dep-project-floor-grid > .dep-topo-detail {
+    position: static;
+    width: auto;
+    max-height: none;
+    border-radius: 12px;
+    box-shadow: none;
+    scroll-margin-block: 72px 16px;
+  }
 }
 
 @media (any-pointer: coarse) {
@@ -38079,6 +38096,8 @@ img.img-off { display: none !important; }
 
 /* Only the text moves in selectors and single-line menu rows with their own label. */
 #pop .popitem > .popitem-label,
+.ws-locrow > button.ws-locseg > span,
+.ws-lm-row:not(:has(> small)) > .ws-lm-n,
 .ws3-mob-loc > span,
 .ws3-lbtn > :is(.ws3-lbtn-k, b),
 .spatial-layer-controls .sp-layer-btn > .sp-layer-label,
@@ -46876,6 +46895,7 @@ function wsCloseModal(force) {
   // 从“复制到其他楼层”打开的“上传楼层图”：关闭（完成、取消或放弃）后回到复制弹窗，保留已选内容（2026-10-03 用户确认 C5）。
   const planDialog = $("#dlg")?.dataset.plan === "1", planBack = planDialog ? U.planBack : null, closingDlg = $("#dlg");
   if (planDialog) U.planBack = null;
+  if (closingDlg?.querySelector(".dialog.sp-ed-done")) U.spEdNext = null;
   $("#runtimeHolidayPreview")?.closePreview(false);
   if (typeof runtimePreviewSync === "function") runtimePreviewSync(closingDlg);
   wsDialogGhost($("#dlg"));
@@ -47799,18 +47819,22 @@ function movePlannedPoint(id, pos) {
 }
 // a.confirmed：已在“确认保存规划”中确认影响；a.then === "prepare"：确认后保存，接着现场绑定。
 // 返回 false 表示先列出影响、尚未保存（2026-10-05 核查 H5）。
-async function savePlan(a = {}) {
+async function savePlan(a = {}, onSaved = null) {
+  // 保存未完成时，重复操作不应用字段，也不继续待处理的导航。
+  if (writing) return;
   // 3.44 E1416：布点草稿要先“全部确认”或“清除草稿”
   const autoN = (U.autoPts || []).filter((id) => g("points", id)).length;
   if (autoN) throw Error(`有 ${autoN} 个布点草稿未确认；请先“全部确认”或“清除草稿”`);
   // 权限可能在表单／草稿打开后变化；拒绝前不应用字段、不改原草稿。
-  if ((U.dirty || U.attrsDirty) && !writing) {
+  if (U.dirty || U.attrsDirty) {
     assertNetworkProjectAccess(M.projectOfFloor(data(), U.f));
     assertNetworkDraftAccess(D || W, W);
   }
   if (U.attrsDirty) applyPoint();
-  // 保存中再次触发直接忽略（2026-10-05 核查 D14）。
-  if (!U.dirty || writing) return;
+  if (!U.dirty) {
+    if (!U.attrsDirty) onSaved?.();
+    return;
+  }
   // 修改记录与对象版本写在草稿的副本上：保存失败时草稿保持原样，再次保存不会重复记录或重复升版本（2026-10-05 核查 D14）。
   const next = M.copy(D);
   M.record(next, "保存楼层规划", U.f, where(U.f));
@@ -47837,6 +47861,8 @@ async function savePlan(a = {}) {
     const impact = F.saveImpact(W, next);
     if (impact.networks.length || impact.renamed.length) {
       showSaveImpact(impact, a.then, null, a.id);
+      const confirm = $("#dlg [data-act=savePlan][data-confirmed='1']");
+      if (confirm && onSaved) confirm.planSaveContinuation = onSaved;
       return false;
     }
   } else closeModal(true);
@@ -47859,6 +47885,7 @@ async function savePlan(a = {}) {
   render();
   msg(px ? `规划已保存，已自动规划 ${px} 台代理节点` : "规划已保存");
   if (a.confirmed && a.then === "prepare") prepareApp(a.id);
+  onSaved?.();
   return true;
 }
 // 2.91 V946：位置行（全站统一的项目与楼宇选择），取代总览标题下拉（V923）、数据分析等三页标题旁的范围按钮、配置各页工具条的位置选择器，
@@ -48849,7 +48876,7 @@ function floorRail() {
   const current = fs.find((f) => f.id === U.f) || fs[0];
   const rows = fs.map((f) => `<button type="button" aria-label="进入${esc(floorSpeak(f))}${todo(f) ? "，本次范围内有待处理项" : ""}${!f.image ? "，未上传楼层图" : ""}${floorRecent(f.id) ? "，刚离开的楼层" : ""}" aria-current="${f.id === U.f ? "location" : "false"}" tabindex="${f === current ? 0 : -1}" class="ws-rail-floor${f.id === U.f ? " on" : ""}${todo(f) ? " todo" : ""}${floorRecent(f.id) ? " recent" : ""}" data-key="${esc(f.id)}" data-act="floor" data-id="${esc(f.id)}" data-tip="${esc(f.name)}${!f.image ? " · 未上传楼层图" : ""}${todo(f) ? " · 空间资料待处理" : ""}" data-tip-at="right"><span>${esc(floorRailLabel(f.name))}</span></button>`).join("");
   const arrow = (direction, label) => `<button type="button" class="rail-arrow" data-act="${direction}" tabindex="-1" aria-label="${label}">${ico("chevron", "ic16")}</button>`;
-  return (U.spEd ? spEdFloorList(fs) : "") + `<div class="ws-rail">${home}<div class="ws-rail-track" data-morph-classes="scrollable">${arrow("railUp", "向上滚动楼层")}<nav class="ws-rail-scroll" aria-label="楼层选择器" data-morph-classes="fade-t fade-b snap-rows"><span class="ws-rail-ind" aria-hidden="true" data-morph-keep="editor-floor-thumb"></span>${rows}</nav>${arrow("railDown", "向下滚动楼层")}</div></div>`;
+  return `<div class="ws-rail">${home}<div class="ws-rail-track" data-morph-classes="scrollable">${arrow("railUp", "向上滚动楼层")}<nav class="ws-rail-scroll" aria-label="楼层选择器" data-morph-classes="fade-t fade-b snap-rows"><span class="ws-rail-ind" aria-hidden="true" data-morph-keep="editor-floor-thumb"></span>${rows}</nav>${arrow("railDown", "向下滚动楼层")}</div></div>`;
 }
 function wsRailTabStop(list, button = list.querySelector("button.on, button[aria-current=location]") || list.querySelector("button")) {
   for (const row of list.querySelectorAll(":scope > button")) row.tabIndex = row === button ? 0 : -1;
@@ -48900,16 +48927,30 @@ function railSlide(rs) {
 }
 function wsRailSize(list) {
   const row = list.querySelector("button");
-  const rail = list.closest(".ws-rail"), home = rail.querySelector(".ws-rail-home");
-  if (!row || !rail.clientHeight) return;
+  const track = list.parentElement, rail = track.parentElement, home = rail.querySelector(".ws-rail-home");
+  if (!row?.offsetHeight || !rail.clientHeight) return false;
   const height = row.offsetHeight, style = getComputedStyle(rail),
-    room = rail.clientHeight - (home ? home.offsetHeight + parseFloat(style.rowGap) : 0),
+    gap = parseFloat(style.getPropertyValue("--floor-rail-gap")),
     arrow = parseFloat(style.getPropertyValue("--floor-rail-arrow")),
+    rows = list.childElementCount - 1,
+    naturalHeight = rows * height + (rows - 1) * gap + 4,
+    homeRoom = home ? home.offsetHeight + parseFloat(style.rowGap) : 0,
+    viewport = window.visualViewport,
+    bottom = viewport ? viewport.offsetTop + viewport.height : innerHeight,
+    spaceBelowTop = bottom - Math.max(viewport?.offsetTop || 0, track.getBoundingClientRect().top) - 12,
+    minimum = 2 * arrow + height + (height === 44 ? 32 : 4),
+    room = Math.max(0, Math.floor(Math.min(rail.clientHeight - homeRoom, Math.max(spaceBelowTop, minimum)))),
+    overflow = naturalHeight > room,
     complete = Math.floor((room - 2 * (arrow + 16)) / height),
-    snap = height === 44 && (list.childElementCount - 1) * height + 4 > room + 1 && complete > 0;
+    snap = overflow && height === 44 && complete > 0,
+    trackHeight = `${room}px`,
+    changed = track.style.getPropertyValue("--floor-track-height") !== trackHeight || track.classList.contains("scrollable") !== overflow;
+  track.style.setProperty("--floor-track-height", trackHeight);
+  track.classList.toggle("scrollable", overflow);
   list.classList.toggle("snap-rows", snap);
   if (snap) list.style.setProperty("--floor-list-height", `${complete * height + 32}px`);
   else list.style.removeProperty("--floor-list-height");
+  return changed;
 }
 // 2.14 E261（HONG 18:45Z 要求删除）：楼宇图下方不再有“小点：空间资料待处理”图例，小点的含义在楼层的悬停提示与读屏名称里。
 // 设备点看全图时画成 12 的实心小点，只用类型颜色区分（全面设计核查第 32 条（2026-10-12 用户确认）；原先设备点固定 28×28，
@@ -48973,12 +49014,12 @@ function mkPlanInset() {
   if (col && typeof getComputedStyle === "function") { const cs = getComputedStyle(col); return parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 2 + spEdListInset(".mk-bench", true); }
   return (isOutdoor(U.b) ? 12 : 68) + 12 + 2;
 }
-// 3.30：编辑器左侧的楼层列表（120）与图卡、面板之间的间距也从楼层图区扣除，两种模式都按楼层图区至少 640 判断并排（原未扣，“功能区”约 1090、“设备”约 1170 就并排，楼层图区不足 640）
+// 宽屏独立轨道与面板间距计入画布的可用宽度，叠在画布上的轨道已经由画布内边距计入。
 function spEdListInset(sel, panelGap = false) {
-  const bench = $(sel), fl = bench?.querySelector(":scope > .sp-ed-fl");
+  const bench = $(sel), rail = bench?.querySelector(":scope > .ws-rail");
   if (!bench || !U.spEd || typeof getComputedStyle !== "function") return 0;
-  const gap = parseFloat(getComputedStyle(bench).columnGap) || 0;
-  return (fl?.getClientRects().length ? fl.offsetWidth + gap : 0) + (panelGap ? gap : 0);
+  const style = getComputedStyle(bench), gap = parseFloat(style.columnGap) || 0;
+  return (style.display === "flex" && rail?.offsetWidth && getComputedStyle(rail).position === "static" ? rail.offsetWidth + gap : 0) + (panelGap ? gap : 0);
 }
 const mkStacked = () => isMobile();
 const mkOverlay = () => !mkStacked() && mkBenchWidth() - MK_PANEL_W - mkPlanInset() < SP_PLAN_MIN;
@@ -49081,6 +49122,9 @@ const spRedoOk = (top = U.spUndo?.at(-1)) => {
 const spEdSaveLabel = (n) => `保存规划 · ${n} 项未保存`;
 // 3.42 E1384：设备、照明分区与网络模式安静提交（不重画）后就地更新“保存规划 · N 项未保存”与显示
 function spEdSaveSync() {
+  const undo = $(".sp-ed-tb [data-act=undo]"), redo = $(".sp-ed-tb [data-act=redo]");
+  if (undo) undo.disabled = !U.undo.length;
+  if (redo) redo.disabled = !U.redo.length;
   const b = $(".sp-ed-tb [data-act=savePlan]");
   if (!b) return;
   const n = U.dirty ? U.undo.length || 1 : U.attrsDirty ? 1 : 0;
@@ -49178,18 +49222,6 @@ document.addEventListener("input", (e) => {
   const q = e.target.value.trim().toLowerCase();
   document.querySelectorAll(".sp-ed-pts li").forEach((li) => (li.hidden = !!q && !li.firstElementChild.dataset.q.includes(q)));
 });
-// 编辑时左侧为与查看相同的楼层列表卡（120 宽）；窄屏仍为楼层导航条。小点表示本次部署范围内有空间资料待处理
-function spEdFloorList(fs) {
-  const S = U.p ? floorStates(U.p) : null;
-  return `<nav class="ovf-fl sp-ed-fl" aria-label="楼层"><h3>楼层</h3><ul>${fs
-    .map((f) => {
-      const on = f.id === U.f,
-        todo = !!S && !S.sc.scopeWhole && S.todo(f);
-      // 3.42 E1386：没有楼层图的层名称为次要色，后写“无图”（原与有图的层看不出区别）
-      return `<li><button type="button" class="ovf-fr${on ? " on" : ""}${f.image ? "" : " noimg"}" data-act="floor" data-id="${esc(f.id)}"${on ? ' aria-current="page"' : ""} aria-label="${esc(`${f.name}${f.image ? "" : "，未上传" + planWord(f.buildingId)}${todo ? "，空间资料待处理" : ""}`)}"><span>${esc(f.name)}</span>${f.image ? "" : '<small aria-hidden="true">无图</small>'}${todo ? '<i class="todo" aria-hidden="true"></i>' : ""}</button></li>`;
-    })
-    .join("")}</ul></nav>`;
-}
 function spEdLeave() {
   const f = U.spEd === "3d" ? null : U.f,
     s = U.source;
@@ -49269,12 +49301,11 @@ defineActions({
     Object.assign(U, { dirty: false, attrsDirty: false, undo: [], redo: [] });
     go();
   },
-  spEdSave: async () => {
+  spEdSave: () => {
     const go = U.spEdNext || spEdLeave;
     U.spEdNext = null;
     closeModal(true);
-    if ((await savePlan()) === false || U.dirty || U.attrsDirty) return;
-    go();
+    return savePlan({}, go);
   },
   spEdMore: (a, el) => pop(el, menuBox("更多", spEdMoreItems())),
   spEdPt: (a) => {
@@ -52379,7 +52410,11 @@ defineActions({
     networkForm();
   },
   saveNetwork: saveNetworkForm,
-  savePlan,
+  savePlan: (a, el) => {
+    const onSaved = a.confirmed ? el?.planSaveContinuation : null;
+    if (onSaved) delete el.planSaveContinuation;
+    return savePlan(a, onSaved);
+  },
   savePrepare: async (a) => {
     closeModal(true);
     if ((await savePlan({ then: "prepare", id: a.id })) !== false) prepareApp(a.id);
@@ -53236,7 +53271,7 @@ document.addEventListener("keydown", (e) => {
   // 机构菜单与项目中的更多菜单、楼层操作菜单（role=menu）：方向键、Home、End 选择，Tab 离开时关闭菜单。
   const orgMenu = $("#pop .au-menu") || $("#pop [role=menu]");
   if (!modal && orgMenu?.contains(e.target)) {
-    const items = [...orgMenu.querySelectorAll('[role="menuitem"],[role="menuitemradio"]')].filter(x => !x.disabled && x.getClientRects().length),
+    const items = [...orgMenu.querySelectorAll('[role="menuitem"],[role="menuitemradio"],[role="menuitemcheckbox"]')].filter(x => !x.disabled && x.getClientRects().length),
       i = items.indexOf(document.activeElement);
     let next = null;
     // 2.81 账户第 864 条：在“搜索机构”框里 Home、End 移动光标，↓ 进入第一条结果
@@ -53250,7 +53285,7 @@ document.addEventListener("keydown", (e) => {
       e.preventDefault();
       items.forEach(x => x.tabIndex = x === next ? 0 : -1);
       next.focus({ preventScroll: true });
-      if (selectPop?.anchor?.dataset.act === "ov3MapGroup") ov3RevealGroupMenuItem(selectPop, next);
+      if (selectPop?.anchor?.dataset.act === "ov3MapGroup" || orgMenu.classList.contains("ws3-scope-menu")) ov3RevealGroupMenuItem(selectPop, next);
       return;
     }
     if (e.key === "Tab") closePop({ restoreFocus: true });
@@ -54157,6 +54192,8 @@ function wsAfterRender() {
   }
   const rs = $(".ws-rail-scroll");
   if (rs) {
+    const track = rs.parentElement, rail = track.parentElement, up = rs.previousElementSibling, down = rs.nextElementSibling;
+    wsRailSize(rs);
     let revealRecent = null;
     const current = rs.querySelector("[aria-current=location]");
     if (U.railFloor !== U.f) {
@@ -54176,10 +54213,7 @@ function wsAfterRender() {
     } else rs.scrollTop = U.planScroll || 0;
     const railB = U.page === "projects" && !U.f ? U.b : null;
     const update = () => {
-      const track = rs.parentElement, up = rs.previousElementSibling, down = rs.nextElementSibling,
-        available = rs.clientHeight + up.offsetHeight + down.offsetHeight,
-        over = rs.classList.contains("snap-rows") || rs.scrollHeight > available + 1;
-      track.classList.toggle("scrollable", over);
+      const over = track.classList.contains("scrollable");
       up.disabled = !over || rs.scrollTop <= 1;
       down.disabled = !over || rs.scrollTop + rs.clientHeight >= rs.scrollHeight - 1;
       up.tabIndex = up.disabled ? -1 : 0;
@@ -54189,7 +54223,6 @@ function wsAfterRender() {
       rs.classList.toggle("fade-b", over && !down.disabled);
       if (rs.getClientRects().length) { U.planScroll = rs.scrollTop; if (railB) U.bRailScroll = { b: railB, top: rs.scrollTop }; }
     };
-    wsRailSize(rs);
     update();
     // 轨道上下箭头出现后可见区域才确定：此时再判断刚离开的楼层是否完整可见，下一帧布局稳定后再核对一次。
     if (revealRecent) { revealRecent(); update(); requestAnimationFrame(() => { if (rs.isConnected) { revealRecent(); update(); } }); }
@@ -54197,14 +54230,24 @@ function wsAfterRender() {
     const focused = document.activeElement?.closest(".ws-rail-scroll > button");
     wsRailTabStop(rs, rs.contains(focused) ? focused : undefined);
     railObserver?.disconnect();
-    railObserver = new ResizeObserver(() => {
-      wsRailSize(rs);
+    const resized = () => {
+      const changed = wsRailSize(rs);
       update();
-      if (rs.contains(document.activeElement) && document.activeElement.matches("button")) wsRailReveal(rs, document.activeElement);
+      const activeRow = document.activeElement?.closest(".ws-rail-scroll > button");
+      const target = rs.contains(activeRow) ? activeRow : current;
+      if (changed && target) wsRailReveal(rs, target);
       railSlide(rs);
-    });
-    railObserver.observe(rs.closest(".ws-rail"));
-    rs.addEventListener("scroll", update, { passive: true, signal: renderSignal() });
+      wsRailTipLayout(rs);
+    };
+    railObserver = new ResizeObserver(resized);
+    railObserver.observe(rail);
+    const listener = { passive: true, signal: renderSignal() };
+    rs.addEventListener("scroll", () => { update(); wsRailTipLayout(rs); }, listener);
+    document.addEventListener("scroll", (event) => {
+      if (event.target !== rs && event.target.contains?.(rail)) wsRailTipLayout(rs);
+    }, { ...listener, capture: true });
+    window.addEventListener("resize", resized, listener);
+    window.visualViewport?.addEventListener("resize", resized, listener);
   }
   if (spaceFloorActive() && U.f) {
     initSpaceCanvas();
@@ -54537,7 +54580,7 @@ let wsTipAnchor = null, wsTipPending = null, wsTipShowTimer = null, wsTipHideTim
 // Esc 关闭的楼层提示在原控件上保持关闭，直到焦点离开或指针重新进入。
 const wsDismissedFloorTips = new WeakSet();
 function wsDismissTip() {
-  if (wsTipAnchor?.closest(".ov3-fcol")) wsDismissedFloorTips.add(wsTipAnchor);
+  if (wsTipAnchor?.closest(".ov3-fcol, .ws-rail")) wsDismissedFloorTips.add(wsTipAnchor);
   wsHideTip(true);
 }
 function wsHideTip(immediate = false) {
@@ -54559,10 +54602,16 @@ function wsHideTip(immediate = false) {
     wsTipHideTimer = setTimeout(() => tip.remove(), 100);
   }
 }
+function wsRailTipLayout(list) {
+  const rail = list.closest(".ws-rail"), focused = document.activeElement;
+  const focusTip = rail.contains(focused) && focused.matches("button[data-tip]:focus-visible") && !wsDismissedFloorTips.has(focused);
+  if (rail.contains(wsTipAnchor) || rail.contains(wsTipPending) || ov3FloorTipTimers.has(list) || focusTip) ov3RailTipScroll(list);
+}
 function wsTipAllowed(el, keyboard) {
   if (!el?.isConnected || !el.dataset.tip || el.closest("[inert]")) return false;
-  const floorRail = el.closest(".ov3-fcol");
-  if (floorRail && (wsDismissedFloorTips.has(el) || ov3FloorTipTimers.has(floorRail.querySelector(".ov3-flist")) || !ov3RailTipVisible(el))) return false;
+  const floorRail = el.closest(".ov3-fcol, .ws-rail");
+  if (floorRail && (wsDismissedFloorTips.has(el) || ov3FloorTipTimers.has(floorRail.querySelector(".ov3-flist, .ws-rail-scroll")) || !ov3RailTipVisible(el))) return false;
+  if (el.matches(".ws-rail-scroll > button") && !ov3FloorInView(el)) return false;
   // 信息面板已打开时，信息按钮不再显示与面板标题重复的提示（Esc 直接关闭面板）。
   if (el.getAttribute("aria-controls") === "wsSpaceInfo" && el.getAttribute("aria-expanded") === "true") return false;
   if (!keyboard && lastPointer === "touch") return false;
@@ -56454,7 +56503,7 @@ function depProjectPickerContent(draft) {
     : depProjectFloorOptions(context).slice().reverse().map(({ f }) => ({ id: f.id, label: building.kind === "outdoor" ? "总平面" : f.name,
       note: f.managedPart && !F.managedPartReady(f) ? "管理边界待确认" : f.image ? "" : "未上传图纸" }));
   const current = stage === "project" ? U.p : stage === "building" ? U.b : U.f;
-  const rows = choices.map(({ id, label, note }) => `<button type="button" class="popitem dep-project-picker-row" role="menuitemradio" aria-checked="${id === current}" data-act="depProjectPickerChoose" data-id="${esc(id)}"><span>${esc(label)}${note ? `<small>${esc(note)}</small>` : ""}</span>${id === current ? ico("check", "ic16") : stage !== "floor" ? ico("chevR", "ic16") : ""}</button>`).join("");
+  const rows = choices.map(({ id, label, note }) => `<button type="button" class="popitem dep-project-picker-row" role="menuitemradio" aria-checked="${id === current}" data-act="depProjectPickerChoose" data-id="${esc(id)}">${note ? `<span>${esc(label)}<small>${esc(note)}</small></span>` : menuLabel(label)}${id === current ? ico("check", "ic16") : stage !== "floor" ? ico("chevR", "ic16") : ""}</button>`).join("");
   const emptyText = stage === "project" ? "当前没有可选项目" : stage === "building" ? "此项目尚无楼宇或室外区域" : "此处没有可查看的楼层";
   return menuBox(title, `<div class="dep-project-picker-heading"><strong>${title}</strong>${path.length ? `<small>${esc(path.join(" / "))}</small>` : ""}</div>${back}${rows || `<p class="dep-project-picker-note" role="status">${emptyText}</p>`}`, "dep-project-picker-menu");
 }
@@ -56519,9 +56568,19 @@ const depProjectFloorScrolls = new WeakMap();
 const depTopologyPlanImages = new WeakSet();
 function depProjectPositionFloorDetail() {
   const page = $(".dep-project-floor"), heading = page?.querySelector(".dep-project-floor-head");
-  if (!heading || !page.querySelector(".dep-topo-detail")) return;
+  const detail = page?.querySelector(".dep-topo-detail");
+  if (!heading || !detail || getComputedStyle(detail).position !== "fixed") return;
   const top = Math.max(70, Math.min(heading.getBoundingClientRect().bottom + 12, innerHeight - 100));
   page.style.setProperty("--project-floor-detail-top", `${top}px`);
+}
+function depProjectRevealFloorDetail() {
+  const detail = $(".dep-project-floor .dep-topo-detail");
+  if (!detail || getComputedStyle(detail).position !== "static") return;
+  const list = $(".dep-project-floor .dep-topo-zone-list[open]");
+  if (list) list.open = false;
+  const available = (window.visualViewport?.height || innerHeight) - 88;
+  detail.scrollIntoView({ block: detail.offsetHeight > available ? "start" : "end" });
+  detail.querySelector("h3")?.focus({ preventScroll: true });
 }
 window.addEventListener("resize", depProjectPositionFloorDetail, { passive: true });
 document.addEventListener("scroll", (event) => {
@@ -56670,9 +56729,10 @@ defineActions({
     const context = depWbContext();
     if (!depTopoFloorActive() || !context || !depTopoAllowedZone(context, id) || U.drawZone || U.zoneDraft || U.spatialEdit || U.scalePoints || U.planAlign) return;
     depTopoCloseFloorDetail(context);
-    const { project, building, floor } = context;
-    depTopoNavigate({ p: project.id, b: building.id, f: floor.id }, { mode: depProjectFloorActive() ? "floor" : "device-floor", selection: { kind: "zone", id }, replace: true, focus: false });
+    const { project, building, floor } = context, projectOnly = depProjectFloorActive();
+    if (depTopoNavigate({ p: project.id, b: building.id, f: floor.id }, { mode: projectOnly ? "floor" : "device-floor", selection: { kind: "zone", id }, replace: true, focus: false }) === false) return;
     spPanToZone(id);
+    if (projectOnly) requestAnimationFrame(depProjectRevealFloorDetail);
   },
   depTopoCanvasPoint: ({ id }) => {
     const context = depWbContext(), point = context && M.get(context.db, "points", id);
@@ -56810,7 +56870,7 @@ function floorPickMenu(anchor) {
   pop(anchor, `<div class="ws-floor-menu" role="menu" aria-label="选择楼层">${sortedFloors(U.b).map((x) => {
     const on = x.id === U.f, todo = !!S && S.todo(x), recent = floorRecent(x.id);
     // 3.42 E1386：没有楼层图的层名称为次要色，后写“无图”（原“未上传楼层图”）
-    return `<button class="popitem ${on ? "on" : ""}${recent ? " recent" : ""}${x.image ? "" : " noimg"}" role="menuitemradio" aria-checked="${on}" data-act="floor" data-id="${x.id}"${x.image ? "" : ` aria-label="${esc(x.name)}，未上传${planWord(x.buildingId)}"`}><span>${esc(x.name)}${!x.image ? '<small aria-hidden="true">无图</small>' : todo ? `<small class="ws-floor-menu-todo">${esc(S.state(x))}</small>` : ""}${recent ? '<small>刚离开</small>' : ""}</span>${on ? ico("check", "ic16 pop-check") : ""}</button>`;
+    return `<button class="popitem ${on ? "on" : ""}${recent ? " recent" : ""}${x.image ? "" : " noimg"}" role="menuitemradio" aria-checked="${on}" data-act="floor" data-id="${x.id}"${x.image ? "" : ` aria-label="${esc(x.name)}，未上传${planWord(x.buildingId)}"`}><span${x.image && !todo && !recent ? ' class="popitem-label"' : ""}>${esc(x.name)}${!x.image ? '<small aria-hidden="true">无图</small>' : todo ? `<small class="ws-floor-menu-todo">${esc(S.state(x))}</small>` : ""}${recent ? '<small>刚离开</small>' : ""}</span>${on ? ico("check", "ic16 pop-check") : ""}</button>`;
   }).join("")}</div>`);
   const p = $("#pop");
   p.classList.add("ws-floor-pop");
@@ -90083,12 +90143,15 @@ function anOverlaySpec(ts, step, outdoorOf, zone = null) {
 const anEvtWhen = (t, step, evs = [], end = t + step) =>
   end > t + step ? (step >= Demo.DAY ? `${opsDay(t)}–${opsDay(end - Demo.DAY)}` : opsDay(t) === opsDay(end - 1) ? `${opsDay(t)} ${Demo.hm(t)}–${Demo.hm(end)}` : `${opsDay(t)} ${Demo.hm(t)}–${opsDay(end)} ${Demo.hm(end)}`) : step >= Demo.DAY ? opsDay(t) : evs.length === 1 && Demo.hm(evs[0].t) !== "00:00" ? `${opsDay(evs[0].t)} ${Demo.hm(evs[0].t)}` : step >= Demo.H ? `${opsDay(t)} ${Demo.hm(t)}–${Demo.hm(t + step)}` : `${opsDay(t)} ${Demo.hm(t)}`;
 defineActions({
-  anOverlay: (a) => {
+  anOverlay: (a, el) => {
+    const menu = $("#pop"), trigger = el && menu?.contains(el) ? menu.anchor : null;
+    const focus = wsFocusDesc(trigger);
     if (a.k === "outdoor") U.opsOutdoor = !U.opsOutdoor;
     else if (a.k === "outPm") U.opsOutPm = !U.opsOutPm;
     else U.opsEvents = U.opsEvents === false;
     closePop();
     render();
+    if (focus) (trigger.isConnected ? trigger : wsFindDesc(focus))?.focus({ preventScroll: true });
   },
   anOverlayMenu: (a, el) => {
     if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
@@ -107125,7 +107188,7 @@ defineActions({
               head = it(b.name, fs.length ? "全部楼层" : "未上传楼层图", { b: b.id }, b.id === sc.bid && !sc.fid);
             return b.id === sc.bid ? [head, ...fs.map((x) => it(`${b.name} · ${x.f.name}`, "", { b: b.id, f: x.f.id }, x.f.id === sc.fid))] : [head];
           });
-    pop(el, menuBox("范围", [...top, ...prow, ...rows].join("")));
+    pop(el, menuBox("范围", [...top, ...prow, ...rows].join(""), "ws3-scope-menu"));
   },
   // 3.49 V1367：用电趋势“对比 ▾”
   ws3MemSw: (a) => {
@@ -115425,6 +115488,15 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.75",
+    date: "2026-11-15",
+    notes: [
+      "修复小屏设备数量显示及登录操作误触。",
+      "统一编辑和项目配置的楼层选择器，修复保存后切层及撤销、重做状态。",
+      "统一位置菜单和图层菜单的对齐、触屏操作及键盘焦点。",
+    ],
+  },
   {
     version: "3.74",
     date: "2026-11-15",
