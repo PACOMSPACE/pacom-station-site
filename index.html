@@ -18,6 +18,8 @@
   --section-title-size: 16px;
   --section-title-line: 24px;
   --workspace-gutter: 24px;
+  --workspace-desktop-inset-block: 20px;
+  --workspace-desktop-title-row: 32px;
   --workspace-card-gutter: 20px;
   --workspace-panel-gutter: 16px;
   --content-title-description-gap: 4px;
@@ -36970,6 +36972,10 @@ img.img-off { display: none !important; }
 .dep-space-back .ws-source-back { white-space: nowrap; }
 @media (min-width: 851px) {
   #app .phead > .ws-mscope { display: none; }
+  /* 内嵌画布的页头保持原总高度，标题上移的空间移到行末。 */
+  #app:not(.is-ov3, [data-sp-full]):has(> #side:not(.au-side)) > .main > .panel:has(> #pbody :is(.ov3-view, .dep-topo-canvas, .ws-geo, .sp-bench, .mk-bench, .ov2-plan)) > .phead:has(> h1) {
+    padding-block: var(--workspace-desktop-inset-block) calc(24px - var(--workspace-desktop-inset-block));
+  }
 }
 @media (max-width: 850px) {
   .ws3-mob:has(> .dep-space-back) { flex-wrap: wrap; }
@@ -36987,10 +36993,26 @@ img.img-off { display: none !important; }
     padding-block-end: 8px;
     border-bottom: 0;
   }
-  :is(.ov3x[data-lv]:not(.ws3x), .ws3x[data-pg="space"]) > .ov3-panel > .ov3-head:has(+ .ws-scope-band) {
-    padding-block-start: var(--workspace-gutter);
+  #app.is-ov3 .ov3x[data-lv] > .ov3-panel > .ov3-head:has(h1):has(+ .ws-scope-band) {
+    align-items: start;
+    padding-block-start: var(--workspace-desktop-inset-block);
   }
-  .ws3x[data-pg="space"] > .ws3-panel > .ws3-head > .ws3-ht { align-self: start; }
+  #app.is-ov3 .ov3x[data-lv] > .ov3-panel > .ov3-head:has(h1):has(+ .ws-scope-band) > :is(h1, .ws3-ht) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-block-size: var(--workspace-desktop-title-row);
+  }
+  #app.is-ov3 .ov3x[data-lv] > .ov3-panel > .ws3-head:has(.ws3-ht):has(+ .ws-scope-band) > .ws3-hr {
+    block-size: var(--workspace-desktop-title-row);
+  }
+  @media (any-pointer: coarse) {
+    /* 分栏标题行仍为 32px，按钮保留 44px 点按区。 */
+    #app.is-ov3 .ov3x[data-lv] > .ov3-panel > .ws3-head:has(.ws3-ht):has(+ .ws-scope-band) > .ws3-hbtn {
+      min-block-size: 44px;
+      margin-block: calc((var(--workspace-desktop-title-row) - 44px) / 2);
+    }
+  }
   .ws3-zp > h1.sr-only + .ws-scope-band { padding-block-start: var(--workspace-panel-gutter); }
 }
 .ov3x[data-lv] > .ov3-panel > .ws-scope-band { padding-block-end: 8px; }
@@ -37293,14 +37315,16 @@ img.img-off { display: none !important; }
   #app.is-ov3 .ov3x > .ov3-view { box-shadow: 0 0 0 var(--hw) #fff, 0 0 0 var(--hr) var(--hc-ring, rgba(119, 119, 113, 0.16)), 0 2px 1px rgba(0, 0, 0, 0.04), 0 2px 1px -0.5px rgba(0, 0, 0, 0.04),
     0 4px 3px -1.5px rgba(0, 0, 0, 0.04), 0 7px 6px -3px rgba(0, 0, 0, 0.04), 0 13px 12px -6px rgba(0, 0, 0, 0.04), 0 25px 24px -12px rgba(0, 0, 0, 0.04); }
 }
-/* 菜单栏（V1490、V1491、V1505、V1495、V1508）：标志行 8–40，搜索从 48 起；项 36 高、圆角 12、间距 2（HONG 06:17Z），
+/* 桌面标志行与工作区标题行共用起点及行高；搜索紧接标志行下方。菜单项高 36，圆角 12，
    图标盒 36（图标 20 在 x16），文字 x44；点击区左右外扩 8，贴满菜单栏宽；收起为 52 宽，项与机构按钮 36×36 在 x8；收起按钮 28 圆形、图标 16，点按区 44 */
 @media (min-width: 851px) {
   #app.collapsed { grid-template-columns: 52px 1fr; }
   #side { padding-inline: 0; }
+  #side:not(.au-side) { padding-block-start: var(--workspace-desktop-inset-block); }
   #side > :not(.nav) { margin-inline: 8px; }
   #side > .nav { padding-inline: 8px; }
   #side > .brand { height: 32px; margin-bottom: 8px; }
+  #side:not(.au-side) > .brand { flex-shrink: 0; height: var(--workspace-desktop-title-row); }
   .collapsed #side > .brand { margin-bottom: 8px; padding: 0 0 0 4px; }
   .brand > .iconbtn.ws-side-toggle { position: relative; width: 28px; height: 28px; border-radius: 50%; }
   .brand > .iconbtn.ws-side-toggle > svg { width: 16px; height: 16px; }
@@ -37488,9 +37512,7 @@ img.img-off { display: none !important; }
   display: grid;
   gap: 12px;
   align-content: start;
-  max-width: 1664px;
   width: 100%;
-  margin-inline: auto;
   padding: 24px var(--workspace-gutter) 14px;
   background: transparent;
 }
@@ -37500,11 +37522,15 @@ img.img-off { display: none !important; }
 .runtime-scope-caption { flex: none; font-size: 12px; line-height: 18px; color: #636363; }
 #app[data-page="settings"] #pbody { padding: 0; }
 .runtime-settings, .runtime-directory {
-  max-width: 1664px; margin-inline: auto; padding: 0 var(--workspace-gutter) 32px; min-width: 0;
+  padding: 0 var(--workspace-gutter) 32px; min-width: 0;
 }
 .runtime-settings {
   display: grid; grid-template-columns: 200px minmax(0, 960px);
   gap: 24px; align-items: start;
+}
+@media (min-width: 851px) {
+  .runtime-settings, .runtime-directory { padding: 0; }
+  .runtime-heading { min-height: var(--workspace-desktop-title-row); }
 }
 .runtime-categories {
   display: flex; flex-direction: column; align-items: stretch; gap: 3px;
@@ -38253,6 +38279,33 @@ img.img-off { display: none !important; }
 
 .phead .ob-title .ob-name { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
 
+@media (min-width: 851px) {
+  /* 标题、范围、页签和正文由同一个桌面内容框留白。画布工作区沿用自己的边界。 */
+  #app:not(.bare, .is-ov3, [data-sp-full]):has(> #side:not(.au-side)) > .main > .panel:not(:has(> #pbody :is(
+    .ov3-view, .sp-bench, .mk-bench, .ov2-plan, .ws-geo, .dep-topo-canvas
+  ))) {
+    padding: var(--workspace-desktop-inset-block) var(--workspace-gutter);
+
+    > .phead {
+      padding: 0;
+      height: auto;
+      min-height: var(--workspace-desktop-title-row);
+    }
+    > .phead:empty { min-height: 0; }
+    > #pbody {
+      padding: 0;
+      margin-block-start: 16px;
+    }
+    > .phead:empty + #pbody { margin-block-start: 0; }
+    > #pbody:has(> .ops-overview-nav:first-child) { margin-block-start: 8px; }
+    > #pbody > .ops-overview-nav:first-child { margin-block-start: 0; }
+    > .phead:has(> .dep-crumb) ~ #pbody {
+      margin-block-start: 8px;
+      .flow-heading.sub-head { margin-block-start: 0; }
+    }
+  }
+}
+
 #app > .wtop .wtop-t {
   margin-block: 0;
   font-size: var(--compact-title-size);
@@ -38310,6 +38363,16 @@ img.img-off { display: none !important; }
     min-width: 44px;
     height: 44px;
     min-height: 44px;
+  }
+}
+
+@media (min-width: 851px) and (any-pointer: coarse) {
+  #app:not(.bare, .is-ov3, [data-sp-full]):has(> #side:not(.au-side)) > .main > .panel > .phead :is(
+    [data-act="opsObjMore"], .runtime-heading [data-act="setMore"], .dev-page-more,
+    .ws-overview-title-actions > .btn, .dep-main-actions > .btn
+  ) {
+    /* 保留 44px 点按高度，标题仍按 32px 行居中。 */
+    margin-block: calc((var(--workspace-desktop-title-row) - 44px) / 2);
   }
 }
 
@@ -115973,6 +116036,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.80",
+    date: "2026-11-16",
+    notes: ["统一桌面工作区的标题对齐和内容留白。"],
+  },
   {
     version: "3.79",
     date: "2026-11-16",
