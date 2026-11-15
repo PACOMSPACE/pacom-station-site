@@ -6251,78 +6251,107 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 }
 /* 选择器宽度见本文件 2.57 E554（全站 280）；楼宇页的标记与窄屏提示放在楼宇画布内上方居中（2.13 E237 起选择器旁不再有“楼层操作 / 定位楼层”）。 */
 
-/* ========== 3. 楼层轨道：轨道与图例、选层按钮（3.34 删除楼宇图片页与楼层标记的样式） ========== */
-/* Rail: 32px round selection, 4px side inset, 8px ends + separate arrows when scrolling. */
+/* 楼层轨道的可见宽度与触屏命中区分别设置。 */
 .ws-rail {
+  --floor-rail-hit: 36px;
+  --floor-rail-row: 32px;
+  --floor-rail-gap: 2px;
+  --floor-rail-arrow: 28px;
+  --floor-rail-surface: color-mix(in srgb, #777771 4%, #fafafa);
+  --floor-rail-shadow: inset 0 2px 2px -1px #0000000a, inset 0 4px 4px -2px #0000000a, inset 0 0 0 var(--hw) #0000001f;
   position: absolute;
-  left: 12px;
   top: 12px;
   bottom: 12px;
-  width: 40px;
+  left: 12px;
   z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  width: var(--floor-rail-hit);
   pointer-events: none;
 }
 .ws-rail-track {
-  background: linear-gradient(#00000005, #00000005), rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(8px);
-  box-shadow:
-    inset 0 0 0 var(--hw) #0000001a,
-    inset 0 2px 3px -1px #0000000a;
-  pointer-events: auto;
-}
-.ws-rail-track {
-  max-height: 100%;
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-radius: 999px;
-  width: 40px;
-  padding: 12px 4px;
-  min-height: 80px;
-  overflow: hidden;
+  width: 100%;
+  max-height: 100%;
+  min-height: 0;
 }
-.ws-rail-track.single { min-height: 0; }
+.ws-rail-track::before, .ws-rail-home::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0 auto 0 50%;
+  width: 36px;
+  border-radius: 18px;
+  background: var(--floor-rail-surface);
+  box-shadow: var(--floor-rail-shadow);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
 .ws-rail-scroll {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  overflow: auto;
-  scrollbar-width: none;
+  align-items: center;
+  gap: var(--floor-rail-gap);
+  width: 100%;
   min-height: 0;
+  padding-block: 2px;
+  overflow: auto;
   overscroll-behavior: contain;
-  width: 32px;
-  flex: 1;
-  scroll-behavior: auto;
+  scrollbar-width: none;
+  pointer-events: auto;
 }
-.ws-rail-scroll::-webkit-scrollbar {
-  display: none;
+.ws-rail-scroll::-webkit-scrollbar { display: none; }
+.ws-rail-scroll.snap-rows {
+  max-height: var(--floor-list-height);
+  padding-block: 16px;
+  scroll-snap-type: y mandatory;
+  scroll-padding-block: 16px;
 }
-.ws-rail-scroll > button {
-  --rail-bg: transparent;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+.ws-rail-scroll.snap-rows > button { scroll-snap-align: start; }
+:is(.ws-rail-scroll > button, .ws-rail-home, .rail-arrow) {
+  position: relative;
+  flex: none;
   display: grid;
   place-items: center;
-  flex: none;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: #636363;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: color 150ms ease-out;
+}
+.ws-rail-scroll > button {
+  z-index: 1;
+  isolation: isolate;
+  height: var(--floor-rail-row);
+  padding-block: 2px 0;
   font-size: 14px;
   line-height: 22px;
   font-weight: 400;
-  color: var(--text3);
-  background: var(--rail-bg);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: proportional-nums;
 }
-/* 2.13 E242、E243：选中的白底是独立的底块 .ws-rail-ind，在楼层之间滑动（150ms ease-out，文字颜色同时过渡 150ms，按下 0.97）；
-   选中项本身不再画白底与阴影（原为选中按钮自带白底）。第一项“全部楼层”与楼层号同一按钮，图标 18。 */
+.ws-rail-scroll > button > span {
+  display: block;
+  max-width: 30px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .ws-rail-ind {
   position: absolute;
-  left: 0;
   top: 0;
+  left: 0;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -6331,164 +6360,70 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   pointer-events: none;
   transition: transform 150ms ease-out;
 }
-.ws-rail-scroll > button {
-  z-index: 1;
-  transition: color 150ms ease-out, transform 150ms ease-out;
+:is(.ws-rail-scroll > button.on, .ws-rail-scroll > button.recent, .ws-rail-home.on) { color: #030303; }
+@media (hover: hover) {
+  :is(.ws-rail-scroll > button, .ws-rail-home, .rail-arrow):not(:disabled):hover { color: #030303; }
 }
-.ws-rail-scroll > button.on {
-  color: var(--text);
-}
-.ws-rail-scroll > button.rail-from {
-  color: var(--text3);
-}
-.ws-rail-scroll > button.rail-was {
-  color: var(--text);
-}
-.ws-rail-scroll > button:where(:not(:disabled,[aria-disabled="true"])):active {
-  transform: scale(0.97);
-}
-/* 2.14 E260：“全部楼层”是导航条正上方 8 的单独 40 圆按钮（.ws-rail 的 8 间距），与导航条同一轨道外观；图标 18 #636363，
-   悬停 #030303 加 4% 黑底；在楼宇图时整个 40 圆为与选中楼层相同的白色凸起底（不在 40 圆里再叠 32 白圆）。原在导航条内第一项，下接 1px 短线。 */
-.ws-rail-home {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
+:is(.ws-rail-scroll > button, .ws-rail-home, .rail-arrow):not(:disabled):active { color: #030303; }
+:is(.ws-rail-scroll > button.recent, .ws-rail-scroll > button:focus-visible, .ws-rail-home:focus-visible, .rail-arrow:focus-visible)::before {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 32px;
+  height: min(32px, 100%);
   border-radius: 50%;
-  color: var(--text3);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.ws-rail-scroll > button.recent::before { z-index: -1; background: #00000012; }
+:is(.ws-rail-scroll > button, .ws-rail-home, .rail-arrow):focus-visible { outline: none; }
+:is(.ws-rail-scroll > button, .ws-rail-home, .rail-arrow):focus-visible::before { box-shadow: 0 0 0 2px var(--accent); }
+.ws-rail-home {
+  isolation: isolate;
+  height: var(--floor-rail-hit);
   pointer-events: auto;
-  background: linear-gradient(#00000005, #00000005), rgba(255, 255, 255, 0.82); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 var(--hw) #0000001a, inset 0 2px 3px -1px #0000000a;
-  transition: color 150ms ease-out, transform 150ms ease-out;
 }
-.ws-rail-home > svg {
-  width: 18px;
-  height: 18px;
-}
-@media (hover:hover) {
- .ws-rail-home:hover { background: linear-gradient(var(--hover), var(--hover)), linear-gradient(#00000005, #00000005), rgba(255, 255, 255, 0.82); color: var(--text); }
-}
-.ws-rail-home:active { transform: scale(0.97); color: var(--text); }
-.ws-rail-home.on, .ws-rail-home.on:hover { background: var(--btn-bg); box-shadow: var(--btn); backdrop-filter: none; color: var(--text); }
-.ws-rail-home:focus-visible { outline: 0; box-shadow: inset 0 0 0 1px #00aeef; }
-.ws-rail-home.on:focus-visible { box-shadow: var(--btn), inset 0 0 0 1px #00aeef; }
-@media (prefers-reduced-motion: reduce) {
- .ws-rail-home { transition: none; }
- .ws-rail-home:active { transform: none; }
-}
-@media (prefers-reduced-motion: reduce) {
- .ws-rail-ind, .ws-rail-scroll > button { transition: none; }
- .ws-rail-scroll > button:active { transform: none; }
-}
-/* D8：刚离开的楼层为浅色底，不是选中态（选中态为白色胶囊）。 */
-.ws-rail-scroll > button.recent {
-  --rail-bg: rgba(0, 0, 0, 0.07);
-  color: var(--text);
-}
-@media (hover:hover) {
- .ws-rail-scroll > button:where(:not(:disabled,[aria-disabled="true"])):hover {
-   background: linear-gradient(var(--hover), var(--hover)), var(--rail-bg);
-   color: var(--text);
- }
-}
-.ws-rail-scroll > button:where(:not(:disabled,[aria-disabled="true"])):active {
-  background: linear-gradient(var(--sel), var(--sel)), var(--rail-bg);
-  color: var(--text);
-}
-.ws-rail-scroll > button:focus-visible {
-  outline: 0;
-  box-shadow: inset 0 0 0 1px #00aeef;
-}
+.ws-rail-home::before { inset: 50% auto auto 50%; height: 36px; transform: translate(-50%, -50%); }
+.ws-rail-home > svg { width: 18px; height: 18px; }
+.ws-rail-home.on::before { background: var(--btn-bg); box-shadow: var(--btn); }
+.ws-rail-home:focus-visible::before { width: 36px; height: 36px; box-shadow: var(--floor-rail-shadow), 0 0 0 2px var(--accent); }
+.ws-rail-home.on:focus-visible::before { box-shadow: var(--btn), 0 0 0 2px var(--accent); }
 .rail-arrow {
   display: none;
-  width: 32px;
-  height: 28px;
-  min-height: 28px;
-  align-items: center;
-  justify-content: center;
-  color: #636363;
-  border-radius: 50%;
-  flex: none;
+  height: var(--floor-rail-arrow);
+  pointer-events: auto;
 }
-.rail-arrow:first-child svg {
-  transform: rotate(180deg);
-}
-.rail-arrow:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-.ws-rail-track.scrollable {
-  padding: 8px 4px;
-}
-.ws-rail-track.scrollable .rail-arrow {
-  display: flex;
-}
-/* 2.84 E1123：还能滚动的一端 16 渐隐（楼层号不被上下箭头硬切成半个） */
-.ws-rail-scroll.fade-t { -webkit-mask-image: linear-gradient(transparent, #000 16px); mask-image: linear-gradient(transparent, #000 16px); }
-.ws-rail-scroll.fade-b { -webkit-mask-image: linear-gradient(#000 calc(100% - 16px), transparent); mask-image: linear-gradient(#000 calc(100% - 16px), transparent); }
-.ws-rail-scroll.fade-t.fade-b { -webkit-mask-image: linear-gradient(transparent, #000 16px, #000 calc(100% - 16px), transparent); mask-image: linear-gradient(transparent, #000 16px, #000 calc(100% - 16px), transparent); }
-@media (max-width: 980px) {
- .ws-rail {
-   bottom: auto;
-   height: 365px;
- }
-}
-@media (max-width: 760px) {
- .ws-rail {
-   height: 264px;
- }
-}
-
-@media (max-width: 850px) {
- /* Floor rail: 52px track, 44px circles, 52px home (页面布局设计规范 §纵向楼层胶囊). */
- .ws-rail {
-   left: 8px;
-   top: 8px;
-   width: 52px;
- }
- .ws-rail-track {
-   width: 52px;
- }
- .ws-rail-home {
-   width: 52px;
-   height: 52px;
- }
- .ws-rail-scroll {
-   width: 44px;
- }
- .ws-rail-scroll > button {
-   width: 44px;
-   height: 44px;
- }
- .rail-arrow {
-   width: 44px;
-   height: 44px;
-   min-height: 44px;
- }
-}
-/* 楼层轨道小点：只表示本次部署范围内有待补或待核对。 */
-.ws-rail-scroll > button {
-  position: relative;
-}
+.rail-arrow:first-child svg { transform: rotate(180deg); }
+.rail-arrow:disabled { opacity: 0.3; cursor: default; }
+.ws-rail-track.scrollable .rail-arrow { display: grid; }
+.ws-rail-scroll.fade-t { mask-image: linear-gradient(transparent, #000 16px); }
+.ws-rail-scroll.fade-b { mask-image: linear-gradient(#000 calc(100% - 16px), transparent); }
+.ws-rail-scroll.fade-t.fade-b { mask-image: linear-gradient(transparent, #000 16px, #000 calc(100% - 16px), transparent); }
 .ws-rail-scroll > button.todo::after {
   content: "";
   position: absolute;
-  top: 3px;
-  right: 3px;
+  top: calc((100% - 32px) / 2 + 3px);
+  right: calc((100% - 32px) / 2 + 3px);
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  /* 全面设计核查第 154 条（2026-10-12 用户确认）：“待处理”小点用提示级的 #D9A404，同图例（原为色板外的 #E0A100） */
   background: #d9a404;
+  pointer-events: none;
 }
-/* 触屏平板上楼层轨道的层号（32×32）、上下滚动（32×28）与楼宇主页（40×40）用看不见的外扩把点按范围做到 44×44，外观不变；
-   范围重叠时按离谁近算谁（脚本 RAIL_ZOOM_HIT）（全面设计核查第 39 条（2026-10-12 用户确认），补第 351 条：原先只有脚本补点，按钮本身没有外扩）。
-   层号在滚动框内：滚动框左右各加 6 的透明边、轨道不再裁切，外扩不被裁掉。宽度 ≤850px 时按钮本身已是 44。项目楼层、楼宇页与设备标记共用。 */
-@media (pointer:coarse) and (min-width:851px) {
- .ws-rail-track { overflow:visible; }
- .ws-rail-scroll { width:44px; margin-inline:-6px; padding-inline:6px; }
- .rail-arrow, .ws-rail-home { position:relative; }
- .ws-rail-scroll > button::before, .rail-arrow::before, .ws-rail-home::before { content:""; position:absolute; left:50%; top:50%; width:max(100%, 44px); height:max(100%, 44px); transform:translate(-50%, -50%); }
+@media (max-width: 980px) {
+  .ws-rail { bottom: auto; height: 365px; }
+}
+@media (max-width: 760px) {
+  .ws-rail { height: 264px; }
+}
+@media (max-width: 850px), (any-pointer: coarse) {
+  .ws-rail { --floor-rail-hit: 44px; --floor-rail-row: 44px; --floor-rail-gap: 0px; --floor-rail-arrow: 44px; }
+}
+@media (max-width: 850px) {
+  .ws-rail { top: 8px; left: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.ws-rail-ind, .ws-rail-scroll > button, .ws-rail-home, .rail-arrow) { transition: none; }
 }
 /* 选择器组各层同一公式：等于目录第一列宽（3 / 2 / 1 列，列间 20px）；楼宇、楼层页也是尺寸容器。 */
 
@@ -6502,15 +6437,18 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
    （--rail-col = 轨道左边距 + 轨道宽 + 到内容的间距），第 2 列为楼宇图片或楼层画布，楼层页的面板在第 3 列（工作台放得下时并排；否则覆盖展开，见 sp-overlay）。
    轨道由网格放置，不再绝对定位；楼层画布与无图空状态铺到轨道列下方、内容从轨道列之后开始（画布顶部工具条据此以整个工作区居中）；
    楼宇图片在第 2 列居中（让出轨道后的剩余区域）。设备页的工作区不变。 */
-.ws-space-page > .ws-workbench { --rail-x:12px; --rail-y:12px; --rail-w:40px; --rail-gap:16px; --rail-col:calc(var(--rail-x) + var(--rail-w) + var(--rail-gap)); display:grid; grid-template-rows:minmax(0, 1fr); }
+.ws-space-page > .ws-workbench { --rail-x:12px; --rail-y:12px; --rail-w:36px; --rail-gap:16px; --rail-col:calc(var(--rail-x) + var(--rail-w) + var(--rail-gap)); display:grid; grid-template-rows:minmax(0, 1fr); }
 .ws-space-page > .ws-workbench { grid-template-columns:var(--rail-col) minmax(0, 1fr) auto; }
 .ws-space-page > .ws-workbench > .ws-rail { position:static; grid-area:1 / 1; align-self:stretch; height:auto; margin:var(--rail-y) 0 var(--rail-y) var(--rail-x); }
 .ws-space-page > .ws-workbench > :is(.ws-canvas-col, .ws-empty) { grid-area:1 / 1 / 2 / 3; }
 /* 无楼层图：空状态随工作区高度收缩（不小于 240px）并上下居中，与原纵向弹性布局一致。 */
 .ws-space-page > .ws-workbench.no-plan > .ws-empty { margin:0 auto; align-self:center; max-height:100%; }
 
+@media (any-pointer:coarse), (max-width:850px) {
+ .ws-space-page > .ws-workbench { --rail-w:44px; }
+}
 @media (max-width:850px) {
- .ws-space-page > .ws-workbench { --rail-x:8px; --rail-y:8px; --rail-w:52px; --rail-gap:8px; }
+ .ws-space-page > .ws-workbench { --rail-x:8px; --rail-y:8px; --rail-gap:8px; }
 }
 @media (max-height:560px) {
  /* 横屏手机等矮视口：工作区不高于视口，页面滚动与拖动图纸不互相干扰。 */
@@ -7194,6 +7132,10 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
   height: 100%;
   object-fit: cover;
   display: block;
+}
+.ws-image-thumbbtn > .ws-image-ov {
+  display: grid;
+  place-items: center;
 }
 .ws-image-field > div:nth-child(2) {
   flex: 1;
@@ -16260,6 +16202,18 @@ p.ops-work .ops-link {
 }
 /* 1.96：说明入口属于名称，不属于数值；与数据状态、告警和操作按钮分离。 */
 .ops-info-wrap { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; vertical-align:middle; margin-inline-start:4px; flex:none; }
+/* Keep the information affordance centered on the first line of the associated label. */
+.dialog .dh h2:has(> .ws-dialog-title-text + .ops-info-wrap),
+.ws-info-label-row {
+  display: flex;
+  align-items: flex-start;
+}
+:is(.dialog .dh h2:has(> .ws-dialog-title-text + .ops-info-wrap), .ws-info-label-row) > .ops-info-wrap {
+  margin-block-start: calc((1lh - 24px) / 2);
+}
+.ws-dialog-title-text { min-width: 0; }
+.dialog .dh h2:has(> .ops-info-wrap) > .ws-dialog-title-text { translate: 0 .5px; }
+.ws-info-label-row > span:first-child { min-width: 0; translate: 0 1px; }
 .ops-devpop .ops-kv { grid-template-columns:max-content minmax(0,1fr); }
 .ops-devpop .ops-kv dt { display:flex; align-items:flex-start; white-space:nowrap; }
 .ops-info { position:relative; display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; min-height:0; padding:0; border:0; border-radius:50%; background:transparent; box-shadow:none; color:#030303; cursor:pointer; vertical-align:middle; flex:none; transition:background 150ms cubic-bezier(.215,.61,.355,1); }
@@ -18574,24 +18528,23 @@ fieldset:disabled .au-primary {
   gap: 8px;
   flex: none;
 }
-/* 帮助各行不加框，行与行之间一条 #EBEBEB 细线，行上下 12；行名 14/24 字重 480，说明 14/24 #636363；按钮与内容右边对齐
+/* 帮助各行不加框，行与行之间一条细线，行上下 12；按钮与内容右边对齐。
    （Lovable 核查第 151、162 条，2026-10-11 用户确认：原先六行放在白框里，行名 14/21 字重 400，说明 13/19） */
 .au-help-rows {
   background: none;
   border-radius: 0;
   box-shadow: none;
+  margin-block-start: -12px;
 }
 .au-help-rows > .au-row {
   min-height: 0;
   padding: 12px 0;
 }
-.au-help-rows > .au-row:first-child {
-  padding-top: 0;
-}
 .au-help-rows .au-row-l {
   gap: 0;
   font-weight: 500;
   line-height: 22px;
+  translate: 0 1px;
 }
 .au-help-rows .au-row-l > small {
   font-weight: 400;
@@ -19548,6 +19501,7 @@ fieldset:disabled .au-primary {
   min-height: 28px;
   text-decoration: none;
 }
+.bare-login .au-login-actions > .au-textbtn > span { display: inline-block; translate: 0 1px; }
 @media (hover: hover) {
   .bare-login .au-login-actions .au-textbtn:hover {
     text-decoration: underline;
@@ -20065,6 +20019,7 @@ fieldset:disabled .au-primary {
 .au-account-dlg.au-reset-dlg .au-lab { margin-bottom: var(--au-space-label); }
 .au-account-dlg.au-reset-dlg .au-lab label { font: 500 14px/22px var(--ff); }
 .au-account-dlg.au-reset-dlg .au-in { height: 32px; padding: 0 12px; border-radius: 12px; font: 400 14px/22px var(--ff); }
+.au-account-dlg.au-reset-dlg .au-in[type="password"] { padding-block: 0 2px; }
 .au-account-dlg.au-reset-dlg .au-primary { height: 32px; border-radius: 12px; }
 .au-account-dlg.au-reset-dlg .au-help { margin-top: 12px; font: 400 14px/22px var(--ff); }
 .au-account-dlg.au-reset-dlg .au-help summary { min-height: 28px; cursor: pointer; }
@@ -20509,6 +20464,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 /* 账户短表单与全宽主按钮使用精准类名统一36px；机构搜索保持自己的规格。 */
 .au .au-in:not(.au-ta), .au .au-primary { height: 40px; min-height: 40px; }
 .au .au-compact-form .au-in:not(.au-ta) { height: 36px; min-height: 36px; padding-block: 6px; }
+.au .au-compact-form .au-in[type="password"] { padding-block: 5px 7px; }
 .au .au-primary.au-compact-primary { height: 36px; min-height: 36px; border-radius: 999px; font: 500 16px/24px var(--ff) !important; }
 @media (max-width: 850px), (pointer: coarse) {
   /* 44px 透明命中边界与前后输入框相接、不覆盖；标签到框的可见间距仍为 4px。 */
@@ -20999,6 +20955,10 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 /* ---------- 2.25（2026-10-25 HONG 20:41Z 按推荐，账户第 190–202 条）：登录分类全面核查 ---------- */
 /* 第 190 条：“忘记密码？”去掉右侧内边距，按钮右边缘与密码框右边缘对齐。 */
 .au .au-field-right .au-textbtn { padding-right: 0; }
+.au .au-field-right > .au-login-forgot > span { translate: 0 -3px; }
+@media (max-width: 850px), (pointer: coarse) {
+  .au .au-field-right > .au-login-forgot > span { translate: 0 -1px; }
+}
 /* 第 192 条：发送验证码失败与次数过多为框下 4 的红字，与同页其他提示同一样式、同一红色。 */
 .au .au-send-err, .au-account-dlg .au-send-err { display: block; color: var(--au-error-text); font: 400 14px/22px var(--ff); }
 /* 第 193 条：“收不到验证码？”点开后留在原位，说明接在下一行；手机和触屏上点击区仍为 44，不推动文字。 */
@@ -21066,6 +21026,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .au-nocode-right[hidden] { display: none !important; }
 :is(.au, #dlg) .au-lab:has(> .au-nocode-right) { position: relative; min-height: 0; }
 :is(.au, #dlg) .au-lab > .au-nocode-right { position: absolute; top: 0; right: 0; height: 24px; min-height: 0; margin: 0; }
+.au-lab > .au-nocode-right > span { display: inline-block; translate: 0 -1px; }
 /* 第 223 条：设置新密码的框下 4 常显“密码要求：”和四条要求，14/24 灰字 #636363，圆点列表；提交时未满足的几条与“密码要求：”变红（与其他错误同色）。 */
 .au-pwd-req { margin-top: 4px; color: var(--au-error-text, oklch(.4984 .197 26.56)); font: 400 14px/22px var(--ff); text-align: left; }
 .au-pwd-req p, .au-pwd-req ul { margin: 0; padding: 0; list-style: none; line-height: 22px; }
@@ -21395,13 +21356,16 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .au-task-shell > .au-top-x::after { content: ""; position: absolute; inset: -6px; }
 @media (max-width: 600px) { .au-task-shell > .au-top-x { top: 60.5px; right: 24px; } }
 @media (max-width: 1023.98px) and (max-height: 500px) { .au-task-shell > .au-top-x { top: 36.5px; } }
-/* 第 470 条：设备数量与订阅期限并排各占一半，手机上也一行 */
-.au .au-qty-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-items: start; }
+/* 数量和期限在可用宽度允许时等宽并排，窄容器中按字段换行。 */
+.au .au-qty-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 96px), 1fr)); gap: 16px 8px; align-items: start; }
 .au .au-qty-row > .field { min-width: 0; margin: 0; }
 .au .au-sub-form .au-qty-row .au-years-field { margin-top: 0; }
 .au .au-sub-form :is(.au-qty-field, .au-years-field) { display: block; }
 .au .au-qty-row .au-label-row, .au .au-sub-form .au-qty-field .au-label-row { display: flex; align-items: center; gap: 4px; min-height: 24px; margin-bottom: 4px; font: 400 14px/22px var(--ff); }
 .au .au-qty-row .ws-select { width: 100%; }
+.au-qty-control { position: relative; }
+.au .au-qty-control > input.input { padding-inline-end: 34px; }
+.au-qty-unit { position: absolute; inset-block: 0; inset-inline-end: 12px; display: grid; place-items: center; pointer-events: none; color: var(--text2); font: 400 14px/22px var(--ff); }
 /* 数字框与选择框同高：36，圆角 12，同本页其他输入框；触屏 44 */
 #app.bare-apply .au .au-sub-form :is(.au-qty-field input.input, .au-years-field .ws-select > .input), #app .au-task.au .au-sub-form :is(.au-qty-field input.input, .au-years-field .ws-select > .input) { height: 36px; min-height: 36px; border-radius: 12px; margin: 0; }
 @media (pointer: coarse) { #app.bare-apply .au .au-sub-form :is(.au-qty-field input.input, .au-years-field .ws-select > .input), #app .au-task.au .au-sub-form :is(.au-qty-field input.input, .au-years-field .ws-select > .input) { height: 44px; min-height: 44px; } }
@@ -37780,7 +37744,7 @@ img.img-off { display: none !important; }
     height: 44px;
     max-width: 44px;
     flex: none;
-    padding: 0 4px;
+    padding: 2px 4px 0;
     appearance: none;
     border: 0;
     border-radius: 0;
@@ -38113,6 +38077,12 @@ img.img-off { display: none !important; }
   & > svg { translate: 0 -1px; }
 }
 
+/* Only the text moves in selectors and single-line menu rows with their own label. */
+#pop .popitem > .popitem-label,
+.ws3-mob-loc > span,
+.ws3-lbtn > :is(.ws3-lbtn-k, b),
+.spatial-layer-controls .sp-layer-btn > .sp-layer-label,
+.ws-select > button.input[role="combobox"] > span,
 #side .navitem > .navlabel,
 .dep-project-card-tools > .btn > span,
 #pop .au-menu .popitem > .au-mi-l:not(:has(small)),
@@ -46239,6 +46209,7 @@ const infoTip = (text, label = "说明", title = "") =>
   `<span class="ops-info-wrap"><button type="button" class="ops-info ws-info-tip" data-act="opsExplain" data-title="${esc(label)}" data-info="${esc(encodeURIComponent((title ? `<b class="ws-info-title">${esc(title)}</b>` : "") + esc(text)))}" aria-label="${esc(label === "说明" ? label : label + "说明")}" aria-expanded="false" aria-haspopup="dialog">${typeof wsInfoIcon === "function" ? wsInfoIcon() : ico("info", "ic16")}</button></span>`;
 // 打开菜单的按钮：aria-haspopup="menu"，展开时 aria-expanded 由 pop() 维护。
 const menuTrigger = (html) => html.replace("<button ", '<button aria-haspopup="menu" aria-expanded="false" ');
+const menuLabel = (text) => `<span class="popitem-label">${esc(text)}</span>`;
 // 弹出菜单：role=menu，各项 role=menuitem（方向键、Home、End 选择，见全站菜单键盘处理；Lovable 核查第 389 条，2026-10-11 用户确认）
 const menuBox = (label, html, cls = "") =>
   `<div role="menu" aria-label="${esc(label)}"${cls ? ` class="${cls}"` : ""}>${html.replace(/<button class="(btn )?popitem/g, '<button role="menuitem" class="$1popitem')}</div>`;
@@ -47102,8 +47073,10 @@ function modal(title, body, foot = "", wide = true, options = {}) {
   el.className = fresh ? "scrim ws-dlg-enter" : "scrim";
   el.id = "dlg";
   el.dataset.page=U.page;
+  const titleHtml = wsTitleHtml(title);
+  const heading = options.titleInfo ? `<span class="ws-dialog-title-text">${titleHtml}</span>${options.titleInfo}` : titleHtml;
   // wide 为 "xl" 时是整块设置和目录用的 1200 宽（Lovable 核查第 359 条）
-  el.innerHTML = `<section class="dialog ${wide ? "wide" : ""}${wide === "xl" ? " xl" : ""}" role="${options.alert ? "alertdialog" : "dialog"}" aria-modal="true" aria-label="${esc(title)}"><div class="dh"><h2>${wsTitleHtml(title)}${options.titleInfo || ""}</h2>${options.headAct || ""}${options.noClose ? "" : iconBtn("关闭", "x", "close")}</div><div class="db" id="dlgBody">${body}<div class="form-error" id="formError" role="alert"></div></div>${options.footer === false || wsCloseOnlyFoot(foot, options) ? "" : `<div class="df">${foot || btn("关闭", "close")}</div>`}</section>`;
+  el.innerHTML = `<section class="dialog ${wide ? "wide" : ""}${wide === "xl" ? " xl" : ""}" role="${options.alert ? "alertdialog" : "dialog"}" aria-modal="true" aria-label="${esc(title)}"><div class="dh"><h2>${heading}</h2>${options.headAct || ""}${options.noClose ? "" : iconBtn("关闭", "x", "close")}</div><div class="db" id="dlgBody">${body}<div class="form-error" id="formError" role="alert"></div></div>${options.footer === false || wsCloseOnlyFoot(foot, options) ? "" : `<div class="df">${foot || btn("关闭", "close")}</div>`}</section>`;
   if (options.sheet) {
     el.classList.add("ds-bsheet");
     el.classList.toggle("ds-bs-full", bsFull);
@@ -48871,55 +48844,72 @@ function floorRail() {
   // 尚未保存范围（默认整个项目）时每层都缺资料，小点没有提示作用，不画。
   const S = U.page === "projects" && U.p ? floorStates(U.p) : null,
     todo = (f) => !!S && !S.sc.scopeWhole && S.todo(f);
-  // 2.13 项目页核查 E238、E242、E243（2026-10-21 用户确认）：
-  // · 未上传楼层图的楼层与其他楼层外观相同（原为灰字加 1px #A6A6A6 虚线圈，B4、E6），悬停与读屏仍写“未上传楼层图”；
-  // · 第一项“全部楼层”（楼层叠放图标，回到楼宇图）放进导航条内，与楼层号同一按钮：32 圆、透明底，选中时与选中楼层相同；
-  //   与楼层号之间一条 1px #EBEBEB 短分隔线（原为导航条外单独的 40 圆“楼宇主页”，用项目的 building-2 图标，白圈套白圆）；
-  // · 选中的白底是一个独立的底块（.ws-rail-ind），切换时在楼层之间滑动，见 railSlide。
-  // 2.14 E260（2026-10-21 HONG 按建议）：“全部楼层”移出导航条，改为导航条正上方 8 的单独 40 圆按钮，不随楼层滚动、单独一个 Tab 停留；
-  // 与导航条同一轨道外观，在楼宇图时整个 40 圆为白色凸起底。导航条里只留楼层号与上下滚动箭头（取代 E242 放进导航条第一项的做法）。
-  // 2.65 E740：设备标记的楼层轨道不放“全部楼层”，只列楼层号；楼宇图只在“项目”里有
-  const home = U.page === "devices" || U.spEd ? "" : `<button class="ws-rail-home ${!U.f ? "on" : ""}" data-act="buildingHome" aria-label="全部楼层" aria-current="${!U.f ? "location" : "false"}" data-tip="全部楼层">${ico("building")}</button>`;
-  // 2.70 E1051：只有一层时轨道不保留 80 的最小高度
-  // 2.84 E1130：网络模式只列本网络的楼层，切换模式时楼层图位置不动
-  // 2.91 V946：位置行只写项目与楼宇，楼层只在楼层导航中显示，所以只有一个楼层时也显示楼层导航
+  const home = U.page === "devices" || U.spEd ? "" : `<button type="button" class="ws-rail-home ${!U.f ? "on" : ""}" data-act="buildingHome" aria-label="全部楼层" aria-current="${!U.f ? "location" : "false"}" data-tip="全部楼层">${ico("building")}</button>`;
   if (!fs.length && !home) return "";
-  return (U.spEd ? spEdFloorList(fs) : "") + `<div class="ws-rail">${home}<div class="ws-rail-track${fs.length < 2 ? " single" : ""}"><button class="rail-arrow" data-act="railUp" aria-label="向上滚动楼层">${ico("chevron", "ic16")}</button><nav class="ws-rail-scroll" aria-label="楼层选择器"><span class="ws-rail-ind" aria-hidden="true"></span>${fs.map((f) => `<button aria-label="进入${floorSpeak(f)}${todo(f) ? "，本次范围内有待处理项" : ""}${!f.image ? "，未上传楼层图" : ""}${floorRecent(f.id) ? "，刚离开的楼层" : ""}" aria-current="${f.id === U.f ? "location" : "false"}" class="${f.id === U.f ? "on" : ""} ${todo(f) ? "todo" : ""} ${floorRecent(f.id) ? "recent" : ""}" data-act="floor" data-id="${f.id}" data-tip="${esc(f.name)}${!f.image ? " · 未上传楼层图" : ""}${todo(f) ? " · 空间资料待处理" : ""}" data-tip-at="right">${esc(floorRailLabel(f.name))}</button>`).join("")}</nav><button class="rail-arrow" data-act="railDown" aria-label="向下滚动楼层">${ico("chevron", "ic16")}</button></div></div>`;
+  const current = fs.find((f) => f.id === U.f) || fs[0];
+  const rows = fs.map((f) => `<button type="button" aria-label="进入${esc(floorSpeak(f))}${todo(f) ? "，本次范围内有待处理项" : ""}${!f.image ? "，未上传楼层图" : ""}${floorRecent(f.id) ? "，刚离开的楼层" : ""}" aria-current="${f.id === U.f ? "location" : "false"}" tabindex="${f === current ? 0 : -1}" class="ws-rail-floor${f.id === U.f ? " on" : ""}${todo(f) ? " todo" : ""}${floorRecent(f.id) ? " recent" : ""}" data-key="${esc(f.id)}" data-act="floor" data-id="${esc(f.id)}" data-tip="${esc(f.name)}${!f.image ? " · 未上传楼层图" : ""}${todo(f) ? " · 空间资料待处理" : ""}" data-tip-at="right"><span>${esc(floorRailLabel(f.name))}</span></button>`).join("");
+  const arrow = (direction, label) => `<button type="button" class="rail-arrow" data-act="${direction}" tabindex="-1" aria-label="${label}">${ico("chevron", "ic16")}</button>`;
+  return (U.spEd ? spEdFloorList(fs) : "") + `<div class="ws-rail">${home}<div class="ws-rail-track" data-morph-classes="scrollable">${arrow("railUp", "向上滚动楼层")}<nav class="ws-rail-scroll" aria-label="楼层选择器" data-morph-classes="fade-t fade-b snap-rows"><span class="ws-rail-ind" aria-hidden="true" data-morph-keep="editor-floor-thumb"></span>${rows}</nav>${arrow("railDown", "向下滚动楼层")}</div></div>`;
 }
-// 楼层导航的选中底块滑动（E243，同 Lovable 视图切换与 E228）：150ms ease-out 上下滑到新楼层，距离远时一次滑过去；文字颜色同时过渡 150ms。
-// 新楼层在可视范围外时，渲染后先把导航条滚到该层（见 wsAfterRender），底块随内容一起滚动，再从上一次的位置滑过去。
-// 系统开启“减少动态效果”时不滑动，直接切换。U.railInd 记住上一次底块所在的楼宇与位置。
+function wsRailTabStop(list, button = list.querySelector("button.on, button[aria-current=location]") || list.querySelector("button")) {
+  for (const row of list.querySelectorAll(":scope > button")) row.tabIndex = row === button ? 0 : -1;
+}
+function wsRailReveal(list, button) {
+  const row = button.getBoundingClientRect(), view = list.getBoundingClientRect();
+  const before = row.top - view.top, after = view.bottom - row.bottom;
+  if (before < 16) list.scrollTop -= 16 - before;
+  else if (after < 16) list.scrollTop += 16 - after;
+}
+function wsRailScroll(direction) {
+  const list = $(".ws-rail-scroll");
+  const row = list?.querySelector("button");
+  if (!row) return;
+  const step = row.offsetHeight + parseFloat(getComputedStyle(list).rowGap);
+  list.scrollBy({ top: 3 * direction * step, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+}
+function wsRailKey(event) {
+  const button = event.target.closest?.(".ws-rail-scroll > button");
+  if (!button || !["ArrowUp", "ArrowDown", "Home", "End"].includes(event.key) || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing) return;
+  const list = button.parentElement, rows = [...list.querySelectorAll(":scope > button")];
+  const index = event.key === "Home" ? 0 : event.key === "End" ? rows.length - 1 : rows.indexOf(button) + (event.key === "ArrowDown" ? 1 : -1);
+  const next = rows[index];
+  event.preventDefault();
+  if (!next) return;
+  wsRailTabStop(list, next);
+  wsRailReveal(list, next);
+  next.focus({ preventScroll: true });
+}
+// 滑块固定 32px，沿鼠标与触屏楼层行的中心定位。
 function railSlide(rs) {
-  const ind = rs.querySelector(".ws-rail-ind"),
-    cur = rs.querySelector("button.on");
+  const ind = rs.querySelector(".ws-rail-ind"), selected = rs.querySelector("button.on");
   if (!ind) return;
-  if (!cur) { ind.hidden = true; U.railInd = null; U.railFromHome = true; return; }
-  const key = U.page + ":" + U.b,
-    to = { x: cur.offsetLeft, y: cur.offsetTop, w: cur.offsetWidth, h: cur.offsetHeight },
-    prev = U.railInd?.key === key ? U.railInd : null,
-    place = (p) => { ind.style.width = to.w + "px"; ind.style.height = to.h + "px"; ind.style.transform = `translate(${p.x}px, ${p.y}px)`; };
-  U.railInd = { key, ...to, id: cur.dataset.id || "" };
-  const reduce = matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  // 2.14 E260：从楼宇图进入某一层时，底块在该层淡入 150ms（不再从“全部楼层”滑下来）。
-  if (!prev || (prev.x === to.x && prev.y === to.y) || reduce) {
-    ind.style.transition = "none";
-    place(to);
-    if (!prev && !reduce && U.railFromHome) ind.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: "ease-out" });
-    U.railFromHome = false;
-    return;
-  }
-  ind.style.transition = "none";
-  place(prev);
-  const was = prev.id ? rs.querySelector(`button[data-id="${CSS.escape(prev.id)}"]`) : null;
-  cur.classList.add("rail-from");
-  if (was && was !== cur) was.classList.add("rail-was");
-  void ind.offsetWidth;
-  requestAnimationFrame(() => {
-    ind.style.transition = "";
-    place(to);
-    cur.classList.remove("rail-from");
-    was?.classList.remove("rail-was");
-  });
+  ind.hidden = !selected;
+  if (!selected) { U.railInd = null; U.railFromHome = true; return; }
+  const key = U.page + ":" + U.b, id = selected.dataset.id,
+    x = selected.offsetLeft + (selected.offsetWidth - 32) / 2,
+    y = selected.offsetTop + (selected.offsetHeight - 32) / 2,
+    previous = U.railInd?.key === key ? U.railInd : null,
+    position = `translate(${x}px, ${y}px)`;
+  U.railInd = { key, id };
+  if (ind.style.transform === position) return;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  ind.style.transition = !reduced && previous && previous.id !== id && ind.style.transform ? "" : "none";
+  ind.style.transform = position;
+  if (!previous && !reduced && U.railFromHome) ind.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: "ease-out" });
+  U.railFromHome = false;
+}
+function wsRailSize(list) {
+  const row = list.querySelector("button");
+  const rail = list.closest(".ws-rail"), home = rail.querySelector(".ws-rail-home");
+  if (!row || !rail.clientHeight) return;
+  const height = row.offsetHeight, style = getComputedStyle(rail),
+    room = rail.clientHeight - (home ? home.offsetHeight + parseFloat(style.rowGap) : 0),
+    arrow = parseFloat(style.getPropertyValue("--floor-rail-arrow")),
+    complete = Math.floor((room - 2 * (arrow + 16)) / height),
+    snap = height === 44 && (list.childElementCount - 1) * height + 4 > room + 1 && complete > 0;
+  list.classList.toggle("snap-rows", snap);
+  if (snap) list.style.setProperty("--floor-list-height", `${complete * height + 32}px`);
+  else list.style.removeProperty("--floor-list-height");
 }
 // 2.14 E261（HONG 18:45Z 要求删除）：楼宇图下方不再有“小点：空间资料待处理”图例，小点的含义在楼层的悬停提示与读屏名称里。
 // 设备点看全图时画成 12 的实心小点，只用类型颜色区分（全面设计核查第 32 条（2026-10-12 用户确认）；原先设备点固定 28×28，
@@ -49120,7 +49110,7 @@ function spEdMoreItems() {
   const out = isOutdoor(f.buildingId),
     w = planWord(f.buildingId),
     n = g("networks", U.net) || M.networks(data(), f.id)[0],
-    it = (icon, label, act, args = {}) => btn(ico(icon, "ic16") + label, act, args, "popitem"),
+    it = (icon, label, act, args = {}) => btn(ico(icon, "ic16") + (act === "spEdChecks" || act === "checksToggle" ? label : menuLabel(label)), act, args, "popitem"),
     zones = U.page === "projects",
     off = (html, on) => (on ? html : html.replace("<button ", "<button disabled ")),
     // 3.16 E1237：手机上标题行不放撤销、重做，收进“⋯”的第一组
@@ -49376,7 +49366,7 @@ function floorPage() {
   // 代替右下的“功能区”开关、常驻图例和照明分区面板里的两个图层开关。E308：去掉常驻的操作提示，只在放置、连线、并入、校准时写。
   const hint = viewing ? "" : canvasHint();
   const canvasBottom = `<div class="ws-canvas-bottom">${floorPick()}${zoomPill(planWord(f.buildingId), U.zoom, "zoom", "fit")}${hint ? `<span class="mk-hint">${hint}</span>` : ""}</div>`,
-    layerTop = viewing ? "" : `<div class="ws-canvas-top mk-layer-top${U.spEd ? " sp-ed-top" : ""}">${U.spEd ? floorModeTabs() : ""}<div class="spatial-layer-controls">${menuTrigger(btn(ov3ToolIcon("layers") + "图层" + ov3ToolIcon("chevron"), "mkLayers", {}, "sm sp-layer-btn mk-layers-btn"))}</div></div>`,
+    layerTop = viewing ? "" : `<div class="ws-canvas-top mk-layer-top${U.spEd ? " sp-ed-top" : ""}">${U.spEd ? floorModeTabs() : ""}<div class="spatial-layer-controls">${menuTrigger(btn(ov3ToolIcon("layers") + '<span class="sp-layer-label">图层</span>' + ov3ToolIcon("chevron"), "mkLayers", {}, "sm sp-layer-btn mk-layers-btn"))}</div></div>`,
     hidden = `${(U.mkHide || []).map((k) => " hide-pt-" + k).join("")}${U.mkNames === false ? " hide-names" : ""}`;
   const pts = M.points(data(), f.id).filter((p) => p.positionAttached !== false && !(U.mode === "roles" && M.access(p) === "cell")); // 3.08 V1047：网络模式不显示 4G 设备
   return (
@@ -52431,8 +52421,8 @@ defineActions({
     U.zoom = 1;
     render();
   },
-  railUp: () => $(".ws-rail-scroll")?.scrollBy({ top: -102, behavior: "smooth" }),
-  railDown: () => $(".ws-rail-scroll")?.scrollBy({ top: 102, behavior: "smooth" }),
+  railUp: () => wsRailScroll(-1),
+  railDown: () => wsRailScroll(1),
   drawZone: () => {
     U.drawZone = !U.drawZone;
     U.point = null;
@@ -52690,8 +52680,8 @@ defineActions({
         .map(
           // 2.65 E908：选项第三项写原因时该项不可选（仍可聚焦），悬停写原因；2.66 V493：[null] 为分隔线，第四项为点选后执行的动作（如“+ 新建场景”）
           ([v, l, why, run]) =>
-            v === null ? `<div class="pop-sep" role="separator"></div>` : run ? `<button class="popitem" role="option" aria-selected="false" data-act="selectRun" data-run="${esc(run)}"><span>${esc(l)}</span></button>` :
-            `<button class="popitem ${value(a.field) === String(v) ? "on" : ""}" role="option" aria-selected="${value(a.field) === String(v)}" data-act="selectValue" data-field="${a.field}" data-value="${esc(v)}"${why ? ` aria-disabled="true" data-tip="${esc(why)}"` : ""}><span>${esc(l)}</span>${value(a.field) === String(v) ? ico("check", "ic16 pop-check") : ""}</button>`,
+            v === null ? `<div class="pop-sep" role="separator"></div>` : run ? `<button class="popitem" role="option" aria-selected="false" data-act="selectRun" data-run="${esc(run)}">${menuLabel(l)}</button>` :
+            `<button class="popitem ${value(a.field) === String(v) ? "on" : ""}" role="option" aria-selected="${value(a.field) === String(v)}" data-act="selectValue" data-field="${a.field}" data-value="${esc(v)}"${why ? ` aria-disabled="true" data-tip="${esc(why)}"` : ""}>${menuLabel(l)}${value(a.field) === String(v) ? ico("check", "ic16 pop-check") : ""}</button>`,
         )
         .join(""),
       true,
@@ -52935,7 +52925,8 @@ document.addEventListener("click", async (e) => {
     target = hit?.matches("tr.click") && e.target.closest("input, label") ? null : hit;
   if (target) {
     if (target.matches("#side a.navitem") && (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)) return;
-    const fn = actions[target.dataset.act];
+    const act = target.dataset.act;
+    const fn = actions[act];
     if (target.getAttribute("aria-disabled") === "true" && !(target.dataset.gated === "1" && !target.closest("[data-busy='1']"))) { e.preventDefault(); return; }
     if (!fn) return formError("此入口尚未接入");
     // 这些原生勾选框在 click 前已切换 checked；取消默认会在同步重绘后把属性恢复为旧值。
@@ -52945,9 +52936,10 @@ document.addEventListener("click", async (e) => {
       if (
         U.attrsDirty &&
         !BARE[U.page] &&
-        !["select", "selectValue", "applyPoint", "savePlan", "prepareApp", "export", "savePrepare"].includes(target.dataset.act) &&
-        !target.dataset.act.startsWith("depTopo") &&
-        !(target.dataset.act === "tab" && target.dataset.value === "config")
+        !["select", "selectValue", "applyPoint", "savePlan", "prepareApp", "export", "savePrepare", "floor", "floorPick", "railUp", "railDown"].includes(act) &&
+        !target.closest(".sp-ed-done, #discard") &&
+        !act.startsWith("depTopo") &&
+        !(act === "tab" && target.dataset.value === "config")
       ) {
         applyPoint();
       }
@@ -54169,11 +54161,7 @@ function wsAfterRender() {
     const current = rs.querySelector("[aria-current=location]");
     if (U.railFloor !== U.f) {
       const recent = !U.f && U.recentFloor ? rs.querySelector(`[data-id="${CSS.escape(U.recentFloor)}"]`) : null;
-      const reveal = (el) => () => {
-        const r = el.getBoundingClientRect(), v = rs.getBoundingClientRect();
-        if (r.top < v.top) rs.scrollTop -= v.top - r.top + 4;
-        else if (r.bottom > v.bottom) rs.scrollTop += r.bottom - v.bottom + 4;
-      };
+      const reveal = (el) => () => wsRailReveal(rs, el);
       // 2.70 E1050：进入楼层时当前楼层尽量居中；上下箭头出现、可见高度变小后再居中一次并确保完整可见（最低几层原被挤出可见范围）
       if (current) {
         const show = reveal(current);
@@ -54188,26 +54176,34 @@ function wsAfterRender() {
     } else rs.scrollTop = U.planScroll || 0;
     const railB = U.page === "projects" && !U.f ? U.b : null;
     const update = () => {
-      const over = rs.scrollHeight > rs.clientHeight + 1,
-        track = rs.parentElement;
+      const track = rs.parentElement, up = rs.previousElementSibling, down = rs.nextElementSibling,
+        available = rs.clientHeight + up.offsetHeight + down.offsetHeight,
+        over = rs.classList.contains("snap-rows") || rs.scrollHeight > available + 1;
       track.classList.toggle("scrollable", over);
-      const up = track.querySelector("[data-act=railUp]"),
-        down = track.querySelector("[data-act=railDown]");
-      up.disabled = rs.scrollTop <= 1;
-      down.disabled = rs.scrollTop + rs.clientHeight >= rs.scrollHeight - 1;
+      up.disabled = !over || rs.scrollTop <= 1;
+      down.disabled = !over || rs.scrollTop + rs.clientHeight >= rs.scrollHeight - 1;
+      up.tabIndex = up.disabled ? -1 : 0;
+      down.tabIndex = down.disabled ? -1 : 0;
       // 2.84 E1123：还能向上（向下）滚时，轨道上（下）边缘 16 渐隐，楼层号不被箭头硬切
       rs.classList.toggle("fade-t", over && !up.disabled);
       rs.classList.toggle("fade-b", over && !down.disabled);
       if (rs.getClientRects().length) { U.planScroll = rs.scrollTop; if (railB) U.bRailScroll = { b: railB, top: rs.scrollTop }; }
     };
+    wsRailSize(rs);
     update();
     // 轨道上下箭头出现后可见区域才确定：此时再判断刚离开的楼层是否完整可见，下一帧布局稳定后再核对一次。
     if (revealRecent) { revealRecent(); update(); requestAnimationFrame(() => { if (rs.isConnected) { revealRecent(); update(); } }); }
     railSlide(rs);
-    if (U.railKey) { U.railKey = false; rs.querySelector("button.on")?.focus(); }
+    const focused = document.activeElement?.closest(".ws-rail-scroll > button");
+    wsRailTabStop(rs, rs.contains(focused) ? focused : undefined);
     railObserver?.disconnect();
-    railObserver = new ResizeObserver(update);
-    railObserver.observe(rs);
+    railObserver = new ResizeObserver(() => {
+      wsRailSize(rs);
+      update();
+      if (rs.contains(document.activeElement) && document.activeElement.matches("button")) wsRailReveal(rs, document.activeElement);
+      railSlide(rs);
+    });
+    railObserver.observe(rs.closest(".ws-rail"));
     rs.addEventListener("scroll", update, { passive: true, signal: renderSignal() });
   }
   if (spaceFloorActive() && U.f) {
@@ -54605,8 +54601,8 @@ function wsShowTip(el, keyboard = false) {
     else tip.textContent = el.dataset.tip;
     document.body.append(tip);
     const at = el.dataset.tipAt,
-      rail = at === "right" ? el.closest(".ov3-fcol")?.getBoundingClientRect() : null,
-      edge = rail ? rail.left + rail.width / 2 + 18 : at === "right" ? el.closest(".ws-rail-track")?.getBoundingClientRect().right : null;
+      rail = at === "right" ? el.closest(".ov3-fcol, .ws-rail")?.getBoundingClientRect() : null,
+      edge = rail ? rail.left + rail.width / 2 + 18 : null;
     wsPlaceTip(tip, el.querySelector("[data-trunc]") || el, side || at === "right", at === "top", edge, at === "left");
     wsTipAnchor = el;
     // 楼层轨道按钮已经有完整的读屏名称和状态，气泡提供视觉上的原始楼层名。
@@ -56106,36 +56102,43 @@ document.addEventListener(
   },
   true,
 );
-/* 触屏上楼层轨道的按钮和缩放胶囊的 − +（宽 28、高 32 等）用看不见的外扩做到 44×44，范围重叠时按离谁近算谁，外观不变
-   （Lovable 核查第 351 条，同第 212 条，2026-10-11 用户确认）。项目楼层图、楼宇图与设备标记的楼层图共用轨道和缩放胶囊。
-   点在 44×44 范围内但不在按钮上时（轨道边缘、画布空白），改为点离得最近的按钮；点在其他按钮或功能区上时不改。 */
-// 2.13 E243：楼层导航上下方向键切换楼层（含“全部楼层”），选中底块同样滑过去，切换后焦点留在新的选中项。
-document.addEventListener("keydown", (e) => {
-  const b = e.target.closest?.(".ws-rail-scroll > button");
-  if (!b || !["ArrowUp", "ArrowDown"].includes(e.key) || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
-  const bs = [...b.parentElement.querySelectorAll(":scope > button")],
-    n = bs[bs.indexOf(b) + (e.key === "ArrowDown" ? 1 : -1)];
-  e.preventDefault();
-  if (!n) return;
-  U.railKey = true;
-  n.click();
+document.addEventListener("keydown", wsRailKey);
+document.addEventListener("focusin", (event) => {
+  const button = event.target.closest?.(".ws-rail-scroll > button");
+  if (!button) return;
+  wsRailTabStop(button.parentElement, button);
+  if (button.matches(":focus-visible")) wsRailReveal(button.parentElement, button);
 });
-const RAIL_ZOOM_HIT = ".ws-rail .rail-arrow, .ws-rail-scroll > button, .ws-zoom[role=group] > button";
+document.addEventListener("focusout", (event) => {
+  const list = event.target.closest?.(".ws-rail-scroll");
+  if (list && !list.contains(event.relatedTarget)) wsRailTabStop(list);
+});
+// 渐隐或被裁切的楼层行只接受滚动，完整可见的楼层行才响应点按。
+for (const type of ["pointerdown", "click"]) document.addEventListener(type, (event) => {
+  const button = event.target.closest?.(".ws-rail-scroll > button");
+  if (!button) return;
+  const inView = type === "click" && !event.detail || ov3FloorInView(button, event.clientY);
+  if (inView) {
+    if (type === "click") wsHideTip(true);
+    return;
+  }
+  event.preventDefault();
+  if (type === "click") event.stopPropagation();
+}, true);
+/* 画布缩放胶囊的触摸命中区按最近按钮分配。楼层轨道有独立的 44px 按钮。 */
+const WS_ZOOM_HIT = ".ws-zoom[role=group] > button";
 document.addEventListener(
   "click",
   (e) => {
-    if (!e.isTrusted || !COARSE_MQ?.matches || !$(".ws-rail, .ws-zoom[role=group]")) return;
-    const own = e.target.closest?.(RAIL_ZOOM_HIT);
+    if (!e.isTrusted || !COARSE_MQ?.matches || !$(".ws-zoom[role=group]")) return;
+    const own = e.target.closest?.(WS_ZOOM_HIT);
     if (!own && e.target.closest?.("button, a, input, select, textarea, [role=button], [data-act], #dlg, #pop")) return;
-    const near = [...document.querySelectorAll(RAIL_ZOOM_HIT)]
+    const near = [...document.querySelectorAll(WS_ZOOM_HIT)]
       .filter((x) => x.offsetParent && !x.disabled)
       .map((x) => {
         const r = x.getBoundingClientRect(),
-          sc = x.closest(".ws-rail-scroll")?.getBoundingClientRect(),
           cx = r.left + r.width / 2,
           cy = r.top + r.height / 2;
-        // 滚出轨道可见范围的楼层不算
-        if (sc && (cy < sc.top || cy > sc.bottom)) return null;
         return { x, d: Math.hypot(cx - e.clientX, cy - e.clientY), in: Math.abs(cx - e.clientX) <= Math.max(22, r.width / 2) && Math.abs(cy - e.clientY) <= Math.max(22, r.height / 2) };
       })
       .filter((c) => c?.in)
@@ -56194,7 +56197,7 @@ function spaceFloorPage() {
     verifyBar(f) +
     depQBar(f) +
     scaleBar(f) +
-    `<div class="ws-workbench viewing sp-bench ${open && !dock ? "with-panel" : ""} ${sheetZ ? "with-sheet" : ""} ${isOutdoor(U.b) ? "no-rail" : ""} ${over}">${floorRail()}<div class="ws-canvas-col" style="--ar:${(1 / planAspect()).toFixed(4)}">${U.spEd && !isMobile() ? spEdHandle(open, "spPanel") : ""}<div class="ws-canvas-top ws-view-actions">${top}<div class="spatial-layer-controls">${menuTrigger(btn(ov3ToolIcon("layers") + "图层" + ov3ToolIcon("chevron"), "spLayers", {}, "sm sp-layer-btn"))}</div></div><div class="ws-canvas-viewport" id="canvasViewport"><div class="ws-plan sp-plan ${U.namesLayer === false ? "hide-names" : ""} ${drawing && !isMobile() ? "drawing" : ""} ${U.devLayer ? "with-devices" : ""}${U.planAlign?.step === 4 ? " align-preview" : ""}" id="floorCanvas" style="width:${U.zoom * 100}%;--z:${U.zoom};--ar:${(1 / planAspect()).toFixed(4)}" tabindex="0" aria-label="${esc(b.name + " " + f.name)}${planWord(b.id)}"><img src="${esc(f.image)}" alt="${esc(b.name + " " + f.name)}${planWord(b.id)}" draggable="false">${spCompareImg(f)}${spZones()}${verifyOverlaySvg(f)}${U.spEd && canEdit() && f.zoneDrafts?.length ? zoneOutlineSvg(f.zoneDrafts, "sp-src-overlay sp-zd-overlay") : ""}${pts.map(renderPoint).join("")}${spAlignOverlay(f)}${scaleOverlay()}</div></div><div class="ws-canvas-bottom">${floorPick()}${zoomPill(planWord(f.buildingId), U.zoom, "zoom", "fit")}${planNorthBadge(F.planNorth(f))}${spHint() ? `<span class="mk-hint sp-hint" role="status">${esc(spHint())}</span>` : ""}</div></div>${open && !dock ? spacePanel(f) : ""}${sheetZ ? spSheet(f, sheetZ) : ""}</div>${U.spEd && matchMedia("(max-width: 600px)").matches && !sheetZ && !open ? `<div class="sp-ed-mlist">${spacePanel(f)}</div>` : ""}` // 3.43 E1436：手机上画布下面接功能区列表（同空间页手机）
+    `<div class="ws-workbench viewing sp-bench ${open && !dock ? "with-panel" : ""} ${sheetZ ? "with-sheet" : ""} ${isOutdoor(U.b) ? "no-rail" : ""} ${over}">${floorRail()}<div class="ws-canvas-col" style="--ar:${(1 / planAspect()).toFixed(4)}">${U.spEd && !isMobile() ? spEdHandle(open, "spPanel") : ""}<div class="ws-canvas-top ws-view-actions">${top}<div class="spatial-layer-controls">${menuTrigger(btn(ov3ToolIcon("layers") + '<span class="sp-layer-label">图层</span>' + ov3ToolIcon("chevron"), "spLayers", {}, "sm sp-layer-btn"))}</div></div><div class="ws-canvas-viewport" id="canvasViewport"><div class="ws-plan sp-plan ${U.namesLayer === false ? "hide-names" : ""} ${drawing && !isMobile() ? "drawing" : ""} ${U.devLayer ? "with-devices" : ""}${U.planAlign?.step === 4 ? " align-preview" : ""}" id="floorCanvas" style="width:${U.zoom * 100}%;--z:${U.zoom};--ar:${(1 / planAspect()).toFixed(4)}" tabindex="0" aria-label="${esc(b.name + " " + f.name)}${planWord(b.id)}"><img src="${esc(f.image)}" alt="${esc(b.name + " " + f.name)}${planWord(b.id)}" draggable="false">${spCompareImg(f)}${spZones()}${verifyOverlaySvg(f)}${U.spEd && canEdit() && f.zoneDrafts?.length ? zoneOutlineSvg(f.zoneDrafts, "sp-src-overlay sp-zd-overlay") : ""}${pts.map(renderPoint).join("")}${spAlignOverlay(f)}${scaleOverlay()}</div></div><div class="ws-canvas-bottom">${floorPick()}${zoomPill(planWord(f.buildingId), U.zoom, "zoom", "fit")}${planNorthBadge(F.planNorth(f))}${spHint() ? `<span class="mk-hint sp-hint" role="status">${esc(spHint())}</span>` : ""}</div></div>${open && !dock ? spacePanel(f) : ""}${sheetZ ? spSheet(f, sheetZ) : ""}</div>${U.spEd && matchMedia("(max-width: 600px)").matches && !sheetZ && !open ? `<div class="sp-ed-mlist">${spacePanel(f)}</div>` : ""}` // 3.43 E1436：手机上画布下面接功能区列表（同空间页手机）
   );
 }
 // Keep deployment previews and pending floor edits independent. Only explicit floor actions write to the workspace.
@@ -60862,7 +60865,7 @@ defineActions({
   // 楼层图的“图层”菜单（项目页核查 E208，2026-10-21 用户确认：原为“隐藏名称”“显示设备”两个按钮，看不出哪个开着，“功能区”模式下挤到第二行）：
   // “功能区名称”“设备”两项，开着的在右侧打勾，点一下切换，菜单不关
   spLayers: (a, el) => {
-    const item = (act, on, label) => `<button class="popitem" role="menuitemcheckbox" aria-checked="${on}" data-act="${act}"><span>${label}</span>${on ? ico("check", "ic16") : ""}</button>`;
+    const item = (act, on, label) => `<button class="popitem" role="menuitemcheckbox" aria-checked="${on}" data-act="${act}">${menuLabel(label)}${on ? ico("check", "ic16") : ""}</button>`;
     // 2.14 E294：菜单右边与按钮右边对齐、向左展开，不压到右侧面板（原为从按钮左边向右展开）。
     pop(el || $(".sp-layer-btn"), `<div role="menu" aria-label="图层">${item("spLayerNames", U.namesLayer !== false, "功能区名称")}${item("spLayerDev", !!U.devLayer, "设备")}</div>`, false, { alignRight: true });
   },
@@ -73940,7 +73943,7 @@ defineActions({
   // 2.89：卡片右上的期间菜单
   cfgPerMenu: (a, el) => {
     const cur = U[a.k] || "";
-    popRight(el, `<div role="menu" aria-label="期间">${String(a.opts || "").split(",").map((o) => { const [v, l] = o.split(":"); const on = v === cur || (!cur && o === String(a.opts).split(",")[0]); return `<button type="button" class="btn popitem${on ? " on" : ""}" role="menuitemradio" aria-checked="${on}" data-act="cfgPerSet" data-k="${esc(a.k)}" data-v="${esc(v)}"><span>${esc(l)}</span>${on ? ico("check", "ic16 pop-check") : ""}</button>`; }).join("")}</div>`); // 3.39 E1364：当前项右端打勾，同设备网络菜单（规范“菜单为勾号选中”）
+    popRight(el, `<div role="menu" aria-label="期间">${String(a.opts || "").split(",").map((o) => { const [v, l] = o.split(":"); const on = v === cur || (!cur && o === String(a.opts).split(",")[0]); return `<button type="button" class="btn popitem${on ? " on" : ""}" role="menuitemradio" aria-checked="${on}" data-act="cfgPerSet" data-k="${esc(a.k)}" data-v="${esc(v)}">${menuLabel(l)}${on ? ico("check", "ic16 pop-check") : ""}</button>`; }).join("")}</div>`); // 3.39 E1364：当前项右端打勾，同设备网络菜单（规范“菜单为勾号选中”）
   },
   cfgPerSet: (a) => {
     U[a.k] = a.v;
@@ -74098,7 +74101,7 @@ defineActions({
     formState = { kind: "connPaste", conn: c.id };
     modal(
       "粘贴点表",
-      `${fld("点表", "connPasteText", `<textarea class="input" id="connPasteText" rows="8" placeholder="40001,照明插座总有功电能,kWh,只读,0-999999,0.01,7F 照明插座电能表">${esc(keep)}</textarea>`, "")}<p class="muted small">每行一个数据点${infoTip("一行一个数据点：来源标识, 名称, 单位, 读写, 量程, 倍率, 设备，之后按协议写地址，地址之后可写类型（如“有功电能”），没写时按名称推断。来源标识在本连接内不能重复；没写地址的行沿用上一行的地址。状态值与计算点在加入后逐行编辑。单位的常见写法（如 kW·h、千瓦时、°C）自动换成标准写法。", "点表格式")}</p>`,
+      `${fld("点表", "connPasteText", `<textarea class="input" id="connPasteText" rows="8" placeholder="40001,照明插座总有功电能,kWh,只读,0-999999,0.01,7F 照明插座电能表">${esc(keep)}</textarea>`, "")}<p class="muted small ws-info-label-row"><span>每行一个数据点</span>${infoTip("一行一个数据点：来源标识, 名称, 单位, 读写, 量程, 倍率, 设备，之后按协议写地址，地址之后可写类型（如“有功电能”），没写时按名称推断。来源标识在本连接内不能重复；没写地址的行沿用上一行的地址。状态值与计算点在加入后逐行编辑。单位的常见写法（如 kW·h、千瓦时、°C）自动换成标准写法。", "点表格式")}</p>`,
       btn("取消", "close") + btn("添加", "connMapPasteGo", { id: c.id }, "primary"), // 2.88 E1137：原“加入”
       false,
     );
@@ -84535,8 +84538,8 @@ defineActions({
     if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
     const names = Object.fromEntries([...TR_PERIODS, ["24h", "近 24 小时"], ["al", "告警时段"]]),
       // 2.99：选项的动作名放在 data-to（按钮自己的 data-act 是 trPer，原写在 data-act 的与之重名，选项点了只会再打开菜单）
-      item = (v, label) => `<button class="popitem" role="menuitem" data-act="${esc(a.to)}" data-value="${esc(v)}"><span>${esc(label)}</span></button>`;
-    pop(el, `<div class="mk-draw-menu" role="menu" aria-label="期间">${String(a.opts || "").split(",").filter(Boolean).map((v) => item(v, names[v] || v)).join("")}${a.custom ? `<button class="popitem" role="menuitem" data-act="trCustom" data-target="${esc(a.to)}"><span>自定义…</span></button>` : ""}</div>`);
+      item = (v, label) => `<button class="popitem" role="menuitem" data-act="${esc(a.to)}" data-value="${esc(v)}">${menuLabel(label)}</button>`;
+    pop(el, `<div class="mk-draw-menu" role="menu" aria-label="期间">${String(a.opts || "").split(",").filter(Boolean).map((v) => item(v, names[v] || v)).join("")}${a.custom ? `<button class="popitem" role="menuitem" data-act="trCustom" data-target="${esc(a.to)}">${menuLabel("自定义…")}</button>` : ""}</div>`);
   },
   // 自定义期间：开始与结束日期，最长 31 天，不晚于今天
   trCustom: (a) => {
@@ -84570,7 +84573,7 @@ defineActions({
   },
   trMore: (a, el) => {
     if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
-    const item = (label, act, dis = "") => `<button class="popitem" role="menuitem" data-act="${act}" data-key="${esc(a.key)}"${dis ? ` aria-disabled="true" data-tip="${esc(dis)}"` : ""}><span>${label}</span></button>`;
+    const item = (label, act, dis = "") => `<button class="popitem" role="menuitem" data-act="${act}" data-key="${esc(a.key)}"${dis ? ` aria-disabled="true" data-tip="${esc(dis)}"` : ""}>${menuLabel(label)}</button>`;
     pop(el, `<div class="mk-draw-menu" role="menu" aria-label="更多">${item("数据表", "opsTable")}${item("导出 CSV", "opsTableExport", opsCanExportTable() ? "" : "当前角色不能导出")}</div>`);
     el.setAttribute("aria-expanded", "true");
   },
@@ -90089,7 +90092,7 @@ defineActions({
   },
   anOverlayMenu: (a, el) => {
     if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
-    const item = (k, on, label) => `<button class="popitem ${on ? "on" : ""}" role="menuitemcheckbox" aria-checked="${on}" data-act="anOverlay" data-k="${k}"><span>${label}</span>${on ? ico("check", "ic16 pop-check") : ""}</button>`;
+    const item = (k, on, label) => `<button class="popitem ${on ? "on" : ""}" role="menuitemcheckbox" aria-checked="${on}" data-act="anOverlay" data-k="${k}">${menuLabel(label)}${on ? ico("check", "ic16 pop-check") : ""}</button>`;
     pop(el, `<div class="ops-floorpop" role="menu" aria-label="叠加">${a.outdoor ? item("outdoor", !!U.opsOutdoor, "室外温度") : ""}${item("events", U.opsEvents !== false, "事件")}</div>`);
   },
   // 2.66 V555：点击事件标记打开锚在标记上的弹层（最宽 360，原为模态弹窗），标题“事件 · 9 月 16 日”，下面“加备注”“查看操作记录”
@@ -99334,8 +99337,8 @@ defineActions({
     const buildings = data().buildings.filter((b) => b.projectId === a.p).sort(M.byName), filtered = U.alRbuilding?.[a.p], includeProject = !!U.alRuleIncludeProject?.[a.p];
     popRight(el, `<div role="menu" aria-label="规则范围">${[["", "全部楼宇"], ...buildings.map((b) => [b.id, b.name])].map(([id, name]) => {
       const on = (filtered || "") === id;
-      return `<button type="button" class="btn popitem${on ? " on" : ""}" role="menuitemradio" aria-checked="${on}" data-act="alRuleScope" data-p="${esc(a.p)}" data-b="${esc(id)}"><span>${esc(name)}</span>${on ? ico("check", "ic16 pop-check") : ""}</button>`;
-    }).join("")}${filtered ? `<button type="button" class="btn popitem" role="menuitemcheckbox" aria-checked="${includeProject}" data-act="alRuleScope" data-p="${esc(a.p)}" data-b="${esc(filtered)}" data-include="${includeProject ? "no" : "yes"}"><span>包含项目级自定义规则</span>${includeProject ? ico("check", "ic16 pop-check") : ""}</button>` : ""}</div>`);
+      return `<button type="button" class="btn popitem${on ? " on" : ""}" role="menuitemradio" aria-checked="${on}" data-act="alRuleScope" data-p="${esc(a.p)}" data-b="${esc(id)}">${menuLabel(name)}${on ? ico("check", "ic16 pop-check") : ""}</button>`;
+    }).join("")}${filtered ? `<button type="button" class="btn popitem" role="menuitemcheckbox" aria-checked="${includeProject}" data-act="alRuleScope" data-p="${esc(a.p)}" data-b="${esc(filtered)}" data-include="${includeProject ? "no" : "yes"}">${menuLabel("包含项目级自定义规则")}${includeProject ? ico("check", "ic16 pop-check") : ""}</button>` : ""}</div>`);
   },
   alRuleScope: (a) => {
     ruleSettingsProject(a.p);
@@ -99348,7 +99351,7 @@ defineActions({
   },
   alRuleFilt: (a, el) => {
     // 3.39 E1364：当前项右端打勾，同“类别”“级别”菜单
-    const grp = (k, label, opts) => `<div role="group" aria-label="${label}"><small class="pop-cap" aria-hidden="true">${label}</small>${opts.map(([v, l]) => { const on = (U[k] || "") === v; return `<button type="button" class="btn popitem${on ? " on" : ""}" role="menuitemradio" aria-checked="${on}" data-act="cfgPerSet" data-k="${k}" data-v="${esc(v)}"><span>${esc(l)}</span>${on ? ico("check", "ic16 pop-check") : ""}</button>`; }).join("")}</div>`;
+    const grp = (k, label, opts) => `<div role="group" aria-label="${label}"><small class="pop-cap" aria-hidden="true">${label}</small>${opts.map(([v, l]) => { const on = (U[k] || "") === v; return `<button type="button" class="btn popitem${on ? " on" : ""}" role="menuitemradio" aria-checked="${on}" data-act="cfgPerSet" data-k="${k}" data-v="${esc(v)}">${menuLabel(l)}${on ? ico("check", "ic16 pop-check") : ""}</button>`; }).join("")}</div>`;
     popRight(el, `<div role="menu" aria-label="筛选" class="al-rf-pop">${grp("alRcat", "类别", [["", "全部类别"], ...AL_CATS.map((c) => [c, c])])}${grp("alRlv", "级别", [["", "全部级别"], ["紧急", "紧急"], ["重要", "重要"], ["提示", "提示"]])}</div>`);
   },
   // 2.99 V969：工具条的“筛选”面板（级别、类型、规则、负责人）与“重置”
@@ -107108,7 +107111,7 @@ defineActions({
   ws3MobLoc: (a, el) => {
     const sc = ws3Scope(),
       live = ws3Live(),
-      it = (t, sub, args, on) => `<button type="button" class="popitem ov3-ei${on ? " on" : ""}" role="menuitemradio" aria-checked="${on}" data-act="${args.b === sc.bid ? "ws3MobFl" : "ws3Go"}"${Object.entries(args).map(([k, v]) => ` data-${k}="${esc(v)}"`).join("")}><span><b>${esc(t)}</b>${sub ? `<small>${esc(sub)}</small>` : ""}</span>${on ? ico("check", "ic16") : ""}</button>`,
+      it = (t, sub, args, on) => `<button type="button" class="popitem ov3-ei${on ? " on" : ""}" role="menuitemradio" aria-checked="${on}" data-act="${args.b === sc.bid ? "ws3MobFl" : "ws3Go"}"${Object.entries(args).map(([k, v]) => ` data-${k}="${esc(v)}"`).join("")}><span${sub ? "" : ' class="popitem-label"'}><b>${esc(t)}</b>${sub ? `<small>${esc(sub)}</small>` : ""}</span>${on ? ico("check", "ic16") : ""}</button>`,
       pg = ws3Pg(),
       ps = locProjects(),
       // 3.49 V1375：第一项“全部项目”（两个以上项目，空间、运行设置除外），再列项目“全部楼宇”与各楼宇
@@ -107132,7 +107135,7 @@ defineActions({
   ws3CmpMenu: (a, el) => {
     if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
     const cur = anCmp();
-    pop(el, `<div class="ops-floorpop" role="menu" aria-label="对比">${anCmpOpts().map(([k, l, why]) => `<button class="popitem${k === cur ? " on" : ""}" role="menuitemradio" aria-checked="${k === cur}" data-act="ws3Cmp" data-k="${k}"${why ? ` aria-disabled="true" data-tip="${esc(why)}"` : ""}><span>${esc(k === "none" ? l : l.replace(/^对比/, ""))}${why ? `<small>${esc(why)}</small>` : ""}</span>${k === cur ? ico("check", "ic16 pop-check") : ""}</button>`).join("")}</div>`);
+    pop(el, `<div class="ops-floorpop" role="menu" aria-label="对比">${anCmpOpts().map(([k, l, why]) => `<button class="popitem${k === cur ? " on" : ""}" role="menuitemradio" aria-checked="${k === cur}" data-act="ws3Cmp" data-k="${k}"${why ? ` aria-disabled="true" data-tip="${esc(why)}"` : ""}><span${why ? "" : ' class="popitem-label"'}>${esc(k === "none" ? l : l.replace(/^对比/, ""))}${why ? `<small>${esc(why)}</small>` : ""}</span>${k === cur ? ico("check", "ic16 pop-check") : ""}</button>`).join("")}</div>`);
     el.setAttribute("aria-expanded", "true");
   },
   ws3Cmp: (a, el) => {
@@ -111589,7 +111592,7 @@ Object.assign(XI, {
   "au-msg":
     '<path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>',
   // 2.70 账户第 845 条：密码隐藏时画睫毛式闭眼（表示现在是隐藏的），点开后画睁眼；不用带斜线的眼睛
-  "au-eyeclosed": '<path d="M2 8a10.6 10.6 0 0 0 20 0"/><path d="m4 15 1.7-2"/><path d="m20 15-1.7-2"/><path d="m9 18 .7-3.2"/><path d="m15 18-.7-3.2"/>',
+  "au-eyeclosed": '<g transform="translate(0 -1.5)"><path d="M2 8a10.6 10.6 0 0 0 20 0"/><path d="m4 15 1.7-2"/><path d="m20 15-1.7-2"/><path d="m9 18 .7-3.2"/><path d="m15 18-.7-3.2"/></g>',
   "au-shield": '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
   "au-logout": '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
   // 2.88 账户第 928 条：新标签页打开
@@ -112913,7 +112916,7 @@ BARE.login = () => {
   // 2.17（2026-10-25 HONG 06:39Z 按推荐，账户第 141 条）：“保持登录”在密码框（短信方式为验证码框）下；底部“还没有账户？”加两个次按钮，去掉“登录已过期”和重置链接的提示。2.21 账户第 174 条起底部为一行“没有账户？申请访问”。
   const keep = `<label class="au-check au-keep-login" data-f="keep"><input type="checkbox" name="keep" class="au-v" ${AUX.v.keep ? "checked" : ""}><span>30 天内保持登录</span></label>`;
   const notice = AUX.loginNotice ? auNotice("info", AUX.loginNotice, "au-login-notice") : "";
-  return auAuthShell(`<h1 class="au-h1">登录</h1>${auMaintText() ? auNotice("warning", auMaintText(), "au-maint-notice") : ""}${notice}<form class="au-compact-form" data-form="login" novalidate><fieldset>${idField}${secret}<p class="au-ferr" id="au-login-ferr" role="alert" hidden></p>${keep}${auPrimary("登录", true)}</fieldset></form><div class="au-login-actions"><button type="button" class="au-textbtn" data-act="auSmsMode">${sms ? "使用密码登录" : "使用短信验证码登录"}</button>${String(AUX.returnTo || "").startsWith("#invite") ? "" : `<div class="au-login-divider" aria-hidden="true"></div><p class="au-noacct">没有账户？<button type="button" class="au-inline" data-act="auGo" data-page="join">注册</button></p>`}</div>`); // 2.70 账户第 848 条：分隔线与“没有账户？注册”同进同出，受邀登录两者都不显示
+  return auAuthShell(`<h1 class="au-h1">登录</h1>${auMaintText() ? auNotice("warning", auMaintText(), "au-maint-notice") : ""}${notice}<form class="au-compact-form" data-form="login" novalidate><fieldset>${idField}${secret}<p class="au-ferr" id="au-login-ferr" role="alert" hidden></p>${keep}${auPrimary("登录", true)}</fieldset></form><div class="au-login-actions"><button type="button" class="au-textbtn" data-act="auSmsMode"><span>${sms ? "使用密码登录" : "使用短信验证码登录"}</span></button>${String(AUX.returnTo || "").startsWith("#invite") ? "" : `<div class="au-login-divider" aria-hidden="true"></div><p class="au-noacct">没有账户？<button type="button" class="au-inline" data-act="auGo" data-page="join">注册</button></p>`}</div>`); // 2.70 账户第 848 条：分隔线与“没有账户？注册”同进同出，受邀登录两者都不显示
 };
 BARE_AFTER.login = () => {
   document.title = "登录 · PACOM Station";
@@ -113977,8 +113980,11 @@ const auBillTypeName = (b) => AU_INV_TYPES.find(([v]) => v === auBillKind(b))[1]
 const auInvTypeName = (t = auInvType()) => AU_INV_TYPES.find(([v]) => v === t)[1];
 // 2.48 账户第 470、471 条：数字框与“订阅期限”选择框并排各占一半（手机上也一行）；框下不写提示，不符合时才提示；
 // 字段名旁 ⓘ 写计数规则和本机构现有规模。
-const auQtyField = (id, label, val, info) =>
-  `<div class="field au-qty-field"><div class="au-label-row"><label for="${id}">${label}</label>${auFieldInfo(id, label.replace(/（台）$/, ""), info)}</div>${input(id, val, "", "number")}</div>`;
+const auQtyField = (id, label, val, info) => {
+  const unitId = `${id}-unit`;
+  const control = input(id, val, "", "number").replace("<input ", `<input aria-describedby="${unitId}" `);
+  return `<div class="field au-qty-field"><div class="au-label-row"><label for="${id}">${label}</label>${auFieldInfo(id, label, info)}</div><div class="au-qty-control">${control}<span class="au-qty-unit" id="${unitId}">台</span></div></div>`;
+};
 const auYearsField = (cur = "1") =>
   `<div class="field au-years-field"><div class="au-label-row"><label for="auLicYears-control">订阅期限</label></div>${select("auLicYears", [["1", "1 年"], ["2", "2 年"], ["3", "3 年"]], String(cur), "订阅期限")}</div>`;
 // 订阅说明（第 301 条）与订阅页共用：价格表（2.48 第 471、472 条：不设台数上限；名称同订阅明细、报价单与电子合同）
@@ -114001,8 +114007,8 @@ const auSbDup = (code) => { const c = String(code || "").trim().toUpperCase(); i
 // 第 1 步：订阅、续费为设备数量与订阅期限，增加设备数量只有增加数量（第 473 条）；下面是订阅明细，两项都有效时才显示
 function auSbPlan(kind) {
   if (kind === "add")
-    return auQtyField("auLicAddQty", "增加数量（台）", AUX.v.sb_add ?? AU_PRICE.step, "100 的整数倍。到账当天生效，当月 AI 额度随之增加。");
-  return `<div class="au-qty-row">${auQtyField("auLicQty", "设备数量（台）", AUX.v.sb_qty ?? AU_PRICE.min, auSbQtyInfo(kind))}${auYearsField(String(AUX.v.sb_years || "1"))}</div><div id="auBuyCalc" data-kind="${kind}">${auBuyCalc(kind).html}</div>`;
+    return auQtyField("auLicAddQty", "增加数量", AUX.v.sb_add ?? AU_PRICE.step, "100 的整数倍。到账当天生效，当月 AI 额度随之增加。");
+  return `<div class="au-qty-row">${auQtyField("auLicQty", "设备数量", AUX.v.sb_qty ?? AU_PRICE.min, auSbQtyInfo(kind))}${auYearsField(String(AUX.v.sb_years || "1"))}</div><div id="auBuyCalc" data-kind="${kind}">${auBuyCalc(kind).html}</div>`;
 }
 // 第 1 步的核对：[字段, 提示]，没有问题时为空
 function auSbPlanErr(kind) {
@@ -115419,6 +115425,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.74",
+    date: "2026-11-15",
+    notes: ["改进：小屏订阅布局与空间编辑的楼层切换。", "修复已知问题，优化界面细节。"],
+  },
   {
     version: "3.73",
     date: "2026-11-15",
@@ -117183,9 +117194,9 @@ const AU_RELEASE_MONTHS = {
   "2026-11": [
     "新增：功能区与设备有详情页，分别在空间与设备中打开；空间可在楼层图或 3D 上查看并控制照明与空调，楼层图支持 DWG、DXF。",
     "新增：部署进度可查看与添加项目成员；交付时可收回部署授权，交付快照可下载 PDF；照明控制器可标为消防应急照明回路。", // 3.30 Account 248
-    "改进：侧栏分为三组，“配置进度”改为“部署”，“应用设置”改为“运行设置”；部署的待办在部署进度里直接完成，楼层编辑器整页打开。",
+    "改进：侧栏分为三组，“配置进度”改为“部署”，“应用设置”改为“运行设置”；部署的待办在部署进度里直接完成，楼层编辑器整页打开，支持用键盘选择和确认楼层。",
     "改进：告警与工单分待处理、处理中、已结束，工单完成后自动核验；定时可跟随工作时间或日出日落；能耗的计量来源可选多个系统连接。",
-    "改进：设备列表显示近 30 天在线率与 AI 诊断，固件升级可先试点；订阅、续费与增加设备数量在机构设置内办理。",
+    "改进：设备列表显示近 30 天在线率与 AI 诊断，固件升级可先试点；订阅、续费与增加设备数量在机构设置内办理，订阅和续费支持窄屏填写。",
   ],
   "2026-10": [
     "新增：在线注册、创建或加入机构，订阅、付款、电子合同与发票都在“机构设置”中办理。",
