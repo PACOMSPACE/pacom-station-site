@@ -36256,7 +36256,7 @@ button.dep-wb-row-main { cursor: pointer; }
     #app.is-ov3 .main > .panel > .net-bar ~ .pbody { padding-top: 16px; }
   }
   .ov3x { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 0; height: 100%; min-height: 0; }
-  .ov3-panel { min-width: 0; min-height: 0; overflow: auto; padding: 0 var(--workspace-panel-gutter) 24px; border-right: var(--hw) solid var(--hc-114114112040, rgba(114, 114, 112, 0.16)); background: none; }
+  .ov3-panel { --ov3-panel-inline-gutter: var(--workspace-panel-gutter); min-width: 0; min-height: 0; overflow: auto; padding: 0 var(--ov3-panel-inline-gutter) 24px; border-right: var(--hw) solid var(--hc-114114112040, rgba(114, 114, 112, 0.16)); background: none; }
   .ov3-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 72px; padding: 20px 0; border-bottom: var(--hw) solid var(--hc-114114112040, rgba(114, 114, 112, 0.16)); }
   .ov3-t { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; color: var(--ds-ink); }
   .ov3-sec { padding: 24px 0; border-bottom: var(--hw) solid var(--hc-114114112040, rgba(114, 114, 112, 0.16)); }
@@ -36472,7 +36472,7 @@ button.dep-wb-row-main { cursor: pointer; }
   #app:has(> #side) > .main > .panel { background: #f5f5f5; }
   #app.is-ov3 .ov3x > .ov3-panel { border-right: 0; }
   /* 左栏固定标题只在栏内叠放，项目、楼宇与楼层画布共用连续外描边。 */
-  #app.is-ov3 .ov3x:has(> .ov3-view) > .ov3-panel { isolation: isolate; }
+  #app.is-ov3 .ov3x:has(> .ov3-view) > .ov3-panel { --ov3-panel-inline-gutter: var(--workspace-gutter); isolation: isolate; }
   #app.is-ov3 .ov3x > .ov3-view { margin: 8px 8px 8px 0; border-radius: 16px; overflow: hidden; isolation: isolate; background-color: #fafafa;
     box-shadow: 0 0 0 var(--hw) #fff, 0 0 0 var(--hr) var(--hc-ring, rgba(119, 119, 113, 0.16)), 0 2px 1px rgba(0, 0, 0, 0.04), 0 4px 3px -1.5px rgba(0, 0, 0, 0.04), 0 7px 6px -3px rgba(0, 0, 0, 0.04); }
 }
@@ -37424,8 +37424,8 @@ img.img-off { display: none !important; }
   .ov3x > .ov3-panel .ws3-list > button.ws3-row:not(.ws3-alr, .ws3-scr, .ws3-devr) { width: calc(100% + 16px); margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-bottom: 0; border-radius: 8px; }
   .ov3x > .ov3-panel .ws3-list > button.ws3-row:not(.ws3-alr, .ws3-scr, .ws3-devr) + button.ws3-row::before { content: ""; position: absolute; left: 8px; right: 8px; top: 0; border-top: var(--hw) solid var(--hc-114114112040, rgba(114, 114, 112, 0.16)); }
   /* V1496：位置行、标题行与页签固定，下面的内容滚动（各行的固定位置由脚本按实际高度写入） */
-  .ov3x > .ov3-panel > .ov3-stk { position: sticky; z-index: 5; background-color: #f5f5f5; box-shadow: calc(-1 * var(--workspace-panel-gutter)) 0 #f5f5f5, var(--workspace-panel-gutter) 0 #f5f5f5; }
-  .ov3x > .ov3-panel > .ws-locrow.ov3-stk { box-shadow: calc(-1 * var(--workspace-panel-gutter)) 0 #f5f5f5, var(--workspace-panel-gutter) 0 #f5f5f5, 0 -10px #f5f5f5, calc(-1 * var(--workspace-panel-gutter)) -10px #f5f5f5, var(--workspace-panel-gutter) -10px #f5f5f5; }
+  .ov3x > .ov3-panel > .ov3-stk { position: sticky; z-index: 5; background-color: #f5f5f5; box-shadow: calc(-1 * var(--ov3-panel-inline-gutter)) 0 #f5f5f5, var(--ov3-panel-inline-gutter) 0 #f5f5f5; }
+  .ov3x > .ov3-panel > .ws-locrow.ov3-stk { box-shadow: calc(-1 * var(--ov3-panel-inline-gutter)) 0 #f5f5f5, var(--ov3-panel-inline-gutter) 0 #f5f5f5, 0 -10px #f5f5f5, calc(-1 * var(--ov3-panel-inline-gutter)) -10px #f5f5f5, var(--ov3-panel-inline-gutter) -10px #f5f5f5; }
 }
 @media (max-width: 850px) { .ov3-sep { display: none; } }
 /* V1506：菜单栏、左栏与画面里的列表用细滚动条，滑块 #636363，轨道透明（写在 base 层，不改已设为不显示滚动条的地方） */
@@ -116036,6 +116036,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.81",
+    date: "2026-11-16",
+    notes: ["统一桌面地图及楼层图旁的内容栏留白。"],
+  },
   {
     version: "3.80",
     date: "2026-11-16",
