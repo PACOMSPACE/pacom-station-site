@@ -6458,17 +6458,22 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 /* D3：宽度 ≤540px 或高度 ≤500px 时，楼层页和楼宇页的轨道收成左下角选层胶囊；可见高40px，触屏命中44px。 */
 .ws-floor-pick { display:none; }
 .ws-floor-pick > svg { flex:none; }
+.ws-editor-floor-compact { display: none; }
 /* 2.14 E260、E262：窄屏打开某一层时，“选择楼层”上方 8 是 44 圆的“全部楼层”；两者与缩放胶囊都用导航条的轨道外观，44 高。 */
 .ws-floor-pickset { display:contents; }
 .ws-floor-home { display:none; }
 @media (max-width:540px), (max-height:500px) {
+ .ws-editor-floor-compact { display: flex; align-items: center; min-height: 44px; margin-block-end: 8px; }
+ #app .ws-editor-floor-compact .ws-floor-pick { position:relative; isolation:isolate; display:inline-flex; align-items:center; gap:4px; height:44px; min-height:44px; padding:0 12px 0 16px; border-radius:0; background:none; box-shadow:none; }
+ .ws-editor-floor-compact .ws-floor-pick::before { content:""; position:absolute; inset:0; z-index:-1; border-radius:999px; pointer-events:none; }
  .ws-floor-pickset { display:inline-flex; position:relative; flex:none; pointer-events:auto; }
  .ws-floor-home { display:grid; place-items:center; position:absolute; left:0; bottom:calc(100% + 8px); width:44px; height:44px; min-height:44px; border-radius:50%; color:var(--text3); pointer-events:auto; background: linear-gradient(#00000005, #00000005), rgba(255, 255, 255, 0.82); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 var(--hw) #0000001a, inset 0 2px 3px -1px #0000000a; }
  .ws-floor-home > svg { width:18px; height:18px; }
  .ws-floor-home:active { transform:scale(0.97); color:var(--text); }
  .ws-floor-home:focus-visible { outline:0; box-shadow:inset 0 0 0 1px #00aeef; }
- :is(.ws-space-page, .mk-bench) .ws-floor-pick { background: linear-gradient(#00000005, #00000005), rgba(255, 255, 255, 0.82); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 var(--hw) #0000001a, inset 0 2px 3px -1px #0000000a; color:var(--text); }
- :is(.ws-space-page, .mk-bench) .ws-floor-pick:focus-visible { outline:0; box-shadow:inset 0 0 0 1px #00aeef; }
+ :is(.ws-space-page, .mk-bench) .ws-floor-pick:not(.ws-editor-floor-compact *), .ws-editor-floor-compact .ws-floor-pick::before { background: linear-gradient(#00000005, #00000005), rgba(255, 255, 255, 0.82); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 var(--hw) #0000001a, inset 0 2px 3px -1px #0000000a; color:var(--text); }
+ :is(.ws-space-page, .mk-bench) .ws-floor-pick:focus-visible:not(.ws-editor-floor-compact *), .ws-editor-floor-compact .ws-floor-pick:focus-visible::before { outline:0; box-shadow:inset 0 0 0 1px #00aeef; }
+ .ws-editor-floor-compact .ws-floor-pick:focus-visible { outline:none; }
  .ws-space-page > .ws-workbench.no-plan > .ws-floor-pickset, .mk-bench.no-plan > .ws-floor-pickset { position:absolute; left:8px; bottom:8px; z-index:10; }
 }
 @media (max-width:540px) and (hover:hover), (max-height:500px) and (hover:hover) {
@@ -8066,7 +8071,7 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
    显示密码、打开日历、清除）圆角 8（输入框 12 减内缩 4，同心）。聚焦外圈随按钮形状。不变：输入框、选择框、文本框 12（含工具栏的
    搜索框和筛选选择框），菜单与下拉弹层 16、菜单项 12，卡片、提示条 12，弹窗 24；页签切换、状态标签、开关已是胶囊。演示层不改。
    放在 project 层之外，压过各页原先的圆角 12、6、4。 */
-:is(.btn, .au-primary, .au-textbtn, .ops-rowbtn):not(.popitem, .input, .ws-inventory-tools > .btn.ghost, [class*="demo-"], #demo *, .demo-cat *, .demo-foot *, [data-page=console] *) { border-radius: 999px; }
+:is(.btn, .au-primary, .au-textbtn, .ops-rowbtn):not(.popitem, .input, .ws-editor-floor-compact .ws-floor-pick, .ws-inventory-tools > .btn.ghost, [class*="demo-"], #demo *, .demo-cat *, .demo-foot *, [data-page=console] *) { border-radius: 999px; }
 .au .au-field-right .au-textbtn:focus-visible > span { border-radius: 999px; }
 :is(.iconbtn, .ai-ev):not([data-page=console] *, #demo *) { border-radius: 999px; }
 :is(.au-suffix, .au .au-ctl > .au-suffix, .au-getcode, .ws-dt-pick, .ws-select > .ws-select-clear) { border-radius: 8px; }
@@ -19559,20 +19564,8 @@ fieldset:disabled .au-primary {
     margin-bottom: 4px;
   }
   :is(.bare-login, .bare-apply, .bare-invite, .bare-join) :is(.au-login-actions, .au-links) .au-textbtn,
-  :is(.bare-login, .bare-invite) .au-field-right .au-textbtn, .au-task :is(.au-login-actions, .au-links) .au-textbtn {
+  .au-task :is(.au-login-actions, .au-links) .au-textbtn {
     min-height: 44px;
-  }
-  /* Keep the 44px action between the two 4px outward input hit areas. */
-  :is(.bare-login, .bare-invite) .au-field-right-after {
-    padding-block-start: 10px;
-  }
-  :is(.bare-login, .bare-invite) .au-field-right {
-    top: -12px;
-  }
-  :is(.bare-login, .bare-invite) .au-field-right .au-textbtn {
-    display: flex;
-    align-items: flex-end;
-    padding: 0;
   }
   .dialog.au-reset-dlg .au-in,
   .dialog.au-reset-dlg .au-primary {
@@ -20661,7 +20654,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
   .au .au-eye { width:40px; }
   .au :is(.au-primary, .au-eye, .au-getcode) { position:relative; }
   .au :is(.au-eye, .au-getcode) { position:absolute; z-index:2; }
-  .au :is(.au-primary, .au-eye, .au-getcode)::after {
+  .au :is(.au-primary, .au-getcode)::after {
     content:""; position:absolute; left:50%; top:50%;
     width:max(100%, 44px); height:max(100%, 44px); transform:translate(-50%, -50%);
     border-radius:inherit;
@@ -20962,8 +20955,29 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 /* 第 190 条：“忘记密码？”去掉右侧内边距，按钮右边缘与密码框右边缘对齐。 */
 .au .au-field-right .au-textbtn { padding-right: 0; }
 .au .au-field-right > .au-login-forgot > span { translate: 0 -3px; }
-@media (max-width: 850px), (pointer: coarse) {
+@media (max-width: 850px), (any-pointer: coarse) {
   .au .au-field-right > .au-login-forgot > span { translate: none; }
+
+  /* Keep the 44px recovery action between the two outward input hit areas. */
+  :is(.bare-login, .bare-invite) .au-field-right-after { padding-block-start: 10px; }
+  :is(.bare-login, .bare-invite) .au-field-right { top: -12px; }
+  :is(.bare-login, .bare-invite) .au-field-right .au-textbtn {
+    display: flex;
+    min-height: 44px;
+    align-items: flex-end;
+    padding: 0;
+  }
+  .au-compact-form[data-form="login"]:has(.au-field-right-after) .au-ctl > .au-input-hit {
+    display: block;
+    position: absolute;
+    inset: -4px 0;
+    z-index: 0;
+    cursor: text;
+  }
+  .au-compact-form[data-form="login"]:has(.au-field-right-after) .au-ctl > .au-in {
+    position: relative;
+    z-index: 1;
+  }
 }
 /* 第 192 条：发送验证码失败与次数过多为框下 4 的红字，与同页其他提示同一样式、同一红色。 */
 .au .au-send-err, .au-account-dlg .au-send-err { display: block; color: var(--au-error-text); font: 400 14px/22px var(--ff); }
@@ -21023,8 +21037,12 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 /* 第 220 条（2026-10-26 HONG 07:26Z“要实际间距”）：重置密码弹窗（电脑和手机）最后一项到底部按钮 24（原 16），最后一项是框下一行字时也是 24；
    字段之间仍是 16（第 218 条，现状已是）。 */
 .au-account-dlg.au-reset-dlg .df { padding-top: 24px; }
+@media (any-pointer: coarse) {
+  /* A 44px hit area extends 2px below the 40px desktop field. */
+  .au-account-dlg.au-reset-dlg:has(> .db .au-eye) { --au-eye-hit-reserve: 2px; }
+}
 @media (max-width: 850px), (pointer: coarse) {
-  /* The scrollable body must contain the eye target below the input. */
+  /* The compact field is 36px high. */
   .au-account-dlg.au-reset-dlg:has(> .db .au-eye) { --au-eye-hit-reserve: 4px; }
 }
 .au-account-dlg.au-reset-dlg .au-ferr.au-notice { margin-bottom: 0; }
@@ -21368,6 +21386,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 @media (max-width: 1023.98px) and (max-height: 500px) { .au-task-shell > .au-top-x { top: 36.5px; } }
 /* 并排时给 16px 数字及单位留足空间，容器不足 272px 时按字段换行。 */
 .au .au-qty-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 132px), 1fr)); gap: 16px 8px; align-items: start; }
+.au .au-qty-row.au-qty-wide { grid-template-columns: minmax(0, 1fr); }
 .au .au-qty-row > .field { min-width: 0; margin: 0; }
 .au .au-sub-form .au-qty-row .au-years-field { margin-top: 0; }
 .au .au-sub-form :is(.au-qty-field, .au-years-field) { display: block; }
@@ -21376,6 +21395,7 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .au-qty-control { position: relative; }
 .au .au-qty-control > input.input { padding-inline-end: 34px; }
 .au-qty-unit { position: absolute; inset-block: 0; inset-inline-end: 12px; display: grid; place-items: center; pointer-events: none; color: var(--text2); font: 400 14px/22px var(--ff); }
+.au-qty-value { margin-top: 4px; color: var(--text2); font: 400 14px/22px var(--ff); overflow-wrap: anywhere; }
 /* 数字框与选择框同高：36，圆角 12，同本页其他输入框；触屏 44 */
 #app.bare-apply .au .au-sub-form :is(.au-qty-field input.input, .au-years-field .ws-select > .input), #app .au-task.au .au-sub-form :is(.au-qty-field input.input, .au-years-field .ws-select > .input) { height: 36px; min-height: 36px; border-radius: 12px; margin: 0; }
 @media (pointer: coarse) { #app.bare-apply .au .au-sub-form :is(.au-qty-field input.input, .au-years-field .ws-select > .input), #app .au-task.au .au-sub-form :is(.au-qty-field input.input, .au-years-field .ws-select > .input) { height: 44px; min-height: 44px; } }
@@ -21390,6 +21410,10 @@ button.switch[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .au .au-dt-r > dd.au-dt-s { grid-column: 1 / -1; text-align: left; color: #636363; }
 .au .au-dt-sum { margin-top: 12px; padding-top: 12px; border-top: var(--hw) solid var(--hc-cdcdcd, var(--line2)); }
 .au .au-dt-sum > .au-dt-r > b { font-weight: 600; font-size: 16px; line-height: 24px; white-space: nowrap; }
+.au :is(.au-sub-card, .au-od-fees) .au-dt-r { grid-template-columns: auto minmax(0, 1fr); }
+.au :is(.au-sub-card, .au-od-fees) .au-dt-r > :is(dd, b.num), .au :is(.au-sub-card, .au-od-fees) .au-dt-tax .au-dt-tr > .num { min-width: 0; text-align: end; white-space: normal; overflow-wrap: anywhere; }
+.au :is(.au-sub-card, .au-od-fees) .au-dt-r > dd.au-dt-s { text-align: start; }
+.au .au-sub-form .au-step-sum .au-nowrap { white-space: normal; overflow-wrap: anywhere; }
 
 .au .au-dt .au-apply-quote { margin: 16px 0 0; }
 /* 第 478 条：各步主按钮距上方内容 24；第 4 步应付金额下 16 为勾选，勾选下 24 为“提交订单” */
@@ -21727,7 +21751,17 @@ a.au-link:focus-visible { outline: 2px solid #00AEEF; outline-offset: 2px; borde
 .dialog.au-account-dlg .au-ctl > .au-eye { width: 28px; min-width: 28px; height: 28px; min-height: 28px; right: 2px; padding: 0; }
 @media (max-width: 850px), (pointer: coarse) {
   .dialog.au-account-dlg .au-ctl > .au-eye { right: 4px; }
-  .dialog.au-account-dlg .au-ctl > .au-eye::after { content: ""; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
+}
+@media (max-width: 850px), (any-pointer: coarse) {
+  :is(.au, .dialog.au-account-dlg) .au-ctl > .au-eye::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
 }
 /* 2.72 账户第 854 条：“即将退出登录”叠在所有弹窗和提示之上 */
 .scrim.au-idle { z-index: 160; }
@@ -34746,6 +34780,9 @@ p.an4-links { display: flex; margin: 0; }
 .ws-lm-none { margin: 0; padding: 24px 8px; color: var(--ds-ink-2); font-size: var(--ds-fs-2); line-height: var(--ds-lh-2); text-align: center; }
 .ws-lm-back { display: inline-flex; align-items: center; gap: 4px; height: 44px; margin: 0 0 4px -8px; padding: 0 8px; border: 0; border-radius: 999px; background: none; box-shadow: none; color: var(--ds-ink-2); font: inherit; font-size: var(--ds-fs-2); line-height: var(--ds-lh-2); cursor: pointer; }
 .ws-lm-sheet .ws-lm-list { padding: 0; overflow: visible; }
+@media (any-pointer: coarse) {
+  .ws-lm-pop .ws-lm-row { min-height: 44px; }
+}
 @media (max-width: 850px) {
   .phead > .ws-locrow { height: 44px; margin-bottom: 0; } /* 2.93 V959：各段外观仍 28 高，行高 44 即点按区 */
   .ws-lm-sheet .ws-lm-row { height: 44px; }
@@ -37700,8 +37737,12 @@ img.img-off { display: none !important; }
 .dep-project-floor-scroll { display: none; }
 
 @media (max-width: 700px) {
-  .dep-project-floor-head { gap: 8px; }
+  .dep-project-floor { --project-floor-topbar-clearance: 72px; }
+  .dep-project-floor-head { gap: 8px; z-index: auto; }
   .dep-project-floor-head .dep-project-floor-picker { order: 1; flex: 1 0 100%; max-width: none; }
+  .dep-project-floor :is(.dep-topo-zone-list button, #floorCanvas [data-id]) {
+    scroll-margin-block-start: var(--project-floor-topbar-clearance);
+  }
   .dep-project-floor-stage > .ov3-fcol { display: none; }
   .dep-project-floor-stage.has-floor-rail { padding-inline-start: 0; }
   .dep-project-floor-stage.has-floor-rail .dep-topo-plan-viewport { padding-inline: 0; }
@@ -37790,7 +37831,7 @@ img.img-off { display: none !important; }
     max-height: none;
     border-radius: 12px;
     box-shadow: none;
-    scroll-margin-block: 72px 16px;
+    scroll-margin-block: var(--project-floor-topbar-clearance) 16px;
   }
 }
 
@@ -46728,6 +46769,23 @@ function closePop({ restoreFocus = false, restoreParent = restoreFocus } = {}) {
   }
   if (restoreFocus && p?.anchor?.isConnected) p.anchor.focus({ preventScroll: true });
 }
+function wsRevealMenuFocus(panel) {
+  const item = document.activeElement;
+  if (panel?.contains(item) && item.matches('[role="menuitem"],[role="menuitemradio"],[role="menuitemcheckbox"]')) {
+    ov3RevealGroupMenuItem(panel, item);
+  }
+}
+function withMenuFocusReturn(item, activate) {
+  const panel = $("#pop"), opener = item && panel?.contains(item) ? panel.anchor : null;
+  const descriptor = wsFocusDesc(opener), result = activate();
+  if (descriptor) requestAnimationFrame(() => {
+    const active = document.activeElement;
+    if ($("#dlg") || $("#discard") || (active && active !== document.body && active.isConnected)) return;
+    const target = opener.isConnected && !opener.disabled && opener.getClientRects().length ? opener : wsFindDesc(descriptor);
+    target?.focus({ preventScroll: true });
+  });
+  return result;
+}
 function pop(anchor, html, wide = false, options = {}) {
   closePop();
   const p = document.createElement("div");
@@ -49373,14 +49431,15 @@ function floorPage() {
     hd = f.image && !mkStacked() && U.spEd ? spEdHandle(panelOpen, "mkPanel") : "";
   // 2.56 E547：设备标记是“设备”的页签，页签行在上（位置选择器在页签行左端），楼层图的工具行在下
   // 3.14 E1207：空间的编辑没有页签行与工作区顶栏，撤销、重做、检查、保存规划、完成与“⋯”在标题行右侧
-  const body = U.spEd ? ((wsHeadTb = spEdBar(show)), "") : pageCategoryHeader("devices", "mark", { actions: show + devPageMoreBtn() }) + mkTopBar(f, f.image ? F.planChecks(data(), { floorId: f.id }) : null);
+  const floorControls = editorFloorControls();
+  const body = (U.spEd ? ((wsHeadTb = spEdBar(show)), "") : pageCategoryHeader("devices", "mark", { actions: show + devPageMoreBtn() }) + mkTopBar(f, f.image ? F.planChecks(data(), { floorId: f.id }) : null)) + floorControls.top;
   // 没有图纸时指向项目楼层（2026-10-17 用户确认，配置区核查 E141）；查看人员与运营人员不给上传指导（第14章；2026-10-05 核查 D16）。
   if (!f.image)
     return (
       body +
       `<div class="ws-workbench no-plan mk-bench">${floorRail()}${out
         ? empty(zhSub(f.name, "r") + "尚未上传总平面图", "", canEdit() ? btn("上传总平面图", "uploadPlan", { f: f.id }, "primary") : "")
-        : empty(zhSub(f.name, "r") + "尚未上传楼层图", "", canEdit() ? btn("上传楼层图", "uploadPlan", { f: f.id }, "primary") : "")}${floorPick()}</div>`
+        : empty(zhSub(f.name, "r") + "尚未上传楼层图", "", canEdit() ? btn("上传楼层图", "uploadPlan", { f: f.id }, "primary") : "")}${floorControls.canvas}</div>`
     );
   const net = M.networks(data(), f.id).find((n) => n.id === U.net) || M.networks(data(), f.id)[0];
   U.net = net?.id || null;
@@ -49392,11 +49451,11 @@ function floorPage() {
   const canvasTop = viewing
     ? `<div class="ws-canvas-top ws-view-actions">${canEdit() ? btn(ico("plus", "ic16") + "新建功能区", "startZone") : ""}${canEdit() ? btn(ico("plus", "ic16") + "放置设备", "startMark") : ""}</div>`
     : "";
-  // 窄屏（宽度 ≤540px 或高度 ≤500px）时轨道收成左下角的“当前层 ▾”，缩放胶囊在其右侧（Editor 核查 E3，照 SPACE04）。
+  // 窄屏或矮窗口的独立编辑器可以从画布上方选择楼层。
   // 2.15 E307（2026-10-21 HONG 按建议）：缩放在左下角、紧挨楼层导航，与项目楼层页相同（E262）；画布右上角“图层”菜单（与项目楼层页同一位置）
   // 代替右下的“功能区”开关、常驻图例和照明分区面板里的两个图层开关。E308：去掉常驻的操作提示，只在放置、连线、并入、校准时写。
   const hint = viewing ? "" : canvasHint();
-  const canvasBottom = `<div class="ws-canvas-bottom">${floorPick()}${zoomPill(planWord(f.buildingId), U.zoom, "zoom", "fit")}${hint ? `<span class="mk-hint">${hint}</span>` : ""}</div>`,
+  const canvasBottom = `<div class="ws-canvas-bottom">${floorControls.canvas}${zoomPill(planWord(f.buildingId), U.zoom, "zoom", "fit")}${hint ? `<span class="mk-hint">${hint}</span>` : ""}</div>`,
     layerTop = viewing ? "" : `<div class="ws-canvas-top mk-layer-top${U.spEd ? " sp-ed-top" : ""}">${U.spEd ? floorModeTabs() : ""}<div class="spatial-layer-controls">${menuTrigger(btn(ov3ToolIcon("layers") + '<span class="sp-layer-label">图层</span>' + ov3ToolIcon("chevron"), "mkLayers", {}, "sm sp-layer-btn mk-layers-btn"))}</div></div>`,
     hidden = `${(U.mkHide || []).map((k) => " hide-pt-" + k).join("")}${U.mkNames === false ? " hide-names" : ""}`;
   const pts = M.points(data(), f.id).filter((p) => p.positionAttached !== false && !(U.mode === "roles" && M.access(p) === "cell")); // 3.08 V1047：网络模式不显示 4G 设备
@@ -52328,7 +52387,9 @@ defineActions({
   parentProject: () => route("projects", { b: null, f: null, tab: "", net: null }),
   buildingHome: () => route("projects", { f: null, tab: "", net: null }, { remember: true }),
   // 3.14 E1207：项目的楼宇图点楼层打开空间该层（查看）；编辑中换层保持当前模式
-  floor: (a) => (U.page === "projects" && !U.f && !U.spEd ? route("space", { p: U.p, b: g("floors", a.id)?.buildingId || U.b, f: a.id, tab: "" }, { remember: true }) : goFloor(a.id, isFloorWorkspace() ? U.mode : floorDefaultMode(U.page))),
+  floor: (a, el) => withMenuFocusReturn(el, () => U.page === "projects" && !U.f && !U.spEd
+    ? route("space", { p: U.p, b: g("floors", a.id)?.buildingId || U.b, f: a.id, tab: "" }, { remember: true })
+    : goFloor(a.id, isFloorWorkspace() ? U.mode : floorDefaultMode(U.page))),
   goFloor: (a) => {
     closeModal(true);
     goFloor(a.id);
@@ -53285,7 +53346,7 @@ document.addEventListener("keydown", (e) => {
       e.preventDefault();
       items.forEach(x => x.tabIndex = x === next ? 0 : -1);
       next.focus({ preventScroll: true });
-      if (selectPop?.anchor?.dataset.act === "ov3MapGroup" || orgMenu.classList.contains("ws3-scope-menu")) ov3RevealGroupMenuItem(selectPop, next);
+      wsRevealMenuFocus(selectPop);
       return;
     }
     if (e.key === "Tab") closePop({ restoreFocus: true });
@@ -56225,13 +56286,14 @@ function spaceFloorPage() {
   if (U.spEd) rpPanelCtl = null; // 3.16 E1236
   const bar = U.spEd ? ((wsHeadTb = spEdBar()), "") : toolbar(`<div class="ws-tb-actions">${isMobile() && fMore ? fActs.slice(0, -fMore.length) : fActs}${isMobile() ? "" : rpHandle("面板", open, "spPanel", {}, ".sp-panel", "sp-panel-btn")}</div>`);
   if (U.spEd && isMobile() && fMore) wsHeadTb = spEdBar();
+  const floorControls = editorFloorControls();
   // 没有楼层图时仍有右侧面板：“楼层”页签照常（资料、待补原因、编辑楼层、修改记录），“功能区”页签提示先上传楼层图（SPACE04）。
   if (!f.image)
     return (
-      bar +
+      bar + floorControls.top +
       verifyBar(f) +
       depQBar(f) +
-      `<div class="ws-workbench no-plan sp-bench ${open && !dock ? "with-panel" : ""} ${isOutdoor(U.b) ? "no-rail" : ""} ${over}">${floorRail()}${floorPick()}${empty(isOutdoor(U.b) ? "尚未上传总平面图" : zhSub(f.name, "r") + "尚未上传楼层图", "", edit ? (U.spEd ? btn("上传" + planWord(U.b), "uploadPlan", {}, "primary") : btn("去部署", "depFloor", { f: f.id }, "primary")) : "")}${open && !dock ? spacePanel(f) : ""}</div>`
+      `<div class="ws-workbench no-plan sp-bench ${open && !dock ? "with-panel" : ""} ${isOutdoor(U.b) ? "no-rail" : ""} ${over}">${floorRail()}${floorControls.canvas}${empty(isOutdoor(U.b) ? "尚未上传总平面图" : zhSub(f.name, "r") + "尚未上传楼层图", "", edit ? (U.spEd ? btn("上传" + planWord(U.b), "uploadPlan", {}, "primary") : btn("去部署", "depFloor", { f: f.id }, "primary")) : "")}${open && !dock ? spacePanel(f) : ""}</div>`
     );
   // 3.14 E1207：“新建功能区”在面板的功能区表上方，图卡左上只在绘制、调整边界时显示绘制工具
   const zDrawing = !!(U.drawZone || U.zoneDraft || U.spatialEdit);
@@ -56242,11 +56304,11 @@ function spaceFloorPage() {
   // 2.73 E1065：取点时画布左上（新建功能区的位置）放 32 高的“取消”，操作提示仍在左下
   const pts = U.devLayer ? M.points(data(), f.id).filter((p) => p.positionAttached !== false) : [];
   return (
-    bar +
+    bar + floorControls.top +
     verifyBar(f) +
     depQBar(f) +
     scaleBar(f) +
-    `<div class="ws-workbench viewing sp-bench ${open && !dock ? "with-panel" : ""} ${sheetZ ? "with-sheet" : ""} ${isOutdoor(U.b) ? "no-rail" : ""} ${over}">${floorRail()}<div class="ws-canvas-col" style="--ar:${(1 / planAspect()).toFixed(4)}">${U.spEd && !isMobile() ? spEdHandle(open, "spPanel") : ""}<div class="ws-canvas-top ws-view-actions">${top}<div class="spatial-layer-controls">${menuTrigger(btn(ov3ToolIcon("layers") + '<span class="sp-layer-label">图层</span>' + ov3ToolIcon("chevron"), "spLayers", {}, "sm sp-layer-btn"))}</div></div><div class="ws-canvas-viewport" id="canvasViewport"><div class="ws-plan sp-plan ${U.namesLayer === false ? "hide-names" : ""} ${drawing && !isMobile() ? "drawing" : ""} ${U.devLayer ? "with-devices" : ""}${U.planAlign?.step === 4 ? " align-preview" : ""}" id="floorCanvas" style="width:${U.zoom * 100}%;--z:${U.zoom};--ar:${(1 / planAspect()).toFixed(4)}" tabindex="0" aria-label="${esc(b.name + " " + f.name)}${planWord(b.id)}"><img src="${esc(f.image)}" alt="${esc(b.name + " " + f.name)}${planWord(b.id)}" draggable="false">${spCompareImg(f)}${spZones()}${verifyOverlaySvg(f)}${U.spEd && canEdit() && f.zoneDrafts?.length ? zoneOutlineSvg(f.zoneDrafts, "sp-src-overlay sp-zd-overlay") : ""}${pts.map(renderPoint).join("")}${spAlignOverlay(f)}${scaleOverlay()}</div></div><div class="ws-canvas-bottom">${floorPick()}${zoomPill(planWord(f.buildingId), U.zoom, "zoom", "fit")}${planNorthBadge(F.planNorth(f))}${spHint() ? `<span class="mk-hint sp-hint" role="status">${esc(spHint())}</span>` : ""}</div></div>${open && !dock ? spacePanel(f) : ""}${sheetZ ? spSheet(f, sheetZ) : ""}</div>${U.spEd && matchMedia("(max-width: 600px)").matches && !sheetZ && !open ? `<div class="sp-ed-mlist">${spacePanel(f)}</div>` : ""}` // 3.43 E1436：手机上画布下面接功能区列表（同空间页手机）
+    `<div class="ws-workbench viewing sp-bench ${open && !dock ? "with-panel" : ""} ${sheetZ ? "with-sheet" : ""} ${isOutdoor(U.b) ? "no-rail" : ""} ${over}">${floorRail()}<div class="ws-canvas-col" style="--ar:${(1 / planAspect()).toFixed(4)}">${U.spEd && !isMobile() ? spEdHandle(open, "spPanel") : ""}<div class="ws-canvas-top ws-view-actions">${top}<div class="spatial-layer-controls">${menuTrigger(btn(ov3ToolIcon("layers") + '<span class="sp-layer-label">图层</span>' + ov3ToolIcon("chevron"), "spLayers", {}, "sm sp-layer-btn"))}</div></div><div class="ws-canvas-viewport" id="canvasViewport"><div class="ws-plan sp-plan ${U.namesLayer === false ? "hide-names" : ""} ${drawing && !isMobile() ? "drawing" : ""} ${U.devLayer ? "with-devices" : ""}${U.planAlign?.step === 4 ? " align-preview" : ""}" id="floorCanvas" style="width:${U.zoom * 100}%;--z:${U.zoom};--ar:${(1 / planAspect()).toFixed(4)}" tabindex="0" aria-label="${esc(b.name + " " + f.name)}${planWord(b.id)}"><img src="${esc(f.image)}" alt="${esc(b.name + " " + f.name)}${planWord(b.id)}" draggable="false">${spCompareImg(f)}${spZones()}${verifyOverlaySvg(f)}${U.spEd && canEdit() && f.zoneDrafts?.length ? zoneOutlineSvg(f.zoneDrafts, "sp-src-overlay sp-zd-overlay") : ""}${pts.map(renderPoint).join("")}${spAlignOverlay(f)}${scaleOverlay()}</div></div><div class="ws-canvas-bottom">${floorControls.canvas}${zoomPill(planWord(f.buildingId), U.zoom, "zoom", "fit")}${planNorthBadge(F.planNorth(f))}${spHint() ? `<span class="mk-hint sp-hint" role="status">${esc(spHint())}</span>` : ""}</div></div>${open && !dock ? spacePanel(f) : ""}${sheetZ ? spSheet(f, sheetZ) : ""}</div>${U.spEd && matchMedia("(max-width: 600px)").matches && !sheetZ && !open ? `<div class="sp-ed-mlist">${spacePanel(f)}</div>` : ""}` // 3.43 E1436：手机上画布下面接功能区列表（同空间页手机）
   );
 }
 // Keep deployment previews and pending floor edits independent. Only explicit floor actions write to the workspace.
@@ -56566,6 +56628,48 @@ function depProjectRevealHorizontal(list, button) {
 
 const depProjectFloorScrolls = new WeakMap();
 const depTopologyPlanImages = new WeakSet();
+const DEP_PROJECT_FLOOR_ROW = ".dep-project-floor :is(.dep-project-floor-step, .ov3-flr)[data-to]";
+let depProjectFloorFocus = null, depProjectObservedScroll = null;
+document.addEventListener("focusin", (event) => {
+  depProjectFloorFocus = event.target.matches?.(DEP_PROJECT_FLOOR_ROW) ? event.target : null;
+});
+document.addEventListener("focusout", (event) => {
+  if (depProjectFloorFocus !== event.target) return;
+  if ((event.relatedTarget && event.relatedTarget !== document.body) || event.target.getClientRects().length) depProjectFloorFocus = null;
+});
+function depProjectFloorTabStop(list, row) {
+  for (const step of list.querySelectorAll(".dep-project-floor-step")) step.tabIndex = step === row ? 0 : -1;
+}
+function depProjectSyncFloorRails(list) {
+  const state = depProjectFloorScrolls.get(list);
+  if (!state || !list.isConnected) return;
+  const width = list.clientWidth, horizontal = width > 0,
+    selected = list.querySelector('[aria-pressed="true"]'), active = document.activeElement,
+    focused = depProjectFloorFocus,
+    directionChanged = (state.width > 0) !== horizontal,
+    visibleList = horizontal ? list : list.closest(".dep-project-floor")?.querySelector(".ov3-flist");
+  const handoff = directionChanged && focused?.isConnected && !focused.getClientRects().length
+    && (active === document.body || active === focused)
+    ? visibleList?.querySelector(`button[data-to="${CSS.escape(focused.dataset.to)}"]`) : null;
+  if (handoff) {
+    if (horizontal) {
+      depProjectFloorTabStop(list, handoff);
+      depProjectRevealHorizontal(list, handoff);
+    } else {
+      ov3RailTabStop(visibleList, handoff);
+      ov3RevealFloor(visibleList, handoff);
+    }
+    handoff.scrollIntoView({ block: "nearest", inline: "nearest" });
+    handoff.focus({ preventScroll: true });
+  } else if (horizontal && (state.width !== width || state.selected !== selected?.dataset.to)) {
+    depProjectRevealHorizontal(list, list.contains(active) && active.matches(".dep-project-floor-step") ? active : selected);
+  }
+  state.width = width;
+  state.selected = selected?.dataset.to;
+}
+const depProjectFloorResize = new ResizeObserver((entries) => {
+  for (const { target } of entries) depProjectSyncFloorRails(target);
+});
 function depProjectPositionFloorDetail() {
   const page = $(".dep-project-floor"), heading = page?.querySelector(".dep-project-floor-head");
   const detail = page?.querySelector(".dep-topo-detail");
@@ -56581,6 +56685,24 @@ function depProjectRevealFloorDetail() {
   const available = (window.visualViewport?.height || innerHeight) - 88;
   detail.scrollIntoView({ block: detail.offsetHeight > available ? "start" : "end" });
   detail.querySelector("h3")?.focus({ preventScroll: true });
+}
+function depProjectTakeFloorDetailOrigin(context) {
+  const state = depTopoFloorState(context?.floor, false);
+  const origin = state?.detailOrigin;
+  if (origin) delete state.detailOrigin;
+  return origin;
+}
+function depProjectRestoreFloorDetailFocus(origin) {
+  const page = $(".dep-project-floor");
+  if (!page || U.f !== origin.floorId) return false;
+  const list = page.querySelector(".dep-topo-zone-list"), id = CSS.escape(origin.zoneId);
+  if (list && (origin.fromList || origin.listWasOpen)) list.open = true;
+  const step = origin.fromList && list?.querySelector(`[data-act="depTopoCanvasZone"][data-id="${id}"]`);
+  const target = step || page.querySelector(`#floorCanvas [data-act="spZone"][data-id="${id}"]`);
+  if (!target) return false;
+  target.scrollIntoView({ block: "nearest", inline: "nearest" });
+  target.focus({ preventScroll: true });
+  return document.activeElement === target;
 }
 window.addEventListener("resize", depProjectPositionFloorDetail, { passive: true });
 document.addEventListener("scroll", (event) => {
@@ -56598,28 +56720,31 @@ onAfterRender(() => {
     depTopologyPlanImages.add(image);
   }
   const list = $(".dep-project-floor-scroll");
+  if (list !== depProjectObservedScroll) {
+    depProjectFloorResize.disconnect();
+    depProjectObservedScroll = list;
+    if (list) depProjectFloorResize.observe(list);
+  }
   if (!list) return;
-  const selected = list.querySelector('[aria-pressed="true"]');
   if (!depProjectFloorScrolls.has(list)) {
-    const resetTab = (next) => list.querySelectorAll(".dep-project-floor-step").forEach((button) => { button.tabIndex = button === next ? 0 : -1; });
+    depProjectFloorScrolls.set(list, {});
     list.addEventListener("keydown", (event) => {
-      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key) || event.altKey || event.metaKey || event.ctrlKey || event.shiftKey) return;
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key) || event.altKey || event.metaKey || event.ctrlKey || event.shiftKey || event.isComposing) return;
       const rows = [...list.querySelectorAll(".dep-project-floor-step")];
       const current = rows.indexOf(event.target);
       if (current === -1) return;
       const index = event.key === "Home" ? 0 : event.key === "End" ? rows.length - 1 : current + (event.key === "ArrowRight" ? 1 : -1);
       event.preventDefault();
       if (!rows[index]) return;
-      resetTab(rows[index]);
+      depProjectFloorTabStop(list, rows[index]);
       depProjectRevealHorizontal(list, rows[index]);
       rows[index].focus({ preventScroll: true });
     });
     list.addEventListener("focusout", (event) => {
-      if (!list.contains(event.relatedTarget)) resetTab(list.querySelector('[aria-pressed="true"]') || list.querySelector("button"));
+      if (!list.contains(event.relatedTarget)) depProjectFloorTabStop(list, list.querySelector('[aria-pressed="true"]') || list.querySelector("button"));
     });
   }
-  if (selected && depProjectFloorScrolls.get(list) !== selected.dataset.to) depProjectRevealHorizontal(list, selected);
-  depProjectFloorScrolls.set(list, selected?.dataset.to || "");
+  depProjectSyncFloorRails(list);
 });
 
 function depTopoRevealPoint(point) {
@@ -56725,14 +56850,21 @@ defineActions({
     entry?.scrollIntoView({ block: "nearest" });
     entry?.focus({ preventScroll: true });
   },
-  depTopoCanvasZone: ({ id }) => {
+  depTopoCanvasZone: ({ id }, opener) => {
     const context = depWbContext();
     if (!depTopoFloorActive() || !context || !depTopoAllowedZone(context, id) || U.drawZone || U.zoneDraft || U.spatialEdit || U.scalePoints || U.planAlign) return;
     depTopoCloseFloorDetail(context);
     const { project, building, floor } = context, projectOnly = depProjectFloorActive();
+    const origin = projectOnly ? {
+      floorId: floor.id, zoneId: id, fromList: !!opener?.closest?.(".dep-topo-zone-list"),
+      listWasOpen: !!$(".dep-project-floor .dep-topo-zone-list[open]"),
+    } : null;
     if (depTopoNavigate({ p: project.id, b: building.id, f: floor.id }, { mode: projectOnly ? "floor" : "device-floor", selection: { kind: "zone", id }, replace: true, focus: false }) === false) return;
     spPanToZone(id);
-    if (projectOnly) requestAnimationFrame(depProjectRevealFloorDetail);
+    if (origin) {
+      depTopoFloorState(floor).detailOrigin = origin;
+      requestAnimationFrame(depProjectRevealFloorDetail);
+    }
   },
   depTopoCanvasPoint: ({ id }) => {
     const context = depWbContext(), point = context && M.get(context.db, "points", id);
@@ -56856,6 +56988,10 @@ function scaleBar(f) {
 }
 // D3（2026-10-03 用户确认）：宽度 ≤540px 或高度 ≤500px 时，楼层页和楼宇页的竖向轨道都收成左下角 44px 的按钮，点开选层；
 // 楼层页显示“当前层 ▾”，楼宇页显示“选择楼层 ▾”（读屏名称带刚离开的楼层）。其他尺寸仍用轨道。
+function editorFloorControls() {
+  const pick = floorPick();
+  return U.spEd && pick ? { top: `<div class="ws-editor-floor-compact">${pick}</div>`, canvas: "" } : { top: "", canvas: pick };
+}
 function floorPick() {
   if (isOutdoor(U.b)) return "";
   const f = U.f ? currentFloor() : null;
@@ -61426,6 +61562,7 @@ function popReplace() {
   const r = a.isConnected ? a.getBoundingClientRect() : null;
   if (!r || !r.width || !r.height || a.closest("[inert]") || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) return typeof wsCloseHiddenPageMore === "function" && wsCloseHiddenPageMore(p) || closePop();
   p.place?.();
+  wsRevealMenuFocus(p);
 }
 addEventListener("resize", () => {
   popReplace();
@@ -65791,7 +65928,7 @@ defineActions({
     render();
   },
   // 位置选择器选中位置（2026-10-03 D2 合并原三处定义）：部署 › 配置参数、配置进度在本页切换项目；其他页面按选择意图进入项目或设备。
-  chooseLocation: (a) => {
+  chooseLocation: (a, el) => withMenuFocusReturn(el, () => {
     if ($("#dlg .ws-lm-sheet")) closeModal(true); // 2.91 V946：手机的位置底部卡片
     // 3.14 E1207：编辑中选位置即退出编辑，打开空间的该位置（有未保存的改动时先处理）
     if (U.spEd && !U.pickIntent) {
@@ -65842,7 +65979,7 @@ defineActions({
       scope.tab = "mark";
     } else if (U.tab === "network" || U.tab === "networks") scope.tab = U.page === "devices" ? "networks" : "status";
     route(intent === "mark" ? "devices" : U.page, scope);
-  },
+  }),
   markNetwork: (a) => {
     const n = g("networks", a.id);
     if (!n) return;
@@ -107207,11 +107344,11 @@ defineActions({
     closePop();
     render();
   },
-  ws3MobFl: (a) => {
+  ws3MobFl: (a, el) => withMenuFocusReturn(el, () => {
     closePop();
     actions.ws3Floor({ to: a.f || "" });
-  },
-  ws3Go: (a) => {
+  }),
+  ws3Go: (a, el) => withMenuFocusReturn(el, () => {
     closePop();
     const pg = ws3Pg();
     if (pg === "settings") {
@@ -107227,7 +107364,7 @@ defineActions({
     }
     if (a.p && a.p !== U.p) return route(pg, { p: a.p, b: null, f: null, tab: U.tab || "" });
     route(pg, { p: U.p, b: a.b || null, f: a.f || null, tab: U.tab || "" });
-  },
+  }),
   ws3ModeSw: () => {
     s3SaveCam();
     const sc = ws3Scope();
@@ -107878,12 +108015,14 @@ defineActions({
   depTopoCloseDetail: () => {
     const context = depWbContext(), view = depWbView();
     if (["floor", "device-floor"].includes(view.mode) && typeof depTopoCloseFloorDetail === "function" && depTopoCloseFloorDetail(context, view) === false) return;
+    const floorOrigin = view.mode === "floor" && typeof depProjectTakeFloorDetailOrigin === "function" ? depProjectTakeFloorDetailOrigin(context) : null;
     const source = view.mode === "device" ? view.deviceOrigin : view.lastControl;
     view.selection = null;
     view.deviceSelection = null;
     view.detail = null;
     render();
     requestAnimationFrame(() => {
+      if (floorOrigin && depProjectRestoreFloorDetailFocus(floorOrigin)) return;
       const opener = source && [...document.querySelectorAll(`[data-act="${source.act}"]`)].find(item => (source.key ? item.dataset.key === source.key : item.dataset.id === source.id) && item.tagName === "BUTTON");
       (opener || $("#depWbTitle"))?.focus({ preventScroll: true });
     });
@@ -114041,12 +114180,11 @@ const auInvType = () => (AUX.v.sb_invt === "special" ? "special" : "normal");
 const auBillKind = (b) => (b?.type === "special" || b?.type === "专用发票" ? "special" : "normal");
 const auBillTypeName = (b) => AU_INV_TYPES.find(([v]) => v === auBillKind(b))[1];
 const auInvTypeName = (t = auInvType()) => AU_INV_TYPES.find(([v]) => v === t)[1];
-// 2.48 账户第 470、471 条：数字框与“订阅期限”选择框并排各占一半（手机上也一行）；框下不写提示，不符合时才提示；
-// 字段名旁 ⓘ 写计数规则和本机构现有规模。
+// 数量始终以十进制文本保留原始位数，移动端打开数字键盘。
 const auQtyField = (id, label, val, info) => {
   const unitId = `${id}-unit`;
-  const control = input(id, val, "", "number").replace("<input ", `<input aria-describedby="${unitId}" `);
-  return `<div class="field au-qty-field"><div class="au-label-row"><label for="${id}">${label}</label>${auFieldInfo(id, label, info)}</div><div class="au-qty-control">${control}<span class="au-qty-unit" id="${unitId}">台</span></div></div>`;
+  const control = input(id, val).replace("<input ", `<input aria-describedby="${unitId}" inputmode="numeric" spellcheck="false" `);
+  return `<div class="field au-qty-field"><div class="au-label-row"><label for="${id}">${label}</label>${auFieldInfo(id, label, info)}</div><div class="au-qty-control">${control}<span class="au-qty-unit" id="${unitId}">台</span></div><div class="au-qty-value" hidden aria-hidden="true"></div></div>`;
 };
 const auYearsField = (cur = "1") =>
   `<div class="field au-years-field"><div class="au-label-row"><label for="auLicYears-control">订阅期限</label></div>${select("auLicYears", [["1", "1 年"], ["2", "2 年"], ["3", "3 年"]], String(cur), "订阅期限")}</div>`;
@@ -114057,10 +114195,34 @@ function auSubPrice() {
   const rows = [["基础服务费（每个机构）", `${auYuan(AU_PRICE.base)}/年`], ...AU_PRICE.tiers.map(([to, unit]) => { const r = [`设备服务费（${auTierName(from, to)}）`, `${auYuan(unit)}/台·年`]; from = to; return r; })];
   return `<div class="au-sub-price"><h3 class="au-sub-h">价格（每年，含 ${Math.round(AU_PRICE.vat * 100)}% 增值税）</h3><table class="au-price au-price-list"><thead><tr><th>项目</th><th class="num">单价</th></tr></thead><tbody>${rows.map(([a, b]) => `<tr><td>${a}</td><td class="num">${b}</td></tr>`).join("")}</tbody></table><p class="au-sub-note">需要另行商定合同条款的，请联系 PACOM。</p></div>`;
 }
-// 设备数量为 100 的整数倍，至少 100 台，不设上限（第 471 条）
-const auSbQtyOk = (q) => q >= AU_PRICE.min && q % AU_PRICE.step === 0;
-// 方案的合计（各步之间没有输入框时按已填的内容算）
-const auSbCalc = () => { const q = Number(AUX.v.sb_qty) || 0, years = Number(AUX.v.sb_years || 1) || 1, ok = auSbQtyOk(q); return { q, years, ok, total: ok ? auYearFee(q) * years : 0 }; };
+// 设备数量为 100 的整数倍，至少 100 台，不设上限（第 471 条）。先校验原始文本，再转整数。
+function auParsedQty(raw) {
+  const text = String(raw ?? "").trim();
+  if (!/^\d+$/.test(text)) return null;
+  const qty = BigInt(text);
+  return qty >= BigInt(AU_PRICE.min) && qty % BigInt(AU_PRICE.step) === 0n ? qty : null;
+}
+const auCountFmt = (n) => typeof n === "bigint" || (typeof n === "string" && /^\d+$/.test(n)) ? BigInt(n).toLocaleString("en-US") : fmt(n);
+const auBreakThousands = (html) => html.replace(/(\d,)(?=\d)/g, "$1<wbr>");
+// 保留常用数量的数字类型，超出安全整数范围时以十进制字符串跨越 JSON 边界。
+const auStoredQty = (n) => n <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(n) : String(n);
+let auQtyObserver = null, auQtyCanvas = null;
+function auFitQty(field) {
+  const group = field.closest(".au-qty-field"), row = field.closest(".au-qty-row"), readout = group.querySelector(".au-qty-value");
+  const calc = auQtyCanvas ||= document.createElement("canvas").getContext("2d");
+  if (!calc) return;
+  const style = getComputedStyle(field), text = field.value;
+  calc.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  const digits = calc.measureText(text).width + (parseFloat(style.letterSpacing) || 0) * text.length;
+  const inset = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth);
+  if (row?.clientWidth) {
+    const gap = parseFloat(getComputedStyle(row).columnGap);
+    row.classList.toggle("au-qty-wide", digits + inset > (row.clientWidth - gap) / 2);
+  }
+  const wrapped = digits + inset > field.getBoundingClientRect().width;
+  readout.hidden = !text || !wrapped;
+  readout.textContent = wrapped ? text : "";
+}
 // “设备数量”的 ⓘ：新订阅写已规划的点位（没有时不写），续费写已绑定或接入的台数（第 471 条，取代 2.37 第 303 条顶部的“现有规模”一行）
 const auSbQtyInfo = (kind) => { const u = auDevUse(), n = u.used + u.planned; return `100 的整数倍。已绑定或接入的设备计入，恢复出厂、待重新绑定的仍计入，规划点位不计入。${kind === "renew" ? `本机构已用 ${fmt(u.used)} 台。` : n ? `本机构已规划 ${fmt(n)} 个点位。` : ""}`; };
 // 首次订阅的默认数量：规划点位数向上取整到 100，最少 100
@@ -114075,7 +114237,7 @@ function auSbPlan(kind) {
 }
 // 第 1 步的核对：[字段, 提示]，没有问题时为空
 function auSbPlanErr(kind) {
-  if (kind !== "add") { const e = auQtyErr(auSbCalc().q, kind); return e ? ["auLicQty", e] : null; }
+  if (kind !== "add") { const e = auQtyErr(auBuyCalc(kind).q, kind); return e ? ["auLicQty", e] : null; }
   return auAddCalc().ok ? null : ["auLicAddQty", "请输入 100 的整数倍"];
 }
 // 第 2 步：机构全称、统一社会信用代码（GB 32100 校验码当场核对）。2.48 账户第 474、475 条：核对工商登记的约定写在使用条款，
@@ -114117,19 +114279,19 @@ function auSbInvoice() {
 const auSbInvoiceChecks = () => [["sb_imail", (v) => (!String(v || "").trim() ? "请输入收票邮箱" : auMailCheck(v))]];
 // 第 4 步：应付金额（含税）、一项勾选、“提交订单”（2.48 账户第 476–478 条：付款、合同、发票与退款的约定写入服务协议）
 function auSbPlanRows(kind) {
-  if (kind === "add") { const c = auAddCalc(); return [["设备数量", `${fmt(auLic().quota)} 台增加到 ${fmt(c.to)} 台`], ["应付金额", `${auYuan(c.total)}（含税）`]]; }
-  const c = auSbCalc();
-  return [["设备数量", `${fmt(c.q)} 台`], ["订阅期限", `${c.years} 年`], ["应付金额", `${auYuan(c.total)}（含税）`]];
+  if (kind === "add") { const c = auAddCalc(); return [["设备数量", `${auCountFmt(auLic().quota)} 台增加到 ${auCountFmt(c.to)} 台`], ["应付金额", `${auYuan(c.total)}（含税）`]]; }
+  const c = auBuyCalc(kind);
+  return [["设备数量", c.ok ? `${auCountFmt(c.q)} 台` : "—"], ["订阅期限", `${c.years} 年`], ["应付金额", c.ok ? `${auYuan(c.total)}（含税）` : "—"]];
 }
 // 2.67 账户第 791 条：右栏 320 宽的“订单摘要”卡（取代第 4 步“确认并提交”）：设备数量、有效期、各项费用、价税合计（2.92 账户第 165 条，原“应付金额（含税）”）、
 // 关键条款一行、同意服务协议、“提交订单”与“下载报价单”；随填写实时更新（auSbCardBody），滚动时固定在顶部，窄屏和手机上排在三步下面。
 function auSbCardBody(kind) {
   const l = auLic();
   let rows, c;
-  if (kind === "add") { c = auAddCalc(); rows = [["设备数量", c.ok ? `${fmt(l.quota)} 台增加到 ${fmt(c.to)} 台` : "—"], ["有效期", auPeriodHtml(`付款到账当天至 ${auDate(l.end)}`)]]; }
-  else { c = auBuyCalc(kind); rows = [["设备数量", c.ok ? `${fmt(c.q)} 台` : "—"], ["有效期", auPeriodHtml(c.period)]]; }
+  if (kind === "add") { c = auAddCalc(); rows = [["设备数量", c.ok ? `${auCountFmt(l.quota)} 台增加到 ${auCountFmt(c.to)} 台` : "—"], ["有效期", auPeriodHtml(`付款到账当天至 ${auDate(l.end)}`)]]; }
+  else { c = auBuyCalc(kind); rows = [["设备数量", c.ok ? `${auCountFmt(c.q)} 台` : "—"], ["有效期", auPeriodHtml(c.period)]]; }
   const vat = auVatOf(c.total);
-  return `<dl class="au-dt-l">${rows.map(([k, v]) => `<div class="au-dt-r au-dt-i"><dt>${k}</dt><dd>${v}</dd></div>`).join("")}${c.lines.map((x) => `<div class="au-dt-r"><dt>${esc(x.t)}</dt><dd class="num">${auYuan(x.v)}</dd>${x.s ? `<dd class="au-dt-s">${esc(x.s)}</dd>` : ""}</div>`).join("")}</dl><div class="au-dt-sum"><div class="au-dt-r"><span>价税合计</span><b class="num">${c.ok ? auYuan(c.total) : "—"}</b></div>${c.ok ? auTaxRows(c.total, vat) : ""}</div>`;
+  return `<dl class="au-dt-l">${rows.map(([k, v]) => `<div class="au-dt-r au-dt-i"><dt>${k}</dt><dd>${auBreakThousands(v)}</dd></div>`).join("")}${c.lines.map((x) => `<div class="au-dt-r"><dt>${esc(x.t)}</dt><dd class="num">${auBreakThousands(auYuan(x.v))}</dd>${x.s ? `<dd class="au-dt-s">${auBreakThousands(esc(x.s))}</dd>` : ""}</div>`).join("")}</dl><div class="au-dt-sum"><div class="au-dt-r"><span>价税合计</span><b class="num">${c.ok ? auBreakThousands(auYuan(c.total)) : "—"}</b></div>${c.ok ? auTaxRows(c.total, vat) : ""}</div>`;
 }
 function auSbCard(kind) {
   const s = AUX.sub, dup = auSbDup(AUX.v.sb_uscc);
@@ -114164,7 +114326,7 @@ function auSbMark(n) {
 }
 function auSbSum(kind, n) {
   // 2.84 账户第 913 条：各项（如“¥15,600.00（含税）”）整体不拆开，只在“ · ”处换行
-  if (n === 1) return auSbPlanRows(kind).filter(([k]) => k !== "有效期").map(([, v]) => `<span class="au-nowrap">${esc(v)}</span>`).join(" · ");
+  if (n === 1) return auSbPlanRows(kind).filter(([k]) => k !== "有效期").map(([, v]) => `<span class="au-nowrap">${auBreakThousands(esc(v))}</span>`).join(" · ");
   if (n === 2) return esc([AUX.v.sb_org, String(AUX.v.sb_uscc || "").toUpperCase()].filter(Boolean).join(" · "));
   if (n === 3) return esc(`${auInvTypeName()} · 收票邮箱 ${AUX.v.sb_imail || ""}`);
   return "";
@@ -114195,7 +114357,7 @@ function auSubOpen(kind, from = null) {
   Object.assign(AUX.v, {
     sb_qty: from?.quota || (kind === "renew" ? l.quota : auSbDefaultQty()),
     sb_years: String(from?.years || 1),
-    sb_add: from?.kind === "add" ? from.to - from.from : AU_PRICE.step,
+    sb_add: from?.kind === "add" ? String(BigInt(from.to) - BigInt(from.from)) : AU_PRICE.step,
     sb_org: full || o.name || "",
     sb_uscc: l.uscc || "",
     sb_invt: auBillKind(b),
@@ -114226,6 +114388,19 @@ pages.subscribe = () => {
 TITLES.subscribe = "机构设置";
 // 进入或换步后：焦点到正在填的一步（同原整页）；订单详情进入时焦点到标题，待付款时到时盖上“二维码已过期”
 onAfterRender(() => {
+  const qty = U.page === "subscribe" ? $("#auLicQty, #auLicAddQty") : null;
+  auQtyObserver?.disconnect();
+  if (qty) {
+    auFitQty(qty);
+    if (typeof ResizeObserver === "function") {
+      auQtyObserver ||= new ResizeObserver(() => {
+        const field = $("#auLicQty, #auLicAddQty");
+        if (field) auFitQty(field);
+      });
+      auQtyObserver.observe(qty.closest(".au-qty-row") || qty.closest(".au-qty-field"));
+    }
+    if (document.fonts?.status === "loading") document.fonts.ready.then(() => { if (qty.isConnected) auFitQty(qty); });
+  }
   if (U.page === "subscribe" && AUX.sub && !document.querySelector("#dlg") && (AUX.stepFocus || !AUX.sub.shown)) { AUX.sub.shown = true; requestAnimationFrame(auStepEntryFocus); }
   clearTimeout(AUX.qrTimer);
   if (U.page !== "order") return (AUX.odShown = "");
@@ -114309,8 +114484,8 @@ function auOrderLines(od) {
 function auOrderDetail(od) {
   // 2.58 账户第 543 条：提交时间和提交人是订单明细的前两行，标题下只留订单号
   const info = [["提交时间", auFmtY(od.at)], ["提交人", esc(od.by || "")], ["订单类型", AU_ORDER_KINDS[od.kind] || ""]];
-  if (od.kind === "add") info.push(["设备数量", `${fmt(od.from)} 台增加到 ${fmt(od.to)} 台`]);
-  else if (od.kind !== "ai") info.push(["设备数量", `${fmt(od.quota)} 台`]);
+  if (od.kind === "add") info.push(["设备数量", `${auCountFmt(od.from)} 台增加到 ${auCountFmt(od.to)} 台`]);
+  else if (od.kind !== "ai") info.push(["设备数量", `${auCountFmt(od.quota)} 台`]);
   info.push(["有效期", auPeriodHtml(auOrderPeriod(od))]);
   // 2.92 账户第 166 条：说明各项用机构信息页的 4 列资料网格（取代标签贴左、值贴右的行），下面为费用明细
   return auOdCard("auOdDetail", "订单明细", "", `<div class="au-od-in">${auGrid(info)}<div class="au-od-fees">${auDetailBody([], auOrderLines(od), od.amount)}</div></div>`);
@@ -114903,8 +115078,8 @@ const AU_SUBMIT = {
     if (!auStepRecheck("sub", [...(s.skip ? [] : [[2, auSbQualChecks()]]), [3, auSbInvoiceChecks()]])) return;
     if (auLicPending(l)) return auFormErr(card, "已有一笔待付款的订单，请先付款或取消。", true, "error");
     let od;
-    if (kind === "add") { const c = auAddCalc(); od = { from: l.quota, to: c.to, amount: c.total, lines: c.lines, text: `增加设备数量 · ${fmt(l.quota)} → ${fmt(c.to)} 台` }; }
-    else { const c = auSbCalc(), b = auBuyCalc(kind); od = { quota: c.q, years: c.years, amount: c.total, period: b.period, lines: b.lines, text: `${AU_SUB_NAMES[kind]} · ${fmt(c.q)} 台 · ${c.years} 年` }; }
+    if (kind === "add") { const c = auAddCalc(); od = { from: l.quota, to: auStoredQty(c.to), amount: c.total, lines: c.lines, text: `增加设备数量 · ${auCountFmt(l.quota)} → ${auCountFmt(c.to)} 台` }; }
+    else { const c = auBuyCalc(kind); od = { quota: auStoredQty(c.q), years: c.years, amount: c.total, period: c.period, lines: c.lines, text: `${AU_SUB_NAMES[kind]} · ${auCountFmt(c.q)} 台 · ${c.years} 年` }; }
     const name = String(AUX.v.sb_org).trim(), code = String(AUX.v.sb_uscc).trim().toUpperCase(), special = auInvType() === "special";
     const billing = { type: auInvType(), email: String(AUX.v.sb_imail).trim(), addr: special ? String(AUX.v.sb_iaddr).trim() : "", tel: special ? String(AUX.v.sb_itel).trim() : "", bank: special ? String(AUX.v.sb_ibank).trim() : "", acct: special ? String(AUX.v.sb_iacct).trim() : "" };
     const done = auBusy(f, "正在提交…");
@@ -114915,7 +115090,7 @@ const AU_SUBMIT = {
     l.billing = billing;
     // 2.64 账户第 673 条：到期后提交的续费，付款期限取“提交后 14 天”和“最后续费日”中较早的一天
     const lastDay = kind === "renew" && l.state === "active" && l.end < auCstYmd() ? auLicLastRenewDay(l) : "", until14 = auYmdAdd(auCstYmd(), 14);
-    const x = { id: "od-" + Math.random().toString(36).slice(2, 8), no: r.orderNo || auOrderNo(l), kind, ...od, amount: auCents(od.amount), status: "pending", at: auNow(), until: lastDay && lastDay < until14 ? lastDay : until14, ...(lastDay ? { lastDay } : {}), by: auMe().name, pay: "", contract: "pacom", uscc: code, fullName: name, vat: AU_PRICE.vat, ...(kind === "sub" && s.check ? { verified: { how: s.check, at: auCstYmd() } } : {}), billing: { ...billing } };
+    const x = { id: "od-" + Math.random().toString(36).slice(2, 8), no: r.orderNo || auOrderNo(l), kind, ...od, status: "pending", at: auNow(), until: lastDay && lastDay < until14 ? lastDay : until14, ...(lastDay ? { lastDay } : {}), by: auMe().name, pay: "", contract: "pacom", uscc: code, fullName: name, vat: AU_PRICE.vat, ...(kind === "sub" && s.check ? { verified: { how: s.check, at: auCstYmd() } } : {}), billing: { ...billing } };
     l.orders.push(x);
     auLog("提交订单", `${x.text} · ${auYuan(x.amount)} · ${x.no}`, "license");
     for (const k of Object.keys(AUX.v)) if (k.startsWith("sb_")) delete AUX.v[k];
@@ -115488,6 +115663,15 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.76",
+    date: "2026-11-15",
+    notes: [
+      "改进楼层视图的手机页头、横竖布局切换和功能区详情返回。",
+      "改进短窗口选层、长菜单键盘操作和混合触控设备的点按区。",
+      "修复订阅、续费长数字显示并精确校验设备数量与金额。",
+    ],
+  },
   {
     version: "3.75",
     date: "2026-11-15",
@@ -120524,8 +120708,30 @@ const auAddYears = (v, n) => {
   return new Date(Date.UTC(y + n, m - 1, d)).toISOString().slice(0, 10);
 };
 const auCents = (n) => Math.round(n * 100) / 100;
-const auYuan = (n) => "¥" + fmt(auCents(n), 2);
-const auVatOf = (n) => auCents(n - n / (1 + AU_PRICE.vat));
+function auAmountCents(amount) {
+  if (typeof amount === "number") return BigInt(Math.round(amount * 100));
+  const [yuan, fraction = ""] = amount.replace(/^-/, "").split(".");
+  return (amount.startsWith("-") ? -1n : 1n) * (BigInt(yuan) * 100n + BigInt(fraction.padEnd(2, "0")));
+}
+function auStoredAmount(cents) {
+  const abs = cents < 0n ? -cents : cents;
+  const text = `${cents < 0n ? "-" : ""}${abs / 100n}.${String(abs % 100n).padStart(2, "0")}`;
+  const n = Number(text);
+  return abs <= BigInt(Number.MAX_SAFE_INTEGER) && n.toFixed(2) === text && auAmountCents(n) === cents ? n : text;
+}
+const auAmountFmt = (n) => {
+  if (typeof n !== "string" || !/^-?\d+(?:\.\d{1,2})?$/.test(n)) return fmt(auCents(n), 2);
+  const [yuan, fraction = ""] = n.replace(/^-/, "").split(".");
+  return `${n.startsWith("-") ? "-" : ""}${BigInt(yuan).toLocaleString("en-US")}.${fraction.padEnd(2, "0")}`;
+};
+const auYuan = (n) => "¥" + auAmountFmt(n);
+const auVatOf = (n) => {
+  const cents = auAmountCents(n ?? 0);
+  const rate = BigInt(Math.round(AU_PRICE.vat * 100));
+  const divisor = 100n + rate;
+  const rounded = cents >= 0n ? divisor / 2n : -divisor / 2n;
+  return auStoredAmount((cents * rate + rounded) / divisor);
+};
 // 含税合计：“¥30,000.00（含税，其中增值税 ¥1,698.11）”
 const auTotalText = (n) => `${auYuan(n)}（含税，其中增值税 ${auYuan(auVatOf(n))}）`;
 // “万”字的数字不加千分位（2 6）
@@ -120575,18 +120781,28 @@ const auTierName = (from, to) => (to === Infinity ? `第 ${fmt(from + 1)} 台起
 // 2.92 账户第 164 条：设备服务费只写一项“设备服务费”（取代每档一项“设备服务费（第 1–1,000 台）”）；只用到一档时灰字为单价 × 台数 × 年数，
 // 跨档时灰字写各档台数和单价：“（¥36.00/台·年 × 1,000 台 + ¥24.00/台·年 × 200 台）× 1 年”
 function auDevFeeLine(parts, tail) {
-  const v = auCents(parts.reduce((t, p) => t + p.v, 0)), each = parts.map((p) => `${auYuan(p.unit)}/台·年 × ${fmt(p.n)} 台`);
+  const v = auStoredAmount(parts.reduce((t, p) => t + p.cents, 0n)), each = parts.map((p) => `${auYuan(p.unit)}/台·年 × ${auCountFmt(p.n)} 台`);
   return { t: "设备服务费", v, s: parts.length === 1 ? `${each[0]} × ${tail}` : `（${each.join(" + ")}）× ${tail}` };
 }
-function auFeeLines(q, years) {
-  const lines = [{ t: "基础服务费", v: AU_PRICE.base * years, s: `${auYuan(AU_PRICE.base)}/年 × ${years} 年` }], parts = [];
-  let from = 0;
-  for (const [to, unit] of AU_PRICE.tiers) {
-    const n = Math.max(0, Math.min(q, to) - from);
-    if (n) parts.push({ n, unit, v: n * unit * years });
-    if (q <= to) break;
-    from = to;
+function auDeviceTiers(from, to) {
+  const parts = [];
+  let last = from;
+  for (const [limit, unit] of AU_PRICE.tiers) {
+    if (limit === Infinity || to <= BigInt(limit)) {
+      if (to > last) parts.push({ n: to - last, unit });
+      break;
+    }
+    const end = BigInt(limit);
+    if (end > last) {
+      parts.push({ n: end - last, unit });
+      last = end;
+    }
   }
+  return parts;
+}
+function auFeeLines(q, years) {
+  const lines = [{ t: "基础服务费", v: AU_PRICE.base * years, s: `${auYuan(AU_PRICE.base)}/年 × ${years} 年` }];
+  const parts = auDeviceTiers(0n, BigInt(q)).map(({ n, unit }) => ({ n, unit, cents: n * auAmountCents(unit) * BigInt(years) }));
   if (parts.length) lines.push(auDevFeeLine(parts, `${years} 年`));
   return lines;
 }
@@ -120594,11 +120810,12 @@ function auFeeLines(q, years) {
 // info 为前面的说明行 [名称, 已转义的值]（有效期等）。
 function auDetailBody(info, lines, total) {
   const vat = auVatOf(total);
-  return `<dl class="au-dt-l">${info.map(([k, v]) => `<div class="au-dt-r au-dt-i"><dt>${k}</dt><dd>${v}</dd></div>`).join("")}${lines.map((x) => `<div class="au-dt-r"><dt>${esc(x.t)}</dt><dd class="num">${auYuan(x.v)}</dd>${x.s ? `<dd class="au-dt-s">${esc(x.s)}</dd>` : ""}</div>`).join("")}</dl><div class="au-dt-sum"><div class="au-dt-r"><span>价税合计</span><b class="num">${auYuan(total)}</b></div>${auTaxRows(total, vat)}</div>`;
+  return `<dl class="au-dt-l">${info.map(([k, v]) => `<div class="au-dt-r au-dt-i"><dt>${k}</dt><dd>${v}</dd></div>`).join("")}${lines.map((x) => `<div class="au-dt-r"><dt>${esc(x.t)}</dt><dd class="num">${auBreakThousands(auYuan(x.v))}</dd>${x.s ? `<dd class="au-dt-s">${auBreakThousands(esc(x.s))}</dd>` : ""}</div>`).join("")}</dl><div class="au-dt-sum"><div class="au-dt-r"><span>价税合计</span><b class="num">${auBreakThousands(auYuan(total))}</b></div>${auTaxRows(total, vat)}</div>`;
 }
 // 2.68 账户第 831 条：应付金额、价税合计下分两行，名称在左、金额在右：“不含税金额”“增值税（6%）”，12/18 灰字（取代一行“不含税金额 ¥…，增值税（6%）¥…”）
 function auTaxRows(total, vat) {
-  return `<div class="au-dt-tax">${[["不含税金额", auCents(total - vat)], [`增值税（${Math.round(AU_PRICE.vat * 100)}%）`, vat]].map(([k, v]) => `<div class="au-dt-tr"><span>${k}</span><span class="num">${auYuan(v)}</span></div>`).join("")}</div>`;
+  const net = auStoredAmount(auAmountCents(total ?? 0) - auAmountCents(vat));
+  return `<div class="au-dt-tax">${[["不含税金额", net], [`增值税（${Math.round(AU_PRICE.vat * 100)}%）`, vat]].map(([k, v]) => `<div class="au-dt-tr"><span>${k}</span><span class="num">${auBreakThousands(auYuan(v))}</span></div>`).join("")}</div>`;
 }
 // 2.68 账户第 832 条：有效期的名称不折行；值放不下时在“至”后折行（各段不折行），右对齐
 function auPeriodHtml(s) {
@@ -120684,7 +120901,7 @@ function auQuotaText(where, need = 0) {
     return where === "plan"
       ? "本机构尚未订阅：部署 App 不能绑定，系统接入设备不能接入。请机构管理员在“机构设置 › 订阅与订单”中订阅。"
       : "本机构尚未订阅，系统接入设备不能接入。请机构管理员在“机构设置 › 订阅与订单”中订阅。";
-  if (where === "system" && used >= quota) return `本机构已达订阅的设备数量（${fmt(quota)} 台），新的系统接入设备不能接入。请机构管理员在“机构设置 › 订阅与订单”中增加设备数量。`;
+  if (where === "system" && used >= BigInt(quota || 0)) return `本机构已达订阅的设备数量（${auCountFmt(quota)} 台），新的系统接入设备不能接入。请机构管理员在“机构设置 › 订阅与订单”中增加设备数量。`;
   if (where === "plan" && need > 0 && used + need > quota)
     return `按规划还要绑定或接入 ${fmt(need)} 台，本机构还可绑定或接入 ${fmt(Math.max(0, quota - used))} 台。达到设备数量后部署 App 不能绑定、系统接入不能接入新设备，请机构管理员在“机构设置 › 订阅与订单”中增加设备数量。`;
   return "";
@@ -120858,7 +121075,7 @@ function auOrderPaid(id, pay, org = AUTH.org) {
     const from = l.end >= today ? auYmdAdd(l.end, 1) : today;
     if (from === today) l.start = today;
     // 2.64 账户第 661 条：设备数量和 AI 额度按服务年度记录，新数量从新一期开始生效
-    if (from > today && od.quota !== l.quota) { l.next = { from, quota: od.quota }; Object.assign(l, { end: auYmdAdd(auAddYears(from, od.years), -1) }); }
+    if (from > today && BigInt(od.quota) !== BigInt(l.quota)) { l.next = { from, quota: od.quota }; Object.assign(l, { end: auYmdAdd(auAddYears(from, od.years), -1) }); }
     else { delete l.next; Object.assign(l, { end: auYmdAdd(auAddYears(from, od.years), -1), quota: od.quota }); }
     od.period = auDateRange(from, l.end);
   }
@@ -120886,16 +121103,15 @@ const auPriceTable = (rows, total) =>
 // 有效期：订阅“付款到账当天起 N 年”，到期前续费写起止日期（接着原到期日）。
 function auBuyCalc(kind) {
   // 订阅页按已填的内容算（各步之间没有输入框时也能算）
-  const l = auLic(), a = !$("#auLicQty") && AUX.sub ? auSbCalc() : null,
-    q = a ? a.q : Number(value("auLicQty")) || 0,
-    years = a ? a.years : Number(value("auLicYears")) || 1,
-    today = auCstYmd(),
-    ok = auSbQtyOk(q) && !(kind === "renew" && q < auDevUse().used);
+  const l = auLic(), field = $("#auLicQty"),
+    q = auParsedQty(field ? field.value : AUX.v.sb_qty),
+    years = Number($("#auLicYears")?.value || AUX.v.sb_years) || 1,
+    today = auCstYmd(), ok = !auQtyErr(q, kind);
   const from = kind === "renew" && l.end >= today ? auYmdAdd(l.end, 1) : "";
   const period = from ? auDateRange(from, auYmdAdd(auAddYears(from, years), -1)) : `付款到账当天起 ${years} 年`;
-  const lines = ok ? auFeeLines(q, years) : [], total = ok ? auYearFee(q) * years : 0;
+  const lines = ok ? auFeeLines(q, years) : [], total = auStoredAmount(lines.reduce((sum, x) => sum + auAmountCents(x.v), 0n));
   // 2.64 账户第 653 条：续费填的数量少于当前数量时说明新一期超出的处理
-  const less = ok && kind === "renew" && q < l.quota ? `<p class="au-hint au-qty-less">新一期按 ${fmt(q)} 台计；届时已绑定或接入超过 ${fmt(q)} 台的，不能再绑定或接入新设备，已有设备照常运行。</p>` : "";
+  const less = ok && kind === "renew" && q < BigInt(l.quota) ? `<p class="au-hint au-qty-less">新一期按 ${auCountFmt(q)} 台计；届时已绑定或接入超过 ${auCountFmt(q)} 台的，不能再绑定或接入新设备，已有设备照常运行。</p>` : "";
   // 2.67 账户第 791 条：订阅明细移到右栏订单摘要卡（auSbCardBody），第 1 步下只留数量少于当前的说明
   return { q, years, ok, period, lines, total, html: less };
 }
@@ -120903,10 +121119,11 @@ function auBuyCalc(kind) {
 // 已付款到以后年度的另加以后的整年数。计价规则不变，每项金额到分，价税合计为各项之和。
 function auAddCalc() {
   const l = auLic(),
-    add = Number($("#auLicAddQty") ? value("auLicAddQty") : AUX.v.sb_add) || 0,
-    to = l.quota + add,
+    from = BigInt(l.quota || 0),
+    add = auParsedQty($("#auLicAddQty") ? value("auLicAddQty") : AUX.v.sb_add),
+    to = from + (add ?? 0n),
     today = auCstYmd(),
-    ok = add > 0 && add % AU_PRICE.step === 0;
+    ok = add !== null;
   let ys = l.start;
   while (auAddYears(ys, 1) <= today) ys = auAddYears(ys, 1);
   const ye = auYmdAdd(auAddYears(ys, 1), -1),
@@ -120917,17 +121134,11 @@ function auAddCalc() {
     yr = `${later ? `(${later} + ${left}/${yearDays}) 年` : `${left}/${yearDays} 年`}（${auDate(today)}至 ${auDate(l.end, true)}）`,
     lines = [];
   if (ok) {
-    let from = 0;
-    const parts = [];
-    for (const [tt, unit] of AU_PRICE.tiers) {
-      const n = Math.max(0, Math.min(to, tt) - Math.max(l.quota, from));
-      if (n) parts.push({ n, unit, v: auCents(n * unit * (later + left / yearDays)) });
-      if (to <= tt) break;
-      from = tt;
-    }
+    const days = BigInt(yearDays), remaining = BigInt(later * yearDays + left);
+    const parts = auDeviceTiers(from, to).map(({ n, unit }) => ({ n, unit, cents: (n * auAmountCents(unit) * remaining + days / 2n) / days }));
     if (parts.length) lines.push(auDevFeeLine(parts, yr)); // 2.92 账户第 164 条
   }
-  const total = auCents(lines.reduce((t, x) => t + x.v, 0));
+  const total = auStoredAmount(lines.reduce((t, x) => t + auAmountCents(x.v), 0n));
   return { add, to, ok, total, lines };
 }
 function auPackCalc() {
@@ -120942,6 +121153,7 @@ function auPackCalc() {
 // 输入即重算（设备数量、订阅期限、增加数量、用量包规格与数量）。
 document.addEventListener("input", (e) => {
   const id = e.target?.id || e.target?.name;
+  if (id === "auLicQty" || id === "auLicAddQty") auFitQty(e.target);
   if (["auLicQty", "auLicYears"].includes(id) && $("#auBuyCalc")) $("#auBuyCalc").innerHTML = auBuyCalc($("#auBuyCalc").dataset.kind).html;
   // 2.67 账户第 791 条：订单摘要随填写实时更新
   if (["auLicQty", "auLicYears", "auLicAddQty"].includes(id) && $("#auSbCardBody") && AUX.sub) $("#auSbCardBody").innerHTML = auSbCardBody(AUX.sub.kind);
@@ -120957,7 +121169,7 @@ document.addEventListener("change", (e) => {
 });
 // 设备数量的核对（订阅、续费）：100 的整数倍，续费不少于已绑定或接入的台数（2.48 第 471 条：不设上限）
 function auQtyErr(q, kind) {
-  if (!auSbQtyOk(q)) return "请输入 100 的整数倍";
+  if (q === null) return "请输入 100 的整数倍";
   const used = auDevUse().used;
   if (kind === "renew" && q < used) return `不能少于已绑定或接入的 ${fmt(used)} 台`;
   return "";
@@ -121263,7 +121475,7 @@ function auOrdersCard() {
   const list = auSorted(
     l.orders.filter((x) => k === "all" || x.status === k || (k === "pending" && x.status === "review")).sort((a, b) => b.at - a.at),
     "orderSort",
-    { at: (x) => x.at, amt: (x) => x.amount },
+    { at: (x) => x.at, amt: (x) => auAmountCents(x.amount) },
   );
   // 合同签署中、双方已盖章或纸质合同寄送中时写出合同状态（2.37 账户第 312 条）
   const note = (x) => [x.status === "paid" && x.invoice !== "issued" ? "开票中" : "", x.contract === "signing" ? "签署中" : x.contract === "both" ? "双方已盖章" : x.paper ? "纸质合同办理中" : ""].filter(Boolean);
@@ -121490,6 +121702,7 @@ defineActions({
   // 2.46 账户第 414 条：单据由订单服务生成；“暂时无法下载”只在服务失败时出现（演示层另行生成）
   auOrderDoc: async (a, el) => {
     const od = auOrderOf(a.id || U.tab);
+    if (!od && a.doc === "quote" && U.page === "subscribe" && AUX.sub && !(await auSbStepOk(el?.closest("form"), 1))) return;
     if (AU_LIC_HOOK.doc) return AU_LIC_HOOK.doc(od, a.doc);
     auFailClear();
     const r = await auRequest("orderDoc", { org: AUTH.org, no: od?.no, doc: a.doc || "agreement" });
@@ -129197,13 +129410,13 @@ AU_LIC_HOOK.doc = (od, doc = "agreement") => {
         `统一社会信用代码：${l.uscc || "—"}`,
         `内容：${od.text}`,
         // 2.48 账户第 472 条：报价单与电子合同逐项写基础服务费与设备服务费，名称同订阅明细
-        ...auOrderLines(od).map((x) => `${x.t}：${fmt(x.v, 2)} 元${x.s ? `（${x.s}）` : ""}`),
+        ...auOrderLines(od).map((x) => `${x.t}：${auAmountFmt(x.v)} 元${x.s ? `（${x.s}）` : ""}`),
         `金额（含税）：${auYuan(od.amount)}`,
         ...(doc === "invoice" || doc === "quote" ? [`发票类型：${b.type === "special" ? "电子发票（增值税专用发票）" : "电子发票（普通发票）"}`, `收票邮箱：${b.email || "—"}`] : []),
         `下单时间：${od.at ? new Date(od.at).toLocaleString("zh-CN", { hour12: false }) : "—"}`,
       ]
     : doc === "quote" && AUX.sub
-      ? (() => { const c = AUX.sub.kind === "add" ? auAddCalc() : auBuyCalc(AUX.sub.kind); return [`机构：${o.fullName || o.name}`, `内容：${AU_SUB_NAMES[AUX.sub.kind]}`, ...c.lines.map((x) => `${x.t}：${fmt(x.v, 2)} 元（${x.s}）`), `价税合计：${auYuan(c.total)}`, "报价 30 天内有效。"]; })()
+      ? (() => { const c = AUX.sub.kind === "add" ? auAddCalc() : auBuyCalc(AUX.sub.kind); return [`机构：${o.fullName || o.name}`, `内容：${AU_SUB_NAMES[AUX.sub.kind]}`, ...c.lines.map((x) => `${x.t}：${auAmountFmt(x.v)} 元（${x.s}）`), `价税合计：${auYuan(c.total)}`, "报价 30 天内有效。"]; })()
       : AU_LEGAL.service[1].map((x) => x.replace(/<\/?b>/g, ""));
   downloadPdf(`PACOM-${title}${od ? "-" + od.no : ""}（演示）`, title, lines, "演示");
   msg(`已下载${title}（演示）`);
