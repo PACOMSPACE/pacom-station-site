@@ -10656,7 +10656,7 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
 #dlg .flow-near-list { margin:8px 0 0; font-size:12px; line-height:18px; }
 @media (max-width:599.98px) { #dlg .flow-health-zones { grid-template-columns:1fr; } }
 /* 2.88 E1133：网络参数表：行为数据项，列为上报周期、变化阈值、可调范围；输入框 112 宽，数字与单位不折 */
-#dlg .np-table-wrap { overflow-x:auto; margin:12px 0 16px; }
+#dlg .np-table-wrap { container: network-parameters / inline-size; overflow-x:auto; margin:12px 0 16px; }
 #dlg .np-table { width:100%; }
 #dlg .np-table th[scope="row"] { font-weight:500; text-align:left; white-space:nowrap; }
 #dlg .np-table td { vertical-align:middle; }
@@ -10664,6 +10664,28 @@ button.sp-sheet-line { display:flex; align-items:center; gap:8px; min-height:44p
 #dlg .np-table .ops-unit-in { width:112px; }
 #dlg .np-th { display:flex; flex-wrap:wrap; gap:8px; }
 #dlg .np-range { color:#636363; font-size:12px; line-height:18px; white-space:nowrap; }
+#dlg .np-compact-meta { display:none; }
+@container network-parameters (width < 560px) {
+  #dlg .np-table, #dlg .np-table > tbody { display:block; min-width:0; }
+  #dlg .np-table > thead,
+  #dlg .np-table > tbody > tr > td:is(.np-range, :has(> .muted:only-child)) { display:none; }
+  #dlg .np-table > tbody > tr { display:grid; gap:8px; padding-block:12px; }
+  #dlg .np-table > tbody > tr + tr { border-top:var(--hw) solid var(--hc-cdcdcd, var(--line2)); }
+  #dlg .np-table > tbody > tr > :is(th[scope="row"], td) {
+    padding:0;
+    border:0;
+    height:auto;
+    min-width:0;
+    white-space:normal;
+  }
+  #dlg .np-table .np-th { display:grid; }
+  #dlg .np-table .np-cell { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 112px); gap:4px 8px; align-items:center; }
+  #dlg .np-cell > .np-tpl { grid-column:2; }
+  #dlg .np-table .ops-unit-in { width:100%; }
+  #dlg .np-compact-meta { display:grid; }
+  #dlg .np-compact-meta > label { margin:0; }
+  #dlg .np-compact-meta > .np-range { white-space:normal; }
+}
 /* 2.88 E1135：连接详情“运行”“连接参数”6 + 6 并排；近 7 天在线细条在线段浅绿（#2E9461 浅色）、中断段红，条下中间写“在线 N%” */
 .conn-pair { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px; align-items:start; }
 .conn-pair > .card { margin:0; min-width:0; }
@@ -38279,6 +38301,10 @@ img.img-off { display: none !important; }
 
 .phead .ob-title .ob-name { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
 
+#app:not(.bare, [data-sp-full]):has(> #side:not(.au-side)) > .main > .panel > .net-bar {
+  margin-inline: var(--workspace-gutter);
+}
+
 @media (min-width: 851px) {
   /* 标题、范围、页签和正文由同一个桌面内容框留白。画布工作区沿用自己的边界。 */
   #app:not(.bare, .is-ov3, [data-sp-full]):has(> #side:not(.au-side)) > .main > .panel:not(:has(> #pbody :is(
@@ -38292,6 +38318,7 @@ img.img-off { display: none !important; }
       min-height: var(--workspace-desktop-title-row);
     }
     > .phead:empty { min-height: 0; }
+    > .net-bar { margin-inline: 0; }
     > #pbody {
       padding: 0;
       margin-block-start: 16px;
@@ -38353,6 +38380,7 @@ img.img-off { display: none !important; }
 @media (max-width: 850px) {
   #app:has(> .wtop h1) :is(.phead > h1, .ov3-head h1, .ws3-panel > h1.sr-only) { display: none; }
   #app[data-page="overview"]:has(> .wtop h1) .panel:has(> .pbody > .ws-empty:only-child) > .phead:not(:has(> :not(h1, .v13-head))) { display: none; }
+  #app[data-page="settings"] .main > .panel > .net-bar ~ #pbody { padding-block-start: 16px; }
 }
 
 @media (any-pointer: coarse), (max-width: 600px) {
@@ -65310,10 +65338,14 @@ const npRangeText = (fid, minOff) => {
   return `${a}–${b}${NP_UNITS[fid] === "%" ? "" : " "}${NP_UNITS[fid]}`;
 };
 function npTable(r, minOff, v) {
-  const cell = (fid, val, label) => `<div class="field np-cell">${unitBox(input(fid, v(fid, val), "", "number").replace("<input ", `<input aria-label="${esc(label)}" `), NP_UNITS[fid])}</div>`;
-  return `<div class="np-table-wrap"><table class="t np-table"><thead><tr><th>数据项</th><th>上报周期</th><th>变化阈值</th><th>可调范围</th></tr></thead><tbody>${NP_ROWS.map(
+  const cell = (fid, val, name, measure) => {
+    const rangeId = `${fid}Range`;
+    const number = input(fid, v(fid, val), "", "number").replace("<input ", `<input aria-label="${esc(name + measure)}" aria-describedby="${rangeId}" `);
+    return `<div class="field np-cell"><div class="np-compact-meta"><label for="${fid}">${esc(measure)}</label><small class="np-range" id="${rangeId}">${esc(npRangeText(fid, minOff))}</small></div>${unitBox(number, NP_UNITS[fid])}</div>`;
+  };
+  return `<div class="np-table-wrap"><table class="t np-table" role="table"><thead><tr><th>数据项</th><th>上报周期</th><th>变化阈值</th><th>可调范围</th></tr></thead><tbody role="rowgroup">${NP_ROWS.map(
     ([name, fid, key, th]) =>
-      `<tr><th scope="row">${name}</th><td>${cell(fid, key === "aq" ? r.aq || 60 : r[key], `${name}上报周期`)}</td><td>${th.length ? `<div class="np-th">${th.map(([tf, tk, tl]) => cell(tf, r[tk], `${name}${tl}`)).join("")}</div>` : `<span class="muted">—</span>`}</td><td class="np-range">${[npRangeText(fid, minOff), ...th.map(([tf]) => npRangeText(tf))].join("；")}</td></tr>`,
+      `<tr role="row"><th scope="row" role="rowheader">${name}</th><td role="cell">${cell(fid, key === "aq" ? r.aq || 60 : r[key], name, "上报周期")}</td><td role="cell">${th.length ? `<div class="np-th">${th.map(([tf, tk, tl]) => cell(tf, r[tk], name, tl)).join("")}</div>` : `<span class="muted">—</span>`}</td><td class="np-range" role="cell">${[npRangeText(fid, minOff), ...th.map(([tf]) => npRangeText(tf))].join("；")}</td></tr>`,
   ).join("")}</tbody></table></div>`;
 }
 // 网络参数（规范 DEVICE09）：keep 为“确认保存规划”中按“继续编辑”带回的填写（Editor 核查 E17）。
@@ -65411,7 +65443,7 @@ function npRefresh() {
     if (changed && !hint) {
       hint = document.createElement("small");
       hint.className = "muted np-tpl";
-      el.after(hint);
+      (el.closest(".ops-unit-in") || el).after(hint);
     }
     if (hint) changed ? (hint.textContent = "模板 " + (fid === "npRatio" ? npRatioText(base.report.occupiedRatio) : npValue(base, fid))) : hint.remove();
   }
@@ -65666,14 +65698,20 @@ function showFunctionChecks(id) {
   const body = document.getElementById("dlgBody");
   if (body) body.scrollTop = 0;
 }
-// 3.17 E1246：筛选面板默认与“筛选”按钮左对齐，右边超出窗口时改为右对齐
+// 筛选面板先与按钮对齐，空间不足时沿水平方向平移到视口内。
 function devFilterPlace() {
+  const inset = 16, right = innerWidth - inset;
   document.querySelectorAll(".dev-filter-panel").forEach((el) => {
+    el.style.translate = "";
     el.classList.remove("end");
-    if (el.getBoundingClientRect().right > innerWidth - 16) el.classList.add("end");
+    if (el.getBoundingClientRect().right > right) el.classList.add("end");
+    const bounds = el.getBoundingClientRect();
+    const offset = Math.max(inset - bounds.left, Math.min(0, right - bounds.right));
+    if (offset) el.style.translate = `${offset}px`;
   });
 }
 if (typeof onAfterRender === "function") onAfterRender(devFilterPlace);
+addEventListener("resize", devFilterPlace, { passive: true });
 // 3.16 E1163：自定义分组的用途与引用它的场景（场景、定时、联动）
 const groupUse = (group) => ({ 照明: "照明控制", 空调: "空调控制", 仅管理: "状态上报" })[group.usage] || "状态上报";
 const groupRefs = (id) => (data().scenes || []).filter((s) => s.groupId === id || (s.actions || []).some((a) => (a.groupIds || []).includes(id)));
@@ -115906,7 +115944,7 @@ function auPlaceMenu(anchor) {
     pr = p.getBoundingClientRect();
   if (side) {
     const s = side.getBoundingClientRect();
-    p.style.left = s.left + 8 + "px";
+    p.style.left = Math.max(8, s.left + 8) + "px";
     p.style.top = Math.max(8, r.top - pr.height - 4) + "px";
     return;
   }
@@ -116036,6 +116074,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.82",
+    date: "2026-11-16",
+    notes: ["改进工作区提示条、设备筛选和网络参数的窄屏布局。"],
+  },
   {
     version: "3.81",
     date: "2026-11-16",
@@ -130503,6 +130546,10 @@ const demoPt = (name) => data().points.find((x) => x.name === name)?.id;
 // 2.53 V229：楼层图只在“选设备”时画设备图标，点单台设备前先切到“选设备”
 const demoDevTap = (name) => ((U.opsSelMode = "dev"), render(), demoTap(`[data-act="opsDev"][data-id="${demoPt(name)}"]`));
 const demoTap = (sel) => $(sel)?.click();
+const demoOrgMenu = () => {
+  if (isMobile() && !$("#app").classList.contains("navopen")) actions.mobnav({});
+  demoTap('#side [data-act="orgMenu"]');
+};
 const demoNetHash = (extra = "") => `#devices?p=${DEMO_IDS.project}&tab=networks&net=${DEMO_IDS.network}${extra}`;
 const demoMember = (fn) => () => ((U.role = "member"), render(), fn && demoAfter(fn));
 // 上传楼层图：演示不能代选本机文件，用画出的一张示意图片（PNG）打开上传弹窗
@@ -131187,7 +131234,7 @@ const DEMO_ITEMS = [
       bootError(new Error("The operation is insecure."));
     },
   ],
-  ["机构菜单与帮助", "gl-menu", "机构菜单", "侧栏左下角的机构入口", demoHead(() => (demoIn(), demoHash("#overview"), demoAfter(() => demoTap('[data-act="orgMenu"]'))))],
+  ["机构菜单与帮助", "gl-menu", "机构菜单", "侧栏左下角的机构入口", demoHead(() => (demoIn(), demoHash("#overview"), demoAfter(demoOrgMenu)))],
   ["机构菜单与帮助", "gl-help", "帮助", "机构菜单 › 帮助", demoHead(demoHelp(() => actions.auHelp()))],
   ["机构菜单与帮助", "gl-help-center", "帮助中心", "", demoHelp(() => actions.auHelpCenter({ from: "help" }))],
   ["机构菜单与帮助", "gl-help-article", "帮助文章", "《创建机构》", demoHelp(() => actions.auHelpArticle({ id: "acct-apply" }))],
