@@ -34752,6 +34752,45 @@ p.an4-links { display: flex; margin: 0; }
 .ws-locrow > button.ws-locseg:active { background: rgba(0, 0, 0, 0.08); }
 .ws-locrow > button.ws-locseg:focus-visible { outline: 2px solid #00aeef; outline-offset: 2px; }
 .ws-locrow > button.ws-locseg::after { content: ""; position: absolute; inset: -8px 0; }
+/* 共用范围和页签按所在内容区宽度换行。 */
+.ws-scope-band { display: flex; flex-wrap: wrap; align-items: center; min-width: 0; gap: 8px 16px; }
+.ws-scope-control { display: flex; align-items: center; flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.ws-scope-control > .ws-locrow { display: flex; align-items: center; min-width: 0; max-width: 100%; }
+.ws-scope-tabs { flex: 0 1 auto; width: max-content; min-width: 0; max-width: 100%; }
+#app .ws-project-scope { position: relative; display: inline-flex; align-items: center; justify-content: space-between; flex: 0 1 auto; gap: 8px; min-width: 0; max-width: min(280px, 100%); height: 32px; min-height: 32px; margin: 0; padding: 0 12px; border: 0; border-radius: 999px; background: var(--btn-bg); box-shadow: var(--btn); color: var(--ds-ink); font: 400 14px/22px var(--ff); white-space: nowrap; }
+#app .ws-project-scope.plain { background: none; box-shadow: none; padding-inline: 0; color: var(--ds-ink-2); }
+#app .ws-project-scope > [data-trunc] { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+#app .ws-project-scope > .ws-locarr { flex: none; width: 16px; height: 16px; color: var(--ds-ink-2); opacity: 1; transition: transform 150ms ease-out; }
+#app button.ws-project-scope { text-align: left; cursor: pointer; }
+#app button.ws-project-scope::after { content: none; }
+#app button.ws-project-scope[aria-expanded="true"] > .ws-locarr { transform: rotate(180deg); }
+#app button.ws-project-scope:focus-visible { outline: 2px solid #00aeef; outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) {
+  #app button.ws-project-scope:hover { background: linear-gradient(var(--hover), var(--hover)), var(--btn-bg); }
+}
+#app button.ws-project-scope:is(:active, [aria-expanded="true"]) { background: linear-gradient(var(--hover), var(--hover)), var(--btn-bg); }
+@media (any-pointer: coarse), (max-width: 850px) {
+  .ws-scope-control { min-height: 44px; }
+  #app button.ws-project-scope::after { content: ""; position: absolute; inset: -6px 0; border-radius: 0; }
+}
+@media (max-width: 600px) {
+  .ws-scope-band > .ws-scope-control { flex: 1 1 100%; }
+  .ws-scope-band > .ws-scope-control > .ws-locrow { width: 100%; }
+  #app .ws-scope-control .ws-project-scope { max-width: 100%; }
+}
+#app .main > .panel > .phead:has(> .ws-head-scope) { flex-wrap: wrap; row-gap: 8px; }
+.phead > .ws-head-scope { flex: 1 1 100%; min-width: 0; }
+#app .ops-overview-nav.has-project-scope { flex-wrap: wrap; }
+#app .ops-overview-nav.has-project-scope > .ops-overview-tabs { flex: 1 1 100%; width: 100%; overflow: visible; }
+@media (max-width: 850px) {
+  #app[data-common-scope-head] .main > .panel > .phead { height: auto !important; min-height: 0 !important; padding: 0 16px !important; }
+  #app[data-common-scope-head] .main > .panel > .phead > h1 { display: none !important; }
+  #app[data-common-scope-head] .main > .panel > .phead > :is(.ws-page-more, .ws-mob-add) { position: fixed; z-index: 40; top: 6px; right: 12px; margin: 0; }
+  #app[data-common-scope-head] .main > .panel > .phead:has(> .ws-page-more) > .ws-mob-add { right: 64px; }
+  #app[data-common-scope-head] .main > .panel > .phead > .ws-head-scope { padding-top: 8px; }
+  #app[data-scope-in-body] .pbody:has(> .ops-overview-nav.has-project-scope) { padding-top: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { #app .ws-project-scope > .ws-locarr { transition: none; } }
 /* 菜单：宽 560（只有一栏时 280），最高 400，两栏各自滚动；行高 36、圆角 8，当前项 #F5F5F5 加勾 */
 #pop.ws-lm-pop { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
 .ws-lm { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
@@ -36425,6 +36464,8 @@ img.img-off { display: none !important; }
   .ws3-panel > * { flex-shrink: 0; }
   .ws3-head { flex: none; }
   .ws3-ht { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .ws3-panel > .ws3-head { flex-wrap: wrap; }
+  .ws3-panel > .ws3-head > .ws3-hr { margin-inline-start: auto; }
   /* 3.52 Lovable：标题行按钮为站内 .btn（32 高、全圆、白底次要按钮） */
   .ws3-hbtn { flex: none; gap: 6px; }
   .ws3-hbtn > .ic { width: 16px; height: 16px; }
@@ -36726,7 +36767,7 @@ img.img-off { display: none !important; }
     .ws3-head .ov3-t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
     .ws3-head:not(:has(> :not(.ws3-ht))) { display: none; }
     .ws3x:not([data-mob="plan"]) > .ov3-view { display: none; }
-    .ws3x[data-mob="plan"] > .ws3-panel { display: none; }
+    .ws3x[data-mob="plan"] > .ws3-panel > :not(.ws3-head, .ws-scope-band) { display: none; }
     .ws3x[data-mob="plan"] > .ov3-view { height: calc(100dvh - 180px); min-height: 360px; border-top: 0; }
     .ws3-tl { left: 12px; top: 12px; }
     .ws3-lg { left: 12px; right: 12px; bottom: 12px; max-width: none; }
@@ -36834,9 +36875,6 @@ img.img-off { display: none !important; }
   #app .main > .panel > .phead:has(> .ws-mscope) > .ws-page-more { margin: -8px -6px -8px 8px !important; } /* 3.52 范围按钮改为 28 高，“⋯”上下各 -8 不撑高范围行 */
   .ws3-mob:not(.ws-mscope) { padding: 12px 16px; }
   .ws3-mob:not(.ws-mscope) > .ws3-mob-seg { margin: -2px 0; }
-  /* 告警的 24px 选项上下各扩 10px，命中区留在原有范围行内。 */
-  .ws3x[data-pg="alarms"] > .ws3-mob > .ws3-mob-seg { flex: none; overflow: visible; }
-  .ws3x[data-pg="alarms"] > .ws3-mob > .ws3-mob-seg > button::after { content: ""; position: absolute; inset: -10px 0; }
   /* 3.50 V1381、V1382：顶栏已写页名，手机面板不再重复大标题（标题留给读屏） */
   /* 3.52：手机上本页主按钮在顶栏右端（同 3.51），面板标题行里的不显示；“报告”在“⋯”里 */
   :is(.ov3-panel > .ov3-head, .phead) > .tb-pri, .ws3-hr > .ws3-rpt { display: none; }
@@ -36844,10 +36882,24 @@ img.img-off { display: none !important; }
   :is(#app .main > .panel > .phead:has(> .ws-mscope) > h1, #app .main > .panel > .phead > h1:has(+ .ops-hloc)) { position: absolute !important; width: 1px !important; height: 1px !important; margin: -1px !important; padding: 0 !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; border: 0 !important; }
   #app .main > .panel > .phead:has(> h1 + .ops-hloc) { padding: 12px 16px !important; height: auto !important; min-height: 0 !important; }
   #app .main > .panel > .phead > h1 + .ops-hloc { margin-left: 0 !important; }
-  /* 3.50 V1384：手机设备、运行设置页签上方只有“⋯”时，“⋯”放到页签行末，不空占一行 */
-  .ws3-panel > .ws3-head:has(+ .ws3-tabs):has(.ws3-more):not(:has(.ws3-hr > :not(.ws3-more))) { height: 0; min-height: 0; padding: 0; border: 0; overflow: visible; position: relative; z-index: 2; }
-  .ws3-panel > .ws3-head:has(+ .ws3-tabs):has(.ws3-more):not(:has(.ws3-hr > :not(.ws3-more))) > .ws3-hr { position: absolute; right: 0; top: 16px; }
-  .ws3-panel > .ws3-head:has(+ .ws3-tabs):has(.ws3-more):not(:has(.ws3-hr > :not(.ws3-more))) + .ws3-tabs { margin-top: 16px; max-width: calc(100% - 48px); }
+  .ws3-panel > .ws3-head:has(.ws3-hr > .ws3-more:only-child) { height: 0; min-height: 0; padding: 0; border: 0; }
+  .ws3-panel > .ws3-head > .ws3-hr:has(> .ws3-more:only-child) { position: fixed; top: 6px; right: 12px; z-index: 40; margin: 0; }
+}
+@media (min-width: 851px) {
+  .ws3-panel > .ws3-head:has(+ .ws-scope-band) { min-height: 0; padding: 16px 0 8px; border-bottom: 0; }
+}
+@media (max-width: 850px) {
+  .ws3-panel > .ws-scope-band { flex: none; }
+  .ws3-panel .ws3-desktop-scope { display: none; }
+  .ws3-panel .ws3-scope-mob { position: static; flex-wrap: wrap; justify-content: space-between; width: 100%; min-width: 0; gap: 4px; padding: 0; border: 0; background: none; }
+  .ws3-scope-mob > :is(.ws3-mob-scope-control, .ws3-mob-display) { display: flex; align-items: center; min-height: 44px; }
+  .ws3-scope-mob > .ws3-mob-scope-control { min-width: 0; max-width: 100%; }
+  .ws3-scope-mob > .ws3-mob-display { flex: none; margin-inline-start: auto; }
+  .ws3-mob-display > .ws3-mob-seg { flex: none; overflow: visible; }
+  .ws3-mob-display > .ws3-mob-seg > button::after { content: ""; position: absolute; inset: calc((100% - 44px) / 2) 0; }
+}
+@media (max-width: 360px) {
+  #app .ws3-mob-scope-control > .ws-project-scope { padding-inline: 10px; }
 }
 /* 3.50 E1531：手机编辑器的比例尺提示写“在电脑上设置”，不放按钮 */
 .sp-scale-bar > .sp-desk { flex: none; margin-left: auto; font-size: 12px; line-height: 18px; color: #636363; white-space: nowrap; }
@@ -36880,7 +36932,20 @@ img.img-off { display: none !important; }
 .ws3-none { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin: 16px 0; padding: 16px; border-radius: 12px; background: #fff; box-shadow: inset 0 0 0 var(--hw) var(--hc-114114112040, rgba(114, 114, 112, 0.16)); font-size: 14px; line-height: 22px; color: #2e2e2e; }
 .ws3-none > p { margin: 0; color: #636363; }
 .an-rp-back { display: flex; align-items: center; margin: 8px 0 0 -8px; }
-@media (min-width: 851px) { .ov3-panel > .ov3-head:is(:has(+ .ws3-tabs), :has(+ .ov3-tabsec)) { border-bottom: 0; padding-bottom: 8px; min-height: 0; } } /* 3.54 V1455：首页“概况 | 信息”页签行同数据分析的位置，页签上方不另画分隔线 */
+@media (min-width: 851px) {
+  .ov3x[data-lv] > .ov3-panel > .ov3-head:has(+ .ws-scope-band) {
+    min-height: 0;
+    padding-block-end: 8px;
+    border-bottom: 0;
+  }
+}
+.ov3x[data-lv] > .ov3-panel > .ws-scope-band { padding-block-end: 8px; }
+.ov3x[data-lv="all"] > .ov3-panel > .ws-scope-band {
+  border-bottom: var(--hw) solid var(--hc-114114112040, rgba(114, 114, 112, 0.16));
+}
+@media (max-width: 850px) {
+  .ov3x[data-lv] > .ov3-panel > .ws-scope-band { padding-block-start: 8px; }
+}
 
 /* ---------- 3.53 Vision 3.52 复看（03-reviews/2026-11-10_菜单与页签/3.52复看_Vision.md）：组件改回 3.46 计算值 ---------- */
 /* V1396：未选中页签 14/22/500 #636363（3.52 为 400） */
@@ -37339,9 +37404,7 @@ img.img-off { display: none !important; }
 .runtime-heading, .runtime-head-scope { display: flex; align-items: center; min-width: 0; gap: 12px; }
 #app[data-page="settings"] .runtime-heading h1 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; overflow-wrap: anywhere; }
 .runtime-heading .sp { flex: 1; }
-.runtime-project-select { display: flex; justify-content: space-between; width: 224px; max-width: 100%; min-width: 0; }
-.runtime-project-select > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.runtime-scope-caption { font-size: 12px; line-height: 18px; color: #636363; }
+.runtime-scope-caption { flex: none; font-size: 12px; line-height: 18px; color: #636363; }
 #app[data-page="settings"] #pbody { padding: 0; }
 .runtime-settings, .runtime-directory {
   max-width: 1664px; margin-inline: auto; padding: 0 24px 32px; min-width: 0;
@@ -37443,9 +37506,7 @@ img.img-off { display: none !important; }
 }
 @media (max-width: 600px) {
   #app[data-page="settings"] .main > .panel > .phead, .runtime-settings, .runtime-directory { padding-inline: 16px; }
-  .runtime-head-scope { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
-  .runtime-project-select { width: 100%; }
-  .runtime-scope-caption { grid-column: 1 / -1; }
+  .runtime-head-scope { gap: 8px; }
   #app .runtime-settings .cfg-card { padding-inline: 16px; }
   .runtime-setting-row { grid-template-columns: minmax(0, 1fr) auto; row-gap: 1px; }
   .runtime-setting-row > :nth-child(2) { grid-column: 1; grid-row: 2; }
@@ -37461,7 +37522,7 @@ img.img-off { display: none !important; }
   #dlg.runtime-dialog { padding: 16px; }
 }
 @media (pointer: coarse), (any-pointer: coarse), (max-width: 1024px) {
-  .runtime-categories button, .runtime-head-scope button, .runtime-setting-row button, .runtime-preview-panel :is(select, .iconbtn, .runtime-map-list button), #wtop .runtime-top-more { min-height: 44px; }
+  .runtime-categories button, .runtime-setting-row button, .runtime-preview-panel :is(select, .iconbtn, .runtime-map-list button), #wtop .runtime-top-more { min-height: 44px; }
   .runtime-preview-panel .iconbtn, #wtop .runtime-top-more { min-width: 44px; }
   #dlg.runtime-dialog .df .btn { min-height: 44px; }
   #dlg.runtime-dialog .dh .iconbtn::after { content: ""; position: absolute; inset: -6px; }
@@ -37542,7 +37603,6 @@ img.img-off { display: none !important; }
 .dep-project-lines circle { fill: currentColor; }
 .dep-project-line-hit { stroke: transparent; stroke-width: 16; pointer-events: stroke; cursor: pointer; }
 .dep-project-relation { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin: 0 0 8px; padding: 2px 8px; border-radius: 8px; color: #2e2e2e; background: var(--project-highlight); font-size: 12px; line-height: 18px; }
-.dep-project-mobile-control { display: none; }
 
 @container dep-topo (min-width: 1260px) {
   :is(.dep-project-preview-layout:has(> .dep-topo-detail), .dep-topo-grid.has-detail) { grid-template-columns: minmax(0, 1fr) var(--detail-width, 320px); }
@@ -37558,8 +37618,7 @@ img.img-off { display: none !important; }
   .dep-project-layout { --project-stacked: 1; grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .dep-project-buildings { margin-inline-start: 32px; }
   .dep-project-nav { grid-column: auto; }
-  .dep-project-layout:has(.dep-project-mobile-control) .dep-project-projects .dep-project-card:not(.is-selected) { display: none; }
-  .dep-project-mobile-control { display: inline-flex; }
+  .dep-project-projects:has(.dep-project-card.is-selected) .dep-project-card:not(.is-selected) { display: none; }
   .dep-project-column > header { margin-bottom: 8px; }
   .dep-project-card-head { min-height: 60px; }
   .dep-project-card-tools { flex-wrap: wrap; justify-content: flex-end; }
@@ -37653,10 +37712,10 @@ img.img-off { display: none !important; }
 }
 
 .dep-project-floor-head {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 8px 12px;
   margin-block: 0 12px;
 }
 
@@ -37668,23 +37727,7 @@ img.img-off { display: none !important; }
   white-space: nowrap;
 }
 
-.dep-project-floor-head .dep-project-floor-picker {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  min-width: min(200px, 100%);
-  max-width: 360px;
-  gap: 8px;
-}
-
-.dep-project-floor-picker > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dep-project-floor-picker > svg { flex: none; }
-.dep-project-floor-back { margin-inline-start: auto; }
+.dep-project-floor-head > .ws-scope-band { grid-column: 1 / -1; }
 
 .dep-project-floor-head { position: relative; z-index: 26; }
 .dep-project-floor .dep-project-floor-grid > .dep-topo-detail { top: var(--project-floor-detail-top, 180px); max-height: calc(100dvh - var(--project-floor-detail-top, 180px) - 16px); }
@@ -37692,6 +37735,16 @@ img.img-off { display: none !important; }
 @container dep-topo (min-width: 1260px) {
   .dep-project-floor .dep-project-floor-grid > .dep-topo-detail { top: auto; max-height: 70dvh; }
 }
+
+#pop.dep-project-floor-pop, #pop.dep-project-floor-pop .dep-project-picker-menu {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dep-project-picker-menu, .dep-project-picker-list { min-height: 0; }
+.dep-project-picker-list { overflow-y: auto; overscroll-behavior: contain; }
+.dep-project-picker-menu > :is(.dep-project-picker-heading, .dep-project-picker-back) { flex: none; }
 
 #pop.dep-project-floor-pop .dep-project-picker-heading {
   display: grid;
@@ -37739,7 +37792,6 @@ img.img-off { display: none !important; }
 @media (max-width: 700px) {
   .dep-project-floor { --project-floor-topbar-clearance: 72px; }
   .dep-project-floor-head { gap: 8px; z-index: auto; }
-  .dep-project-floor-head .dep-project-floor-picker { order: 1; flex: 1 0 100%; max-width: none; }
   .dep-project-floor :is(.dep-topo-zone-list button, #floorCanvas [data-id]) {
     scroll-margin-block-start: var(--project-floor-topbar-clearance);
   }
@@ -37836,7 +37888,7 @@ img.img-off { display: none !important; }
 }
 
 @media (any-pointer: coarse) {
-  .dep-project-floor-head :is(.dep-project-floor-picker, .dep-project-floor-back),
+  .dep-project-floor-head .dep-project-floor-back,
   #pop.dep-project-floor-pop .popitem { min-height: 44px; }
 }
 
@@ -46772,16 +46824,19 @@ function closePop({ restoreFocus = false, restoreParent = restoreFocus } = {}) {
 function wsRevealMenuFocus(panel) {
   const item = document.activeElement;
   if (panel?.contains(item) && item.matches('[role="menuitem"],[role="menuitemradio"],[role="menuitemcheckbox"]')) {
-    ov3RevealGroupMenuItem(panel, item);
+    ov3RevealGroupMenuItem(item.closest?.(".dep-project-picker-list") || panel, item);
   }
 }
 function withMenuFocusReturn(item, activate) {
-  const panel = $("#pop"), opener = item && panel?.contains(item) ? panel.anchor : null;
+  const panel = $("#pop"), opener = item && panel?.contains(item) ? panel.anchor : item?.closest?.("#dlg .ws-lm-sheet") ? modalFocus : null;
+  const projectScope = opener?.classList?.contains("ws-project-scope");
   const descriptor = wsFocusDesc(opener), result = activate();
   if (descriptor) requestAnimationFrame(() => {
     const active = document.activeElement;
-    if ($("#dlg") || $("#discard") || (active && active !== document.body && active.isConnected)) return;
-    const target = opener.isConnected && !opener.disabled && opener.getClientRects().length ? opener : wsFindDesc(descriptor);
+    if ($("#dlg") || $("#discard") || (active && active !== document.body && active.isConnected && (!projectScope || active.getClientRects().length))) return;
+    const visible = (element) => element?.isConnected && !element.disabled && element.getClientRects().length;
+    const replacement = projectScope ? [...document.querySelectorAll("#app button.ws-project-scope")].find(visible) : null;
+    const target = visible(opener) ? opener : wsFindDesc(descriptor) || replacement;
     target?.focus({ preventScroll: true });
   });
   return result;
@@ -46956,6 +47011,7 @@ function wsCloseModal(force) {
   if (closingDlg?.querySelector(".dialog.sp-ed-done")) U.spEdNext = null;
   $("#runtimeHolidayPreview")?.closePreview(false);
   if (typeof runtimePreviewSync === "function") runtimePreviewSync(closingDlg);
+  if (closingDlg?.querySelector(".ws-lm-sheet")) modalFocus?.classList?.contains("ws-project-scope") && modalFocus.setAttribute("aria-expanded", "false");
   wsDialogGhost($("#dlg"));
   $("#dlg")?.remove();
   modalDirty = false;
@@ -47161,6 +47217,7 @@ function modal(title, body, foot = "", wide = true, options = {}) {
     el.querySelector(".dialog").insertAdjacentHTML("afterbegin", `<button type="button" class="ds-bs-grab" data-act="bsToggle" aria-label="${bsFull ? "收起" : "展开"}" aria-expanded="${bsFull}"></button>`);
   }
   document.body.append(el);
+  if (modalFocus?.classList?.contains("ws-project-scope") && el.querySelector(".ws-lm-sheet")) modalFocus.setAttribute("aria-expanded", "true");
   wsGateSync(el);
   if (typeof wsProjectTextareas === "function") wsProjectTextareas(el); // 2.40：全站多行输入框同一组件
   // 聚焦第一个字段；没有字段或触屏（避免弹出键盘）时聚焦标题
@@ -47946,34 +48003,31 @@ async function savePlan(a = {}, onSaved = null) {
   onSaved?.();
   return true;
 }
-// 2.91 V946：位置行（全站统一的项目与楼宇选择），取代总览标题下拉（V923）、数据分析等三页标题旁的范围按钮、配置各页工具条的位置选择器，
-// 以及把项目、楼宇和全部楼层列成一长串的树形菜单。白框首行，左缘与标题对齐，下隔 8 为标题行；侧栏、logo、外框不动。
-// 两段（项目、楼宇）：第一段写“全部项目”或项目名；第二段写“全部楼宇”或楼名，只有选了项目才有。只有一个选项的段写成普通文字，不能点。
-// 2.93 V962：每段名称后接 16 的下箭头。2.99 V983：两段之间不用分隔符，只靠下箭头分开，两段按钮隔 4。
-// 楼层不进位置行，在页内选：总览楼层列表，数据分析、告警工单、场景页签行右边的“全部楼层”筛选，项目页与楼层图页的楼层轨道，设备列表的楼层筛选。
-// 应用设置、配置进度只按项目，只有第一段；机构设置、我的账户与普通成员的我的区域没有位置行。
-// 3.52：外框按 3.46 恢复（取消顶栏），首页与各页的面板顶部同样是位置行，楼层页“空间”加入
+// 项目范围放在标题下方。项目与楼宇由一个入口表达，楼层仍由该页的楼层筛选或轨道处理。
 const LOC_ROW_PAGES = ["overview", "space", "analysis", "alarms", "scenes", "projects", "devices", "settings", "deployment"];
 const locProjects = (db = data()) => (db?.projects || []).filter((p) => mayViewProject(p.id, db)).sort(M.byName);
 const locBuildings = (pid, db = data()) => (db?.buildings || []).filter((b) => b.projectId === pid).sort(M.byName);
 const locRowProjectOnly = () => LOC_PROJECT_PAGES.includes(U.page);
 function wsLocRowOn() {
-  return LOC_ROW_PAGES.includes(U.page) && U.role !== "member" && !BARE[U.page] && !U.missing && !!data() && locProjects().length > 0 && !(U.page === "deployment" && U.tab === "config") && !(U.page === "scenes" && U.scEd) && !spFull() && !(U.page === "overview" && U.obj && typeof obParse === "function" && obParse());
+  return LOC_ROW_PAGES.includes(U.page) && U.role !== "member" && !BARE[U.page] && !U.missing && !!data() && locProjects().length > 0 && !(U.page === "deployment" && U.tab === "config") && !(U.page === "scenes" && U.scEd) && !spFull() && !(devDeploy() && (U.tab === "networks" && U.net || U.tab === "connections" && U.conn)) && !(U.page === "overview" && U.obj && typeof obParse === "function" && obParse());
+}
+function wsScopeButton(text, { action = "location", label = "查看范围", id = "", popup = "dialog", disabled = false, cls = "", attrs = "" } = {}) {
+  const classes = `ws-project-scope ws-locseg${cls ? ` ${cls}` : ""}`;
+  const value = `<span data-trunc>${esc(text)}</span>`;
+  const identity = `${id ? ` id="${esc(id)}"` : ""} aria-label="${esc(`${label} · ${text}`)}" data-tip="${esc(text)}" data-tip-trunc${attrs ? ` ${attrs.trim()}` : ""}`;
+  if (disabled) return `<span class="${esc(classes)} plain"${identity}>${value}</span>`;
+  return `<button type="button" class="${esc(classes)}" data-act="${esc(action)}" aria-haspopup="${esc(popup)}" aria-expanded="false"${identity}>${value}${ico("chevron", "ic16 ws-locarr")}</button>`;
+}
+function wsScopeBand(scopeHtml, tabsHtml = "") {
+  if (!scopeHtml) return tabsHtml;
+  return `<div class="ws-scope-band"><div class="ws-scope-control">${scopeHtml}</div>${tabsHtml ? `<div class="ws-scope-tabs">${tabsHtml}</div>` : ""}</div>`;
 }
 function wsLocRow() {
   if (!wsLocRowOn()) return "";
-  const ps = locProjects(), p = U.p ? g("projects", U.p) : null, b = U.b ? g("buildings", U.b) : null, only = locRowProjectOnly(),
-    segs = [[p ? p.name : "全部项目", ps.length > 1]];
-  if (p && !only) segs.push([b ? b.name : "全部楼宇", locBuildings(p.id).length > 1]);
-  const what = only ? "选择项目" : "选择位置";
-  return `<nav class="ws-locrow" aria-label="位置">${segs
-    .map(([t, click], i) => {
-      const last = i === segs.length - 1, cls = `ws-locseg${last ? " cur" : ""}`;
-      return click
-        ? `<button type="button" class="${cls}" data-act="location" aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(t)}：${what}" data-tip="${esc(t)}" data-tip-trunc><span data-trunc>${esc(t)}</span>${ico("chevron", "ic16 ws-locarr")}</button>`
-        : `<span class="${cls} plain"${last ? ' aria-current="location"' : ""}>${esc(t)}</span>`;
-    })
-    .join("")}</nav>`;
+  const ps = locProjects(), p = U.p ? g("projects", U.p) : null, b = U.b ? g("buildings", U.b) : null, only = locRowProjectOnly();
+  const text = p ? only ? p.name : `${p.name} · ${b ? M.buildingLabel(data(), b) : "全部楼宇"}` : "全部项目";
+  const disabled = !!p && ps.length === 1 && (only || !locBuildings(p.id).length);
+  return `<div class="ws-locrow">${wsScopeButton(text, { label: only ? "选择项目" : "查看范围", disabled })}</div>`;
 }
 // 菜单：在位置行下方左对齐，宽 560，最高 400。顶部搜索；左栏项目（两个以上项目才有“全部项目”，运营页未接入的写“未接入”，当前项浅灰底加勾，
 // 2.93 V956：点一个项目即选中整个项目并关闭，指向它时右栏只预览它的楼宇）；右栏楼宇（栏标题只写“楼宇”；每栋一行，运营页行尾“已接入 1 / 23 层”或“未接入”，点一栋即选中并关闭）。
@@ -47999,8 +48053,13 @@ function lmProjectRows(pv, live, act, prev = false) {
 function lmBuildingCol(pv, live) {
   // 2.99 V977：pv 为 "*"（全部项目）时列出各项目的楼宇，行后灰字写所属项目，一步选到任一楼宇
   const all = pv === "*", src = all ? locProjects().flatMap((p) => locBuildings(p.id).map((b) => [p, b])) : pv ? locBuildings(pv).map((b) => [null, b]) : [];
-  const rows = src.map(([p, b]) => lmRow(U.b === b.id, "chooseLocation", { p: b.projectId, b: b.id }, `<span class="ws-lm-n">${esc(b.name)}</span>${p ? `<small class="ws-lm-proj">${esc(p.name)}</small>` : ""}${lmBuildingNote(b, live)}`)).join("");
-  return `<div class="ws-lm-h"><span>楼宇</span></div><div class="ws-lm-list" id="lmB">${rows || '<p class="ws-lm-none">尚无楼宇</p>'}</div>`;
+  const rows = src.map(([p, b]) => lmRow(U.b === b.id, "chooseLocation", { p: b.projectId, b: b.id }, lmBuildingName(b, p) + lmBuildingNote(b, live))).join("");
+  const whole = pv && !all && g("projects", pv) ? lmRow(U.p === pv && !U.b, "chooseLocation", { p: pv }, '<span class="ws-lm-n">全部楼宇</span>') : "";
+  return `<div class="ws-lm-h"><span>楼宇</span></div><div class="ws-lm-list" id="lmB">${whole}${rows || '<p class="ws-lm-none">尚无楼宇</p>'}</div>`;
+}
+function lmBuildingName(b, project = null) {
+  const parent = [project?.name, M.buildingSiteName(data(), b)].filter(Boolean).join(" · ");
+  return `<span class="ws-lm-n">${esc(b.name)}</span>${parent ? `<small class="ws-lm-proj">${esc(parent)}</small>` : ""}`;
 }
 function wsLocOpen(el, intent) {
   U.pickIntent = intent || null;
@@ -48017,8 +48076,9 @@ function wsLocOpen(el, intent) {
   p.setAttribute("role", "dialog");
   p.setAttribute("aria-label", only ? "选择项目" : "选择位置");
   p.place = () => {
-    const r = row.getBoundingClientRect(), a = el.getBoundingClientRect(), W = Math.min(w, innerWidth - 16);
-    Object.assign(p.style, { width: W + "px", left: Math.max(8, Math.min(r.left, innerWidth - W - 8)) + "px", top: a.bottom + 4 + "px", maxHeight: Math.max(200, Math.min(400, innerHeight - a.bottom - 12)) + "px" });
+    const r = row.getBoundingClientRect(), a = el.getBoundingClientRect(), W = Math.min(w, innerWidth - 16), below = innerHeight - a.bottom - 12, above = a.top - 12;
+    const upwards = below < 200 && above > below;
+    Object.assign(p.style, { width: `${W}px`, left: `${Math.max(8, Math.min(r.left, innerWidth - W - 8))}px`, top: upwards ? "auto" : `${a.bottom + 4}px`, bottom: upwards ? `${innerHeight - a.top + 4}px` : "auto", maxHeight: `${Math.max(0, Math.min(400, upwards ? above : below))}px` });
   };
   p.place();
   p.querySelectorAll(".ws-lm-list .ws-lm-row.on").forEach((r) => r.scrollIntoView?.({ block: "nearest" }));
@@ -48046,7 +48106,11 @@ function lmFilter(q0) {
   if (!q) return (res.innerHTML = "");
   const norm = (s) => String(s || "").toLowerCase().replace(/\s+/g, ""), live = lmLive(), only = locRowProjectOnly(), ps = locProjects(), hit = [];
   for (const p of ps) if (norm(p.name).includes(q)) hit.push(lmRow(U.p === p.id && (only || !U.b), "chooseLocation", { p: p.id }, `${lmImg(p)}<span class="ws-lm-n">${esc(p.name)}</span>${lmProjectNote(p.id, live)}`));
-  if (!only) for (const p of ps) for (const b of locBuildings(p.id)) if (norm(b.name).includes(q) || (!norm(p.name).includes(q) && norm(p.name + b.name).includes(q))) hit.push(lmRow(U.b === b.id, "chooseLocation", { p: p.id, b: b.id }, `<span class="ws-lm-n">${esc(b.name)}</span><small class="ws-lm-proj">${esc(p.name)}</small>${lmBuildingNote(b, live)}`));
+  if (!only) for (const p of ps) for (const b of locBuildings(p.id)) {
+    const site = M.buildingSiteName(data(), b);
+    if ([b.name, site && site + b.name, p.name + b.name, site && p.name + site + b.name].some((name) => norm(name).includes(q)))
+      hit.push(lmRow(U.b === b.id, "chooseLocation", { p: p.id, b: b.id }, lmBuildingName(b, p) + lmBuildingNote(b, live)));
+  }
   res.innerHTML = hit.join("") || '<p class="ws-lm-none" role="status">没有匹配的位置</p>';
 }
 // 手机：底部卡片，先选项目（“全部项目”在第一行），再选楼宇（第一行“全部楼宇”）；只有一个项目时直接列楼宇
@@ -48054,7 +48118,7 @@ function wsLocSheet(pid) {
   const ps = locProjects(), only = locRowProjectOnly(), live = lmLive(), p = only ? null : g("projects", pid || (ps.length === 1 ? ps[0].id : ""));
   if (p) {
     const all = lmRow(U.p === p.id && !U.b, "chooseLocation", { p: p.id }, '<span class="ws-lm-n">全部楼宇</span>'),
-      rows = locBuildings(p.id).map((b) => lmRow(U.b === b.id, "chooseLocation", { p: p.id, b: b.id }, `<span class="ws-lm-n">${esc(b.name)}</span>${lmBuildingNote(b, live)}`)).join("");
+      rows = locBuildings(p.id).map((b) => lmRow(U.b === b.id, "chooseLocation", { p: p.id, b: b.id }, lmBuildingName(b) + lmBuildingNote(b, live))).join("");
     return modal(p.name, `<div class="ws-lm ws-lm-sheet">${ps.length > 1 ? `<button type="button" class="ws-lm-back" data-act="lmSheetBack">${ico("back", "ic16")}<span>全部项目</span></button>` : ""}<div class="ws-lm-list">${all}${rows}</div></div>`, "", false, { sheet: true });
   }
   return modal(only ? "选择项目" : "选择位置", `<div class="ws-lm ws-lm-sheet"><div class="ws-lm-list">${lmProjectRows(null, live, only ? "chooseLocation" : "lmSheetProject")}</div></div>`, "", false, { sheet: true });
@@ -48164,7 +48228,8 @@ const opsHeadActsHtml = () => {
   const acts = typeof opsHeadActs !== "undefined" ? opsHeadActs : "";
   return acts ? `<span class="ops-hacts" id="opsPageActs">${acts}</span>${menuTrigger(iconBtn("更多", "more", "pageMore", { pageactions: "opsPageActs" })).replace('class="iconbtn round"', 'class="iconbtn round ws-page-more ov-head-more ops-head-more"')}` : "";
 };
-function pageCategoryHeader(page, active, { live = "", actions = "", meta = "", tools = "", cat = page, add = "" } = {}) {
+let wsScopeInBody = false;
+function pageCategoryHeader(page, active, { live = "", actions = "", meta = "", tools = "", cat = page, add = "", scope } = {}) {
   PAGE_CATEGORY_HEADERS.set(page, { actions, add });
   const group = page === "overview" ? "overviewTitleActions" : "pageCategoryTitleActions";
   const more = actions ? menuTrigger(iconBtn("更多", "more", "pageMore", { pageactions: group })).replace('class="iconbtn round"', 'class="iconbtn round ws-page-more"') : "";
@@ -48173,8 +48238,10 @@ function pageCategoryHeader(page, active, { live = "", actions = "", meta = "", 
   if (floors) tools = /^<div class="ops-filters/.test(tools) ? tools.replace(/^(<div class="ops-filters[^"]*">)/, `$1${floors}`) : `<div class="ops-filters">${floors}${tools}</div>`;
   // 3.52：报告清单不是数据分析的页签，页签位置为“返回数据分析”
   const sw = page === "analysis" && active === "reports" ? `<div class="an-rp-back">${btn(ico("back", "ic16") + "返回数据分析", "ws3AnBack", {}, "ghost sm")}</div>` : pageCategorySwitch(cat, active);
-  if (!sw && !tools) return live || meta ? `<div class="ops-overview-meta">${live}${meta}</div>` : ""; // 3.16 E1163
-  return `<div class="ops-overview-nav" data-category-page="${cat}">${more ? `<div class="ops-overview-location">${more}</div>` : ""}<div class="ops-overview-tabs" data-morph-classes="x-more">${sw}</div>${tools ? `<div class="ops-overview-tools">${tools}</div>` : ""}</div><!--ws-page-categories-end-->${live || meta ? `<div class="ops-overview-meta">${live}${meta}</div>` : ""}`;
+  const range = scope ?? wsLocRow();
+  if (range) wsScopeInBody = true;
+  if (!sw && !tools && !range) return live || meta ? `<div class="ops-overview-meta">${live}${meta}</div>` : "";
+  return `<div class="ops-overview-nav${range ? " has-project-scope" : ""}" data-category-page="${cat}">${more ? `<div class="ops-overview-location">${more}</div>` : ""}<div class="ops-overview-tabs" data-morph-classes="x-more">${wsScopeBand(range, sw)}</div>${tools ? `<div class="ops-overview-tools">${tools}</div>` : ""}</div><!--ws-page-categories-end-->${live || meta ? `<div class="ops-overview-meta">${live}${meta}</div>` : ""}`;
 }
 function overviewHeader(tab, live = "", tools = "") {
   return pageCategoryHeader("overview", tab, { live, tools, actions: overviewPageActions(), meta: tab === "energy" ? btn("统计口径", "overviewBasis") : "" });
@@ -48382,31 +48449,20 @@ function wsSideHtml() {
   // 上为标志与收起按钮，第一项“搜索 ⌘K”（搜索与提问同一面板），组间空 24 不画线，底部为机构（标志、名称与 ⇅，点开机构与账户菜单）
   return `<aside class="side" id="side"><div class="brand">${A.logo}${wsSidebarToggle()}</div><nav class="nav" aria-label="主导航">${U.role === "member" ? "" : `<button class="navitem searchrow" data-act="search" aria-label="搜索或提问" aria-keyshortcuts="${IS_APPLE ? "Meta+K" : "Control+K"}" data-tip="搜索或提问" data-tip-shortcut="true"><span class="ib">${ico("search")}</span><span class="navlabel">搜索</span>${searchKbd()}</button>`}${wsNav().map(([title, items], gi) => `${title ? `<div class="navgroup">${title}</div>` : gi ? '<div class="navgap" aria-hidden="true"></div>' : ""}${items.map(([k, l, i]) => wsNavItem(k, l, i)).join("")}`).join("")}</nav>${typeof orgButton === "function" ? orgButton() : `<button class="orgbtn" data-act="orgMenu"><span class="ws-org-logo"><img src="${A.img_gzlab}" alt=""></span><span>广州国家实验室</span></button>`}</aside>`;
 }
-// 3.47：页头只留页面标题、页签与本页操作；位置移到顶栏的面包屑。新总览（全部项目、项目、楼宇）的标题在左侧面板里，页头只放演示条（手机）
-// 3.49 V1375：手机顶栏只写页面名，范围在下一行的范围按钮（含“全部项目”）；空间等新页面用自己的“E栋 · 7F ▾”
-function wsMobScope() {
-  if (U.page === "settings") return "";
-  // 部署页的范围行由 CSS 切换，窄屏旋转无需重绘页面或关闭正在编辑的弹窗。
-  if ((!isMobile() && navPage() !== "deployment") || U.ws3Now || U.role === "member" || !data()?.projects.length) return "";
-  const fam = typeof ws3Fam === "function" && ws3Fam() && !!U.p,
-    ov = U.page === "overview" && !U.sp && !U.obj && !U.obGone;
-  if (!ov && !fam && !wsLocRowOn()) return "";
-  const p = U.p ? g("projects", U.p) : null,
-    b = U.b ? g("buildings", U.b) : null,
-    only = locRowProjectOnly(),
-    buildingContext = b && (!only || U.page === "deployment" && U.tab === "config"),
-    t = [p ? p.name : "全部项目", buildingContext ? b.name : ""].filter(Boolean).join(" · ");
-  return `<div class="ws3-mob ws-mscope"><button type="button" class="ws3-mob-loc ws-locseg" data-act="location" aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(t)}：${only ? "选择项目" : "选择位置"}"><span>${esc(t)}</span>${ico("chevron", "ic16 ws3-mob-arr")}</button></div>`;
+function wsHeadHtml() {
+  if (U.page === "settings") return runtimeSettingsHead();
+  const right = typeof headerRight === "function" ? headerRight() : "";
+  if (U.ov3Now || U.ws3Now) return right;
+  const range = wsScopeInBody ? "" : wsScopeBand(wsLocRow());
+  return `${headTitle()}${typeof ov3Info === "function" && ov3Info() ? ov3TopActs() : ""}${sourceBack()}${pageCategoryTitleActions()}${opsHeadScope()}${wsHeadTbTake()}${typeof ws3WideHead === "function" ? ws3WideHead() : ""}${right}${range ? `<div class="ws-head-scope">${range}</div>` : ""}`;
 }
-const wsHeadHtml = () => U.page === "settings" ? runtimeSettingsHead() : wsMobScope() + wsHeadHtml0();
-const wsHeadHtml0 = () => ((typeof ov3On === "function" && U.ov3Now) || U.ws3Now ? `${typeof headerRight === "function" ? headerRight() : ""}` : `${wsLocRow()}${headTitle()}${typeof ov3Info === "function" && ov3Info() ? ov3TopActs() : ""}${sourceBack()}${pageCategoryTitleActions()}${opsHeadScope()}${wsHeadTbTake()}${typeof ws3WideHead === "function" ? ws3WideHead() : ""}${typeof headerRight === "function" ? headerRight() : ""}`);
-// 3.52（HONG 2026-11-10 19:29Z“顶栏应该取消”、19:33Z“这些都可以查看3.46版本”）：电脑上没有顶栏（#wtop 不显示），位置行在内容区上方、标题行之上；
-// 手机仍为 56 高的顶栏：菜单按钮、页面名与本页主按钮（只有图标，同 3.51），搜索在侧滑菜单里，不放通知与头像
+// 桌面显示内容区标题，手机的 56px 顶栏显示同一页名。
 const wsPageName = () => (memberHome() ? MEMBER_HOME : TITLES[navPage()] || TITLES[U.page] || "PACOM Station");
+const wsCommonScopeHead = () => !U.ov3Now && !U.ws3Now && U.page !== "settings" && (wsScopeInBody || wsLocRowOn());
 function wsTopHtml() {
   const title = esc(wsPageName());
   const topIsPrimary = !U.spEd && !U.obj && !U.obGone && !U.net && !U.conn && !U.scEd && U.opsDrawer?.page !== "alarms"
-    && !U.missing && (U.ov3Now || U.ws3Now || ["overview", "settings", "deployment"].includes(navPage()));
+    && !U.missing && (U.ov3Now || U.ws3Now || wsCommonScopeHead() || ["overview", "settings", "deployment"].includes(navPage()));
   const titleMarkup = U.page === "notfound" ? "" : topIsPrimary ? `<h1 class="wtop-t">${title}</h1>` : `<span class="wtop-t">${title}</span>`;
   return `<header class="wtop" id="wtop"><button class="iconbtn mobnav" data-act="mobnav" aria-label="打开菜单" aria-controls="side" aria-expanded="false">${ico("menu")}</button>${titleMarkup}${U.page === "settings" && U.p && runtimeCanView(U.p) ? runtimeSettingsMore("runtime-top-more") : isMobile() && typeof ov3TopActs === "function" ? ov3TopActs() : ""}</header>`;
 }
@@ -48535,6 +48591,7 @@ function render() {
   // 权限变化后不能再访问的项目（GLOBAL02，2026-10-08）：由账户服务判断（auth-ui.js 的 auAccessLostPage），写明当前角色与项目授权。
   // 2.44 配置核查 E443：只显示状态说明和“返回全部项目”，不显示项目资料面板
   PAGE_CATEGORY_HEADERS.delete(U.page);
+  wsScopeInBody = false;
   rpHandleHtml = "";
   U.ws3Now = false; // 3.48：本次绘制是否为平面图加面板的新页面（ws3Page 置真）
   U.ov3Now = false; // 3.47：本次绘制是否为新总览（ov3Page 置真），外壳、页头与顶栏据此调整
@@ -48553,6 +48610,8 @@ function render() {
   if (!showWs3) U.ws3FloorVisit = null;
   const body = wsListLoadHtml(missing ? missingPage() : lostPage || (showWs3 ? ws3Page() : pages[U.page]()));
   const app = $("#app"), side = wsSideHtml(), head = denied ? "" : wsHeadHtml(), top = wsTopHtml(), main = `${wsPageTabPanel(body)}${isMobile() || lostPage ? "" : rpHandleHtml}${!lostPage && (U.page === "projects" || devCanvas()) && U.spaceInfo && !U.m3 ? projectInformationPanel() : ""}`;
+  app.toggleAttribute("data-common-scope-head", !denied && wsCommonScopeHead());
+  app.toggleAttribute("data-scope-in-body", wsScopeInBody);
   app.className = shellClass();
   const sideEl = app.querySelector(":scope > #side"), headEl = app.querySelector(":scope > .main .phead"), topEl = app.querySelector(":scope > #wtop"), pbody = $("#pbody");
   // 外壳开头的“跳到主要内容”（Lovable 核查第 112 条，2026-10-11 用户确认）：页面第一个可聚焦的元素，只在用键盘聚焦时出现；回车把焦点移到页面内容。
@@ -56567,7 +56626,7 @@ function depProjectPickerContent(draft) {
   const current = stage === "project" ? U.p : stage === "building" ? U.b : U.f;
   const rows = choices.map(({ id, label, note }) => `<button type="button" class="popitem dep-project-picker-row" role="menuitemradio" aria-checked="${id === current}" data-act="depProjectPickerChoose" data-id="${esc(id)}">${note ? `<span>${esc(label)}<small>${esc(note)}</small></span>` : menuLabel(label)}${id === current ? ico("check", "ic16") : stage !== "floor" ? ico("chevR", "ic16") : ""}</button>`).join("");
   const emptyText = stage === "project" ? "当前没有可选项目" : stage === "building" ? "此项目尚无楼宇或室外区域" : "此处没有可查看的楼层";
-  return menuBox(title, `<div class="dep-project-picker-heading"><strong>${title}</strong>${path.length ? `<small>${esc(path.join(" / "))}</small>` : ""}</div>${back}${rows || `<p class="dep-project-picker-note" role="status">${emptyText}</p>`}`, "dep-project-picker-menu");
+  return menuBox(title, `<div class="dep-project-picker-heading"><strong>${title}</strong>${path.length ? `<small>${esc(path.join(" / "))}</small>` : ""}</div>${back}<div class="dep-project-picker-list">${rows || `<p class="dep-project-picker-note" role="status">${emptyText}</p>`}</div>`, "dep-project-picker-menu");
 }
 
 function depProjectRenderPicker(panel, draft) {
@@ -56575,7 +56634,9 @@ function depProjectRenderPicker(panel, draft) {
   panel.innerHTML = depProjectPickerContent(draft);
   panel.scrollTop = 0;
   panel.place();
-  (panel.querySelector('[aria-checked="true"]') || panel.querySelector('[data-act="depProjectPickerChoose"]') || panel.querySelector('[data-act="depProjectPickerStep"]'))?.focus();
+  const item = panel.querySelector('[aria-checked="true"]') || panel.querySelector('[data-act="depProjectPickerChoose"]') || panel.querySelector('[data-act="depProjectPickerStep"]');
+  item?.focus({ preventScroll: true });
+  if (item) wsRevealMenuFocus(panel);
 }
 
 function depProjectHorizontalRail({ building, floor }, stack) {
@@ -56597,9 +56658,10 @@ function depProjectFloorPage(context, view) {
   const stack = depProjectFloorOptions(context), hasRail = building?.kind !== "outdoor" && stack.length > 0;
   const floor = stack.some(({ f }) => f.id === context.floor?.id) ? context.floor : null;
   const visibleContext = { ...context, floor };
-  const path = esc(depProjectPickerLabel(visibleContext));
-  const picker = `<button type="button" class="btn sm dep-project-floor-picker" id="depProjectFloorPicker" data-act="depProjectPickerOpen" aria-haspopup="menu" aria-expanded="false" aria-label="选择项目、楼宇和楼层" aria-description="${path}"><span>${path}</span>${ico("chevron", "ic16")}</button>`;
-  const head = `<header class="dep-project-floor-head"><h2 id="depWbTitle" tabindex="-1">楼层视图</h2>${picker}${btn(ico("back", "ic16") + "返回项目配置", "depProjectReturn", {}, "ghost sm dep-project-floor-back")}</header>`;
+  const picker = wsScopeButton(depProjectPickerLabel(visibleContext), {
+    action: "depProjectPickerOpen", label: "选择项目、楼宇和楼层", id: "depProjectFloorPicker", popup: "menu",
+  });
+  const head = `<header class="dep-project-floor-head"><h2 id="depWbTitle" tabindex="-1">楼层视图</h2>${btn(ico("back", "ic16") + "返回项目配置", "depProjectReturn", {}, "ghost sm dep-project-floor-back")}${wsScopeBand(picker)}</header>`;
   const spaceWord = building?.kind === "outdoor" ? "总平面" : "楼层";
   const rail = hasRail ? ov3FloorRail(building.id, project.id, stack, false, floor?.id, "depProjectFloorPick", true) : "";
   const horizontalRail = hasRail ? depProjectHorizontalRail(visibleContext, stack) : "";
@@ -80366,11 +80428,11 @@ pages.deployment = () => {
   // 3.52 菜单与页签方案：系统部署页签“项目配置 | 设备部署 | 系统接入 | 部署进度”；项目配置为项目与楼宇的资料（可编辑）
   const cfg = U.tab === "config", deviceTopology = U.tab === "devices",
     projectCount = locProjects().length,
-    tabRow = (actions) => pageCategoryHeader("deployment", U.tab, { actions });
+    tabRow = (actions, scope) => pageCategoryHeader("deployment", U.tab, { actions, scope });
   if (cfg || deviceTopology) {
     const context = depWbContext();
     const more = cfg && projectCount && (canExportAny() || U.role !== "member") ? menuTrigger(iconBtn("更多", "more", "depAllMore", {})) : "";
-    return tabRow(more) + (deviceTopology ? depSubTabs("topology") : "")
+    return tabRow(more, cfg ? depProjectOverviewScope(context) : undefined) + (deviceTopology ? depSubTabs("topology") : "")
       + (context ? depTopoPage(context, depWbView()) : empty("当前没有可访问的配置对象", "", btn("返回项目配置", "depWbOpen", { level: "projects" }, "sm")));
   }
   // 3.53 V1408、V1453：全部项目时“新建项目”只在项目配置（首页不再放）；项目配置列项目资料，部署进度列进度
@@ -103938,8 +104000,9 @@ function ov3Redo(b) {
 /* ---------- 面板 ---------- */
 function ov3Panel(lv) {
   const db = data(),
-    // 3.52：面板顶部为位置行（3.46 写法），下为标题行，本页主按钮（新建项目、编辑 ▾）在标题行右端（原在顶栏）
-    head = (t, act = ov3TopActs()) => `${typeof wsLocRow === "function" ? wsLocRow() : ""}<div class="ov3-head"><h1 class="ov3-t">${t}</h1>${act}</div>`;
+    scope = wsLocRow(),
+    head = (tab) => `<div class="ov3-head"><h1 class="ov3-t" id="ov3T">首页</h1>${ov3TopActs()}</div>${wsScopeBand(scope, tab ? ov3Tabs(tab) : "")}`,
+    contextName = (item) => scope ? "" : `<h2>${esc(item.name)}</h2>`;
   if (lv === "all") {
     // 有待处理的、已接入的项目排在前面，其余按名称
     const live0 = ov3Live(),
@@ -103952,10 +104015,10 @@ function ov3Panel(lv) {
           on = ov3ProjLive(p.id, live);
         return `<li><button type="button" class="ov3-prow" data-act="ov3Go" data-p="${esc(p.id)}"><span class="ov3-prow-t"><b>${esc(p.name)}</b><small>${esc(ov3ProjectPinMeta(p))}${al ? `<em class="ov3-due">${ov3Dot(al.lvl)}待处理 ${al.n} 项</em>` : ""}</small></span><span class="ov3-pill${on ? " on" : ""}">${on ? "已接入" : "未接入"}</span></button></li>`;
       });
-    return `<aside class="ov3-panel" aria-labelledby="ov3T">${head("首页").replace('class="ov3-t"', 'class="ov3-t" id="ov3T"')}<div class="ov3-sec ov3-stats">${ov3Stat("building-2", "项目", ov3Num(ps.length), "个")}${ov3Stat("floor-plan", "建筑面积", area == null ? "—" : ov3Num(area, 1), area == null ? "" : "m²", ov3AreaNote(ps.flatMap((p) => ov3Blds(p.id))))}</div><ul class="ov3-plist" aria-label="项目">${rows.join("")}</ul></aside>`;
+    return `<aside class="ov3-panel" aria-labelledby="ov3T">${head()}<div class="ov3-sec ov3-stats">${ov3Stat("building-2", "项目", ov3Num(ps.length), "个")}${ov3Stat("floor-plan", "建筑面积", area == null ? "—" : ov3Num(area, 1), area == null ? "" : "m²", ov3AreaNote(ps.flatMap((p) => ov3Blds(p.id))))}</div><ul class="ov3-plist" aria-label="项目">${rows.join("")}</ul></aside>`;
   }
   const p = g("projects", U.p);
-  if (U.tab === "info") return `<aside class="ov3-panel" aria-labelledby="ov3T">${head("首页").replace('class="ov3-t"', 'class="ov3-t" id="ov3T"')}${ov3Tabs("info")}${ov3InfoBody(lv)}</aside>`;
+  if (U.tab === "info") return `<aside class="ov3-panel" aria-labelledby="ov3T">${head("info")}${ov3InfoBody(lv, !scope)}</aside>`;
   if (lv === "p") {
     const bs = ov3Blds(p.id),
       area = ov3Area(bs);
@@ -103967,7 +104030,7 @@ function ov3Panel(lv) {
         sub = [ov3Lvls(b), plans ? `设备 ${ov3Num(ov3Devs(b, st))} 台` : "未上传楼层图"].filter(Boolean).join(" · ");
       return `<li><button type="button" class="ov3-prow ov3-brow" data-act="ov3Go" data-p="${esc(p.id)}" data-b="${esc(b.id)}"><span class="ov3-prow-t"><b>${esc(b.name)}</b><small>${esc(sub)}${due ? `${sub ? " · " : ""}<em class="ov3-due">${ov3Dot(due.lvl)}待处理 ${due.n} 项</em>` : ""}</small></span>${ico("chevron", "ic16 ov3-chev")}</button></li>`;
     });
-    return `<aside class="ov3-panel" aria-labelledby="ov3T">${head("首页").replace('class="ov3-t"', 'class="ov3-t" id="ov3T"')}${ov3Tabs("summary")}<div class="ov3-sec ov3-id"><h2>${esc(p.name)}</h2>${ov3Addr(p) ? `<p>${esc(ov3Addr(p))}</p>` : ""}<div class="ov3-stats">${ov3Stat("building-2", "楼宇", ov3Num(bs.length), "栋")}${ov3Stat("floor-plan", "建筑面积", area == null ? "未填写" : ov3Num(area, 1), area == null ? "" : "m²", ov3AreaNote(bs))}</div></div>${brows.length ? `<div class="ov3-sec ov3-bsec"><ul class="ov3-plist ov3-blist" aria-label="楼宇">${brows.join("")}</ul></div>` : ""}${ov3Desc(p)}${ov3Tags(p)}${ov3Edited(p.id)}</aside>`;
+    return `<aside class="ov3-panel" aria-labelledby="ov3T">${head("summary")}<div class="ov3-sec ov3-id">${contextName(p)}${ov3Addr(p) ? `<p>${esc(ov3Addr(p))}</p>` : ""}<div class="ov3-stats">${ov3Stat("building-2", "楼宇", ov3Num(bs.length), "栋")}${ov3Stat("floor-plan", "建筑面积", area == null ? "未填写" : ov3Num(area, 1), area == null ? "" : "m²", ov3AreaNote(bs))}</div></div>${brows.length ? `<div class="ov3-sec ov3-bsec"><ul class="ov3-plist ov3-blist" aria-label="楼宇">${brows.join("")}</ul></div>` : ""}${ov3Desc(p)}${ov3Tags(p)}${ov3Edited(p.id)}</aside>`;
   }
   const b = g("buildings", U.b),
     out = ov3Out(b.id),
@@ -103987,12 +104050,12 @@ function ov3Panel(lv) {
       dueSt,
       ov3Stat("cpu", "设备", ov3Num(devs), "台"),
     ].filter(Boolean);
-  return `<aside class="ov3-panel" aria-labelledby="ov3T">${head("首页").replace('class="ov3-t"', 'class="ov3-t" id="ov3T"')}${ov3Tabs("summary")}<div class="ov3-sec ov3-id"><h2>${esc(b.name)}</h2>${ov3Addr(p, b) ? `<p>${esc(ov3Addr(p, b))}</p>` : ""}<div class="ov3-stats">${stats.join("")}</div></div>${ov3Desc(b)}${ov3Tags(b)}${ov3Edited(b.id)}</aside>`;
+  return `<aside class="ov3-panel" aria-labelledby="ov3T">${head("summary")}<div class="ov3-sec ov3-id">${contextName(b)}${ov3Addr(p, b) ? `<p>${esc(ov3Addr(p, b))}</p>` : ""}<div class="ov3-stats">${stats.join("")}</div></div>${ov3Desc(b)}${ov3Tags(b)}${ov3Edited(b.id)}</aside>`;
 }
 
 // 3.53 V1410、V1411、V1409：首页“信息”留在 400 面板里，画面（地图或楼宇 3D / 2D）不变；只显示资料：照片、基本资料、楼宇或楼层、文件。
 // 部署范围、空间资料、“其余 N 个楼层未纳入”与“编辑”只在 系统部署 › 项目配置（方案：首页只看不改）
-function ov3InfoBody(lv) {
+function ov3InfoBody(lv, showName = true) {
   const db = data(),
     isB = lv === "b",
     o = isB ? g("buildings", U.b) : g("projects", U.p),
@@ -104033,7 +104096,7 @@ function ov3InfoBody(lv) {
     const bs = db.buildings.filter((b) => b.projectId === p.id).sort(M.byName);
     list = `<div class="ov3-sec ov3-isec"><h2 class="ov3-ih">楼宇与室外区域<span class="ov3-n">${fmt(bs.length)}</span></h2>${bs.length ? `<ul class="ov3-plist">${bs.map((b) => item(b.name, [b.kind === "outdoor" ? "室外区域" : b.usage, b.kind === "outdoor" ? "" : ovStoreys(b), F.areaText(b.area, "")].filter(Boolean).join(" · "), { p: p.id, b: b.id })).join("")}</ul>` : '<p class="ws-info-none">暂无楼宇</p>'}</div>`;
   }
-  return `<div class="ov3-sec ov3-id ov3-iid">${img}<h2>${esc(o.name)}</h2>${kv}${o.description ? `<p class="ov3-idesc">${esc(o.description)}</p>` : ""}</div>${list}<div class="ov3-sec ov3-idoc">${docFilesSection(isB ? "buildings" : "projects", o.id, true)}</div>`;
+  return `<div class="ov3-sec ov3-id ov3-iid">${img}${showName ? `<h2>${esc(o.name)}</h2>` : ""}${kv}${o.description ? `<p class="ov3-idesc">${esc(o.description)}</p>` : ""}</div>${list}<div class="ov3-sec ov3-idoc">${docFilesSection(isB ? "buildings" : "projects", o.id, true)}</div>`;
 }
 
 /* ---------- 页面 ---------- */
@@ -104057,9 +104120,9 @@ function ov3Page() {
   return `<div class="ov3x" data-lv="${lv}">${panel}${lv === "b" ? ov3Bldg() : ov3MapHtml(lv, { homeProject: lv === "p" })}</div>`;
 }
 // 3.52 菜单与页签方案：首页的项目、楼宇为“概况 | 信息”两个页签（取代 3.47 的信息子页）；信息只显示，编辑在 系统部署 › 项目配置
-const ov3Tabs = (cur) => `<div class="ov3-tabsec">${ws3Tabs([["summary", "概况"], ["info", "信息"]], cur, "ovOtab").replace(/data-tab=/g, "data-value=")}</div>`;
+const ov3Tabs = (cur) => ws3Tabs([["summary", "概况"], ["info", "信息"]], cur, "ovOtab").replace(/data-tab=/g, "data-value=");
 function ov3InfoPage() {
-  return typeof ovInfoPage === "function" ? ovInfoPage().replace('<div class="ob-main ob-info">', `<div class="ob-main ob-info">${ov3Tabs("info")}`) : "";
+  return typeof ovInfoPage === "function" ? ovInfoPage().replace('<div class="ob-main ob-info">', `<div class="ob-main ob-info"><div class="ov3-tabsec">${ov3Tabs("info")}</div>`) : "";
 }
 
 /* ---------- 页头右侧（顶栏） ---------- */
@@ -106399,10 +106462,10 @@ const ws3Grp = (name, meta = "", right = "", fold = false) => {
 // 3.49 V1353：跨楼宇范围（全部楼宇、全部项目）里楼层分组写“E栋 · 7F”
 const ws3FlName = (sc, f) => (!f ? "" : sc.bid ? f.name : `${g("buildings", f.buildingId)?.name || ""} · ${f.name}`);
 const ws3Back = (label, act, args = {}, pager = "") => `<div class="ws3-back">${btn(ico("back", "ic16") + esc(label), act, args, "ghost sm ws3-bk")}${pager}</div>`;
-// 3.52：面板顶部为位置行（3.46 写法，取消顶栏后的位置选择），手机用面板里的范围按钮
-function ws3Panel(inner, cls = "") {
+function ws3Panel(sc, heading, body, tabs = "", cls = "") {
   const back = deploymentSpaceBack() ? `<div class="ws3-back dep-space-back">${sourceBack()}</div>` : "";
-  return `<aside class="ov3-panel ws3-panel${cls ? " " + cls : ""}" aria-labelledby="ws3T">${typeof wsLocRow === "function" ? wsLocRow() : ""}${back}${inner}</aside>`;
+  const scope = `<div class="ws3-desktop-scope">${wsLocRow()}</div>${ws3MobBar(sc, ws3MobMode(ws3Pg()))}`;
+  return `<aside class="ov3-panel ws3-panel${cls ? " " + cls : ""}" aria-labelledby="ws3T">${heading}${wsScopeBand(scope, tabs)}${back}${body}</aside>`;
 }
 // 范围外（项目或其他楼层）没有运行数据的楼层一行写“未上传楼层图”或“未接入”；连续的合并为一行（“RF – 8F”）
 function ws3FloorGroups(sc, liveRow) {
@@ -106441,7 +106504,7 @@ function ws3Space(sc) {
   if (U.opsZone && zs.some((z) => z.id === U.opsZone) && typeof ovInspector === "function") {
     const z = Demo.zoneOf(U.opsZone);
     return {
-      panel: ws3Panel(`<h1 class="sr-only" id="ws3T">首页</h1>${ws3Back(g("floors", g("zones", U.opsZone)?.floorId)?.name || "首页", "ws3ZoneBack")}` /* 3.53 V1416：返回写功能区所在楼层（回到该楼层的功能区列表） */ + `<div class="ws3-insp">${ovInspector(U.opsZone)}</div>`, "ws3-zp"),
+      panel: ws3Panel(sc, '<h1 class="sr-only" id="ws3T">首页</h1>', `${ws3Back(g("floors", g("zones", U.opsZone)?.floorId)?.name || "首页", "ws3ZoneBack")}<div class="ws3-insp">${ovInspector(U.opsZone)}</div>`, "", "ws3-zp"),
       canvas: ws3Canvas(sc, { zone: (z2, s, m, fp) => D.zone(z2, s, m, fp), dev: D.devs, sel: z.id, center: z.id, low: false, legend: D.legend, tl: ws3LayerBtn(L) }),
     };
   }
@@ -106475,8 +106538,8 @@ function ws3Space(sc) {
   return {
     // 范围内没有运行数据（F栋）时不写时间和指标
     panel: batch
-      ? ws3Panel(`${ws3Head("首页", ws3HR(btn("完成", "ws3BatchEnd", {}, "ws3-hbtn")))}<div class="ov3-sec ws3-bsel"><span>${bsel.size ? `已选 ${bsel.size} 个功能区` : "点列表或平面图上的功能区，可多选"}</span><span class="ws3-hr"><button type="button" class="btn ghost sm" data-act="ws3BatchMenu" aria-haspopup="menu" aria-expanded="false">选择${ico("chevron", "ic16 tb-arr")}</button>${bsel.size ? btn("清除", "opsSelClear", {}, "ghost sm") : ""}</span></div>${bsel.size ? `<div class="ws3-bctl">${ovBatch([...bsel])}</div>` : ""}<div class="ws3-body">${list}</div>`)
-      : ws3Panel(`${ws3Head("首页", ws3HR(zs.length ? run : "", ws3MoreBtn("space")))}${zs.length ? `<div class="ov3-sec ws3-tsec">${time}</div>${ws3Kpis(D.kpis(zs))}` : ""}<div class="ws3-body">${list}</div>`),
+      ? ws3Panel(sc, ws3Head("首页", ws3HR(btn("完成", "ws3BatchEnd", {}, "ws3-hbtn"))), `<div class="ov3-sec ws3-bsel"><span>${bsel.size ? `已选 ${bsel.size} 个功能区` : "点列表或平面图上的功能区，可多选"}</span><span class="ws3-hr"><button type="button" class="btn ghost sm" data-act="ws3BatchMenu" aria-haspopup="menu" aria-expanded="false">选择${ico("chevron", "ic16 tb-arr")}</button>${bsel.size ? btn("清除", "opsSelClear", {}, "ghost sm") : ""}</span></div>${bsel.size ? `<div class="ws3-bctl">${ovBatch([...bsel])}</div>` : ""}<div class="ws3-body">${list}</div>`)
+      : ws3Panel(sc, ws3Head("首页", ws3HR(zs.length ? run : "", ws3MoreBtn("space"))), `${zs.length ? `<div class="ov3-sec ws3-tsec">${time}</div>${ws3Kpis(D.kpis(zs))}` : ""}<div class="ws3-body">${list}</div>`),
     canvas: ws3Canvas(sc, {
       zone: (z, s, m, fp) => D.zone(z, s, m, fp),
       dev: D.devs,
@@ -106595,7 +106658,7 @@ function ws3Alarms(sc) {
     });
   const selZ = sel ? ws3ItZone(items.find((it) => it.id === sel)) : null;
   return {
-    panel: ws3Panel(`${ws3Head("告警工单", ops ? btn(ico("plus", "ic16") + "新建工单", "opsRepairNew", {}, "primary ws3-hbtn") /* 3.53 V1397、V1433：本页主按钮为深色 */ : "", "")}${ws3Tabs(tabs, tab)}<div class="ov3-sec ws3-tools">${tools}${ws3WideBtn("alarms")}</div><div class="ws3-body" data-q-scope="alarms">${groups || `<p class="ws3-empty">${empty}</p>`}<p class="ws3-empty" data-q-empty hidden>没有符合的告警工单</p></div>`),
+    panel: ws3Panel(sc, ws3Head("告警工单", ops ? btn(ico("plus", "ic16") + "新建工单", "opsRepairNew", {}, "primary ws3-hbtn") : ""), `<div class="ov3-sec ws3-tools">${tools}${ws3WideBtn("alarms")}</div><div class="ws3-body" data-q-scope="alarms">${groups || `<p class="ws3-empty">${empty}</p>`}<p class="ws3-empty" data-q-empty hidden>没有符合的告警工单</p></div>`, ws3Tabs(tabs, tab)),
     canvas: ws3Canvas(sc, {
       zone: (z) => {
         const l = zl.get(z.id);
@@ -106623,7 +106686,7 @@ function ws3AlDetail(sc, it, tab) {
     // 查看人员不显示派工（第 33 项）：原详情里的按钮按权限给出
     acts = p.acts || "";
   return {
-    panel: ws3Panel(`${ws3Back(names[tab], "opsAlBack", {}, pager)}<div class="ws3-dt"><h1 class="ov3-t ws3-dt-t" id="ws3T">${p.th || esc(p.title)}</h1><div class="ws3-dt-lv">${a && !it.t && alDoneOver(a) ? String(p.lv || "").replace(/<\/p>\s*$/, ` · <span class="ws3-over">已超时</span></p>`) : p.lv || ""}</div>${acts ? `<div class="ws3-dt-acts al3-acts">${acts}</div>` : ""}<div class="ws3-dt-b">${p.left}${p.right}</div>${p.bar ? `<div class="al-mine-bar">${p.bar}</div>` : ""}</div>`, "ws3-alp"),
+    panel: ws3Panel(sc, ws3Back(names[tab], "opsAlBack", {}, pager), `<div class="ws3-dt"><h1 class="ov3-t ws3-dt-t" id="ws3T">${p.th || esc(p.title)}</h1><div class="ws3-dt-lv">${a && !it.t && alDoneOver(a) ? String(p.lv || "").replace(/<\/p>\s*$/, ` · <span class="ws3-over">已超时</span></p>`) : p.lv || ""}</div>${acts ? `<div class="ws3-dt-acts al3-acts">${acts}</div>` : ""}<div class="ws3-dt-b">${p.left}${p.right}</div>${p.bar ? `<div class="al-mine-bar">${p.bar}</div>` : ""}</div>`, "", "ws3-alp"),
     canvas: ws3Canvas(sc, {
       zone: (z2) => (z2.id === zid ? { fill: "#FBE3D4", alarm: lv, ext: { label: z2.name, short: ws3Short(z2.name), stroke: S3V.LVC[lv], halo: true }, tip: z2.name } : { fill: "#FFFFFF", ext: { label: z2.name, short: ws3Short(z2.name) }, tip: z2.name }),
       call: z && fid ? { fid, zid, title: (a ? alarmTitle(a).title : it.t?.name || "").replace(z.name, "").trim() || z.name, sub: [dev, dur].filter(Boolean).join(" · "), c: S3V.LVC[lv] } : null,
@@ -106684,7 +106747,7 @@ function ws3Scenes(sc) {
     callZ = on.size === 1 ? first : null,
     lst = curB ? live(curB) : false;
   return {
-    panel: ws3Panel(`${ws3Head("场景", ws3HR(U.p && !isMobile() /* 3.53 V1447：手机无运行设置，不放“工作日历” */ ? btn(ico("calendar", "ic16") + "工作日历", "goSettings", { tab: "general", p: U.p }, "ws3-hbtn") : "", sceneNewBtn(tab).replace(/class="btn primary[^"]*"/, 'class="btn primary ws3-hbtn"')) /* 3.53 V1397 深色主按钮；V1434 页头“工作日历”（菜单与页签方案第 4 条） */)}${ws3Tabs(WS3_SC_TABS, tab)}<div class="ws3-body">${body}</div>`),
+    panel: ws3Panel(sc, ws3Head("场景", ws3HR(U.p && !isMobile() ? btn(ico("calendar", "ic16") + "工作日历", "goSettings", { tab: "general", p: U.p }, "ws3-hbtn") : "", sceneNewBtn(tab).replace(/class="btn primary[^"]*"/, 'class="btn primary ws3-hbtn"'))), `<div class="ws3-body">${body}</div>`, ws3Tabs(WS3_SC_TABS, tab)),
     canvas: ws3Canvas(sc, {
       zone: (z) => (on.has(z.id) ? { fill: WS3C.scene, ext: { label: z.name, short: ws3Short(z.name), stroke: WS3C.sceneLine }, tip: `${z.name} · ${curB.name}` } : { fill: "#FFFFFF", ext: { label: z.name, short: ws3Short(z.name) }, tip: z.name }),
       call: callZ && sc.fid ? { fid: sc.fid, zid: callZ, title: `${curB.name}${lst ? " · 生效中" : ""}`, sub: sceneActShort(curB, sceneScopeShort(curB)).split(/ · |，/)[0], c: WS3C.sceneLine } : null,
@@ -106804,7 +106867,8 @@ function ws3Analysis(sc) {
       canvas = ws3Canvas(sc, { zone: (z) => ({ fill: "#FFFFFF", ext: { label: z.name, short: ws3Short(z.name) }, tip: z.name }), low: true, legend: "", mapVal: () => ({ v: `未接入${n}`, off: true }) });
     }
   }
-  return { panel: ws3Panel(`${ws3Head("数据分析", ws3HR(tab === "health" ? "" : per, rpt, ws3MoreBtn("analysis")))}${ws3Tabs(WS3_AN, tab)}<div class="ws3-body ws3-an">${body}</div>`), canvas, drawer: U.anRpt && !isMobile() ? ws3RptDrawer() : "" };
+  const heading = ws3Head("数据分析", ws3HR(tab === "health" ? "" : per, rpt, ws3MoreBtn("analysis")));
+  return { panel: ws3Panel(sc, heading, `<div class="ws3-body ws3-an">${body}</div>`, ws3Tabs(WS3_AN, tab)), canvas, drawer: U.anRpt && !isMobile() ? ws3RptDrawer() : "" };
 }
 // 3.53 V1427（菜单与页签方案第 2 条）：“报告”在画面右侧打开面板：报告清单与“新建报告”，点一份报告打开它；手机仍为整页
 function ws3RptDrawer() {
@@ -107065,7 +107129,7 @@ function ws3Devices(sc) {
     sp = sel && g("points", sel),
     selSt = sp ? devStatus(db, sp) : null;
   return {
-    panel: ws3Panel(`${ws3Head("设备", ws3HR(tab === "groups" && canEdit() ? btn(ico("plus", "ic16") + "新建设备分组", "groupForm", {}, "primary ws3-hbtn") : "", ws3MoreBtn("devices")))}${ws3Tabs(tabs, tab)}<div class="ov3-sec ws3-tools">${opsSearch("devices", "名称、UUID 或序列号")}${tab === "inventory" && typeof fltBtn === "function" ? `<span class="dev-filter-wrap">${fltBtn("deviceFilters", devFiltered() ? devFilterCount() : 0, ` aria-expanded="${!!U.devFilterOpen}"`)}${U.devFilterOpen ? devFilterPanel() : ""}</span>` : ""}${ws3WideBtn("devices")}</div><div class="ws3-body">${body}</div>`),
+    panel: ws3Panel(sc, ws3Head("设备", ws3HR(tab === "groups" && canEdit() ? btn(ico("plus", "ic16") + "新建设备分组", "groupForm", {}, "primary ws3-hbtn") : "", ws3MoreBtn("devices"))), `<div class="ov3-sec ws3-tools">${opsSearch("devices", "名称、UUID 或序列号")}${tab === "inventory" && typeof fltBtn === "function" ? `<span class="dev-filter-wrap">${fltBtn("deviceFilters", devFiltered() ? devFilterCount() : 0, ` aria-expanded="${!!U.devFilterOpen}"`)}${U.devFilterOpen ? devFilterPanel() : ""}</span>` : ""}${ws3WideBtn("devices")}</div><div class="ws3-body">${body}</div>`, ws3Tabs(tabs, tab)),
     canvas: ws3Canvas(sc, {
       zone: (z) => ({ fill: hl?.has(z.id) ? WS3C.scene : "#FFFFFF", ext: { label: z.name, short: ws3Short(z.name), ...(hl?.has(z.id) ? { stroke: WS3C.sceneLine } : {}) }, tip: z.name }),
       dev: (p) => {
@@ -107089,7 +107153,7 @@ function ws3Page() {
   ws3SyncFloorVisit(pg, sc);
   const on = ws3MobMode(pg),
     r = { space: ws3Space, alarms: ws3Alarms, scenes: ws3Scenes, analysis: ws3Analysis, devices: ws3Devices }[pg](sc);
-  return `<div class="ov3x ws3x" data-pg="${pg}" data-lv="${sc.lv}"${on === "plan" ? ' data-mob="plan"' : ""}>${ws3MobBar(sc, on)}${r.panel}${r.canvas}${r.drawer || ""}</div>`;
+  return `<div class="ov3x ws3x" data-pg="${pg}" data-lv="${sc.lv}"${on === "plan" ? ' data-mob="plan"' : ""}>${r.panel}${r.canvas}${r.drawer || ""}</div>`;
 }
 // 3.49 V1370（方案第 33 项）：普通成员“我的区域”右侧加平面图：授权的功能区按有人、无人着色，其余灰色不可点；
 // 功能区都在同一个有楼层图、接入运行数据的楼层时才有；手机为“列表 | 平面图”
@@ -107129,10 +107193,11 @@ function ws3MobMode(pg) {
 }
 function ws3MobBar(sc, on) {
   const back = deploymentSpaceBack() && on === "plan" ? `<div class="dep-space-back">${sourceBack()}</div>` : "";
-  // 与列表和画布共用响应式断点，窗口旋转时直接显示原有切换栏。
-  const f = sc.fid ? g("floors", sc.fid) : null,
-    b = sc.bid ? g("buildings", sc.bid) : null;
-  return `<div class="ws3-mob">${back}<button type="button" class="ws3-mob-loc" data-act="ws3MobLoc" aria-haspopup="menu" aria-expanded="false"><span>${esc([b?.name, f?.name || (b ? "全部楼层" : "")].filter(Boolean).join(" · ") || g("projects", sc.pid)?.name || "")}</span>${ico("chevron", "ic16 ws3-mob-arr")}</button><div class="seg sm ws3-mob-seg" role="group" aria-label="显示">${[["list", "列表"], ["plan", "楼层图"]].map(([k, l]) => `<button type="button" class="${on === k ? "on" : ""}" aria-pressed="${on === k}" data-act="ws3MobSw" data-value="${k}">${l}</button>`).join("")}</div></div>`;
+  const p = g("projects", sc.pid), b = g("buildings", sc.bid), f = g("floors", sc.fid);
+  const path = [p?.name || "全部项目", p ? M.buildingLabel(data(), b) || "全部楼宇" : "", b ? f?.name || "全部楼层" : ""].filter(Boolean).join(" · ");
+  const scope = wsScopeButton(path, { action: "ws3MobLoc", popup: "menu" });
+  const views = [["list", "列表"], ["plan", "楼层图"]].map(([k, l]) => `<button type="button" class="${on === k ? "on" : ""}" aria-pressed="${on === k}" data-act="ws3MobSw" data-value="${k}">${l}</button>`).join("");
+  return `<div class="ws3-mob ws3-scope-mob">${back}<div class="ws3-mob-scope-control">${scope}</div><div class="ws3-mob-display"><div class="seg sm ws3-mob-seg" role="group" aria-label="显示">${views}</div></div></div>`;
 }
 // 整宽列表时页头右侧“显示平面图”（第 30 项）
 function ws3WideHead() {
@@ -107169,7 +107234,7 @@ function ov3Stick() {
   for (const pn of document.querySelectorAll(".ov3x > .ov3-panel")) {
     const hs = [];
     for (const e of pn.children) {
-      if (!e.matches(".ws-locrow, .ov3-head, .ws3-tabs, .ov3-tabsec")) break;
+      if (!e.matches(".ws-locrow, .ov3-head, .ws3-tabs, .ov3-tabsec, .ws-scope-band")) break;
       hs.push(e);
     }
     for (const e of hs) e.classList.remove("ov3-stk"), (e.style.top = "");
@@ -107307,8 +107372,9 @@ defineActions({
     }
     route(pg, { p: U.p, b: U.b, f: a.to || null, tab: U.tab || "" });
   },
-  // 手机顶部的范围按钮（第 34 项）：本项目各楼宇，当前楼宇下列出有楼层图的楼层
+  // 窄屏没有楼层轨道，范围菜单也负责当前楼宇的楼层选择。
   ws3MobLoc: (a, el) => {
+    if ($("#pop")?.anchor === el) return closePop({ restoreFocus: true });
     const sc = ws3Scope(),
       live = ws3Live(),
       it = (t, sub, args, on) => `<button type="button" class="popitem ov3-ei${on ? " on" : ""}" role="menuitemradio" aria-checked="${on}" data-act="${args.b === sc.bid ? "ws3MobFl" : "ws3Go"}"${Object.entries(args).map(([k, v]) => ` data-${k}="${esc(v)}"`).join("")}><span${sub ? "" : ' class="popitem-label"'}><b>${esc(t)}</b>${sub ? `<small>${esc(sub)}</small>` : ""}</span>${on ? ico("check", "ic16") : ""}</button>`,
@@ -107321,11 +107387,12 @@ defineActions({
       rows = !sc.pid
         ? ps.map((p) => it(p.name, wide ? "全部楼宇" : "", { p: p.id }, false))
         : ov3Blds(sc.pid).flatMap((b) => {
-            const fs = F.floorStack(data(), b.id).filter((x) => live.has(x.f.id)),
-              head = it(b.name, fs.length ? "全部楼层" : "未上传楼层图", { b: b.id }, b.id === sc.bid && !sc.fid);
-            return b.id === sc.bid ? [head, ...fs.map((x) => it(`${b.name} · ${x.f.name}`, "", { b: b.id, f: x.f.id }, x.f.id === sc.fid))] : [head];
-          });
-    pop(el, menuBox("范围", [...top, ...prow, ...rows].join(""), "ws3-scope-menu"));
+            const name = M.buildingLabel(data(), b), fs = F.floorStack(data(), b.id).filter((x) => live.has(x.f.id)),
+              head = it(name, fs.length ? "全部楼层" : "未上传楼层图", { b: b.id }, b.id === sc.bid && !sc.fid);
+            return b.id === sc.bid ? [head, ...fs.map((x) => it(`${name} · ${x.f.name}`, "", { b: b.id, f: x.f.id }, x.f.id === sc.fid))] : [head];
+          }),
+      others = sc.pid && wide ? ps.filter((p) => p.id !== sc.pid).map((p) => it(p.name, "全部楼宇", { p: p.id }, false)) : [];
+    pop(el, menuBox("查看范围", [...top, ...prow, ...rows, ...others].join(""), "ws3-scope-menu"));
   },
   // 3.49 V1367：用电趋势“对比 ▾”
   ws3MemSw: (a) => {
@@ -107678,6 +107745,14 @@ function depProjectModel(context, recent = null) {
   return { projects, project, building, buildings, outdoor };
 }
 
+function depProjectOverviewScope(context) {
+  if (!context || !depProjectOverviewMode(depTopoMode(U.depTopoMode, context))) return "";
+  const { project, projects } = depProjectModel(context, U.lastP);
+  return project ? wsScopeButton(project.name, {
+    action: "depProjectPick", label: "选择项目", popup: "menu", disabled: projects.length < 2,
+  }) : "";
+}
+
 function depProjectLocation(object, project) {
   return [object.city || project?.city, object.address].filter(Boolean).join(" · ");
 }
@@ -107783,7 +107858,6 @@ function depProjectWorkspace(context, view) {
   const counts = new Map();
   for (const item of db.buildings) if (item.kind !== "outdoor") counts.set(item.projectId, (counts.get(item.projectId) || 0) + 1);
   const projectCards = projects.map(item => depProjectNodeCard(db, item, { active: item.id === project?.id, buildingCount: counts.get(item.id), info })).join("");
-  const compactMenu = projects.length > 1 ? `<div class="dep-project-mobile-control">${menuTrigger(btn(ico("chevron", "ic16") + "切换项目", "depProjectPick", {}, "ghost sm"))}</div>` : "";
   const projectSpace = projects.length ? `<div class="dep-project-records">${projectCards}</div>`
     : empty(projectButton ? "尚无项目" : "当前没有可访问的项目", projectButton ? "创建项目后，可添加楼宇和室外区域。" : "请联系机构管理员获取授权。", projectButton, "building-2");
   const floorsByBuilding = new Map();
@@ -107799,7 +107873,7 @@ function depProjectWorkspace(context, view) {
     const floors = (floorsByBuilding.get(item.id) || []).sort(M.byHeight).slice().reverse();
     return depProjectNodeCard(db, item, { active, floors, info, project });
   }).join("");
-  const middle = `<section class="dep-project-column dep-project-projects" aria-labelledby="depProjectProjects"><header><h3 id="depProjectProjects" tabindex="-1">${info ? "项目资料" : "项目"}</h3><div>${compactMenu}${projects.length ? projectButton : ""}</div></header>${projectSpace}</section>`;
+  const middle = `<section class="dep-project-column dep-project-projects" aria-labelledby="depProjectProjects"><header><h3 id="depProjectProjects" tabindex="-1">${info ? "项目资料" : "项目"}</h3><div>${projects.length ? projectButton : ""}</div></header>${projectSpace}</section>`;
   const relationStatus = view.projectRelation && building ? `<p class="dep-project-relation" role="status"><span>${esc(`${M.buildingLabel(db, building)} · 所属项目 ${project.name}`)}</span>${iconBtn("关闭归属说明", "x", "depProjectCloseRelation")}</p>` : "";
   const right = `<section class="dep-project-column dep-project-buildings" aria-labelledby="depProjectBuildings"><header><h3 id="depProjectBuildings" tabindex="-1">${info ? "楼宇资料" : "楼宇"}</h3><div>${buildings.length ? buildingButton : ""}${outdoorButton}</div></header>${relationStatus}${project ? `<div class="dep-project-records">${buildings.length ? depProjectBuildingCards(buildings, model, cards) : empty("尚无楼宇", "", buildingButton, "building")}${outdoor.length ? `<h4>室外区域</h4>${cards(outdoor)}` : ""}</div>` : ""}</section>`;
   const floorEntry = btn(ico("floor-plan", "ic16") + "楼层视图", "depProjectEnterFloor", { p: project?.id || "", b: building?.id || "", f: building && context.floor?.buildingId === building.id ? context.floor.id : "" }, "sm");
@@ -107967,7 +108041,10 @@ defineActions({
     const context = depWbContext();
     if (!context) return;
     const { project, projects } = depProjectModel(context, U.lastP);
-    const choices = projects.map(item => `<button class="popitem${item.id === project?.id ? " on" : ""}" data-act="depProjectPickItem" data-id="${esc(item.id)}">${esc(item.name)}</button>`).join("");
+    const choices = projects.map(item => {
+      const on = item.id === project?.id;
+      return `<button type="button" class="popitem${on ? " on" : ""}" role="menuitemradio" aria-checked="${on}" data-act="depProjectPickItem" data-id="${esc(item.id)}">${menuLabel(item.name)}${on ? ico("check", "ic16 pop-check") : ""}</button>`;
+    }).join("");
     pop(opener, menuBox("切换项目", choices));
   },
   depProjectPickItem: ({ id }, opener) => depTopoSelectNode({ kind: "project", id }, opener),
@@ -108568,11 +108645,10 @@ function runtimeSettingsMore(cls = "") {
 }
 function runtimeSettingsHead() {
   const p = M.get(data(), "projects", U.p);
-  const canChoose = !!locProjects().length;
-  const title = p?.name || "全部项目";
-  const project = canChoose ? `<button type="button" class="btn runtime-project-select" data-act="location" aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(title)}：选择项目"><span>${esc(title)}</span>${ico("chevron", "ic16")}</button>` : "";
+  const projects = locProjects();
+  const project = projects.length ? wsScopeButton(p?.name || "全部项目", { label: "选择项目", disabled: !!p && projects.length === 1 }) : "";
   const more = p ? runtimeSettingsMore() : "";
-  return `<div class="runtime-heading"><h1>运行设置</h1>${sourceBack()}<span class="sp"></span>${more}</div>${project ? `<div class="runtime-head-scope">${project}${p ? '<span class="runtime-scope-caption">设置范围 · 项目</span>' : ""}</div>` : ""}`;
+  return `<div class="runtime-heading"><h1>运行设置</h1>${sourceBack()}<span class="sp"></span>${more}</div>${project ? `<div class="runtime-head-scope">${wsScopeBand(project)}${p ? '<span class="runtime-scope-caption">设置范围 · 项目</span>' : ""}</div>` : ""}`;
 }
 function runtimeProjectDirectory() {
   const ps = locProjects();
@@ -115663,6 +115739,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.77",
+    date: "2026-11-16",
+    notes: ["统一业务页的项目选择器及页头布局。范围和页签根据内容区宽度同行或换行。"],
+  },
   {
     version: "3.76",
     date: "2026-11-15",
