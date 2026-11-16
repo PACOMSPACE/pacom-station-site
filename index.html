@@ -37524,7 +37524,11 @@ img.img-off { display: none !important; }
 }
 
 /* Only the three home levels use a fixed panel and a header above the canvas. */
-#app.is-ov3 .home-overview { --home-panel-width: 400px; --home-gutter: var(--workspace-gutter); }
+#app.is-ov3 .home-overview {
+  --home-panel-width: 400px;
+  --home-frame-radius: 16px;
+  --home-gutter: var(--workspace-gutter);
+}
 .home-overview-head { min-width: 0; }
 .home-overview-title { display: flex; align-items: center; min-height: var(--page-title-line); }
 .home-overview-tools, .home-overview-primary { display: flex; align-items: center; min-width: 0; gap: 8px; }
@@ -37535,7 +37539,7 @@ img.img-off { display: none !important; }
 .home-overview-tools .ws-scope-band > .ws-scope-tabs { flex: 0 0 auto; }
 .home-overview-canvas { min-width: 0; min-height: 0; position: relative; isolation: isolate; }
 .home-overview-canvas > .ov3-view {
-  height: 100%; margin: 0; border: 0; border-radius: 16px; isolation: isolate; background-color: #fafafa;
+  height: 100%; margin: 0; border: 0; border-radius: var(--home-frame-radius); isolation: isolate; background-color: #fafafa;
   box-shadow: 0 0 0 var(--hw) #fff, 0 0 0 var(--hr) var(--hc-ring, rgba(119, 119, 113, 0.16)), 0 2px 3px rgba(0, 0, 0, .04);
 }
 .home-overview-info { white-space: nowrap; flex: none; }
@@ -37545,8 +37549,9 @@ img.img-off { display: none !important; }
   #app.is-ov3 .home-overview {
     --home-gutter: 16px;
     --home-panel-gap: 12px;
+    --home-panel-track: calc(var(--home-panel-width) + var(--home-gutter) + var(--home-panel-gap));
     display: grid; height: 100%; min-height: 0; gap: 0;
-    grid-template-columns: var(--home-panel-width) minmax(0, 1fr);
+    grid-template-columns: var(--home-panel-track) minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
     padding-inline-end: var(--home-gutter); padding-block-end: var(--home-gutter);
   }
@@ -37557,7 +37562,7 @@ img.img-off { display: none !important; }
     padding-block: var(--home-gutter); padding-inline-start: var(--home-gutter);
   }
   .home-overview-tools.is-building {
-    display: grid; grid-template-columns: calc(var(--home-panel-width) - var(--home-gutter)) minmax(0, 1fr); gap: 0;
+    display: grid; grid-template-columns: calc(var(--home-panel-width) + var(--home-panel-gap)) minmax(0, 1fr); gap: 0;
   }
   .home-overview-tools.is-building .home-overview-primary { padding-inline-end: var(--home-panel-gap); }
   #app.is-ov3 .home-overview > .ov3-panel {
@@ -37565,17 +37570,17 @@ img.img-off { display: none !important; }
     padding-block: 0; padding-inline: var(--home-gutter) var(--home-panel-gap);
     overflow: auto; scrollbar-width: thin; border: 0; isolation: isolate;
   }
-  /* The building scrollport extends into the gap to keep the widgets aligned with the lists. */
-  #app.is-ov3 .home-overview[data-lv="b"] > .ov3-panel { padding-inline-end: 0; }
-  #app.is-ov3 .home-overview[data-lv="b"] > .ov3-panel > * {
-    max-inline-size: calc(var(--home-panel-width) - var(--home-gutter) - var(--home-panel-gap));
+  #app.is-ov3 .home-overview > .ov3-panel:has(> .home-building-frame) { overflow: visible; }
+  #app.is-ov3 .home-overview[data-lv="b"] > .ov3-panel:not(:has(> .home-building-frame)) {
+    padding-inline-end: 0;
+    > * { max-inline-size: var(--home-panel-width); }
   }
   .home-overview-canvas > .ov3-view { box-shadow: none; }
   .home-overview-canvas::after {
     content: "";
     position: absolute;
     inset: 0;
-    border-radius: 16px;
+    border-radius: var(--home-frame-radius);
     box-shadow: inset 0 0 0 1px rgb(114 114 112 / 24%);
     z-index: 8;
     pointer-events: none;
@@ -37731,16 +37736,20 @@ img.img-off { display: none !important; }
 :is(.home-collection-filter > select, .home-collection-more > summary, .home-collection-text-action, .home-collection-icon, .home-collection-card, .home-collection-pop-open):focus-visible { outline: 2px solid #00aeef; outline-offset: -2px; }
 
 .ov3-panel.home-collection { overflow: visible; min-height: 0; padding-bottom: 0; }
-.home-collection-list {
+:is(.home-collection-list, .home-building-frame) {
   height: 100%;
   min-height: 0;
+  border: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
+  border-radius: var(--home-frame-radius);
+  background: #f8f8f8;
+}
+.home-collection-list {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
-  border-radius: 14px;
-  background: #f8f8f8;
 }
+.home-building-frame { overflow: auto; scrollbar-width: thin; padding: 8px; }
+.home-building-frame:has(> .ov3-isec) { padding-inline: 12px; }
 .home-collection-list.is-collapsed { height: auto; }
 .home-collection-list-head {
   display: flex;
@@ -37909,7 +37918,7 @@ img.img-off { display: none !important; }
 @media (max-width: 850px) {
   .home-collection-search { flex-basis: 100%; max-width: 100%; min-width: 0; }
   .home-collection-search > .ws-locrow { max-width: 46%; }
-  .home-collection-list { height: auto; }
+  :is(.home-collection-list, .home-building-frame) { height: auto; }
   .home-collection-card { grid-template-columns: minmax(72px, 94px) minmax(0, 1fr); }
 }
 @media (max-width: 380px) {
@@ -108743,10 +108752,11 @@ function homeOverviewHeader(level) {
 
 function homeOverviewPanel(level) {
   if (homeCollectionActive(level)) return homeCollectionPanel(level);
-  const info = U.tab === "info", building = g("buildings", U.b), project = g("projects", U.p);
+  const info = U.tab === "info", building = g("buildings", U.b), project = g("projects", U.p), buildingHome = homeOverviewBuilding(level);
   const body = info ? ov3InfoBody(level, !homeOverviewScope(level))
-    : homeOverviewBuilding(level) ? homeBuildingWidgets(project, building) : homeOverviewOutdoor(project, building);
-  return `<aside class="ov3-panel home-overview-panel" data-key="${esc(homeOverviewKey(level))}" aria-label="${info ? "位置资料" : homeOverviewBuilding(level) ? "楼宇概况" : "室外区域概况"}">${body}</aside>`;
+    : buildingHome ? homeBuildingWidgets(project, building) : homeOverviewOutdoor(project, building);
+  const content = buildingHome ? `<div class="home-building-frame">${body}</div>` : body;
+  return `<aside class="ov3-panel home-overview-panel" data-key="${esc(homeOverviewKey(level))}" aria-label="${info ? "位置资料" : buildingHome ? "楼宇概况" : "室外区域概况"}">${content}</aside>`;
 }
 
 function homeOverviewOutdoor(project, building) {
@@ -117219,6 +117229,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.88",
+    date: "2026-11-17",
+    notes: ["统一三级首页的列表外框与地图圆角，桌面左栏净宽为 400px。"],
+  },
   {
     version: "3.87",
     date: "2026-11-17",
