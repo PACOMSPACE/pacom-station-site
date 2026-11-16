@@ -29955,17 +29955,7 @@ textarea.rpt-auto {
 .dev-ledger-frame .t :is(th, td):has(> .dev-ledger-check) { width: 1%; min-width: 0; padding-right: 0; }
 .dev-phone-sort { display: none; }
 @media (max-width: 850px) {
-  .dev-phone-sort {
-    display: block;
-    min-width: 0;
-    max-width: 100%;
-    min-height: 44px;
-    border-radius: 8px;
-    color: var(--ds-ink);
-    font: inherit;
-    font-size: 16px;
-    padding-inline: 8px;
-  }
+  .dev-phone-sort { display: block; min-width: 0; max-width: 100%; }
 }
 
 @media (max-width: 599.98px) {
@@ -37819,6 +37809,84 @@ img.img-off { display: none !important; }
   .dep-topo-detail { top: auto; bottom: 0; inset-inline: 0; width: 100%; max-height: 70dvh; border-radius: 16px 16px 0 0; padding-bottom: max(16px,env(safe-area-inset-bottom)); }
   .dep-topo-canvas > .ov3-view { height: clamp(320px, 58dvh, 610px); }
 }
+:is(#app, #dlg, #pop):is([data-page="deployment"], [data-page="devices"]) {
+  --deployment-field-inset: 0px;
+  --deployment-field-size: calc(32px + 2 * var(--deployment-field-inset));
+}
+:is(#app, #dlg, #pop):is([data-page="deployment"], [data-page="devices"])
+  :is(input.input:not([type="hidden"], [type="file"], [type="checkbox"], [type="radio"]), .ws-select > button.input, .ws-search) {
+  height: var(--deployment-field-size);
+  min-height: var(--deployment-field-size);
+  border: 0;
+  border-block: var(--deployment-field-inset) solid transparent;
+  border-radius: 12px / calc(12px + var(--deployment-field-inset));
+  background: var(--field-bg) padding-box;
+  box-shadow: var(--field);
+  -webkit-tap-highlight-color: transparent;
+}
+:is(#app, #dlg, #pop):is([data-page="deployment"], [data-page="devices"])
+  :is(input.input:not([type="hidden"], [type="file"], [type="checkbox"], [type="radio"]), .ws-search > input) {
+  padding-block: 2px 0;
+}
+:is(#app, #dlg, #pop):is([data-page="deployment"], [data-page="devices"]) .ws-search > input {
+  height: var(--deployment-field-size);
+}
+:is(#app, #dlg, #pop):is([data-page="deployment"], [data-page="devices"]) .ws-select > button.input[role="combobox"] {
+  gap: 4px;
+  padding-inline-end: 8px;
+}
+:is(#app, #dlg, #pop):is([data-page="deployment"], [data-page="devices"]) .ws-select > button.input::before {
+  border-radius: 12px;
+  background: transparent;
+}
+:is(#app, #dlg, #pop):is([data-page="deployment"], [data-page="devices"])
+  .ws-select > button.input:focus-visible:where(:not([aria-invalid="true"], [aria-expanded="true"], .field.invalid *))::before {
+  opacity: 1;
+  outline: 2px solid #00aeef;
+  outline-offset: 2px;
+}
+:is(#app, #dlg, #pop):is([data-page="deployment"], [data-page="devices"])
+  .ws-select > button.input:not(:disabled):is(:active, [aria-expanded="true"]) {
+  box-shadow: var(--field);
+  background: linear-gradient(var(--hover), var(--hover)) padding-box, var(--field-bg) padding-box;
+}
+#app:is([data-page="deployment"], [data-page="devices"]) button.ws-project-scope {
+  background: var(--field-bg);
+  box-shadow: var(--field);
+}
+#app:is([data-page="deployment"], [data-page="devices"]) button.ws-project-scope:is(:active, [aria-expanded="true"]) {
+  background: linear-gradient(var(--hover), var(--hover)), var(--field-bg);
+}
+@media (hover: hover) {
+  #app:is([data-page="deployment"], [data-page="devices"]) button.ws-project-scope:hover {
+    background: linear-gradient(var(--hover), var(--hover)), var(--field-bg);
+  }
+}
+#pop:is([data-page="deployment"], [data-page="devices"])[role="listbox"] {
+  border-radius: 12px;
+}
+#pop:is([data-page="deployment"], [data-page="devices"])[role="listbox"] > .popitem[role="option"] {
+  border-radius: 8px;
+}
+@media (max-width: 850px), (any-pointer: coarse) {
+  :is(#app, #dlg, #pop):is([data-page="deployment"], [data-page="devices"]) { --deployment-field-inset: 6px; }
+  /* Transparent borders reserve the touch area. The recessed surface stays within the padding box. */
+  :is(#app, #dlg, #pop):is([data-page="deployment"], [data-page="devices"])
+    :is(input.input:not([type="hidden"], [type="file"], [type="checkbox"], [type="radio"]), .ws-select > button.input, .ws-search) {
+    --deployment-field-depth: inset 0 2px 2px -1px rgb(0 0 0 / .04), inset 0 4px 4px -2px rgb(0 0 0 / .02);
+    --field: var(--deployment-field-depth), inset 0 0 0 var(--hw) var(--hc-114114111040, rgb(114 114 111 / .16));
+    --field-focus: var(--deployment-field-depth), inset 0 0 0 1px #00aeef;
+  }
+  #pop:is([data-page="deployment"], [data-page="devices"])[role="listbox"] > .popitem[role="option"] {
+    min-height: 44px;
+  }
+  #app:is([data-page="deployment"], [data-page="devices"]) button.ws-project-scope::after {
+    content: "";
+    position: absolute;
+    inset: -6px 0;
+  }
+}
+
 
 .dep-topo-device { min-width: 0; padding: var(--workspace-card-gutter); }
 .dep-topo-main > .dep-topo-device.card { border: 0; border-radius: 0; box-shadow: none; }
@@ -37828,13 +37896,12 @@ img.img-off { display: none !important; }
 .dep-topo-device-head { justify-content: space-between; margin-bottom: 12px; }
 .dep-topo-device-head h2, .dep-topo-device > h2 { margin: 0; font-size: var(--section-title-size); line-height: var(--section-title-line); font-weight: var(--page-title-weight); }
 .dep-topo-device-tools { margin-bottom: 12px; }
-.dep-topo-device-query { display: flex; gap: 4px; min-width: 0; }
+.dep-topo-device-query { display: flex; align-items: center; flex: 1 1 230px; gap: 4px; min-width: 0; }
 .dep-topo-device-tools > [aria-pressed="true"] { background: #e8f5fb; border-color: #6da6c6; }
-.dep-topo-device-query { flex: 1 1 230px; }
-.dep-topo-device-query input { width: 100%; min-width: 0; padding-inline: 8px; min-height: 32px; border: 1px solid #dedede; border-radius: 8px; background: #fff; font: inherit; }
+.dep-topo-device-query .ws-search { flex: 1; }
 .dep-topo-device-branch { margin: 0 0 12px; }
 .dep-topo-device-branch label { color: #636363; }
-.dep-topo-device-branch select { width: min(340px, 100%); }
+.dep-topo-device-branch > .ws-select { width: min(340px, 100%); }
 .dep-topo-device-scroll { direction: ltr; max-width: 100%; max-height: min(70dvh, 850px); overflow: auto; overscroll-behavior: contain; border: 1px solid #dedede; border-radius: 8px; background: #f8f8f7; }
 .dep-topo-device-graph { position: relative; min-width: 570px; min-height: var(--graph-height); }
 .dep-topo-device-graph > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
@@ -37862,11 +37929,10 @@ img.img-off { display: none !important; }
 .dep-topo-device-pages { justify-content: center; font-size: 12px; line-height: 18px; margin-top: 8px; }
 .dep-topo-device-detail-actions { margin-top: 12px; }
 @media (max-width: 1024px), (any-pointer: coarse) {
-  .dep-topo-device :is(.btn, input, select), .dep-topo-device-detail-actions .btn { min-height: 44px; }
+  .dep-topo-device .btn, .dep-topo-device-detail-actions .btn { min-height: 44px; }
   .dep-topo-device-edge { width: 44px; height: 44px; }
 }
 @media (max-width: 600px) {
-  .dep-topo-device-query input { font-size: 16px; }
   .dep-topo-device-scroll { max-height: 60dvh; }
   .dep-topo-device-graph { min-width: 0; min-height: var(--mobile-height); }
   .dep-topo-device-graph > .dep-topo-device-wide { display: none; }
@@ -46655,7 +46721,7 @@ const fld = (label, id, control, hint = "") =>
 // （图标 16、点击范围 24，读屏“清除＋名称”），原先用列表第一项“暂不设置”表示不填。
 const select = (id, options, current = "", label = "", clear = false) => {
   const hit = options.find((x) => String(x[0]) === String(current));
-  return `<div class="ws-select${clear ? " ws-select-opt" : ""}"><input type="hidden" id="${id}" value="${esc(current)}"><button type="button" id="${id}-control" class="input" role="combobox" aria-expanded="false" aria-label="${esc(label || id)}" data-act="select" data-field="${id}" data-options="${safeJson(options)}"><span${hit ? "" : ' class="ph"'}>${esc(hit?.[1] || "请选择")}</span>${ico("chevron", "ic16")}</button>${clear ? `<button type="button" class="ws-select-clear" data-act="selectClear" data-field="${id}" aria-label="清除${esc(label || "")}"${current ? "" : " hidden"}>${ico("x", "ic16")}</button>` : ""}</div>`;
+  return `<div class="ws-select${clear ? " ws-select-opt" : ""}"><input type="hidden" id="${id}" value="${esc(current)}"><button type="button" id="${id}-control" class="input" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-label="${esc(label || id)}" data-act="select" data-field="${id}" data-options="${safeJson(options)}"><span${hit ? "" : ' class="ph"'}>${esc(hit?.[1] || "请选择")}</span>${ico("chevron", "ic16")}</button>${clear ? `<button type="button" class="ws-select-clear" data-act="selectClear" data-field="${id}" aria-label="清除${esc(label || "")}"${current ? "" : " hidden"}>${ico("x", "ic16")}</button>` : ""}</div>`;
 };
 // 页签（2026-10-05 核查合并细节第 4 条）：增量更新按取值认出每个页签（原先按位置与类名复用节点，切换后焦点跳到另一个页签）；
 // 只有选中的页签（没有选中时第一个）在 Tab 顺序中，其余用 ←/→、Home、End 切换（见键盘处理）；给出 panel（面板的 id）时，
@@ -47014,7 +47080,7 @@ const wsPopIsMenu = (p) => p.matches("[role=listbox], [role=menu]") || !!p.query
 function wsPopIn(p) {
   if (!p.isConnected || !wsPopMotion(p)) return;
   const a = p.anchor?.isConnected ? p.anchor.getBoundingClientRect() : null;
-  p.classList.toggle("ws-pop-up", !!a && p.getBoundingClientRect().bottom <= a.top + 1);
+  p.classList.toggle("ws-pop-up", !!a && p.getBoundingClientRect().top < a.top);
   p.classList.add(wsPopIsMenu(p) ? "ws-menu-in" : "ws-pop-in");
 }
 function wsPopOut(p) {
@@ -47035,7 +47101,10 @@ function wsPopOut(p) {
 }
 function closePop({ restoreFocus = false, restoreParent = restoreFocus } = {}) {
   const p = $("#pop");
-  if (p?.anchor) p.anchor.setAttribute("aria-expanded", "false");
+  if (p?.anchor) {
+    p.anchor.setAttribute("aria-expanded", "false");
+    if (p.anchor.getAttribute("aria-controls") === p.id) p.anchor.removeAttribute("aria-controls");
+  }
   // 焦点在弹出菜单内时记下菜单按钮：由菜单打开的弹窗关闭后回到这里
   if (p) popReturn = p.contains(document.activeElement) ? p.anchor : null;
   if (p) wsPopOut(p);
@@ -47079,6 +47148,7 @@ function pop(anchor, html, wide = false, options = {}) {
   p.id = "pop";
   p.dataset.page=U.page;
   p.className = "pop ws-pop";
+  if (options.role) p.setAttribute("role", options.role);
   p.innerHTML = html;
   p.anchor = anchor;
   document.body.append(p);
@@ -47090,8 +47160,10 @@ function pop(anchor, html, wide = false, options = {}) {
     else if (wide) p.style.width = Math.min(Math.max(r.width, options.minWidth || 0), options.maxWidth || Infinity, innerWidth - 24) + "px";
     const pr = p.getBoundingClientRect();
     p.style.left = Math.max(8, Math.min(options.alignRight ? r.right - pr.width : r.left, innerWidth - pr.width - 8)) + "px";
-    // 离按钮 4（2026-10-11 用户确认，Lovable 核查第 107 条：原为 6）；选择框（role=combobox）的选择列表离框 8（第 346 条）
-    const gap = anchor.matches?.("[role=combobox]") ? 8 : 4;
+    // Comboboxes with a transparent touch border measure spacing from the painted field.
+    const deploymentField = options.role === "listbox" && ["deployment", "devices"].includes(p.dataset.page);
+    const gap = deploymentField ? 4 - parseFloat(getComputedStyle(anchor).borderTopWidth)
+      : anchor.matches?.("[role=combobox]") ? 8 : 4;
     // 2.41 账户第 356–359 条：选择列表在框下方展开，下方放不下时在上方，都放不下时在空间大的一侧；最多显示 8 项，其余滚动，不盖住选择框
     if (anchor.matches?.("[role=combobox]")) {
       p.style.maxHeight = "none";
@@ -47108,6 +47180,7 @@ function pop(anchor, html, wide = false, options = {}) {
   p.place();
   if (!p.isConnected) return;
   anchor.setAttribute("aria-expanded", "true");
+  if (options.role === "listbox") anchor.setAttribute("aria-controls", p.id);
   // 2.88 账户第 901 条：菜单打开时焦点在当前项（单选菜单的已选项），没有当前项时在第一项
   if (!options.passive) (p.querySelector('[role=menuitemradio][aria-checked="true"]:not([disabled])') || wsFocusables(p)[0])?.focus();
   Promise.resolve().then(() => wsPopIn(p));
@@ -53080,8 +53153,8 @@ defineActions({
         )
         .join(""),
       true,
+      { role: "listbox" },
     );
-    $("#pop").setAttribute("role", "listbox");
     ($( "#pop .popitem.on") || $("#pop .popitem"))?.focus();
   },
   selectRun: (a) => {
@@ -62424,15 +62497,14 @@ const DEV_SORT_LABELS = { name: "设备名称", model: "型号", type: "类型",
 function devPhoneSort() {
   const current = U.devSort ? `${U.devSort.k}:${U.devSort.d}` : "";
   const options = [["", "默认排序"], ...Object.entries(DEV_SORT_LABELS).flatMap(([k, label]) => [[`${k}:1`, `${label} · 升序`], [`${k}:-1`, `${label} · 降序`]])];
-  return `<select class="dev-phone-sort" id="devPhoneSort" aria-label="排序设备">${options.map(([v, label]) => `<option value="${v}"${current === v ? " selected" : ""}>${label}</option>`).join("")}</select>`;
+  return `<div class="dev-phone-sort">${select("devPhoneSort", options, current, "排序设备")}</div>`;
 }
-document.addEventListener("change", (event) => {
+document.addEventListener("input", (event) => {
   if (event.target.id !== "devPhoneSort") return;
   const [k, direction] = event.target.value.split(":");
   U.devSort = Object.hasOwn(DEV_SORT_LABELS, k) ? { k, d: direction === "-1" ? -1 : 1 } : null;
   U.devPage = 0;
   render();
-  document.getElementById("devPhoneSort")?.focus({ preventScroll: true });
 });
 function renderInventory() {
   const { db, all, offline, unknown, needs, seg, ps: ps0, attention } = inventoryView(),
@@ -108659,10 +108731,12 @@ function depTopoDeviceBody(context, view) {
   }
   const model = { ...depDeviceModel(context, view), db };
   const picked = depDeviceBranch(model, view), current = picked.current;
-  const filter = `<div class="dep-topo-device-tools">${tabs(DEP_DEVICE_LAYERS, model.layer, "depTopoDeviceLayer", "depTopoDeviceLayerPanel", "设备关系图层")}<div class="dep-topo-device-query"><input id="depTopoDeviceQuery" type="search" aria-label="搜索设备、网络或位置" placeholder="搜索设备、网络或位置" value="${esc(view.deviceQuery || "")}">${btn("搜索", "depTopoDeviceSearch", {}, "sm")}${view.deviceQuery ? btn("清除", "depTopoDeviceSearch", { clear: "1" }, "ghost sm") : ""}</div><button type="button" class="btn sm" data-act="depTopoDeviceBatch" aria-pressed="${!!view.deviceBatch}">仅看本次部署范围</button>${model.zone ? btn("清除功能区筛选", "depTopoDeviceZone", {}, "ghost sm") : ""}</div>`;
+  const search = `<div class="ws-search">${ico("search", "ic16")}<input id="depTopoDeviceQuery" type="search" aria-label="搜索设备、网络或位置" placeholder="搜索设备、网络或位置" value="${esc(view.deviceQuery || "")}"></div>`;
+  const filter = `<div class="dep-topo-device-tools">${tabs(DEP_DEVICE_LAYERS, model.layer, "depTopoDeviceLayer", "depTopoDeviceLayerPanel", "设备关系图层")}<div class="dep-topo-device-query">${search}${btn("搜索", "depTopoDeviceSearch", {}, "sm")}${view.deviceQuery ? btn("清除", "depTopoDeviceSearch", { clear: "1" }, "ghost sm") : ""}</div><button type="button" class="btn sm" data-act="depTopoDeviceBatch" aria-pressed="${!!view.deviceBatch}">仅看本次部署范围</button>${model.zone ? btn("清除功能区筛选", "depTopoDeviceZone", {}, "ghost sm") : ""}</div>`;
   const canManage = canEdit() && mayViewProject(project.id, db);
   const plan = canManage && !view.deviceBatch && model.layer === "network" ? btn("规划设备网络", "depTopoDevicePlan", { floor: floor?.id || "" }, "primary sm") : "";
-  return `<section class="dep-topo-device card" aria-labelledby="depWbTitle">${plan ? `<div class="dep-topo-device-head">${plan}</div>` : ""}${filter}<div ${tabPanelAttrs("depTopoDeviceLayerPanel", "depTopoDeviceLayer", DEP_DEVICE_LAYERS, model.layer)}>${current ? `<div class="dep-topo-device-branch"><label for="depTopoDeviceBranch">关系组</label><select id="depTopoDeviceBranch" class="input">${picked.branches.map(({ root }) => `<option value="${esc(root.key)}"${root.key === current.root.key ? " selected" : ""}>${esc(root.name)}</option>`).join("")}</select></div>${depDeviceDraw(context, view, current)}<p class="dep-topo-device-legend"><i aria-hidden="true"></i>已登记关系 <i class="is-planned" aria-hidden="true"></i>规划关系 · 蓝色为当前选择</p>` : empty("没有符合当前查看条件的关系", view.deviceBatch ? "请确认已保存的部署范围中包含此处。" : "添加图纸点位并登记所属网络、回路或系统接入后，即可查看关系。", "", "layers")}</div></section>`;
+  const branches = current ? select("depTopoDeviceBranch", picked.branches.map(({ root }) => [root.key, root.name]), current.root.key, "关系组") : "";
+  return `<section class="dep-topo-device card" aria-labelledby="depWbTitle">${plan ? `<div class="dep-topo-device-head">${plan}</div>` : ""}${filter}<div ${tabPanelAttrs("depTopoDeviceLayerPanel", "depTopoDeviceLayer", DEP_DEVICE_LAYERS, model.layer)}>${current ? `<div class="dep-topo-device-branch"><label for="depTopoDeviceBranch-control">关系组</label>${branches}</div>${depDeviceDraw(context, view, current)}<p class="dep-topo-device-legend"><i aria-hidden="true"></i>已登记关系 <i class="is-planned" aria-hidden="true"></i>规划关系 · 蓝色为当前选择</p>` : empty("没有符合当前查看条件的关系", view.deviceBatch ? "请确认已保存的部署范围中包含此处。" : "添加图纸点位并登记所属网络、回路或系统接入后，即可查看关系。", "", "layers")}</div></section>`;
 }
 
 function depDeviceActionButton(label, task, args = {}) {
@@ -108874,7 +108948,7 @@ defineActions({
     const current = depDeviceBranch({ ...st.model, db: st.context.db }, st.view).current;
     if (!current || num >= Math.ceil(current.children.length / DEP_DEVICE_PAGE)) return;
     Object.assign(st.view, { devicePage: num, deviceSelection: null });
-    depDeviceRenderFocus(opener, "depTopoDeviceBranch");
+    depDeviceRenderFocus(opener, "depTopoDeviceBranch-control");
   },
   depTopoDeviceSearch: ({ clear }, opener) => {
     const st = depDeviceCurrent();
@@ -108919,12 +108993,12 @@ defineActions({
   }),
 });
 
-document.addEventListener("change", e => {
+document.addEventListener("input", e => {
   if (e.target.id !== "depTopoDeviceBranch") return;
   const st = depDeviceCurrent();
   if (!st || !st.model.branches.some(b => b.root.key === e.target.value)) return;
   Object.assign(st.view, { deviceExpansion: e.target.value, devicePage: null, deviceSelection: null });
-  depDeviceRenderFocus(null, "depTopoDeviceBranch");
+  depDeviceRenderFocus(null, "depTopoDeviceBranch-control");
 });
 document.addEventListener("keydown", e => {
   if (e.target.id !== "depTopoDeviceQuery" || e.key !== "Enter" || e.isComposing) return;
@@ -116074,6 +116148,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.84",
+    date: "2026-11-16",
+    notes: ["统一系统部署的输入框、下拉框和项目选择器，改进触屏与键盘操作。"],
+  },
   {
     version: "3.83",
     date: "2026-11-16",
