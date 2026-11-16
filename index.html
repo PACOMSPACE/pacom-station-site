@@ -18,8 +18,9 @@
   --section-title-size: 16px;
   --section-title-line: 24px;
   --workspace-gutter: 24px;
-  --workspace-desktop-inset-block: 20px;
-  --workspace-desktop-title-row: 32px;
+  --workspace-desktop-inset-block: 16px;
+  --workspace-desktop-title-row: var(--page-title-line);
+  --workspace-desktop-scope-gap: 12px;
   --workspace-card-gutter: 20px;
   --workspace-panel-gutter: 16px;
   --content-title-description-gap: 4px;
@@ -36987,10 +36988,6 @@ img.img-off { display: none !important; }
 .dep-space-back .ws-source-back { white-space: nowrap; }
 @media (min-width: 851px) {
   #app .phead > .ws-mscope { display: none; }
-  /* 内嵌画布的页头保持原总高度，标题上移的空间移到行末。 */
-  #app:not(.is-ov3, [data-sp-full]):has(> #side:not(.au-side)) > .main > .panel:has(> #pbody :is(.ov3-view, .dep-topo-canvas, .ws-geo, .sp-bench, .mk-bench, .ov2-plan)) > .phead:has(> h1) {
-    padding-block: var(--workspace-desktop-inset-block) calc(24px - var(--workspace-desktop-inset-block));
-  }
 }
 @media (max-width: 850px) {
   .ws3-mob:has(> .dep-space-back) { flex-wrap: wrap; }
@@ -37009,8 +37006,9 @@ img.img-off { display: none !important; }
     border-bottom: 0;
   }
   #app.is-ov3 .ov3x[data-lv] > .ov3-panel > .ov3-head:has(h1):has(+ .ws-scope-band) {
-    align-items: start;
+    align-items: center;
     padding-block-start: var(--workspace-desktop-inset-block);
+    padding-block-end: var(--workspace-desktop-scope-gap);
   }
   #app.is-ov3 .ov3x[data-lv] > .ov3-panel > .ov3-head:has(h1):has(+ .ws-scope-band) > :is(h1, .ws3-ht) {
     display: flex;
@@ -37021,8 +37019,14 @@ img.img-off { display: none !important; }
   #app.is-ov3 .ov3x[data-lv] > .ov3-panel > .ws3-head:has(.ws3-ht):has(+ .ws-scope-band) > .ws3-hr {
     block-size: var(--workspace-desktop-title-row);
   }
+  #app.is-ov3 .ov3x[data-lv] > .ov3-panel > .ws3-head:has(.ws3-ht):has(+ .ws-scope-band) > .ws3-hbtn {
+    margin-block: calc((var(--workspace-desktop-title-row) - 32px) / 2);
+  }
   @media (any-pointer: coarse) {
-    /* 分栏标题行仍为 32px，按钮保留 44px 点按区。 */
+    #app.is-ov3 .ov3x[data-lv] > .ov3-panel > .ov3-head:has(h1):has(+ .ws-scope-band:has(button.ws-project-scope)) {
+      padding-block-end: calc(var(--workspace-desktop-scope-gap) - 6px);
+    }
+    /* 分栏标题行按 28px 对齐，按钮保留 44px 点按区。 */
     #app.is-ov3 .ov3x[data-lv] > .ov3-panel > .ws3-head:has(.ws3-ht):has(+ .ws-scope-band) > .ws3-hbtn {
       min-block-size: 44px;
       margin-block: calc((var(--workspace-desktop-title-row) - 44px) / 2);
@@ -37330,16 +37334,16 @@ img.img-off { display: none !important; }
   #app.is-ov3 .ov3x > .ov3-view { box-shadow: 0 0 0 var(--hw) #fff, 0 0 0 var(--hr) var(--hc-ring, rgba(119, 119, 113, 0.16)), 0 2px 1px rgba(0, 0, 0, 0.04), 0 2px 1px -0.5px rgba(0, 0, 0, 0.04),
     0 4px 3px -1.5px rgba(0, 0, 0, 0.04), 0 7px 6px -3px rgba(0, 0, 0, 0.04), 0 13px 12px -6px rgba(0, 0, 0, 0.04), 0 25px 24px -12px rgba(0, 0, 0, 0.04); }
 }
-/* 桌面标志行与工作区标题行共用起点及行高；搜索紧接标志行下方。菜单项高 36，圆角 12，
+/* 桌面标志行与工作区标题中心对齐，搜索中心与范围选择器对齐。菜单项高 36，圆角 12，
    图标盒 36（图标 20 在 x16），文字 x44；点击区左右外扩 8，贴满菜单栏宽；收起为 52 宽，项与机构按钮 36×36 在 x8；收起按钮 28 圆形、图标 16，点按区 44 */
 @media (min-width: 851px) {
   #app.collapsed { grid-template-columns: 52px 1fr; }
   #side { padding-inline: 0; }
-  #side:not(.au-side) { padding-block-start: var(--workspace-desktop-inset-block); }
+  #side:not(.au-side) { padding-block-start: 14px; }
   #side > :not(.nav) { margin-inline: 8px; }
   #side > .nav { padding-inline: 8px; }
   #side > .brand { height: 32px; margin-bottom: 8px; }
-  #side:not(.au-side) > .brand { flex-shrink: 0; height: var(--workspace-desktop-title-row); }
+  #side:not(.au-side) > .brand { flex-shrink: 0; }
   .collapsed #side > .brand { margin-bottom: 8px; padding: 0 0 0 4px; }
   .brand > .iconbtn.ws-side-toggle { position: relative; width: 28px; height: 28px; border-radius: 50%; }
   .brand > .iconbtn.ws-side-toggle > svg { width: 16px; height: 16px; }
@@ -37360,6 +37364,8 @@ img.img-off { display: none !important; }
 }
 @media (pointer: coarse) and (min-width: 851px) {
   .collapsed #side .navitem, .collapsed #side .orgbtn { margin-inline: -4px; }
+  #app > #side:not(.au-side) > .brand { margin-block-end: 4px; }
+  #app > #side:not(.au-side) .ws-side-toggle::after { inset-block: -10px -6px; }
 }
 /* V1492：搜索快捷键小框平时隐藏，悬停或键盘聚焦搜索行时显示（不能悬停的设备一直显示） */
 @media (min-width: 851px) and (hover: hover) {
@@ -37524,57 +37530,56 @@ img.img-off { display: none !important; }
 }
 
 /* Only the three home levels use a fixed panel and a header above the canvas. */
+#app.is-ov3 > .main > .panel > #pbody:has(.home-overview) { container: home-workspace / inline-size; }
 #app.is-ov3 .home-overview {
   --home-panel-width: 400px;
   --home-frame-radius: 16px;
-  --home-gutter: var(--workspace-gutter);
+  --home-gutter: 16px;
+  --home-panel-gap: 12px;
+  display: flex;
+  flex-direction: column;
 }
-.home-overview-head { min-width: 0; }
+.home-overview-head { min-width: 0; flex: none; display: grid; gap: 8px; padding: 8px var(--home-gutter) 12px; }
 .home-overview-title { display: flex; align-items: center; min-height: var(--page-title-line); }
 .home-overview-tools, .home-overview-primary { display: flex; align-items: center; min-width: 0; gap: 8px; }
-.home-overview-primary { flex: 1 1 auto; }
+.home-overview-primary { flex: 1 1 auto; flex-wrap: wrap; }
 .home-overview-tools .ws-scope-band,
 .home-overview-tools .ws-scope-band > .ws-scope-control { min-width: 0; flex: 0 1 auto; }
-.home-overview-tools .ws-locrow { margin: 0; min-width: 0; }
+.home-overview-tools .ws-scope-band { max-width: 100%; }
+.home-overview-tools .ws-locrow { margin: 0; min-width: 0; max-width: 100%; }
+.home-overview-tools .ws-locrow .ws-project-scope { max-width: 100%; }
 .home-overview-tools .ws-scope-band > .ws-scope-tabs { flex: 0 0 auto; }
-.home-overview-canvas { min-width: 0; min-height: 0; position: relative; isolation: isolate; }
+.home-overview-tools.is-building .ws-scope-band { gap: 8px; }
+.home-overview-canvas {
+  position: relative;
+  isolation: isolate;
+  container: home-canvas / size;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 144px;
+  margin: 0 var(--home-gutter) 16px;
+}
+.home-overview-canvas:has(.ov3-fcol) { min-height: 190px; }
 .home-overview-canvas > .ov3-view {
-  height: 100%; margin: 0; border: 0; border-radius: var(--home-frame-radius); isolation: isolate; background-color: #fafafa;
+  height: 100%; min-height: 0; margin: 0; border: 0; border-radius: var(--home-frame-radius); isolation: isolate; background-color: #fafafa;
   box-shadow: 0 0 0 var(--hw) #fff, 0 0 0 var(--hr) var(--hc-ring, rgba(119, 119, 113, 0.16)), 0 2px 3px rgba(0, 0, 0, .04);
 }
 .home-overview-info { white-space: nowrap; flex: none; }
-.home-mobile-toggle, .home-overview-info.is-narrow { display: none; }
+.home-canvas-toggle, .home-overview-info.is-wide { display: none; }
+.home-mobile-toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
+.home-overview-info.is-narrow { display: inline-flex; min-height: 44px; }
+.home-mobile-toggle .seg { overflow: visible; }
+.home-mobile-toggle .seg > button::after { content: ""; position: absolute; inset: calc((100% - 44px) / 2) 0; }
+#app.is-ov3 .home-overview > .ov3-panel { min-width: 0; min-height: 0; padding: 0 var(--home-gutter) 16px; border: 0; }
+.home-overview :is(.home-collection-list, .home-overview-frame) { height: auto; }
+.home-overview[data-home-pane="list"] > .home-overview-canvas,
+.home-overview[data-home-pane="map"] > .ov3-panel { display: none; }
 
 @media (min-width: 851px) {
-  #app.is-ov3 .home-overview {
-    --home-gutter: 16px;
-    --home-panel-gap: 12px;
-    --home-panel-track: calc(var(--home-panel-width) + var(--home-gutter) + var(--home-panel-gap));
-    display: grid; height: 100%; min-height: 0; gap: 0;
-    grid-template-columns: var(--home-panel-track) minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-    padding-inline-end: var(--home-gutter); padding-block-end: var(--home-gutter);
-  }
-  #app.is-ov3:has(.home-overview) > #side:not(.au-side) > .brand { translate: 0 -6px; }
+  #app.is-ov3 .home-overview { height: 100%; min-height: 0; overflow: auto; }
   #app.is-ov3:has(> #side:not(.au-side)) > .main > .panel:has(.home-overview) > .net-bar { margin-inline: 16px; }
-  .home-overview-head {
-    grid-column: 1 / -1; display: grid; gap: 16px;
-    padding-block: var(--home-gutter); padding-inline-start: var(--home-gutter);
-  }
-  .home-overview-tools.is-building {
-    display: grid; grid-template-columns: calc(var(--home-panel-width) + var(--home-panel-gap)) minmax(0, 1fr); gap: 0;
-  }
-  .home-overview-tools.is-building .home-overview-primary { padding-inline-end: var(--home-panel-gap); }
-  #app.is-ov3 .home-overview > .ov3-panel {
-    min-width: 0; min-height: 0;
-    padding-block: 0; padding-inline: var(--home-gutter) var(--home-panel-gap);
-    overflow: auto; scrollbar-width: thin; border: 0; isolation: isolate;
-  }
-  #app.is-ov3 .home-overview > .ov3-panel:has(> .home-building-frame) { overflow: visible; }
-  #app.is-ov3 .home-overview[data-lv="b"] > .ov3-panel:not(:has(> .home-building-frame)) {
-    padding-inline-end: 0;
-    > * { max-inline-size: var(--home-panel-width); }
-  }
+  .home-overview-head { padding-block-start: var(--home-gutter); }
+  .home-overview-title { margin-block-end: 4px; }
   .home-overview-canvas > .ov3-view { box-shadow: none; }
   .home-overview-canvas::after {
     content: "";
@@ -37587,31 +37592,96 @@ img.img-off { display: none !important; }
   }
 }
 
+/* The remaining canvas must be at least 320px wide beside the 428px left track and 16px outer gutter. */
+@media (min-width: 851px) {
+  @container home-workspace (width >= 764px) {
+    #app.is-ov3 .home-overview {
+      --home-panel-track: calc(var(--home-panel-width) + var(--home-gutter) + var(--home-panel-gap));
+      display: grid;
+      grid-template-columns: var(--home-panel-track) minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+      padding-inline-end: var(--home-gutter);
+      padding-block-end: var(--home-gutter);
+      overflow: visible;
+    }
+    .home-overview-head { grid-column: 1 / -1; gap: 12px; padding-block-end: var(--home-gutter); padding-inline-end: 0; }
+    .home-overview-title { margin-block-end: 0; }
+    .home-overview-primary { flex-wrap: nowrap; }
+    .home-overview-tools.is-building { gap: 16px; }
+    .home-overview-tools.is-building .home-overview-primary { flex: 0 1 auto; }
+    .home-overview-tools.is-building .ws-scope-band { flex-wrap: nowrap; gap: 16px; }
+    .home-canvas-toggle { display: flex; align-items: center; min-height: 32px; }
+    .home-overview-info.is-wide { display: inline-flex; }
+    .home-mobile-toggle, .home-overview-info.is-narrow { display: none; }
+    #app.is-ov3 .home-overview > .ov3-panel {
+      padding: 0 var(--home-panel-gap) 0 var(--home-gutter);
+      overflow: auto;
+      scrollbar-width: thin;
+      isolation: isolate;
+    }
+    #app.is-ov3 .home-overview > .ov3-panel:has(> .home-overview-frame) { overflow: visible; }
+    #app.is-ov3 .home-overview[data-lv="b"] > .ov3-panel:not(:has(> .home-overview-frame)) {
+      padding-inline-end: 0;
+      > * { max-inline-size: var(--home-panel-width); }
+    }
+    .home-overview :is(.home-collection-list:not(.is-collapsed), .home-overview-frame) { height: 100%; }
+    .home-overview .home-overview-canvas { margin: 0; min-height: 0; }
+    .home-overview[data-home-pane] > :is(.home-overview-canvas, .ov3-panel) { display: block; }
+  }
+}
+
 @media (min-width: 851px) and (any-pointer: coarse) {
   /* The visible 32px controls sit 6px inside the 44px touch targets. */
-  .home-overview-head:has(.home-collection-toolbar) { row-gap: 10px; padding-block-end: 10px; }
+  .home-overview-head:has(.home-collection-toolbar, .ws-scope-control, .home-overview-scope-row) { row-gap: 6px; }
+  .home-overview-head:has(.home-collection-toolbar, .ws-scope-control, .home-overview-scope-row) .home-overview-title { margin-block-end: 0; }
+  @container home-workspace (width >= 764px) {
+    .home-overview-head:has(.home-collection-toolbar, .ws-scope-control, .home-overview-scope-row) { padding-block-end: 10px; }
+    .home-canvas-toggle { min-height: 44px; }
+  }
 }
 
 @media (max-width: 850px) {
-  #app.is-ov3 .home-overview { --home-gutter: 16px; --home-mobile-dock: 0px; height: auto; }
-  #app.is-ov3:has(> .ov-tabbar) .home-overview { --home-mobile-dock: calc(60px + env(safe-area-inset-bottom, 0px)); }
-  #app.is-ov3 .home-overview[data-home-pane="map"] { height: calc(100dvh - 56px - var(--home-mobile-dock)); }
+  html:has(#app.is-ov3 .home-overview) { scrollbar-gutter: stable; }
   .home-overview-title { display: none; }
-  .home-overview-head { flex: none; display: grid; gap: 8px; padding: 8px var(--home-gutter) 12px; }
-  .home-overview-primary { flex-wrap: wrap; }
-  .home-overview-tools.is-building .ws-scope-band { flex-wrap: nowrap; gap: 8px; max-width: 100%; }
-  .home-overview-tools .ws-scope-control > .ws-locrow { max-width: 100%; }
-  .home-overview-tools .ws-locrow .ws-project-scope { max-width: 100%; }
-  .home-canvas-toggle, .home-overview-info.is-wide { display: none; }
-  .home-mobile-toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
-  .home-overview-info.is-narrow { display: inline-flex; min-height: 44px; }
-  .home-mobile-toggle .seg { overflow: visible; }
-  .home-mobile-toggle .seg > button::after { content: ""; position: absolute; inset: calc((100% - 44px) / 2) 0; }
-  #app.is-ov3 .home-overview > .ov3-panel { padding: 0 var(--home-gutter) 16px; }
-  .home-overview-canvas { flex: 1 1 auto; margin: 0 var(--home-gutter) 16px; min-height: 360px; }
-  body:has(> .demo-fixed, .phead .v13-head > .demo-cap) .home-overview-canvas .ovm-attr { right: 48px; border-top-right-radius: 6px; }
-  .home-overview[data-home-pane="list"] > .home-overview-canvas,
-  .home-overview[data-home-pane="map"] > .ov3-panel { display: none; }
+  .home-overview .home-overview-tools :is(.ws-scope-band, .home-collection-toolbar) { width: 100%; }
+  .home-overview .home-overview-tools :is(.ws-scope-control, .home-collection-toolbar > .home-overview-scope-row) { flex: 0 1 400px; }
+  body:has(#app.is-ov3 .home-overview[data-home-pane="map"]) { padding-block-end: 0; }
+  #app.is-ov3:has(.home-overview[data-home-pane="map"]) {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - var(--home-mobile-dock, 0px));
+    min-height: 0;
+  }
+  #app.is-ov3:has(.home-overview[data-home-pane="map"]) > #wtop { flex: none; }
+  #app.is-ov3:has(.home-overview[data-home-pane="map"]) > .main { flex: 1 1 0; }
+  #app.is-ov3 > .main > .panel:has(.home-overview[data-home-pane="map"]) { height: 100%; min-height: 0; }
+  #app.is-ov3 > .main > .panel > #pbody.pbody:has(.home-overview[data-home-pane="map"]) {
+    min-height: 0;
+    padding-block-end: 0;
+    overflow: auto;
+  }
+  #app.is-ov3 .home-overview[data-home-pane="map"] { height: 100%; }
+}
+
+@media (max-width: 600px) {
+  #app.is-ov3:has(> .ov-tabbar) { --home-mobile-dock: calc(60px + env(safe-area-inset-bottom, 0px)); }
+  /* In map mode the demo controls share the mobile title row so they leave the attribution reachable. */
+  body:not(:has(> :is(#dlg, #ai-pal, #discard))) #app.is-ov3:has(.home-overview[data-home-pane="map"]) .phead .v13-head > :is(.demo-step, .demo-cap) {
+    top: 8px;
+    bottom: auto;
+  }
+}
+
+@container home-canvas (height < 236px) {
+  .home-overview-canvas > .ov3-view > .ov3-ctl { flex-flow: row wrap; align-items: flex-start; justify-content: flex-end; }
+  .home-overview-canvas .ov3-ctl > .ov3-cg:has(> .ov3-csep) { flex-direction: row; }
+  .home-overview-canvas .ov3-csep { width: var(--hw); height: 16px; }
+  @media (max-width: 850px), (any-pointer: coarse) {
+    .home-overview-canvas .ov3-ctl > .ov3-cg:has(> .ov3-csep) > .ov3-cb::after { inset: -6px; }
+    .home-overview-canvas .ov3-ctl > .ov3-cg:has(> .ov3-csep) > .ov3-cb:first-child::after { inset-inline-end: calc(-2px - var(--hw) / 2); }
+    .home-overview-canvas .ov3-ctl > .ov3-cg:has(> .ov3-csep) > .ov3-csep + .ov3-cb::after { inset-inline: calc(-2px - var(--hw) / 2) -1px; }
+    .home-overview-canvas .ov3-ctl > .ov3-cg:has(> .ov3-csep) > .ov3-cb:last-child::after { inset-inline-start: -1px; }
+  }
 }
 
 /* 项目、楼宇目录与首页地图摘要 */
@@ -37624,65 +37694,37 @@ img.img-off { display: none !important; }
   max-width: 100%;
   min-width: 0;
 }
-.home-collection-search {
+.home-overview .home-overview-scope-row {
   display: flex;
   align-items: center;
-  flex: 0 1 432px;
-  width: 432px;
-  min-width: 240px;
-  height: 32px;
-  border: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
-  border-radius: 999px;
-  box-shadow: inset 0 1px 3px #1b1d2410;
-  background: #fafafa;
-  isolation: isolate;
+  inline-size: 400px;
+  min-inline-size: 0;
+  max-inline-size: 100%;
 }
-.home-collection-search:focus-within { outline: 2px solid #00aeef; outline-offset: 2px; }
-.home-collection-search > .ws-locrow {
-  display: flex;
-  flex: 0 1 auto;
-  align-items: center;
-  min-width: 0;
-  max-width: 52%;
-  height: 30px;
-  border-inline-end: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
-}
-#app .home-collection-search .ws-project-scope {
-  height: 30px;
-  min-height: 30px;
-  max-width: 100%;
-  margin: 0;
-  padding-inline: 12px 8px;
-  border-radius: 999px 0 0 999px;
-  background: transparent;
-  box-shadow: none;
-}
-#app .home-collection-search .ws-project-scope:is(:hover, [aria-expanded="true"]) { background: var(--hover); }
-#app .home-collection-search .ws-project-scope:focus-visible { outline: 0; box-shadow: inset 0 0 0 2px #00aeef; }
-.home-collection-search-field {
-  flex: 1;
-  align-self: stretch;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  padding-inline: 10px 8px;
-  color: var(--ds-ink-2);
-}
-.home-collection-search-field > svg { flex: none; }
-.home-collection-search-field > input {
+#app .home-overview button.home-overview-scope {
   width: 100%;
-  min-width: 0;
-  height: 30px;
-  border: 0;
-  background: none;
-  box-shadow: none;
-  outline: none;
-  padding: 0;
-  color: var(--ds-ink);
-  font: 400 14px/22px var(--ff);
+  max-width: 100%;
+  border-radius: 12px;
+  background: var(--field-bg);
+  box-shadow: var(--field);
 }
-.home-collection-search-field > input::placeholder { color: var(--ds-ink-2); }
+#app .home-overview button.home-overview-scope:is(:active, [aria-expanded="true"]) {
+  background: linear-gradient(var(--hover), var(--hover)), var(--field-bg);
+}
+@media (hover: hover) and (pointer: fine) {
+  #app .home-overview button.home-overview-scope:hover {
+    background: linear-gradient(var(--hover), var(--hover)), var(--field-bg);
+  }
+}
+@media (any-pointer: coarse), (max-width: 850px) {
+  .home-overview .home-overview-scope-row { min-height: 44px; }
+}
+.home-location-menu.ws-lm-sheet .ws-lm-cols:not([hidden]) { display: block; }
+.home-location-menu.ws-lm-sheet .ws-lm-search { margin-block-end: 8px; padding-inline: 8px; }
+.home-location-menu .ws-lm-search:focus-within { border-bottom-color: #00aeef; }
+@media (max-width: 768px) {
+  .home-location-menu .ws-lm-search > input { font-size: 16px; line-height: 24px; }
+}
 .home-collection-filters { display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; min-width: 0; }
 .home-collection-filter, .home-collection-more > summary {
   box-sizing: border-box;
@@ -37736,7 +37778,7 @@ img.img-off { display: none !important; }
 :is(.home-collection-filter > select, .home-collection-more > summary, .home-collection-text-action, .home-collection-icon, .home-collection-card, .home-collection-pop-open):focus-visible { outline: 2px solid #00aeef; outline-offset: -2px; }
 
 .ov3-panel.home-collection { overflow: visible; min-height: 0; padding-bottom: 0; }
-:is(.home-collection-list, .home-building-frame) {
+:is(.home-collection-list, .home-overview-frame) {
   height: 100%;
   min-height: 0;
   border: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
@@ -37748,8 +37790,8 @@ img.img-off { display: none !important; }
   flex-direction: column;
   overflow: hidden;
 }
-.home-building-frame { overflow: auto; scrollbar-width: thin; padding: 8px; }
-.home-building-frame:has(> .ov3-isec) { padding-inline: 12px; }
+.home-overview-frame { overflow: auto; scrollbar-width: thin; padding: 8px; }
+.home-overview-frame.is-info { padding-inline: 12px; }
 .home-collection-list.is-collapsed { height: auto; }
 .home-collection-list-head {
   display: flex;
@@ -37916,9 +37958,7 @@ img.img-off { display: none !important; }
   .home-collection-pop-close::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; }
 }
 @media (max-width: 850px) {
-  .home-collection-search { flex-basis: 100%; max-width: 100%; min-width: 0; }
-  .home-collection-search > .ws-locrow { max-width: 46%; }
-  :is(.home-collection-list, .home-building-frame) { height: auto; }
+  :is(.home-collection-list, .home-overview-frame) { height: auto; }
   .home-collection-card { grid-template-columns: minmax(72px, 94px) minmax(0, 1fr); }
 }
 @media (max-width: 380px) {
@@ -37933,7 +37973,7 @@ img.img-off { display: none !important; }
 
 /* 保持 32px 可见轮廓，触屏和窄屏的命中盒不小于 44px。 */
 @media (any-pointer: coarse), (max-width: 850px) {
-  .home-collection-search, .home-collection-filter, .home-collection-more > summary {
+  .home-collection-filter, .home-collection-more > summary {
     position: relative;
     z-index: 0;
     isolation: isolate;
@@ -37942,7 +37982,7 @@ img.img-off { display: none !important; }
     background: transparent;
     box-shadow: none;
   }
-  .home-collection-search::before, .home-collection-filter::before, .home-collection-more > summary::before {
+  .home-collection-filter::before, .home-collection-more > summary::before {
     content: "";
     position: absolute;
     z-index: -1;
@@ -37953,21 +37993,6 @@ img.img-off { display: none !important; }
     box-shadow: inset 0 1px 3px #1b1d2410;
     pointer-events: none;
   }
-  .home-collection-search > .ws-locrow {
-    position: relative;
-    height: 44px;
-    border-inline-end: 0;
-  }
-  .home-collection-search > .ws-locrow::after {
-    content: "";
-    position: absolute;
-    inset: 7px 0 7px auto;
-    border-inline-end: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
-    pointer-events: none;
-  }
-  #app .home-collection-search .ws-project-scope, .home-collection-search-field > input { height: 44px; min-height: 44px; }
-  #app .home-collection-search button.ws-project-scope::after { content: none; }
-  #app .home-collection-search .ws-project-scope:is(:hover, [aria-expanded="true"]) { background: transparent; }
   .home-collection-filter > svg { inset-block-start: 14px; }
 }
 
@@ -39034,7 +39059,7 @@ img.img-off { display: none !important; }
 
 /* Primary titles share a type scale across shell pages, panels and detail views. */
 #app:not(.bare) .main > .panel > .phead h1,
-#app:not(.bare) :is(.ov3-head h1, .flow-title-row > h1, .ws-syspage h1, .ws3-dt > h1),
+#app:not(.bare) :is(.home-overview-title h1, .ov3-head h1, .flow-title-row > h1, .ws-syspage h1, .ws3-dt > h1),
 #app.bare-console .adm-panel .phead h1 {
   margin-block: 0;
   color: var(--ds-ink, #030303);
@@ -39050,11 +39075,19 @@ img.img-off { display: none !important; }
 }
 
 @media (min-width: 851px) {
+  #app:not(.bare, .is-ov3, [data-sp-full]):has(> #side:not(.au-side)) > .main > .panel > .phead {
+    > h1:not(.ob-title) { padding-block: 0; }
+    &:has(> .ws-head-scope) { row-gap: var(--workspace-desktop-scope-gap); }
+    > :is(.ws-overview-title-actions, .ops-hacts, .cfg-head-more, .ws-page-more, .ws-source-back),
+    > .runtime-heading > :is(.iconbtn, .ws-source-back) {
+      margin-block: calc((var(--workspace-desktop-title-row) - 32px) / 2);
+    }
+  }
   /* 标题、范围、页签和正文由同一个桌面内容框留白。画布工作区沿用自己的边界。 */
   #app:not(.bare, .is-ov3, [data-sp-full]):has(> #side:not(.au-side)) > .main > .panel:not(:has(> #pbody :is(
     .ov3-view, .sp-bench, .mk-bench, .ov2-plan, .ws-geo, .dep-topo-canvas
   ))) {
-    padding: var(--workspace-desktop-inset-block) var(--workspace-gutter);
+    padding: var(--workspace-desktop-inset-block) var(--workspace-gutter) 20px;
 
     > .phead {
       padding: 0;
@@ -39068,12 +39101,22 @@ img.img-off { display: none !important; }
       margin-block-start: 16px;
     }
     > .phead:empty + #pbody { margin-block-start: 0; }
-    > #pbody:has(> .ops-overview-nav:first-child) { margin-block-start: 8px; }
+    > #pbody:has(> .ops-overview-nav:first-child) { margin-block-start: var(--workspace-desktop-scope-gap); }
     > #pbody > .ops-overview-nav:first-child { margin-block-start: 0; }
     > .phead:has(> .dep-crumb) ~ #pbody {
       margin-block-start: 8px;
       .flow-heading.sub-head { margin-block-start: 0; }
     }
+  }
+  #app:not(.bare, .is-ov3, [data-sp-full]):has(> #side:not(.au-side)) > .main > .panel:has(> #pbody :is(
+    .ov3-view, .sp-bench, .mk-bench, .ov2-plan, .ws-geo, .dep-topo-canvas
+  )) {
+    > .phead:has(> h1) {
+      height: auto;
+      min-height: 0;
+      padding-block: var(--workspace-desktop-inset-block) var(--workspace-desktop-scope-gap);
+    }
+    > #pbody > .ops-overview-nav:first-child { margin-block-start: 0; }
   }
 }
 
@@ -39139,11 +39182,15 @@ img.img-off { display: none !important; }
 }
 
 @media (min-width: 851px) and (any-pointer: coarse) {
+  #app:not(.bare, .is-ov3, [data-sp-full]):has(> #side:not(.au-side)) > .main > .panel {
+    > .phead:has(> .ws-head-scope, > .runtime-head-scope) { row-gap: calc(var(--workspace-desktop-scope-gap) - 6px); }
+    > #pbody:has(> .ops-overview-nav.has-project-scope:first-child) { margin-block-start: calc(var(--workspace-desktop-scope-gap) - 6px); }
+  }
   #app:not(.bare, .is-ov3, [data-sp-full]):has(> #side:not(.au-side)) > .main > .panel > .phead :is(
     [data-act="opsObjMore"], .runtime-heading [data-act="setMore"], .dev-page-more,
     .ws-overview-title-actions > .btn, .dep-main-actions > .btn
   ) {
-    /* 保留 44px 点按高度，标题仍按 32px 行居中。 */
+    /* 保留 44px 点按高度，标题仍按 28px 行居中。 */
     margin-block: calc((var(--workspace-desktop-title-row) - 44px) / 2);
   }
 }
@@ -49045,15 +49092,22 @@ function lmBuildingName(b, project = null) {
   const parent = [project?.name, M.buildingSiteName(data(), b)].filter(Boolean).join(" · ");
   return `<span class="ws-lm-n">${esc(b.name)}</span>${parent ? `<small class="ws-lm-proj">${esc(parent)}</small>` : ""}`;
 }
+const lmHomePlaceholder = () => U.b && !isOutdoor(U.b) ? "搜索项目、楼宇、楼层或地址" : "搜索项目、楼宇或地址";
+const lmSearchField = (placeholder) => `<div class="ws-lm-search">${ico("search", "ic16")}<input id="lmQuery" placeholder="${placeholder}" aria-label="${placeholder}" autocomplete="off"></div>`;
+const lmSearchResults = '<div class="ws-lm-list ws-lm-res" id="lmRes" hidden></div>';
 function wsLocOpen(el, intent) {
   U.pickIntent = intent || null;
-  if (isMobile()) return wsLocSheet();
-  const row = el.closest(".ws-locrow") || el, ps = locProjects(), only = locRowProjectOnly(), live = lmLive(), two = !only && (ps.length > 1 || U.ov3Now), w = two ? 560 : 280, ph = only ? "搜索项目" : "搜索项目或楼宇";
+  const home = el.matches?.(".home-overview-scope") === true;
+  if (isMobile()) {
+    if (home) el.focus({ preventScroll: true });
+    return wsLocSheet(home ? U.p : null, home);
+  }
+  const row = el.closest(".ws-locrow") || el, ps = locProjects(), only = locRowProjectOnly(), live = lmLive(), two = !only && (ps.length > 1 || U.ov3Now), w = two ? 560 : 280, ph = home ? lmHomePlaceholder() : only ? "搜索项目" : "搜索项目或楼宇";
   // 2.99 V977：只能按项目看的页面（设备标记）在“全部项目”时先预览上次选过的项目，没有时预览第一个有楼宇的项目（3.00 V990）
   U.lmPv = U.p && g("projects", U.p) ? U.p : lmAllProjects(ps) ? "*" : (ps.find((x) => x.id === U.lastP) || ps.find((x) => locBuildings(x.id).length) || ps[0])?.id || null;
   const col = (title, id, rows) => `<div class="ws-lm-col"><div class="ws-lm-h"><span>${title}</span></div><div class="ws-lm-list" id="${id}">${rows}</div></div>`,
     cols = only ? col("项目", "lmP", lmProjectRows(null, live, "chooseLocation")) : `${two ? col("项目", "lmP", lmProjectRows(U.lmPv, live, "chooseLocation", true)) : ""}<div class="ws-lm-col" id="lmBCol">${lmBuildingCol(U.lmPv, live)}</div>`;
-  pop(el, `<div class="ws-lm${two ? " two" : ""}"><div class="ws-lm-search">${ico("search", "ic16")}<input id="lmQuery" placeholder="${ph}" aria-label="${ph}" autocomplete="off"></div><div class="ws-lm-cols" id="lmCols">${cols}</div><div class="ws-lm-list ws-lm-res" id="lmRes" hidden></div></div>`);
+  pop(el, `<div class="ws-lm${two ? " two" : ""}${home ? " home-location-menu" : ""}">${lmSearchField(ph)}<div class="ws-lm-cols" id="lmCols">${cols}</div>${lmSearchResults}</div>`);
   const p = $("#pop");
   if (!p) return;
   p.classList.add("ws-lm-pop");
@@ -49081,6 +49135,37 @@ document.addEventListener("mouseover", (e) => {
   clearTimeout(lmHoverT);
   if (r) lmHoverT = setTimeout(() => r.matches(":hover") && lmPreview(r.dataset.p || r.dataset.pv), 100);
 });
+function lmHomeSearch(query, projects, live) {
+  const norm = (value) => String(value || "").normalize("NFKC").toLocaleLowerCase().trim(),
+    terms = norm(query).split(/\s+/).filter(Boolean),
+    compact = (value) => norm(value).replace(/\s+/g, ""),
+    text = compact(query),
+    match = (...values) => {
+      const fields = values.map(norm);
+      return terms.every((term) => fields.some((field) => field.includes(term))) || fields.join("").replace(/\s+/g, "").includes(text);
+    },
+    hits = [], availableFloors = U.b && !canEdit() ? ovLiveIds() : null;
+  const add = (name, row) => hits.push({ rank: compact(name) === text ? 0 : 1, row });
+  for (const p of projects) {
+    if (match(p.name, p.city, p.address)) add(p.name, lmRow(U.p === p.id && !U.b, "chooseLocation", { p: p.id }, `${lmImg(p)}<span class="ws-lm-n">${esc(p.name)}</span>${lmProjectNote(p.id, live)}`));
+    for (const b of locBuildings(p.id)) {
+      const site = M.buildingSiteName(data(), b);
+      // 项目名用于限定楼宇结果，单独输入项目名时不把所有楼宇塞进结果。
+      const fields = [b.name, site, b.address || p.address, p.city];
+      const narrower = [b.name, site].some((part) => !!part && (terms.some((term) => norm(part).includes(term)) || text.includes(compact(part))));
+      if (match(...fields) || narrower && match(p.name, site, b.name, b.address || p.address, p.city))
+        add(b.name, lmRow(U.b === b.id && !U.f, "chooseLocation", { p: p.id, b: b.id }, lmBuildingName(b, p) + lmBuildingNote(b, live)));
+      if (b.id !== U.b || b.kind === "outdoor") continue;
+      for (const f of sortedFloors(b.id)) {
+        const floor = compact(f.name), path = compact(p.name + (site || "") + b.name + f.name);
+        const byFloor = /^([b]?\d+f?|rf)$/i.test(text) && floor.includes(text);
+        if ((availableFloors && !availableFloors.has(f.id)) || (!byFloor && !(text.endsWith(floor) && path.includes(text)))) continue;
+        add(f.name, lmRow(U.f === f.id, "homeLocationFloor", { p: p.id, b: b.id, f: f.id }, `<span class="ws-lm-n">${esc(f.name)}</span><small class="ws-lm-proj">${esc(M.buildingLabel(data(), b))}</small>`));
+      }
+    }
+  }
+  return hits.sort((a, b) => a.rank - b.rank).map(({ row }) => row).join("");
+}
 // 搜索：项目按名称，楼宇按名称（也可连同项目名写“广实2号园E栋”），楼宇行后面用灰字写所属项目
 function lmFilter(q0) {
   const q = String(q0 || "").trim().toLowerCase().replace(/\s+/g, ""), cols = $("#lmCols"), res = $("#lmRes");
@@ -49089,6 +49174,10 @@ function lmFilter(q0) {
   res.hidden = !q;
   if (!q) return (res.innerHTML = "");
   const norm = (s) => String(s || "").toLowerCase().replace(/\s+/g, ""), live = lmLive(), only = locRowProjectOnly(), ps = locProjects(), hit = [];
+  if (res.closest(".home-location-menu")) {
+    res.innerHTML = lmHomeSearch(q0, ps, live) || '<p class="ws-lm-none" role="status">没有匹配的位置</p>';
+    return;
+  }
   for (const p of ps) if (norm(p.name).includes(q)) hit.push(lmRow(U.p === p.id && (only || !U.b), "chooseLocation", { p: p.id }, `${lmImg(p)}<span class="ws-lm-n">${esc(p.name)}</span>${lmProjectNote(p.id, live)}`));
   if (!only) for (const p of ps) for (const b of locBuildings(p.id)) {
     const site = M.buildingSiteName(data(), b);
@@ -49098,14 +49187,18 @@ function lmFilter(q0) {
   res.innerHTML = hit.join("") || '<p class="ws-lm-none" role="status">没有匹配的位置</p>';
 }
 // 手机：底部卡片，先选项目（“全部项目”在第一行），再选楼宇（第一行“全部楼宇”）；只有一个项目时直接列楼宇
-function wsLocSheet(pid) {
-  const ps = locProjects(), only = locRowProjectOnly(), live = lmLive(), p = only ? null : g("projects", pid || (ps.length === 1 && !U.ov3Now ? ps[0].id : ""));
+function wsLocSheet(pid, home = false) {
+  const ps = locProjects(), only = locRowProjectOnly(), live = lmLive(), id = pid || (ps.length === 1 && !U.ov3Now ? ps[0].id : "");
+  const p = only ? null : home ? ps.find((p) => p.id === id) : g("projects", id);
+  const content = (rows) => home
+    ? `<div class="ws-lm ws-lm-sheet home-location-menu">${lmSearchField(lmHomePlaceholder())}<div id="lmCols" class="ws-lm-cols">${rows}</div>${lmSearchResults}</div>`
+    : `<div class="ws-lm ws-lm-sheet">${rows}</div>`;
   if (p) {
     const all = lmRow(U.p === p.id && !U.b, "chooseLocation", { p: p.id }, '<span class="ws-lm-n">全部楼宇</span>'),
       rows = locBuildings(p.id).map((b) => lmRow(U.b === b.id, "chooseLocation", { p: p.id, b: b.id }, lmBuildingName(b) + lmBuildingNote(b, live))).join("");
-    return modal(p.name, `<div class="ws-lm ws-lm-sheet">${lmAllProjects(ps) ? `<button type="button" class="ws-lm-back" data-act="lmSheetBack">${ico("back", "ic16")}<span>全部项目</span></button>` : ""}<div class="ws-lm-list">${all}${rows}</div></div>`, "", false, { sheet: true });
+    return modal(p.name, content(`${lmAllProjects(ps) ? `<button type="button" class="ws-lm-back" data-act="lmSheetBack">${ico("back", "ic16")}<span>全部项目</span></button>` : ""}<div class="ws-lm-list">${all}${rows}</div>`), "", false, { sheet: true });
   }
-  return modal(only ? "选择项目" : "选择位置", `<div class="ws-lm ws-lm-sheet"><div class="ws-lm-list">${lmProjectRows(null, live, only ? "chooseLocation" : "lmSheetProject")}</div></div>`, "", false, { sheet: true });
+  return modal(only ? "选择项目" : "选择位置", content(`<div class="ws-lm-list">${lmProjectRows(null, live, only ? "chooseLocation" : "lmSheetProject")}</div>`), "", false, { sheet: true });
 }
 // 2.91 V946：数据分析、告警工单、场景选了楼宇后，页签行右边“全部楼层”筛选（只列已接入运行数据的楼层，另写未接入的层数）
 function locFloorOpts() {
@@ -49120,10 +49213,13 @@ function locFloorFilter(inBar = false) {
   return o ? opsFilter("locFloorSel", o[0], o[1], "楼层") : "";
 }
 document.addEventListener("input", (e) => {
-  if (e.target.id === "lmQuery") return lmFilter(e.target.value);
+  if (e.target.id === "lmQuery") return !e.isComposing && lmFilter(e.target.value);
   if (e.target.id !== "locFloorSel" && e.target.id !== "ovFloorSel") return;
   U.opsKeep = "next";
   route(U.page, { p: U.p, b: U.b, f: e.target.value || null, tab: U.tab || "", view: U.view });
+});
+document.addEventListener("compositionend", (e) => {
+  if (e.target.id === "lmQuery") lmFilter(e.target.value);
 });
 // 总览的主导航：先选位置，再选类别。整页操作归标题行；窄屏从同一组操作生成“更多”。
 // 3.42 L17-164：空间页头“⋯”的两项：编辑（有编辑权限，选到楼层或 3D 时）与列表的批量选择
@@ -53387,8 +53483,8 @@ defineActions({
   location: (a, el) => wsLocOpen(el),
   pickProject: (a, el) => wsLocOpen($(".ws-locrow button.ws-locseg") || el),
   pickFloor: (a, el) => wsLocOpen($(".ws-locrow button.ws-locseg") || el, "mark"),
-  lmSheetProject: (a) => wsLocSheet(a.p),
-  lmSheetBack: () => wsLocSheet(),
+  lmSheetProject: (a) => wsLocSheet(a.p, !!$("#dlg .home-location-menu")),
+  lmSheetBack: () => wsLocSheet(null, !!$("#dlg .home-location-menu")),
   spaceOpen: (a) => {
     closeModal(true);
     route("projects", a.kind === "projects" ? { p: a.id, b: null, f: null } : { p: g("buildings", a.id).projectId, b: a.id, f: outdoorSite(a.id)?.id || null });
@@ -54440,10 +54536,12 @@ document.addEventListener("keydown", (e) => {
   // 2.91 V946：位置菜单。↓ 从搜索框进入当前一栏（搜索时为结果），↑/↓ 在本栏内移动，第一行按 ↑ 回到搜索框；
   // 项目行按 → 进入楼宇栏，楼宇栏按 ← 回到项目；Enter 选中所在的项目或楼宇（2.93 V956）；Tab 走出菜单时关闭，Esc 由唯一的 Escape 入口关闭
   const lmPop = $("#pop .ws-lm") ? $("#pop") : null;
-  if (!modal && lmPop?.contains(e.target) && !e.altKey && !e.ctrlKey && !e.metaKey) {
+  const lmSheet = modal && $("#dlg .home-location-menu");
+  if ((lmSheet || (!modal && lmPop))?.contains?.(e.target) && !e.altKey && !e.ctrlKey && !e.metaKey && !e.isComposing) {
     const vis = (l) => (l ? [...l.querySelectorAll(".ws-lm-row")].filter((x) => x.getClientRects().length) : []);
     if (["ArrowDown", "ArrowUp"].includes(e.key)) {
-      const inQ = e.target.id === "lmQuery", l = inQ ? [$("#lmRes:not([hidden])"), $("#lmP"), $("#lmBCol")].find((x) => x && vis(x).length) : e.target.closest(".ws-lm-col, .ws-lm-res"), rows = vis(l), i = rows.indexOf(e.target);
+      const inQ = e.target.id === "lmQuery", l = inQ ? [$("#lmRes:not([hidden])"), $("#lmP"), $("#lmBCol"), lmSheet?.querySelector?.("#lmCols")].find((x) => x && vis(x).length) : e.target.closest(".ws-lm-col, .ws-lm-res, .ws-lm-sheet .ws-lm-list"), rows = vis(l), i = rows.indexOf(e.target);
+      if (!inQ && i < 0) return;
       const next = inQ ? (e.key === "ArrowDown" ? rows[0] : null) : e.key === "ArrowUp" && i <= 0 ? $("#lmQuery") : rows[Math.max(0, Math.min(rows.length - 1, i + (e.key === "ArrowDown" ? 1 : -1)))];
       e.preventDefault();
       next?.focus({ preventScroll: true });
@@ -54463,7 +54561,7 @@ document.addEventListener("keydown", (e) => {
       ($("#lmP .ws-lm-row.pv") || $("#lmP .ws-lm-row"))?.focus({ preventScroll: true });
       return;
     }
-    if (e.key === "Tab") {
+    if (lmPop && e.key === "Tab") {
       const els = wsFocusables(lmPop), i = els.indexOf(document.activeElement);
       if ((e.shiftKey && i <= 0) || (!e.shiftKey && i === els.length - 1)) closePop({ restoreFocus: true });
     }
@@ -108719,6 +108817,8 @@ const homeOverviewBuilding = (level) => level === "b" && !ov3Out(U.b);
 const homeOverviewKey = (level = ov3Lv()) => level === "b" ? "building:" + U.b : level === "p" ? "project:" + U.p : "all";
 const homeOverviewCanvas = () => U.homeOverviewCanvases?.[U.b] || "map";
 const homeOverviewMobile = (level) => U.homeOverviewMobilePanes?.[homeOverviewKey(level)] || "list";
+const homeOverviewPanelScroll = new Map();
+let homeOverviewScrollableFrame = null;
 
 function homeOverviewShowMobile(view) {
   (U.homeOverviewMobilePanes ||= Object.create(null))[homeOverviewKey()] = view;
@@ -108737,7 +108837,7 @@ function homeOverviewSetCanvas(view, saveCamera = true) {
 function homeOverviewScope(level) {
   const project = U.p && g("projects", U.p), building = level === "b" && g("buildings", U.b);
   const text = building ? `${project.name} · ${M.buildingLabel(data(), building)}` : project ? project.name : "全部项目";
-  return locProjects().length ? `<div class="ws-locrow">${wsScopeButton(text)}</div>` : "";
+  return locProjects().length ? `<div class="ws-locrow home-overview-scope-row">${wsScopeButton(text, { id: "homeLocationScope", cls: "home-overview-scope", label: "选择位置" })}</div>` : "";
 }
 
 function homeOverviewHeader(level) {
@@ -108750,14 +108850,30 @@ function homeOverviewHeader(level) {
   return `<header class="home-overview-head"><div class="home-overview-title"><h1 class="ov3-t" id="ov3T">首页</h1></div><div class="home-overview-tools${building ? " is-building" : ""}"><div class="home-overview-primary">${controls}${projectInfo("is-wide")}</div>${building ? `<div class="home-canvas-toggle">${segSm(HOME_CANVAS_VIEWS, currentCanvas, "homeCanvasView", "", "画布视图")}</div>` : ""}</div><div class="home-mobile-toggle">${segSm(mobileItems, mobile, "homeMobileView", "", "首页显示")}${projectInfo("is-narrow")}</div></header>`;
 }
 
+const homeOverviewFrameScrolls = (frame) => frame?.clientHeight > 0 && frame.scrollHeight > frame.clientHeight;
+function homeOverviewCapturePanelScroll(frame) {
+  if (frame === homeOverviewScrollableFrame && homeOverviewFrameScrolls(frame)) homeOverviewPanelScroll.set(frame.dataset.key, frame.scrollTop);
+}
+
 function homeOverviewPanel(level) {
+  homeOverviewCapturePanelScroll($(".home-overview-frame"));
   if (homeCollectionActive(level)) return homeCollectionPanel(level);
   const info = U.tab === "info", building = g("buildings", U.b), project = g("projects", U.p), buildingHome = homeOverviewBuilding(level);
   const body = info ? ov3InfoBody(level, !homeOverviewScope(level))
     : buildingHome ? homeBuildingWidgets(project, building) : homeOverviewOutdoor(project, building);
-  const content = buildingHome ? `<div class="home-building-frame">${body}</div>` : body;
+  const frameKey = buildingHome || (level === "p" && info) ? JSON.stringify([storeKey(), locOwner(), homeOverviewKey(level), info ? "info" : "summary"]) : "";
+  const content = frameKey ? `<div class="home-overview-frame${info ? " is-info" : ""}" data-key="${esc(frameKey)}">${body}</div>` : body;
   return `<aside class="ov3-panel home-overview-panel" data-key="${esc(homeOverviewKey(level))}" aria-label="${info ? "位置资料" : buildingHome ? "楼宇概况" : "室外区域概况"}">${content}</aside>`;
 }
+
+onAfterRender(() => {
+  const frame = $(".home-overview-frame");
+  homeOverviewScrollableFrame = homeOverviewFrameScrolls(frame) ? frame : null;
+  if (!homeOverviewScrollableFrame) return;
+  const top = homeOverviewPanelScroll.get(frame.dataset.key) ?? 0;
+  if (frame.scrollTop !== top) frame.scrollTop = top;
+  frame.addEventListener("scroll", () => homeOverviewCapturePanelScroll(frame), { passive: true, signal: renderSignal() });
+});
 
 function homeOverviewOutdoor(project, building) {
   const area = M.buildingArea(building), location = ov3Addr(project, building), pending = ov3Due(project.id, building.id);
@@ -108782,10 +108898,16 @@ function homeOverviewShell(level) {
 }
 
 defineActions({
+  homeLocationFloor: (a, el) => withMenuFocusReturn(el, () => {
+    const floor = g("floors", a.f);
+    if (!floor || floor.buildingId !== U.b || a.b !== U.b || a.p !== U.p || !mayViewProject(a.p) || (!canEdit() && !ovLiveIds().has(floor.id))) return;
+    if ($("#dlg .ws-lm-sheet")) closeModal(true);
+    goFloor(floor.id, "view", null, "space");
+  }),
   homeCanvasView: ({ value }) => {
     if (!U.ov3Now || !homeOverviewBuilding(ov3Lv()) || !HOME_CANVAS_VIEWS.some(([view]) => view === value)) return;
     homeOverviewSetCanvas(value);
-    if (homeOverviewMobile("b") !== "list") homeOverviewShowMobile(value);
+    homeOverviewShowMobile(value);
     render();
   },
   homeMobileView: ({ value }) => {
@@ -108803,7 +108925,7 @@ defineActions({
 
 /* 首页项目与楼宇目录。地图和列表使用同一组经过授权及筛选的对象。 */
 const homeCollectionActive = (lv = ov3Lv()) => ov3On() && U.tab !== "info" && (lv === "all" || lv === "p");
-const homeCollectionDefaults = () => ({ q: "", city: "", use: "", status: "", drawing: "", kind: "", pending: false });
+const homeCollectionDefaults = () => ({ use: "", drawing: "", kind: "", pending: false });
 function homeCollectionState(lv = ov3Lv()) {
   const key = JSON.stringify([storeKey(), locOwner(), lv === "all" ? null : U.p]);
   const states = (U.homeCollections ||= new Map());
@@ -108831,29 +108953,22 @@ function homeCollectionRows(lv) {
   });
 }
 function homeCollectionFiltered(lv, rows = homeCollectionRows(lv)) {
-  const f = homeCollectionState(lv).filters,
-    terms = f.q.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
-  return rows.filter((row) => {
-    const words = [row.record.name, row.addr, row.city, row.use].join(" ").toLocaleLowerCase();
-    return terms.every((term) => words.includes(term)) && (!f.city || row.city === f.city) &&
-      (!f.use || row.use === f.use) && (!f.status || (f.status === "on") === row.live) &&
-      (!f.drawing || (f.drawing === "yes") === row.drawing) &&
-      (!f.kind || (f.kind === "outdoor") === row.outdoor) && (!f.pending || row.due);
-  });
+  if (lv === "all") return [...rows];
+  const f = homeCollectionState(lv).filters;
+  return rows.filter((row) => (!f.use || row.use === f.use) && (!f.drawing || (f.drawing === "yes") === row.drawing) &&
+    (!f.kind || (f.kind === "outdoor") === row.outdoor) && (!f.pending || row.due));
 }
 const homeCollectionNoun = (lv, rows) => lv === "all" ? "项目" : rows.some((row) => row.outdoor) ? "楼宇与室外区域" : "楼宇";
 const homeCollectionFilterOption = (label, id, options, f) =>
   `<label class="home-collection-filter"><select data-home-filter="${id}" aria-label="${esc(label)}"><option value="">${esc(label)}</option>${options.map(([value, name]) => `<option value="${esc(value)}"${f[id] === value ? " selected" : ""}>${esc(name)}</option>`).join("")}</select>${ico("chevron", "ic16")}</label>`;
 function homeCollectionToolbar(lv, scopeHtml = wsLocRow()) {
-  const all = lv === "all", rows = homeCollectionRows(lv), f = homeCollectionState(lv).filters,
-    label = all ? "搜索项目名称或地址" : rows.some((row) => row.outdoor) ? "搜索楼宇或室外区域" : "搜索楼宇名称或地址",
-    values = (key) => [...new Set(rows.map((row) => row[key]).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN")).map((value) => [value, value]),
-    select = (title, key, options = values(key)) => homeCollectionFilterOption(title, key, options, f),
-    uses = values("use"), filters = all
-      ? [select("地区", "city"), select("用途", "use", uses), select("接入状态", "status", [["on", "已接入"], ["off", "未接入"]])]
-      : [uses.length ? select("用途", "use", uses) : "", rows.some((row) => row.outdoor) ? select("类型", "kind", [["building", "楼宇"], ["outdoor", "室外区域"]]) : "", select("楼层图", "drawing", [["yes", "已上传"], ["no", "未上传"]])],
-    active = Object.entries(f).filter(([key, v]) => key !== "q" && v).length;
-  return `<div class="home-collection-toolbar" role="group" aria-label="查看范围与筛选"><div class="home-collection-search">${scopeHtml}<label class="home-collection-search-field">${ico("search", "ic16")}<input type="search" id="homeCollectionSearch" data-home-filter="q" value="${esc(f.q)}" placeholder="${esc(label)}" aria-label="${esc(label)}" autocomplete="off"></label></div><div class="home-collection-filters">${filters.join("")}<details class="home-collection-more"><summary>${LI('<path d="M4 5h16l-6.5 7.5v5.3l-3 1.7v-7z"/>', "ic16")}全部筛选${active ? `<span class="home-collection-active-count">${active}</span>` : ""}</summary><div class="home-collection-dropdown"><label><input type="checkbox" data-home-filter="pending"${f.pending ? " checked" : ""}> 仅有待处理</label><button type="button" class="home-collection-text-action" data-act="homeCollectReset">重置筛选</button></div></details></div></div>`;
+  if (lv === "all") return wsScopeBand(scopeHtml);
+  const rows = homeCollectionRows(lv), f = homeCollectionState(lv).filters,
+    uses = [...new Set(rows.map((row) => row.use).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN")).map((value) => [value, value]),
+    select = (title, key, options) => homeCollectionFilterOption(title, key, options, f),
+    filters = [uses.length ? select("用途", "use", uses) : "", rows.some((row) => row.outdoor) ? select("类型", "kind", [["building", "楼宇"], ["outdoor", "室外区域"]]) : "", select("楼层图", "drawing", [["yes", "已上传"], ["no", "未上传"]])],
+    active = [f.use, f.drawing, f.kind, f.pending].filter(Boolean).length;
+  return `<div class="home-collection-toolbar" role="group" aria-label="查看范围与筛选">${scopeHtml}<div class="home-collection-filters">${filters.join("")}<details class="home-collection-more"><summary>${LI('<path d="M4 5h16l-6.5 7.5v5.3l-3 1.7v-7z"/>', "ic16")}全部筛选${active ? `<span class="home-collection-active-count">${active}</span>` : ""}</summary><div class="home-collection-dropdown"><label><input type="checkbox" data-home-filter="pending"${f.pending ? " checked" : ""}> 仅有待处理</label><button type="button" class="home-collection-text-action" data-act="homeCollectReset">重置筛选</button></div></details></div></div>`;
 }
 function homeCollectionArt(record, use) {
   const image = record.image, glyph = record.kind === "outdoor" ? "map-pin" : "building-2";
@@ -108885,7 +109000,7 @@ function homeCollectionPanel(lv) {
     iconFold = LI(state.collapsed ? '<path d="M4 5v14m7-12 5 5-5 5"/>' : '<path d="M4 5v14m12-12-5 5 5 5"/>', "ic16"),
     foldLabel = state.collapsed ? "展开列表" : "收起列表",
     empty = results.length
-      ? `<p>没有符合条件的${title}</p><button class="home-collection-text-action" type="button" data-act="homeCollectReset">清除搜索与筛选</button>`
+      ? `<p>没有符合条件的${title}</p><button class="home-collection-text-action" type="button" data-act="homeCollectReset">清除筛选</button>`
       : `<p>${lv === "all" ? "当前没有可访问的项目" : "尚无楼宇或室外区域"}</p>`,
     comparison = lv === "p" && !state.byName ? (a, b) => Number(a.outdoor) - Number(b.outdoor) || sort(a, b) : sort;
   return `<aside class="ov3-panel home-collection" aria-labelledby="homeCollectionTitle"><section class="home-collection-list${state.collapsed ? " is-collapsed" : ""}"><header class="home-collection-list-head"><h2 id="homeCollectionTitle">${title} <span aria-live="polite">${ov3Num(matches.length)}</span></h2><div><button type="button" class="home-collection-icon" data-act="homeCollectSort" aria-label="${sortLabel}" aria-pressed="${state.byName}" data-tip="${sortLabel}"${matches.length < 2 ? " disabled" : ""}>${iconSort}</button><button type="button" class="home-collection-icon" data-act="homeCollectFold" aria-controls="homeCollectionRows" aria-expanded="${!state.collapsed}" aria-label="${foldLabel}" data-tip="${foldLabel}">${iconFold}</button></div></header><div class="home-collection-list-scroll" id="homeCollectionRows"${state.collapsed ? " hidden" : ""}>${matches.length ? `<ul>${matches.sort(comparison).map((row) => homeCollectionCard(row, state.id)).join("")}</ul>` : `<div class="home-collection-empty">${empty}</div>`}</div></section></aside>`;
@@ -108913,7 +109028,7 @@ let homeCollectionPending = null;
 const homeCollectionQueuePreview = (id, focus = false) => {
   homeCollectionPending = { id, focus };
   homeCollectionSelect(id);
-  if (innerWidth <= 850 && !$(".ov3-map")?.getClientRects().length && typeof homeOverviewShowMobile === "function") {
+  if (!$(".ov3-map")?.getClientRects().length && typeof homeOverviewShowMobile === "function") {
     homeOverviewShowMobile("map");
     render();
     return;
@@ -108940,13 +109055,13 @@ defineActions({
     state.id = "";
     if (fromMenu) $(".home-collection-more").open = false;
     render();
-    $("#homeCollectionSearch")?.focus({ preventScroll: true });
+    ($(".home-collection-more > summary") || $("#homeLocationScope"))?.focus({ preventScroll: true });
   },
   homeCollectSummaryClose: () => OVM_LIVE?.api.summary?.dismiss(true),
 });
 const homeCollectionChange = (event) => {
   const field = event.target.closest?.("[data-home-filter]");
-  if (!field || !homeCollectionActive() || event.isComposing) return;
+  if (!field || !homeCollectionActive() || ov3Lv() !== "p") return;
   const state = homeCollectionState(), value = field.type === "checkbox" ? field.checked : field.value, key = field.dataset.homeFilter;
   if (!(key in state.filters) || state.filters[key] === value) return;
   state.filters[key] = value;
@@ -108955,9 +109070,7 @@ const homeCollectionChange = (event) => {
   OVM_LIVE?.api.summary?.close();
   render();
 };
-document.addEventListener("input", homeCollectionChange);
 document.addEventListener("change", homeCollectionChange);
-document.addEventListener("compositionend", homeCollectionChange);
 document.addEventListener("keydown", (event) => {
   const details = event.target.closest?.(".home-collection-more[open]");
   if (event.key === "Escape" && details) {
@@ -117229,6 +117342,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.89",
+    date: "2026-11-17",
+    notes: ["改进首页在手机和平板上的地图及资料浏览。", "项目选择器内可直接搜索，桌面各页标题与菜单统一对齐。"],
+  },
   {
     version: "3.88",
     date: "2026-11-17",
