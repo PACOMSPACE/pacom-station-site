@@ -37520,6 +37520,647 @@ img.img-off { display: none !important; }
   .dep-topo-plan-viewport { height: clamp(265px, 46dvh, 490px); }
 }
 
+/* Only the three home levels use a fixed panel and a header above the canvas. */
+#app.is-ov3 .home-overview { --home-panel-width: 400px; --home-gutter: var(--workspace-gutter); }
+.home-overview-head { min-width: 0; }
+.home-overview-title { display: flex; align-items: center; min-height: var(--workspace-desktop-title-row); }
+.home-overview-tools, .home-overview-primary { display: flex; align-items: center; min-width: 0; gap: 8px; }
+.home-overview-primary { flex: 1 1 auto; }
+.home-overview-tools .ws-scope-band,
+.home-overview-tools .ws-scope-band > .ws-scope-control { min-width: 0; flex: 0 1 auto; }
+.home-overview-tools .ws-locrow { margin: 0; min-width: 0; }
+.home-overview-tools .ws-scope-band > .ws-scope-tabs { flex: 0 0 auto; }
+.home-overview-canvas { min-width: 0; min-height: 0; position: relative; isolation: isolate; }
+.home-overview-canvas > .ov3-view {
+  height: 100%; margin: 0; border: 0; border-radius: 16px; isolation: isolate; background-color: #fafafa;
+  box-shadow: 0 0 0 var(--hw) #fff, 0 0 0 var(--hr) var(--hc-ring, rgba(119, 119, 113, 0.16)), 0 2px 3px rgba(0, 0, 0, .04);
+}
+.home-overview-info { white-space: nowrap; flex: none; }
+.home-mobile-toggle, .home-overview-info.is-narrow { display: none; }
+
+@media (min-width: 851px) {
+  #app.is-ov3 .home-overview {
+    display: grid; height: 100%; min-height: 0; gap: 0;
+    grid-template-columns: var(--home-panel-width) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    padding-inline-end: var(--home-gutter); padding-block-end: var(--workspace-desktop-inset-block);
+  }
+  .home-overview-head {
+    grid-column: 1 / -1; display: grid; gap: 10px;
+    padding: var(--workspace-desktop-inset-block) 0 26px var(--home-gutter);
+  }
+  .home-overview-tools.is-building {
+    display: grid; grid-template-columns: calc(var(--home-panel-width) - var(--home-gutter)) minmax(0, 1fr); gap: 0;
+  }
+  .home-overview-tools.is-building .home-overview-primary { padding-inline-end: 12px; }
+  #app.is-ov3 .home-overview > .ov3-panel {
+    min-width: 0; min-height: 0; padding: 0 var(--home-gutter);
+    overflow: auto; scrollbar-width: thin; border: 0; isolation: isolate;
+  }
+}
+
+@media (max-width: 850px) {
+  #app.is-ov3 .home-overview { --home-gutter: 16px; --home-mobile-dock: 0px; height: auto; }
+  #app.is-ov3:has(> .ov-tabbar) .home-overview { --home-mobile-dock: calc(60px + env(safe-area-inset-bottom, 0px)); }
+  #app.is-ov3 .home-overview[data-home-pane="map"] { height: calc(100dvh - 56px - var(--home-mobile-dock)); }
+  .home-overview-title { display: none; }
+  .home-overview-head { flex: none; display: grid; gap: 8px; padding: 8px var(--home-gutter) 12px; }
+  .home-overview-primary { flex-wrap: wrap; }
+  .home-overview-tools.is-building .ws-scope-band { flex-wrap: nowrap; gap: 8px; max-width: 100%; }
+  .home-overview-tools .ws-scope-control > .ws-locrow { max-width: 100%; }
+  .home-overview-tools .ws-locrow .ws-project-scope { max-width: 100%; }
+  .home-canvas-toggle, .home-overview-info.is-wide { display: none; }
+  .home-mobile-toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
+  .home-overview-info.is-narrow { display: inline-flex; min-height: 44px; }
+  .home-mobile-toggle .seg { overflow: visible; }
+  .home-mobile-toggle .seg > button::after { content: ""; position: absolute; inset: calc((100% - 44px) / 2) 0; }
+  #app.is-ov3 .home-overview > .ov3-panel { padding: 0 var(--home-gutter) 16px; }
+  .home-overview-canvas { flex: 1 1 auto; margin: 0 var(--home-gutter) 16px; min-height: 360px; }
+  body:has(> .demo-fixed, .phead .v13-head > .demo-cap) .home-overview-canvas .ovm-attr { right: 48px; border-top-right-radius: 6px; }
+  .home-overview[data-home-pane="list"] > .home-overview-canvas,
+  .home-overview[data-home-pane="map"] > .ov3-panel { display: none; }
+}
+
+/* 项目、楼宇目录与首页地图摘要 */
+.home-collection-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+}
+.home-collection-search {
+  display: flex;
+  align-items: center;
+  flex: 0 1 432px;
+  width: 432px;
+  min-width: 240px;
+  height: 32px;
+  border: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
+  border-radius: 999px;
+  box-shadow: inset 0 1px 3px #1b1d2410;
+  background: #fafafa;
+  isolation: isolate;
+}
+.home-collection-search:focus-within { outline: 2px solid #00aeef; outline-offset: 2px; }
+.home-collection-search > .ws-locrow {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  min-width: 0;
+  max-width: 52%;
+  height: 30px;
+  border-inline-end: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
+}
+#app .home-collection-search .ws-project-scope {
+  height: 30px;
+  min-height: 30px;
+  max-width: 100%;
+  margin: 0;
+  padding-inline: 12px 8px;
+  border-radius: 999px 0 0 999px;
+  background: transparent;
+  box-shadow: none;
+}
+#app .home-collection-search .ws-project-scope:is(:hover, [aria-expanded="true"]) { background: var(--hover); }
+#app .home-collection-search .ws-project-scope:focus-visible { outline: 0; box-shadow: inset 0 0 0 2px #00aeef; }
+.home-collection-search-field {
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding-inline: 10px 8px;
+  color: var(--ds-ink-2);
+}
+.home-collection-search-field > svg { flex: none; }
+.home-collection-search-field > input {
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  outline: none;
+  padding: 0;
+  color: var(--ds-ink);
+  font: 400 14px/22px var(--ff);
+}
+.home-collection-search-field > input::placeholder { color: var(--ds-ink-2); }
+.home-collection-filters { display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; min-width: 0; }
+.home-collection-filter, .home-collection-more > summary {
+  box-sizing: border-box;
+  position: relative;
+  min-width: 0;
+  height: 32px;
+  border: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
+  border-radius: 999px;
+  background: #fafafa;
+  box-shadow: inset 0 1px 3px #1b1d2410;
+  color: var(--ds-ink);
+  font: 400 14px/22px var(--ff);
+}
+.home-collection-filter { max-width: 100%; }
+.home-collection-filter > select {
+  appearance: none;
+  display: block;
+  box-sizing: border-box;
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  padding-inline: 11px 27px;
+  border: 0;
+  border-radius: inherit;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+.home-collection-filter > svg { position: absolute; inset-inline-end: 8px; inset-block-start: 7px; pointer-events: none; }
+.home-collection-more { position: relative; }
+.home-collection-more > summary { display: flex; align-items: center; gap: 4px; padding-inline: 10px; cursor: pointer; list-style: none; }
+.home-collection-more > summary::-webkit-details-marker { display: none; }
+.home-collection-active-count { margin-inline-start: 2px; font-size: 12px; color: var(--ds-ink-2); }
+.home-collection-dropdown {
+  position: absolute;
+  z-index: 25;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-end: 0;
+  display: grid;
+  min-width: 176px;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: var(--floating-sm);
+  white-space: nowrap;
+}
+.home-collection-dropdown > label { display: flex; align-items: center; gap: 6px; }
+.home-collection-text-action { padding: 4px 0; border: 0; background: transparent; color: #345f89; font: inherit; text-align: start; cursor: pointer; }
+:is(.home-collection-filter > select, .home-collection-more > summary, .home-collection-text-action, .home-collection-icon, .home-collection-card, .home-collection-pop-open):focus-visible { outline: 2px solid #00aeef; outline-offset: -2px; }
+
+.ov3-panel.home-collection { overflow: visible; min-height: 0; padding-bottom: 0; }
+.home-collection-list {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
+  border-radius: 14px;
+  background: #f8f8f8;
+}
+.home-collection-list.is-collapsed { height: auto; }
+.home-collection-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: none;
+  min-width: 0;
+  min-height: 44px;
+  padding-inline: 12px 9px;
+  gap: 6px;
+  border-block-end: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
+  background: #fcfcfc;
+}
+.home-collection-list.is-collapsed .home-collection-list-head { border-block-end: 0; }
+.home-collection-list-head > div { display: flex; align-items: center; gap: 2px; }
+.home-collection-list-head h2 { display: flex; align-items: center; gap: 7px; margin: 0; color: var(--ds-ink); font: 600 14px/20px var(--ff); }
+.home-collection-list-head h2 > span {
+  min-width: 18px;
+  padding-inline: 5px;
+  border-radius: 999px;
+  background: #e6e7e9;
+  color: #42464d;
+  font: 500 11px/18px var(--ff);
+  text-align: center;
+}
+.home-collection-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ds-ink-2);
+  cursor: pointer;
+}
+.home-collection-icon:disabled { opacity: .45; cursor: default; }
+.home-collection-icon:not(:disabled):is(:hover, [aria-pressed="true"]) { background: #eee; }
+.home-collection-list-scroll { min-height: 0; overflow: auto; padding: 10px; scrollbar-width: thin; }
+.home-collection-list-scroll > ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 9px; }
+.home-collection-list-scroll li { min-width: 0; }
+.home-collection-card {
+  display: grid;
+  grid-template-columns: 94px minmax(0, 1fr);
+  align-items: stretch;
+  width: 100%;
+  min-height: 114px;
+  padding: 8px;
+  gap: 10px;
+  border: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
+  border-radius: 10px;
+  background: #fdfdfd;
+  color: var(--ds-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.home-collection-card[aria-pressed="true"] { border-color: #aebed0; background: #f3f7fa; }
+@media (hover: hover) and (pointer: fine) {
+  .home-collection-card:hover { border-color: #aebed0; }
+}
+.home-collection-thumb, .home-collection-pop-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 94px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #eceef1;
+  color: #676e7b;
+}
+.home-collection-thumb > img, .home-collection-pop-art > img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.home-collection-use {
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-start: 6px;
+  max-width: calc(100% - 12px);
+  overflow: hidden;
+  padding-inline: 4px;
+  border-radius: 4px;
+  background: #edf0f2;
+  color: #4f5660;
+  font: 400 10px/16px var(--ff);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.has-image > .home-collection-use { color: #fff; background: #222a35b0; }
+.home-collection-card-body { display: grid; align-content: start; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.home-collection-card-body > b { font: 500 15px/20px var(--ff); }
+.home-collection-card-body > small { color: var(--ds-ink-2); font: 400 12px/17px var(--ff); }
+.home-collection-facts { display: grid; gap: 2px; margin-block-start: 4px; color: var(--ds-ink-2); font: 400 12px/17px var(--ff); }
+.home-collection-fact { display: flex; align-items: flex-start; gap: 4px; min-width: 0; }
+.home-collection-fact > svg { flex: none; width: 13px; height: 13px; margin-block-start: 2px; }
+.home-collection-fact.due { color: #8d561b; }
+.home-collection-fact.due.l0 { color: #ad352b; }
+.home-collection-card-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 7px; }
+.home-collection-status { padding-inline: 5px; border-radius: 5px; background: #ededee; color: #535965; font: 400 11px/17px var(--ff); }
+.home-collection-status.on { background: #e7f1eb; color: #326348; }
+.home-collection-empty { padding: 6px 3px; color: var(--ds-ink-2); }
+.home-collection-empty > p { margin: 0 0 4px; }
+
+.ovm[data-home-map] .ovm-pin[data-home-current] { z-index: 1; }
+.ovm[data-home-map] .ovm-pin[data-home-current] .ovm-pin-ic > path { fill: #030303; stroke: #fff; }
+.ovm[data-home-map] > .home-collection-summary { overflow: visible; padding: 0; }
+.home-collection-summary[data-side]::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--home-popup-arrow, 50%) - 6px);
+  transform: rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  pointer-events: none;
+}
+.home-collection-summary[data-side="right"]::before { left: -6px; }
+.home-collection-summary[data-side="left"]::before { right: -6px; }
+.home-collection-summary[data-side=""]::before { display: none; }
+.home-collection-pop-scroll { position: relative; max-height: inherit; overflow: auto; border-radius: inherit; background: #fff; }
+.home-collection-pop-art { height: 88px; min-height: 0; border-radius: 0; }
+.home-collection-pop-art > img { object-position: 50% 20%; }
+.home-collection-pop-close {
+  position: absolute;
+  inset-block-start: 7px;
+  inset-inline-end: 7px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px #00000019;
+}
+.home-collection-pop-info { padding: 8px 12px; }
+.home-collection-pop-info > p { margin: 2px 0 0; }
+.home-collection-pop-address { color: var(--ds-ink-2); font: 400 12px/18px var(--ff); }
+.home-collection-pop-open {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 36px;
+  padding-inline: 12px;
+  border: 0;
+  border-block-start: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
+  background: #fff;
+  color: #2d4f75;
+  font: 500 12px/18px var(--ff);
+  text-align: start;
+  cursor: pointer;
+}
+.home-collection-pop-open > svg { transform: rotate(-90deg); }
+.home-collection-pop-open:hover { background: #f4f6f9; }
+@media (any-pointer: coarse) {
+  .home-collection-icon, .home-collection-pop-open { min-height: 44px; }
+  .home-collection-icon { width: 44px; }
+  .home-collection-pop-close { width: 30px; height: 30px; min-height: 0; }
+  .home-collection-pop-close::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; }
+}
+@media (max-width: 850px) {
+  .home-collection-search { flex-basis: 100%; max-width: 100%; min-width: 0; }
+  .home-collection-search > .ws-locrow { max-width: 46%; }
+  .home-collection-list { height: auto; }
+  .home-collection-card { grid-template-columns: minmax(72px, 94px) minmax(0, 1fr); }
+}
+@media (max-width: 380px) {
+  .home-collection-toolbar { gap: 6px; }
+  .home-collection-filters { gap: 4px; }
+  .home-collection-filter > select { padding-inline: 7px 20px; }
+  .home-collection-filter > svg { inset-inline-end: 4px; }
+  .home-collection-more > summary { padding-inline: 7px; }
+  .home-collection-list-scroll { padding: 8px; }
+  .home-collection-card { grid-template-columns: 72px minmax(0, 1fr); }
+}
+
+/* 保持 32px 可见轮廓，触屏和窄屏的命中盒不小于 44px。 */
+@media (any-pointer: coarse), (max-width: 850px) {
+  .home-collection-search, .home-collection-filter, .home-collection-more > summary {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+    height: 44px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .home-collection-search::before, .home-collection-filter::before, .home-collection-more > summary::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 6px 0;
+    border: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
+    border-radius: inherit;
+    background: #fafafa;
+    box-shadow: inset 0 1px 3px #1b1d2410;
+    pointer-events: none;
+  }
+  .home-collection-search > .ws-locrow {
+    position: relative;
+    height: 44px;
+    border-inline-end: 0;
+  }
+  .home-collection-search > .ws-locrow::after {
+    content: "";
+    position: absolute;
+    inset: 7px 0 7px auto;
+    border-inline-end: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
+    pointer-events: none;
+  }
+  #app .home-collection-search .ws-project-scope, .home-collection-search-field > input { height: 44px; min-height: 44px; }
+  #app .home-collection-search button.ws-project-scope::after { content: none; }
+  #app .home-collection-search .ws-project-scope:is(:hover, [aria-expanded="true"]) { background: transparent; }
+  .home-collection-filter > svg { inset-block-start: 14px; }
+}
+
+.home-building-widgets {
+  --hwb-line: #dcdde2;
+  --hwb-ink: #20212b;
+  --hwb-muted: #60616b;
+  --hwb-surface: #f8f8f9;
+  --hwb-grid: #dddee5;
+  container-type: inline-size;
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+  color: var(--hwb-ink);
+  font-size: 12px;
+  line-height: 18px;
+}
+.home-building-widgets :is(h2, h3, p, dl, dt, dd) { margin: 0; }
+.hwb-widget {
+  min-width: 0;
+  border: 1px solid var(--hwb-line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+.hwb-widget > header {
+  min-height: 46px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.hwb-widget > header h2 { font-size: 14px; line-height: 20px; font-weight: 600; }
+.hwb-body { display: grid; min-width: 0; padding: 0 12px 12px; gap: 10px; }
+.hwb-summary .hwb-body { padding-top: 12px; }
+.hwb-inner {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--hwb-line);
+  border-radius: 8px;
+  background: var(--hwb-surface);
+}
+.hwb-inner h3 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  min-width: 0;
+}
+.home-building-widgets .ops-info-wrap { margin-block: -3px; }
+.hwb-cols { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.hwb-cover {
+  position: relative;
+  min-height: 88px;
+  background: #eceef2;
+  color: var(--hwb-muted);
+}
+.hwb-cover > img { display: block; width: 100%; height: 226px; object-fit: cover; object-position: 50% 46%; }
+.hwb-no-photo { display: grid; place-items: center; gap: 4px; padding: 28px 10px 16px; font-weight: 500; }
+.hwb-type, .hwb-current-wx {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  max-width: calc(100% - 20px);
+  font-size: 11px;
+  line-height: 18px;
+  padding: 1px 7px;
+}
+.hwb-type { top: 8px; left: 8px; }
+.hwb-cover.has-photo :is(.hwb-type, .hwb-current-wx) { color: #fff; background: #303741b8; }
+.hwb-current-wx { bottom: 8px; left: 8px; color: var(--hwb-ink); background: #f8f8f9; }
+.hwb-overall { min-height: 144px; }
+.home-building-widgets .hwb-big {
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 36px;
+  font-variant-numeric: proportional-nums;
+}
+.hwb-overall .hwb-big { margin: 4px 0 6px; }
+.hwb-day-strip {
+  height: 36px;
+  display: grid;
+  grid-template-columns: repeat(30, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border-radius: 2px;
+}
+.hwb-day-strip i { background: #e7e8ed; }
+.hwb-axis {
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+  margin-top: 4px;
+  color: var(--hwb-muted);
+  line-height: 14px;
+  font-size: 10px;
+}
+.hwb-demo-label { margin-inline-start: 6px; color: var(--hwb-muted); font-size: 10px; }
+.hwb-weather {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+.hwb-weather li {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  min-width: 0;
+  padding: 3px 0;
+  border-radius: 5px;
+  line-height: 16px;
+}
+.hwb-weather li:first-child { background: #fff; }
+.hwb-weather li > .ic { color: #566578; margin: 4px auto; }
+.hwb-weather li > :is(span, small) { color: var(--hwb-muted); }
+.hwb-weather li > b { font-weight: 500; }
+.hwb-weather li > small { font-size: 11px; }
+.hwb-wx-off { padding-top: 4px; color: var(--hwb-muted); }
+.hwb-meta { display: grid; gap: 3px; }
+.hwb-meta > div { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px; }
+.hwb-meta dt { display: inline-flex; align-items: center; gap: 7px; color: var(--hwb-muted); }
+.hwb-meta dd { text-align: end; overflow-wrap: anywhere; }
+.hwb-state { border: 1px solid #dedfe4; border-radius: 999px; padding-inline: 5px; }
+.hwb-score-card { min-height: 108px; }
+.hwb-score { display: flex; justify-content: space-between; align-items: baseline; margin-top: 5px; }
+.hwb-change {
+  color: var(--hwb-muted);
+  background: #eceef3;
+  border-radius: 999px;
+  min-width: 32px;
+  text-align: center;
+  line-height: 14px;
+}
+.hwb-tickets-layout > div { display: grid; min-width: 0; gap: 10px; }
+.hwb-ticket-go {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-inline-end: -2px;
+  padding: 0;
+  color: var(--hwb-muted);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+.hwb-ticket-go:hover,
+.hwb-ticket-go:focus-visible { background: #e9ebef; }
+.hwb-ticket-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.hwb-ticket-kpis dd {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 20px;
+  line-height: 27px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.hwb-ticket-kpis dt { white-space: nowrap; }
+.hwb-ticket-kpis dd .ic { flex: none; }
+.hwb-ticket-kpis dd.hwb-overdue { color: #ad2f25; }
+.hwb-ticket-daily { min-height: 126px; }
+.hwb-plot {
+  height: 72px;
+  min-width: 0;
+  margin-top: 6px;
+  background: repeating-linear-gradient(to top, var(--hwb-grid) 0 1px, transparent 1px 24px);
+}
+.hwb-bars {
+  display: grid;
+  align-items: end;
+  grid-template-columns: repeat(30, minmax(0, 1fr));
+  gap: 1px;
+}
+.hwb-bars i { background: #5865c7; }
+.hwb-empty, .hwb-group-empty { display: grid; place-items: center; color: var(--hwb-muted); font-size: 18px; }
+.home-building-widgets .hwb-group-empty { flex: 1; min-height: 36px; }
+.hwb-ticket-types { display: flex; flex-direction: column; }
+
+.hwb-insight-card { position: relative; min-height: 122px; }
+.hwb-insight-card h3 { margin-inline-end: 18px; }
+.hwb-insight-card .hwb-big { margin: 4px 0; }
+.hwb-insight-card dl { display: grid; gap: 1px; font-size: 11px; line-height: 16px; }
+.hwb-insight-card dl > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px; }
+.hwb-insight-card dt { color: var(--hwb-muted); }
+.hwb-insight-mark {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 2px;
+  color: #4659c0;
+  background: #e2e6fb;
+}
+.hwb-insight-mark.progress { color: #704191; background: #eadcf4; }
+.hwb-insight-mark.success { color: #2b6a34; background: #dcead9; }
+.hwb-insight-mark.failure { color: #776016; background: #eee7d1; }
+.hwb-insight-plot .hwb-plot { height: 108px; background-size: 100% 27px; }
+.hwb-insight-plot:last-child .hwb-plot {
+  height: 76px;
+  background: repeating-linear-gradient(to right, var(--hwb-grid) 0 1px, transparent 1px 25%);
+}
+@container (max-width: 300px) {
+  .hwb-cover > img { height: auto; aspect-ratio: 1.55; }
+  .hwb-inner { padding-inline: 8px; }
+  .hwb-body { padding-inline: 9px; }
+  .hwb-cols { gap: 8px; }
+}
+@container (max-width: 275px) {
+  .hwb-tickets-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (any-pointer: coarse) {
+  .hwb-ticket-go::after { content: ""; position: absolute; inset: -7px; }
+  .home-building-widgets .ops-info::after { inset: -10px; }
+}
+
 #app[data-page="settings"] .main > .panel > .phead {
   display: grid;
   gap: 12px;
@@ -48349,11 +48990,12 @@ function lmBuildingNote(b, live) {
 const lmImg = (p) => `<span class="ws-lm-img" aria-hidden="true">${p?.image ? `<img src="${esc(p.image)}" alt="">` : ico(p ? "building-2" : "dir-grid", "ic16")}</span>`;
 const lmCheck = (on) => (on ? ico("check", "ic16") : "");
 const lmRow = (on, act, args, inner, cls = "") => `<button type="button" class="ws-lm-row${on ? " on" : ""}${cls}" data-act="${act}"${Object.entries(args).map(([k, v]) => ` data-${k}="${v}"`).join("")}${on ? ' aria-current="true"' : ""}>${inner}${lmCheck(on)}</button>`;
+const lmAllProjects = (projects) => !wsNeedsProject() && (projects.length > 1 || U.ov3Now && projects.length === 1);
 function lmProjectRows(pv, live, act, prev = false) {
   // 2.91 V946：设备标记、应用设置只能按单个项目看，菜单不列“全部项目”
   const ps = locProjects();
   // 2.99 V977：“全部项目”行带 data-pv="*"，指向它时右栏列出各项目的楼宇
-  return (ps.length > 1 && !wsNeedsProject() ? lmRow(!U.p, "chooseLocation", { pv: "*" }, `${lmImg(null)}<span class="ws-lm-n">全部项目</span>`, prev && pv === "*" ? " pv" : "") : "") + ps.map((p) => lmRow(U.p === p.id, act, { p: p.id }, `${lmImg(p)}<span class="ws-lm-n">${esc(p.name)}</span>${lmProjectNote(p.id, live)}`, prev && p.id === pv ? " pv" : "")).join("");
+  return (lmAllProjects(ps) ? lmRow(!U.p, "chooseLocation", { pv: "*" }, `${lmImg(null)}<span class="ws-lm-n">全部项目</span>`, prev && pv === "*" ? " pv" : "") : "") + ps.map((p) => lmRow(U.p === p.id, act, { p: p.id }, `${lmImg(p)}<span class="ws-lm-n">${esc(p.name)}</span>${lmProjectNote(p.id, live)}`, prev && p.id === pv ? " pv" : "")).join("");
 }
 function lmBuildingCol(pv, live) {
   // 2.99 V977：pv 为 "*"（全部项目）时列出各项目的楼宇，行后灰字写所属项目，一步选到任一楼宇
@@ -48369,9 +49011,9 @@ function lmBuildingName(b, project = null) {
 function wsLocOpen(el, intent) {
   U.pickIntent = intent || null;
   if (isMobile()) return wsLocSheet();
-  const row = el.closest(".ws-locrow") || el, ps = locProjects(), only = locRowProjectOnly(), live = lmLive(), two = !only && ps.length > 1, w = two ? 560 : 280, ph = only ? "搜索项目" : "搜索项目或楼宇";
+  const row = el.closest(".ws-locrow") || el, ps = locProjects(), only = locRowProjectOnly(), live = lmLive(), two = !only && (ps.length > 1 || U.ov3Now), w = two ? 560 : 280, ph = only ? "搜索项目" : "搜索项目或楼宇";
   // 2.99 V977：只能按项目看的页面（设备标记）在“全部项目”时先预览上次选过的项目，没有时预览第一个有楼宇的项目（3.00 V990）
-  U.lmPv = U.p && g("projects", U.p) ? U.p : ps.length > 1 && !wsNeedsProject() ? "*" : (ps.find((x) => x.id === U.lastP) || ps.find((x) => locBuildings(x.id).length) || ps[0])?.id || null;
+  U.lmPv = U.p && g("projects", U.p) ? U.p : lmAllProjects(ps) ? "*" : (ps.find((x) => x.id === U.lastP) || ps.find((x) => locBuildings(x.id).length) || ps[0])?.id || null;
   const col = (title, id, rows) => `<div class="ws-lm-col"><div class="ws-lm-h"><span>${title}</span></div><div class="ws-lm-list" id="${id}">${rows}</div></div>`,
     cols = only ? col("项目", "lmP", lmProjectRows(null, live, "chooseLocation")) : `${two ? col("项目", "lmP", lmProjectRows(U.lmPv, live, "chooseLocation", true)) : ""}<div class="ws-lm-col" id="lmBCol">${lmBuildingCol(U.lmPv, live)}</div>`;
   pop(el, `<div class="ws-lm${two ? " two" : ""}"><div class="ws-lm-search">${ico("search", "ic16")}<input id="lmQuery" placeholder="${ph}" aria-label="${ph}" autocomplete="off"></div><div class="ws-lm-cols" id="lmCols">${cols}</div><div class="ws-lm-list ws-lm-res" id="lmRes" hidden></div></div>`);
@@ -48420,11 +49062,11 @@ function lmFilter(q0) {
 }
 // 手机：底部卡片，先选项目（“全部项目”在第一行），再选楼宇（第一行“全部楼宇”）；只有一个项目时直接列楼宇
 function wsLocSheet(pid) {
-  const ps = locProjects(), only = locRowProjectOnly(), live = lmLive(), p = only ? null : g("projects", pid || (ps.length === 1 ? ps[0].id : ""));
+  const ps = locProjects(), only = locRowProjectOnly(), live = lmLive(), p = only ? null : g("projects", pid || (ps.length === 1 && !U.ov3Now ? ps[0].id : ""));
   if (p) {
     const all = lmRow(U.p === p.id && !U.b, "chooseLocation", { p: p.id }, '<span class="ws-lm-n">全部楼宇</span>'),
       rows = locBuildings(p.id).map((b) => lmRow(U.b === b.id, "chooseLocation", { p: p.id, b: b.id }, lmBuildingName(b) + lmBuildingNote(b, live))).join("");
-    return modal(p.name, `<div class="ws-lm ws-lm-sheet">${ps.length > 1 ? `<button type="button" class="ws-lm-back" data-act="lmSheetBack">${ico("back", "ic16")}<span>全部项目</span></button>` : ""}<div class="ws-lm-list">${all}${rows}</div></div>`, "", false, { sheet: true });
+    return modal(p.name, `<div class="ws-lm ws-lm-sheet">${lmAllProjects(ps) ? `<button type="button" class="ws-lm-back" data-act="lmSheetBack">${ico("back", "ic16")}<span>全部项目</span></button>` : ""}<div class="ws-lm-list">${all}${rows}</div></div>`, "", false, { sheet: true });
   }
   return modal(only ? "选择项目" : "选择位置", `<div class="ws-lm ws-lm-sheet"><div class="ws-lm-list">${lmProjectRows(null, live, only ? "chooseLocation" : "lmSheetProject")}</div></div>`, "", false, { sheet: true });
 }
@@ -98654,6 +99296,7 @@ defineActions({
   // 页签切换不再自动进入下一级（KW25：项目页只有一栋已接入的楼宇时同样停在项目页）
   ovOtab: (a) => {
     U.tab = a.value === "info" ? "info" : "";
+    if (U.ov3Now) homeOverviewShowMobile("list");
     U.opsKeep = [U.p, U.b, U.f].join("|");
     syncRoute(true);
     render();
@@ -104281,7 +104924,6 @@ const ov3Num = (v, d = 0) => nf(v, d);
 const ov3Live = () => new Set(typeof Demo !== "undefined" && Demo.on?.() && typeof liveFloorIds === "function" ? liveFloorIds() : []);
 const ov3ProjLive = (pid, live = ov3Live()) => [...live].some((fid) => g("buildings", g("floors", fid)?.buildingId)?.projectId === pid);
 const ov3Blds = (pid) => data().buildings.filter((b) => b.projectId === pid && b.kind !== "outdoor").sort(M.byName);
-const ov3Area = (bs) => M.projectBuildingArea(bs).value;
 // 建筑面积只计填了面积的楼宇，没填的写在下方“F栋未填面积”（最终图细节核查第 4 项）
 const ov3AreaNote = (bs) => {
   const { value, excluded } = M.projectBuildingArea(bs),
@@ -104292,21 +104934,8 @@ const ov3AreaNote = (bs) => {
 };
 // 3.54 V1462：地址与“信息”同一写法：所在地（省 市）后接详细地址，如“广东省 广州市 星际四路”
 const ov3Addr = (p, b = null) => (p ? [regionText(p).replace(/^未取得$/, ""), b?.address || p?.address].filter(Boolean).join(" ") : "");
-// 最后一次修改：修改记录中最新的一条，写“王敏 编辑于 2 小时前”
-function ov3Ago(at) {
-  const now = typeof Demo !== "undefined" && Demo.NOW ? Demo.NOW : Date.now(),
-    m = Math.max(0, Math.round((now - Date.parse(at)) / 60000));
-  return m < 1 ? "刚刚" : m < 60 ? `${m} 分钟前` : m < 1440 ? `${Math.floor(m / 60)} 小时前` : m < 10080 ? `${Math.floor(m / 1440)} 天前` : projectDate(at, U.p, false);
-}
-function ov3Edited(id) {
-  const r = (data().records || []).find((x) => x.objectId === id && x.at);
-  if (!r) return "";
-  const who = String(M.actorText(r.actor) || "").split(" · ")[0] || "";
-  return `<div class="ov3-sec ov3-ed">${who ? `<span class="ov3-av" aria-hidden="true">${esc(who.slice(0, 1))}</span>` : ""}<span>${esc(who)} 编辑于 ${esc(ov3Ago(r.at))}</span></div>`;
-}
 const ov3Stat = (icon, label, val, unit = "", sub = "") =>
   `<div class="ov3-st"><span class="ov3-st-ic" aria-hidden="true">${ico(icon, "ic16")}</span><span class="ov3-st-t"><small>${esc(label)}</small><b>${val}${unit ? `<i>${esc(unit)}</i>` : ""}</b>${sub ? `<small class="ov3-st-sub">${esc(sub)}</small>` : ""}</span></div>`;
-const ov3Tags = (o) => (o.usage ? `<div class="ov3-sec ov3-tags"><span class="ov3-tag-ic" aria-hidden="true">${ico("tag", "ic16")}</span><span class="ov3-tag">${esc(o.usage)}</span></div>` : "");
 // 待处理（与菜单“告警工单”的数字同一口径）：可按楼宇、楼层筛；lvl 为最高级别（0 紧急、1 重要、2 提示）
 // 楼宇、楼层的待处理：按告警或工单所在楼层归属（与告警工单“待处理”页签同一口径，见 workspace-ui.js wsPendItems）
 function ov3Due(pid, bid = null, fid = null) {
@@ -104321,79 +104950,6 @@ const ov3Devs = (b, st = F.floorStack(data(), b.id)) => {
 };
 // 3.53 V1454：楼层结构按规范写法（同 structWords）：“22 层 · 屋顶层 RF”，有地下层时“地上 22 层 · 地下 2 层 · 屋顶层 RF”
 const ov3Lvls = (b) => (typeof structWords === "function" ? structWords(b).replace(/^尚无楼层$/, "") : "");
-const ov3Desc = (o) => {
-  const t = String(o.description || "").trim();
-  return t ? `<div class="ov3-sec ov3-desc"><p>${esc(t)}</p></div>` : "";
-};
-
-// 3.53 V1413：首页不再放“需重新交付”（部署事项只在 系统部署 › 部署进度）
-// 需重新交付（最终图细节核查第 29 项）：交付后改过参数的楼宇，对机构管理员、配置人员在楼宇总览加一行“需重新交付 · 1 项改动 ›”，
-// 下一行写第一项改动（与部署“验证与交付”的“相较交付的改动”同一写法），点开进入部署
-function ov3Redo(b) {
-  if (!canEdit() || typeof v13DeployState !== "function") return "";
-  const DS = v13DeployState(data(), { p: b.projectId, b: b.id }, true);
-  if (!DS?.redo?.length) return "";
-  const xs = DS.redo.flatMap(([n, ss]) => ss.map((s) => (typeof v13ChangeText === "function" ? v13ChangeText(DS.stages?.find(([x]) => x.id === n.id)?.[1].last, s) : ""))).filter(Boolean),
-    n = DS.redo.reduce((t, [, ss]) => t + ss.length, 0);
-  return `<button type="button" class="ov3-redo" data-act="ov3DepStep" data-k="验证与交付"><span><b>需重新交付 · ${n} 项改动</b>${xs[0] ? `<small>${esc(xs[0].replace(new RegExp(`^${b.name} · [^ ]+ · `), ""))}${xs.length > 1 ? ` 等 ${xs.length} 项` : ""}</small>` : ""}</span>${ico("chevron", "ic16 ov3-chev")}</button>`;
-}
-
-/* ---------- 面板 ---------- */
-function ov3Panel(lv) {
-  const db = data(),
-    scope = wsLocRow(),
-    head = (tab) => `<div class="ov3-head"><h1 class="ov3-t" id="ov3T">首页</h1>${ov3TopActs()}</div>${wsScopeBand(scope, tab ? ov3Tabs(tab) : "")}`,
-    contextName = (item) => scope ? "" : `<h2>${esc(item.name)}</h2>`;
-  if (lv === "all") {
-    // 有待处理的、已接入的项目排在前面，其余按名称
-    const live0 = ov3Live(),
-      due = (p) => (typeof wsAlarmCount === "function" ? wsAlarmCount(p.id)?.n || 0 : 0),
-      ps = locProjects().slice().sort((a, b) => due(b) - due(a) || ov3ProjLive(b.id, live0) - ov3ProjLive(a.id, live0) || M.byName(a, b)),
-      live = ov3Live(),
-      area = ov3Area(ps.flatMap((p) => ov3Blds(p.id))),
-      rows = ps.map((p) => {
-        const al = typeof wsAlarmCount === "function" ? wsAlarmCount(p.id) : null,
-          on = ov3ProjLive(p.id, live);
-        return `<li><button type="button" class="ov3-prow" data-act="ov3Go" data-p="${esc(p.id)}"><span class="ov3-prow-t"><b>${esc(p.name)}</b><small>${esc(ov3ProjectPinMeta(p))}${al ? `<em class="ov3-due">${ov3Dot(al.lvl)}待处理 ${al.n} 项</em>` : ""}</small></span><span class="ov3-pill${on ? " on" : ""}">${on ? "已接入" : "未接入"}</span></button></li>`;
-      });
-    return `<aside class="ov3-panel" aria-labelledby="ov3T">${head()}<div class="ov3-sec ov3-stats">${ov3Stat("building-2", "项目", ov3Num(ps.length), "个")}${ov3Stat("floor-plan", "建筑面积", area == null ? "—" : ov3Num(area, 1), area == null ? "" : "m²", ov3AreaNote(ps.flatMap((p) => ov3Blds(p.id))))}</div><ul class="ov3-plist" aria-label="项目">${rows.join("")}</ul></aside>`;
-  }
-  const p = g("projects", U.p);
-  if (U.tab === "info") return `<aside class="ov3-panel" aria-labelledby="ov3T">${head("info")}${ov3InfoBody(lv, !scope)}</aside>`;
-  if (lv === "p") {
-    const bs = ov3Blds(p.id),
-      area = ov3Area(bs);
-    // 楼宇列表（细节核查第 5 项）：层数 · 设备台数 · 待处理；没有楼层图的楼宇写“未上传楼层图”；点一行进入楼宇总览
-    const brows = bs.map((b) => {
-      const st = F.floorStack(db, b.id),
-        plans = st.some((x) => x.f.image),
-        due = ov3Due(p.id, b.id),
-        sub = [ov3Lvls(b), plans ? `设备 ${ov3Num(ov3Devs(b, st))} 台` : "未上传楼层图"].filter(Boolean).join(" · ");
-      return `<li><button type="button" class="ov3-prow ov3-brow" data-act="ov3Go" data-p="${esc(p.id)}" data-b="${esc(b.id)}"><span class="ov3-prow-t"><b>${esc(b.name)}</b><small>${esc(sub)}${due ? `${sub ? " · " : ""}<em class="ov3-due">${ov3Dot(due.lvl)}待处理 ${due.n} 项</em>` : ""}</small></span>${ico("chevron", "ic16 ov3-chev")}</button></li>`;
-    });
-    return `<aside class="ov3-panel" aria-labelledby="ov3T">${head("summary")}<div class="ov3-sec ov3-id">${contextName(p)}${ov3Addr(p) ? `<p>${esc(ov3Addr(p))}</p>` : ""}<div class="ov3-stats">${ov3Stat("building-2", "楼宇", ov3Num(bs.length), "栋")}${ov3Stat("floor-plan", "建筑面积", area == null ? "未填写" : ov3Num(area, 1), area == null ? "" : "m²", ov3AreaNote(bs))}</div></div>${brows.length ? `<div class="ov3-sec ov3-bsec"><ul class="ov3-plist ov3-blist" aria-label="楼宇">${brows.join("")}</ul></div>` : ""}${ov3Desc(p)}${ov3Tags(p)}${ov3Edited(p.id)}</aside>`;
-  }
-  const b = g("buildings", U.b),
-    out = ov3Out(b.id),
-    st = F.floorStack(db, b.id),
-    devs = ov3Devs(b, st),
-    due = ov3Due(b.projectId, b.id),
-    area = M.buildingArea(b),
-    // 待处理（细节核查第 7 项，替代原“楼层图 N / M 层”；楼层图覆盖由画面左侧楼层列看出）：点开进入告警工单并筛到本楼宇
-    dueSt = due
-      ? `<button type="button" class="ov3-st ov3-st-go" data-act="ov3Alarms" aria-label="待处理 ${due.n} 项：打开告警工单">${ov3Stat("alert", "待处理", ov3Num(due.n), "项").replace(/^<div class="ov3-st">|<\/div>$/g, "").replace('class="ov3-st-ic"', `class="ov3-st-ic ov3-st-al l${due.lvl}"`)}</button>`
-      : ov3Stat("alert", "待处理", "0", "项"),
-    lvl = b.above ? `地上 ${b.above} 层` : b.below ? `地下 ${b.below} 层` : "—",
-    stats = [
-      ov3Stat("floor-plan", M.buildingAreaLabel(M.buildingAreaKind(b)), area === null ? "未填写" : ov3Num(area, 1), area === null ? "" : "m²"),
-      // 3.54 V1461：楼层写楼层个数（含屋顶层，与楼层卡片一致，如“23 个”），副行为楼层结构（“22 层 · 屋顶层 RF”）
-      out ? "" : (() => { const nf = db.floors.filter((f) => f.buildingId === b.id).length; return nf ? ov3Stat("layers", "楼层", ov3Num(nf), "个", esc(ov3Lvls(b))) : ov3Stat("layers", "楼层", esc(lvl).replace(/ 层$/, ""), lvl === "—" ? "" : "层"); })(),
-      dueSt,
-      ov3Stat("cpu", "设备", ov3Num(devs), "台"),
-    ].filter(Boolean);
-  return `<aside class="ov3-panel" aria-labelledby="ov3T">${head("summary")}<div class="ov3-sec ov3-id">${contextName(b)}${ov3Addr(p, b) ? `<p>${esc(ov3Addr(p, b))}</p>` : ""}<div class="ov3-stats">${stats.join("")}</div></div>${ov3Desc(b)}${ov3Tags(b)}${ov3Edited(b.id)}</aside>`;
-}
-
 // 3.53 V1410、V1411、V1409：首页“信息”留在 400 面板里，画面（地图或楼宇 3D / 2D）不变；只显示资料：照片、基本资料、楼宇或楼层、文件。
 // 部署范围、空间资料、“其余 N 个楼层未纳入”与“编辑”只在 系统部署 › 项目配置（方案：首页只看不改）
 function ov3InfoBody(lv, showName = true) {
@@ -104450,15 +105006,18 @@ function ov3Page() {
     const f = g("floors", U.f);
     if (f) {
       U.b = f.buildingId;
-      (U.ov3F ||= {})[f.buildingId] = f.image ? f.id : null;
+      (U.ov3F ||= {})[f.buildingId] = f.id;
+      if (ov3Out(f.buildingId)) homeOverviewShowMobile("map");
+      else {
+        homeOverviewSetCanvas("model", false);
+        homeOverviewShowMobile("model");
+      }
     }
     U.f = null;
     fix = true;
   }
   if (fix) syncRoute(true);
-  const lv = ov3Lv();
-  const panel = ov3Panel(lv);
-  return `<div class="ov3x" data-lv="${lv}">${panel}${lv === "b" ? ov3Bldg() : ov3MapHtml(lv, { homeProject: lv === "p" })}</div>`;
+  return homeOverviewShell(ov3Lv());
 }
 // 3.52 菜单与页签方案：首页的项目、楼宇为“概况 | 信息”两个页签（取代 3.47 的信息子页）；信息只显示，编辑在 系统部署 › 项目配置
 const ov3Tabs = (cur) => ws3Tabs([["summary", "概况"], ["info", "信息"]], cur, "ovOtab").replace(/data-tab=/g, "data-value=");
@@ -104545,11 +105104,11 @@ function ov3ScopeAdd(bid, then = null) {
   return true;
 }
 // 没有楼层图的楼宇（最终图细节核查第 28 项，补图 28）：画面为项目地图，底部一张卡片写“F栋 未上传楼层图”，配置人员、机构管理员有“去部署”
-function ov3NoPlanMap(b) {
+function ov3NoPlanMap(b, { homeProject = false, showScale = true } = {}) {
   const pw = ov3Out(b.id) ? "总平面图" : "楼层图",
     card = `<div class="ov3-npcard" role="note"><span><b>${esc(b.name)} 未上传${pw}</b><small>上传${pw}并放置设备后，这里显示平面和 3D；现在只在地图上显示位置。</small></span>${canEdit() ? btn(`上传${pw}`, "ov3CfgUp", { b: b.id }, "primary ov3-npgo") : ""}</div>`;
   if (!U.p) U.p = b.projectId;
-  return ov3MapHtml("p", { focus: b.id, showScale: true }).replace(/<\/section>$/, `${card}</section>`);
+  return ov3MapHtml("p", { focus: b.id, showScale, homeProject }).replace(/<\/section>$/, `${card}</section>`);
 }
 
 /* ---------- 地图（全部项目、项目） ---------- */
@@ -104657,29 +105216,37 @@ function ov3SummaryPlacement(anchor, bounds, width, height, obstacles) {
   const limit = (value, min, max) => Math.max(min, Math.min(value, max));
   const x = limit((anchor.left + anchor.right - width) / 2, left, right - width);
   const y = limit((anchor.top + anchor.bottom - height) / 2, top, bottom - height);
-  const candidates = [
-    [anchor.right + gap, y, height],
-    [anchor.left - gap - width, y, height],
-    [x, anchor.top - gap - height, height],
-    [x, anchor.bottom + gap, height],
-  ];
+  const nearLeft = Math.max(left, anchor.left - width + 12), nearRight = Math.min(right - width, anchor.right - 12);
+  const horizontal = [...new Set([x, nearLeft, nearRight, ...obstacles.flatMap((r) => [
+    limit(r.left - width, nearLeft, nearRight), limit(r.right, nearLeft, nearRight),
+  ])].filter((v) => v >= nearLeft && v <= nearRight))];
+  const candidates = [[anchor.right + gap, y, height], [anchor.left - gap - width, y, height],
+    ...horizontal.flatMap((at) => [[at, anchor.top - gap - height, height], [at, anchor.bottom + gap, height]])];
   const fits = ([x, y, h]) => h > 0 && x >= left && x + width <= right && y >= top && y + h <= bottom &&
     !obstacles.some((r) => x < r.right && x + width > r.left && y < r.bottom && y + h > r.top);
   const full = candidates.find(fits);
   if (full) return full;
-  // When the page shows only part of the map, let the summary scroll in the larger adjacent space.
-  const above = Math.min(height, anchor.top - gap - top), below = Math.min(height, bottom - anchor.bottom - gap);
-  return [[x, anchor.top - gap - above, above], [x, anchor.bottom + gap, below]]
-    .sort((a, b) => b[2] - a[2]).find((rect) => rect[2] >= 64 && fits(rect));
+  // Preserve an adjacent, scrollable summary when short viewports or tools restrict usable height.
+  return horizontal.flatMap((at) => {
+    const blockers = obstacles.filter((r) => at < r.right && at + width > r.left);
+    const upperLimit = Math.max(top, ...blockers.filter((r) => r.top < anchor.top).map((r) => r.bottom)),
+      lowerLimit = Math.min(bottom, ...blockers.filter((r) => r.bottom > anchor.bottom).map((r) => r.top)),
+      above = Math.min(height, anchor.top - gap - upperLimit), below = Math.min(height, lowerLimit - anchor.bottom - gap);
+    return [[at, anchor.top - gap - above, above], [at, anchor.bottom + gap, below]];
+  }).sort((a, b) => b[2] - a[2]).find((rect) => rect[2] >= 64 && fits(rect));
 }
 function ov3MapSummary(host, st) {
   const listeners = new AbortController(), signal = listeners.signal,
     map = host.closest(".ov3-map");
   let current = null, pending = null, dismissed = null, showTimer, hideTimer, pointer = "";
   const pinAt = (el) => el?.closest?.(`.ovm-pin[data-act="${st.pinAction}"]`);
-  const lookup = (el) => {
-    const index = Number(el.dataset.i);
-    return el.isConnected && !el.hidden && !st.pinGroups.has(index) ? st.pins[index] : null;
+  const pinId = (pin) => pin.args?.b || pin.args?.p;
+  const lookup = (el, id = null) => {
+    const index = Number(el.dataset.i), group = st.pinGroups.get(index);
+    if (!el.isConnected || el.hidden) return null;
+    if (group) return id ? group.members.find((pin) => pinId(pin) === id) : null;
+    const pin = st.pins[index];
+    return pin && (!id || pinId(pin) === id) ? pin : null;
   };
   function close() {
     clearTimeout(showTimer);
@@ -104689,7 +105256,7 @@ function ov3MapSummary(host, st) {
     const { anchor, card } = current;
     current = null;
     anchor.removeAttribute("aria-describedby");
-    anchor.removeAttribute("aria-expanded");
+    if (anchor.dataset.act !== "ov3MapGroup") anchor.removeAttribute("aria-expanded");
     anchor.removeAttribute("aria-controls");
     anchor.removeAttribute("data-pin-active");
     card.remove();
@@ -104697,7 +105264,7 @@ function ov3MapSummary(host, st) {
   }
   function place(reveal = false) {
     if (!current) return false;
-    const { anchor, card } = current, rect = anchor.getBoundingClientRect(),
+    const { anchor, card, target } = current, rect = anchor.getBoundingClientRect(),
       base = host.getBoundingClientRect(), vv = window.visualViewport,
       topBar = $("#wtop")?.getBoundingClientRect(), bottomBar = $(".ov-tabbar")?.getBoundingClientRect(),
       vLeft = vv?.offsetLeft || 0, vTop = vv?.offsetTop || 0,
@@ -104705,7 +105272,7 @@ function ov3MapSummary(host, st) {
       bottom = Math.min(base.bottom, vTop + (vv?.height ?? innerHeight), bottomBar?.height ? bottomBar.top : Infinity),
       left = Math.max(base.left, vLeft), right = Math.min(base.right, vLeft + (vv?.width ?? innerWidth)),
       visibleLabel = !anchor.hasAttribute("data-label-hidden") && anchor.querySelector(".ovm-pin-n")?.getBoundingClientRect();
-    if (!lookup(anchor) || anchor.closest("[inert]") ||
+    if (!lookup(anchor, target) || anchor.closest("[inert]") ||
         rect.left < left || rect.right > right ||
         !anchor.contains(document.elementsFromPoint(rect.left + 22, rect.top + 24).find((node) => !card.contains(node)))) {
       close();
@@ -104716,15 +105283,24 @@ function ov3MapSummary(host, st) {
       right: Math.max(rect.right, visibleLabel?.right ?? rect.right),
       top: Math.min(rect.top, visibleLabel?.top ?? rect.top), bottom: rect.bottom,
     };
-    const size = card.getBoundingClientRect(), width = Math.min(240, right - left - 16),
+    const naturalWidth = Math.min(st.collection ? 246 : 240, right - left - 16),
       obstacles = [...map.querySelectorAll(".ov3-cg, .ovm-attr, .ovm-note")].map((el) => {
         const r = el.getBoundingClientRect();
         return { left: r.left - 6, right: r.right + 6, top: r.top - 6, bottom: r.bottom + 6 };
       });
-    if (Math.abs(size.width - width) > 0.1) card.style.width = `${Math.max(0, width)}px`;
-    const height = card.scrollHeight + card.offsetHeight - card.clientHeight,
-      pos = width > 0 && ov3SummaryPlacement(anchorBox, [left + 8, top + 8, right - 8, bottom - 8], width, height, obstacles);
-    if (!pos) {
+    let placement = null;
+    const widths = st.collection ? [...new Set([naturalWidth, Math.min(naturalWidth, 218), Math.min(naturalWidth, 186)])] : [naturalWidth];
+    for (const width of widths) {
+      if (width <= 0) continue;
+      card.style.width = `${width}px`;
+      if (st.collection) card.style.maxHeight = "";
+      const height = card.scrollHeight + card.offsetHeight - card.clientHeight,
+        pos = ov3SummaryPlacement(anchorBox, [left + 8, top + 8, right - 8, bottom - 8], width, height, obstacles);
+      if (!pos) continue;
+      if (!placement || pos[2] > placement.pos[2]) placement = { width, pos };
+      if (pos[2] >= height) { placement = { width, pos }; break; }
+    }
+    if (!placement) {
       if (reveal) {
         anchor.scrollIntoView({ block: "center", behavior: "instant" });
         return place();
@@ -104732,33 +105308,42 @@ function ov3MapSummary(host, st) {
       close();
       return false;
     }
-    const [x, y, maxHeight] = pos;
-    Object.assign(card.style, { left: `${x - base.left}px`, top: `${y - base.top}px`, maxHeight: `${maxHeight}px` });
+    const { width, pos: [x, y, maxHeight] } = placement;
+    Object.assign(card.style, { width: `${width}px`, left: `${x - base.left}px`, top: `${y - base.top}px`, maxHeight: `${maxHeight}px` });
+    if (st.collection) {
+      const side = x >= anchorBox.right ? "right" : x + width <= anchorBox.left ? "left" : "";
+      card.dataset.side = side;
+      card.style.setProperty("--home-popup-arrow", `${Math.min(maxHeight - 12, Math.max(12, (rect.top + rect.bottom) / 2 - y))}px`);
+    }
     return true;
   }
-  function show(anchor, mode) {
-    const pin = lookup(anchor);
-    if (!pin || (mode !== "touch" && dismissed === anchor) || $("#pop") || topModalLayer() || topModalLayer("drawer")) return;
-    if (current?.anchor === anchor && current.mode === mode) return;
+  function show(anchor, mode, target = null, focus = false) {
+    const pin = lookup(anchor, target);
+    if (!pin || (mode !== "touch" && mode !== "list" && dismissed === anchor) || $("#pop") || topModalLayer() || topModalLayer("drawer")) return;
+    if (current?.anchor === anchor && current.mode === mode && current.target === target) return;
     close();
-    const touch = mode === "touch", card = document.createElement("div");
+    const touch = mode === "touch", held = touch || mode === "list", rich = st.collection, card = document.createElement("div");
     const action = st.pinAction === "depTopoMapOpen" ? "在拓扑中查看" : pin.args.b ? pin.kind === "outdoor" ? "打开室外区域总览" : "打开楼宇总览" : "打开项目总览";
     card.id = "ovmSummary";
-    card.className = "ovm-summary";
+    card.className = rich ? "ovm-summary home-collection-summary" : "ovm-summary";
     card.setAttribute("data-morph-own", "");
-    card.setAttribute("role", touch ? "region" : "tooltip");
-    if (touch) card.setAttribute("aria-labelledby", "ovmSummaryTitle");
-    card.innerHTML = `<b class="ovm-summary-title" id="ovmSummaryTitle">${esc(pin.name)}</b>${pin.meta ? `<p class="ovm-summary-meta" id="ovmSummaryMeta">${esc(pin.meta)}</p>` : ""}${touch ? btn(action, st.pinAction, pin.args, "primary ovm-summary-action") : ""}`;
+    card.setAttribute("role", touch || rich ? "region" : "tooltip");
+    if (touch || rich) card.setAttribute("aria-labelledby", "ovmSummaryTitle");
+    card.innerHTML = rich ? homeCollectionPreview(pin, action) : `<b class="ovm-summary-title" id="ovmSummaryTitle">${esc(pin.name)}</b>${pin.meta ? `<p class="ovm-summary-meta" id="ovmSummaryMeta">${esc(pin.meta)}</p>` : ""}${touch ? btn(action, st.pinAction, pin.args, "primary ovm-summary-action") : ""}`;
     host.append(card);
-    current = { anchor, card, mode };
+    current = { anchor, card, mode, target };
     anchor.setAttribute("data-pin-active", "");
-    if (touch) {
+    if (held && !st.pinGroups.has(Number(anchor.dataset.i))) {
       anchor.setAttribute("aria-expanded", "true");
       anchor.setAttribute("aria-controls", card.id);
     } else if (pin.meta) anchor.setAttribute("aria-describedby", "ovmSummaryMeta");
-    if (place(touch)) {
+    if (rich) {
+      st.selected = pinId(pin);
+      homeCollectionSelect(st.selected, mode !== "list");
+    }
+    if (place(held)) {
       st.redraw();
-      if (touch) card.querySelector("button")?.focus({ preventScroll: true });
+      if (touch || focus) (card.querySelector(".home-collection-pop-open") || card.querySelector("button"))?.focus({ preventScroll: true });
     }
   }
   host.addEventListener("pointerover", (e) => {
@@ -104780,12 +105365,12 @@ function ov3MapSummary(host, st) {
       pending = null;
     }
     if (dismissed?.contains(e.target) && !dismissed.contains(e.relatedTarget) && !dismissed.matches(":focus-visible")) dismissed = null;
-    if (!current || current.mode === "touch") return;
+    if (!current || current.mode === "touch" || current.mode === "list") return;
     const { anchor, card } = current;
     if ((anchor.contains(e.target) || card.contains(e.target)) && !anchor.contains(e.relatedTarget) && !card.contains(e.relatedTarget)) {
       clearTimeout(hideTimer);
       hideTimer = setTimeout(() => {
-        if (!anchor.matches(":hover, :focus-visible") && !card.matches(":hover")) close();
+        if (!anchor.matches(":hover, :focus-visible") && !card.matches(":hover, :focus-within")) close();
       }, 150);
     }
   }, { signal });
@@ -104797,8 +105382,8 @@ function ov3MapSummary(host, st) {
     if (dismissed === e.target && !dismissed.matches(":hover")) dismissed = null;
     if (!current) return;
     const { anchor, card, mode } = current;
-    if (mode === "touch" && card.contains(e.target) && !anchor.contains(e.relatedTarget) && !card.contains(e.relatedTarget)) close();
-    if (mode !== "touch" && anchor === e.target && !anchor.matches(":hover") && !card.matches(":hover")) close();
+    if (card.contains(e.target) && !anchor.contains(e.relatedTarget) && !card.contains(e.relatedTarget) && !card.matches(":hover")) close();
+    if (mode !== "touch" && mode !== "list" && anchor === e.target && !card.contains(e.relatedTarget) && !anchor.matches(":hover") && !card.matches(":hover")) close();
   }, { signal });
   document.addEventListener("pointerdown", (e) => {
     pointer = e.pointerType;
@@ -104823,7 +105408,13 @@ function ov3MapSummary(host, st) {
   return {
     close, place,
     anchor: () => current?.anchor,
-    dismiss() { dismissed = current?.anchor; close(); },
+    target: () => current?.target,
+    showFromList: (anchor, id, focus) => show(anchor, "list", id, focus),
+    dismiss(restore = false) {
+      dismissed = current?.anchor;
+      close();
+      if (restore && dismissed?.isConnected && !dismissed.hidden) dismissed.focus({ preventScroll: true });
+    },
     dispose() { close(); listeners.abort(); },
   };
 }
@@ -104870,14 +105461,16 @@ defineLayer({
 });
 // 3.49 V1374：focus 为没有楼层图的楼宇（F栋）时，地图以它为中心，标记用选中样式
 // 3.53 V1418：pinVal(b) 给楼宇标记加数值（数据分析在项目范围时按页签写用电量、碳排放等），返回 { v, off }
-function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false, homeProject = false, homeMap = lv === "all" || homeProject, context = null, selected = focus, pinAction = "ov3Go" } = {}) {
+function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false, homeProject = false, homeMap = lv === "all" || homeProject, context = null, selected = focus, pinAction = "ov3Go", collection = false } = {}) {
   const db = data(),
     pins = [], b3 = [],
     project = context?.project || g("projects", U.p),
+    accepted = collection ? new Set(homeCollectionFiltered(lv).map(({ record }) => record.id)) : null,
     deploy = pinAction === "depTopoMapOpen",
     actionLabel = deploy ? "在空间拓扑中查看" : "打开项目总览";
   if (lv === "all") {
     for (const p of locProjects()) {
+      if (accepted && !accepted.has(p.id)) continue;
       const l = ov3Loc(p);
       // 全部项目地图标记用于定位，待处理状态显示在项目列表。
       const off = !ov3ProjLive(p.id);
@@ -104886,6 +105479,7 @@ function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false, homePr
   } else {
     const p = project;
     for (const b of db.buildings.filter((x) => x.projectId === p.id).sort(M.byName)) {
+      if (accepted && !accepted.has(b.id)) continue;
       const l = ov3Loc(b, p);
       if (!l) continue;
       const due = homeProject ? null : ov3Due(p.id, b.id);
@@ -104906,8 +105500,10 @@ function ov3MapHtml(lv, { focus = null, pinVal = null, showScale = false, homePr
     markers = homeMap ? ov3GroupBuildingPins(pins) : pins,
     viewControls = homeProject ? "旋转" : "旋转与倾斜";
   // An unbuilt project may already have a surveyed location; it is a camera anchor, not a synthetic building marker.
-  OVM_PEND = { key, pins: markers, b3, focus, selected, homeMap, pinAction, anchor: deploy && lv !== "all" ? ov3Loc(project) : null };
-  const pinHtml = markers.map((m, i) => ov3PinHtml(m, i, selected, homeMap, pinAction)).join("");
+  if (collection) selected = homeCollectionState(lv).id;
+  const anchor = lv !== "all" && (deploy || collection) ? ov3Loc(project) : collection ? locProjects().map((p) => ov3Loc(p)).find(Boolean) : null;
+  OVM_PEND = { key, pins: markers, b3, focus, selected, homeMap, pinAction, collection, anchor };
+  const pinHtml = markers.map((m, i) => ov3PinHtml(m, i, collection ? null : selected, homeMap, pinAction)).join("");
   const sat = !!U.ov3Sat,
     layerLabel = sat ? "切换到标准地图（当前为卫星地图）" : "切换到卫星地图（当前为标准地图）",
     scale = showScale ? '<div class="ovm-scale" role="img" hidden><span class="ovm-scale-label"></span><span class="ovm-scale-bar" aria-hidden="true"></span></div>' : "";
@@ -105250,6 +105846,10 @@ const OVM = (() => {
       if (!item) return;
       const group = item.group || (m.members ? m : null);
       if (group) pinGroups.set(i, group);
+      if (st.collection) {
+        const selected = (group?.members || [m]).some((pin) => (pin.args.b || pin.args.p) === st.selected);
+        el.toggleAttribute("data-home-current", selected);
+      }
       el.toggleAttribute("data-label-hidden", item.labelHidden);
       const nextLabel = group?.label || m.label;
       if (el.getAttribute("aria-label") !== nextLabel) {
@@ -105275,7 +105875,11 @@ const OVM = (() => {
       }
     }
     st.pinGroups = pinGroups;
-    if (st.summary?.anchor() && !st.summary.anchor().matches(`.ovm-pin[data-act="${st.pinAction}"]:not([hidden])`)) st.summary.close();
+    if (st.summary?.anchor()) {
+      const anchor = st.summary.anchor(), target = st.summary.target(), index = Number(anchor.dataset.i);
+      const activeGroup = target && st.pinGroups.get(index)?.members.some((pin) => (pin.args.b || pin.args.p) === target);
+      if (anchor.hidden || anchor.dataset.act !== st.pinAction && !activeGroup) st.summary.close();
+    }
     // 根据当前图层和视野里的底图瓦片显示状态，旧图层或注记的成功不会掩盖失败。
     st.host.dataset.basemap = !st.layers.length ? "unset" : baseDrawn ? "ready" : baseFailed ? "error" : "loading";
     const bearing = Math.atan2(v.sa, v.ca * v.se) / RAD;
@@ -105311,7 +105915,7 @@ const OVM = (() => {
     };
     const set = (D2) => {
       st.summary?.close();
-      Object.assign(st, { pins: D2.pins, b3: D2.b3, sat: !!D2.sat, layers: layers(!!D2.sat), focus: D2.focus || null, anchor: D2.anchor, pinAction: D2.pinAction || "ov3Go", homeMap: !!D2.homeMap, pinGroups: new Map() });
+      Object.assign(st, { pins: D2.pins, b3: D2.b3, sat: !!D2.sat, layers: layers(!!D2.sat), focus: D2.focus || null, selected: D2.selected, anchor: D2.anchor, pinAction: D2.pinAction || "ov3Go", homeMap: !!D2.homeMap, collection: !!D2.collection, pinGroups: new Map() });
       st.pinEls = [...host.querySelectorAll(".ovm-pin")];
       if (st.homeMap) st.pinWidths = st.pinEls.map((el) => el.querySelector(".ovm-pin-n").offsetWidth);
       st.compass = host.closest(".ov3-map")?.querySelector(".ovm-compass");
@@ -105468,6 +106072,32 @@ const OVM = (() => {
     return {
       st,
       summary: st.summary,
+      revealCollectionPin(id, focus = false) {
+        if (!st.collection || !W() || !H()) return;
+        const hasId = (pin) => (pin.args?.b || pin.args?.p) === id;
+        const pin = st.pins.flatMap((item) => item.members || [item]).find(hasId);
+        if (!pin) return;
+        const visibleAnchor = () => st.pinEls.find((el, i) => !el.hidden &&
+          (st.pinGroups.get(i)?.members || [st.pins[i]]).some(hasId));
+        const anchor = visibleAnchor();
+        st.selected = id;
+        if (anchor) {
+          st.summary.showFromList(anchor, id, focus);
+          st.redraw();
+          return;
+        }
+        wheel.cancel();
+        defaultFit = false;
+        /* Keep direction and zoom; only bring the selected location into view. */
+        Object.assign(st.cam, { cx: wx(pin.lng), cy: wy(pin.lat) });
+        st.fitted = true;
+        opt.onCam?.({ ...st.cam });
+        st.redraw();
+        requestAnimationFrame(() => {
+          const el = visibleAnchor();
+          if (el?.isConnected && st.selected === id) st.summary.showFromList(el, id, focus);
+        });
+      },
       set(D2) {
         if (!!D2.sat !== st.sat) wheel.cancel();
         set(D2);
@@ -105612,11 +106242,17 @@ function ov3FloorRail(bid, pid, stack, has3, active, action, deployment = false)
 function ov3FloorCol(b, s) {
   return ov3FloorRail(b.id, b.projectId, s.st, s.has3, s.mode === "none" ? s.sel : s.cur, "ov3Floor");
 }
-function ov3Bldg() {
+function ov3Bldg({ mapFallback = true } = {}) {
   const b = g("buildings", U.b),
     s = ov3State(),
     planWord = ov3Out(b.id) ? "总平面图" : "楼层图";
-  if (!s.plans.length) return ov3NoPlanMap(b);
+  if (!s.plans.length) {
+    if (mapFallback) return ov3NoPlanMap(b);
+    S3_PEND = null;
+    const floor = s.sel && g("floors", s.sel);
+    const name = floor?.name || b.name;
+    return `<section class="ov3-view ov3-cv ov3-noplan${floor ? " ov3-nofl" : ""}" aria-label="${esc(name + " 未上传" + planWord)}">${ov3FloorCol(b, s)}<div class="ov3-np-c"><span class="ov3-np-ic" aria-hidden="true">${ico("layers")}</span><h2>${esc(name)} 未上传${planWord}</h2>${canEdit() ? btn("上传" + planWord, floor ? "ov3UploadPlan" : "ov3CfgUp", floor ? { f: floor.id } : { b: b.id }, "ov3-npb") : ""}</div></section>`;
+  }
   const col = ov3FloorCol(b, s);
   // 选到没有楼层图的层：画布写“未上传楼层图”
   if (s.mode === "none") {
@@ -108038,6 +108674,413 @@ defineActions({
   // 去部署（空状态，第 28 项）
   ws3Deploy: () => route("deployment", { p: U.p, b: null, f: null, tab: "status" }),
 });
+
+/* The home header spans both panes. The scope, list state and building camera are independent. */
+const HOME_CANVAS_VIEWS = [["map", "地图"], ["model", "3D 模型"]];
+const HOME_COLLECTION_PANES = [["list", "列表"], ["map", "地图"]];
+const homeOverviewBuilding = (level) => level === "b" && !ov3Out(U.b);
+const homeOverviewKey = (level = ov3Lv()) => level === "b" ? "building:" + U.b : level === "p" ? "project:" + U.p : "all";
+const homeOverviewCanvas = () => U.homeOverviewCanvases?.[U.b] || "map";
+const homeOverviewMobile = (level) => U.homeOverviewMobilePanes?.[homeOverviewKey(level)] || "list";
+
+function homeOverviewShowMobile(view) {
+  (U.homeOverviewMobilePanes ||= Object.create(null))[homeOverviewKey()] = view;
+}
+
+function homeOverviewSaveCamera() {
+  if (S3_LIVE?.host.isConnected && S3_LIVE.key === "ov3") s3SaveCam();
+}
+
+function homeOverviewSetCanvas(view, saveCamera = true) {
+  if (view === homeOverviewCanvas()) return;
+  if (saveCamera) homeOverviewSaveCamera();
+  (U.homeOverviewCanvases ||= Object.create(null))[U.b] = view;
+}
+
+function homeOverviewScope(level) {
+  const project = U.p && g("projects", U.p), building = level === "b" && g("buildings", U.b);
+  const text = building ? `${project.name} · ${M.buildingLabel(data(), building)}` : project ? project.name : "全部项目";
+  return locProjects().length ? `<div class="ws-locrow">${wsScopeButton(text)}</div>` : "";
+}
+
+function homeOverviewHeader(level) {
+  const scope = homeOverviewScope(level);
+  const info = U.tab === "info", building = homeOverviewBuilding(level), collection = homeCollectionActive(level);
+  const currentCanvas = homeOverviewCanvas(), mobile = homeOverviewMobile(level);
+  const mobileItems = building ? [["list", "内容"], ...HOME_CANVAS_VIEWS] : level === "b" ? [["list", "内容"], ["map", "场地图"]] : info ? [["list", "资料"], ["map", "地图"]] : HOME_COLLECTION_PANES;
+  const projectInfo = (position) => level === "p" ? btn(info ? "返回概况" : "项目信息", "homeOverviewInfo", {}, `ghost sm home-overview-info ${position}`) : "";
+  const controls = collection ? homeCollectionToolbar(level, scope) : level === "b" ? wsScopeBand(scope, ov3Tabs(info ? "info" : "summary")) : wsScopeBand(scope);
+  return `<header class="home-overview-head"><div class="home-overview-title"><h1 class="ov3-t" id="ov3T">首页</h1></div><div class="home-overview-tools${building ? " is-building" : ""}"><div class="home-overview-primary">${controls}${projectInfo("is-wide")}</div>${building ? `<div class="home-canvas-toggle">${segSm(HOME_CANVAS_VIEWS, currentCanvas, "homeCanvasView", "", "画布视图")}</div>` : ""}</div><div class="home-mobile-toggle">${segSm(mobileItems, mobile, "homeMobileView", "", "首页显示")}${projectInfo("is-narrow")}</div></header>`;
+}
+
+function homeOverviewPanel(level) {
+  if (homeCollectionActive(level)) return homeCollectionPanel(level);
+  const info = U.tab === "info", building = g("buildings", U.b), project = g("projects", U.p);
+  const body = info ? ov3InfoBody(level, !homeOverviewScope(level))
+    : homeOverviewBuilding(level) ? homeBuildingWidgets(project, building) : homeOverviewOutdoor(project, building);
+  return `<aside class="ov3-panel home-overview-panel" data-key="${esc(homeOverviewKey(level))}" aria-label="${info ? "位置资料" : homeOverviewBuilding(level) ? "楼宇概况" : "室外区域概况"}">${body}</aside>`;
+}
+
+function homeOverviewOutdoor(project, building) {
+  const area = M.buildingArea(building), location = ov3Addr(project, building), pending = ov3Due(project.id, building.id);
+  const stats = ov3Stat("floor-plan", M.buildingAreaLabel(M.buildingAreaKind(building)), area == null ? "未填写" : ov3Num(area, 1), area == null ? "" : "m²")
+    + ov3Stat("cpu", "设备", ov3Num(ov3Devs(building)), "台");
+  const due = pending ? btn(`待处理 ${ov3Num(pending.n)} 项`, "ov3Alarms", {}, "ghost sm") : "";
+  return `<div class="ov3-sec ov3-id">${location ? `<p>${esc(location)}</p>` : ""}<div class="ov3-stats">${stats}</div>${due}</div>${building.description ? `<div class="ov3-sec ov3-desc"><p>${esc(building.description)}</p></div>` : ""}`;
+}
+
+function homeOverviewCanvasHtml(level) {
+  if (level !== "b") return ov3MapHtml(level, { homeProject: level === "p", collection: homeCollectionActive(level) });
+  const building = g("buildings", U.b);
+  if (ov3Out(building.id)) return ov3Bldg();
+  if (homeOverviewCanvas() === "model") return ov3Bldg({ mapFallback: false });
+  if (!ov3State().plans.length) return ov3NoPlanMap(building, { homeProject: true, showScale: false });
+  return ov3MapHtml("p", { homeProject: true, selected: building.id });
+}
+
+function homeOverviewShell(level) {
+  const mobile = homeOverviewMobile(level) === "list" ? "list" : "map";
+  return `<div class="ov3x home-overview" data-lv="${level}" data-home-pane="${mobile}">${homeOverviewHeader(level)}${homeOverviewPanel(level)}<div class="home-overview-canvas">${homeOverviewCanvasHtml(level)}</div></div>`;
+}
+
+defineActions({
+  homeCanvasView: ({ value }) => {
+    if (!U.ov3Now || !homeOverviewBuilding(ov3Lv()) || !HOME_CANVAS_VIEWS.some(([view]) => view === value)) return;
+    homeOverviewSetCanvas(value);
+    if (homeOverviewMobile("b") !== "list") homeOverviewShowMobile(value);
+    render();
+  },
+  homeMobileView: ({ value }) => {
+    if (!U.ov3Now || !["list", "map", "model"].includes(value)) return;
+    if (value === "model" && !homeOverviewBuilding(ov3Lv())) return;
+    if (value !== "list" && homeOverviewBuilding(ov3Lv())) homeOverviewSetCanvas(value);
+    homeOverviewShowMobile(value);
+    render();
+  },
+  homeOverviewInfo: () => {
+    if (!U.ov3Now || ov3Lv() !== "p") return;
+    actions.ovOtab({ value: U.tab === "info" ? "summary" : "info" });
+  },
+});
+
+/* 首页项目与楼宇目录。地图和列表使用同一组经过授权及筛选的对象。 */
+const homeCollectionActive = (lv = ov3Lv()) => ov3On() && U.tab !== "info" && (lv === "all" || lv === "p");
+const homeCollectionDefaults = () => ({ q: "", city: "", use: "", status: "", drawing: "", kind: "", pending: false });
+function homeCollectionState(lv = ov3Lv()) {
+  const key = JSON.stringify([storeKey(), locOwner(), lv === "all" ? null : U.p]);
+  const states = (U.homeCollections ||= new Map());
+  if (!states.has(key)) states.set(key, { filters: homeCollectionDefaults(), byName: false, collapsed: false, id: "", scroll: 0 });
+  return states.get(key);
+}
+function homeCollectionRows(lv) {
+  const db = data(), live = ov3Live();
+  if (lv === "all") {
+    return locProjects(db).map((record) => ({
+      record, pid: record.id, due: ov3Due(record.id), located: ov3Loc(record),
+      city: record.city || "", use: record.usage || "", addr: record.address || "",
+      live: ov3ProjLive(record.id, live), buildings: ov3Blds(record.id).length,
+    }));
+  }
+  const project = locProjects(db).find(({ id }) => id === U.p);
+  if (!project) return [];
+  return locBuildings(project.id, db).map((record) => {
+    const stack = F.floorStack(db, record.id), drawing = stack.some(({ f }) => f.image), outdoor = record.kind === "outdoor";
+    return {
+      record, pid: project.id, bid: record.id, due: ov3Due(project.id, record.id), located: ov3Loc(record, project),
+      city: project.city || "", use: outdoor ? "" : record.usage || "", addr: record.address || project.address || "",
+      outdoor, drawing, floors: outdoor ? "" : ov3Lvls(record), devices: drawing ? ov3Devs(record, stack) : null,
+    };
+  });
+}
+function homeCollectionFiltered(lv, rows = homeCollectionRows(lv)) {
+  const f = homeCollectionState(lv).filters,
+    terms = f.q.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
+  return rows.filter((row) => {
+    const words = [row.record.name, row.addr, row.city, row.use].join(" ").toLocaleLowerCase();
+    return terms.every((term) => words.includes(term)) && (!f.city || row.city === f.city) &&
+      (!f.use || row.use === f.use) && (!f.status || (f.status === "on") === row.live) &&
+      (!f.drawing || (f.drawing === "yes") === row.drawing) &&
+      (!f.kind || (f.kind === "outdoor") === row.outdoor) && (!f.pending || row.due);
+  });
+}
+const homeCollectionNoun = (lv, rows) => lv === "all" ? "项目" : rows.some((row) => row.outdoor) ? "楼宇与室外区域" : "楼宇";
+const homeCollectionFilterOption = (label, id, options, f) =>
+  `<label class="home-collection-filter"><select data-home-filter="${id}" aria-label="${esc(label)}"><option value="">${esc(label)}</option>${options.map(([value, name]) => `<option value="${esc(value)}"${f[id] === value ? " selected" : ""}>${esc(name)}</option>`).join("")}</select>${ico("chevron", "ic16")}</label>`;
+function homeCollectionToolbar(lv, scopeHtml = wsLocRow()) {
+  const all = lv === "all", rows = homeCollectionRows(lv), f = homeCollectionState(lv).filters,
+    label = all ? "搜索项目名称或地址" : rows.some((row) => row.outdoor) ? "搜索楼宇或室外区域" : "搜索楼宇名称或地址",
+    values = (key) => [...new Set(rows.map((row) => row[key]).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN")).map((value) => [value, value]),
+    select = (title, key, options = values(key)) => homeCollectionFilterOption(title, key, options, f),
+    uses = values("use"), filters = all
+      ? [select("地区", "city"), select("用途", "use", uses), select("接入状态", "status", [["on", "已接入"], ["off", "未接入"]])]
+      : [uses.length ? select("用途", "use", uses) : "", rows.some((row) => row.outdoor) ? select("类型", "kind", [["building", "楼宇"], ["outdoor", "室外区域"]]) : "", select("楼层图", "drawing", [["yes", "已上传"], ["no", "未上传"]])],
+    active = Object.entries(f).filter(([key, v]) => key !== "q" && v).length;
+  return `<div class="home-collection-toolbar" role="group" aria-label="查看范围与筛选"><div class="home-collection-search">${scopeHtml}<label class="home-collection-search-field">${ico("search", "ic16")}<input type="search" id="homeCollectionSearch" data-home-filter="q" value="${esc(f.q)}" placeholder="${esc(label)}" aria-label="${esc(label)}" autocomplete="off"></label></div><div class="home-collection-filters">${filters.join("")}<details class="home-collection-more"><summary>${LI('<path d="M4 5h16l-6.5 7.5v5.3l-3 1.7v-7z"/>', "ic16")}全部筛选${active ? `<span class="home-collection-active-count">${active}</span>` : ""}</summary><div class="home-collection-dropdown"><label><input type="checkbox" data-home-filter="pending"${f.pending ? " checked" : ""}> 仅有待处理</label><button type="button" class="home-collection-text-action" data-act="homeCollectReset">重置筛选</button></div></details></div></div>`;
+}
+function homeCollectionArt(record, use) {
+  const image = record.image, glyph = record.kind === "outdoor" ? "map-pin" : "building-2";
+  return `${image ? `<img src="${esc(image)}" alt="">` : ico(glyph, "ic24")}${use ? `<span class="home-collection-use">${esc(use)}</span>` : ""}`;
+}
+const homeCollectionFact = (glyph, text, cls = "") => `<span class="home-collection-fact${cls ? ` ${cls}` : ""}">${ico(glyph, "ic16")}<span>${esc(text)}</span></span>`;
+function homeCollectionCard(row, id) {
+  const { record, pid, bid, due, located, outdoor, drawing, floors, devices, city, addr, use } = row,
+    location = [city, addr].filter(Boolean).join(" · "),
+    facts = bid
+      ? [floors ? homeCollectionFact("layers", floors) : "", outdoor ? homeCollectionFact("map-pin", "室外区域") : "", drawing ? (outdoor ? "" : homeCollectionFact("cpu", `${ov3Num(devices)} 台设备`)) : homeCollectionFact("floor-plan", outdoor ? "未上传总平面图" : "未上传楼层图")]
+      : [homeCollectionFact("building-2", row.buildings ? `${ov3Num(row.buildings)} 栋楼宇` : "未添加楼宇")],
+    status = bid ? "" : `<span class="home-collection-status${row.live ? " on" : ""}">${row.live ? "已接入" : "未接入"}</span>`,
+    foot = (due ? homeCollectionFact("alert", `待处理 ${ov3Num(due.n)} 项`, `due l${due.lvl}`) : "") + status,
+    name = bid ? M.buildingLabel(data(), record) : record.name,
+    current = id === record.id,
+    action = located ? "homeCollectPreview" : "ov3Go";
+  return `<li data-key="${esc(record.id)}"><button type="button" class="home-collection-card" data-act="${action}" data-home-id="${esc(record.id)}" data-p="${esc(pid)}"${bid ? ` data-b="${esc(bid)}"` : ""}${located ? ` aria-pressed="${current}"` : ""}><span class="home-collection-thumb${record.image ? " has-image" : ""}" aria-hidden="true">${homeCollectionArt(record, use)}</span><span class="home-collection-card-body"><b>${esc(name)}</b>${location ? `<small>${esc(location)}</small>` : ""}<span class="home-collection-facts">${facts.join("")}${!located ? homeCollectionFact("map-pin-off", "未定位") : ""}${foot ? `<span class="home-collection-card-foot">${foot}</span>` : ""}</span></span></button></li>`;
+}
+function homeCollectionPanel(lv) {
+  const state = homeCollectionState(lv), results = homeCollectionRows(lv),
+    title = homeCollectionNoun(lv, results),
+    matches = homeCollectionFiltered(lv, results),
+    sort = state.byName || lv !== "all"
+      ? (a, b) => M.byName(a.record, b.record)
+      : (a, b) => (b.due?.n || 0) - (a.due?.n || 0) || Number(b.live) - Number(a.live) || M.byName(a.record, b.record),
+    sortLabel = lv === "all" ? state.byName ? "恢复默认排序" : "按名称排序" : state.byName ? "恢复楼宇优先排序" : "按名称排序",
+    iconSort = LI('<path d="M4 6h16M4 12h11M4 18h6"/>', "ic16"),
+    iconFold = LI(state.collapsed ? '<path d="M4 5v14m7-12 5 5-5 5"/>' : '<path d="M4 5v14m12-12-5 5 5 5"/>', "ic16"),
+    foldLabel = state.collapsed ? "展开列表" : "收起列表",
+    empty = results.length
+      ? `<p>没有符合条件的${title}</p><button class="home-collection-text-action" type="button" data-act="homeCollectReset">清除搜索与筛选</button>`
+      : `<p>${lv === "all" ? "当前没有可访问的项目" : "尚无楼宇或室外区域"}</p>`,
+    comparison = lv === "p" && !state.byName ? (a, b) => Number(a.outdoor) - Number(b.outdoor) || sort(a, b) : sort;
+  return `<aside class="ov3-panel home-collection" aria-labelledby="homeCollectionTitle"><section class="home-collection-list${state.collapsed ? " is-collapsed" : ""}"><header class="home-collection-list-head"><h2 id="homeCollectionTitle">${title} <span aria-live="polite">${ov3Num(matches.length)}</span></h2><div><button type="button" class="home-collection-icon" data-act="homeCollectSort" aria-label="${sortLabel}" aria-pressed="${state.byName}" data-tip="${sortLabel}"${matches.length < 2 ? " disabled" : ""}>${iconSort}</button><button type="button" class="home-collection-icon" data-act="homeCollectFold" aria-controls="homeCollectionRows" aria-expanded="${!state.collapsed}" aria-label="${foldLabel}" data-tip="${foldLabel}">${iconFold}</button></div></header><div class="home-collection-list-scroll" id="homeCollectionRows"${state.collapsed ? " hidden" : ""}>${matches.length ? `<ul>${matches.sort(comparison).map((row) => homeCollectionCard(row, state.id)).join("")}</ul>` : `<div class="home-collection-empty">${empty}</div>`}</div></section></aside>`;
+}
+function homeCollectionSelect(id, reveal = false) {
+  if (!homeCollectionActive()) return;
+  homeCollectionState().id = id || "";
+  document.querySelectorAll(".home-collection-card[aria-pressed]").forEach((card) => {
+    const selected = card.dataset.homeId === id;
+    card.setAttribute("aria-pressed", String(selected));
+    if (!selected || !reveal) return;
+    const list = card.closest(".home-collection-list-scroll"), rect = card.getBoundingClientRect(), bounds = list.getBoundingClientRect();
+    if (rect.top < bounds.top) list.scrollTop += rect.top - bounds.top;
+    else if (rect.bottom > bounds.bottom) list.scrollTop += rect.bottom - bounds.bottom;
+  });
+}
+function homeCollectionPreview(pin, action) {
+  const record = pin.args.b ? g("buildings", pin.args.b) : g("projects", pin.args.p),
+    p = g("projects", pin.args.p), use = record?.kind === "outdoor" ? "" : record?.usage || "",
+    address = [p?.city, record?.address || p?.address].filter(Boolean).join(" · "),
+    meta = pin.args.b ? pin.meta : pin.meta.split(" · ").at(-1);
+  return `<div class="home-collection-pop-scroll"><div class="home-collection-pop-art${record?.image ? " has-image" : ""}" aria-hidden="true">${record ? homeCollectionArt(record, use) : ""}</div><button type="button" class="home-collection-pop-close home-collection-icon" data-act="homeCollectSummaryClose" aria-label="关闭地图摘要">${ico("x", "ic16")}</button><div class="home-collection-pop-info"><b class="ovm-summary-title" id="ovmSummaryTitle">${esc(pin.name)}</b>${address ? `<p class="home-collection-pop-address">${esc(address)}</p>` : ""}${meta ? `<p class="ovm-summary-meta" id="ovmSummaryMeta">${esc(meta)}</p>` : ""}</div><button type="button" class="home-collection-pop-open" data-act="ov3Go" data-p="${esc(pin.args.p)}"${pin.args.b ? ` data-b="${esc(pin.args.b)}"` : ""}>${esc(action)}${ico("chevron", "ic16")}</button></div>`;
+}
+let homeCollectionPending = null;
+const homeCollectionQueuePreview = (id, focus = false) => {
+  homeCollectionPending = { id, focus };
+  homeCollectionSelect(id);
+  if (innerWidth <= 850 && !$(".ov3-map")?.getClientRects().length && typeof homeOverviewShowMobile === "function") {
+    homeOverviewShowMobile("map");
+    render();
+    return;
+  }
+  homeCollectionPreviewAfterRender();
+};
+function homeCollectionPreviewAfterRender() {
+  const request = homeCollectionPending, live = OVM_LIVE;
+  if (!request || !live?.api.st.collection) return;
+  homeCollectionPending = null;
+  // A new map is laid out on its first animation frame after rendering.
+  requestAnimationFrame(() => {
+    if (live !== OVM_LIVE || homeCollectionState().id !== request.id) return;
+    live.api.revealCollectionPin(request.id, request.focus);
+  });
+}
+defineActions({
+  homeCollectPreview: (_, el) => homeCollectionQueuePreview(el.dataset.homeId, el.matches(":focus-visible") || matchMedia("(any-pointer: coarse)").matches),
+  homeCollectSort: () => { const state = homeCollectionState(); state.byName = !state.byName; render(); },
+  homeCollectFold: () => { const state = homeCollectionState(); state.collapsed = !state.collapsed; render(); },
+  homeCollectReset: () => {
+    const state = homeCollectionState(), fromMenu = !!document.activeElement?.closest(".home-collection-dropdown");
+    state.filters = homeCollectionDefaults();
+    state.id = "";
+    if (fromMenu) $(".home-collection-more").open = false;
+    render();
+    $("#homeCollectionSearch")?.focus({ preventScroll: true });
+  },
+  homeCollectSummaryClose: () => OVM_LIVE?.api.summary?.dismiss(true),
+});
+const homeCollectionChange = (event) => {
+  const field = event.target.closest?.("[data-home-filter]");
+  if (!field || !homeCollectionActive() || event.isComposing) return;
+  const state = homeCollectionState(), value = field.type === "checkbox" ? field.checked : field.value, key = field.dataset.homeFilter;
+  if (!(key in state.filters) || state.filters[key] === value) return;
+  state.filters[key] = value;
+  state.id = "";
+  state.scroll = 0;
+  OVM_LIVE?.api.summary?.close();
+  render();
+};
+document.addEventListener("input", homeCollectionChange);
+document.addEventListener("change", homeCollectionChange);
+document.addEventListener("compositionend", homeCollectionChange);
+document.addEventListener("keydown", (event) => {
+  const details = event.target.closest?.(".home-collection-more[open]");
+  if (event.key === "Escape" && details) {
+    event.stopPropagation();
+    details.open = false;
+    details.querySelector("summary").focus();
+  }
+});
+document.addEventListener("pointerdown", (event) => {
+  const details = $(".home-collection-more[open]");
+  if (details && !details.contains(event.target)) details.open = false;
+});
+onAfterRender(() => {
+  if (!homeCollectionActive()) { homeCollectionPending = null; return; }
+  const list = $("#homeCollectionRows"), state = homeCollectionState();
+  if (list && !list.hidden) {
+    list.scrollTop = state.scroll;
+    list.addEventListener("scroll", () => { state.scroll = list.scrollTop; }, { passive: true, signal: renderSignal() });
+  }
+  homeCollectionPreviewAfterRender();
+});
+
+// 楼宇首页只呈现已登记资料、可归属的工单和有明确来源的数据。
+const HOME_WIDGET_DAYS = 30;
+const HOME_WIDGET_DAY = 864e5;
+const HOME_WIDGET_EMPTY = '<span aria-label="暂无可用数据">—</span>';
+
+function homeWidgetDays(now, pid) {
+  // 先按项目时区取自然日，再以 UTC 日历生成日期键，避免夏令时跨日重复。
+  const today = projectTime(now, false, pid, true).slice(0, 10);
+  const end = Date.parse(today + "T00:00:00Z");
+  return Array.from({ length: HOME_WIDGET_DAYS }, (_, i) => ({
+    key: new Date(end - (HOME_WIDGET_DAYS - 1 - i) * HOME_WIDGET_DAY).toISOString().slice(0, 10),
+    count: 0,
+  }));
+}
+
+const homeWidgetDate = ({ key }, short = false) => {
+  const [, month, day] = key.split("-").map(Number);
+  return short ? `${month}/${day}` : `${month} 月 ${day} 日`;
+};
+
+function homeWidgetTicketFloor(relation) {
+  return ws3ItFloor(relation)
+    || relation.t.pointIds?.map((id) => g("points", id)?.floorId).find(Boolean)
+    || null;
+}
+
+function homeWidgetTickets(p, b, now, days, demoBuilding) {
+  const db = data();
+  const tickets = (db.investigationTasks || []).filter((t) => {
+    if (t.projectId !== p.id || Date.parse(t.at) > now) return false;
+    const relation = { t, a: taskAlarms(t)[0], floorId: t.floorId };
+    const floor = g("floors", homeWidgetTicketFloor(relation));
+    if (!floor || floor.buildingId !== b.id) return false;
+    const zone = g("zones", ws3ItZone(relation));
+    if (zone) return F.managedZoneIn(floor, zone);
+    if (!floor.managedPart) return true;
+    return [relation.a?.pointId, ...(t.pointIds || [])].some((id) => F.managedPointIn(db, floor, g("points", id)));
+  });
+  const dates = new Map(days.map((day) => [day.key, day]));
+  for (const ticket of tickets) {
+    const day = dates.get(projectTime(ticket.at, false, p.id, true).slice(0, 10));
+    if (day) day.count++;
+  }
+  if (!tickets.length && !demoBuilding) return null;
+  return {
+    open: tickets.filter((t) => !t.closedAt).length,
+    overdue: tickets.filter(taskOverdue).length,
+  };
+}
+
+const homeWidgetInfo = (title, text) => opsInfo(title, esc(text));
+const homeWidgetText = (value) => value ? esc(value) : HOME_WIDGET_EMPTY;
+const homeWidgetInner = (title, content, cls = "", info = "") =>
+  `<section class="hwb-inner ${cls}"><h3>${title}${info}</h3>${content}</section>`;
+const homeWidgetSection = (title, content, cls, trailing = "") =>
+  `<section class="hwb-widget ${cls}" aria-label="${title}"><header><h2>${title}</h2>${trailing}</header><div class="hwb-body">${content}</div></section>`;
+
+function homeWidgetSummary(p, b, now, days, weather) {
+  const photo = typeof b.image === "string" && b.image
+    ? `<img src="${esc(b.image)}" alt="${esc(b.name)}">`
+    : `<div class="hwb-no-photo">${ico(b.kind === "outdoor" ? "map-pin" : "building", "ic24")}<span>${esc(b.name)}</span></div>`;
+  const type = b.kind === "outdoor" ? "室外区域" : b.usage;
+  const cover = `<div class="hwb-cover${b.image ? " has-photo" : ""}">${photo}${type ? `<span class="hwb-type">${ico("building", "ic12")}${esc(type)}</span>` : ""}${weather
+    ? `<span class="hwb-current-wx" aria-label="${esc(`演示天气：${weather.c}，${weather.now} 摄氏度`)}">${ico(OV_WX_IC[weather.c], "ic14")} ${nf(weather.now)} ℃</span>`
+    : ""}</div>`;
+  const trend = `<p class="hwb-big">${HOME_WIDGET_EMPTY}</p><div class="hwb-day-strip" aria-hidden="true">${days.map(() => "<i></i>").join("")}</div><div class="hwb-axis"><span>${homeWidgetDate(days[0])}</span><span>${homeWidgetDate(days.at(-1))}</span></div>`;
+  const byDay = weather ? `<ol class="hwb-weather">${weather.days.slice(0, 5).map((day) =>
+    `<li aria-label="${esc(`演示 ${day.wd}，${day.c}，最高 ${day.hi} ℃，最低 ${day.lo} ℃`)}"><span>${esc(day.wd)}</span>${ico(OV_WX_IC[day.c], "ic16")}<b>${nf(day.hi)} ℃</b><small>${nf(day.lo)} ℃</small></li>`).join("")}</ol>`
+    : `<p class="hwb-wx-off">${HOME_WIDGET_EMPTY}</p>`;
+  const forecastTitle = "天气预报" + (weather ? '<span class="hwb-demo-label">演示</span>' : "");
+  const hasLive = [...ov3Live()].some((fid) => g("floors", fid)?.buildingId === b.id);
+  const area = M.buildingArea(b);
+  const time = projectTime(now, false, p.id).slice(11) || null;
+  const words = regionText(p);
+  const metadata = [
+    ["wrench", "接入状态", hasLive ? '<span class="hwb-state">已接入运行数据</span>' : HOME_WIDGET_EMPTY],
+    ["map-pin", "位置", homeWidgetText(words === "未取得" ? b.address || p.address : words)],
+    ["ruler", M.buildingAreaLabel(M.buildingAreaKind(b)), area == null ? HOME_WIDGET_EMPTY : `${nf(area, 1)} m²`],
+    ["clock", "当地时间", homeWidgetText(time)],
+  ].map(([icon, label, value]) => `<div><dt>${ico(icon, "ic14")}${label}</dt><dd>${value}</dd></div>`).join("");
+  return `<section class="hwb-widget hwb-summary" aria-label="楼宇摘要">${cover}<div class="hwb-body">${homeWidgetInner("综合运行表现", trend, "hwb-overall", homeWidgetInfo("综合运行表现", "暂无同口径的楼宇舒适度和能耗评分。其他运行指标不计为综合分。"))}${homeWidgetInner(forecastTitle, byDay, "hwb-forecast")}<dl class="hwb-inner hwb-meta">${metadata}</dl></div></section>`;
+}
+
+function homeWidgetKpi() {
+  const tiles = ["舒适度", "能耗"].map((name) =>
+    homeWidgetInner(name, `<div class="hwb-score"><span class="hwb-big">${HOME_WIDGET_EMPTY}</span><small class="hwb-change" aria-label="无可比较变化">—</small></div>`, "hwb-score-card",
+      homeWidgetInfo(name, name === "舒适度" ? "暂无覆盖当前楼宇、可比较的舒适度评分。单个测点的达标率不计作楼宇评分。" : "暂无覆盖当前楼宇、可比较的能耗评分。用电量及短期趋势不计作评分。")));
+  return homeWidgetSection("KPI 摘要", `<div class="hwb-cols">${tiles.join("")}</div>`, "hwb-kpi");
+}
+
+const homeWidgetAxis = (days) =>
+  `<div class="hwb-axis">${[0, 7, 14, 21, 29].map((i) => `<span>${homeWidgetDate(days[i], true)}</span>`).join("")}</div>`;
+
+function homeWidgetTicketCard(tickets, days) {
+  const metric = (label, value, icon, cls) =>
+    `<div><dt>${label}</dt><dd class="${cls}">${ico(icon, "ic14")}${value == null ? HOME_WIDGET_EMPTY : nf(value)}</dd></div>`;
+  const kpis = `<dl class="hwb-inner hwb-ticket-kpis">${metric("逾期", tickets?.overdue, "alert", "hwb-overdue")}${metric("未关闭", tickets?.open, "clock", "")}</dl>`;
+  const max = Math.max(...days.map((day) => day.count), 1);
+  const events = days.filter((day) => day.count);
+  const summary = events.length
+    ? events.map((day) => `${homeWidgetDate(day)} ${day.count} 张`).join("，")
+    : "近 30 天没有新建工单";
+  const plot = tickets
+    ? `<div class="hwb-plot hwb-bars" role="img" aria-label="${esc(`近 30 天按当前楼宇所在地时间统计。${summary}`)}">${days
+        .map((d) => `<i aria-hidden="true" style="height:${(d.count / max) * 84}%"${d.count ? ` title="${homeWidgetDate(d)} · ${d.count} 张"` : ""}></i>`).join("")}</div>`
+    : `<div class="hwb-plot hwb-empty">${HOME_WIDGET_EMPTY}</div>`;
+  const groups = homeWidgetInner("活动工单前五类", `<p class="hwb-group-empty">${HOME_WIDGET_EMPTY}</p>`, "hwb-ticket-types", homeWidgetInfo("活动工单前五类", "当前工单记录无统一分类，暂不显示分类排行。"));
+  const body = `<div class="hwb-cols hwb-tickets-layout"><div>${kpis}${homeWidgetInner("每日新建工单", plot + homeWidgetAxis(days), "hwb-ticket-daily", homeWidgetInfo("每日新建工单", "按项目时区统计近 30 个自然日，今天统计至当前时刻。仅计可归属本楼宇的工单。"))}</div>${groups}</div>`;
+  const go = `<button class="hwb-ticket-go" type="button" data-act="ov3Alarms" aria-label="查看本楼宇告警工单" data-tip="查看本楼宇告警工单">${ico("chevron", "ic16 ov3-chev")}</button>`;
+  return homeWidgetSection("工单", body, "hwb-tickets", go);
+}
+
+function homeWidgetInsights(days) {
+  const tiles = [
+    ["待处理", "潜在直接节省", "bulb", "pending"],
+    ["处理中", "预计直接节省", "clipboard-check", "progress"],
+    ["处理成功", "已取得直接节省", "check", "success"],
+    ["处理未成功", "预计直接节省", "alert", "failure"],
+  ].map(([label, amount, icon, tone]) => homeWidgetInner(
+    label,
+    `<span class="hwb-insight-mark ${tone}">${ico(icon, "ic12")}</span><p class="hwb-big">${HOME_WIDGET_EMPTY}</p><dl><div><dt>${amount}</dt><dd>${HOME_WIDGET_EMPTY}</dd></div><div><dt>成本规避与风险</dt><dd>${HOME_WIDGET_EMPTY}</dd></div></dl>`,
+    "hwb-insight-card"));
+  const empty = (title, axis = false) => homeWidgetInner(title,
+    `<div class="hwb-plot hwb-empty">${HOME_WIDGET_EMPTY}</div>${axis ? homeWidgetAxis(days) : ""}`, "hwb-insight-plot");
+  const body = `<div class="hwb-cols">${tiles.join("")}</div>${empty("每日洞察发生次数", true)}${empty("按孪生类型统计的前五类活动洞察")}`;
+  return homeWidgetSection("洞察", body, "hwb-insights",
+    homeWidgetInfo("洞察", "暂无可用的独立洞察与成效数据。告警和工单不会计作洞察或节省。"));
+}
+
+function homeBuildingWidgets(p, b) {
+  if (!p || !b || b.projectId !== p.id || U.role === "member" || !mayViewProject(p.id)) return "";
+  const now = Demo.on() ? opsNow() : Date.now();
+  const days = homeWidgetDays(now, p.id);
+  const demoProject = Demo.on() && p.id === OPS_SCOPE.project;
+  const demoBuilding = demoProject && b.id === OPS_SCOPE.building;
+  const tickets = homeWidgetTickets(p, b, now, days, demoBuilding);
+  const weather = demoProject && p.city === "广州市" && p.timezone === "Asia/Shanghai" ? ovWx() : null;
+  return `<div class="home-building-widgets">${homeWidgetSummary(p, b, now, days, weather)}${homeWidgetKpi()}${homeWidgetTicketCard(tickets, days)}${homeWidgetInsights(days)}</div>`;
+}
 
 /* System deployment keeps navigation, work in progress and delivered scope independent. */
 const DEP_TOPO_MODES = new Set(["space", "info", "map", "building", "floor", "device", "device-floor"]);
@@ -116148,6 +117191,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.85",
+    date: "2026-11-16",
+    notes: ["改进首页的项目与楼宇搜索、筛选和地图联动。", "楼宇首页集中显示概况和工单，并可在地图和楼宇模型之间切换。"],
+  },
   {
     version: "3.84",
     date: "2026-11-16",
