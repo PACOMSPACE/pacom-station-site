@@ -37526,7 +37526,7 @@ img.img-off { display: none !important; }
 /* Only the three home levels use a fixed panel and a header above the canvas. */
 #app.is-ov3 .home-overview { --home-panel-width: 400px; --home-gutter: var(--workspace-gutter); }
 .home-overview-head { min-width: 0; }
-.home-overview-title { display: flex; align-items: center; min-height: var(--workspace-desktop-title-row); }
+.home-overview-title { display: flex; align-items: center; min-height: var(--page-title-line); }
 .home-overview-tools, .home-overview-primary { display: flex; align-items: center; min-width: 0; gap: 8px; }
 .home-overview-primary { flex: 1 1 auto; }
 .home-overview-tools .ws-scope-band,
@@ -37543,23 +37543,48 @@ img.img-off { display: none !important; }
 
 @media (min-width: 851px) {
   #app.is-ov3 .home-overview {
+    --home-gutter: 16px;
+    --home-panel-gap: 12px;
     display: grid; height: 100%; min-height: 0; gap: 0;
     grid-template-columns: var(--home-panel-width) minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
-    padding-inline-end: var(--home-gutter); padding-block-end: var(--workspace-desktop-inset-block);
+    padding-inline-end: var(--home-gutter); padding-block-end: var(--home-gutter);
   }
+  #app.is-ov3:has(.home-overview) > #side:not(.au-side) > .brand { translate: 0 -6px; }
+  #app.is-ov3:has(> #side:not(.au-side)) > .main > .panel:has(.home-overview) > .net-bar { margin-inline: 16px; }
   .home-overview-head {
-    grid-column: 1 / -1; display: grid; gap: 10px;
-    padding: var(--workspace-desktop-inset-block) 0 26px var(--home-gutter);
+    grid-column: 1 / -1; display: grid; gap: 16px;
+    padding-block: var(--home-gutter); padding-inline-start: var(--home-gutter);
   }
   .home-overview-tools.is-building {
     display: grid; grid-template-columns: calc(var(--home-panel-width) - var(--home-gutter)) minmax(0, 1fr); gap: 0;
   }
-  .home-overview-tools.is-building .home-overview-primary { padding-inline-end: 12px; }
+  .home-overview-tools.is-building .home-overview-primary { padding-inline-end: var(--home-panel-gap); }
   #app.is-ov3 .home-overview > .ov3-panel {
-    min-width: 0; min-height: 0; padding: 0 var(--home-gutter);
+    min-width: 0; min-height: 0;
+    padding-block: 0; padding-inline: var(--home-gutter) var(--home-panel-gap);
     overflow: auto; scrollbar-width: thin; border: 0; isolation: isolate;
   }
+  /* The building scrollport extends into the gap to keep the widgets aligned with the lists. */
+  #app.is-ov3 .home-overview[data-lv="b"] > .ov3-panel { padding-inline-end: 0; }
+  #app.is-ov3 .home-overview[data-lv="b"] > .ov3-panel > * {
+    max-inline-size: calc(var(--home-panel-width) - var(--home-gutter) - var(--home-panel-gap));
+  }
+  .home-overview-canvas > .ov3-view { box-shadow: none; }
+  .home-overview-canvas::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    box-shadow: inset 0 0 0 1px rgb(114 114 112 / 24%);
+    z-index: 8;
+    pointer-events: none;
+  }
+}
+
+@media (min-width: 851px) and (any-pointer: coarse) {
+  /* The visible 32px controls sit 6px inside the 44px touch targets. */
+  .home-overview-head:has(.home-collection-toolbar) { row-gap: 10px; padding-block-end: 10px; }
 }
 
 @media (max-width: 850px) {
@@ -117195,6 +117220,11 @@ const AU_GUIDE_URL = "";
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "3.87",
+    date: "2026-11-17",
+    notes: ["统一首页的标题、筛选、列表和地图间距。"],
+  },
+  {
     version: "3.86",
     date: "2026-11-16",
     notes: ["优化登录页配图样式。"],
@@ -119033,7 +119063,7 @@ const AU_RELEASE_MONTHS = {
     "新增：部署进度可查看与添加项目成员；交付时可收回部署授权，交付快照可下载 PDF；照明控制器可标为消防应急照明回路。", // 3.30 Account 248
     "改进：侧栏分为三组，“配置进度”改为“部署”，“应用设置”改为“运行设置”；部署的待办在部署进度里直接完成，楼层编辑器整页打开，支持用键盘选择和确认楼层。",
     "改进：告警与工单分待处理、处理中、已结束，工单完成后自动核验；定时可跟随工作时间或日出日落；能耗的计量来源可选多个系统连接。",
-    "改进：设备列表显示近 30 天在线率与 AI 诊断，固件升级可先试点；订阅、续费与增加设备数量在机构设置内办理，订阅和续费支持窄屏填写。",
+    "改进：设备列表显示近 30 天在线率与 AI 诊断，固件升级可先试点；订阅、续费与增加设备数量在机构设置内办理，订阅和续费支持窄屏填写。统一首页的标题、筛选、列表和地图间距。",
   ],
   "2026-10": [
     "新增：在线注册、创建或加入机构，订阅、付款、电子合同与发票都在“机构设置”中办理。",
