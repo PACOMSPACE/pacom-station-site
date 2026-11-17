@@ -36216,6 +36216,15 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   .ov3-cv { background: #d7dfe2; }
   .ov3-cv.is2d { background: #edf1f4; }
   .ov3-cv > .ov3-s3 { position: absolute; inset: 0 0 0 80px; }
+  .ov3-image-host { position: absolute; inset: 16px; overflow: hidden; touch-action: none; cursor: grab; }
+  .ov3-view:has(> .ov3-fcol) > .ov3-image-host { left: 80px; }
+  .ov3-image-host:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
+  .ov3-building-image { position: absolute; left: 0; top: 0; max-width: none; max-height: none; object-fit: contain; visibility: hidden; pointer-events: none; -webkit-user-select: none; user-select: none; }
+  .ov3-image-state { position: absolute; inset: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; }
+  .ov3-view:has(> .ov3-fcol) > .ov3-image-state { left: 80px; }
+  .ov3-image-state h2 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 500; }
+  .ov3-image-host.is-ready + .ov3-image-state { display: none; }
+  .ov3-image-host:is(.is-loading, .is-error) { cursor: default; }
   /* Dashboard 浅灰凹槽与中性白滑块。36px 轨道和 32px 滑块为楼层专用尺寸。 */
   .ov3-fcol {
     --floor-hit: 36px;
@@ -101077,10 +101086,10 @@ const S3V = (() => {
       }
     }
   }
-  // 单层 2D（S.flat）为北向朝上的俯视；整栋 S.elevation 固定为二维正立面。
+  // 单层 2D（S.flat）为北向朝上的俯视。
   function home(S) {
     // 3.48：新页面的单层 3D 与整栋同一朝向（S.cam0）
-    return S.elevation ? { az: 0, el: 0 } : S.flat ? { az: 0, el: 90 } : S.cam0 ? { ...S.cam0 } : S.focus ? { az: -28, el: 58 } : { az: -32, el: 30, ...(S.view || {}) };
+    return S.flat ? { az: 0, el: 90 } : S.cam0 ? { ...S.cam0 } : S.focus ? { az: -28, el: 58 } : { az: -32, el: 30, ...(S.view || {}) };
   }
   const autoFit = (st) => typeof st.S.inset === "function" && !st.cam.userAdjusted;
   // 绘制：自下而上逐层（相机在上方，较低的层先画）；层内先画楼板，再画功能区的墙（由远到近），最后画顶面
@@ -101136,20 +101145,6 @@ const S3V = (() => {
         x.globalAlpha = opacity;
       };
     x.globalAlpha = opacity;
-    // 整栋 2D 用已登记楼层的正立面层带，避免俯视时各层重叠；不推断外立面窗户或房间。
-    if (S.elevation) {
-      for (const { f, a } of vs) {
-        const xs = f.outline?.map((p) => p[0]) || [0, f.w || B.w],
-          l = Math.min(...xs),
-          r = Math.max(...xs),
-          z = f.z0,
-          face = [P(l, 0, z), P(r, 0, z), P(r, 0, z + f.h), P(l, 0, z + f.h)];
-        poly(face, f.ghost ? "#F6F7F9" : "#F1F3F6", f.edge || (f.ghost ? "#C9CFD8" : "#B8C0CC"), a * (f.ghost ? 0.7 : 1), f.edge ? 2 : 1, f.ghost ? [4, 3] : null);
-        hits.push({ kind: "floor", id: f.id, poly: face.map((p) => [p[0], p[1]]), tip: f.tip || f.name });
-      }
-      x.globalAlpha = 1;
-      return hits.reverse();
-    }
     // 外墙（整栋时）：先画背面，楼层画完后再画正面
     const shell = [];
     if (walls && S.foot) {
@@ -101411,7 +101406,7 @@ const S3V = (() => {
   function mount(host, S, opt = {}) {
     const cv = host.querySelector("canvas"),
       tip = host.querySelector(".s3-tip"),
-      st = { cv, S, cam: { ...home(S), ...(opt.cam || {}), ...(S.elevation ? { az: 0, el: 0 } : {}) }, fitted: !!opt.cam?.k };
+      st = { cv, S, cam: { ...home(S), ...(opt.cam || {}) }, fitted: !!opt.cam?.k };
     if (autoFit(st)) st.fitted = false;
     const adjust = () => { if (typeof st.S.inset === "function") st.cam.userAdjusted = true; };
     let raf = null;
@@ -101473,7 +101468,7 @@ const S3V = (() => {
         dy = p[1] - prev[1];
       if (dx || dy) adjust();
       drag.moved += Math.abs(dx) + Math.abs(dy);
-      if (drag.pan || st.S.flat || st.S.elevation) {
+      if (drag.pan || st.S.flat) {
         st.cam.px += dx;
         st.cam.py += dy;
       } else {
@@ -101538,7 +101533,7 @@ const S3V = (() => {
     );
     cv.addEventListener("keydown", (e) => {
       const k = e.key;
-      if ((st.S.flat || st.S.elevation) && /^Arrow/.test(k)) {
+      if (st.S.flat && /^Arrow/.test(k)) {
         st.cam.px += k === "ArrowLeft" ? 40 : k === "ArrowRight" ? -40 : 0;
         st.cam.py += k === "ArrowUp" ? 40 : k === "ArrowDown" ? -40 : 0;
       } else if (k === "ArrowLeft" || k === "ArrowRight") st.cam.az += k === "ArrowLeft" ? 10 : -10;
@@ -101559,7 +101554,7 @@ const S3V = (() => {
     const api = {
       st,
       set(S2, keep = true) {
-        const refocus = S2.buildingId !== st.S.buildingId || S2.focus !== st.S.focus || S2.only !== st.S.only || !!S2.flat !== !!st.S.flat || !!S2.elevation !== !!st.S.elevation || String(S2.zc || "") !== String(st.S.zc || "") || typeof S2.inset !== typeof st.S.inset;
+        const refocus = S2.buildingId !== st.S.buildingId || S2.focus !== st.S.focus || S2.only !== st.S.only || !!S2.flat !== !!st.S.flat || String(S2.zc || "") !== String(st.S.zc || "") || typeof S2.inset !== typeof st.S.inset;
         st.S = S2;
         if (!keep || refocus) {
           wheel.cancel();
@@ -101723,7 +101718,7 @@ function s3OpsCard(tab) {
 onAfterRender(() => {
   const host = document.getElementById("s3Host");
   if (!host) {
-    if (S3_LIVE && !S3_LIVE.host?.isConnected) {
+    if (S3_LIVE) {
       S3_LIVE.api.dispose();
       S3_LIVE = null;
     }
@@ -102997,6 +102992,206 @@ function cadPlan(it, edge) {
   return { canvas: cadTurn(r.canvas, it.rotation || 0), pxPerM: r.pxPerUnit / r.meters };
 }
 
+/* 整栋楼宇图片：按原比例完整适配，查看操作不改变楼层或图片资料。 */
+const BuildingImageViewer = (() => {
+  function mount(host, { onLoad, onError } = {}) {
+    const img = host.querySelector(".ov3-building-image"),
+      source = img?.getAttribute("src") || "",
+      st = { source, loaded: false, failed: false, naturalWidth: 0, naturalHeight: 0, width: 0, height: 0, k: 0, fitScale: 0, px: 0, py: 0, userAdjusted: false },
+      listeners = [], pointers = new Map();
+    let disposed = false, raf = null, loadRaf = null, gesture = null;
+    const current = () => !disposed && !!img && host.contains(img) && img.getAttribute("src") === source;
+    const listen = (node, name, callback, options) => {
+      node.addEventListener(name, callback, options);
+      listeners.push(() => node.removeEventListener(name, callback, options));
+    };
+    const status = (name) => {
+      for (const state of ["loading", "ready", "error"]) host.classList.toggle("is-" + state, state === name);
+    };
+    const dimensions = () => {
+      const { width, height } = host.getBoundingClientRect();
+      if (!current() || !st.loaded || !width || !height) return false;
+      if (width !== st.width || height !== st.height || !st.fitScale) {
+        wheel.cancel();
+        const fit = Math.min(width / st.naturalWidth, height / st.naturalHeight);
+        if (st.userAdjusted && st.fitScale) {
+          st.k *= fit / st.fitScale;
+          st.px *= width / st.width;
+          st.py *= height / st.height;
+        } else {
+          st.k = fit;
+          st.px = st.py = 0;
+        }
+        Object.assign(st, { width, height, fitScale: fit });
+      }
+      return true;
+    };
+    const draw = () => {
+      if (!dimensions()) return;
+      const width = st.naturalWidth * st.k, height = st.naturalHeight * st.k;
+      Object.assign(img.style, {
+        width: width + "px", height: height + "px",
+        transform: `translate3d(${(st.width - width) / 2 + st.px}px, ${(st.height - height) / 2 + st.py}px, 0)`,
+        visibility: "visible",
+      });
+    };
+    const redraw = () => {
+      if (disposed) return;
+      if (current()) {
+        status(st.failed ? "error" : st.loaded ? "ready" : "loading");
+        if (!st.loaded) img.style.visibility = "hidden";
+      }
+      if (raf != null) return;
+      raf = requestAnimationFrame((now) => {
+        raf = null;
+        if (!dimensions()) return wheel.cancel();
+        wheel.step(now);
+        draw();
+      });
+    };
+    const bounds = () => [st.fitScale / 2, st.fitScale * 16];
+    const zoomAt = (factor, at) => {
+      if (!(factor > 0) || !Number.isFinite(factor) || !dimensions()) return;
+      const [min, max] = bounds(),
+        k = Math.max(min, Math.min(max, st.k * factor)), ratio = k / st.k,
+        x = at ? at[0] - st.width / 2 : 0,
+        y = at ? at[1] - st.height / 2 : 0;
+      st.px = x - (x - st.px) * ratio;
+      st.py = y - (y - st.py) * ratio;
+      st.k = k;
+      st.userAdjusted = true;
+    };
+    const wheel = canvasWheelZoom(zoomAt, redraw);
+    const loaded = () => {
+      if (!current() || st.loaded) return;
+      if (!(img.naturalWidth > 0 && img.naturalHeight > 0)) return failed();
+      wheel.cancel();
+      Object.assign(st, { loaded: true, failed: false, naturalWidth: img.naturalWidth, naturalHeight: img.naturalHeight, fitScale: 0, userAdjusted: false });
+      status("ready");
+      draw();
+      onLoad?.(st);
+    };
+    const failed = () => {
+      if (!current() || st.failed) return;
+      wheel.cancel();
+      st.loaded = false;
+      st.failed = true;
+      img.style.visibility = "hidden";
+      status("error");
+      onError?.(st);
+    };
+    const pos = (event) => {
+      const rect = host.getBoundingClientRect();
+      return [event.clientX - rect.left, event.clientY - rect.top];
+    };
+    const pointerShape = () => {
+      const points = [...pointers.values()];
+      if (points.length < 2) return null;
+      const [a, b] = points;
+      return { distance: Math.hypot(a[0] - b[0], a[1] - b[1]), middle: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] };
+    };
+    if (!img) throw Error("楼宇图片元素不存在");
+    img.draggable = false;
+    img.style.visibility = "hidden";
+    status("loading");
+    listen(img, "load", loaded);
+    listen(img, "error", failed);
+    listen(host, "dragstart", (event) => event.preventDefault());
+    listen(host, "pointerdown", (event) => {
+      if (event.button !== 0 && event.button !== 2 || !dimensions()) return;
+      event.preventDefault();
+      wheel.cancel();
+      host.focus?.({ preventScroll: true });
+      host.setPointerCapture?.(event.pointerId);
+      pointers.set(event.pointerId, pos(event));
+      gesture = pointerShape();
+      host.style.cursor = "grabbing";
+    });
+    listen(host, "pointermove", (event) => {
+      if (!pointers.has(event.pointerId) || !dimensions()) return;
+      const point = pos(event), previous = pointers.get(event.pointerId);
+      pointers.set(event.pointerId, point);
+      const next = pointerShape();
+      if (next) {
+        if (gesture?.distance > 0 && next.distance > 0) {
+          zoomAt(next.distance / gesture.distance, gesture.middle);
+          st.px += next.middle[0] - gesture.middle[0];
+          st.py += next.middle[1] - gesture.middle[1];
+        }
+        gesture = next;
+      } else {
+        st.px += point[0] - previous[0];
+        st.py += point[1] - previous[1];
+      }
+      st.userAdjusted = true;
+      redraw();
+    });
+    const pointerEnd = (event) => {
+      pointers.delete(event.pointerId);
+      gesture = pointerShape();
+      if (!pointers.size) host.style.cursor = "grab";
+    };
+    for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) listen(host, type, pointerEnd);
+    listen(host, "contextmenu", (event) => event.preventDefault());
+    listen(host, "wheel", (event) => {
+      event.preventDefault();
+      if (pointers.size || !dimensions()) return;
+      wheel.push(event, pos(event), st.k, ...bounds());
+    }, { passive: false });
+    listen(host, "keydown", (event) => {
+      if (!dimensions()) return;
+      const key = event.key;
+      if (/^Arrow(Left|Right|Up|Down)$/.test(key)) {
+        wheel.cancel();
+        st.px += key === "ArrowLeft" ? 40 : key === "ArrowRight" ? -40 : 0;
+        st.py += key === "ArrowUp" ? 40 : key === "ArrowDown" ? -40 : 0;
+        st.userAdjusted = true;
+      } else if (key === "+" || key === "=") api.zoom(1.25);
+      else if (key === "-" || key === "_") api.zoom(0.8);
+      else if (key === "0") api.reset();
+      else return;
+      event.preventDefault();
+      redraw();
+    });
+    const resize = typeof ResizeObserver === "function" ? new ResizeObserver(redraw) : null;
+    resize?.observe(host);
+    const api = {
+      st,
+      zoom(factor) { wheel.cancel(); zoomAt(factor); redraw(); },
+      reset() {
+        wheel.cancel();
+        st.userAdjusted = false;
+        st.fitScale = 0;
+        redraw();
+      },
+      redraw,
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        wheel.cancel();
+        resize?.disconnect();
+        if (raf != null) cancelAnimationFrame(raf);
+        if (loadRaf != null) cancelAnimationFrame(loadRaf);
+        raf = null;
+        for (const remove of listeners) remove();
+        for (const pointerId of pointers.keys()) {
+          try { host.releasePointerCapture?.(pointerId); } catch (_) { /* 指针可能已结束。 */ }
+        }
+        pointers.clear();
+      },
+    };
+    if (img.complete) {
+      loadRaf = requestAnimationFrame(() => {
+        loadRaf = null;
+        if (img.naturalWidth > 0) loaded();
+        else failed();
+      });
+    }
+    return api;
+  }
+  return { mount };
+})();
+
 /* 3.47 Smplrspace 对照第一类“总览”（HONG 2026-11-09 16:57:22Z“按建议”，17:01:00Z“总览可以先更新了”；记录 03-reviews/2026-11-09_Smplrspace对照/已确认改动.md）。
    全部项目、项目、楼宇三层同一外框（全宽顶栏 + 左侧菜单，见 workspace-ui.js wsTopHtml、wsSideHtml）。
    页面：左为 384 宽面板（标题、名称与地址、图标指标、说明、标签、最后编辑），右为地图（全部项目、项目）或楼宇 3D / 2D。
@@ -104233,11 +104428,12 @@ function ov3State(bid = U.b) {
     selRow = sel0 ? st.find((x) => x.f.id === sel0) || null : null,
     sel = selRow ? sel0 : null,
     floor3d = !!selRow?.f.image && (!!selRow.meters || !!g("buildings", bid)?.model3d?.published),
+    whole3d = has3 && st.length > 0,
     want = home ? sel ? U.homeBuildingFloorModes?.[bid] || "2d" : U.homeBuildingModes?.[bid] || "3d" : (U.ov3M ||= {})[bid] || "3d",
     blank = !!selRow && !selRow.f.image,
-    mode = home && !sel ? has3 && st.length ? want : "none" : blank ? "none" : !has3 || want === "2d" || (selRow && !floor3d) ? "2d" : "3d",
+    mode = home && !sel ? want === "2d" || !whole3d ? "2d" : "3d" : blank ? "none" : !has3 || want === "2d" || (selRow && !floor3d) ? "2d" : "3d",
     cur = home ? sel : mode === "2d" ? sel || initial?.f.id || null : sel;
-  return { st, plans, home, has3, floor3d, sel, mode, cur };
+  return { st, plans, home, has3, whole3d, floor3d, sel, mode, cur };
 }
 const ov3Cam = (cam) => {
   const topo = depTopoBuildingActive(), s = topo ? null : ov3State(),
@@ -104248,12 +104444,11 @@ const ov3Cam = (cam) => {
 };
 function ov3Scene(s) {
   const bid = U.b;
-  if (s.home && (s.mode === "3d" || !s.cur && s.mode === "2d")) {
+  if (s.home && s.mode === "3d") {
     const scene = s3Scene(bid, { focus: s.cur, only: !!s.cur, walls: false }),
       visible = new Set(s.st.map(({ f }) => f.id));
     return { ...scene, floors: scene.floors.filter((f) => visible.has(f.id)),
-      why: scene.why?.filter(({ f }) => visible.has(f.id)), view: { az: 30, el: 50 }, noLabels: true,
-      ...(s.mode === "2d" ? { flat: true, elevation: true, inset: ov3ElevationInsets } : {}) };
+      why: scene.why?.filter(({ f }) => visible.has(f.id)), view: { az: 30, el: 50 }, noLabels: true };
   }
   // 楼宇总览的初始视角：从西南高处看（转 30°、俯 45°），长立面朝右下；楼层名不写在模型旁（楼层在左侧楼层列）
   // 3.49 V1358：俯角约 50°，不画外壳；有运行数据的层按状态着色，没有楼层图的层只画楼板轮廓（同空间“全部”）
@@ -104285,20 +104480,6 @@ function ov3Scene(s) {
     name: g("buildings", bid)?.name || "",
   };
 }
-function ov3ElevationInsets(canvas, { width, height, modelWidth, modelHeight }) {
-  const frame = canvas.getBoundingClientRect(),
-    controls = canvas.closest(".ov3-view").querySelector(":scope > .ov3-ctl")?.getBoundingClientRect(),
-    inset = { l: width * 0.075, r: width * 0.075, t: height * 0.075, b: height * 0.075 },
-    scale = ({ l, r, t, b }) => Math.min((width - l - r) / modelWidth, (height - t - b) / modelHeight);
-  if (!controls) return inset;
-  const k = scale(inset),
-    top = (height - k * modelHeight) / 2,
-    right = (width + k * modelWidth) / 2;
-  if (top >= controls.bottom - frame.top + 12 || right <= controls.left - frame.left - 12) return inset;
-  const below = { ...inset, t: controls.bottom - frame.top + 12 },
-    beside = { ...inset, r: frame.right - controls.left + 12 };
-  return scale(below) >= scale(beside) ? below : beside;
-}
 // 共用竖向楼层轨道。整栋入口固定在外面，楼层之间共用一个白色滑块。
 function ov3FloorRail(bid, pid, stack, has3, active, action, deployment = false) {
   if (!stack.length) return "";
@@ -104323,6 +104504,7 @@ function ov3Bldg() {
   const b = g("buildings", U.b),
     s = ov3State(),
     planWord = ov3Out(b.id) ? "总平面图" : "楼层图";
+  if (s.home && !s.cur && s.mode === "2d") return ov3BuildingImage(b, s);
   if (!s.plans.length && !(s.home && !s.cur && s.mode !== "none")) {
     if (!s.home) return ov3NoPlanMap(b);
     S3_PEND = null;
@@ -104346,10 +104528,76 @@ function ov3Bldg() {
     curName = s.cur ? g("floors", s.cur)?.name || "" : "全部";
   S3_PEND = S;
   const tip = d2 ? "拖动平移，滚轮缩放" : "拖动旋转，右键拖动平移，滚轮缩放";
-  const name = s.home && !s.cur ? `${b.name} · 整栋楼宇${d2 ? " 2D 正立面" : " 3D 视图"}` : `${b.name} · ${curName} ${d2 ? "2D 视图" : "3D 视图"}`,
+  const name = s.home && !s.cur ? `${b.name} · 整栋楼宇 3D 视图` : `${b.name} · ${curName} ${d2 ? "2D 视图" : "3D 视图"}`,
     switchMode = s.home && s.cur ? s.floor3d : s.has3;
   return `<section class="ov3-view ov3-cv${d2 ? " is2d" : ""}" aria-label="${esc(name)}">${col}<div class="s3-host ov3-s3" id="s3Host" data-view="ov3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${name}：${tip}`)}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl">${switchMode ? `<div class="ov3-cg">${ov3Cb(`切换到 ${d2 ? "3D" : "2D"}`, "", "ov3Mode", {}, `<span class="ov3-mode">${d2 ? "3D" : "2D"}</span>`)}</div>` : ""}<div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3Reset")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div></section>`;
 }
+function ov3CanEditBuildingImage(b) {
+  if (!b || b.id !== U.b || b.projectId !== U.p) return false;
+  try { assertNetworkProjectAccess(b.projectId); return true; } catch (_) { return false; }
+}
+function ov3BuildingImage(b, s) {
+  S3_PEND = null;
+  const image = typeof b.image === "string" ? b.image.trim() : "",
+    editable = ov3CanEditBuildingImage(b),
+    title = `${b.name} · 整栋楼宇 2D 图片`,
+    upload = editable ? btn(image ? "更换楼宇图片" : "上传楼宇图片", "ov3BuildingImageEdit", { b: b.id }, "ov3-npb") : "",
+    state = `<div class="ov3-image-state" data-building-image-state role="status"><span class="ov3-np-ic" aria-hidden="true">${ico("image")}</span><h2 data-building-image-message>${image ? "正在加载楼宇图片" : "尚未上传楼宇图片"}</h2>${upload}</div>`,
+    photo = image ? `<div class="ov3-image-host is-loading" tabindex="0" role="group" aria-label="${esc(`${b.name}楼宇图片：拖动平移，滚轮缩放`)}"><img class="ov3-building-image" src="${esc(image)}" alt="${esc(`${b.name}楼宇图片`)}" draggable="false"></div>` : "",
+    mode = s.whole3d ? `<div class="ov3-cg">${ov3Cb("切换到 3D", "", "ov3Mode", {}, '<span class="ov3-mode">3D</span>')}</div>` : "",
+    tools = image ? `<div class="ov3-cg" data-building-image-tools hidden>${ov3Cb("复位视角", "rotate-ccw", "ov3Reset")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div>` : "";
+  return `<section class="ov3-view ov3-cv is2d ov3-building-photo" aria-label="${esc(title)}">${ov3FloorCol(b, s)}${photo}${state}<div class="ov3-ctl">${mode}${tools}</div></section>`;
+}
+let OV3_IMAGE_LIVE = null;
+function ov3SyncBuildingImage() {
+  const live = OV3_IMAGE_LIVE;
+  if (!live || !live.host.isConnected) return;
+  const { host, img, api } = live, { loaded, failed } = api.st,
+    view = host.closest(".ov3-view"), state = view.querySelector("[data-building-image-state]"),
+    tools = view.querySelector("[data-building-image-tools]");
+  if (tools) tools.hidden = !loaded;
+  host.tabIndex = loaded ? 0 : -1;
+  for (const [name, on] of [["is-loading", !loaded && !failed], ["is-ready", loaded], ["is-error", failed]]) host.classList.toggle(name, on);
+  if (state) state.hidden = loaded;
+  const message = state?.querySelector("[data-building-image-message]");
+  if (message) message.textContent = failed ? "楼宇图片无法加载" : "正在加载楼宇图片";
+  if (!loaded) return;
+  const width = view.clientWidth, height = view.clientHeight,
+    frame = view.getBoundingClientRect(), controls = view.querySelector(".ov3-ctl")?.getBoundingClientRect(),
+    inset = { l: view.querySelector(".ov3-fcol") ? 80 : 16, r: 16, t: 16, b: 16 },
+    scale = ({ l, r, t, b }) => Math.min((width - l - r) / img.naturalWidth, (height - t - b) / img.naturalHeight);
+  let fit = inset;
+  if (controls) {
+    const k = scale(inset), top = (height + inset.t - inset.b - k * img.naturalHeight) / 2,
+      right = (width + inset.l - inset.r + k * img.naturalWidth) / 2,
+      below = controls.bottom - frame.top + 12, beside = controls.left - frame.left - 12;
+    if (top < below && right > beside) {
+      const under = { ...inset, t: below }, side = { ...inset, r: width - beside };
+      fit = scale(under) >= scale(side) ? under : side;
+    }
+  }
+  host.style.inset = `${fit.t}px ${fit.r}px ${fit.b}px ${fit.l}px`;
+  api.redraw();
+}
+onAfterRender(() => {
+  const host = document.querySelector(".ov3-image-host"), img = host?.querySelector(".ov3-building-image"), source = img?.getAttribute("src");
+  if (!host || !img) {
+    OV3_IMAGE_LIVE?.resize?.disconnect();
+    OV3_IMAGE_LIVE?.api.dispose();
+    OV3_IMAGE_LIVE = null;
+    return;
+  }
+  if (OV3_IMAGE_LIVE?.host !== host || OV3_IMAGE_LIVE.img !== img || OV3_IMAGE_LIVE.source !== source) {
+    OV3_IMAGE_LIVE?.resize?.disconnect();
+    OV3_IMAGE_LIVE?.api.dispose();
+    OV3_IMAGE_LIVE = { host, img, source, api: BuildingImageViewer.mount(host, { onLoad: ov3SyncBuildingImage, onError: ov3SyncBuildingImage }) };
+    const resize = typeof ResizeObserver === "function" ? new ResizeObserver(ov3SyncBuildingImage) : null;
+    OV3_IMAGE_LIVE.resize = resize;
+    resize?.observe(host.closest(".ov3-view"));
+  }
+  ov3SyncBuildingImage();
+});
+window.addEventListener("resize", ov3SyncBuildingImage, { passive: true });
 function depTopoPlanBuilding({ db, project, building }, view) {
   const all = F.floorStack(db, building.id), live = canEdit() ? null : ovLiveIds();
   const stack = all.filter(({ f }) => !live || live.has(f.id));
@@ -104384,7 +104632,7 @@ function ov3Pick(h) {
   }
   const fid = h?.kind === "zone" ? h.floor : h?.kind === "floor" ? h.id : null,
     s = ov3State();
-  if (!fid || s.mode === "2d" && (!s.home || !!s.cur) || !s.st.some((x) => x.f.id === fid) || s.cur === fid) return;
+  if (!fid || s.mode === "2d" || !s.st.some((x) => x.f.id === fid) || s.cur === fid) return;
   s3SaveCam();
   U.ov3F[U.b] = fid;
   render();
@@ -104392,7 +104640,7 @@ function ov3Pick(h) {
 // 选“全部”时悬停楼层列的某层：模型上高亮该层
 function ov3Hl(fid) {
   const S = S3_LIVE?.key === "ov3" ? S3_LIVE.api.st.S : null;
-  if (!S || S.flat && !S.elevation || S.focus) return;
+  if (!S || S.flat || S.focus) return;
   let ch = false;
   for (const f of S.floors) {
     const e = fid && f.id === fid ? "#1F2A30" : null;
@@ -104657,7 +104905,7 @@ defineActions({
   ov3Mode: () => {
     const s = ov3State();
     if (s.home) {
-      if (!(s.cur ? s.floor3d : s.has3) || s.mode === "none") return;
+      if (!(s.cur ? s.floor3d : s.whole3d) || s.mode === "none") return;
       s3SaveCam();
       const modes = s.cur ? U.homeBuildingFloorModes ||= {} : U.homeBuildingModes ||= {};
       modes[U.b] = s.mode === "3d" ? "2d" : "3d";
@@ -104670,6 +104918,18 @@ defineActions({
     if (s.mode === "2d" && !s.sel) U.ov3F[U.b] = null;
     render();
   },
+  ov3BuildingImageEdit: withPolicy({ guard: true }, (a = {}) => {
+    const b = g("buildings", a.b || U.b);
+    if (!b || b.id !== U.b || b.projectId !== U.p) return;
+    assertNetworkProjectAccess(b.projectId);
+    closePop();
+    spaceForm("buildings", b.id);
+    requestAnimationFrame(() => {
+      if (formState?.kind !== "buildings" || formState.id !== b.id) return;
+      document.getElementById("spaceImage")?.closest(".field")?.scrollIntoView({ block: "center" });
+      document.querySelector("#imageUp [data-act=selectImage]")?.focus({ preventScroll: true });
+    });
+  }),
   ov3RailScroll: (a, el) => {
     const list = el.parentElement.querySelector(".ov3-flist"),
       row = list.querySelector(".ov3-flr"),
@@ -104687,10 +104947,11 @@ defineActions({
     render();
   },
   ov3Reset: () => {
+    if (OV3_IMAGE_LIVE?.host.isConnected) return OV3_IMAGE_LIVE.api.reset();
     ov3Cam(null);
     S3_LIVE?.api.reset();
   },
-  ov3CvZoom: (a) => S3_LIVE?.api.zoom(Number(a.k) || 1),
+  ov3CvZoom: (a) => (OV3_IMAGE_LIVE?.host.isConnected ? OV3_IMAGE_LIVE : S3_LIVE)?.api.zoom(Number(a.k) || 1),
   // 编辑 ▾ 的“在部署中编辑”与需重新交付：进入部署并展开对应的一步
   ov3DepStep: (a) => {
     closePop();
