@@ -36222,6 +36222,8 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
     --floor-step: 32px;
     --floor-gap: 2px;
     --floor-arrow: 40px;
+    --floor-arrow-before: 38px;
+    --floor-arrow-after: 40px;
     --floor-clearance: 32px;
     --floor-track-bg: color-mix(in srgb, #777771 4%, #fafafa);
     --floor-track-shadow: inset 0 2px 2px -1px #0000000a, inset 0 4px 4px -2px #0000000a, inset 0 0 0 var(--hw) #0000001f;
@@ -36238,14 +36240,16 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   .ov3-ftrack { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; min-height: 0; }
   .ov3-ftrack::before { content: ""; position: absolute; z-index: -1; inset: 0 auto 0 50%; transform: translateX(-50%); width: 36px; border-radius: 18px; background: var(--floor-track-bg); box-shadow: var(--floor-track-shadow); pointer-events: none; }
   .ov3-flist { position: relative; display: flex; flex-direction: column; gap: var(--floor-gap); width: 100%; min-height: 0; padding-block: 2px; overflow: auto; overscroll-behavior: contain; scrollbar-width: none; }
-  .ov3-flist.snap-rows { box-sizing: border-box; max-height: var(--floor-list-height); padding-block: var(--floor-snap-padding); scroll-snap-type: y mandatory; scroll-padding-block: var(--floor-snap-padding); }
+  .ov3-ftrack.scrollable > .ov3-flist { padding-block: 0; }
+  .ov3-flist.snap-rows { box-sizing: border-box; max-height: var(--floor-list-height); padding-block: 0; scroll-snap-type: y mandatory; scroll-padding-block: var(--floor-snap-padding); }
   .ov3-flist.snap-rows > .ov3-flr { scroll-snap-align: start; }
   .ov3-flist::-webkit-scrollbar { display: none; }
   .ov3-flist.fade-t { mask-image: linear-gradient(transparent, #000 16px); }
   .ov3-flist.fade-b { mask-image: linear-gradient(#000 calc(100% - 16px), transparent); }
   .ov3-flist.fade-t.fade-b { mask-image: linear-gradient(transparent, #000 16px, #000 calc(100% - 16px), transparent); }
   .ov3-fslide { position: absolute; top: calc(2px + (var(--floor-step) - 32px) / 2); left: calc((100% - 32px) / 2); width: 32px; height: 32px; border-radius: 50%; background: var(--btn-bg); box-shadow: var(--btn); pointer-events: none; transform: translateY(calc(var(--floor-row) * (var(--floor-step) + var(--floor-gap)))); transition: transform 150ms ease-out; }
-  .ov3-flist.snap-rows > .ov3-fslide { top: calc(var(--floor-snap-padding) + (var(--floor-step) - 32px) / 2); }
+  .ov3-ftrack.scrollable > .ov3-flist > .ov3-fslide,
+  .ov3-flist.snap-rows > .ov3-fslide { top: calc((var(--floor-step) - 32px) / 2); }
   :is(.ov3-flr, .ov3-fhome, .ov3-farrow) { position: relative; isolation: isolate; flex: none; display: grid; place-items: center; width: 100%; padding: 0; border: 0; border-radius: 0; background: none; color: #636363; cursor: pointer; -webkit-user-select: none; user-select: none; transition: color 150ms ease-out; }
   .ov3-flr { height: var(--floor-step); font-size: 14px; line-height: 22px; font-weight: 400; letter-spacing: normal; font-variant-numeric: proportional-nums; }
   .ov3-flr > span { display: block; max-width: 30px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -36254,9 +36258,11 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   .ov3-fhome .ic { width: 18px; height: 18px; }
   .ov3-fhome[aria-pressed="true"] > span { background: var(--btn-bg); box-shadow: var(--btn); }
   .ov3-farrow { display: none; height: var(--floor-arrow); }
+  .ov3-farrow[data-dir="-1"] { margin-top: calc(var(--floor-arrow-before) - var(--floor-arrow)); }
+  .ov3-farrow[data-dir="1"] { margin-bottom: calc(var(--floor-arrow-after) - var(--floor-arrow)); }
   .ov3-farrow > .ic { position: absolute; left: calc(50% - 8px); }
-  .ov3-farrow[data-dir="-1"] > .ic { top: 12px; }
-  .ov3-farrow[data-dir="1"] > .ic { bottom: 12px; }
+  .ov3-farrow[data-dir="-1"] > .ic { top: calc(12px + var(--floor-arrow) - var(--floor-arrow-before)); }
+  .ov3-farrow[data-dir="1"] > .ic { bottom: calc(12px + var(--floor-arrow) - var(--floor-arrow-after)); }
   .ov3-ftrack.scrollable > .ov3-farrow { display: grid; }
   .ov3-farrow[data-dir="-1"] .ic { transform: rotate(180deg); }
   .ov3-farrow[aria-disabled="true"] { opacity: 0.3; cursor: default; }
@@ -36268,9 +36274,11 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   :is(.ov3-flr, .ov3-fhome, .ov3-farrow):focus-visible { z-index: 1; outline: none; }
   :is(.ov3-flr, .ov3-fhome, .ov3-farrow):focus-visible::before { content: ""; position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); width: 32px; height: min(32px, 100%); border-radius: 50%; box-shadow: 0 0 0 2px var(--accent); pointer-events: none; }
   .ov3-fhome:focus-visible::before { width: 36px; height: 36px; }
+  .ov3-farrow[data-dir="-1"]:focus-visible::before { top: calc(20px + var(--floor-arrow) - var(--floor-arrow-before)); }
+  .ov3-farrow[data-dir="1"]:focus-visible::before { top: calc(var(--floor-arrow-after) - 20px); }
   .ov3-fdot { position: absolute; top: calc((var(--floor-step) - 32px) / 2 + 3px); right: calc((100% - 32px) / 2 + 3px); width: 6px; height: 6px; pointer-events: none; }
   @media (max-width: 850px), (any-pointer: coarse) {
-    .ov3-fcol { --floor-hit: 44px; --floor-step: 44px; --floor-gap: 0px; --floor-arrow: 44px; --floor-snap-padding: 16px; left: 12px; gap: 4px; }
+    .ov3-fcol { --floor-hit: 44px; --floor-step: 44px; --floor-gap: 0px; --floor-arrow: 44px; --floor-arrow-before: 32px; --floor-arrow-after: 34px; --floor-snap-padding: 16px; left: 12px; gap: 12px; }
     .ov3-fcol:has(> .ov3-fhome) { top: 12px; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -104397,15 +104405,21 @@ function ov3SizeFloorList(list) {
   const track = list.parentElement,
     rail = track.parentElement,
     style = getComputedStyle(rail),
-    buffer = parseFloat(style.getPropertyValue("--floor-snap-padding")),
+    buffer = parseFloat(style.getPropertyValue("--floor-snap-padding")) || 0,
     step = parseFloat(style.getPropertyValue("--floor-step")),
-    arrow = parseFloat(style.getPropertyValue("--floor-arrow")),
+    gap = parseFloat(style.getPropertyValue("--floor-gap")) || 0,
+    before = parseFloat(style.getPropertyValue("--floor-arrow-before")),
+    after = parseFloat(style.getPropertyValue("--floor-arrow-after")),
     home = track.previousElementSibling,
     room = rail.parentElement.clientHeight - parseFloat(style.getPropertyValue("--floor-clearance")) - (home ? home.offsetHeight + parseFloat(style.rowGap) : 0),
     rows = list.childElementCount - 1,
-    complete = Math.floor((room - 2 * (arrow + buffer)) / step);
-  // 触屏滚动停稳时，首尾完整行都在渐隐缓冲之外，保留整行的点按范围。
-  const height = buffer && rows * step + 4 > room + 1 && complete > 0 ? `${complete * step + 2 * buffer}px` : "";
+    natural = rows * step + Math.max(0, rows - 1) * gap + 4,
+    overflow = natural > room + 1,
+    complete = Math.floor((room - before - after - 2 * buffer) / step);
+  // 以未显示箭头时的固有高度判断溢出，避免端部负边距及 padding 变化导致反复开关。
+  track.classList.toggle("scrollable", overflow);
+  // 中段保留两端渐隐所需的可视空间；实际首尾无额外 padding，使端点文字与箭头保持固定净距。
+  const height = buffer && overflow && complete > 0 ? `${complete * step + 2 * buffer}px` : "";
   list.classList.toggle("snap-rows", !!height);
   if (list.style.getPropertyValue("--floor-list-height") !== height) {
     if (height) list.style.setProperty("--floor-list-height", height);
@@ -104417,9 +104431,7 @@ function ov3SyncFloorScroll(list) {
   const track = list.parentElement,
     up = list.previousElementSibling,
     down = list.nextElementSibling,
-    available = list.clientHeight + up.offsetHeight + down.offsetHeight,
-    overflow = list.classList.contains("snap-rows") || list.scrollHeight > available + 1;
-  track.classList.toggle("scrollable", overflow);
+    overflow = track.classList.contains("scrollable");
   const canUp = overflow && list.scrollTop > 1,
     canDown = overflow && list.scrollTop + list.clientHeight < list.scrollHeight - 1;
   up.setAttribute("aria-disabled", String(!canUp));
