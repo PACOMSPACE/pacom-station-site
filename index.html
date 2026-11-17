@@ -103082,11 +103082,18 @@ function ov3InfoBody(lv, showName = true) {
 /* ---------- 页面 ---------- */
 function ov3Page() {
   U.ov3Now = true;
+  const incomingFloor = U.f && g("floors", U.f);
+  if (incomingFloor) U.b = incomingFloor.buildingId;
+  const buildingVisit = U.b && !ov3Out(U.b) ? JSON.stringify([storeKey(), locOwner(), U.p, U.b]) : null;
+  if (U.ov3HomeVisit !== buildingVisit) {
+    if (buildingVisit) (U.ov3F ||= {})[U.b] = null;
+    U.ov3HomeVisit = buildingVisit;
+  }
   // 旧楼层链接在楼宇首页的楼层图中选中对应楼层。
   let fix = false;
   if (U.tab && !(U.tab === "info" && U.p)) (U.tab = ""), (fix = true);
   if (U.f) {
-    const f = g("floors", U.f);
+    const f = incomingFloor;
     if (f) {
       U.b = f.buildingId;
       (U.ov3F ||= {})[f.buildingId] = f.id;
@@ -103098,6 +103105,9 @@ function ov3Page() {
   if (fix) syncRoute(true);
   return homeOverviewShell(ov3Lv());
 }
+onAfterRender(() => {
+  if (!U.ov3Now || !U.b || ov3Out(U.b)) U.ov3HomeVisit = null;
+});
 
 // 3.49 E1522：楼宇不在部署范围时打开部署范围弹窗，预先勾好该楼宇的全部楼层（保存前可改）；已在范围内时返回 false
 function ov3ScopeAdd(bid, then = null) {
@@ -104182,20 +104192,21 @@ onAfterRender(() => {
 
 /* ---------- 楼层图与室外区域总平面 ---------- */
 function ov3State(bid = U.b) {
-  const planOnly = U.page === "overview" && !ov3Out(bid),
-    visible = planOnly && !canEdit() ? ovLiveIds() : null,
+  const home = U.page === "overview" && !U.sp && !U.obj && !ov3Out(bid),
+    visible = home && !canEdit() ? ovLiveIds() : null,
     st = F.floorStack(data(), bid).filter(({ f }) => !visible || visible.has(f.id)),
     plans = st.filter(({ f }) => f.image).reverse(),
-    initial = planOnly ? plans.findLast(({ f }) => f.kind === "above") || plans.at(-1) : plans[0],
-    has3 = !planOnly && typeof s3Has === "function" && s3Has(bid),
+    initial = plans[0],
+    has3 = typeof s3Has === "function" && s3Has(bid),
     sel0 = (U.ov3F ||= {})[bid] || null,
     selRow = sel0 ? st.find((x) => x.f.id === sel0) || null : null,
     sel = selRow ? sel0 : null,
-    want = (U.ov3M ||= {})[bid] || "3d",
+    floor3d = !!selRow?.f.image && (!!selRow.meters || !!g("buildings", bid)?.model3d?.published),
+    want = home ? U.homeBuildingFloorModes?.[bid] || "2d" : (U.ov3M ||= {})[bid] || "3d",
     blank = !!selRow && !selRow.f.image,
-    mode = blank ? "none" : !has3 || want === "2d" || (selRow && !selRow.meters && !g("buildings", bid)?.model3d?.published) ? "2d" : "3d",
-    cur = mode === "2d" ? sel || initial?.f.id || null : sel;
-  return { st, plans, planOnly, has3, sel, mode, cur };
+    mode = home && !sel ? has3 && st.length ? "3d" : "none" : blank ? "none" : !has3 || want === "2d" || (selRow && !floor3d) ? "2d" : "3d",
+    cur = home ? sel : mode === "2d" ? sel || initial?.f.id || null : sel;
+  return { st, plans, home, has3, floor3d, sel, mode, cur };
 }
 const ov3Cam = (cam) => {
   const topo = depTopoBuildingActive(), s = topo ? null : ov3State(),
@@ -104206,6 +104217,12 @@ const ov3Cam = (cam) => {
 };
 function ov3Scene(s) {
   const bid = U.b;
+  if (s.home && s.mode === "3d") {
+    const scene = s3Scene(bid, { focus: s.cur, only: !!s.cur, walls: false }),
+      visible = new Set(s.st.map(({ f }) => f.id));
+    return { ...scene, floors: scene.floors.filter((f) => visible.has(f.id)),
+      why: scene.why?.filter(({ f }) => visible.has(f.id)), view: { az: 30, el: 50 }, noLabels: true };
+  }
   // 楼宇总览的初始视角：从西南高处看（转 30°、俯 45°），长立面朝右下；楼层名不写在模型旁（楼层在左侧楼层列）
   // 3.49 V1358：俯角约 50°，不画外壳；有运行数据的层按状态着色，没有楼层图的层只画楼板轮廓（同空间“全部”）
   if (s.mode === "3d" && typeof ws3Scene === "function") {
@@ -104215,7 +104232,10 @@ function ov3Scene(s) {
   }
   if (s.mode === "3d") return { ...s3Scene(bid, { focus: s.cur, only: false }), view: { az: 30, el: 45 }, noLabels: true };
   const row = s.plans.find((x) => x.f.id === s.cur);
-  if (row?.meters || g("buildings", bid)?.model3d?.published) return { ...s3Scene(bid, { focus: s.cur, only: true, walls: false }), flat: true, names: true, noLabels: true };
+  if (row?.meters || g("buildings", bid)?.model3d?.published) {
+    const scene = s3Scene(bid, { focus: s.cur, only: true, walls: false });
+    return { ...scene, floors: s.home ? scene.floors.filter((f) => f.id === s.cur) : scene.floors, flat: true, names: true, noLabels: true };
+  }
   // 没有比例尺的楼层：按楼层图的长宽比画功能区（单位任意）
   const f = row.f,
     asp = f.dimensions?.height / f.dimensions?.width,
@@ -104251,14 +104271,14 @@ function ov3FloorRail(bid, pid, stack, has3, active, action, deployment = false)
   return `<div class="ov3-fcol" data-key="${esc(action + ":" + bid)}">${home}<div class="ov3-ftrack" data-morph-classes="scrollable">${arrow(-1, "上")}<div class="ov3-flist" role="group" aria-label="楼层" data-morph-classes="fade-t fade-b snap-rows"><span class="ov3-fslide" aria-hidden="true"${selected < 0 ? " hidden" : ` style="--floor-row:${selected}"`}></span>${rows.join("")}</div>${arrow(1, "下")}</div></div>`;
 }
 function ov3FloorCol(b, s) {
-  return ov3FloorRail(b.id, b.projectId, s.st, s.has3, s.mode === "none" ? s.sel : s.cur, "ov3Floor");
+  return ov3FloorRail(b.id, b.projectId, s.st, s.home || s.has3, s.mode === "none" ? s.sel : s.cur, "ov3Floor");
 }
 function ov3Bldg() {
   const b = g("buildings", U.b),
     s = ov3State(),
     planWord = ov3Out(b.id) ? "总平面图" : "楼层图";
-  if (!s.plans.length) {
-    if (!s.planOnly) return ov3NoPlanMap(b);
+  if (!s.plans.length && !(s.home && s.mode === "3d")) {
+    if (!s.home) return ov3NoPlanMap(b);
     S3_PEND = null;
     const floor = s.sel && g("floors", s.sel);
     const name = floor?.name || b.name, editable = canEdit(),
@@ -104272,15 +104292,17 @@ function ov3Bldg() {
   if (s.mode === "none") {
     S3_PEND = null;
     const f = g("floors", s.sel);
-    return `<section class="ov3-view ov3-cv ov3-noplan ov3-nofl" aria-label="${esc(`${b.name} · ${f?.name || ""}`)}">${col}<div class="ov3-np-c"><span class="ov3-np-ic" aria-hidden="true">${ico("layers")}</span><h2>${esc(f?.name || "")} 未上传${planWord}</h2>${canEdit() ? btn(ico("upload", "ic16") + "上传" + planWord, "ov3UploadPlan", { f: s.sel }, "ov3-npb") : ""}</div></section>`;
+    const status = f ? `${f.name} 未上传${planWord}` : `${b.name} 楼宇模型未生成`;
+    return `<section class="ov3-view ov3-cv ov3-noplan ov3-nofl" aria-label="${esc(status)}">${col}<div class="ov3-np-c"><span class="ov3-np-ic" aria-hidden="true">${ico("layers")}</span><h2>${esc(status)}</h2>${f && canEdit() ? btn(ico("upload", "ic16") + "上传" + planWord, "ov3UploadPlan", { f: s.sel }, "ov3-npb") : ""}</div></section>`;
   }
   const S = { ...ov3Scene(s), fitCoverage: 0.85 },
     d2 = s.mode === "2d",
     curName = s.cur ? g("floors", s.cur)?.name || "" : "全部";
   S3_PEND = S;
   const tip = d2 ? "拖动平移，滚轮缩放" : "拖动旋转，右键拖动平移，滚轮缩放";
-  const name = `${b.name} · ${curName} ${s.planOnly ? "楼层图" : d2 ? "2D 视图" : "3D 视图"}`;
-  return `<section class="ov3-view ov3-cv${d2 ? " is2d" : ""}" aria-label="${esc(name)}">${col}<div class="s3-host ov3-s3" id="s3Host" data-view="ov3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${name}：${tip}`)}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl">${s.has3 ? `<div class="ov3-cg">${ov3Cb(`切换到 ${d2 ? "3D" : "2D"}`, "", "ov3Mode", {}, `<span class="ov3-mode">${d2 ? "3D" : "2D"}</span>`)}</div>` : ""}<div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3Reset")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div></section>`;
+  const name = s.home && !s.cur ? `${b.name} · 整栋楼宇` : `${b.name} · ${curName} ${d2 ? "2D 视图" : "3D 视图"}`,
+    switchMode = s.home ? s.floor3d : s.has3;
+  return `<section class="ov3-view ov3-cv${d2 ? " is2d" : ""}" aria-label="${esc(name)}">${col}<div class="s3-host ov3-s3" id="s3Host" data-view="ov3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${name}：${tip}`)}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl">${switchMode ? `<div class="ov3-cg">${ov3Cb(`切换到 ${d2 ? "3D" : "2D"}`, "", "ov3Mode", {}, `<span class="ov3-mode">${d2 ? "3D" : "2D"}</span>`)}</div>` : ""}<div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3Reset")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div></section>`;
 }
 function depTopoPlanBuilding({ db, project, building }, view) {
   const all = F.floorStack(db, building.id), live = canEdit() ? null : ovLiveIds();
@@ -104307,7 +104329,7 @@ function depTopoPlanBuilding({ db, project, building }, view) {
   return `<section class="ov3-view ov3-cv${flat ? " is2d" : ""}" aria-label="${esc(title + " " + mode + " 楼宇图")}">${rail}<div class="s3-host ov3-s3" id="s3Host" data-view="ov3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(title + " · " + mode + " 楼宇图")}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb(`切换到 ${flat ? "3D" : "2D"}`, "", "depTopoBuildingMode", {}, `<span class="ov3-mode">${flat ? "3D" : "2D"}</span>`)}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3Reset")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div>${note}</section>`;
 }
 const depTopoBuildingActive = () => U.page === "deployment" && U.tab === "config" && !!U.b && typeof depWbView === "function" && depWbView().mode === "building";
-// 点 3D 里的楼层：进入该层（隐藏上面的楼层；没有 3D 的层切到 2D，没有楼层图的层写“未上传楼层图”）
+// 点楼宇模型中的楼层进入该层，缺图楼层显示对应提示。
 function ov3Pick(h) {
   if (depTopoBuildingActive()) {
     const id = h?.kind === "zone" ? h.floor : h?.kind === "floor" ? h.id : null;
@@ -104584,7 +104606,13 @@ defineActions({
   },
   ov3Mode: () => {
     const s = ov3State();
-    if (s.planOnly) return;
+    if (s.home) {
+      if (!s.floor3d) return;
+      s3SaveCam();
+      (U.homeBuildingFloorModes ||= {})[U.b] = s.mode === "3d" ? "2d" : "3d";
+      render();
+      return;
+    }
     s3SaveCam();
     U.ov3M[U.b] = s.mode === "3d" ? "2d" : "3d";
     // 2D 切回 3D：停在原来选的楼层；3D 切到 2D 时没有选楼层，停在最高一层有图的楼层
@@ -104600,11 +104628,11 @@ defineActions({
   },
   ov3Floor: (a) => {
     const s = ov3State();
-    if ((!a.to && s.planOnly) || (a.to && !s.st.some(({ f }) => f.id === a.to))) return;
+    if (a.to && !s.st.some(({ f }) => f.id === a.to)) return;
     s3SaveCam();
     U.ov3F[U.b] = a.to || null;
     // 选到没有 3D 的楼层时 ov3State 自动换成 2D；2D 时点“全部”切回 3D
-    if (!a.to && U.ov3M?.[U.b] === "2d" && ov3State().has3) U.ov3M[U.b] = "3d";
+    if (!s.home && !a.to && U.ov3M?.[U.b] === "2d" && ov3State().has3) U.ov3M[U.b] = "3d";
     render();
   },
   ov3Reset: () => {
@@ -106614,7 +106642,7 @@ function homeOverviewHeader(level) {
   const scope = homeOverviewScope(level);
   const info = U.tab === "info", building = homeOverviewBuilding(level);
   const mobile = homeOverviewMobile(level);
-  const mobileItems = level === "b" ? [["list", info ? "资料" : "内容"], ["map", building ? "楼层图" : "场地图"]] : info ? [["list", "资料"], ["map", "地图"]] : HOME_COLLECTION_PANES;
+  const mobileItems = level === "b" ? [["list", info ? "资料" : "内容"], ["map", building ? "楼宇图" : "场地图"]] : info ? [["list", "资料"], ["map", "地图"]] : HOME_COLLECTION_PANES;
   const infoLabel = level === "b" ? building ? "楼宇信息" : "室外区域信息" : "项目信息";
   const projectInfo = level === "all" ? "" : `<button type="button" class="home-overview-info" data-act="homeOverviewInfo" aria-label="${infoLabel}" aria-pressed="${info}" data-tip="${info ? "返回概况" : infoLabel}">${wsInfoIcon()}</button>`;
   return `<header class="home-overview-head"><div class="home-overview-title"><h1 class="ov3-t" id="ov3T">首页</h1></div><div class="home-overview-tools"><div class="home-overview-primary">${wsScopeBand(scope)}</div>${projectInfo}</div><div class="home-mobile-toggle">${segSm(mobileItems, mobile, "homeMobileView", "", "首页显示")}</div></header>`;
