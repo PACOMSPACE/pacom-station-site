@@ -37564,9 +37564,10 @@ img.img-off { display: none !important; }
 .home-collection-list-scroll > ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 9px; }
 .home-collection-list-scroll li { min-width: 0; }
 .home-collection-card {
+  --home-card-cover-size: 136px;
   --home-card-outline: var(--hc-114114112040, rgba(114, 114, 112, .16));
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr);
+  grid-template-columns: var(--home-card-cover-size) minmax(0, 1fr);
   width: 100%;
   padding: 12px;
   gap: 14px;
@@ -37593,7 +37594,7 @@ img.img-off { display: none !important; }
   background: #eceef1;
   color: #676e7b;
 }
-.home-collection-thumb { width: 150px; height: 150px; align-self: start; }
+.home-collection-thumb { width: var(--home-card-cover-size); height: var(--home-card-cover-size); align-self: start; }
 .home-collection-thumb > img, .home-collection-pop-art > img {
   position: absolute;
   inset: 0;
@@ -37622,13 +37623,10 @@ img.img-off { display: none !important; }
 .home-collection-card-heading { display: grid; gap: 2px; min-width: 0; }
 .home-collection-card-heading > b { font: 500 16px/24px var(--ff); }
 .home-collection-card-heading > small { color: var(--ds-ink-2); font: 400 12px/18px var(--ff); }
-.home-collection-facts { display: grid; gap: 2px; color: var(--ds-ink-2); font: 400 14px/20px var(--ff); }
+.home-collection-facts { display: grid; row-gap: 6px; color: var(--ds-ink-2); font: 400 14px/20px var(--ff); }
 .home-collection-fact { display: flex; align-items: flex-start; gap: 4px; min-width: 0; }
 .home-collection-fact > svg { flex: none; width: 16px; height: 16px; margin-block-start: 2px; }
 .home-collection-fact > span { min-width: 0; }
-.home-collection-fact.due { color: #8d561b; }
-.home-collection-fact.due.l0 { color: #ad352b; }
-.home-collection-fact.connected { color: #326348; }
 .home-collection-empty { padding: 6px 3px; color: var(--ds-ink-2); }
 .home-collection-empty > p { margin: 0 0 4px; }
 
@@ -45566,10 +45564,11 @@ const StationFlowModel = ((M) => {
     for (const f of last.floors)
       M.record(db, "撤回复制设备", f.id, `删除复制到${zhSub(M.floor(db, f.id)?.name || "")}的 ${f.points.length} 个点位${f.network ? `与设备网络${zhSub(f.network.name, "l")}` : ""}`);
   }
-  function alarmGroups(db) {
-    const active = db.alerts.filter((a) => a.state !== "recovered" && a.kind === "offline"),
+  function alarmGroups(db, accept) {
+    const alerts = accept ? db.alerts.filter(accept) : db.alerts,
+      active = alerts.filter((a) => a.state !== "recovered" && a.kind === "offline"),
       byPoint = new Map(active.map((a) => [a.pointId, a])),
-      rows = new Map(db.alerts.map((a) => [a.id, { ...a, relatedIds: [...(a.relatedIds || [])] }]));
+      rows = new Map(alerts.map((a) => [a.id, { ...a, relatedIds: [...(a.relatedIds || [])] }]));
     for (const a of active) {
       const p = M.get(db, "points", a.pointId);
       if (!p) continue;
@@ -46695,9 +46694,9 @@ function buildDemoWorkspace(seed) {
   };
   // “E栋 7F 网关离线”告警只在本页内存（Demo.ctl.gwAlarms），与 db 中的告警一起合并（规范 ALARM01，2026-10-08 Vision 核查 V4）
   const baseGroups = F.alarmGroups;
-  F.alarmGroups = (db) => {
+  F.alarmGroups = (db, accept) => {
     const extra = typeof Demo !== "undefined" && Demo.on?.() ? Demo.ctl?.gwAlarms || [] : [];
-    return baseGroups(extra.length ? { ...db, alerts: [...db.alerts, ...extra] } : db);
+    return baseGroups(extra.length ? { ...db, alerts: [...db.alerts, ...extra] } : db, accept);
   };
 })();
 
@@ -102930,6 +102929,27 @@ function ov3Due(pid, bid = null, fid = null) {
   const as = typeof wsPendItems === "function" ? wsPendItems(pid).filter((x) => (!bid || g("floors", x.floorId)?.buildingId === bid) && (!fid || x.floorId === fid)) : [];
   return as.length ? { n: as.length, lvl: Math.min(...as.map((x) => x.lvl)) } : null;
 }
+function homeActiveAlarmCount(pid, bid = null, fid = null) {
+  const db = data();
+  if (!pid || U.role === "member" || !Array.isArray(db?.alerts) || !M.get(db, "projects", pid) || !mayViewProject(pid, db)) return null;
+  // 当前只有演示运行数据提供告警覆盖。没有覆盖或部分区域边界未确认时，无从判定零告警。
+  const live = ov3Live(), scope = { p: pid, b: bid, f: fid };
+  const scopedFloors = db.floors.filter((f) => F.floorIn(db, f.id, scope));
+  const floors = new Map(scopedFloors.filter((f) => live.has(f.id) && (!f.managedPart || F.managedPartReady(f))).map((f) => [f.id, f]));
+  if (!floors.size) return null;
+  // 先排除已结束及范围外事项，再归并关联告警，防止已关闭的上游掩盖仍在发生的下游告警。
+  const alarms = F.alarmGroups(db, (a) => {
+    if (a.projectId !== pid || !["active", "open"].includes(a.state) || a.closedAt || a.recoveredAt) return false;
+    const point = M.get(db, "points", a.pointId), zone = M.get(db, "zones", a.zoneId);
+    const floorId = a.floorId || point?.floorId || zone?.floorId;
+    if (!floorId) return !bid && !fid && !a.pointId && !a.zoneId;
+    const floor = floors.get(floorId);
+    if (!floor || (point && point.floorId !== floorId) || (zone && zone.floorId !== floorId)) return false;
+    if (!floor.managedPart) return true;
+    return !!(point || zone) && (!a.pointId || F.managedPointIn(db, floor, point)) && (!a.zoneId || F.managedZoneIn(floor, zone));
+  });
+  return { n: alarms.length, partial: floors.size < scopedFloors.length };
+}
 // 级别圆点：紧急红 #D0382B、重要橙 #DB6A1E、提示黄 #D29A10
 const ov3Dot = (lvl, cls = "ov3-ddot") => `<i class="${cls} l${lvl}" aria-hidden="true"></i>`;
 const ov3Devs = (b, st = F.floorStack(data(), b.id)) => {
@@ -106626,17 +106646,16 @@ function homeCollectionRows(lv) {
     return locProjects(db).map((record) => ({
       record, pid: record.id, due: ov3Due(record.id), located: ov3Loc(record),
       address: homeCollectionAddress(record), use: record.usage || "",
-      live: ov3ProjLive(record.id, live), buildings: ov3Blds(record.id).length,
+      live: ov3ProjLive(record.id, live), buildings: locBuildings(record.id, db).filter((b) => b.kind !== "outdoor").length,
     }));
   }
   const project = locProjects(db).find(({ id }) => id === U.p);
   if (!project) return [];
   return locBuildings(project.id, db).map((record) => {
-    const stack = F.floorStack(db, record.id), drawing = stack.some(({ f }) => f.image), outdoor = record.kind === "outdoor";
+    const outdoor = record.kind === "outdoor";
     return {
-      record, pid: project.id, bid: record.id, due: ov3Due(project.id, record.id), located: ov3Loc(record, project),
-      address: homeCollectionAddress(record, project), use: outdoor ? "" : record.usage || "",
-      outdoor, drawing, floors: outdoor ? "" : ov3Lvls(record), devices: drawing ? ov3Devs(record, stack) : null,
+      record, pid: project.id, bid: record.id, located: ov3Loc(record, project),
+      address: homeCollectionAddress(record, project), use: outdoor ? "" : record.usage || "", outdoor,
     };
   });
 }
@@ -106645,25 +106664,31 @@ function homeCollectionArt(record, use) {
   const image = record.image, glyph = record.kind === "outdoor" ? "map-pin" : "building-2";
   return `${image ? `<img src="${esc(image)}" alt="">` : ico(glyph, "ic24")}${use ? `<span class="home-collection-use">${esc(use)}</span>` : ""}`;
 }
-const homeCollectionFact = (glyph, text, cls = "") => `<span class="home-collection-fact${cls ? ` ${cls}` : ""}">${ico(glyph, "ic16")}<span>${esc(text)}</span></span>`;
+const homeCollectionFact = (glyph, text, tip = "") =>
+  `<span class="home-collection-fact"${tip ? ` data-tip="${esc(tip)}"` : ""}>${ico(glyph, "ic16")}<span>${esc(text)}</span></span>`;
+function homeCollectionFloors(building) {
+  const plan = M.buildingFloorPlan(building);
+  const above = plan.filter((f) => f.kind === "above").length;
+  const below = plan.filter((f) => f.kind === "below").length;
+  return `${ov3Num(above)} 楼层${below ? ` / ${ov3Num(below)} 地下楼层` : ""}`;
+}
 function homeCollectionCard(row, id) {
-  const { record, pid, bid, due, located, outdoor, drawing, floors, devices, address, use } = row;
-  const facts = bid
-    ? [
-        floors ? homeCollectionFact("layers", floors) : "",
-        outdoor ? homeCollectionFact("map-pin", "室外区域") : "",
-        drawing
-          ? (outdoor ? "" : homeCollectionFact("cpu", `${ov3Num(devices)} 台设备`))
-          : homeCollectionFact("floor-plan", outdoor ? "未上传总平面图" : "未上传楼层图"),
-      ]
-    : [homeCollectionFact("building-2", row.buildings ? `${ov3Num(row.buildings)} 栋楼宇` : "未添加楼宇")];
-  if (!located) facts.push(homeCollectionFact("map-pin-off", "未定位"));
-  if (due) facts.push(homeCollectionFact("alert", `待处理 ${ov3Num(due.n)} 项`, `due l${due.lvl}`));
-  if (!bid) facts.push(row.live ? homeCollectionFact("link", "已接入", "connected") : homeCollectionFact("link-off", "未接入"));
+  const { record, pid, bid, located, outdoor, address, use } = row;
+  const alarms = homeActiveAlarmCount(pid, bid), tickets = homeOpenTicketCount(pid, bid);
+  const alarmTip = alarms == null ? "暂无可用告警数据" : alarms.partial ? "告警仅统计已接入范围" : "";
+  const ticketTip = tickets == null ? "暂无可用工单数据" : "";
+  const description = [alarmTip, ticketTip].filter(Boolean).join("。");
+  const facts = [
+    homeCollectionFact("alert", `${alarms == null ? "—" : ov3Num(alarms.n)} 告警`, alarmTip),
+    homeCollectionFact("file-text", `${tickets == null ? "—" : ov3Num(tickets)} 工单`, ticketTip),
+    bid ? outdoor ? homeCollectionFact("map-pin", "室外区域") : homeCollectionFact("layers", homeCollectionFloors(record))
+      : homeCollectionFact("building-2", `${ov3Num(row.buildings)} 楼宇`),
+  ];
   const name = bid ? M.buildingLabel(data(), record) : record.name,
+    location = [address || "未填写地址", located ? "" : "未定位"].filter(Boolean).join(" · "),
     current = id === record.id,
     action = located ? "homeCollectPreview" : "ov3Go";
-  return `<li data-key="${esc(record.id)}"><button type="button" class="home-collection-card" data-act="${action}" data-home-id="${esc(record.id)}" data-p="${esc(pid)}"${bid ? ` data-b="${esc(bid)}"` : ""}${located ? ` aria-pressed="${current}"` : ""}><span class="home-collection-thumb${record.image ? " has-image" : ""}" aria-hidden="true">${homeCollectionArt(record, use)}</span><span class="home-collection-card-body"><span class="home-collection-card-heading"><b>${esc(name)}</b><small>${esc(address || "未填写地址")}</small></span><span class="home-collection-facts">${facts.join("")}</span></span></button></li>`;
+  return `<li data-key="${esc(record.id)}"><button type="button" class="home-collection-card" data-act="${action}" data-home-id="${esc(record.id)}" data-p="${esc(pid)}"${bid ? ` data-b="${esc(bid)}"` : ""}${located ? ` aria-pressed="${current}"` : ""}${description ? ` aria-description="${esc(description)}"` : ""}><span class="home-collection-thumb${record.image ? " has-image" : ""}" aria-hidden="true">${homeCollectionArt(record, use)}</span><span class="home-collection-card-body"><span class="home-collection-card-heading"><b>${esc(name)}</b><small>${esc(location)}</small></span><span class="home-collection-facts">${facts.join("")}</span></span></button></li>`;
 }
 function homeCollectionPanel(lv) {
   const state = homeCollectionState(lv), rows = homeCollectionRows(lv),
@@ -106752,32 +106777,77 @@ const homeWidgetDate = ({ key }, short = false) => {
   return short ? `${month}/${day}` : `${month} 月 ${day} 日`;
 };
 
-function homeWidgetTicketFloor(relation) {
-  return ws3ItFloor(relation)
-    || relation.t.pointIds?.map((id) => g("points", id)?.floorId).find(Boolean)
-    || null;
+function homeTicketBuildings(t, db) {
+  const buildings = new Map();
+  const addFloor = (fid, inManagedPart) => {
+    const floor = g("floors", fid);
+    const building = floor && g("buildings", floor.buildingId);
+    if (!building) return;
+    const visible = building.projectId === t.projectId && (!floor.managedPart || inManagedPart?.(floor));
+    buildings.set(building.id, buildings.get(building.id) || !!visible);
+  };
+  const addZone = (id) => {
+    const zone = g("zones", id);
+    if (zone) addFloor(zone.floorId, (floor) => F.managedZoneIn(floor, zone));
+  };
+  const addPoint = (id) => {
+    const point = g("points", id);
+    if (point) addFloor(point.floorId, (floor) => F.managedPointIn(db, floor, point));
+  };
+  const addRecord = (record) => {
+    addFloor(record.floorId);
+    addZone(record.zoneId);
+    (record.pointIds || []).forEach(addPoint);
+    for (const alarm of taskAlarms(record)) {
+      if (alarm.projectId !== record.projectId) continue;
+      addFloor(alarm.floorId);
+      addZone(ws3ItZone({ a: alarm }));
+      addPoint(alarm.pointId);
+    }
+  };
+  addRecord(t);
+  const source = t.fromTask && g("investigationTasks", t.fromTask);
+  if (source?.projectId === t.projectId) addRecord(source);
+  return buildings;
 }
 
-function homeWidgetTickets(p, b, now, days, demoBuilding) {
+function homeTicketRecords(projectId, buildingId, now) {
   const db = data();
-  const tickets = (db.investigationTasks || []).filter((t) => {
-    if (t.projectId !== p.id || Date.parse(t.at) > now) return false;
-    const relation = { t, a: taskAlarms(t)[0], floorId: t.floorId };
-    const floor = g("floors", homeWidgetTicketFloor(relation));
-    if (!floor || floor.buildingId !== b.id) return false;
-    const zone = g("zones", ws3ItZone(relation));
-    if (zone) return F.managedZoneIn(floor, zone);
-    if (!floor.managedPart) return true;
-    return [relation.a?.pointId, ...(t.pointIds || [])].some((id) => F.managedPointIn(db, floor, g("points", id)));
-  });
+  if (U.role === "member" || !mayViewProject(projectId, db)) return null;
+  if (buildingId != null && g("buildings", buildingId)?.projectId !== projectId) return null;
+  const records = new Map();
+  for (const t of db.investigationTasks || []) {
+    const created = Date.parse(t.at);
+    if (!t.id || records.has(t.id) || t.projectId !== projectId || t.status === "draft" || !Number.isFinite(created) || created > now) continue;
+    const zone = g("zones", t.zoneId);
+    const floor = zone && g("floors", zone.floorId);
+    if (floor?.managedPart && !F.managedZoneIn(floor, zone)) continue;
+    const buildings = homeTicketBuildings(t, db);
+    const visible = buildingId == null
+      ? !buildings.size || [...buildings.values()].some(Boolean)
+      : buildings.size === 1 && buildings.get(buildingId);
+    if (visible) records.set(t.id, t);
+  }
+  const demoScope = Demo.on() && projectId === OPS_SCOPE.project && (buildingId == null || buildingId === OPS_SCOPE.building);
+  return records.size || demoScope ? [...records.values()] : null;
+}
+
+const homeTicketOpen = (t, now) => !t.closedAt || !!taskRework(t, now);
+
+function homeOpenTicketCount(projectId, buildingId = null, now = Demo.on() ? opsNow() : Date.now()) {
+  return homeTicketRecords(projectId, buildingId, now)?.filter((t) => homeTicketOpen(t, now)).length ?? null;
+}
+
+function homeWidgetTickets(p, b, now, days) {
+  const tickets = homeTicketRecords(p.id, b.id, now);
+  if (!tickets) return null;
   const dates = new Map(days.map((day) => [day.key, day]));
   for (const ticket of tickets) {
     const day = dates.get(projectTime(ticket.at, false, p.id, true).slice(0, 10));
     if (day) day.count++;
   }
-  if (!tickets.length && !demoBuilding) return null;
   return {
-    open: tickets.filter((t) => !t.closedAt).length,
+    open: tickets.filter((t) => homeTicketOpen(t, now)).length,
     overdue: tickets.filter(taskOverdue).length,
   };
 }
@@ -106866,8 +106936,7 @@ function homeBuildingWidgets(p, b) {
   const now = Demo.on() ? opsNow() : Date.now();
   const days = homeWidgetDays(now, p.id);
   const demoProject = Demo.on() && p.id === OPS_SCOPE.project;
-  const demoBuilding = demoProject && b.id === OPS_SCOPE.building;
-  const tickets = homeWidgetTickets(p, b, now, days, demoBuilding);
+  const tickets = homeWidgetTickets(p, b, now, days);
   const weather = demoProject && p.city === "广州市" && p.timezone === "Asia/Shanghai" ? ovWx() : null;
   return `<div class="home-building-widgets">${homeWidgetSummary(p, b, now, days, weather)}${homeWidgetKpi()}${homeWidgetTicketCard(tickets, days)}${homeWidgetInsights(days)}</div>`;
 }
