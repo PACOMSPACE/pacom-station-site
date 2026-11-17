@@ -37564,36 +37564,36 @@ img.img-off { display: none !important; }
 .home-collection-list-scroll > ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 9px; }
 .home-collection-list-scroll li { min-width: 0; }
 .home-collection-card {
+  --home-card-outline: var(--hc-114114112040, rgba(114, 114, 112, .16));
   display: grid;
-  grid-template-columns: 94px minmax(0, 1fr);
-  align-items: stretch;
+  grid-template-columns: 150px minmax(0, 1fr);
   width: 100%;
-  min-height: 114px;
-  padding: 8px;
-  gap: 10px;
-  border: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
+  padding: 12px;
+  gap: 14px;
+  border: 0;
   border-radius: 10px;
+  box-shadow: inset 0 0 0 1px var(--home-card-outline);
   background: #fdfdfd;
   color: var(--ds-ink);
   font: inherit;
   text-align: start;
   cursor: pointer;
 }
-.home-collection-card[aria-pressed="true"] { border-color: #aebed0; background: #f3f7fa; }
+.home-collection-card[aria-pressed="true"] { --home-card-outline: #aebed0; background: #f3f7fa; }
 @media (hover: hover) and (pointer: fine) {
-  .home-collection-card:hover { border-color: #aebed0; }
+  .home-collection-card:hover { --home-card-outline: #aebed0; }
 }
 .home-collection-thumb, .home-collection-pop-art {
   position: relative;
   display: grid;
   place-items: center;
   min-width: 0;
-  min-height: 94px;
   overflow: hidden;
   border-radius: 6px;
   background: #eceef1;
   color: #676e7b;
 }
+.home-collection-thumb { width: 150px; height: 150px; align-self: start; }
 .home-collection-thumb > img, .home-collection-pop-art > img {
   position: absolute;
   inset: 0;
@@ -37617,17 +37617,18 @@ img.img-off { display: none !important; }
   white-space: nowrap;
 }
 .has-image > .home-collection-use { color: #fff; background: #222a35b0; }
-.home-collection-card-body { display: grid; align-content: start; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
-.home-collection-card-body > b { font: 500 15px/20px var(--ff); }
-.home-collection-card-body > small { color: var(--ds-ink-2); font: 400 12px/17px var(--ff); }
-.home-collection-facts { display: grid; gap: 2px; margin-block-start: 4px; color: var(--ds-ink-2); font: 400 12px/17px var(--ff); }
+.home-collection-card-body { display: flex; flex-direction: column; justify-content: space-between; gap: 8px; min-width: 0; overflow-wrap: anywhere; }
+.home-collection-card-body x-nw { display: inline-block; max-inline-size: 100%; white-space: normal; }
+.home-collection-card-heading { display: grid; gap: 2px; min-width: 0; }
+.home-collection-card-heading > b { font: 500 16px/24px var(--ff); }
+.home-collection-card-heading > small { color: var(--ds-ink-2); font: 400 12px/18px var(--ff); }
+.home-collection-facts { display: grid; gap: 2px; color: var(--ds-ink-2); font: 400 14px/20px var(--ff); }
 .home-collection-fact { display: flex; align-items: flex-start; gap: 4px; min-width: 0; }
-.home-collection-fact > svg { flex: none; width: 13px; height: 13px; margin-block-start: 2px; }
+.home-collection-fact > svg { flex: none; width: 16px; height: 16px; margin-block-start: 2px; }
+.home-collection-fact > span { min-width: 0; }
 .home-collection-fact.due { color: #8d561b; }
 .home-collection-fact.due.l0 { color: #ad352b; }
-.home-collection-card-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 7px; }
-.home-collection-status { padding-inline: 5px; border-radius: 5px; background: #ededee; color: #535965; font: 400 11px/17px var(--ff); }
-.home-collection-status.on { background: #e7f1eb; color: #326348; }
+.home-collection-fact.connected { color: #326348; }
 .home-collection-empty { padding: 6px 3px; color: var(--ds-ink-2); }
 .home-collection-empty > p { margin: 0 0 4px; }
 
@@ -37685,12 +37686,8 @@ img.img-off { display: none !important; }
   .home-collection-pop-close { width: 30px; height: 30px; min-height: 0; }
   .home-collection-pop-close::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; }
 }
-@media (max-width: 850px) {
-  .home-collection-card { grid-template-columns: minmax(72px, 94px) minmax(0, 1fr); }
-}
 @media (max-width: 380px) {
   .home-collection-list-scroll { padding: 8px; }
-  .home-collection-card { grid-template-columns: 72px minmax(0, 1fr); }
 }
 
 .home-building-widgets {
@@ -106617,12 +106614,18 @@ function homeCollectionState(lv = ov3Lv()) {
   if (!states.has(key)) states.set(key, { byName: false, id: "", scroll: 0 });
   return states.get(key);
 }
+function homeCollectionAddress(record, project = record) {
+  const region = record.sameLocation ? project : record;
+  const parts = [...new Set([region.province?.trim(), region.city?.trim()].filter(Boolean))];
+  return parts.join(region.country && region.country !== "中国" ? " · " : "")
+    || record.address?.trim() || (record.sameLocation ? project.address?.trim() : "") || "";
+}
 function homeCollectionRows(lv) {
   const db = data(), live = ov3Live();
   if (lv === "all") {
     return locProjects(db).map((record) => ({
       record, pid: record.id, due: ov3Due(record.id), located: ov3Loc(record),
-      city: record.city || "", use: record.usage || "", addr: record.address || "",
+      address: homeCollectionAddress(record), use: record.usage || "",
       live: ov3ProjLive(record.id, live), buildings: ov3Blds(record.id).length,
     }));
   }
@@ -106632,7 +106635,7 @@ function homeCollectionRows(lv) {
     const stack = F.floorStack(db, record.id), drawing = stack.some(({ f }) => f.image), outdoor = record.kind === "outdoor";
     return {
       record, pid: project.id, bid: record.id, due: ov3Due(project.id, record.id), located: ov3Loc(record, project),
-      city: project.city || "", use: outdoor ? "" : record.usage || "", addr: record.address || project.address || "",
+      address: homeCollectionAddress(record, project), use: outdoor ? "" : record.usage || "",
       outdoor, drawing, floors: outdoor ? "" : ov3Lvls(record), devices: drawing ? ov3Devs(record, stack) : null,
     };
   });
@@ -106644,17 +106647,23 @@ function homeCollectionArt(record, use) {
 }
 const homeCollectionFact = (glyph, text, cls = "") => `<span class="home-collection-fact${cls ? ` ${cls}` : ""}">${ico(glyph, "ic16")}<span>${esc(text)}</span></span>`;
 function homeCollectionCard(row, id) {
-  const { record, pid, bid, due, located, outdoor, drawing, floors, devices, city, addr, use } = row,
-    location = [city, addr].filter(Boolean).join(" · "),
-    facts = bid
-      ? [floors ? homeCollectionFact("layers", floors) : "", outdoor ? homeCollectionFact("map-pin", "室外区域") : "", drawing ? (outdoor ? "" : homeCollectionFact("cpu", `${ov3Num(devices)} 台设备`)) : homeCollectionFact("floor-plan", outdoor ? "未上传总平面图" : "未上传楼层图")]
-      : [homeCollectionFact("building-2", row.buildings ? `${ov3Num(row.buildings)} 栋楼宇` : "未添加楼宇")],
-    status = bid ? "" : `<span class="home-collection-status${row.live ? " on" : ""}">${row.live ? "已接入" : "未接入"}</span>`,
-    foot = (due ? homeCollectionFact("alert", `待处理 ${ov3Num(due.n)} 项`, `due l${due.lvl}`) : "") + status,
-    name = bid ? M.buildingLabel(data(), record) : record.name,
+  const { record, pid, bid, due, located, outdoor, drawing, floors, devices, address, use } = row;
+  const facts = bid
+    ? [
+        floors ? homeCollectionFact("layers", floors) : "",
+        outdoor ? homeCollectionFact("map-pin", "室外区域") : "",
+        drawing
+          ? (outdoor ? "" : homeCollectionFact("cpu", `${ov3Num(devices)} 台设备`))
+          : homeCollectionFact("floor-plan", outdoor ? "未上传总平面图" : "未上传楼层图"),
+      ]
+    : [homeCollectionFact("building-2", row.buildings ? `${ov3Num(row.buildings)} 栋楼宇` : "未添加楼宇")];
+  if (!located) facts.push(homeCollectionFact("map-pin-off", "未定位"));
+  if (due) facts.push(homeCollectionFact("alert", `待处理 ${ov3Num(due.n)} 项`, `due l${due.lvl}`));
+  if (!bid) facts.push(row.live ? homeCollectionFact("link", "已接入", "connected") : homeCollectionFact("link-off", "未接入"));
+  const name = bid ? M.buildingLabel(data(), record) : record.name,
     current = id === record.id,
     action = located ? "homeCollectPreview" : "ov3Go";
-  return `<li data-key="${esc(record.id)}"><button type="button" class="home-collection-card" data-act="${action}" data-home-id="${esc(record.id)}" data-p="${esc(pid)}"${bid ? ` data-b="${esc(bid)}"` : ""}${located ? ` aria-pressed="${current}"` : ""}><span class="home-collection-thumb${record.image ? " has-image" : ""}" aria-hidden="true">${homeCollectionArt(record, use)}</span><span class="home-collection-card-body"><b>${esc(name)}</b>${location ? `<small>${esc(location)}</small>` : ""}<span class="home-collection-facts">${facts.join("")}${!located ? homeCollectionFact("map-pin-off", "未定位") : ""}${foot ? `<span class="home-collection-card-foot">${foot}</span>` : ""}</span></span></button></li>`;
+  return `<li data-key="${esc(record.id)}"><button type="button" class="home-collection-card" data-act="${action}" data-home-id="${esc(record.id)}" data-p="${esc(pid)}"${bid ? ` data-b="${esc(bid)}"` : ""}${located ? ` aria-pressed="${current}"` : ""}><span class="home-collection-thumb${record.image ? " has-image" : ""}" aria-hidden="true">${homeCollectionArt(record, use)}</span><span class="home-collection-card-body"><span class="home-collection-card-heading"><b>${esc(name)}</b><small>${esc(address || "未填写地址")}</small></span><span class="home-collection-facts">${facts.join("")}</span></span></button></li>`;
 }
 function homeCollectionPanel(lv) {
   const state = homeCollectionState(lv), rows = homeCollectionRows(lv),
