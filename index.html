@@ -36887,17 +36887,19 @@ img.img-off { display: none !important; }
 
 .ovm[data-home-map] .ovm-pin.is-home-marker {
   justify-content: center;
+  width: 48px;
+  height: 48px;
   border-radius: 0;
   transform: translate(-50%, -50%);
 }
-.ovm[data-home-map] .ovm-pin.is-home-marker .ovm-pin-n { bottom: 41px; }
+.ovm[data-home-map] .ovm-pin.is-home-marker .ovm-pin-n { bottom: 51px; }
 .ovm-home-marker {
   display: grid;
   flex: none;
   place-items: center;
   box-sizing: border-box;
-  width: 30px;
-  height: 30px;
+  width: 42px;
+  height: 42px;
   border: 1.5px solid rgba(0, 174, 239, 0.72);
   border-radius: 50%;
   background: rgba(0, 174, 239, 0.16);
@@ -36905,7 +36907,7 @@ img.img-off { display: none !important; }
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
   pointer-events: none;
 }
-.ovm-home-marker > .ic { width: 16px; height: 16px; stroke-width: 1.8px; }
+.ovm-home-marker > .ic { width: 22px; height: 22px; stroke-width: 1.8px; }
 .ovm[data-satellite] .ovm-home-marker { background: rgba(219, 246, 255, 0.86); border-color: #00aeef; }
 .ovm-pin:is(.sel, [data-home-current], [data-pin-active], :focus-visible) .ovm-home-marker {
   background: rgba(188, 236, 254, 0.94);
@@ -103164,22 +103166,23 @@ function ov3PinHtml(m, i, focus, homeMap = false, pinAction = "ov3Go") {
     homeMarker = homeMap && pinAction === "ov3Go",
     action = m.members ? 'data-act="ov3MapGroup" aria-haspopup="menu" aria-expanded="false"' : `data-act="${pinAction}" ${Object.entries(m.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")}${homeMap ? "" : ` data-tip="${esc(m.name)}"`}`;
   const marker = homeMarker
-    ? `<span class="ovm-home-marker" aria-hidden="true">${ico(m.kind === "outdoor" ? "map" : "building-2", "ic16")}</span>`
+    ? `<span class="ovm-home-marker" aria-hidden="true">${ico(m.kind === "outdoor" ? "map" : "building-2")}</span>`
     : `<svg class="ovm-pin-ic" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29s10-9.2 10-17A10 10 0 0 0 2 12c0 7.8 10 17 10 17z"/><circle cx="12" cy="12" r="${homeMap ? 3.5 : 4}"/></svg>`;
   return `<button type="button" class="ovm-pin${homeMarker ? " is-home-marker" : ""}${m.off ? " off" : ""}${selected ? " sel" : ""}"${selected ? ' aria-current="true"' : ""} ${action} data-i="${i}" aria-label="${esc(m.label)}"><span class="ovm-pin-n">${esc(m.name)}${m.val ? `<b class="ovm-pin-v">${esc(m.val)}</b>` : ""}</span>${marker}${m.due ? ov3Dot(m.due.lvl, "ovm-pin-dot") : ""}</button>`;
 }
 function ov3HomePinLayout(points, width, height, centered = false) {
-  const hitAbove = centered ? 22 : 44, labelAbove = centered ? 39 : 54;
+  const hitSize = centered ? 48 : 44, halfHit = hitSize / 2,
+    hitAbove = centered ? halfHit : hitSize, labelAbove = centered ? 47 : 54;
   const layout = points.map(({ x, y }) => ({
-    x, y, hit: [x - 22, y - hitAbove], labelHidden: true,
-    covered: x < 22 || x > width - 22 || y < hitAbove || y > height - (44 - hitAbove),
+    x, y, hit: [x - halfHit, y - hitAbove], labelHidden: true,
+    covered: x < halfHit || x > width - halfHit || y < hitAbove || y > height - (hitSize - hitAbove),
   }));
   const leaders = [], cells = new Map();
   const intersects = (a, b) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];
-  const hits = layout.map(({ hit: [left, top] }) => [left, top, left + 44, top + 44]);
+  const hits = layout.map(({ hit: [left, top] }) => [left, top, left + hitSize, top + hitSize]);
   for (const [i, current] of layout.entries()) {
     if (current.covered) continue;
-    const col = Math.floor(current.x / 44), row = Math.floor(current.y / 44);
+    const col = Math.floor(current.x / hitSize), row = Math.floor(current.y / hitSize);
     let leader;
     for (let dy = -1; dy <= 1 && leader == null; dy++)
       for (let dx = -1; dx <= 1 && leader == null; dx++) {
