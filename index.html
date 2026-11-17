@@ -37625,10 +37625,12 @@ img.img-off { display: none !important; }
   .dep-topo-plan-viewport { height: clamp(265px, 46dvh, 490px); }
 }
 
-/* Only the three home levels use a fixed panel and a header above the canvas. */
+/* The three home levels share a resizable content panel and canvas. */
 #app.is-ov3 > .main > .panel > #pbody:has(.home-overview) { container: home-workspace / inline-size; }
 #app.is-ov3 .home-overview {
-  --home-panel-width: 400px;
+  --home-split: 0;
+  --ov3-lw: var(--home-left-width, 400px);
+  --ov3-view-min: 320px;
   --home-frame-radius: var(--workspace-canvas-radius);
   --home-gutter: var(--workspace-canvas-edge);
   --home-panel-gap: var(--workspace-canvas-gap);
@@ -37670,6 +37672,7 @@ img.img-off { display: none !important; }
 .home-overview :is(.home-collection-list, .home-overview-frame) { height: auto; }
 .home-overview[data-home-pane="list"] > .home-overview-canvas,
 .home-overview[data-home-pane="map"] > .ov3-panel { display: none; }
+.home-overview > .ov3-sep { display: none; }
 
 @media (min-width: 851px) {
   #app.is-ov3 .home-overview { height: 100%; min-height: 0; overflow: auto; }
@@ -37688,19 +37691,19 @@ img.img-off { display: none !important; }
   }
 }
 
-/* The remaining canvas must be at least 320px wide beside the 428px left track and 16px outer gutter. */
+/* The dual-pane breakpoint reserves the default 400px panel and a 320px canvas. */
 @media (min-width: 851px) {
   @container home-workspace (width >= 764px) {
     #app.is-ov3 .home-overview {
-      --home-panel-track: calc(var(--home-panel-width) + var(--home-gutter) + var(--home-panel-gap));
+      --home-split: 1;
+      --ov3-lw-max: min(70%, calc(100% - var(--ov3-view-min) - 2 * var(--home-gutter) - var(--home-panel-gap)));
       display: grid;
-      grid-template-columns: var(--home-panel-track) minmax(0, 1fr);
+      grid-template-columns: var(--home-gutter) var(--ov3-lwc) var(--home-panel-gap) minmax(0, 1fr) var(--home-gutter);
       grid-template-rows: auto minmax(0, 1fr);
-      padding-inline-end: var(--home-gutter);
       padding-block-end: var(--home-gutter);
       overflow: visible;
     }
-    .home-overview-head { grid-column: 1 / -1; gap: 12px; padding-block-end: var(--home-gutter); padding-inline-end: 0; }
+    .home-overview-head { grid-column: 2 / 5; gap: 12px; padding-block-end: var(--home-gutter); padding-inline: 0; }
     .home-overview-title { margin-block-end: 0; }
     .home-overview-primary { flex-wrap: nowrap; }
     .home-overview-tools.is-building { gap: 16px; }
@@ -37710,19 +37713,21 @@ img.img-off { display: none !important; }
     .home-overview-info.is-wide { display: inline-flex; }
     .home-mobile-toggle, .home-overview-info.is-narrow { display: none; }
     #app.is-ov3 .home-overview > .ov3-panel {
-      padding: 0 var(--home-panel-gap) 0 var(--home-gutter);
+      grid-area: 2 / 2;
+      padding: 0;
       overflow: auto;
       scrollbar-width: thin;
       isolation: isolate;
     }
     #app.is-ov3 .home-overview > .ov3-panel:has(> .home-overview-frame) { overflow: visible; }
-    #app.is-ov3 .home-overview[data-lv="b"] > .ov3-panel:not(:has(> .home-overview-frame)) {
-      padding-inline-end: 0;
-      > * { max-inline-size: var(--home-panel-width); }
-    }
     .home-overview :is(.home-collection-list:not(.is-collapsed), .home-overview-frame) { height: 100%; }
-    .home-overview .home-overview-canvas { margin: 0; min-height: 0; }
+    .home-overview .home-overview-canvas { grid-area: 2 / 4; margin: 0; min-height: 0; }
     .home-overview[data-home-pane] > :is(.home-overview-canvas, .ov3-panel) { display: block; }
+    .home-overview > .ov3-sep:not([hidden]) {
+      display: block;
+      grid-area: 2 / 3 / 3 / 4;
+      left: calc(50% - var(--ov3-sep-inset));
+    }
   }
 }
 
@@ -37731,6 +37736,7 @@ img.img-off { display: none !important; }
   .home-overview-head:has(.home-collection-toolbar, .ws-scope-control, .home-overview-scope-row) { row-gap: 6px; }
   .home-overview-head:has(.home-collection-toolbar, .ws-scope-control, .home-overview-scope-row) .home-overview-title { margin-block-end: 0; }
   @container home-workspace (width >= 764px) {
+    #app.is-ov3 .home-overview { --ov3-sep-inset: 12px; --ov3-sep-hit: 24px; }
     .home-overview-head:has(.home-collection-toolbar, .ws-scope-control, .home-overview-scope-row) { padding-block-end: 10px; }
     .home-canvas-toggle { min-height: 44px; }
   }
@@ -108556,21 +108562,24 @@ function ws3WideHead() {
   return btn(ico("sidebar", "ic16") + "显示平面图", "ws3WideSet", { pg, on: "" }, "ws3-showplan");
 }
 
-// 3.59 V1509：左栏可拖动调宽。默认 400，最窄 320，最宽为工作区的 70%（宽度由 ws3.css 的 --ov3-lwc 限定）。
+// 左栏默认 400px，最窄 320px，上限同时考虑工作区比例和画布所需宽度。
 // 分隔条在左栏与画面之间（role=separator），可键盘聚焦，方向键每次 16，Home、End 到最窄、最宽；拖动后的宽度记在本机，与侧栏收起同样处理。
 // 3.59 V1496：位置行、标题与页签行固定在左栏顶部，下面的内容滚动（只用于电脑；手机左栏随页面滚动）。
 const OV3_LW_KEY = "pacom-next-left-width";
+const OV3_HOME_LW_KEY = "pacom-next-home-left-width";
 const OV3_DESK = typeof matchMedia === "function" ? matchMedia("(min-width: 851px)") : null;
-const ov3LwSet = (w) => (w ? document.documentElement.style.setProperty("--ov3-lw", `${w}px`) : document.documentElement.style.removeProperty("--ov3-lw"));
-try {
-  const v = Math.round(+localStorage.getItem(OV3_LW_KEY));
-  if (v >= 320) ov3LwSet(v);
-} catch {}
+const ov3LwSet = (w, property) => document.documentElement.style.setProperty(property, `${w}px`);
+for (const [key, property] of [[OV3_LW_KEY, "--ov3-lw"], [OV3_HOME_LW_KEY, "--home-left-width"]]) {
+  try {
+    const width = Math.round(+localStorage.getItem(key));
+    if (Number.isFinite(width) && width >= 320) ov3LwSet(width, property);
+  } catch {}
+}
 const ov3LwMax = (x) => {
   const limit = x.clientWidth * 0.7,
     style = getComputedStyle(x),
     minView = parseFloat(style.getPropertyValue("--ov3-view-min"));
-  const frame = style.getPropertyValue("--ws3-split").trim() === "1"
+  const frame = ["--ws3-split", "--home-split"].some((name) => style.getPropertyValue(name).trim() === "1")
     ? 2 * parseFloat(style.getPropertyValue("--workspace-canvas-edge")) + parseFloat(style.getPropertyValue("--workspace-canvas-gap"))
     : 8;
   return Math.max(320, Math.floor(Number.isFinite(minView) ? Math.min(limit, x.clientWidth - minView - frame) : limit));
@@ -108579,10 +108588,12 @@ function ov3SepVal(x, sep) {
   const pn = x.querySelector(":scope > .ov3-panel");
   if (!pn) return;
   const max = ov3LwMax(x);
-  sep.hidden = max <= 320 || x.classList?.contains("ws3x") && getComputedStyle(x).getPropertyValue("--ws3-split").trim() !== "1";
+  const layout = x.classList?.contains("home-overview") ? "--home-split" : x.classList?.contains("ws3x") ? "--ws3-split" : "";
+  sep.hidden = max <= 320 || !!layout && getComputedStyle(x).getPropertyValue(layout).trim() !== "1";
   sep.tabIndex = sep.hidden ? -1 : 0;
   sep.setAttribute("aria-valuemax", String(max));
-  sep.setAttribute("aria-valuenow", String(Math.round(pn.getBoundingClientRect().width)));
+  const width = Math.round(pn.getBoundingClientRect().width);
+  sep.setAttribute("aria-valuenow", String(Math.max(320, Math.min(width, max))));
 }
 function ov3Stick() {
   for (const pn of document.querySelectorAll(".ov3x > .ov3-panel")) {
@@ -108599,6 +108610,7 @@ function ov3Stick() {
   }
 }
 function ov3SepWire(x, sep) {
+  const home = x.classList?.contains("home-overview"), property = home ? "--home-left-width" : "--ov3-lw";
   const clampWidth = (w) => Math.round(Math.min(Math.max(w, 320), ov3LwMax(x)));
   const cur = () => Math.round(x.querySelector(":scope > .ov3-panel")?.getBoundingClientRect().width || 400);
   const refresh = () => {
@@ -108606,15 +108618,15 @@ function ov3SepWire(x, sep) {
     ov3Stick();
   };
   const save = (w) => {
-    try { localStorage.setItem(OV3_LW_KEY, String(w)); } catch {}
+    try { localStorage.setItem(home ? OV3_HOME_LW_KEY : OV3_LW_KEY, String(w)); } catch {}
   };
   sep.addEventListener("pointerdown", (e) => {
-    if (e.button !== 0 || e.isPrimary === false || ov3LwMax(x) <= 320) return;
+    if (sep.hidden || e.button !== 0 || e.isPrimary === false || ov3LwMax(x) <= 320) return;
     e.preventDefault();
     const { pointerId, clientX } = e,
       start = cur(),
       style = document.documentElement.style,
-      remembered = style.getPropertyValue("--ov3-lw");
+      remembered = style.getPropertyValue(property);
     sep.setPointerCapture(pointerId);
     sep.classList.add("drag");
     document.body.classList.add("ov3-dragging");
@@ -108625,8 +108637,8 @@ function ov3SepWire(x, sep) {
       if (!raf) raf = requestAnimationFrame(() => {
         raf = 0;
         const w = clampWidth(start + lastX - clientX);
-        if (w !== cur()) {
-          ov3LwSet(w);
+        if (!sep.hidden && w !== cur()) {
+          ov3LwSet(w, property);
           refresh();
         }
       });
@@ -108642,11 +108654,11 @@ function ov3SepWire(x, sep) {
       sep.removeEventListener("lostpointercapture", up);
       const endX = ev.type === "pointerup" ? ev.clientX : clientX;
       const w = clampWidth(start + endX - clientX);
-      if (endX !== clientX && w !== start && ov3LwMax(x) > 320) {
-        ov3LwSet(w);
+      if (!sep.hidden && endX !== clientX && w !== start && ov3LwMax(x) > 320) {
+        ov3LwSet(w, property);
         save(w);
-      } else if (remembered) style.setProperty("--ov3-lw", remembered);
-      else style.removeProperty("--ov3-lw");
+      } else if (remembered) style.setProperty(property, remembered);
+      else style.removeProperty(property);
       refresh();
       dispatchEvent(new Event("resize"));
     };
@@ -108658,11 +108670,11 @@ function ov3SepWire(x, sep) {
   sep.addEventListener("keydown", (e) => {
     const k = e.key, max = ov3LwMax(x), start = cur();
     const next = k === "ArrowLeft" ? start - 16 : k === "ArrowRight" ? start + 16 : k === "Home" ? 320 : k === "End" ? max : null;
-    if (next == null || max <= 320) return;
+    if (sep.hidden || next == null || max <= 320) return;
     e.preventDefault();
     const w = clampWidth(next);
     if (w === start) return;
-    ov3LwSet(w);
+    ov3LwSet(w, property);
     save(w);
     refresh();
     dispatchEvent(new Event("resize"));
@@ -108678,7 +108690,7 @@ onAfterRender(() => {
   ov3LayoutObserver?.disconnect();
   for (const x of document.querySelectorAll(".ov3x")) {
     let sep = x.querySelector(":scope > .ov3-sep");
-    if (!x.querySelector(":scope > .ov3-view")) {
+    if (!x.querySelector(":scope > :is(.ov3-view, .home-overview-canvas)")) {
       sep?.remove();
       continue;
     }
@@ -117534,6 +117546,11 @@ const AU_GUIDE_URL = "";
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.91",
+    date: "2026-11-17",
+    notes: ["首页的全部项目、单个项目和楼宇页支持拖动分隔条，调整内容与地图的宽度，并记住首页的宽度偏好。"],
+  },
   {
     version: "3.90",
     date: "2026-11-17",
