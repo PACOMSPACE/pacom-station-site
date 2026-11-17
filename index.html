@@ -36885,6 +36885,37 @@ img.img-off { display: none !important; }
 .ovm[data-home-map] .ovm-pin:focus-visible { z-index: 1; outline: 2px solid #00aeef; box-shadow: 0 0 0 3px #fff; }
 .ovm[data-home-map] .ovm-pin:focus-visible .ovm-pin-ic { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.22)); }
 
+.ovm[data-home-map] .ovm-pin.is-home-marker {
+  justify-content: center;
+  border-radius: 0;
+  transform: translate(-50%, -50%);
+}
+.ovm[data-home-map] .ovm-pin.is-home-marker .ovm-pin-n { bottom: 41px; }
+.ovm-home-marker {
+  display: grid;
+  flex: none;
+  place-items: center;
+  box-sizing: border-box;
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid rgba(0, 174, 239, 0.72);
+  border-radius: 50%;
+  background: rgba(0, 174, 239, 0.16);
+  color: #006f9b;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+}
+.ovm-home-marker > .ic { width: 16px; height: 16px; stroke-width: 1.8px; }
+.ovm[data-satellite] .ovm-home-marker { background: rgba(219, 246, 255, 0.86); border-color: #00aeef; }
+.ovm-pin:is(.sel, [data-home-current], [data-pin-active], :focus-visible) .ovm-home-marker {
+  background: rgba(188, 236, 254, 0.94);
+  border-color: #007ea9;
+  box-shadow: 0 0 0 2px #fff;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ovm-pin:hover .ovm-home-marker { border-color: #007ea9; }
+}
+
 .ovm[data-home-map] > .ovm-summary {
   position: absolute;
   z-index: 3;
@@ -37624,7 +37655,7 @@ img.img-off { display: none !important; }
 .home-collection-card-heading > b { font: 500 16px/24px var(--ff); }
 .home-collection-card-heading > small { color: var(--ds-ink-2); font: 400 12px/18px var(--ff); }
 .home-collection-facts { display: grid; row-gap: 6px; color: var(--ds-ink-2); font: 400 14px/20px var(--ff); }
-.home-collection-fact { display: flex; align-items: flex-start; gap: 4px; min-width: 0; }
+.home-collection-fact { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
 .home-collection-fact > svg { flex: none; width: 16px; height: 16px; margin-block-start: 2px; }
 .home-collection-fact > span { min-width: 0; }
 .home-collection-empty { padding: 6px 3px; color: var(--ds-ink-2); }
@@ -37632,42 +37663,52 @@ img.img-off { display: none !important; }
 
 .ovm[data-home-map] .ovm-pin[data-home-current] { z-index: 1; }
 .ovm[data-home-map] .ovm-pin[data-home-current] .ovm-pin-ic > path { fill: #030303; stroke: #fff; }
-.ovm[data-home-map] > .home-collection-summary { overflow: visible; padding: 0; }
+.ovm[data-home-map] > .home-collection-summary {
+  z-index: 5;
+  width: 296px;
+  max-width: min(296px, calc(100% - 16px));
+  padding: 0;
+  overflow: visible;
+  border-radius: 12px;
+}
 .home-collection-summary[data-side]::before {
   content: "";
   position: absolute;
-  top: calc(var(--home-popup-arrow, 50%) - 6px);
   transform: rotate(45deg);
   width: 12px;
   height: 12px;
   background: #fff;
   pointer-events: none;
 }
+.home-collection-summary:is([data-side="right"], [data-side="left"])::before { top: calc(var(--home-popup-arrow, 50%) - 6px); }
+.home-collection-summary:is([data-side="above"], [data-side="below"])::before { left: calc(var(--home-popup-arrow, 50%) - 6px); }
 .home-collection-summary[data-side="right"]::before { left: -6px; }
 .home-collection-summary[data-side="left"]::before { right: -6px; }
-.home-collection-summary[data-side=""]::before { display: none; }
+.home-collection-summary[data-side="above"]::before { bottom: -6px; }
+.home-collection-summary[data-side="below"]::before { top: -6px; }
 .home-collection-pop-scroll { position: relative; max-height: inherit; overflow: auto; border-radius: inherit; background: #fff; }
-.home-collection-pop-art { height: 88px; min-height: 0; border-radius: 0; }
+.home-collection-pop-art { width: 100%; height: 160px; border-radius: 0; }
 .home-collection-pop-art > img { object-position: 50% 20%; }
 .home-collection-pop-close {
   position: absolute;
+  z-index: 1;
   inset-block-start: 7px;
   inset-inline-end: 7px;
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 0 0 1px #00000019;
 }
-.home-collection-pop-info { padding: 8px 12px; }
-.home-collection-pop-info > p { margin: 2px 0 0; }
-.home-collection-pop-address { color: var(--ds-ink-2); font: 400 12px/18px var(--ff); }
+.home-collection-pop-info { display: grid; gap: 12px; padding: 16px; }
 .home-collection-pop-open {
+  position: sticky;
+  inset-block-end: 0;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
   min-height: 36px;
-  padding-inline: 12px;
+  padding-inline: 16px;
   border: 0;
   border-block-start: 1px solid var(--hc-114114112040, rgba(114, 114, 112, .16));
   background: #fff;
@@ -37686,6 +37727,21 @@ img.img-off { display: none !important; }
 }
 @media (max-width: 380px) {
   .home-collection-list-scroll { padding: 8px; }
+}
+@container ovm-map (width <= 320px) and (height <= 340px) {
+  .home-overview-canvas .ov3-npcard { gap: 8px; padding: 8px 12px; }
+  .home-overview-canvas .ov3-map:has(> .ov3-npcard) .ovm-note {
+    inset-block: 16px auto;
+    max-width: calc(100% - 148px);
+  }
+  .home-overview-canvas .ov3-npcard small {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 
 .home-building-widgets {
@@ -103105,13 +103161,18 @@ function ov3GroupBuildingPins(pins) {
 }
 function ov3PinHtml(m, i, focus, homeMap = false, pinAction = "ov3Go") {
   const selected = focus && (m.bid || m.args?.p) === focus,
+    homeMarker = homeMap && pinAction === "ov3Go",
     action = m.members ? 'data-act="ov3MapGroup" aria-haspopup="menu" aria-expanded="false"' : `data-act="${pinAction}" ${Object.entries(m.args).map(([k, v]) => `data-${k}="${esc(v)}"`).join(" ")}${homeMap ? "" : ` data-tip="${esc(m.name)}"`}`;
-  return `<button type="button" class="ovm-pin${m.off ? " off" : ""}${selected ? " sel" : ""}"${selected ? ' aria-current="true"' : ""} ${action} data-i="${i}" aria-label="${esc(m.label)}"><span class="ovm-pin-n">${esc(m.name)}${m.val ? `<b class="ovm-pin-v">${esc(m.val)}</b>` : ""}</span><svg class="ovm-pin-ic" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29s10-9.2 10-17A10 10 0 0 0 2 12c0 7.8 10 17 10 17z"/><circle cx="12" cy="12" r="${homeMap ? 3.5 : 4}"/></svg>${m.due ? ov3Dot(m.due.lvl, "ovm-pin-dot") : ""}</button>`;
+  const marker = homeMarker
+    ? `<span class="ovm-home-marker" aria-hidden="true">${ico(m.kind === "outdoor" ? "map" : "building-2", "ic16")}</span>`
+    : `<svg class="ovm-pin-ic" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29s10-9.2 10-17A10 10 0 0 0 2 12c0 7.8 10 17 10 17z"/><circle cx="12" cy="12" r="${homeMap ? 3.5 : 4}"/></svg>`;
+  return `<button type="button" class="ovm-pin${homeMarker ? " is-home-marker" : ""}${m.off ? " off" : ""}${selected ? " sel" : ""}"${selected ? ' aria-current="true"' : ""} ${action} data-i="${i}" aria-label="${esc(m.label)}"><span class="ovm-pin-n">${esc(m.name)}${m.val ? `<b class="ovm-pin-v">${esc(m.val)}</b>` : ""}</span>${marker}${m.due ? ov3Dot(m.due.lvl, "ovm-pin-dot") : ""}</button>`;
 }
-function ov3HomePinLayout(points, width, height) {
+function ov3HomePinLayout(points, width, height, centered = false) {
+  const hitAbove = centered ? 22 : 44, labelAbove = centered ? 39 : 54;
   const layout = points.map(({ x, y }) => ({
-    x, y, hit: [x - 22, y - 44], labelHidden: true,
-    covered: x < 22 || x > width - 22 || y < 44 || y > height,
+    x, y, hit: [x - 22, y - hitAbove], labelHidden: true,
+    covered: x < 22 || x > width - 22 || y < hitAbove || y > height - (44 - hitAbove),
   }));
   const leaders = [], cells = new Map();
   const intersects = (a, b) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];
@@ -103139,7 +103200,7 @@ function ov3HomePinLayout(points, width, height) {
   for (const i of leaders.slice().sort((a, b) => (points[b].priority || 0) - (points[a].priority || 0))) {
     const current = layout[i], { x, y } = current,
       w = current.group ? Math.min(160, current.group.name.length * 13 + 8) : points[i].labelWidth,
-      box = [x - w / 2 - 2, y - 54, x + w / 2 + 2, y - 32];
+      box = [x - w / 2 - 2, y - labelAbove, x + w / 2 + 2, y - labelAbove + 22];
     if (box[0] < 0 || box[2] > width || box[1] < 0 ||
         leaders.some((j) => j !== i && intersects(box, hits[j])) || labels.some((label) => intersects(box, label))) continue;
     current.labelHidden = false;
@@ -103150,7 +103211,7 @@ function ov3HomePinLayout(points, width, height) {
 function ov3PinActivation(e, pointer) {
   return e.detail !== 0 && ["touch", "pen"].includes(e.pointerType || pointer) ? "summary" : "enter";
 }
-function ov3SummaryPlacement(anchor, bounds, width, height, obstacles) {
+function ov3SummaryPlacement(anchor, bounds, width, height, obstacles, aboveFirst = false) {
   const gap = 8, [left, top, right, bottom] = bounds;
   const limit = (value, min, max) => Math.max(min, Math.min(value, max));
   const x = limit((anchor.left + anchor.right - width) / 2, left, right - width);
@@ -103159,8 +103220,10 @@ function ov3SummaryPlacement(anchor, bounds, width, height, obstacles) {
   const horizontal = [...new Set([x, nearLeft, nearRight, ...obstacles.flatMap((r) => [
     limit(r.left - width, nearLeft, nearRight), limit(r.right, nearLeft, nearRight),
   ])].filter((v) => v >= nearLeft && v <= nearRight))];
-  const candidates = [[anchor.right + gap, y, height], [anchor.left - gap - width, y, height],
-    ...horizontal.flatMap((at) => [[at, anchor.top - gap - height, height], [at, anchor.bottom + gap, height]])];
+  const beside = [[anchor.right + gap, y, height], [anchor.left - gap - width, y, height]],
+    above = horizontal.map((at) => [at, anchor.top - gap - height, height]),
+    below = horizontal.map((at) => [at, anchor.bottom + gap, height]),
+    candidates = aboveFirst ? [...above, ...beside, ...below] : [...beside, ...horizontal.flatMap((_, i) => [above[i], below[i]])];
   const fits = ([x, y, h]) => h > 0 && x >= left && x + width <= right && y >= top && y + h <= bottom &&
     !obstacles.some((r) => x < r.right && x + width > r.left && y < r.bottom && y + h > r.top);
   const full = candidates.find(fits);
@@ -103203,7 +103266,7 @@ function ov3MapSummary(host, st) {
   }
   function place(reveal = false) {
     if (!current) return false;
-    const { anchor, card, target } = current, rect = anchor.getBoundingClientRect(),
+    const { anchor, card, target, rich } = current, rect = anchor.getBoundingClientRect(),
       base = host.getBoundingClientRect(), vv = window.visualViewport,
       topBar = $("#wtop")?.getBoundingClientRect(), bottomBar = $(".ov-tabbar")?.getBoundingClientRect(),
       vLeft = vv?.offsetLeft || 0, vTop = vv?.offsetTop || 0,
@@ -103213,7 +103276,7 @@ function ov3MapSummary(host, st) {
       visibleLabel = !anchor.hasAttribute("data-label-hidden") && anchor.querySelector(".ovm-pin-n")?.getBoundingClientRect();
     if (!lookup(anchor, target) || anchor.closest("[inert]") ||
         rect.left < left || rect.right > right ||
-        !anchor.contains(document.elementsFromPoint(rect.left + 22, rect.top + 24).find((node) => !card.contains(node)))) {
+        !anchor.contains(document.elementsFromPoint((rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2).find((node) => !card.contains(node)))) {
       close();
       return false;
     }
@@ -103222,22 +103285,22 @@ function ov3MapSummary(host, st) {
       right: Math.max(rect.right, visibleLabel?.right ?? rect.right),
       top: Math.min(rect.top, visibleLabel?.top ?? rect.top), bottom: rect.bottom,
     };
-    const naturalWidth = Math.min(st.collection ? 246 : 240, right - left - 16),
+    const naturalWidth = Math.min(rich ? 296 : 240, right - left - 16),
       obstacles = [...map.querySelectorAll(".ov3-cg, .ovm-attr, .ovm-note")].map((el) => {
         const r = el.getBoundingClientRect();
         return { left: r.left - 6, right: r.right + 6, top: r.top - 6, bottom: r.bottom + 6 };
       });
     let placement = null;
-    const widths = st.collection ? [...new Set([naturalWidth, Math.min(naturalWidth, 218), Math.min(naturalWidth, 186)])] : [naturalWidth];
+    const widths = rich ? [...new Set([naturalWidth, Math.min(naturalWidth, 240), Math.min(naturalWidth, 216)])] : [naturalWidth];
     for (const width of widths) {
       if (width <= 0) continue;
       card.style.width = `${width}px`;
-      if (st.collection) card.style.maxHeight = "";
+      if (rich) card.style.maxHeight = "none";
       const height = card.scrollHeight + card.offsetHeight - card.clientHeight,
-        pos = ov3SummaryPlacement(anchorBox, [left + 8, top + 8, right - 8, bottom - 8], width, height, obstacles);
+        pos = ov3SummaryPlacement(anchorBox, [left + 8, top + 8, right - 8, bottom - 8], width, height, obstacles, rich);
       if (!pos) continue;
-      if (!placement || pos[2] > placement.pos[2]) placement = { width, pos };
-      if (pos[2] >= height) { placement = { width, pos }; break; }
+      if (!placement || (placement.pos[2] < 128 && pos[2] > placement.pos[2])) placement = { width, pos };
+      if (pos[2] >= height || (rich && pos[2] >= 128)) break;
     }
     if (!placement) {
       if (reveal) {
@@ -103249,10 +103312,14 @@ function ov3MapSummary(host, st) {
     }
     const { width, pos: [x, y, maxHeight] } = placement;
     Object.assign(card.style, { width: `${width}px`, left: `${x - base.left}px`, top: `${y - base.top}px`, maxHeight: `${maxHeight}px` });
-    if (st.collection) {
-      const side = x >= anchorBox.right ? "right" : x + width <= anchorBox.left ? "left" : "";
+    if (rich) {
+      const centerX = (rect.left + rect.right) / 2, centerY = (rect.top + rect.bottom) / 2,
+        side = y + maxHeight <= anchorBox.top ? "above" : y >= anchorBox.bottom ? "below" : x >= anchorBox.right ? "right" : "left",
+        vertical = side === "above" || side === "below",
+        arrow = vertical ? centerX - x : centerY - y,
+        limit = vertical ? width : maxHeight;
       card.dataset.side = side;
-      card.style.setProperty("--home-popup-arrow", `${Math.min(maxHeight - 12, Math.max(12, (rect.top + rect.bottom) / 2 - y))}px`);
+      card.style.setProperty("--home-popup-arrow", `${Math.min(limit - 13, Math.max(13, arrow))}px`);
     }
     return true;
   }
@@ -103261,22 +103328,23 @@ function ov3MapSummary(host, st) {
     if (!pin || (mode !== "touch" && mode !== "list" && dismissed === anchor) || $("#pop") || topModalLayer() || topModalLayer("drawer")) return;
     if (current?.anchor === anchor && current.mode === mode && current.target === target) return;
     close();
-    const touch = mode === "touch", held = touch || mode === "list", rich = st.collection, card = document.createElement("div");
+    const touch = mode === "touch", held = touch || mode === "list", card = document.createElement("div");
     const action = st.pinAction === "depTopoMapOpen" ? "在拓扑中查看" : pin.args.b ? pin.kind === "outdoor" ? "打开室外区域总览" : "打开楼宇总览" : "打开项目总览";
+    const preview = st.pinAction === "ov3Go" && typeof homeCollectionPreview === "function" && homeCollectionPreview(pin, action), rich = !!preview;
     card.id = "ovmSummary";
     card.className = rich ? "ovm-summary home-collection-summary" : "ovm-summary";
     card.setAttribute("data-morph-own", "");
     card.setAttribute("role", touch || rich ? "region" : "tooltip");
     if (touch || rich) card.setAttribute("aria-labelledby", "ovmSummaryTitle");
-    card.innerHTML = rich ? homeCollectionPreview(pin, action) : `<b class="ovm-summary-title" id="ovmSummaryTitle">${esc(pin.name)}</b>${pin.meta ? `<p class="ovm-summary-meta" id="ovmSummaryMeta">${esc(pin.meta)}</p>` : ""}${touch ? btn(action, st.pinAction, pin.args, "primary ovm-summary-action") : ""}`;
+    card.innerHTML = preview || `<b class="ovm-summary-title" id="ovmSummaryTitle">${esc(pin.name)}</b>${pin.meta ? `<p class="ovm-summary-meta" id="ovmSummaryMeta">${esc(pin.meta)}</p>` : ""}${touch ? btn(action, st.pinAction, pin.args, "primary ovm-summary-action") : ""}`;
     host.append(card);
-    current = { anchor, card, mode, target };
+    current = { anchor, card, mode, target, rich };
     anchor.setAttribute("data-pin-active", "");
     if (held && !st.pinGroups.has(Number(anchor.dataset.i))) {
       anchor.setAttribute("aria-expanded", "true");
       anchor.setAttribute("aria-controls", card.id);
-    } else if (pin.meta) anchor.setAttribute("aria-describedby", "ovmSummaryMeta");
-    if (rich) {
+    } else if (rich || pin.meta) anchor.setAttribute("aria-describedby", "ovmSummaryMeta");
+    if (st.collection) {
       st.selected = pinId(pin);
       homeCollectionSelect(st.selected, mode !== "list");
     }
@@ -103773,7 +103841,7 @@ const OVM = (() => {
     const active = st.summary?.anchor() || document.activeElement;
     const layout = st.homeMap ? ov3HomePinLayout(positions.map(([x, y], i) => ({
       x, y, pin: st.pins[i], labelWidth: st.pinWidths[i], priority: st.pinEls[i] === active ? 1 : 0,
-    })), W, H) : null;
+    })), W, H, st.pinAction === "ov3Go") : null;
     const pinGroups = new Map();
     st.pinEls.forEach((el, i) => {
       const m = st.pins[i];
@@ -106640,24 +106708,25 @@ function homeCollectionAddress(record, project = record) {
   return parts.join(region.country && region.country !== "中国" ? " · " : "")
     || record.address?.trim() || (record.sameLocation ? project.address?.trim() : "") || "";
 }
+function homeCollectionRow(project, record = project, db = data()) {
+  const building = record !== project, outdoor = record.kind === "outdoor";
+  return {
+    record, pid: project.id, bid: building ? record.id : undefined, outdoor,
+    located: ov3Loc(record, project), address: homeCollectionAddress(record, project),
+    use: outdoor ? "" : record.usage || "",
+    buildings: building ? undefined : locBuildings(project.id, db).filter((b) => b.kind !== "outdoor").length,
+  };
+}
 function homeCollectionRows(lv) {
   const db = data(), live = ov3Live();
   if (lv === "all") {
     return locProjects(db).map((record) => ({
-      record, pid: record.id, due: ov3Due(record.id), located: ov3Loc(record),
-      address: homeCollectionAddress(record), use: record.usage || "",
-      live: ov3ProjLive(record.id, live), buildings: locBuildings(record.id, db).filter((b) => b.kind !== "outdoor").length,
+      ...homeCollectionRow(record, record, db), due: ov3Due(record.id), live: ov3ProjLive(record.id, live),
     }));
   }
   const project = locProjects(db).find(({ id }) => id === U.p);
   if (!project) return [];
-  return locBuildings(project.id, db).map((record) => {
-    const outdoor = record.kind === "outdoor";
-    return {
-      record, pid: project.id, bid: record.id, located: ov3Loc(record, project),
-      address: homeCollectionAddress(record, project), use: outdoor ? "" : record.usage || "", outdoor,
-    };
-  });
+  return locBuildings(project.id, db).map((record) => homeCollectionRow(project, record, db));
 }
 const homeCollectionNoun = (lv, rows) => lv === "all" ? "项目" : rows.some((row) => row.outdoor) ? "楼宇与室外区域" : "楼宇";
 function homeCollectionArt(record, use) {
@@ -106672,8 +106741,8 @@ function homeCollectionFloors(building) {
   const below = plan.filter((f) => f.kind === "below").length;
   return `${ov3Num(above)} 楼层${below ? ` / ${ov3Num(below)} 地下楼层` : ""}`;
 }
-function homeCollectionCard(row, id) {
-  const { record, pid, bid, located, outdoor, address, use } = row;
+function homeCollectionCardInfo(row, summary = false) {
+  const { record, pid, bid, located, outdoor, address } = row;
   const alarms = homeActiveAlarmCount(pid, bid), tickets = homeOpenTicketCount(pid, bid);
   const alarmTip = alarms == null ? "暂无可用告警数据" : alarms.partial ? "告警仅统计已接入范围" : "";
   const ticketTip = tickets == null ? "暂无可用工单数据" : "";
@@ -106685,10 +106754,14 @@ function homeCollectionCard(row, id) {
       : homeCollectionFact("building-2", `${ov3Num(row.buildings)} 楼宇`),
   ];
   const name = bid ? M.buildingLabel(data(), record) : record.name,
-    location = [address || "未填写地址", located ? "" : "未定位"].filter(Boolean).join(" · "),
-    current = id === record.id,
-    action = located ? "homeCollectPreview" : "ov3Go";
-  return `<li data-key="${esc(record.id)}"><button type="button" class="home-collection-card" data-act="${action}" data-home-id="${esc(record.id)}" data-p="${esc(pid)}"${bid ? ` data-b="${esc(bid)}"` : ""}${located ? ` aria-pressed="${current}"` : ""}${description ? ` aria-description="${esc(description)}"` : ""}><span class="home-collection-thumb${record.image ? " has-image" : ""}" aria-hidden="true">${homeCollectionArt(record, use)}</span><span class="home-collection-card-body"><span class="home-collection-card-heading"><b>${esc(name)}</b><small>${esc(location)}</small></span><span class="home-collection-facts">${facts.join("")}</span></span></button></li>`;
+    location = [address || "未填写地址", located ? "" : "未定位"].filter(Boolean).join(" · ");
+  const html = `<span class="home-collection-card-heading"><b${summary ? ' id="ovmSummaryTitle"' : ""}>${esc(name)}</b><small>${esc(location)}</small></span><span class="home-collection-facts">${facts.join("")}</span>`;
+  return { html, description };
+}
+function homeCollectionCard(row, id) {
+  const { record, pid, bid, located, use } = row, { html, description } = homeCollectionCardInfo(row);
+  const current = id === record.id, action = located ? "homeCollectPreview" : "ov3Go";
+  return `<li data-key="${esc(record.id)}"><button type="button" class="home-collection-card" data-act="${action}" data-home-id="${esc(record.id)}" data-p="${esc(pid)}"${bid ? ` data-b="${esc(bid)}"` : ""}${located ? ` aria-pressed="${current}"` : ""}${description ? ` aria-description="${esc(description)}"` : ""}><span class="home-collection-thumb${record.image ? " has-image" : ""}" aria-hidden="true">${homeCollectionArt(record, use)}</span><span class="home-collection-card-body">${html}</span></button></li>`;
 }
 function homeCollectionPanel(lv) {
   const state = homeCollectionState(lv), rows = homeCollectionRows(lv),
@@ -106715,11 +106788,10 @@ function homeCollectionSelect(id, reveal = false) {
   });
 }
 function homeCollectionPreview(pin, action) {
-  const record = pin.args.b ? g("buildings", pin.args.b) : g("projects", pin.args.p),
-    p = g("projects", pin.args.p), use = record?.kind === "outdoor" ? "" : record?.usage || "",
-    address = [p?.city, record?.address || p?.address].filter(Boolean).join(" · "),
-    meta = pin.args.b ? pin.meta : pin.meta.split(" · ").at(-1);
-  return `<div class="home-collection-pop-scroll"><div class="home-collection-pop-art${record?.image ? " has-image" : ""}" aria-hidden="true">${record ? homeCollectionArt(record, use) : ""}</div><button type="button" class="home-collection-pop-close home-collection-icon" data-act="homeCollectSummaryClose" aria-label="关闭地图摘要">${ico("x", "ic16")}</button><div class="home-collection-pop-info"><b class="ovm-summary-title" id="ovmSummaryTitle">${esc(pin.name)}</b>${address ? `<p class="home-collection-pop-address">${esc(address)}</p>` : ""}${meta ? `<p class="ovm-summary-meta" id="ovmSummaryMeta">${esc(meta)}</p>` : ""}</div><button type="button" class="home-collection-pop-open" data-act="ov3Go" data-p="${esc(pin.args.p)}"${pin.args.b ? ` data-b="${esc(pin.args.b)}"` : ""}>${esc(action)}${ico("chevron", "ic16")}</button></div>`;
+  const { p, b } = pin.args, project = g("projects", p), record = b ? g("buildings", b) : project;
+  if (!project || !record || (b && record.projectId !== p)) return "";
+  const row = homeCollectionRow(project, record), { html, description } = homeCollectionCardInfo(row, true);
+  return `<div class="home-collection-pop-scroll"><div class="home-collection-pop-art${record.image ? " has-image" : ""}" aria-hidden="true">${homeCollectionArt(record, row.use)}</div><button type="button" class="home-collection-pop-close home-collection-icon" data-act="homeCollectSummaryClose" aria-label="关闭地图摘要">${ico("x", "ic16")}</button><div class="home-collection-pop-info" id="ovmSummaryMeta">${html}${description ? `<span class="sr-only">${esc(description)}</span>` : ""}</div><button type="button" class="home-collection-pop-open" data-act="ov3Go" data-p="${esc(p)}"${b ? ` data-b="${esc(b)}"` : ""}>${esc(action)}${ico("chevron", "ic16")}</button></div>`;
 }
 let homeCollectionPending = null;
 const homeCollectionQueuePreview = (id, focus = false) => {
