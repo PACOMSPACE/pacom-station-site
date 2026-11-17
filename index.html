@@ -36221,7 +36221,7 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
     --floor-hit: 36px;
     --floor-step: 32px;
     --floor-gap: 2px;
-    --floor-arrow: 28px;
+    --floor-arrow: 40px;
     --floor-clearance: 32px;
     --floor-track-bg: color-mix(in srgb, #777771 4%, #fafafa);
     --floor-track-shadow: inset 0 2px 2px -1px #0000000a, inset 0 4px 4px -2px #0000000a, inset 0 0 0 var(--hw) #0000001f;
@@ -36254,6 +36254,9 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   .ov3-fhome .ic { width: 18px; height: 18px; }
   .ov3-fhome[aria-pressed="true"] > span { background: var(--btn-bg); box-shadow: var(--btn); }
   .ov3-farrow { display: none; height: var(--floor-arrow); }
+  .ov3-farrow > .ic { position: absolute; left: calc(50% - 8px); }
+  .ov3-farrow[data-dir="-1"] > .ic { top: 12px; }
+  .ov3-farrow[data-dir="1"] > .ic { bottom: 12px; }
   .ov3-ftrack.scrollable > .ov3-farrow { display: grid; }
   .ov3-farrow[data-dir="-1"] .ic { transform: rotate(180deg); }
   .ov3-farrow[aria-disabled="true"] { opacity: 0.3; cursor: default; }
@@ -37408,7 +37411,10 @@ img.img-off { display: none !important; }
   min-height: 144px;
   margin: 0 var(--home-gutter) 16px;
 }
-.home-overview-canvas:has(.ov3-fcol) { min-height: 190px; }
+.home-overview > .home-overview-canvas:has(.ov3-fcol) { min-height: 224px; }
+@media (max-width: 850px), (any-pointer: coarse) {
+  .home-overview > .home-overview-canvas:has(.ov3-fcol) { min-height: 244px; }
+}
 .home-overview-canvas > .ov3-view {
   height: 100%; min-height: 0; margin: 0; border: 0; border-radius: var(--home-frame-radius); isolation: isolate; background-color: #fafafa;
   box-shadow: 0 0 0 var(--hw) #fff, 0 0 0 var(--hr) var(--hc-ring, rgba(119, 119, 113, 0.16)), 0 2px 3px rgba(0, 0, 0, .04);
@@ -101063,10 +101069,10 @@ const S3V = (() => {
       }
     }
   }
-  // 3.47：2D（S.flat）为同一模型的俯视，北向朝上
+  // 单层 2D（S.flat）为北向朝上的俯视；整栋 S.elevation 固定为二维正立面。
   function home(S) {
     // 3.48：新页面的单层 3D 与整栋同一朝向（S.cam0）
-    return S.flat ? { az: 0, el: 90 } : S.cam0 ? { ...S.cam0 } : S.focus ? { az: -28, el: 58 } : { az: -32, el: 30, ...(S.view || {}) };
+    return S.elevation ? { az: 0, el: 0 } : S.flat ? { az: 0, el: 90 } : S.cam0 ? { ...S.cam0 } : S.focus ? { az: -28, el: 58 } : { az: -32, el: 30, ...(S.view || {}) };
   }
   const autoFit = (st) => typeof st.S.inset === "function" && !st.cam.userAdjusted;
   // 绘制：自下而上逐层（相机在上方，较低的层先画）；层内先画楼板，再画功能区的墙（由远到近），最后画顶面
@@ -101122,6 +101128,20 @@ const S3V = (() => {
         x.globalAlpha = opacity;
       };
     x.globalAlpha = opacity;
+    // 整栋 2D 用已登记楼层的正立面层带，避免俯视时各层重叠；不推断外立面窗户或房间。
+    if (S.elevation) {
+      for (const { f, a } of vs) {
+        const xs = f.outline?.map((p) => p[0]) || [0, f.w || B.w],
+          l = Math.min(...xs),
+          r = Math.max(...xs),
+          z = f.z0,
+          face = [P(l, 0, z), P(r, 0, z), P(r, 0, z + f.h), P(l, 0, z + f.h)];
+        poly(face, f.ghost ? "#F6F7F9" : "#F1F3F6", f.edge || (f.ghost ? "#C9CFD8" : "#B8C0CC"), a * (f.ghost ? 0.7 : 1), f.edge ? 2 : 1, f.ghost ? [4, 3] : null);
+        hits.push({ kind: "floor", id: f.id, poly: face.map((p) => [p[0], p[1]]), tip: f.tip || f.name });
+      }
+      x.globalAlpha = 1;
+      return hits.reverse();
+    }
     // 外墙（整栋时）：先画背面，楼层画完后再画正面
     const shell = [];
     if (walls && S.foot) {
@@ -101383,7 +101403,7 @@ const S3V = (() => {
   function mount(host, S, opt = {}) {
     const cv = host.querySelector("canvas"),
       tip = host.querySelector(".s3-tip"),
-      st = { cv, S, cam: { ...home(S), ...(opt.cam || {}) }, fitted: !!opt.cam?.k };
+      st = { cv, S, cam: { ...home(S), ...(opt.cam || {}), ...(S.elevation ? { az: 0, el: 0 } : {}) }, fitted: !!opt.cam?.k };
     if (autoFit(st)) st.fitted = false;
     const adjust = () => { if (typeof st.S.inset === "function") st.cam.userAdjusted = true; };
     let raf = null;
@@ -101445,7 +101465,7 @@ const S3V = (() => {
         dy = p[1] - prev[1];
       if (dx || dy) adjust();
       drag.moved += Math.abs(dx) + Math.abs(dy);
-      if (drag.pan || st.S.flat) {
+      if (drag.pan || st.S.flat || st.S.elevation) {
         st.cam.px += dx;
         st.cam.py += dy;
       } else {
@@ -101510,7 +101530,7 @@ const S3V = (() => {
     );
     cv.addEventListener("keydown", (e) => {
       const k = e.key;
-      if (st.S.flat && /^Arrow/.test(k)) {
+      if ((st.S.flat || st.S.elevation) && /^Arrow/.test(k)) {
         st.cam.px += k === "ArrowLeft" ? 40 : k === "ArrowRight" ? -40 : 0;
         st.cam.py += k === "ArrowUp" ? 40 : k === "ArrowDown" ? -40 : 0;
       } else if (k === "ArrowLeft" || k === "ArrowRight") st.cam.az += k === "ArrowLeft" ? 10 : -10;
@@ -101531,7 +101551,7 @@ const S3V = (() => {
     const api = {
       st,
       set(S2, keep = true) {
-        const refocus = S2.buildingId !== st.S.buildingId || S2.focus !== st.S.focus || S2.only !== st.S.only || !!S2.flat !== !!st.S.flat || String(S2.zc || "") !== String(st.S.zc || "") || typeof S2.inset !== typeof st.S.inset;
+        const refocus = S2.buildingId !== st.S.buildingId || S2.focus !== st.S.focus || S2.only !== st.S.only || !!S2.flat !== !!st.S.flat || !!S2.elevation !== !!st.S.elevation || String(S2.zc || "") !== String(st.S.zc || "") || typeof S2.inset !== typeof st.S.inset;
         st.S = S2;
         if (!keep || refocus) {
           wheel.cancel();
@@ -103086,7 +103106,10 @@ function ov3Page() {
   if (incomingFloor) U.b = incomingFloor.buildingId;
   const buildingVisit = U.b && !ov3Out(U.b) ? JSON.stringify([storeKey(), locOwner(), U.p, U.b]) : null;
   if (U.ov3HomeVisit !== buildingVisit) {
-    if (buildingVisit) (U.ov3F ||= {})[U.b] = null;
+    if (buildingVisit) {
+      (U.ov3F ||= {})[U.b] = null;
+      (U.homeBuildingModes ||= {})[U.b] = "3d";
+    }
     U.ov3HomeVisit = buildingVisit;
   }
   // 旧楼层链接在楼宇首页的楼层图中选中对应楼层。
@@ -104202,9 +104225,9 @@ function ov3State(bid = U.b) {
     selRow = sel0 ? st.find((x) => x.f.id === sel0) || null : null,
     sel = selRow ? sel0 : null,
     floor3d = !!selRow?.f.image && (!!selRow.meters || !!g("buildings", bid)?.model3d?.published),
-    want = home ? U.homeBuildingFloorModes?.[bid] || "2d" : (U.ov3M ||= {})[bid] || "3d",
+    want = home ? sel ? U.homeBuildingFloorModes?.[bid] || "2d" : U.homeBuildingModes?.[bid] || "3d" : (U.ov3M ||= {})[bid] || "3d",
     blank = !!selRow && !selRow.f.image,
-    mode = home && !sel ? has3 && st.length ? "3d" : "none" : blank ? "none" : !has3 || want === "2d" || (selRow && !floor3d) ? "2d" : "3d",
+    mode = home && !sel ? has3 && st.length ? want : "none" : blank ? "none" : !has3 || want === "2d" || (selRow && !floor3d) ? "2d" : "3d",
     cur = home ? sel : mode === "2d" ? sel || initial?.f.id || null : sel;
   return { st, plans, home, has3, floor3d, sel, mode, cur };
 }
@@ -104217,11 +104240,12 @@ const ov3Cam = (cam) => {
 };
 function ov3Scene(s) {
   const bid = U.b;
-  if (s.home && s.mode === "3d") {
+  if (s.home && (s.mode === "3d" || !s.cur && s.mode === "2d")) {
     const scene = s3Scene(bid, { focus: s.cur, only: !!s.cur, walls: false }),
       visible = new Set(s.st.map(({ f }) => f.id));
     return { ...scene, floors: scene.floors.filter((f) => visible.has(f.id)),
-      why: scene.why?.filter(({ f }) => visible.has(f.id)), view: { az: 30, el: 50 }, noLabels: true };
+      why: scene.why?.filter(({ f }) => visible.has(f.id)), view: { az: 30, el: 50 }, noLabels: true,
+      ...(s.mode === "2d" ? { flat: true, elevation: true, inset: ov3ElevationInsets } : {}) };
   }
   // 楼宇总览的初始视角：从西南高处看（转 30°、俯 45°），长立面朝右下；楼层名不写在模型旁（楼层在左侧楼层列）
   // 3.49 V1358：俯角约 50°，不画外壳；有运行数据的层按状态着色，没有楼层图的层只画楼板轮廓（同空间“全部”）
@@ -104253,6 +104277,20 @@ function ov3Scene(s) {
     name: g("buildings", bid)?.name || "",
   };
 }
+function ov3ElevationInsets(canvas, { width, height, modelWidth, modelHeight }) {
+  const frame = canvas.getBoundingClientRect(),
+    controls = canvas.closest(".ov3-view").querySelector(":scope > .ov3-ctl")?.getBoundingClientRect(),
+    inset = { l: width * 0.075, r: width * 0.075, t: height * 0.075, b: height * 0.075 },
+    scale = ({ l, r, t, b }) => Math.min((width - l - r) / modelWidth, (height - t - b) / modelHeight);
+  if (!controls) return inset;
+  const k = scale(inset),
+    top = (height - k * modelHeight) / 2,
+    right = (width + k * modelWidth) / 2;
+  if (top >= controls.bottom - frame.top + 12 || right <= controls.left - frame.left - 12) return inset;
+  const below = { ...inset, t: controls.bottom - frame.top + 12 },
+    beside = { ...inset, r: frame.right - controls.left + 12 };
+  return scale(below) >= scale(beside) ? below : beside;
+}
 // 共用竖向楼层轨道。整栋入口固定在外面，楼层之间共用一个白色滑块。
 function ov3FloorRail(bid, pid, stack, has3, active, action, deployment = false) {
   if (!stack.length) return "";
@@ -104277,7 +104315,7 @@ function ov3Bldg() {
   const b = g("buildings", U.b),
     s = ov3State(),
     planWord = ov3Out(b.id) ? "总平面图" : "楼层图";
-  if (!s.plans.length && !(s.home && s.mode === "3d")) {
+  if (!s.plans.length && !(s.home && !s.cur && s.mode !== "none")) {
     if (!s.home) return ov3NoPlanMap(b);
     S3_PEND = null;
     const floor = s.sel && g("floors", s.sel);
@@ -104300,8 +104338,8 @@ function ov3Bldg() {
     curName = s.cur ? g("floors", s.cur)?.name || "" : "全部";
   S3_PEND = S;
   const tip = d2 ? "拖动平移，滚轮缩放" : "拖动旋转，右键拖动平移，滚轮缩放";
-  const name = s.home && !s.cur ? `${b.name} · 整栋楼宇` : `${b.name} · ${curName} ${d2 ? "2D 视图" : "3D 视图"}`,
-    switchMode = s.home ? s.floor3d : s.has3;
+  const name = s.home && !s.cur ? `${b.name} · 整栋楼宇${d2 ? " 2D 正立面" : " 3D 视图"}` : `${b.name} · ${curName} ${d2 ? "2D 视图" : "3D 视图"}`,
+    switchMode = s.home && s.cur ? s.floor3d : s.has3;
   return `<section class="ov3-view ov3-cv${d2 ? " is2d" : ""}" aria-label="${esc(name)}">${col}<div class="s3-host ov3-s3" id="s3Host" data-view="ov3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(`${name}：${tip}`)}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl">${switchMode ? `<div class="ov3-cg">${ov3Cb(`切换到 ${d2 ? "3D" : "2D"}`, "", "ov3Mode", {}, `<span class="ov3-mode">${d2 ? "3D" : "2D"}</span>`)}</div>` : ""}<div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3Reset")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div></section>`;
 }
 function depTopoPlanBuilding({ db, project, building }, view) {
@@ -104338,7 +104376,7 @@ function ov3Pick(h) {
   }
   const fid = h?.kind === "zone" ? h.floor : h?.kind === "floor" ? h.id : null,
     s = ov3State();
-  if (!fid || s.mode === "2d" || !s.st.some((x) => x.f.id === fid) || s.cur === fid) return;
+  if (!fid || s.mode === "2d" && (!s.home || !!s.cur) || !s.st.some((x) => x.f.id === fid) || s.cur === fid) return;
   s3SaveCam();
   U.ov3F[U.b] = fid;
   render();
@@ -104346,7 +104384,7 @@ function ov3Pick(h) {
 // 选“全部”时悬停楼层列的某层：模型上高亮该层
 function ov3Hl(fid) {
   const S = S3_LIVE?.key === "ov3" ? S3_LIVE.api.st.S : null;
-  if (!S || S.flat || S.focus) return;
+  if (!S || S.flat && !S.elevation || S.focus) return;
   let ch = false;
   for (const f of S.floors) {
     const e = fid && f.id === fid ? "#1F2A30" : null;
@@ -104607,9 +104645,10 @@ defineActions({
   ov3Mode: () => {
     const s = ov3State();
     if (s.home) {
-      if (!s.floor3d) return;
+      if (!(s.cur ? s.floor3d : s.has3) || s.mode === "none") return;
       s3SaveCam();
-      (U.homeBuildingFloorModes ||= {})[U.b] = s.mode === "3d" ? "2d" : "3d";
+      const modes = s.cur ? U.homeBuildingFloorModes ||= {} : U.homeBuildingModes ||= {};
+      modes[U.b] = s.mode === "3d" ? "2d" : "3d";
       render();
       return;
     }
