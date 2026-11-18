@@ -38930,6 +38930,18 @@ img.img-off { display: none !important; }
 }
 
 @media (max-width: 850px) {
+  #app > .wtop > .ws3-hbtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 0;
+    gap: 0;
+  }
   #app:has(> .wtop h1) :is(.phead > h1, .ov3-head h1, .ws3-panel > h1.sr-only) { display: none; }
   #app[data-page="overview"]:has(> .wtop h1) .panel:has(> .pbody > .ws-empty:only-child) > .phead:not(:has(> :not(h1, .v13-head))) { display: none; }
   #app[data-page="settings"] .main > .panel > .net-bar ~ #pbody { padding-block-start: 16px; }
@@ -38942,9 +38954,14 @@ img.img-off { display: none !important; }
   }
 }
 
+@media (max-width: 600px) {
+  #app:has(> #wtop > .ws3-hbtn) .phead > .v13-head > .demo-cap { right: 64px; }
+  #app:has(> #wtop > .ws3-hbtn) .phead > .v13-head > .demo-step { right: 112px; }
+}
+
 @media (min-width: 601px) and (max-width: 850px) {
   /* 演示工具位于紧凑顶栏，不把范围选择器压到下一行。 */
-  body:not(:has(> :is(#dlg, #ai-pal, #discard))) #app[data-scope-in-body] .phead > .v13-head:has(.demo-cap) {
+  body:not(:has(> :is(#dlg, #ai-pal, #discard))) #app:is([data-scope-in-body], [data-page="analysis"]) .phead > .v13-head:has(.demo-cap) {
     position: fixed;
     inset: 8px 16px auto auto;
     z-index: 100;
@@ -39035,6 +39052,10 @@ img.img-off { display: none !important; }
 .ws3-analysis-toolbar { display: flex; align-items: center; gap: 8px 16px; min-width: 0; flex-wrap: wrap; }
 .ws3-analysis-scope { flex: 0 1 400px; width: 400px; min-width: min(160px, 100%); max-width: 100%; }
 .ws3-analysis-scope > .ws-locrow { margin: 0; width: 100%; min-width: 0; }
+.ws-project-scope > .ws-scope-path { display: inline-flex; min-width: 0; white-space: pre; }
+.ws-scope-path > [data-trunc] { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ws-scope-path > [data-trunc]:first-child { flex-shrink: 8; }
+.ws-scope-path > .ws-scope-floor { flex: none; }
 .ws3-analysis-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; margin-inline-start: auto; min-width: 0; }
 #app .ws3-analysis-actions > .ws3-rpt { display: inline-flex; }
 .ws3-analysis-actions .ws3-per { width: 112px; }
@@ -39044,6 +39065,11 @@ img.img-off { display: none !important; }
 .ws3-analysis-display > .seg { overflow: visible; }
 .ws3-analysis-display > .seg > button::after { content: ""; position: absolute; inset: calc((100% - 44px) / 2) 0; }
 .ws3-analysis-category-row { min-width: 0; max-width: 100%; padding: 0 0 16px; }
+.ws3-analysis-category-row > .pacom-tab-overflow { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.pacom-tab-scroll.iconbtn { flex: none; width: 32px; height: 32px; border-radius: 50%; }
+.pacom-tab-overflow:not(.has-tab-overflow) > .pacom-tab-scroll { display: none; }
+.pacom-tab-scroll > svg { transform: rotate(-90deg); }
+.pacom-tab-scroll[data-dir="start"] > svg { transform: rotate(90deg); }
 .ws3-analysis-panel > .ws3-an { padding-top: 0; }
 .ws3-analysis-panel > .ws3-an > .ov3-sec:first-child { padding-top: 0; }
 #app .ws3-analysis-tabs.pacom-tab-track > [role="tab"] { padding: 0 12px; line-height: 24px; align-items: center; justify-content: center; gap: 6px; }
@@ -39084,7 +39110,12 @@ img.img-off { display: none !important; }
   .ws3-analysis-display { order: 3; margin-inline-start: 0; }
 }
 @media (max-width: 600px) {
+  .ws3-analysis-scope:has(.ws-scope-path) { flex-basis: max-content; }
+  #app .ws3-analysis-scope .ws-project-scope:has(.ws-scope-path) { width: 100%; }
   .ws3-analysis-actions { flex: 1 1 100%; }
+}
+@media (max-width: 850px), (any-pointer: coarse) {
+  .pacom-tab-scroll.iconbtn { width: 44px; height: 44px; }
 }
 
 /* Analysis paints data over the shared Home viewer and keeps its frame/tools. */
@@ -46911,6 +46942,20 @@ function pacomTabReveal(view, tab) {
   else if (offsetLeft + offsetWidth > right) view.scrollLeft += Math.min(offsetLeft - left, offsetLeft + offsetWidth - right);
 }
 
+function pacomTabSyncScroll(track) {
+  const control = track.nextElementSibling;
+  if (!control?.matches(".pacom-tab-scroll")) return;
+  const row = track.parentElement;
+  const overflow = track.scrollWidth > row.clientWidth + 1;
+  row.classList.toggle("has-tab-overflow", overflow);
+  if (!overflow) return;
+  const atEnd = track.scrollLeft >= track.scrollWidth - track.clientWidth - 1;
+  const label = atEnd ? "查看左侧分类" : "查看右侧分类";
+  control.dataset.dir = atEnd ? "start" : "end";
+  control.setAttribute("aria-label", label);
+  control.dataset.tip = label;
+}
+
 function pacomTabPlace(track, targets, state, previous) {
   const selected = targets.find((item) => item.getAttribute("aria-selected") === "true");
   if (!selected || !state || !track.clientWidth || !selected.getClientRects().length) return;
@@ -46970,9 +47015,13 @@ function syncSlidingTabs(previous = new Map()) {
       pacomTabStates.set(track, { thumb });
       pacomTabLayouts.add(track);
       pacomTabResize.observe(track);
+      if (track.nextElementSibling?.matches(".pacom-tab-scroll")) {
+        track.addEventListener("scroll", () => pacomTabSyncScroll(track), { passive: true });
+      }
       replaced = previous.get(key);
       if (replaced) track.scrollLeft = replaced.scrollLeft;
     }
+    pacomTabSyncScroll(track);
     pacomTabPlace(track, targets, pacomTabStates.get(track), replaced);
   }
 }
@@ -48425,6 +48474,7 @@ function route(page, scope = {}, opts = {}) {
         spFormDirty: false,
         missing: null,
         badPath: "",
+        anReportFrom: page === "analysis" && scope.tab === "reports" && from.page === "analysis" && from.tab === "reports" ? U.anReportFrom : null,
         alarmDevice: null,
         alarmZone: null,
         obj: null,
@@ -48547,6 +48597,7 @@ function readRoute() {
   U.bareRoute = !page; // 3.17 账户 219：不带 # 的地址（网站首页）按总览处理，不算旧的 #projects 地址
   U.badPath = U.page === "notfound" ? location.hash : "";
   U.missing = null;
+  U.anReportFrom = null;
   for (const k of ["p", "b", "f", "tab", "net", "ntab", "conn", "ctab"]) U[k] = q.get(k) || null;
   // 3.31 运营区第 4 项：#devices…&obj= 为设备的对象页（与功能区对象页同一页面）
   if (U.page === "devices" && q.get("obj")) U.page = "overview";
@@ -48940,9 +48991,11 @@ const locRowProjectOnly = () => LOC_PROJECT_PAGES.includes(U.page);
 function wsLocRowOn() {
   return LOC_ROW_PAGES.includes(U.page) && U.role !== "member" && !BARE[U.page] && !U.missing && !!data() && locProjects().length > 0 && !(U.page === "deployment" && U.tab === "config") && !(U.page === "scenes" && U.scEd) && !spFull() && !(devDeploy() && (U.tab === "networks" && U.net || U.tab === "connections" && U.conn)) && !(U.page === "overview" && U.obj && typeof obParse === "function" && obParse());
 }
-function wsScopeButton(text, { action = "location", label = "查看范围", id = "", popup = "dialog", disabled = false, cls = "", attrs = "" } = {}) {
+function wsScopeButton(text, { action = "location", label = "查看范围", id = "", popup = "dialog", disabled = false, cls = "", attrs = "", path = null } = {}) {
   const classes = `ws-project-scope ws-locseg${cls ? ` ${cls}` : ""}`;
-  const value = `<span data-trunc>${esc(text)}</span>`;
+  const value = path
+    ? `<span class="ws-scope-path"><span data-trunc>${esc(path.project)}</span><span data-trunc> · ${esc(path.building)}</span><span class="ws-scope-floor"> · ${esc(path.floor)}</span></span>`
+    : `<span data-trunc>${esc(text)}</span>`;
   const identity = `${id ? ` id="${esc(id)}"` : ""} aria-label="${esc(`${label} · ${text}`)}" data-tip="${esc(text)}" data-tip-trunc${attrs ? ` ${attrs.trim()}` : ""}`;
   if (disabled) return `<span class="${esc(classes)} plain"${identity}>${value}</span>`;
   return `<button type="button" class="${esc(classes)}" data-act="${esc(action)}" aria-haspopup="${esc(popup)}" aria-expanded="false"${identity}>${value}${ico("chevron", "ic16 ws-locarr")}</button>`;
@@ -48964,9 +49017,12 @@ function wsLocRow() {
   if (!wsLocRowOn()) return "";
   const ps = locProjects(), p = U.p ? g("projects", U.p) : null, b = U.b ? g("buildings", U.b) : null, only = locRowProjectOnly();
   const hasFloorScope = U.sp || ["analysis", "alarms", "scenes"].includes(U.page);
-  const text = wsScopeLocationLabel(p, only ? null : b, hasFloorScope && U.f ? g("floors", U.f) : null);
+  const f = hasFloorScope && U.f ? g("floors", U.f) : null;
+  const text = wsScopeLocationLabel(p, only ? null : b, f);
+  const path = U.page === "analysis" && p && b?.projectId === p.id && b.kind !== "outdoor" && f?.buildingId === b.id
+    ? { project: p.name, building: M.buildingLabel(data(), b), floor: f.name } : null;
   const disabled = !!p && ps.length === 1 && (only || !locBuildings(p.id).length && U.page !== "analysis");
-  return `<div class="ws-locrow">${wsScopeButton(text, { label: only ? "选择项目" : "查看范围", disabled })}</div>`;
+  return `<div class="ws-locrow">${wsScopeButton(text, { label: only ? "选择项目" : "查看范围", disabled, path })}</div>`;
 }
 // 菜单：在位置行下方左对齐，宽 560，最高 400。顶部搜索；左栏为项目，指向项目时右栏预览其楼宇。点选项目或楼宇后关闭菜单，当前项加勾。
 // 只有一个项目时只留 280 宽的楼宇栏；只按项目的页面只留 280 宽的项目栏。行高 36、圆角 8；方向键选择，Esc 关闭。手机为底部卡片，先选项目再选楼宇。
@@ -49493,13 +49549,13 @@ function wsHeadHtml() {
 // 桌面显示内容区标题，手机的 56px 顶栏显示同一页名。
 const wsPageName = () => (memberHome() ? MEMBER_HOME : TITLES[navPage()] || TITLES[U.page] || "PACOM Station");
 const wsCommonScopeHead = () => !U.ov3Now && !U.ws3Now && U.page !== "settings" && (wsScopeInBody || wsLocRowOn());
-function wsTopHtml() {
+function wsTopHtml(compactAction = "") {
   const floor = depProjectFloorActive() && !U.missing && depWbContext();
   const mobileFloor = floor && isMobile(), title = esc(floor ? "楼层视图" : wsPageName());
   const topIsPrimary = !floor && !U.spEd && !U.obj && !U.obGone && !U.net && !U.conn && !U.scEd && U.opsDrawer?.page !== "alarms"
     && !U.missing && (U.ov3Now || U.ws3Now || wsCommonScopeHead() || ["overview", "analysis", "alarms", "scenes", "projects", "settings", "deployment"].includes(navPage()));
   const titleMarkup = mobileFloor ? `<h1 class="wtop-t" id="depWbTitle" tabindex="-1">${title}</h1>` : U.page === "notfound" ? "" : topIsPrimary ? `<h1 class="wtop-t">${title}</h1>` : `<span class="wtop-t">${title}</span>`;
-  const action = mobileFloor ? depProjectFloorBack() : U.page === "settings" && U.p && runtimeCanView(U.p) ? runtimeSettingsMore("runtime-top-more") : "";
+  const action = mobileFloor ? depProjectFloorBack() : U.page === "settings" && U.p && runtimeCanView(U.p) ? runtimeSettingsMore("runtime-top-more") : compactAction;
   return `<header class="wtop" id="wtop"><button class="iconbtn mobnav" data-act="mobnav" aria-label="打开菜单" aria-controls="side" aria-expanded="false">${ico("menu")}</button>${titleMarkup}${action}</header>`;
 }
 // 比对前在新内容上先做绘制后处理的结构调整（说明框外壳），不必每次绘制都拆装。
@@ -49603,8 +49659,9 @@ function render() {
     missing = U.missing && objPage,
     showWs3 = !missing && !lostPage && typeof ws3On === "function" && ws3On();
   if (!showWs3) U.ws3FloorVisit = null;
-  const body = wsListLoadHtml(missing ? missingPage() : lostPage || (showWs3 ? ws3Page() : pages[U.page]()));
-  const app = $("#app"), side = wsSideHtml(), head = denied ? "" : wsHeadHtml(), top = wsTopHtml(), main = `${wsPageTabPanel(body)}${isMobile() || lostPage ? "" : rpHandleHtml}${!lostPage && (U.page === "projects" || devCanvas()) && U.spaceInfo && !U.m3 ? projectInformationPanel() : ""}`;
+  const ws3View = showWs3 ? ws3Page() : null;
+  const body = wsListLoadHtml(missing ? missingPage() : lostPage || (ws3View ? ws3View.html : pages[U.page]()));
+  const app = $("#app"), side = wsSideHtml(), head = denied ? "" : wsHeadHtml(), top = wsTopHtml(ws3View?.compactAction), main = `${wsPageTabPanel(body)}${isMobile() || lostPage ? "" : rpHandleHtml}${!lostPage && (U.page === "projects" || devCanvas()) && U.spaceInfo && !U.m3 ? projectInformationPanel() : ""}`;
   app.toggleAttribute("data-common-scope-head", !denied && wsCommonScopeHead());
   app.toggleAttribute("data-scope-in-body", wsScopeInBody);
   app.className = shellClass();
@@ -49685,6 +49742,7 @@ const wideHint = (what) => (!COARSE_MQ?.matches ? `加宽窗口后${what}` : isP
 // 楼层页不能绘制时画布上方的说明：手机先说能做什么（B-4f），其他设备先说怎样才能绘制。
 const spMobileNote = () => (isPhone() ? "绘制功能区需要平板或电脑" : `${wideHint("绘制功能区")}；此处可查看和编辑资料`); // 3.43 E1436：手机一行（原“当前可查看和编辑资料；绘制功能区需要更宽的屏幕（平板或电脑）”）
 MOBILE_MQ?.addEventListener?.("change", () => {
+  const primaryAction = document.activeElement?.closest("#wtop > .ws3-hbtn, .ws3-layout-head .ws3-hbtn")?.dataset.act;
   if ($("#side")) {
     const focused = document.activeElement, inSide = focused?.closest("#side");
     wsHideTip(true);
@@ -49714,7 +49772,11 @@ MOBILE_MQ?.addEventListener?.("change", () => {
       if (narrow) visit.showPlan = true;
     }
     render();
-  } else if (U.page === "projects" && U.f && !BARE[U.page] && !$("#dlg")?.classList.contains("show")) render();
+  } else if ($('.ws3x:is([data-pg="space"], [data-pg="alarms"], [data-pg="scenes"])') || U.page === "projects" && U.f && !BARE[U.page] && !$("#dlg")?.classList.contains("show")) render();
+  if (primaryAction) {
+    const area = isMobile() ? "#wtop >" : ".ws3-layout-head";
+    $(`${area} .ws3-hbtn[data-act="${CSS.escape(primaryAction)}"]`)?.focus({ preventScroll: true });
+  }
 });
 // 跨宽度仅在没有手动偏好时采用新宽度默认值；≤850 的抽屉不受影响。
 SIDE_MID_MQ?.addEventListener?.("change", () => {
@@ -55715,7 +55777,10 @@ function wsTipAllowed(el, keyboard) {
   if (el.getAttribute("aria-controls") === "wsSpaceInfo" && el.getAttribute("aria-expanded") === "true") return false;
   if (!keyboard && lastPointer === "touch") return false;
   // 只在名称截断时显示的提示（data-tip-trunc；量 data-trunc 标出的那一段，没有时量自身）：放得下时不显示（Lovable 核查第 343、390 条，2026-10-11 用户确认）
-  if ("tipTrunc" in el.dataset) { const t = el.querySelector("[data-trunc]") || el; if (t.scrollWidth <= t.clientWidth) return false; }
+  if ("tipTrunc" in el.dataset) {
+    const labels = [...el.querySelectorAll("[data-trunc]")];
+    if (!(labels.length ? labels : [el]).some(label => label.scrollWidth > label.clientWidth)) return false;
+  }
   return !el.closest("#side") || !isMobile() && (U.collapsed || el.classList.contains("ws-side-toggle"));
 }
 // 提示气泡的位置（Lovable 核查第 111 条，2026-10-11 用户确认）：离触发处 4，默认在下方居中（侧栏在右侧），下方放不下时放到上方；
@@ -84330,6 +84395,7 @@ function opsRouteState() {
   if (!OPS_IDENTITY) OPS_IDENTITY = opsHistoryOwner();
   return { version: 1, owner:opsHistoryOwner(), page: U.page, tab: U.tab || null, p: U.p || null, b: U.b || null, f: U.f || null, obj: U.obj || null,
     fields: structuredClone(opsRouteFields()), queries: Object.fromEntries(["alarms","history","tasks"].map(k => [k, OPS_Q[k] || ""])),
+    reportFrom: U.page === "analysis" && U.tab === "reports" ? U.anReportFrom || null : null,
     scroll: $("#pbody")?.scrollTop || 0,
     // 2.99 V970：告警工单的详情子页面记在历史项里（浏览器返回回到列表）；back 为从列表打开（“‹”用浏览器返回）
     drawer: U.page === "alarms" && U.opsDrawer?.page === "alarms" ? { page: "alarms", kind: U.opsDrawer.kind, id: U.opsDrawer.id } : null, back: !!U.alSpBack };
@@ -84360,6 +84426,7 @@ function opsRouteLeaving(page, scope = {}) {
 function opsRestoreRouteState(state) {
   const s = state?.ops;
   opsIdentitySync();
+  U.anReportFrom = null;
   U.opsDrawer = null;
   U.alSpBack = false;
   U.alFilterOpen = false;
@@ -84376,6 +84443,7 @@ function opsRestoreRouteState(state) {
   for (const k of ["alarms","history","tasks"]) OPS_Q[k] = typeof s.queries?.[k] === "string" ? s.queries[k] : "";
   Object.assign(U,{ opsFromDraft:undefined,opsToDraft:undefined,opsRangeErr:"",opsHistFromDraft:undefined,opsHistToDraft:undefined,opsHistErr:"" });
   U.nextScroll = Number.isFinite(s.scroll) && s.scroll >= 0 ? s.scroll : 0;
+  if (U.page === "analysis" && U.tab === "reports") U.anReportFrom = s.reportFrom || null;
   if (U.page === "alarms" && s.drawer?.page === "alarms" && ["alarm", "task"].includes(s.drawer.kind) && typeof s.drawer.id === "string") Object.assign(U, { opsDrawer: { page: "alarms", kind: s.drawer.kind, id: s.drawer.id }, alSpBack: !!s.back });
   return true;
 }
@@ -106092,10 +106160,11 @@ function ws3Space(sc) {
   }
   const floorEdge = AL.m.get(null)?.length ? S3V.LVC[Math.min(...AL.m.get(null).map((e) => e.lvl))] : null;
   return {
+    compactAction: isMobile() && zs.length ? run : "",
     // 范围内没有运行数据（F栋）时不写时间和指标
     panel: batch
       ? ws3Panel(sc, ws3Head("首页", ws3HR(btn("完成", "ws3BatchEnd", {}, "ws3-hbtn"))), `<div class="ov3-sec ws3-bsel"><span>${bsel.size ? `已选 ${bsel.size} 个功能区` : "点列表或平面图上的功能区，可多选"}</span><span class="ws3-hr"><button type="button" class="btn ghost sm" data-act="ws3BatchMenu" aria-haspopup="menu" aria-expanded="false">选择${ico("chevron", "ic16 tb-arr")}</button>${bsel.size ? btn("清除", "opsSelClear", {}, "ghost sm") : ""}</span></div>${bsel.size ? `<div class="ws3-bctl">${ovBatch([...bsel])}</div>` : ""}<div class="ws3-body">${list}</div>`)
-      : ws3Panel(sc, ws3Head("首页", ws3HR(zs.length ? run : "", ws3MoreBtn("space"))), `${zs.length ? `<div class="ov3-sec ws3-tsec">${time}</div>${ws3Kpis(D.kpis(zs))}` : ""}<div class="ws3-body">${list}</div>`),
+      : ws3Panel(sc, ws3Head("首页", ws3HR(!isMobile() && zs.length ? run : "", ws3MoreBtn("space"))), `${zs.length ? `<div class="ov3-sec ws3-tsec">${time}</div>${ws3Kpis(D.kpis(zs))}` : ""}<div class="ws3-body">${list}</div>`),
     canvas: ws3Canvas(sc, {
       zone: (z, s, m, fp) => D.zone(z, s, m, fp),
       dev: D.devs,
@@ -106268,8 +106337,10 @@ function ws3Alarms(sc) {
       if (z && (!zl.has(z) || zl.get(z) > l)) zl.set(z, l);
     });
   const selZ = sel ? ws3ItZone(items.find((it) => it.id === sel)) : null;
+  const newTask = ops ? btn(ico("plus", "ic16") + "新建工单", "opsRepairNew", {}, "primary ws3-hbtn") : "";
   return {
-    panel: ws3Panel(sc, ws3Head("告警工单", ops ? btn(ico("plus", "ic16") + "新建工单", "opsRepairNew", {}, "primary ws3-hbtn") : ""), `<div class="ov3-sec ws3-tools">${tools}${ws3WideBtn("alarms")}</div><div class="ws3-body" data-q-scope="alarms">${groups || `<p class="ws3-empty">${empty}</p>`}<p class="ws3-empty" data-q-empty hidden>没有符合的告警工单</p></div>`, ws3Tabs(tabs, tab)),
+    compactAction: isMobile() ? newTask : "",
+    panel: ws3Panel(sc, ws3Head("告警工单", isMobile() ? "" : newTask), `<div class="ov3-sec ws3-tools">${tools}${ws3WideBtn("alarms")}</div><div class="ws3-body" data-q-scope="alarms">${groups || `<p class="ws3-empty">${empty}</p>`}<p class="ws3-empty" data-q-empty hidden>没有符合的告警工单</p></div>`, ws3Tabs(tabs, tab)),
     canvas: ws3Canvas(sc, {
       zone: (z) => {
         const l = zl.get(z.id);
@@ -106357,8 +106428,10 @@ function ws3Scenes(sc) {
     first = [...on][0],
     callZ = on.size === 1 ? first : null,
     lst = curB ? live(curB) : false;
+  const newScene = sceneNewBtn(tab).replace(/class="btn primary[^"]*"/, 'class="btn primary ws3-hbtn"');
   return {
-    panel: ws3Panel(sc, ws3Head("场景", ws3HR(U.p && !isMobile() ? btn(ico("calendar", "ic16") + "工作日历", "goSettings", { tab: "general", p: U.p }, "ws3-hbtn") : "", sceneNewBtn(tab).replace(/class="btn primary[^"]*"/, 'class="btn primary ws3-hbtn"'))), `<div class="ws3-body">${body}</div>`, ws3Tabs(WS3_SC_TABS, tab)),
+    compactAction: isMobile() ? newScene : "",
+    panel: ws3Panel(sc, ws3Head("场景", ws3HR(U.p && !isMobile() ? btn(ico("calendar", "ic16") + "工作日历", "goSettings", { tab: "general", p: U.p }, "ws3-hbtn") : "", isMobile() ? "" : newScene)), `<div class="ws3-body">${body}</div>`, ws3Tabs(WS3_SC_TABS, tab)),
     canvas: ws3Canvas(sc, {
       zone: (z) => (on.has(z.id) ? { fill: WS3C.scene, ext: { label: z.name, short: ws3Short(z.name), stroke: WS3C.sceneLine }, tip: `${z.name} · ${curB.name}` } : { fill: "#FFFFFF", ext: { label: z.name, short: ws3Short(z.name) }, tip: z.name }),
       call: callZ && sc.fid ? { fid: sc.fid, zid: callZ, title: `${curB.name}${lst ? " · 生效中" : ""}`, sub: sceneActShort(curB, sceneScopeShort(curB)).split(/ · |，/)[0], c: WS3C.sceneLine } : null,
@@ -106372,8 +106445,21 @@ function ws3Scenes(sc) {
 // 报告为标题行“报告”按钮（打开报告清单，单份报告整页打开）；能源内切换“电 | 燃气 | 水”
 const WS3_AN = [["energy", "能源"], ["carbon", "碳排放"], ["environment", "室内环境"], ["space", "占用"], ["health", "设备健康"]];
 const WS3_AN_ICONS = { energy: "meter", carbon: "leaf", environment: "aq", space: "users", health: "pulse" };
+const ws3AnalysisCategory = (tab) => WS3_AN.some(([key]) => key === tab) ? tab : "energy";
+function ws3ReportReturnScope() {
+  const from = U.anReportFrom;
+  if (from) {
+    const { p, b, f, tab } = from;
+    const projectAllowed = p ? !!g("projects", p) && mayViewProject(p) : !b && !f;
+    const buildingMatches = b ? !!p && g("buildings", b)?.projectId === p : !f;
+    const floorAllowed = !f || !!b && g("floors", f)?.buildingId === b && (canEdit() || ovLiveIds().has(f));
+    if (projectAllowed && buildingMatches && floorAllowed) return { p, b, f, tab: ws3AnalysisCategory(tab) };
+  }
+  return { p: U.p, b: U.b, f: U.f, tab: "energy" };
+}
 function ws3AnalysisTabs(tab) {
-  return `<div class="ws3-tabs ws3-analysis-tabs" role="tablist" aria-label="数据分析分类" data-key="analysis-categories">${WS3_AN.map(([key, label]) => `<button type="button" role="tab" class="ws3-tab${key === tab ? " on" : ""}" aria-selected="${key === tab}" data-act="ws3Tab" data-tab="${key}">${ico(WS3_AN_ICONS[key], "ic16")}<span class="ws3-analysis-tab-label">${esc(label)}</span></button>`).join("")}</div>`;
+  const tabs = WS3_AN.map(([key, label]) => `<button type="button" role="tab" class="ws3-tab${key === tab ? " on" : ""}" aria-selected="${key === tab}" data-act="ws3Tab" data-tab="${key}">${ico(WS3_AN_ICONS[key], "ic16")}<span class="ws3-analysis-tab-label">${esc(label)}</span></button>`).join("");
+  return `<div class="pacom-tab-overflow" data-morph-classes="has-tab-overflow"><div id="analysisCategoryTabs" class="ws3-tabs ws3-analysis-tabs" role="tablist" aria-label="数据分析分类" data-key="analysis-categories">${tabs}</div><button type="button" class="iconbtn pacom-tab-scroll" data-act="ws3AnalysisTabScroll" aria-label="查看右侧分类" aria-controls="analysisCategoryTabs">${ico("chevron", "ic16")}</button></div>`;
 }
 function ws3AnalysisTools(tab) {
   const range = ["7", "30", "month", "lastMonth", "year", "12m"].includes(U.opsRange) ? U.opsRange : "30";
@@ -106391,7 +106477,7 @@ function ws3AnalysisPanel(sc, body, tab, { empty = false } = {}) {
 // An empty or unconnected workspace keeps exactly the same navigation and tool placement.
 function ws3AnalysisFallback() {
   const sc = ws3Scope(), hasProjects = locProjects().length > 0;
-  if (hasProjects && ws3AnalysisHasRuntime()) return ws3Page();
+  if (hasProjects && ws3AnalysisHasRuntime()) return ws3Page().html;
   U.ws3Now = true;
   const tab = WS3_AN.some(([key]) => key === U.tab) ? U.tab : "energy";
   const body = `<div class="ws3-body ws3-an ws3-analysis-empty-body">${hasProjects ? outOfScope() : wsNoProject()}</div>`;
@@ -106777,7 +106863,8 @@ function ws3Page() {
   ws3SyncFloorVisit(pg, sc);
   const on = ws3MobMode(pg),
     r = { space: ws3Space, alarms: ws3Alarms, scenes: ws3Scenes, analysis: ws3Analysis, devices: ws3Devices }[pg](sc);
-  return `<div class="ov3x ws3x" data-pg="${pg}" data-lv="${sc.lv}"${on === "plan" ? ' data-mob="plan"' : ""}>${r.panel}${r.canvas}${r.drawer || ""}</div>`;
+  const html = `<div class="ov3x ws3x" data-pg="${pg}" data-lv="${sc.lv}"${on === "plan" ? ' data-mob="plan"' : ""}>${r.panel}${r.canvas}${r.drawer || ""}</div>`;
+  return { html, compactAction: r.compactAction || "" };
 }
 // 3.49 V1370（方案第 33 项）：普通成员“我的区域”右侧加平面图：授权的功能区按有人、无人着色，其余灰色不可点；
 // 功能区都在同一个有楼层图、接入运行数据的楼层时才有；手机为“列表 | 平面图”
@@ -106970,6 +107057,10 @@ defineActions({
     route(U.page === "overview" ? "space" : U.page, { p: U.p, b: U.b, f: U.f, tab: a.tab || "" });
     // 3.53 V1437：页签行可横向滚动，选中的页签滚进可见范围
     requestAnimationFrame(() => $(".ws3-tab.on")?.scrollIntoView({ block: "nearest", inline: "nearest" }));
+  },
+  ws3AnalysisTabScroll: (a, el) => {
+    const track = el.previousElementSibling;
+    track.scrollTo({ left: a.dir === "start" ? 0 : track.scrollWidth, behavior: pacomTabMotion.matches ? "auto" : "smooth" });
   },
   ws3Floor: (a) => {
     s3SaveCam();
@@ -107178,14 +107269,15 @@ defineActions({
     closePop();
     // 3.57 V1487：报告面板占满画面区，画面不改尺寸，开关都不重新取景
     if (!isMobile()) return (U.anRpt = !U.anRpt), render(), requestAnimationFrame(() => $(".ws3-drawer .ws3-dh h2")?.focus?.());
-    route("analysis", { p: U.p, b: U.b, f: U.f, tab: "reports" }, { remember: true });
+    const from = { p: U.p, b: U.b, f: U.f, tab: ws3AnalysisCategory(U.tab) };
+    route("analysis", { ...from, tab: "reports", anReportFrom: from }, { remember: true });
   },
   ws3RptClose: () => {
     U.anRpt = false;
     render(); // 3.57 V1487：回到原画面与原取景
     requestAnimationFrame(() => $(".ws3-rpt")?.focus());
   },
-  ws3AnBack: () => route("analysis", { p: U.p, b: U.b, f: U.f, tab: "energy" }),
+  ws3AnBack: () => route("analysis", ws3ReportReturnScope()),
   ws3Med: (a) => {
     U.ws3Med = a.value;
     render();
@@ -113192,6 +113284,10 @@ const auIdleState = (now = Date.now()) => {
 const AU_SESSION_COOKIE = "pacom_station_session";
 function auSessionMark() { try { document.cookie = `${AU_SESSION_COOKIE}=1; path=/; SameSite=Lax`; AUTH.sessionCookie = true; } catch {} }
 function auSessionAlive() { try { return !navigator.cookieEnabled || document.cookie.split(/;\s*/).includes(`${AU_SESSION_COOKIE}=1`); } catch { return true; } }
+function auEndSession() {
+  AUTH.session = "out";
+  if (typeof forgetDemoWorkspace === "function") forgetDemoWorkspace();
+}
 function auExpire() {
   if (AUTH.session !== "in") return;
   if (!BARE[U.page] && location.hash.slice(1)) {
@@ -113199,7 +113295,7 @@ function auExpire() {
     AUX.returnTo = location.hash;
     auRememberProtectedReturn(location.hash, history.state);
   }
-  AUTH.session = "out";
+  auEndSession();
   auClearSecrets(); auClearApply();
   closeModal(true);
   closePop();
@@ -115028,6 +115124,7 @@ function auLoginSource(source) {
 // The application entry for this session: the current institution's workspace, the institution list, or 登录.
 const auEntryHash = () => PACOM_AUTH_FLOW.entryHash(AUTH.session === "in", !!auMe().orgs?.[AUTH.org] && !AUTH.orgs[AUTH.org]?.suspended);
 function auCompleteLogin(uid) {
+  if (typeof forgetDemoWorkspace === "function") forgetDemoWorkspace();
   const protectedReturn = AUX.protectedReturn;
   AUX.protectedReturn = null;
   AUTH.uid = uid;
@@ -115902,6 +115999,15 @@ BARE_AFTER.legal = () => {
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.97",
+    date: "2026-11-18",
+    notes: [
+      "数据分析在同一演示标签页刷新后恢复查看范围和分类，从报告返回时继续查看原分类。",
+      "修复窄屏楼层、告警工单和场景的页头操作入口。",
+      "优化楼层范围名称、分析分类滚动和工具布局。",
+    ],
+  },
   {
     version: "3.96",
     date: "2026-11-18",
@@ -117971,8 +118077,8 @@ const HELP_ARTICLES = [
   { id: "calendar", topic: "scene", title: "设置工作日历", roles: "机构管理员、运营人员", upd: "2026-11-07", sum: "工作时间与节假日表决定照明、空调与定时的工作日安排。",
     steps: ["在“运行设置 › 通用 › 工作日历”设置工作时间。", "登记当年的节假日表：放假日期与调休上班日，可按国务院办公厅通知填入。", "引用工作时间开始或结束的定时随之改变。", "在定时页点“查看有人时间”，对照占用的按小时有人时间占比调整工作时间。"],
     faq: [["没有登记节假日表会怎样？", "工作日按周一至周五计算，法定节假日照常执行工作日的定时。"]], rel: ["scene"] },
-  { id: "report", topic: "analysis", title: "周报、月报与年报", roles: "机构管理员、配置人员、运营人员、查看人员", upd: "2026-11-07", sum: "AI 起草，生成 3 小时后自动发布，期间可修改或暂不发布。",
-    steps: ["进入“数据分析”，选择已接入运行数据的范围。电脑端点页头的“报告”，在右侧面板选择报告；手机端点页头的“更多”（⋯），选“报告”进入报告页。", "周报每周一、月报每月 1 日、年报每年 1 月 1 日 09:00 由 AI 起草，并按通知偏好告知机构管理员与配置人员。", "12:00 自动发布，遇节假日顺延到下一个工作日 12:00；在此之前可编辑草稿的说明文字（数字不能改），或点“暂不发布”改为手动发布。", "报告期间数据覆盖不完整（缺数、网关离线）的一期不自动发布，处理后手动发布。", "清单里的状态：统计中（期间未结束）、待发布（需手动发布）、已发布。发布后各节文字与数据截至固定，按通知偏好给接收人发邮件。", "自己新建报告时选周报、月报或自定义期间，名称按期间自动生成，可以修改；默认包含全部五节内容。"],
+  { id: "report", topic: "analysis", title: "周报、月报与年报", roles: "机构管理员、配置人员、运营人员、查看人员", upd: "2026-11-18", sum: "AI 起草，生成 3 小时后自动发布，期间可修改或暂不发布。",
+    steps: ["进入“数据分析”，选择已接入运行数据的范围，再点范围工具行的“报告”。电脑在右侧面板查看。手机或平板窄屏进入报告页，点“返回数据分析”可回到原范围和分类。", "周报每周一、月报每月 1 日、年报每年 1 月 1 日 09:00 由 AI 起草，并按通知偏好告知机构管理员与配置人员。", "12:00 自动发布，遇节假日顺延到下一个工作日 12:00；在此之前可编辑草稿的说明文字（数字不能改），或点“暂不发布”改为手动发布。", "报告期间数据覆盖不完整（缺数、网关离线）的一期不自动发布，处理后手动发布。", "清单里的状态：统计中（期间未结束）、待发布（需手动发布）、已发布。发布后各节文字与数据截至固定，按通知偏好给接收人发邮件。", "自己新建报告时选周报、月报或自定义期间，名称按期间自动生成，可以修改；默认包含全部五节内容。"],
     faq: [["自建报告也会自动发布吗？", "不会，自建报告手动发布；未发布的可以删除。"], ["期间还没结束能编辑吗？", "不能。期间结束后才能编辑和发布，如 9 月月报 10 月 1 日起可编辑。"]], rel: ["savings"] },
   { id: "savings", topic: "analysis", title: "节电量", roles: "机构管理员、配置人员、运营人员、查看人员", upd: "2026-11-09", sum: "在数据分析 › 能源 › 调光节电查看调光节电、目标进度、节能措施与对标。",
     steps: ["照明：工作时间内按驱动功率满亮度为基准，减去按亮度与驱动功率估算的用电；工作时间以外和当天未亮灯的功能区不计。", "按来源分为感应调光、恒照度控制与其他调暗（定时、手动），也可按功能区查看。", "已核验节省单独统计，写在节能措施列表与月报：能耗异常告警处理后的效果与节能措施按 GB/T 28750 比较实施前后的实测用电，照明用 LC20 回路功率（隔离测量），没有时用电能表与对照日；采用 AI 建议并下发成功后自动记一条节能措施，其他已实施的措施手动登记。", "节电量的副文写比满亮度运行少用的比例；累计节电量为单独一张卡；登记电价后同时写出约多少元。"],
@@ -118227,7 +118333,7 @@ Object.assign(actions, {
     AUX.invMe = null;
     // 2.67 账户第 796 条：从工作区弹窗切换账户时回到原邀请地址，按未登录打开同一邀请
     if (a.hash) { closeModal(true); history.replaceState(null, "", a.hash); readRoute(); }
-    AUTH.session = "out";
+    auEndSession();
     AUX.sms = false;
     auClearSecrets();
     auClearApply();
@@ -118413,7 +118519,7 @@ Object.assign(actions, {
     guard(() => {
       closePop();
       if (AUTH.session === "in" && !BARE[U.page]) AUTH.resume[AUTH.uid] = { org: AUTH.org, hash: location.hash };
-      AUTH.session = "out";
+      auEndSession();
       AUX.sms = false;
       AUX.loginCodeTo = "";
       AUX.cd.login = 0;
@@ -119743,7 +119849,7 @@ Object.assign(actions, {
     delete AUTH.resume[uid];
     delete AUTH.lastOrg[uid];
     AUTH.sessions = [];
-    AUTH.session = "out";
+    auEndSession();
     auClearSecrets();
     auClearApply();
     AUX.v = {};
@@ -129729,7 +129835,35 @@ auSave();
 
 /* ---------- 切换数据后重新加载：保持登录与所在页面 ---------- */
 const DEMO_MODE_KEY = "pacom-v13-data",
-  DEMO_RESUME = "pacom-v13-demo-resume";
+  DEMO_RESUME = "pacom-v13-demo-resume",
+  DEMO_WORKSPACE_SESSION = "pacom-v13-demo-workspace-session";
+
+// The public demo can resume its sample user in this tab. Account login remains separate.
+function demoWorkspaceSession() {
+  try { return JSON.parse(sessionStorage.getItem(DEMO_WORKSPACE_SESSION) || "null"); } catch { return null; }
+}
+function rememberDemoWorkspace() {
+  try {
+    sessionStorage.setItem(DEMO_WORKSPACE_SESSION, JSON.stringify({ org: AUTH.org, role: U.role }));
+  } catch {}
+}
+function forgetDemoWorkspace() {
+  try { sessionStorage.removeItem(DEMO_WORKSPACE_SESSION); } catch {}
+}
+function restoreDemoWorkspace() {
+  const page = location.hash.slice(1).split("?")[0];
+  if (AUTH.session === "in" || BARE[page] || !(TITLES[page] || page === "deployment")) return;
+  const saved = demoWorkspaceSession();
+  if (!saved) return;
+  if (AUTH.uid !== "wm" || AUTH.org !== saved.org || !AUTH.people.wm?.orgs?.[saved.org] ||
+      !AUTH.orgs[saved.org] || AUTH.orgs[saved.org].suspended || !AU_ROLE_OPTS.some(([role]) => role === saved.role)) {
+    forgetDemoWorkspace();
+    return;
+  }
+  AUTH.session = "in";
+  U.role = saved.role;
+}
+
 // reopen：目录条目所需的对象不在当前数据中，切换到“示例数据”后沿用该状态的链接（?demo=条目）再打开一次（Editor 核查 E29）。
 function demoReload(hash = location.hash, reopen = "") {
   try {
@@ -130032,9 +130166,11 @@ function demoIn(org = "gzlab") {
   Object.assign(AUTH, { uid: "wm", session: "in", org });
   AUTH.lastOrg.wm = org;
   U.role = AUTH.people.wm.orgs[org] || "admin";
+  rememberDemoWorkspace();
   auSave();
 }
 function demoOut() {
+  forgetDemoWorkspace();
   AUTH.session = "out";
   AUX.lv = null; AUX.resetAdmin = null;
   auSave();
@@ -131083,6 +131219,8 @@ const DEMO_LINKABLE = (id) => DEMO_ITEMS.some((x) => x[1] === id);
     DEMO.pendingLink = id;
     // 链接中的页面（# 之后的部分）：条目打不开时登录后进入这里（E30）
     DEMO.linkHash = location.hash;
+  } else if (!id) {
+    restoreDemoWorkspace();
   }
 }
 // 每个状态一个链接：地址为 index.html?demo=条目#页面，不改变页面自身的地址；离开该状态（圆点熄灭）后去掉。
@@ -131236,6 +131374,7 @@ defineActions({
   setRole: (a) =>
     guard(() => {
       U.role = a.value;
+      if (AUTH.uid === "wm" && demoWorkspaceSession()?.org === AUTH.org) rememberDemoWorkspace();
       closeModal(true);
       render();
       msg(`已切换为${zhSub(auRole(a.value), "l")}`);
