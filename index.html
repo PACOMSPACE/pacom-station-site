@@ -26737,6 +26737,13 @@ body:has(> #app.collapsed) #demoSide .demo-step-pair { flex-direction: column; }
   }
 }
 
+@media (max-width: 360px) {
+  body:has(#app[data-page="alarms"] .al-per .ops-period):not(:has(> :is(#dlg, #ai-pal, #discard))) .phead .v13-head > :is(.demo-step, .demo-cap) {
+    top: 8px;
+    bottom: auto;
+  }
+}
+
 /* 2.89 账户第 133 条：整页页面仍在右上角，顺序与尺寸同左侧菜单那一行，合在白底胶囊里（高 32）；手机与触屏按原尺寸，手机只显示序号 */
 .demo-step-pair { display: flex; flex: none; }
 @media (min-width: 851px) and (pointer: fine) {
@@ -32851,6 +32858,8 @@ col.al-w200 { width: 200px; }
 .al-tbar > .ops-q { flex: 0 1 320px; }
 .al-tbar > .al-per { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: 100%; min-width: 0; margin: 0; }
 .al-per > .ops-period { max-width: 100%; }
+.al-period-field { min-width: 0; }
+.al-period-field > label { display: none; }
 .al-tbar-end { display: flex; gap: 8px; margin-left: auto; }
 .ops-history-group + .ops-history-group { margin-top: 24px; }
 .ops-history-group > h3 { display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px; font-size: 16px; line-height: 24px; font-weight: 500; }
@@ -32956,7 +32965,7 @@ col.al-w280 { width: 280px; }
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     width: min(100%, 322px);
   }
-  .al-per .ops-period > .ws-dt > .input { width: 100%; min-width: 0; }
+  .al-period-field .input { width: 100%; min-width: 0; }
   .al-per .ops-period-err { grid-column: 1 / -1; width: auto; }
   .ops-overview-nav.al-sp-nav { flex-wrap: wrap; }
   .al-sp-acts { flex: 1 1 100%; flex-wrap: wrap; justify-content: flex-start; }
@@ -32970,6 +32979,12 @@ col.al-w280 { width: 280px; }
   /* 3.00 V989 手机不画竖线，“‹ 2 / 4 ›”排在操作按钮一行右端，放不下时换行靠右 */
   .al-sp-sep { display: none; }
   .al-sp-pg { margin-left: auto; }
+}
+@media (max-width: 360px) {
+  .al-per > .ops-period { grid-template-columns: minmax(0, 1fr); width: 100%; gap: 8px; }
+  .al-period-field { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; gap: 12px; }
+  .al-period-field > label { display: block; }
+  .al-period-separator { display: none; }
 }
 /* 3.06 V1038：空气图层。图层页签下一行：左为指标分段，右为本层结论与图例（分段色块，只列图上出现的档与状态）；
    读数 16/24、字重 600，单位 12/18 正体；状态词与“局部”12/18 跟在读数后；没有读数的三种：未监测浅灰斜纹、离线灰底、数据不足白底点线边 */
@@ -94005,7 +94020,8 @@ function alHistInputs() {
   if (U.opsHistPer !== "custom") return "";
   const max = ymdOf(Demo.NOW),
     d = (id, v, label) => wsDtInput(id, v || "", "date", "", ` data-min="${histMin()}" data-max="${max}" aria-label="${label}"${U.opsHistErr ? ' aria-invalid="true" aria-describedby="alPeriod-error"' : ""}`);
-  return `<span class="ops-period">${d("alFrom", U.opsHistFromDraft ?? U.opsHistFrom, "开始日期")}<span>至</span>${d("alTo", U.opsHistToDraft ?? U.opsHistTo, "结束日期")}${U.opsHistErr ? `<small id="alPeriod-error" class="ops-period-err" role="alert">${esc(U.opsHistErr)}</small>` : ""}</span>`;
+  const field = (id, value, label) => `<span class="al-period-field"><label for="${id}">${label}</label>${d(id, value, label)}</span>`;
+  return `<span class="ops-period">${field("alFrom", U.opsHistFromDraft ?? U.opsHistFrom, "开始日期")}<span class="al-period-separator" aria-hidden="true">至</span>${field("alTo", U.opsHistToDraft ?? U.opsHistTo, "结束日期")}${U.opsHistErr ? `<small id="alPeriod-error" class="ops-period-err" role="alert">${esc(U.opsHistErr)}</small>` : ""}</span>`;
 }
 // 自定义期间：开始不晚于结束，不晚于今天，不早于保存期（近 5 年）；不符合时写原因，统计保持原来的期间
 function alHistSet(f, t) {
