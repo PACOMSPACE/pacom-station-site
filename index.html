@@ -36216,12 +36216,10 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   .ov3-cv { background: #d7dfe2; }
   .ov3-cv.is2d { background: #edf1f4; }
   .ov3-cv > .ov3-s3 { position: absolute; inset: 0 0 0 80px; }
-  .ov3-image-host { position: absolute; inset: 16px; overflow: hidden; touch-action: none; cursor: grab; }
-  .ov3-view:has(> .ov3-fcol) > .ov3-image-host { left: 80px; }
+  .ov3-image-host { position: absolute; inset: 0; overflow: hidden; touch-action: none; cursor: grab; }
   .ov3-image-host:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
   .ov3-building-image { position: absolute; left: 0; top: 0; max-width: none; max-height: none; object-fit: contain; visibility: hidden; pointer-events: none; -webkit-user-select: none; user-select: none; }
   .ov3-image-state { position: absolute; inset: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; }
-  .ov3-view:has(> .ov3-fcol) > .ov3-image-state { left: 80px; }
   .ov3-image-state h2 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 500; }
   .ov3-image-host.is-ready + .ov3-image-state { display: none; }
   .ov3-image-host:is(.is-loading, .is-error) { cursor: default; }
@@ -104605,7 +104603,7 @@ let OV3_IMAGE_LIVE = null;
 function ov3SyncBuildingImage() {
   const live = OV3_IMAGE_LIVE;
   if (!live || !live.host.isConnected) return;
-  const { host, img, api } = live, { loaded, failed } = api.st,
+  const { host, api } = live, { loaded, failed } = api.st,
     view = host.closest(".ov3-view"), state = view.querySelector("[data-building-image-state]"),
     tools = view.querySelector("[data-building-image-tools]");
   if (tools) tools.hidden = !loaded;
@@ -104614,23 +104612,8 @@ function ov3SyncBuildingImage() {
   if (state) state.hidden = loaded;
   const message = state?.querySelector("[data-building-image-message]");
   if (message) message.textContent = failed ? "楼宇图片无法加载" : "正在加载楼宇图片";
-  if (!loaded) return;
-  const width = view.clientWidth, height = view.clientHeight,
-    frame = view.getBoundingClientRect(), controls = view.querySelector(".ov3-ctl")?.getBoundingClientRect(),
-    inset = { l: view.querySelector(".ov3-fcol") ? 80 : 16, r: 16, t: 16, b: 16 },
-    scale = ({ l, r, t, b }) => Math.min((width - l - r) / img.naturalWidth, (height - t - b) / img.naturalHeight);
-  let fit = inset;
-  if (controls) {
-    const k = scale(inset), top = (height + inset.t - inset.b - k * img.naturalHeight) / 2,
-      right = (width + inset.l - inset.r + k * img.naturalWidth) / 2,
-      below = controls.bottom - frame.top + 12, beside = controls.left - frame.left - 12;
-    if (top < below && right > beside) {
-      const under = { ...inset, t: below }, side = { ...inset, r: width - beside };
-      fit = scale(under) >= scale(side) ? under : side;
-    }
-  }
-  host.style.inset = `${fit.t}px ${fit.r}px ${fit.b}px ${fit.l}px`;
-  api.redraw();
+  // 图片按完整画布等比适配；楼层轨道与工具保持悬浮，不再挤占图片取景区域。
+  if (loaded) api.redraw();
 }
 onAfterRender(() => {
   const host = document.querySelector(".ov3-image-host"), img = host?.querySelector(".ov3-building-image"), source = img?.getAttribute("src");
@@ -115386,6 +115369,11 @@ BARE_AFTER.legal = () => {
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.93",
+    date: "2026-11-18",
+    notes: ["整栋楼宇图片按整个画布完整等比显示，楼层选择器和工具悬浮于图片上方。"],
+  },
   {
     version: "3.92",
     date: "2026-11-18",
