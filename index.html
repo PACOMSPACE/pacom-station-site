@@ -36215,7 +36215,8 @@ p.ai-say-bad { margin: 0 0 12px; font-size: 14px; line-height: 22px; }
   /* 楼宇 3D / 2D */
   .ov3-cv { background: #d7dfe2; }
   .ov3-cv.is2d { background: #edf1f4; }
-  .ov3-cv > .ov3-s3 { position: absolute; inset: 0 0 0 80px; }
+  /* 查看画布共用完整区域，楼层轨道与工具悬浮，不挤占模型或楼层图。 */
+  .ov3-cv > .ov3-s3 { position: absolute; inset: 0; }
   .ov3-image-host { position: absolute; inset: 0; overflow: hidden; touch-action: none; cursor: grab; }
   .ov3-image-host:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
   .ov3-building-image { position: absolute; left: 0; top: 0; max-width: none; max-height: none; object-fit: contain; visibility: hidden; pointer-events: none; -webkit-user-select: none; user-select: none; }
@@ -36558,7 +36559,6 @@ img.img-off { display: none !important; }
   /* 3.49 V1370：普通成员“我的区域”左为卡片，右为平面图；手机“列表 | 平面图” */
   .mem3-b { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
   .mem3-b > .ov3-view { position: sticky; top: 0; height: calc(100dvh - 160px); min-height: 420px; border-radius: 16px; overflow: hidden; }
-  .mem3-b > .ov3-view > .ov3-s3 { inset: 0 !important; }
   .mem3 .ov-mgrid { grid-template-columns: minmax(0, 1fr) !important; }
   @media (max-width: 850px) {
     .ws3-memmob { position: static; margin: 0 -16px 12px; }
@@ -36648,7 +36648,6 @@ img.img-off { display: none !important; }
     .ws3-lg { left: 12px; right: 12px; bottom: 12px; max-width: none; }
     /* 3.49 V1372：楼层在“E栋 · 7F ▾”里选，画面不放楼层列，平面占满宽 */
     .ws3x .ov3-fcol { display: none !important; }
-    .ws3x .ov3-cv > .ov3-s3 { inset: 0 !important; }
     /* 3.49 V1373：图例一行写完，放不下时在图例内横向滑动 */
     .ws3-lg { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; white-space: nowrap; gap: 6px; padding: 8px 12px; }
     .ws3-lg::-webkit-scrollbar { display: none; }
@@ -101134,7 +101133,8 @@ const S3V = (() => {
     // 3.48：新页面的单层 3D 与整栋同一朝向（S.cam0）
     return S.flat ? { az: 0, el: 90 } : S.cam0 ? { ...S.cam0 } : S.focus ? { az: -28, el: 58 } : { az: -32, el: 30, ...(S.view || {}) };
   }
-  const autoFit = (st) => typeof st.S.inset === "function" && !st.cam.userAdjusted;
+  const supportsAutoFit = (S) => typeof S.inset === "function" || Number.isFinite(S.fitCoverage);
+  const autoFit = (st) => supportsAutoFit(st.S) && !st.cam.userAdjusted;
   // 绘制：自下而上逐层（相机在上方，较低的层先画）；层内先画楼板，再画功能区的墙（由远到近），最后画顶面
   function draw(st) {
     const cv = st.cv,
@@ -101451,7 +101451,7 @@ const S3V = (() => {
       tip = host.querySelector(".s3-tip"),
       st = { cv, S, cam: { ...home(S), ...(opt.cam || {}) }, fitted: !!opt.cam?.k };
     if (autoFit(st)) st.fitted = false;
-    const adjust = () => { if (typeof st.S.inset === "function") st.cam.userAdjusted = true; };
+    const adjust = () => { if (supportsAutoFit(st.S)) st.cam.userAdjusted = true; };
     let raf = null;
     const redraw = () => {
       if (raf != null) return;
@@ -105635,8 +105635,8 @@ function ws3Scene(sc, o) {
       r = f?.zones.find((x) => x.id === o.center);
     if (r) S.zc = [...S3V.centroid(r.pts), f.z0 + (r.zh ?? f.zh ?? 2.4)];
   }
-  // 非独立楼层的运行画面保留原取景边距。
-  S.inset = { l: isMobile() ? 16 : 152, t: 64, r: 24, b: 56 };
+  // 运行查看保留图层和图例的取景安全区，不再为楼层轨道额外预留左侧空白。
+  S.inset = { l: 16, t: 64, r: 24, b: 56 };
   const view = d2 ? { flat: true } : { view: { az: 30, el: 45 }, ...(sc.fid ? { cam0: { az: 30, el: 50 } } : {}) };
   // 整栋（楼层列“全部”）不写房间名和数值，只看着色与告警描边（最终图 2-3）
   return { ...S, ...view, noLabels: true, cl: !!sc.fid, names: false };
@@ -115369,6 +115369,11 @@ BARE_AFTER.legal = () => {
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.94",
+    date: "2026-11-18",
+    notes: ["楼宇和楼层查看使用完整画布，楼层选择器和工具悬浮显示。", "窗口变化时自动适配默认视角，保留手动调整后的视图。"],
+  },
   {
     version: "3.93",
     date: "2026-11-18",
