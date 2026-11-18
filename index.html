@@ -7693,6 +7693,15 @@ fieldset.invalid input[aria-invalid] { outline:1px solid #b42318; outline-offset
 #dlg .ws-scope-part[hidden] { display:none; }
 #dlg .ws-scope-part { margin-top:16px; overflow-wrap:anywhere; }
 #dlg .ws-scope-part > fieldset { margin-top:12px; }
+#dlg .ws-scope-changes { display:grid; gap:8px; margin-block:16px; overflow-wrap:anywhere; }
+#dlg .ws-scope-change { padding:8px 12px; border:1px solid var(--ds-line); border-radius:8px; }
+#dlg .ws-scope-change summary { cursor:pointer; }
+#dlg .ws-scope-change ul { display:grid; gap:6px; list-style:none; padding:0; margin:8px 0 0; }
+#dlg .ws-scope-change li { display:grid; gap:2px; }
+#dlg .ws-scope-change li > span { color:var(--ds-ink-2); }
+#dlg .ws-scope-confirm { margin-top:12px; }
+@media (max-width: 850px), (any-pointer: coarse) { #dlg .ws-scope-confirm { min-height:44px; } }
+
 /* 复制到其他楼层：未上传楼层图的楼层折叠。 */
 #dlg .zc-unavailable { margin:0 0 12px; }
 /* 导出范围：名称与规模各自整体换行，规模放不下时整体到下一行（第 315 条）；间距与原来相同（8px + 6px）。 */
@@ -26723,7 +26732,8 @@ body:has(> #app.collapsed) #demoSide .demo-step-pair { flex-direction: column; }
 
 @media (max-width: 600px) and (max-height: 700px) {
   body:not(:has(> :is(#dlg, #ai-pal, #discard))) #app:has(.dep-project-floor) .phead .v13-head > :is(.demo-step, .demo-cap) {
-    position: static;
+    position: relative;
+    inset: auto;
   }
 }
 
@@ -37899,6 +37909,14 @@ img.img-off { display: none !important; }
 .hwb-row b { font: 500 14px/20px var(--ff); }
 .hwb-row small { color: var(--ds-ink-2); font: 400 12px/18px var(--ff); }
 .hwb-row:focus-visible { outline: 2px solid #00aeef; outline-offset: -2px; }
+.hwb-queue { display: grid; gap: 12px; min-width: 0; }
+.hwb-queue > header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.hwb-queue h2, .hwb-queue h3 { margin: 0; font: 500 16px/24px var(--ff); }
+.hwb-queue h3 { font-size: 14px; }
+.hwb-queue h2 > span, .hwb-queue h3 > span { margin-inline-start: 4px; color: var(--ds-ink-2); font-variant-numeric: tabular-nums; }
+.hwb-queue ul { padding: 0; margin: 0; list-style: none; }
+.hwb-queue li + li { border-top: 1px solid var(--ds-line, #dedede); }
+.hwb-queue-empty { margin: 0; padding: 24px 0; color: var(--ds-ink-2); }
 @media (any-pointer: coarse), (max-width: 850px) {
   .hwb-widget .hwb-row { min-height: 44px; }
 }
@@ -38682,6 +38700,7 @@ img.img-off { display: none !important; }
 
 .ops-overview-tabs:has(.pacom-tab-track) { overflow: visible; mask-image: none; }
 .ops-category-switch:has(> .pacom-tab-track) { display: flex; width: fit-content; max-width: 100%; height: auto; }
+.ops-category-switch.pacom-tab-overflow { align-items: center; gap: 4px; min-width: 0; }
 .ops-overview-nav:has(.pacom-tab-track) { box-shadow: none; }
 
 /* The standalone editor hides the side rail even if the workspace remembers it as collapsed. */
@@ -41274,12 +41293,13 @@ const StationFlowModel = ((M) => {
     })) return null;
     return part;
   }
+  function deploymentFloorReady(db, floor, scope) {
+    const part = floor && scope.parts?.[floor.id];
+    return !!floor && (floor.managedPart ? !!validDeploymentPart(db, floor, part) : !part);
+  }
   function deploymentReady(db, pid) {
     const scope = deploymentScope(db, pid);
-    return !scope.needsConfirmation && scope.floorIds.every((id) => {
-      const f = M.floor(db, id);
-      return f.managedPart ? !!validDeploymentPart(db, f, scope.parts?.[id]) : !scope.parts?.[id];
-    });
+    return !scope.needsConfirmation && scope.floorIds.every((id) => deploymentFloorReady(db, M.floor(db, id), scope));
   }
   function deploymentSelection(db, pid, floorIds, requested = {}) {
     if (!Array.isArray(floorIds) || !floorIds.length || new Set(floorIds).size !== floorIds.length || floorIds.some((id) => M.projectOfFloor(db, id) !== pid)) throw Error("所选楼层已经变化，请重新核对部署范围");
@@ -42557,7 +42577,7 @@ const StationFlowModel = ((M) => {
         add({ ...base, ...fix("upload"), rule: "floor-plan", text: `${zhSub(where, "r")}尚未上传${planWordOf(db, f)}` });
         continue;
       }
-      if (f.managedPart ? !validDeploymentPart(db, f, scope.parts?.[f.id]) : scope.parts?.[f.id]) {
+      if (!deploymentFloorReady(db, f, scope)) {
         add({ ...base, rule: "managed-floor-scope", status: "待核对", text: `${zhSub(where, "r")}的部分楼层范围需要核对`, act: "scopeEntry", args: { p: pid } });
         continue;
       }
@@ -42585,6 +42605,7 @@ const StationFlowModel = ((M) => {
       scopeWhole: !!scope.whole,
       scopeVersion: scope.whole || scope.needsConfirmation ? 0 : scope.version || 1,
       ...(scope.needsConfirmation ? { needsConfirmation: true } : {}),
+      reviewRequired: fs.some(f => !deploymentFloorReady(db, f, scope)),
       ...(scope.parts ? { parts: clone(scope.parts) } : {}),
       floorIds: fs.map((f) => f.id),
       items,
@@ -45885,6 +45906,7 @@ const StationFlowModel = ((M) => {
     managedPointIn,
     scopePlanImage,
     deploymentScope,
+    deploymentFloorReady,
     deploymentReady,
     deploymentSelection,
     deploymentPointIn,
@@ -48283,19 +48305,11 @@ function snapshot() {
     conn: U.conn || null,
     ctab: U.ctab || null,
     filter: U.filter,
+    ...(U.page === "devices" && U.tab === "inventory" ? { deviceNet: U.deviceNet || "", deviceIssueRoute: !!U.deviceIssueRoute } : {}),
     q: U.q,
     zone: U.zone,
-    ...(U.page === "overview" && U.ov3Now && !U.sp && !U.obj ? {
-      homeOverview: {
-        floor: U.ov3F?.[U.b] || null,
-        wholeMode: U.homeBuildingModes?.[U.b] || "3d",
-        floorMode: U.homeBuildingFloorModes?.[U.b] || "2d",
-        mobilePane: U.homeOverviewMobilePanes?.[U.b ? "building:" + U.b : U.p ? "project:" + U.p : "all"] || "list",
-        visit: U.ov3HomeVisit,
-        panelScroll: $(".home-overview-frame")?.scrollTop || 0,
-        focus: wsFocusDesc(document.activeElement),
-      },
-    } : {}),
+    ...(U.page === "overview" && U.ov3Now && !U.sp && !U.obj ? { homeOverview: homeOverviewSnapshot() } : {}),
+    ...(U.page === "alarms" && U.alarmQueue ? { alarmQueue: U.alarmQueue } : {}),
     ...(typeof opsRouteFields === "function" ? opsRouteFields() : {}),
     scroll: $("#pbody")?.scrollTop || 0,
   };
@@ -48394,6 +48408,7 @@ function route(page, scope = {}, opts = {}) {
       sp = page === "space" || (page === "overview" && (scope.obj ? obMenuOf(scope.obj) === "space" : !!scope.sp));
     if (page === "space") page = "overview";
     const memKey = sp ? "space" : page;
+    if (typeof homeOverviewHistorySave === "function") homeOverviewHistorySave();
     closePop();
     if (typeof opsHistoryReplace === "function") opsHistoryReplace();
     const from = snapshot(),
@@ -48405,7 +48420,7 @@ function route(page, scope = {}, opts = {}) {
     // 2.13 E225：项目页切换层级时停靠的信息面板保持展开，内容换成所到层级的信息（楼层页除外，楼层页右侧是功能区面板）。
     const keepInfo = U.page === "projects" && page === "projects" && !!U.spaceInfo && infoDocked();
     if (opts.remember) U.history.push(from);
-    if (!U.spEd && !U.obj) U.memory[devDeploy() ? "devDeploy" : curPage()] = snapshot(); // 3.31：对象页不记作菜单的本页记忆（侧栏回到设备、空间时打开列表与楼层图） // 3.16：部署的设备页签不记作设备页的记忆；3.14：编辑不记作空间的本页记忆（侧栏回到空间时打开楼层图）
+    if (!U.spEd && !U.obj && !U.alarmQueue) U.memory[devDeploy() ? "devDeploy" : curPage()] = from; // 对象、编辑及首页待办明细不覆盖主导航记忆。
     if (typeof opsRouteLeaving === "function") opsRouteLeaving(page, scope);
     if (U.page === "settings" && (page !== "settings" || ("p" in scope && scope.p !== U.p))) {
       runtimePreviewClose(false);
@@ -48436,6 +48451,8 @@ function route(page, scope = {}, opts = {}) {
         selectedPoints: [],
         selectingPoints: false,
         filter: "all",
+        deviceNet: U.deviceIssueRoute ? "" : U.deviceNet,
+        deviceIssueRoute: false,
         q: "",
         type: null,
         drawZone: false,
@@ -48462,6 +48479,7 @@ function route(page, scope = {}, opts = {}) {
         anReportFrom: page === "analysis" && scope.tab === "reports" && from.page === "analysis" && from.tab === "reports" ? U.anReportFrom : null,
         alarmDevice: null,
         alarmZone: null,
+        alarmQueue: null,
         obj: null,
         otab: null,
         obGone: null,
@@ -48548,10 +48566,12 @@ function syncRoute(replace = false) {
   // 来源返回记在本历史项里（2026-10-05 核查 C1）：浏览器后退、前进回到哪一项，就恢复那一项进入时的来源。
   const canvas = devCanvas();
   for (const k of ["p", "b", "f", "tab", "net", "ntab", "conn", "ctab"]) if (U[k] && !(["ntab", "ctab"].includes(k) && U[k] === "summary")) q.set(k, U[k]);
+  if (typeof writeInventoryRoute === "function") writeInventoryRoute(q);
   if (U.page === "help") {
     if (U.helpTopic) q.set("topic", U.helpTopic);
     if (U.helpQuery) q.set("q", U.helpQuery);
   }
+  if (U.page === "alarms" && U.alarmQueue) q.set("queue", U.alarmQueue);
   if (U.page === "analysis" && !U.p && !U.missing) q.set("all", "1");
   if (U.page === "analysis" && U.opsRange === "custom" && U.opsFrom && U.opsTo) {
     q.set("from", U.opsFrom);
@@ -48600,6 +48620,7 @@ function readRoute() {
   U.helpQuery = U.page === "help" ? (q.get("q") || "").slice(0, 120) : "";
   U.helpBack = U.page === "help" ? history.state?.helpBack || null : null;
   U.helpScroll = U.page === "help" ? history.state?.helpScroll || 0 : 0;
+  U.alarmQueue = U.page === "alarms" && ["active-alarms", "open-tickets"].includes(q.get("queue")) ? q.get("queue") : null;
   // 3.31 运营区第 4 项：#devices…&obj= 为设备的对象页（与功能区对象页同一页面）
   if (U.page === "devices" && q.get("obj")) U.page = "overview";
   // 无上下文的旧 space/overview 楼层地址进入首页；有定位、图层或编辑意图时保留工作区。
@@ -48722,6 +48743,7 @@ function readRoute() {
   // 3.14 E1207：项目楼层、设备标记与 3D 模型的旧地址改写为空间的编辑（没有编辑权限时为空间的楼层图）
   const pjFix = projGo(),
     edFix = spEdFix();
+  if (typeof readInventoryRoute === "function") readInventoryRoute(q);
   if (page === "deployment" || fixed || pjFix || edFix || obFix || (U.spEd && page !== "space")) syncRoute(true);
 }
 
@@ -49304,8 +49326,10 @@ function pageCategoryActive(page, active) {
 function pageCategorySwitch(page, active) {
   const items = pageCategoryItems(page), current = pageCategoryActive(page, active), icons = PAGE_CATEGORY_ICONS[page] || {};
   if (items.length < 2) return ""; // 3.31 运营区第 2 项（账户 239）：只剩一个页签时不显示页签行
-  const key = `page-categories:${page}`;
-  return `<div class="ops-category-switch"><div class="ops-category-track" role="tablist" aria-label="${esc(TITLES[page])}页签" data-key="${key}">${items.map(([id, label, note]) => `<button type="button" role="tab" aria-selected="${id === current}" class="ops-category-tab${id === current ? " on" : ""}" data-act="tab" data-value="${id}" data-key="tab:${id}" tabindex="${id === current ? 0 : -1}" id="tab-${id}" aria-controls="wsPagePanel" aria-label="${esc(label + (note ? "，" + note : ""))}" data-tip="${esc(label + (note ? " · " + note : ""))}"><span class="ops-category-content" aria-hidden="true">${page === "overview" ? ico(icons[id], "ic16") : ""}<span class="ops-category-label">${esc(label)}</span>${note ? `<small class="ops-category-note">${esc(note)}</small>` : ""}</span></button>`).join("")}</div></div>`;
+  const key = `page-categories:${page}`, deployment = page === "deployment";
+  const track = `<div class="ops-category-track"${deployment ? ' id="deploymentCategoryTabs"' : ""} role="tablist" aria-label="${esc(TITLES[page])}页签" data-key="${key}">${items.map(([id, label, note]) => `<button type="button" role="tab" aria-selected="${id === current}" class="ops-category-tab${id === current ? " on" : ""}" data-act="tab" data-value="${id}" data-key="tab:${id}" tabindex="${id === current ? 0 : -1}" id="tab-${id}" aria-controls="wsPagePanel" aria-label="${esc(label + (note ? "，" + note : ""))}" data-tip="${esc(label + (note ? " · " + note : ""))}"><span class="ops-category-content" aria-hidden="true">${page === "overview" ? ico(icons[id], "ic16") : ""}<span class="ops-category-label">${esc(label)}</span>${note ? `<small class="ops-category-note">${esc(note)}</small>` : ""}</span></button>`).join("")}</div>`;
+  const scroll = deployment ? `<button type="button" class="iconbtn pacom-tab-scroll" data-act="ws3AnalysisTabScroll" aria-label="查看右侧分类" aria-controls="deploymentCategoryTabs">${ico("chevron", "ic16")}</button>` : "";
+  return `<div class="ops-category-switch${deployment ? " pacom-tab-overflow" : ""}"${deployment ? ' data-morph-classes="has-tab-overflow"' : ""}>${track}${scroll}</div>`;
 }
 // tools：放在页签行右端的按钮（2.53 V233：总览的“查看设置”），放不下时随页签换行
 // 2.66 V441：告警、场景、数据分析的位置选择在标题行右端（opsHeadScope），页签行左端只有页签，右端为本页签的筛选与按钮（tools）
@@ -49833,7 +49857,7 @@ function missingPage() {
     // 已删除的室外区域与其总平面按“室外区域”“总平面”称呼（从“已删除”中查到原对象时）。
     gone = trashFind(m.kind, m.id),
     outGone = m.kind === "buildings" ? gone?.kind === "outdoor" : m.kind === "floors" ? trashFind("buildings", gone?.buildingId)?.kind === "outdoor" : false,
-    noun = outGone ? (m.kind === "buildings" ? "室外区域" : "总平面") : { projects: "项目", buildings: "楼宇", floors: "楼层", zones: "功能区" }[m.kind] || "对象",
+    noun = outGone ? (m.kind === "buildings" ? "室外区域" : "总平面") : { projects: "项目", buildings: "楼宇", floors: "楼层", zones: "功能区", networks: "设备网络" }[m.kind] || "对象",
     back = U.f ? [isOutdoor(U.b) ? "返回总平面" : "返回楼层", { f: U.f }] : U.b ? [isOutdoor(U.b) ? "返回室外区域" : "返回楼宇", { b: U.b }] : U.p ? ["返回项目", { p: U.p }] : ["返回全部项目", {}];
   return `<div class="ws-syspage">${empty(
     `${noun}不存在或已删除`,
@@ -50395,26 +50419,7 @@ function spEdLeave() {
   U.depQ = null;
   // 首页查看和编辑是两个工作区；完成后恢复打开编辑器时的首页，而不是另开独立楼层页。
   if (s?.page === "overview" && !s.sp && !s.obj) {
-    const { label, homeOverview: home, focus, prev, ...scope } = s,
-      bid = s.b,
-      fid = home?.floor || s.f || null;
-    if (home) {
-      Object.assign(scope, { ov3HomeVisit: home.visit, homeOverviewReturn: true });
-      if (bid) {
-        scope.ov3F = { ...(U.ov3F || {}), [bid]: fid };
-        scope.homeBuildingModes = { ...(U.homeBuildingModes || {}), [bid]: home.wholeMode };
-        scope.homeBuildingFloorModes = { ...(U.homeBuildingFloorModes || {}), [bid]: home.floorMode };
-      }
-      const key = bid ? "building:" + bid : s.p ? "project:" + s.p : "all";
-      scope.homeOverviewMobilePanes = { ...(U.homeOverviewMobilePanes || {}), [key]: home.mobilePane };
-    }
-    route("overview", { ...scope, sp: false, f: fid }, { source: prev || null });
-    requestAnimationFrame(() => {
-      const frame = $(".home-overview-frame");
-      if (frame && home) frame.scrollTop = home.panelScroll || 0;
-      const fallback = fid ? document.querySelector(`.home-overview [data-act="ov3Floor"][data-to="${CSS.escape(fid)}"]`) : $(".home-overview .ov3-fhome");
-      (wsFindDesc(home?.focus || focus) || (fallback?.getClientRects().length ? fallback : null) || $("#homeLocationScope"))?.focus({ preventScroll: true });
-    });
+    homeOverviewReturnTo(s, s.prev || null);
     return;
   }
   if (U.spEd === "3d") U.ovView = "3d";
@@ -51422,30 +51427,37 @@ function scopeForm(opts = {}) {
     initial = F.deploymentScope(db, pid),
     s = opts.draft || { ...initial, floorIds: saved ? initial.floorIds : initial.floorIds.filter((id) => !M.floor(db, id)?.managedPart), functions: initial.functions || (initial.needsConfirmation ? [] : ["照明", "暖通空调", "室内环境", "能耗", "碳排放"]) },
     focusB = opts.b || null;
-  U.scopeCtx = { p: pid, b: focusB, then: opts.then || null, baseline: opts.baseline ?? scopeBaseline(data(), pid) };
+  const reviewRequired = scopeReviewRequired(db, pid);
+  U.scopeCtx = { p: pid, b: focusB, then: opts.then || null, baseline: opts.baseline ?? scopeBaseline(db, pid), reviewRequired };
   scopeImpactCache = {};
   const bs = data().buildings.filter((b) => b.projectId === pid).sort(M.byName), hasOut = bs.some((b) => b.kind === "outdoor");
   const managed = bs.flatMap((b) => sortedFloors(b.id).filter((f) => f.managedPart).map((f) => ({ b, f })));
   const bName = (b) => M.buildingLabel(db, b);
   const floorOption = (b, f) => `<label data-scope-search="${esc([M.buildingSiteName(db, b), b.name, f.name].filter(Boolean).join(" ").toLowerCase())}"><input type="checkbox" id="scopeFloor-${esc(f.id)}" name="scopeFloors" data-building="${esc(b.id)}" value="${esc(f.id)}" ${s.floorIds.includes(f.id) ? "checked" : ""}${f.managedPart && !F.managedPartReady(f) && !s.floorIds.includes(f.id) ? " disabled" : ""}>${esc(f.name)}${f.managedPart ? `<small>${F.managedPartReady(f) ? "部分楼层" : "待确认图纸"}</small>` : ""}</label>`;
   const partField = (b, f) => {
-    const key = F.managedPlanKey(f), part = s.parts?.[f.id], selected = part?.boundaryKey === key ? part : {};
+    const key = F.managedPlanKey(f), previous = s.parts?.[f.id];
     const zones = key ? db.zones.filter((z) => F.managedZoneIn(f, z)).sort(M.byName) : [];
     const points = key ? M.points(db, f.id).filter((p) => F.managedPointIn(db, f, p)).sort(M.byName) : [];
-    const options = (xs, ids, name) => xs.map((o) => `<label><input type="checkbox" name="${name}" value="${esc(o.id)}"${ids?.includes(o.id) ? " checked" : ""}>${esc(o.name)}</label>`).join("");
-    return `<fieldset class="ws-checks ws-scope-part" data-scope-part="${esc(f.id)}" data-boundary-key="${esc(key || "")}" data-plan-version="${f.planVersion || 1}" data-boundary-revision="${f.managedPart.revision || 0}"${s.floorIds.includes(f.id) ? "" : " hidden"}><legend>${esc(`${bName(b)} · ${f.name} · ${f.managedPart.label || "部分楼层"}`)}</legend>${key ? `${note("勾选本次部署的功能区与点位。选择点位时，也请选择所属功能区。")}${zones.length ? `<fieldset class="ws-checks"><legend>功能区</legend>${options(zones, selected.zoneIds, "scopeZones")}</fieldset>` : `<p class="muted small">尚无可选功能区</p>`}${points.length ? `<fieldset class="ws-checks"><legend>点位</legend>${options(points, selected.pointIds, "scopePoints")}</fieldset>` : `<p class="muted small">尚无可选点位</p>`}` : note("请在楼层资料中确认专用楼层图，或取消选择该层。")}</fieldset>`;
+    const keptZones = new Set(zones.filter((zone) => previous?.zoneIds?.includes(zone.id)).map((zone) => zone.id));
+    // Preserve the former membership as a draft; using the current plan key here does not update the saved scope.
+    const keptPoints = new Set(points.filter((point) => previous?.pointIds?.includes(point.id) && (!point.zoneId || keptZones.has(point.zoneId))).map((point) => point.id));
+    const options = (xs, ids, name) => xs.map((o) => `<label><input type="checkbox" name="${name}" value="${esc(o.id)}"${ids.has(o.id) ? " checked" : ""}>${esc(o.name)}</label>`).join("");
+    return `<fieldset class="ws-checks ws-scope-part" data-scope-part="${esc(f.id)}" data-boundary-key="${esc(key || "")}" data-plan-version="${f.planVersion || 1}" data-boundary-revision="${f.managedPart.revision || 0}"${s.floorIds.includes(f.id) ? "" : " hidden"}><legend>${esc(`${bName(b)} · ${f.name} · ${f.managedPart.label || "部分楼层"}`)}</legend>${key ? `${note("勾选本次部署的功能区与点位。选择点位时，也请选择所属功能区。")}${zones.length ? `<fieldset class="ws-checks"><legend>功能区</legend>${options(zones, keptZones, "scopeZones")}</fieldset>` : `<p class="muted small">尚无可选功能区</p>`}${points.length ? `<fieldset class="ws-checks"><legend>点位</legend>${options(points, keptPoints, "scopePoints")}</fieldset>` : `<p class="muted small">尚无可选点位</p>`}` : note("请在楼层资料中确认专用楼层图，或取消选择该层。")}</fieldset>`;
   };
   const floorGroups = bs.map((b) => {
     const floors = sortedFloors(b.id), name = esc(bName(b));
     return `<details class="ws-scope-building" data-scope-group="${esc(b.id)}" ${b.id === focusB || floors.some((f) => s.floorIds.includes(f.id)) ? "open" : ""}><summary><input type="checkbox" class="ws-ck" data-scope-building="${esc(b.id)}" aria-label="${b.kind === "outdoor" ? `选择${zhSub(name)}总平面` : `选择${zhSub(name)}全部可选楼层`}">${name}</summary><div>${floors.map((f) => floorOption(b, f)).join("")}</div></details>`;
   }).join("");
   const places = hasOut ? "楼层与总平面" : "楼层";
+  const review = reviewRequired
+    ? `<p class="note">已保存的部署范围需要核对。仍符合当前管理边界的原选项已保留为草稿。确认保存前，本次部署保持待核对。</p>`
+    : "";
+  const confirm = reviewRequired ? `<label class="ck ws-scope-confirm"><input type="checkbox" id="scopeReviewConfirm">我已核对保留、新增、移除和失效对象。</label>` : "";
+  const save = btn("保存范围", "saveScope", {}, "primary");
   modal(
     "部署范围", // 2.53 E523
-    `${pid !== U.p ? `<p class="muted ws-scope-project">项目：${esc(g("projects", pid).name)}</p>` : ""}<div class="field ws-pick-field"><label for="scopeQuery">${places}（<span id="scopeCount">已选 ${s.floorIds.length}</span>）</label><div class="ws-search">${ico("search", "ic16")}<input id="scopeQuery" placeholder="${hasOut ? "搜索楼宇、室外区域或楼层" : "搜索楼宇或楼层"}" aria-label="搜索部署范围"></div><fieldset class="ws-checks ws-floor-checks"><legend class="sr-only">${places}</legend>${floorGroups || '<p class="muted small">本项目尚无楼宇。</p>'}</fieldset>${managed.map(({ b, f }) => partField(b, f)).join("")}${saved && !managed.length && !g("projects", pid)?.deploymentScopeRequired ? btn("恢复为整个项目", "clearScope", {}, "ghost sm") : ""}</div><fieldset class="ws-checks"><legend>启用的应用</legend>${["照明", "暖通空调", "室内环境", "能源"].map((x) => `<label><input type="checkbox" id="scopeFunction-${x}" name="scopeFunctions" value="${x}" ${(x === "能源" ? ["能耗", "碳排放"] : [x]).some((k) => s.functions.includes(k)) ? "checked" : ""}>${x}</label>`).join("")}</fieldset><p id="scopeImpact" class="note" aria-live="polite"></p>`,
-    btn("取消", "close") +
-      // 2.15 E357：没改动时“保存范围”不可点（同 E334）
-      sameBtn(btn("保存范围", "saveScope", {}, "primary")),
+    `${pid !== U.p ? `<p class="muted ws-scope-project">项目：${esc(g("projects", pid).name)}</p>` : ""}${review}<div class="field ws-pick-field"><label for="scopeQuery">${places}（<span id="scopeCount">已选 ${s.floorIds.length}</span>）</label><div class="ws-search">${ico("search", "ic16")}<input id="scopeQuery" placeholder="${hasOut ? "搜索楼宇、室外区域或楼层" : "搜索楼宇或楼层"}" aria-label="搜索部署范围"></div><fieldset class="ws-checks ws-floor-checks"><legend class="sr-only">${places}</legend>${floorGroups || '<p class="muted small">本项目尚无楼宇。</p>'}</fieldset>${managed.map(({ b, f }) => partField(b, f)).join("")}${saved && !managed.length && !g("projects", pid)?.deploymentScopeRequired ? btn("恢复为整个项目", "clearScope", {}, "ghost sm") : ""}</div><fieldset class="ws-checks"><legend>启用的应用</legend>${["照明", "暖通空调", "室内环境", "能源"].map((x) => `<label><input type="checkbox" id="scopeFunction-${x}" name="scopeFunctions" value="${x}" ${(x === "能源" ? ["能耗", "碳排放"] : [x]).some((k) => s.functions.includes(k)) ? "checked" : ""}>${x}</label>`).join("")}</fieldset><div id="scopePartChanges"></div>${confirm}<p id="scopeImpact" class="note" aria-live="polite"></p>`,
+    btn("取消", "close") + (reviewRequired ? save.replace("<button ", '<button data-gate="scopeReviewConfirm" ') : sameBtn(save)),
   );
   refreshScopeSelection();
   // 从清空确认返回：未保存的选择仍算修改，关闭时照常询问是否放弃。
@@ -51463,6 +51475,40 @@ function scopeForm(opts = {}) {
     const coarse = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
     if (box && !coarse) box.focus();
   }
+}
+function scopeReviewRequired(db, pid) {
+  return !!db.scopes?.[pid] && !F.deploymentReady(db, pid);
+}
+function scopePartChanges(db, pid, next, selectedFloors) {
+  const saved = db.scopes?.[pid], previous = saved?.parts || {};
+  const ids = new Set([...Object.keys(previous), ...Object.keys(next)]);
+  const missing = (saved?.floorIds || []).filter(id => M.projectOfFloor(db, id) !== pid).length;
+  const staleFloors = missing ? `<p class="note">失效 · ${missing} 个原楼层已不可用</p>` : "";
+  const list = [...ids].filter(id => M.projectOfFloor(db, id) === pid).map((id) => {
+    const floor = M.floor(db, id), was = previous[id], now = next[id];
+    if (!floor.managedPart && !was) return "";
+    const whole = !floor.managedPart && selectedFloors.includes(id);
+    const groups = { 保留: [], 新增: [], 移除: [], 失效: [] };
+    for (const [kind, field, label] of [["zones", "zoneIds", "功能区"], ["points", "pointIds", "点位"]]) {
+      const before = new Set(was?.[field] || []), after = new Set(now?.[field] || []);
+      for (const oid of new Set([...before, ...after])) {
+        const object = M.get(db, kind, oid), sameFloor = object?.floorId === id;
+        const allowed = sameFloor && (kind === "zones" ? F.managedZoneIn(floor, object) : F.managedPointIn(db, floor, object));
+        const selected = after.has(oid), part = selected ? now : was;
+        const missingZone = !whole && kind === "points" && object?.zoneId && !part?.zoneIds?.includes(object.zoneId);
+        const group = !allowed || missingZone ? "失效" : !before.has(oid) ? "新增" : whole || selected ? "保留" : "移除";
+        const name = sameFloor ? `${label} ${object.name}` : `已不可用的${label}`;
+        const reason = group !== "失效" ? "" : !sameFloor ? "已删除或移出此楼层" : !F.managedPartReady(floor) ? "图纸待确认"
+          : missingZone ? "所属功能区未纳入" : "图纸版本或位置待核对";
+        groups[group].push(reason ? `${name}（${reason}）` : name);
+      }
+    }
+    const rows = Object.entries(groups).filter(([, names]) => names.length).map(([label, names]) =>
+      `<li><strong>${label} ${names.length} 项</strong><span>${esc(names.join("、"))}</span></li>`).join("");
+    const counts = Object.entries(groups).filter(([, names]) => names.length).map(([label, names]) => `${label} ${names.length} 项`).join(" · ");
+    return rows || whole ? `<details class="ws-scope-change" data-floor="${esc(id)}"${groups.失效.length || groups.移除.length ? " open" : ""}><summary>${esc(floorText(id))} · ${counts || "整层管理"}</summary>${whole ? `<p>保存后本次范围包含整层。</p>` : ""}${rows ? `<ul>${rows}</ul>` : ""}</details>` : "";
+  }).join("");
+  return staleFloors || list ? `<section class="ws-scope-changes" aria-label="本次范围变更">${staleFloors}${list}</section>` : "";
 }
 // 2.25 E394：部署范围只列照明、暖通空调、室内环境、能源四项；“能源”同时启用能耗与碳排放（数据仍按两项保存）。
 const scopeFunctionsChecked = () => checked("scopeFunctions").flatMap((x) => (x === "能源" ? ["能耗", "碳排放"] : [x]));
@@ -53332,6 +53378,7 @@ defineActions({
   },
   // 2.65 E959：从弹窗里打开的交付记录、交付快照，关闭或 Esc 回到上一个弹窗原来的状态
   dlgBack: () => {
+    if ($("#dlg")?.dataset.busy === "1") return closeModal();
     const fn = U.dlgBack?.pop();
     if (!fn) return closeModal();
     fn();
@@ -53479,6 +53526,7 @@ defineActions({
   },
   filter: (a) => {
     U.filter = a.value;
+    if (U.page === "devices" && U.tab === "inventory" && U.deviceIssueRoute) syncRoute(true);
     render();
   },
   parentProject: () => route("projects", { b: null, f: null, tab: "", net: null }),
@@ -53573,8 +53621,10 @@ defineActions({
     if (onSaved) delete el.planSaveContinuation;
     return savePlan(a, onSaved);
   },
-  savePrepare: async (a) => {
+  savePrepare: async (a, el) => {
+    const binding = el?.closest("#dlg")?.bindingContext;
     closeModal(true);
+    if (binding && binding.id === a.id) return savePlan({}, () => prepareApp(a.id, binding));
     if ((await savePlan({ then: "prepare", id: a.id })) !== false) prepareApp(a.id);
   },
   prepareApp: (a) => prepareApp(a.id),
@@ -53742,6 +53792,9 @@ defineActions({
     if (!fs.length) throw fieldErr(document.querySelector("input[name=scopeFloors]")?.id, "至少选择一个楼层");
     if (!functions.length) throw fieldErr("scopeFunction-照明", "至少选择一项启用的应用");
     // 没有保存过范围时与整个项目（全部楼层、全部应用）比较（2.06）
+    const reviewRequired = scopeReviewRequired(data(), pid);
+    if (reviewRequired && !U.scopeCtx?.reviewRequired) throw Error("图纸或范围已经变化，请重新打开后核对");
+    if (reviewRequired && !$("#scopeReviewConfirm")?.checked) throw fieldErr("scopeReviewConfirm", "请核对并确认本次范围变更");
     const parts = F.deploymentSelection(data(), pid, fs, requested);
     if (scopeSame(saved || { floorIds: F.deploymentScope(data(), pid).floorIds, functions: ["照明", "暖通空调", "室内环境", "能耗", "碳排放"] }, fs, functions, parts)) {
       closeModal(true);
@@ -53750,7 +53803,7 @@ defineActions({
     let version = 1;
     await transaction((db) => {
       const old = db.scopes[pid];
-      if (scopeBaseline(db, pid) !== baseline) throw Error("部署范围或楼层已经变化，请重新打开后核对");
+      if (scopeBaseline(db, pid) !== baseline || scopeReviewRequired(db, pid) !== reviewRequired) throw Error("部署范围或楼层已经变化，请重新打开后核对");
       const parts = F.deploymentSelection(db, pid, fs, requested);
       version = (old ? old.version || 1 : 0) + 1;
       db.scopes[pid] = { floorIds: fs, functions, ...(Object.keys(parts).length ? { parts } : {}), explicit: true, version, at: M.now() };
@@ -54146,7 +54199,11 @@ document.addEventListener("click", async (e) => {
     return;
   }
   if ($("#pop") && !e.target.closest("#pop")) closePop();
-  if (e.target.id === "dlg" && scrimPointerTarget === e.target) { scrimPointerTarget = null; closeModal(); }
+  if (e.target.id === "dlg" && scrimPointerTarget === e.target) {
+    scrimPointerTarget = null;
+    if (e.target.dataset.backTo === "stack") actions.dlgBack();
+    else closeModal();
+  }
 });
 document.addEventListener("input", (e) => {
   if (e.target.closest(".ws-panel-body") && (e.target.id.startsWith("point") || e.target.name === "pointFollow")) {
@@ -54588,6 +54645,7 @@ window.addEventListener("beforeunload", (e) => {
 });
 // 返回到曾离开的列表时恢复筛选与搜索（离开时记在 U.memory）
 function restoreListState() {
+  if (U.page === "devices" && U.tab === "inventory" && U.deviceIssueRoute) return;
   const m = U.memory[U.page];
   if (!m || m.tab !== U.tab || m.p !== U.p || m.b !== U.b || m.f !== U.f) return;
   Object.assign(U, { filter: m.filter || "all", q: m.q || "" });
@@ -54654,7 +54712,9 @@ function wsPopGo(leaving) {
   if (U.page === "projects" && !U.p) U.source = null;
   restoreListState();
   if (typeof opsRestoreRouteState === "function") opsRestoreRouteState(entry);
+  const home = typeof homeOverviewHistoryRead === "function" ? homeOverviewHistoryRead(entry) : null;
   render();
+  if (home) homeOverviewRestorePosition(home);
 }
 
 
@@ -55722,7 +55782,9 @@ async function boot() {
     readRoute();
     U.source = source && (!source.p || g("projects", source.p) && mayViewProject(source.p)) && (!source.b || g("buildings", source.b)) && (!source.f || g("floors", source.f)) ? source : null;
     if (typeof opsRestoreRouteState === "function") opsRestoreRouteState(entry);
+    const home = typeof homeOverviewHistoryRead === "function" ? homeOverviewHistoryRead(entry) : null;
     render();
+    if (home) homeOverviewRestorePosition(home);
   } catch (e) {
     bootError(e);
     console.error(e);
@@ -56096,6 +56158,8 @@ function deploymentSpaceSource(opener, view = "") {
 const deploymentSpaceBack = () => U.page === "overview" && U.sp && U.source?.page === "deployment" && U.source.tab === "config" && U.source.b === U.b;
 function sourceBack() {
   if (U.spEd) return ""; // 3.14 E1207：空间的编辑以“完成”回到楼层图，不另放来源返回
+  if (typeof opsReportSource === "function" && opsReportSource()) return btn(ico("back", "ic16") + "返回报告", "opsReportReturn", {}, "ws-source-back");
+  if (U.page === "alarms" && U.alarmQueue && !U.opsDrawer && U.source?.homeOverview) return btn(ico("back", "ic16") + "返回楼宇首页", "sourceBack", {}, "ws-source-back");
   if (deploymentSpaceBack()) return btn(ico("back", "ic16") + `返回${esc(zhSub(U.source.label, "l"))}`, "sourceBack", {}, "ws-source-back");
   // 3.17 E1250：部署四个页签之间不加来源返回（从“进度”的行进入设备网络等）；网络详情、连接详情的返回按钮改写“返回部署进度”（3.32 E1319）；
   // 3.32 E1319：固件升级从进度进入时页头有“返回部署进度”
@@ -56612,6 +56676,7 @@ defineActions({
   sourceBack: () => {
     const s = U.source;
     if (!s) return;
+    if (s.page === "overview" && s.homeOverview && !s.sp && !s.obj) return homeOverviewReturnTo(s, s.prev || null);
     const { label, spaceInfo, scrollTop, focus, prev, viewFromDeployment, fromNetworkList, ...scope } = s;
     // 2.65 E931：回到配置进度时恢复原滚动位置
     if (scrollTop) U.restoreScroll = scrollTop;
@@ -56663,7 +56728,7 @@ defineActions({
     const s = F.spaceChecks(data(), pid);
     pop(
       el,
-      `<div class="popcap">${s.needsConfirmation ? "本次部署范围待确认" : `已纳入部署 · ${s.scopeWhole ? "整个项目" : esc(floorCountText(s.floorIds))}`}</div>${s.floorIds.map((id) => btn(esc(floorText(id)), "goFloor", { id }, "popitem")).join("")}`,
+      `<div class="popcap">${s.reviewRequired ? "本次部署范围待核对" : s.needsConfirmation ? "本次部署范围待确认" : `已纳入部署 · ${s.scopeWhole ? "整个项目" : esc(floorCountText(s.floorIds))}`}</div>${s.floorIds.map((id) => btn(esc(floorText(id)), "goFloor", { id }, "popitem")).join("")}`,
     );
   },
   // 空间检查“去处理”（2026-10-03 用户确认 B1）：进入对应楼层页，并直接停在要做的动作上，不再打开“楼层信息”弹窗：
@@ -62168,7 +62233,12 @@ function refreshScopeSelection() {
   const inputs = [...document.querySelectorAll('input[name="scopeFloors"]')];
   const count = $("#scopeCount"); if (count) count.textContent = `已选 ${inputs.filter(x => x.checked).length}`; // 2.73 E1078：字段名后“（已选 N）”
   const impact = $("#scopeImpact"), floorIds = inputs.filter(x => x.checked).map(x => x.value), pid = U.scopeCtx?.p || U.p;
-  const parts = scopePartsChecked(floorIds);
+  const parts = scopePartsChecked(floorIds), changes = $("#scopePartChanges");
+  if (changes && pid) {
+    const savedOpen = new Set([...changes.querySelectorAll("details[open]")].map(el => el.dataset.floor));
+    changes.innerHTML = scopePartChanges(data(), pid, parts, floorIds);
+    changes.querySelectorAll("details").forEach(el => { if (savedOpen.has(el.dataset.floor)) el.open = true; });
+  }
   document.querySelectorAll("#dlg [data-scope-part]").forEach((g) => (g.hidden = !floorIds.includes(g.dataset.scopePart)));
   if (impact) {
     const partial = Object.values(parts), brief = partial.length ? `部分楼层 ${partial.length} 层 · 功能区 ${partial.reduce((n, p) => n + p.zoneIds.length, 0)} 个 · 点位 ${partial.reduce((n, p) => n + p.pointIds.length, 0)} 个` : "";
@@ -62281,8 +62351,15 @@ document.addEventListener("input", e => {
   if (e.target.id === "spaceZoneQuery") { U.zoneQ = e.target.value; const body = $(".sp-body"); if (body) morph(body, spZoneList(currentFloor())); }
 });
 document.addEventListener("change", e => {
-  if (e.target.dataset.scopeBuilding) { const id = e.target.dataset.scopeBuilding; document.querySelectorAll('input[name="scopeFloors"]').forEach(x => { if (x.dataset.building === id && !x.disabled) x.checked = e.target.checked; }); refreshScopeSelection(); }
-  if (["scopeFloors", "scopeFunctions", "scopeZones", "scopePoints"].includes(e.target.name)) refreshScopeSelection();
+  if (e.target.dataset.scopeBuilding) { const id = e.target.dataset.scopeBuilding; document.querySelectorAll('input[name="scopeFloors"]').forEach(x => { if (x.dataset.building === id && !x.disabled) x.checked = e.target.checked; }); }
+  if (e.target.dataset.scopeBuilding || ["scopeFloors", "scopeFunctions", "scopeZones", "scopePoints"].includes(e.target.name)) {
+    const confirm = $("#scopeReviewConfirm");
+    if (confirm) {
+      confirm.checked = false;
+      wsGateSync($("#dlg"));
+    }
+    refreshScopeSelection();
+  }
   if (e.target.name === "calFloors") calibrationCount();
   if (e.target.id === "verifyOverlay" && U.verify) { U.verify.overlay = e.target.checked; render(); $("#verifyOverlay")?.focus({ preventScroll: true }); }
   if (e.target.closest?.("#zcForm") && U.zcDraft) U.zcDraft.touched = true;
@@ -63062,6 +63139,7 @@ function devFilterApply(t) {
   U.devFloors = checked("filterFloors");
   U.devZone = value("filterZone");
   U.devMaint = !!$("#filterMaint")?.checked;
+  if (inventoryRouteActive() && U.deviceIssueRoute) syncRoute(true);
   render();
   (t.id ? document.getElementById(t.id.replace(/^(filter(Zone|Acc))$/, "$1-control")) : keep ? $(keep) : null)?.focus({ preventScroll: true });
 }
@@ -63088,6 +63166,33 @@ const maintWin = (kind, id) => (data().maintenanceWindows || []).find((w) => w.k
 const maintWhen = (iso) => (typeof opsWhen === "function" ? opsWhen(maintMap(iso)) : shortDate(iso));
 const maintText = (m) => (m.by === "task" ? `检修中（${m.reason}执行中）` : `检修中（至 ${maintWhen(m.until)}）`);
 const devFiltered = () => devFilterCount() > 0;
+const INVENTORY_STATUS_FILTERS = ["offline", "issues", "unknown", "attention", "rebind"];
+const inventoryRouteActive = () => U.page === "devices" && U.tab === "inventory";
+const inventoryRouteExplicit = (query) => query.has("deviceStatus") || query.has("deviceNetwork");
+function writeInventoryRoute(query) {
+  if (!inventoryRouteActive() || !U.deviceIssueRoute) return;
+  if (INVENTORY_STATUS_FILTERS.includes(U.filter)) query.set("deviceStatus", U.filter);
+  const network = U.missing?.kind === "networks" ? U.missing.id : U.deviceNet;
+  if (network) query.set("deviceNetwork", network);
+}
+function readInventoryRoute(query) {
+  if (!inventoryRouteActive() || !inventoryRouteExplicit(query)) {
+    if (U.deviceIssueRoute) Object.assign(U, { deviceIssueRoute: false, deviceNet: "", filter: "all" });
+    return;
+  }
+  const status = query.get("deviceStatus"), network = query.get("deviceNetwork");
+  Object.assign(U, {
+    deviceIssueRoute: true, deviceNet: "", filter: INVENTORY_STATUS_FILTERS.includes(status) ? status : "all",
+    q: "", deviceRole: "", devZone: "", devAcc: "", devTypes: [], devFloors: [], devMaint: false, devFilterOpen: false,
+  });
+  if (!network) return;
+  const target = g("networks", network);
+  if (!target || target.projectId !== U.p || !mayViewProject(target.projectId)) {
+    U.missing ||= { kind: "networks", id: network };
+    return;
+  }
+  U.deviceNet = target.id;
+}
 const devTypeShort = (type) => M.catalog[type]?.model || M.catalog[type]?.name || type;
 // 筛选与勾选中的楼层名：范围内只有一栋楼宇时只写楼层名，否则写“楼宇 · 楼层”（2.70 E1062）。
 function devFloorLabel(id, ids) {
@@ -63108,7 +63213,7 @@ function inventoryView() {
     offline = all.filter((p) => st.get(p) === "off"),
     unknown = all.filter((p) => st.get(p) === "unk"),
     needs = all.filter((p) => st.get(p) === "bad"),
-    seg = ["offline", "issues", "unknown", "attention", "rebind"].includes(U.filter) ? U.filter : "all",
+    seg = INVENTORY_STATUS_FILTERS.includes(U.filter) ? U.filter : "all",
     f = devFilter(),
     ps = all.filter(
       (p) =>
@@ -64726,17 +64831,21 @@ function connectAtPoint(id) {
   });
   msg(kind === "power" ? "接线已加入规划" : "占用联动已加入规划");
 }
-function showBindingPreparation(nid, { point = null, deliveryBack = false } = {}) {
+function showBindingPreparation(nid, { point = null, pointIds = null, deliveryBack = false, returnToDelivery = null } = {}) {
   const n = nid ? g("networks", nid) : g("networks", U.net) || M.networks(data(), U.f)[0];
   if (nid && !n) throw Error("原设备网络已不存在，请重新选择");
   if (n && !mayViewProject(n.projectId)) throw Error("无权查看该设备网络");
-  if (U.dirty || U.attrsDirty)
-    return modal(
+  const binding = { id: n?.id || "", point, pointIds, deliveryBack, returnToDelivery };
+  if (U.dirty || U.attrsDirty) {
+    modal(
       "先保存规划",
       note("现场绑定前先保存规划。"),
       btn("取消", "close") + btn("保存并继续", "savePrepare", { id: n?.id || "" }, "primary"),
       false,
     );
+    if (deliveryBack || point) $("#dlg").bindingContext = binding;
+    return;
+  }
   if (!n) return networkForm(U.f);
   const saved = M.get(W, "networks", n.id), restriction = saved && F.deploymentNetworkReason(W, saved);
   if (!saved || restriction) throw Error(restriction || "请先保存设备网络，再准备现场绑定");
@@ -64766,8 +64875,12 @@ function showBindingPreparation(nid, { point = null, deliveryBack = false } = {}
     reminders = parts.length ? note(`另有 ${parts.join("、")}`) : "",
     pending = ps.filter((p) => !F.boundNow(p)),
     reset = pending.filter((p) => p.fieldReset),
-    target = point ? ps.find(p => p.id === point && p.fieldReset) : null;
+    targets = pointIds ? ps.filter(p => pointIds.includes(p.id)) : point ? reset.filter(p => p.id === point) : deliveryBack ? pending : [];
+  binding.pointIds = targets.map(p => p.id);
   const pendingNames = (xs) => xs.length ? `${xs.length} 台 · ${xs.slice(0, 5).map((p) => esc(p.name)).join("、")}${xs.length > 5 ? "等" : ""}` : "0 台";
+  const targetSummary = targets.length === 1
+    ? `${esc(targets[0].name)} · ${esc(flTag(targets[0].floorId))} · ${F.boundNow(targets[0]) ? "已绑定" : targets[0].fieldReset ? "待重新绑定" : "待绑定"}`
+    : pendingNames(targets);
   // 2.15 E314：标题“现场绑定 · E栋 · 7F”（2.70 E1062），说明只留一句；资料行只留网关、待绑定、可部署的成员（两段长说明放进它的 ⓘ）；
   // 去掉“范围”“网络版本”两行；“现场安装资料”挪到底部。E302：底部不放“关闭”。2.65 E975：去掉“导出规划清单”（数据库原样的 JSON，现场看不懂）
   modal(
@@ -64781,7 +64894,7 @@ function showBindingPreparation(nid, { point = null, deliveryBack = false } = {}
         : ""
     }${note(deliveryBack ? "在部署 App 中打开本网络，完成现场绑定后回到交付检查核对回执。" : "在部署 App 中打开本网络完成现场绑定。")}${kv([
       ...(deliveryBack ? [["网络版本", `v${esc(String(n.version ?? "未记录"))}`]] : []),
-      ...(target ? [["本次处理", `${esc(target.name)} · ${esc(flTag(target.floorId))} · 待重新绑定`]] : []),
+      ...(targets.length ? [["本次处理", targetSummary]] : []),
       ["服务楼层", n.floorIds.map(flTag).filter(Boolean).map(esc).join("、") || "—"],
       ["网关", gw ? `${esc(gw.name)} · ${F.boundNow(gw) ? "已绑定" : gw.fieldReset ? "待重新绑定" : "待绑定"}` : "未标记"],
       ...(!delivered || pending.length > reset.length ? [["待绑定", pendingNames(pending.filter((p) => !p.fieldReset))]] : []),
@@ -64797,8 +64910,13 @@ function showBindingPreparation(nid, { point = null, deliveryBack = false } = {}
     }${delivered ? "" : reminders}`,
     // 2.65 E819：底部两个都为标准次按钮
     btn("现场安装资料", "installKit", { id: n.id, disabled: !canInstall() }) +
-      (deliveryBack ? btn("返回交付检查", "deliveryCheck", { id: n.id }, "primary") : ""),
+      (deliveryBack ? btn("返回交付检查", "bindingDeliveryBack", { id: n.id }, "primary") : ""),
   );
+  $("#dlg").bindingContext = binding;
+  if (returnToDelivery) {
+    U.dlgBack = [returnToDelivery];
+    dlgBackMark();
+  }
 }
 /* ---------- 现场安装资料（2026-10-05 核查 H1）：按设备网络出带编号的分层安装图（PDF）与设备清单（CSV），供布线与安装 ---------- */
 // 打开时按已保存的规划生成一份（不含未保存的修改），PDF 与 CSV 都取这一份，图上编号一致；权限与 PDF、CSV 导出相同（规范 2 5）。
@@ -64848,7 +64966,28 @@ function showInstallKit(nid) {
   );
 }
 defineActions({
-  installKit: (a) => showInstallKit(a.id),
+  bindingDeliveryBack: (a, el) => {
+    const binding = el?.closest("#dlg")?.bindingContext;
+    if (!binding?.deliveryBack || binding.id !== a.id) return;
+    return binding.returnToDelivery ? binding.returnToDelivery() : showDelivery(0, binding.id);
+  },
+  installKit: (a, el) => {
+    const dialog = el?.closest("#dlg"), binding = dialog?.bindingContext;
+    const previous = dialog?.dataset.backTo === "stack" ? U.dlgBack || [] : [];
+    showInstallKit(a.id);
+    if (binding?.id !== a.id) return;
+    U.dlgBack = [...previous, () => {
+      try {
+        if (!canEdit()) throw Error("当前无权查看此网络的现场绑定");
+        showBindingPreparation(binding.id, binding);
+        $('#dlg [data-act="installKit"]')?.focus({ preventScroll: true });
+      } catch (err) {
+        closeModal(true);
+        formError(err);
+      }
+    }];
+    dlgBackMark();
+  },
   installDownload: async (a) => {
     const st = U.install,
       dlg = $("#dlg");
@@ -67019,6 +67158,7 @@ defineActions({
     U.deviceNet = U.devAcc = U.deviceRole = U.devZone = "";
     U.devTypes = [];
     U.devFloors = [];
+    if (inventoryRouteActive() && U.deviceIssueRoute) syncRoute(true);
     render();
     $(".dev-filter-panel input:not([type=hidden]), .dev-filter-panel [role=combobox]")?.focus();
   },
@@ -67164,15 +67304,11 @@ defineActions({
     const opener = $("#dlg") ? (modalFocus || el) : (el || document.activeElement),
       source = { ...snapshot(), label: sourceLabel(), fromAttention: true, focus: wsFocusDesc(opener), prev: U.source || null };
     closeModal(true);
-    U.q = "";
-    U.deviceRole = U.devZone = U.devAcc = "";
-    U.devTypes = [];
-    U.devFloors = [];
-    route("devices", { tab: "inventory", p: n?.projectId || a.p || U.p, b: n ? null : a.b || null, f: null, net: null },
-      { remember: true, source });
-    U.filter = a.filter || "issues";
-    U.deviceNet = a.id || "";
-    render();
+    return route("devices", {
+      tab: "inventory", p: n?.projectId || a.p || U.p, b: n ? null : a.b || null, f: null, net: null,
+      filter: INVENTORY_STATUS_FILTERS.includes(a.filter) ? a.filter : "issues", deviceNet: n?.id || "", deviceIssueRoute: true,
+      q: "", deviceRole: "", devZone: "", devAcc: "", devTypes: [], devFloors: [], devMaint: false, devFilterOpen: false,
+    }, { remember: true, source });
   },
   networkMore: (a, el) => {
     const n = g("networks", a.id),
@@ -67399,9 +67535,24 @@ defineActions({
     showDelivery(Number(a.value), id);
   },
   deliveryStepTo: (a) => actions.deliveryStep({ value: +a.step - 1 }),
-  deliveryResolve: (a) => {
+  deliveryResolve: (a, el) => {
+    if (a.kind === "app") {
+      if (!canEdit()) throw Error("当前无权查看此网络的现场绑定");
+      const step = U.deliveryStep || 0, first = U.deliveryAsFirst;
+      const returnToDelivery = el?.closest("#dlg") ? () => {
+        try {
+          if (!canEdit()) throw Error("当前无权查看此网络的交付检查");
+          U.deliveryAsFirst = first;
+          showDelivery(step, a.id);
+          $('#dlg [data-act="deliveryResolve"][data-kind="app"]')?.focus({ preventScroll: true });
+        } catch (err) {
+          closeModal(true);
+          formError(err);
+        }
+      } : null;
+      return showBindingPreparation(a.id, { deliveryBack: !!returnToDelivery, returnToDelivery });
+    }
     closeModal(true);
-    if (a.kind === "app") showBindingPreparation(a.id);
     if (a.kind === "config") showConfigurationList(a.id);
     if (a.kind === "verify") showFunctionChecks(a.id);
     if (a.kind === "health") openNetworkHealth(a.id);
@@ -76020,13 +76171,13 @@ defineActions({
     }
     // 运营人员也可新建报告草稿（按钮对运营及以上角色显示）
     const id = "rpt-" + Date.now().toString(36);
-    await transaction((db) => F.draft(db, "reportTasks", { id, name, projectId, start, end, kinds, scopeLabel: g("projects", projectId).name, ...(carbon ? { carbon } : {}) }), "operate");
+    const covered = projectId === OPS_SCOPE.project && Demo.on() ? aiReportScope({ projectId }) : null;
+    await transaction((db) => F.draft(db, "reportTasks", { id, name, projectId, start, end, kinds,
+      scopeLabel: covered ? where(covered.f).split(" / ").join(" · ") : g("projects", projectId).name,
+      ...(covered ? { buildingId: covered.b, floorId: covered.f } : {}), ...(carbon ? { carbon } : {}),
+    }), "operate");
     closeModal(true);
-    if (typeof Demo !== "undefined" && Demo.on() && projectId === OPS_SCOPE.project) {
-      U.opsReport = id;
-      U.opsRpDoc = true;
-      return route("analysis", { tab: "reports" }, { remember: true });
-    }
+    if (covered) return actions.opsReport({ id });
     // 保存到不在当前列表中的项目时写明保存到哪里（2026-10-08 Vision 核查 V26）
     const listed = typeof Demo !== "undefined" && Demo.on() ? OPS_SCOPE.project : U.p;
     if (listed && projectId !== listed) msg(`已保存到${zhSub(g("projects", projectId).name, "l")}，切换到该项目后在报告中查看`);
@@ -80250,7 +80401,7 @@ function v13StepBtn(o, size = "sm") {
 // 2.89 E1174：配置进度（项目）。页头标题后为状态标签（需重新交付、已交付），右侧“交付记录”“部署范围 · …”与唯一的主按钮（下一步）；
 // 下面 3 张指标卡（已完成 N / 6 步、功能验证、异常设备“● 离线 N · ● 需处理 N”），再下 8 + 4：左边“步骤”表，右边“详情”卡。
 // 原概览卡、环节清单卡与设备网络表取消（各网络在设备网络页查看，E1145 随之不做）；交付与重新交付的弹窗（E1146、E1147）不变
-const depScopeText = (db, scope) => (scope.needsConfirmation ? "待确认" : scope.scopeWhole ? "整个项目" : scope.floorIds?.length === 1 ? floorText(scope.floorIds[0]) : floorCountText(scope.floorIds || [], db));
+const depScopeText = (db, scope) => (scope.reviewRequired ? "待核对" : scope.needsConfirmation ? "待确认" : scope.scopeWhole ? "整个项目" : scope.floorIds?.length === 1 ? floorText(scope.floorIds[0]) : floorCountText(scope.floorIds || [], db));
 function depLastDelivery(db, pid) {
   const d = db.deliveries.filter((x) => x.serviceReceiptId && (x.projectId === pid || (!x.projectId && M.get(db, "networks", x.networkId)?.projectId === pid))).sort((a, b) => String(b.at).localeCompare(String(a.at)))[0];
   return d ? [d.snapshot?.networkName || M.get(db, "networks", d.networkId)?.name || "网络名称未记录", d.networkVersion != null ? `v${d.networkVersion}` : "版本未记录", shortDate(d.at, pid)].join(" · ") : "";
@@ -84587,8 +84738,9 @@ function opsRouteState() {
   if (!OPS_IDENTITY) OPS_IDENTITY = opsHistoryOwner();
   return { version: 1, owner:opsHistoryOwner(), page: U.page, tab: U.tab || null, p: U.p || null, b: U.b || null, f: U.f || null, obj: U.obj || null,
     fields: structuredClone(opsRouteFields()), queries: Object.fromEntries(["alarms","history","tasks"].map(k => [k, OPS_Q[k] || ""])),
-    reportFrom: U.page === "analysis" && U.tab === "reports" ? U.anReportFrom || null : null,
+    reportFrom: U.page === "analysis" && (U.tab === "reports" || U.anRpt) ? U.anReportFrom || null : null,
     scroll: $("#pbody")?.scrollTop || 0,
+    ...(U.page === "analysis" ? { reportCatalog: !!U.anRpt, reportCatalogBack: !!U.opsRpBack, analysisScroll: ws3ReportScroll() } : {}),
     // 2.99 V970：告警工单的详情子页面记在历史项里（浏览器返回回到列表）；back 为从列表打开（“‹”用浏览器返回）
     drawer: U.page === "alarms" && U.opsDrawer?.page === "alarms" ? { page: "alarms", kind: U.opsDrawer.kind, id: U.opsDrawer.id } : null, back: !!U.alSpBack };
 }
@@ -84608,6 +84760,8 @@ function opsRouteLeaving(page, scope = {}) {
   // 保存来源已由 route 完成；现在清理离开页面的临时状态。显式目标抽屉由 scope 传入。
   U.opsDrawer = null;
   U.scEd = null;
+  U.anRpt = false;
+  U.opsRpBack = false;
   Object.assign(U, { alSpBack: false, alFilterOpen: false });
   if (!("alSel" in scope)) U.alSel = null;
   if (OPS_IDENTITY_LEAVING_PAGE) {
@@ -84619,6 +84773,10 @@ function opsRestoreRouteState(state) {
   const s = state?.ops;
   opsIdentitySync();
   U.anReportFrom = null;
+  U.anRpt = false;
+  U.opsRpBack = false;
+  U.opsReport = null;
+  U.opsRpDoc = false;
   U.opsDrawer = null;
   U.alSpBack = false;
   U.alFilterOpen = false;
@@ -84635,12 +84793,18 @@ function opsRestoreRouteState(state) {
   for (const k of ["alarms","history","tasks"]) OPS_Q[k] = typeof s.queries?.[k] === "string" ? s.queries[k] : "";
   Object.assign(U,{ opsFromDraft:undefined,opsToDraft:undefined,opsRangeErr:"",opsHistFromDraft:undefined,opsHistToDraft:undefined,opsHistErr:"" });
   U.nextScroll = Number.isFinite(s.scroll) && s.scroll >= 0 ? s.scroll : 0;
-  if (U.page === "analysis" && U.tab === "reports") U.anReportFrom = s.reportFrom || null;
+  if (U.page === "analysis") {
+    U.anRpt = !!s.reportCatalog && U.tab !== "reports";
+    U.opsRpBack = !!s.reportCatalogBack && U.tab === "reports" && !!U.opsRpDoc;
+    if (U.tab === "reports" || U.anRpt) U.anReportFrom = s.reportFrom || null;
+    if (s.analysisScroll) ws3RestoreReportScroll(s.analysisScroll);
+  }
   if (U.page === "alarms" && s.drawer?.page === "alarms" && ["alarm", "task"].includes(s.drawer.kind) && typeof s.drawer.id === "string") Object.assign(U, { opsDrawer: { page: "alarms", kind: s.drawer.kind, id: s.drawer.id }, alSpBack: !!s.back });
   return true;
 }
 window.addEventListener("beforeunload", opsHistoryReplace);
 document.addEventListener("scroll", e => { if (e.target?.id === "pbody") opsHistorySchedule(); }, true);
+window.addEventListener("scroll", () => { if (U.page === "analysis") opsHistorySchedule(); }, { passive: true });
 // 统计期间“上月”“近 12 个月”（全面设计核查第 96 条，2026-10-12 用户确认；原先只有近 7 天、近 30 天、本月与自定义，月报对比上月、能耗强度按滚动 12 个月
 // 都要自己填日期）：上月为上一个完整的自然月；近 12 个月为本月与之前 11 个自然月，本月截至当前时刻，图表按月显示（monthly）。
 // 有运行数据与没有运行数据时共用；期间跨年时起止都写年份，与自定义期间相同
@@ -89471,12 +89635,12 @@ defineActions({
   },
 });
 function renderOpsAnalysis() {
-  if (U.tab !== "reports" && typeof ws3AnalysisFallback === "function") return ws3AnalysisFallback();
-  if (U.tab === "reports") {
+  if (U.tab === "reports" || (U.anRpt && isMobile())) {
     opsReset();
     const reports = anReports();
     return pageCategoryHeader("analysis", "reports") + reports;
   }
+  if (typeof ws3AnalysisFallback === "function") return ws3AnalysisFallback();
   // 原“用电碳排放明细”页的地址打开能源并选中“用电碳排放”（2.07，V130）
   if (U.tab === "carbon") Object.assign(U, { tab: "energy" }), (AN_PICK.energy = "use"); // 3.00 V964：碳排放写在用电量的说明里
   // 2.71 V676：节能并入能源，原“节能”的地址打开能源并选中“节电量”
@@ -92115,13 +92279,13 @@ const anGapText = (q, t) => {
 function analysisReportEntries() {
   const showDemo = Demo.on() && ws3Live().has(OPS_SCOPE.floor) && mayViewProject(OPS_SCOPE.project);
   const tasks = (data().reportTasks || []).filter(r => r.kind !== "aiDraft" && r.projectId && mayViewProject(r.projectId) && (!U.p || r.projectId === U.p));
-  const examples = showDemo && (!U.p || U.p === OPS_SCOPE.project) ? REPORTS : [];
+  const examples = showDemo && (!U.p || U.p === OPS_SCOPE.project) ? REPORTS.filter(aiReportScope) : [];
   const fromTask = tasks.map(task => {
     const paper = showDemo && task.projectId === OPS_SCOPE.project && aiReportById(task.id);
     const state = task.receiptId ? "已发布" : task.end >= ymdOf(opsNow()) ? "统计中" : "待发布";
     return {
       id: task.id, name: task.name, from: task.start, to: task.end,
-      scope: g("projects", task.projectId)?.name || task.scopeLabel || "",
+      scope: paper ? where(aiReportScope(paper).f).split(" / ").join(" · ") + " · 演示" : g("projects", task.projectId)?.name || task.scopeLabel || "",
       paper: paper || null, state,
     };
   });
@@ -92685,6 +92849,10 @@ function renderOpsAlarms() {
   // 2.46 运营核查 V220：没有运行数据（本地规划数据，或所选位置不在已接入的楼层）时，各页签都只显示“所选范围没有运行数据”
   if (U.tab === "verify") U.tab = "history";
   const tab = AL_TABS.includes(U.tab) ? U.tab : "current";
+  if (U.alarmQueue) {
+    opsReset();
+    return pageCategoryHeader("alarms", tab, { cat: "", omitFloor: true }) + homeBuildingQueue();
+  }
   if (!Demo.on()) return pageCategoryHeader("alarms", tab) + outOfScope();
   opsReset();
   if (!Demo.inScope()) return pageCategoryHeader("alarms", tab) + outOfScope();
@@ -93084,7 +93252,7 @@ const taskDetailCard = (t, tab) => alSpHtml(taskDetailParts(t), tab);
    （如“待处理 2 / 5”）；在原列表里找到这一条时随之更新记下的列表（原换到它所在的页签，翻页按新页签，“下一条”不可用） */
 const alKeepOf = (it) => ({ drawer: it.t ? { page: "alarms", kind: "task", id: it.t.id } : { page: "alarms", kind: "alarm", id: it.a.id }, sel: it.id, ids: [it.id, it.a?.id, it.t?.id, ...(it.grp || []).map((x) => x.id)].filter(Boolean) });
 function alNav(tab, d = U.opsDrawer) {
-  const rows = d?.page === "alarms" ? alRows(tab) : [],
+  const rows = d?.page === "alarms" ? U.alarmQueue ? homeBuildingQueueItems() : alRows(tab) : [],
     i = rows.findIndex((it) => alHit(it, d));
   if (i >= 0) {
     U.alKeep = { tab, list: rows.map(alKeepOf) };
@@ -93097,13 +93265,14 @@ function alNav(tab, d = U.opsDrawer) {
 const alKept = (tab, d = U.opsDrawer) => U.alKeep?.tab === tab && U.alKeep.list.some((e) => e.ids.includes(d?.id));
 function alSpHtml(p, tab) {
   tab = AL_TABS.includes(tab) ? tab : alTabNow();
+  const back = U.alarmQueue ? homeQueueLabel(U.alarmQueue) : AL_NAMES[tab];
   const d = U.opsDrawer,
     nav = alNav(tab, d),
     i = nav.i,
     n = nav.n,
     step = (dir, ok) => `<button type="button" class="iconbtn round al-sp-step" data-act="opsAlStep" data-d="${dir}" aria-label="${dir < 0 ? "上一条" : "下一条"}" data-tip="${dir < 0 ? "上一条" : "下一条"}"${ok ? "" : " disabled"}>${ico("back", dir < 0 ? "ic16" : "ic16 al-flip")}</button>`,
     pager = i >= 0 && n > 1 ? `<span class="al-sp-pg"><i class="al-sp-sep" aria-hidden="true"></i>${step(-1, i > 0)}<span class="al-sp-n ops-num" aria-label="第 ${i + 1} 条，共 ${n} 条">${i + 1} / ${n}</span>${step(1, i < n - 1)}</span>` : "";
-  return `<div class="ops-overview-nav al-sp-nav" data-category-page="alarms"><div class="al-sp-hd"><button type="button" class="iconbtn round al-sp-back" data-act="opsAlBack" aria-label="返回${AL_NAMES[tab]}" data-tip="返回${AL_NAMES[tab]}">${ico("back", "ic16")}</button><h3 tabindex="-1">${p.th || esc(p.title)}</h3>${p.lv}</div>${p.acts || pager ? `<div class="al-sp-acts al3-acts">${p.acts}${pager}</div>` : ""}</div><div class="al-sp" data-tab="${tab}"><div class="al-sp-l">${p.left}</div><div class="al-sp-r">${p.right}</div></div>${p.bar ? `<div class="al-mine-bar">${p.bar}</div>` : ""}`; // 3.40 V1021：手机底部通栏；3.43 V1302：放页头的主按钮（原固定为“我来处理”）
+  return `<div class="ops-overview-nav al-sp-nav" data-category-page="alarms"><div class="al-sp-hd"><button type="button" class="iconbtn round al-sp-back" data-act="opsAlBack" aria-label="返回${back}" data-tip="返回${back}">${ico("back", "ic16")}</button><h3 tabindex="-1">${p.th || esc(p.title)}</h3>${p.lv}</div>${p.acts || pager ? `<div class="al-sp-acts al3-acts">${p.acts}${pager}</div>` : ""}</div><div class="al-sp" data-tab="${tab}"><div class="al-sp-l">${p.left}</div><div class="al-sp-r">${p.right}</div></div>${p.bar ? `<div class="al-mine-bar">${p.bar}</div>` : ""}`; // 3.40 V1021：手机底部通栏；3.43 V1302：放页头的主按钮（原固定为“我来处理”）
 }
 // 名称与值两列（详情卡的名称列 72）
 const alKv = (xs, cls = "") => `<dl class="al3-kv${cls}">${xs.map(([k, v, c]) => `<div><dt>${k}</dt><dd${c ? ` class="${c}"` : ""}>${v}</dd></div>`).join("")}</dl>`;
@@ -93129,7 +93298,9 @@ function alRoute(tab, drawer, id) {
   route("alarms", { tab, opsDrawer: drawer, alSel: id }, { remember: true });
   $(".al-sp-nav h3")?.focus({ preventScroll: true });
 }
-const alFocusRow = () => (document.querySelector(".al-tbl tbody tr.on") || document.querySelector(".al-tbl tbody tr.click"))?.focus({ preventScroll: true });
+const alFocusRow = () => (U.alarmQueue
+  ? $(`.hwb-queue [data-act=homeQueueOpen][data-id="${CSS.escape(U.alSel || "")}"]`) || $("#homeQueueTitle")
+  : $(".al-tbl tbody tr.on") || $(".al-tbl tbody tr.click"))?.focus({ preventScroll: true });
 // 回到列表：从列表进入的用浏览器返回（恢复列表的滚动位置），其余（从别的页面进入、处理后换了页签）回到所在页签的列表
 function alLeave() {
   if (U.alSpBack && history.state?.ops?.drawer) {
@@ -98507,6 +98678,53 @@ function startSync(zid, ids, label, where = "本区", note = "") {
       1500 + i * 1800 + Demo.rand(zid, i) * 1500,
     );
 }
+function opsReportSource() {
+  const source = U.source;
+  if (!source?.reportOrigin || U.page === "analysis" && U.tab === "reports" || JSON.stringify(source.owner) !== JSON.stringify(opsHistoryOwner())) return null;
+  const report = aiReportById(source.opsReport);
+  return report && (!source.p || mayViewProject(source.p)) ? source : null;
+}
+function opsReportDrill(a, el, target) {
+  const report = U.page === "analysis" && U.tab === "reports" && U.opsRpDoc ? aiReportById(U.opsReport) : null;
+  const loc = aiReportScope(report);
+  if (!loc) return msg("无法查看该报告的统计范围", "error");
+  const fallback = aiReportPer(aiReportEff(report));
+  const validDate = d => /^\d{4}-\d{2}-\d{2}$/.test(d || "") && Number.isFinite(Date.parse(d)) && new Date(d).toISOString().slice(0, 10) === d;
+  const period = validDate(a.from) && validDate(a.to) && a.from <= a.to && a.from === report.from && a.to <= report.to ? { from: a.from, to: a.to } : fallback;
+  const source = { ...snapshot(), label: "报告", reportOrigin: true, owner: opsHistoryOwner(),
+    anReportFrom: U.anReportFrom, opsRpBack: U.opsRpBack, reportPosition: ws3ReportScroll(), focus: wsFocusDesc(el || document.activeElement), reportTab: a.tab || null };
+  const historyScope = { opsHistPer: "custom", opsHistFrom: period.from, opsHistTo: period.to, opsHistFromDraft: undefined, opsHistToDraft: undefined, opsHistErr: "" };
+  let page, scope;
+  if (target === "analysis") {
+    page = "analysis";
+    scope = { tab: ws3AnalysisCategory(a.tab), opsRange: "custom", opsFrom: period.from, opsTo: period.to, opsFromDraft: undefined, opsToDraft: undefined, opsRangeErr: "" };
+  } else if (target === "history") {
+    page = "alarms";
+    scope = { tab: "history", ...historyScope };
+  } else if (target === "alarm") {
+    const alarm = g("alerts", a.id);
+    if (!alarm || !aiReportAlarmIn(alarm, loc)) return msg("该告警已不在当前报告的统计范围", "error");
+    page = "alarms";
+    scope = { tab: alTabOf(alItemOf("alarm", a.id)?.st || (alarmOpen(alarm) ? "current" : "history")),
+      opsDrawer: { page: "alarms", kind: "alarm", id: a.id }, alSel: a.id, ...historyScope };
+  } else if (target === "zone") {
+    const x = obParse(a.o);
+    if (!obView(x) || x.k !== "zone" || x.o.floorId !== loc.f) return msg("该功能区已不在当前报告的统计范围", "error");
+    page = "overview";
+    scope = { obj: a.o, otab: a.tab || "summary" };
+  } else {
+    page = "devices";
+    scope = { tab: target === "firmware" ? "firmware" : "inventory", deviceNet: null };
+  }
+  closeModal(true);
+  route(page, { ...loc, ...scope }, { source });
+  if (U.source === source) history.replaceState({ ...history.state, reportDrill: true }, "", location.hash);
+  ws3RestoreReportScroll(undefined, () => {
+    const heading = [...document.querySelectorAll("#wtop .wtop-t, #pbody h1, .phead h1")].find(el => el.getClientRects().length);
+    if (heading) heading.tabIndex = -1;
+    return heading;
+  });
+}
 defineActions({
   opsNoop: () => {},
   opsExplain: (a, el) => {
@@ -98519,7 +98737,9 @@ defineActions({
   },
   // 3.35 删除不用的旧代码：告警页按健康下钻（原数据分析“健康”页签的入口，3.34 已删去）
 
-  opsGo: (a) => {
+  opsGo: (a, el) => {
+    // 旧发布快照保留原正文与链接标记，打开时仍按报告自己的位置核对。
+    if (el?.closest(".ai-report") && a.page === "devices") return opsReportDrill(a, el, a.tab === "firmware" ? "firmware" : "devices");
     closeModal(true);
     U.opsDrawer = null;
     // 带告警类型时（数据分析 › 设备健康的“离线”“已恢复出厂”）当前告警只列这一类，级别与确认状态回到全部，页上写“已筛选”（全面设计核查第 105 条）
@@ -99172,43 +99392,57 @@ defineActions({
     render();
   },
   opsReport: (a) => {
-    U.opsReport = a.id;
-    U.opsRpDoc = true;
-    opsHistoryReplace();
-    render();
-    if (matchMedia("(max-width: 599.98px)").matches) scrollTo(0, 0);
+    if (!aiReportById(a.id)) return;
+    if (U.tab === "reports" && U.opsRpDoc) {
+      U.opsReport = a.id;
+      U.nextScroll = 0;
+      syncRoute(true);
+      render();
+    } else {
+      const from = ws3AnalysisReportOrigin();
+      route("analysis", { p: U.p, b: U.b, f: U.f, tab: "reports", anReportFrom: from, opsReport: a.id, opsRpDoc: true, opsRpBack: !!U.anRpt || U.tab === "reports" }, { remember: true });
+    }
+    ws3RestoreReportScroll(undefined, () => $(".ai-report-h h3"));
   },
   opsReportBack: () => {
+    const selected = U.opsReport;
+    const focus = () => $(`.ops-report-container [data-act="ws3ReportOpen"][data-id="${CSS.escape(selected || "")}"], .ws3-drawer [data-act="ws3ReportOpen"][data-id="${CSS.escape(selected || "")}"]`)?.focus({ preventScroll: true });
+    if (U.opsRpBack && history.state?.ops?.reportCatalogBack) {
+      U.opsRpBack = false;
+      window.addEventListener("popstate", () => requestAnimationFrame(focus), { once: true });
+      return history.back();
+    }
     U.opsRpDoc = false;
     opsHistoryReplace();
     render();
-    scrollTo(0, 0);
-    $("#app .ops-replist button.on")?.focus({ preventScroll: true });
+    ws3RestoreReportScroll();
+    focus();
   },
   // 报告的依据链接打开报告期间的数据分析（规范 ANALYSIS05，2026-10-08 Vision 核查 V37）
   // 报告“设备健康”一节的“告警记录”按报告期间打开（2.07，V134：原先打开默认的近 7 天）
-  opsReportAlarms: (a) => {
-    Object.assign(U, { opsHistPer: "custom", opsHistFrom: a.from, opsHistTo: a.to, opsHistFromDraft: undefined, opsHistToDraft: undefined, opsHistErr: "" });
-    actions.opsGo({ page: "alarms", tab: "history" });
-  },
-  // 2.66 V650：依据链接带上报告的位置（楼层）与期间
-  opsReportBasis: (a) => {
-    const fl = g("floors", a.f || OPS_SCOPE.floor);
-    const building = fl && g("buildings", fl.buildingId);
-    const pid = building?.projectId;
-    if (!pid || !mayViewProject(pid) || (!canEdit() && !ovLiveIds().has(fl.id))) return;
-    closeModal(true);
-    U.opsDrawer = null;
-    route("analysis", { tab: a.tab || "energy", p: pid, b: building.id, f: fl.id,
-      opsRange: "custom", opsFrom: a.from, opsTo: a.to, opsFromDraft: undefined, opsToDraft: undefined, opsRangeErr: "" }, { remember: true });
+  opsReportAlarms: (a, el) => opsReportDrill(a, el, "history"),
+  opsReportBasis: (a, el) => opsReportDrill(a, el, "analysis"),
+  opsReportDevices: (a, el) => opsReportDrill(a, el, "devices"),
+  opsReportReturn: () => {
+    const source = opsReportSource();
+    if (!source) return;
+    const { owner, label, reportOrigin, reportPosition, reportTab, focus, ...scope } = source;
+    const restore = () => ws3RestoreReportScroll(reportPosition, () => (reportTab && $(`.ai-report [data-act="opsReportBasis"][data-tab="${CSS.escape(reportTab)}"]`)) || wsFindDesc(focus) || $(".ai-report-h h3"));
+    if (history.state?.reportDrill) {
+      window.addEventListener("popstate", restore, { once: true });
+      return history.back();
+    }
+    route("analysis", { ...scope, opsRpBack: false }, { source: null });
+    restore();
   },
   opsLevel: (a) => {
     U.opsLevel = a.value;
     opsHistoryReplace();
     render();
   },
-  opsAlarm: (a) => {
+  opsAlarm: (a, el) => {
     if (needTap(a)) return;
+    if (el?.closest(".ai-report")) return opsReportDrill(a, el, "alarm");
     closeModal(true);
     const drawer = { page: "alarms", kind: "alarm", id: a.id },
       al = F.alarmGroups(data()).find((x) => x.id === a.id) || g("alerts", a.id);
@@ -101478,7 +101712,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 defineActions({
-  opsObj: (a) => opsObjOpen(a.o, a.tab || "summary", a.per || null),
+  opsObj: (a, el) => el?.closest(".ai-report") ? opsReportDrill(a, el, "zone") : opsObjOpen(a.o, a.tab || "summary", a.per || null),
   opsObjTab: (a) => {
     U.otab = a.value;
     syncRoute(true);
@@ -103867,7 +104101,7 @@ function ov3Due(pid, bid = null, fid = null) {
   const as = typeof wsPendItems === "function" ? wsPendItems(pid).filter((x) => (!bid || g("floors", x.floorId)?.buildingId === bid) && (!fid || x.floorId === fid)) : [];
   return as.length ? { n: as.length, lvl: Math.min(...as.map((x) => x.lvl)) } : null;
 }
-function homeActiveAlarmCount(pid, bid = null, fid = null) {
+function homeActiveAlarms(pid, bid = null, fid = null) {
   const db = data();
   if (!pid || U.role === "member" || !Array.isArray(db?.alerts) || !M.get(db, "projects", pid) || !mayViewProject(pid, db)) return null;
   // 当前只有演示运行数据提供告警覆盖。没有覆盖或部分区域边界未确认时，无从判定零告警。
@@ -103886,7 +104120,11 @@ function homeActiveAlarmCount(pid, bid = null, fid = null) {
     if (!floor.managedPart) return true;
     return !!(point || zone) && (!a.pointId || F.managedPointIn(db, floor, point)) && (!a.zoneId || F.managedZoneIn(floor, zone));
   });
-  return { n: alarms.length, partial: floors.size < scopedFloors.length };
+  return { alarms, partial: floors.size < scopedFloors.length };
+}
+function homeActiveAlarmCount(pid, bid = null, fid = null) {
+  const result = homeActiveAlarms(pid, bid, fid);
+  return result ? { n: result.alarms.length, partial: result.partial } : null;
 }
 // 级别圆点：紧急红 #D0382B、重要橙 #DB6A1E、提示黄 #D29A10
 const ov3Dot = (lvl, cls = "ov3-ddot") => `<i class="${cls} l${lvl}" aria-hidden="true"></i>`;
@@ -105588,6 +105826,7 @@ defineActions({
   ov3Floor: (a) => {
     const s = ov3State();
     if (a.to && !s.st.some(({ f }) => f.id === a.to)) return;
+    if (s.home && typeof homeOverviewHistorySave === "function") homeOverviewHistorySave();
     s3SaveCam();
     U.ov3F[U.b] = a.to || null;
     // 选到没有 3D 的楼层时 ov3State 自动换成 2D；2D 时点“全部”切回 3D
@@ -105641,7 +105880,11 @@ defineActions({
     });
   }),
   // 楼宇总览“待处理 N 项”：进入告警工单，筛到本楼宇
-  ov3Alarms: (a = {}) => route("alarms", { p: U.p, b: U.b, f: null, tab: a.tab === "tasks" ? "tasks" : "current" }),
+  ov3Alarms: (a = {}, el) => {
+    const scope = { p: U.p, b: U.b, f: null, tab: a.tab === "tasks" ? "tasks" : "current" };
+    if (!["active-alarms", "open-tickets"].includes(a.queue) || !U.b || !mayViewProject(U.p)) return route("alarms", scope);
+    route("alarms", { ...scope, alarmQueue: a.queue }, { source: { ...snapshot(), label: "楼宇首页", focus: wsFocusDesc(el), prev: U.source || null } });
+  },
 });
 
 /* 3.48 Smplrspace 对照第 2–7 类（HONG 2026-11-09 19:46:15Z“按建议开发”、19:46:24Z“现在全面更新”；记录 03-reviews/2026-11-09_Smplrspace对照/已确认改动.md、
@@ -105744,7 +105987,7 @@ function ws3Fam() {
 function ws3On() {
   const pg = ws3Pg();
   // Analysis chooses its data and canvas together, including the all-project and no-data states.
-  if (pg === "analysis") return false;
+  if (pg === "analysis" || pg === "alarms" && U.alarmQueue) return false;
   if (pg === "scenes" && U.tab === "records") return false;
   if (!WS3_PAGES.includes(pg) || U.role === "member" || U.obj || U.obGone || U.missing || U.spEd || !data()?.projects.length) return false;
   if (!U.p || !g("projects", U.p) || (typeof mayViewProject === "function" && !mayViewProject(U.p))) return false;
@@ -106733,6 +106976,20 @@ function ws3Scenes(sc) {
 const WS3_AN = [["energy", "能源"], ["carbon", "碳排放"], ["environment", "室内环境"], ["space", "占用"], ["health", "设备健康"]];
 const WS3_AN_ICONS = { energy: "meter", carbon: "leaf", environment: "aq", space: "users", health: "pulse" };
 const ws3AnalysisCategory = (tab) => WS3_AN.some(([key]) => key === tab) ? tab : "energy";
+const ws3ReportScroll = () => ({ panel: $("#pbody")?.scrollTop || 0, window: window.scrollY || 0 });
+function ws3RestoreReportScroll(position = {}, focus) {
+  requestAnimationFrame(() => {
+    const panel = $("#pbody");
+    if (panel) panel.scrollTop = position.panel || 0;
+    window.scrollTo(0, position.window || 0);
+    focus?.()?.focus({ preventScroll: true });
+  });
+}
+function ws3AnalysisReportOrigin() {
+  if (U.tab === "reports" || U.anRpt) return U.anReportFrom;
+  const { p, b, f, tab, opsRange, opsFrom, opsTo } = U;
+  return { p, b, f, tab: ws3AnalysisCategory(tab), opsRange, opsFrom, opsTo, position: ws3ReportScroll() };
+}
 function ws3ReportReturnScope() {
   const from = U.anReportFrom;
   if (from) {
@@ -106740,7 +106997,10 @@ function ws3ReportReturnScope() {
     const projectAllowed = p ? !!g("projects", p) && mayViewProject(p) : !b && !f;
     const buildingMatches = b ? !!p && g("buildings", b)?.projectId === p : !f;
     const floorAllowed = !f || !!b && g("floors", f)?.buildingId === b && (canEdit() || ovLiveIds().has(f));
-    if (projectAllowed && buildingMatches && floorAllowed) return { p, b, f, tab: ws3AnalysisCategory(tab) };
+    if (projectAllowed && buildingMatches && floorAllowed) return {
+      p, b, f, tab: ws3AnalysisCategory(tab), opsRange: from.opsRange || null,
+      opsFrom: from.opsFrom || null, opsTo: from.opsTo || null, scroll: from.position?.panel || 0,
+    };
   }
   return { p: U.p, b: U.b, f: U.f, tab: "energy" };
 }
@@ -106884,6 +107144,18 @@ function ws3RptDrawer() {
   const reports = analysisReportEntries();
   return `<aside class="ws3-drawer" role="dialog" aria-labelledby="ws3RpT"><div class="ws3-dh"><h2 id="ws3RpT" tabindex="-1">报告</h2><span class="ws3-hr">${analysisReportCreate()}${iconBtn("关闭", "x", "ws3RptClose")}</span></div><div class="ws3-db">${reports.length ? `<div class="ws3-list">${reports.map(r => `<button type="button" class="ws3-row" data-act="ws3ReportOpen" data-id="${esc(r.id)}"><span class="ws3-row-t"><b>${esc(r.name)}</b><small>${esc(analysisReportMeta(r))}</small></span><span class="ws3-row-s">${esc(r.state)}</span></button>`).join("")}</div>` : '<p class="ws3-empty">尚无报告</p>'}</div></aside>`;
 }
+function ws3FocusReportCatalog() {
+  ($("#ws3RpT") || $('[data-act="ws3AnBack"]'))?.focus({ preventScroll: true });
+}
+defineLayer({ name: "analysisReport", level: 29, prevent: true, open: () => U.page === "analysis" && U.anRpt && !!$(".ws3-drawer"), close: () => actions.ws3RptClose() });
+MOBILE_MQ?.addEventListener?.("change", () => {
+  if (U.page !== "analysis" || !U.anRpt) return;
+  const selected = document.activeElement?.closest('[data-act="ws3ReportOpen"]')?.dataset.id;
+  render();
+  const row = selected && $(`[data-act="ws3ReportOpen"][data-id="${CSS.escape(selected)}"]`);
+  if (row) row.focus({ preventScroll: true });
+  else ws3FocusReportCatalog();
+});
 // 3.52 碳排放：范围一（燃气、柴油、制冷剂）、范围二（外购电力，同能源的口径）、范围三（废弃物，只登记重量，不计入合计）
 const WASTE_KINDS = ["生活垃圾", "可回收物", "厨余垃圾", "有害垃圾"];
 function ws3Carbon(sc) {
@@ -107214,13 +107486,14 @@ for (const [key, property] of [[OV3_LW_KEY, "--ov3-lw"], [OV3_HOME_LW_KEY, "--ho
   } catch {}
 }
 const ov3LwMax = (x) => {
-  const limit = x.clientWidth * 0.7,
+  const width = x.matches?.(".home-overview") ? Math.min(x.clientWidth, x.parentElement?.clientWidth || x.clientWidth) : x.clientWidth,
+    limit = width * 0.7,
     style = getComputedStyle(x),
     minView = parseFloat(style.getPropertyValue("--ov3-view-min"));
   const frame = ["--ws3-split", "--home-split"].some((name) => style.getPropertyValue(name).trim() === "1")
     ? 2 * parseFloat(style.getPropertyValue("--workspace-canvas-edge")) + parseFloat(style.getPropertyValue("--workspace-canvas-gap"))
     : 8;
-  return Math.max(320, Math.floor(Number.isFinite(minView) ? Math.min(limit, x.clientWidth - minView - frame) : limit));
+  return Math.max(320, Math.floor(Number.isFinite(minView) ? Math.min(limit, width - minView - frame) : limit));
 };
 function ov3SepVal(x, sep) {
   const pn = x.querySelector(":scope > .ov3-panel");
@@ -107553,26 +107826,30 @@ defineActions({
   // 3.52 菜单与页签方案：标题行“报告”打开报告清单（单份报告整页打开）
   ws3Reports: () => {
     closePop();
-    // 3.57 V1487：报告面板占满画面区，画面不改尺寸，开关都不重新取景
-    if (!isMobile()) return (U.anRpt = !U.anRpt), render(), requestAnimationFrame(() => $(".ws3-drawer .ws3-dh h2")?.focus?.());
-    const from = { p: U.p, b: U.b, f: U.f, tab: ws3AnalysisCategory(U.tab) };
-    route("analysis", { ...from, tab: "reports", anReportFrom: from, opsReport: null, opsRpDoc: false }, { remember: true });
+    if (U.anRpt) return actions.ws3RptClose();
+    const from = ws3AnalysisReportOrigin(), { p, b, f, tab } = from;
+    route("analysis", { p, b, f, tab, anRpt: true, anReportFrom: from, opsReport: null, opsRpDoc: false, scroll: isMobile() ? 0 : from.position.panel });
+    if (isMobile()) ws3RestoreReportScroll();
+    requestAnimationFrame(ws3FocusReportCatalog);
   },
   ws3ReportOpen: ({ id }) => {
     const report = analysisReportEntries().find(row => row.id === id);
     if (!report) return;
     if (!report.paper) return actions.reportDetail({ id });
-    if (U.tab === "reports") return actions.opsReport({ id });
-    const from = { p: U.p, b: U.b, f: U.f, tab: ws3AnalysisCategory(U.tab) };
-    U.anRpt = false;
-    route("analysis", { ...from, tab: "reports", anReportFrom: from, opsReport: id, opsRpDoc: true }, { remember: true });
+    actions.opsReport({ id });
   },
   ws3RptClose: () => {
+    if (!U.anRpt) return;
     U.anRpt = false;
-    render(); // 3.57 V1487：回到原画面与原取景
-    requestAnimationFrame(() => $(".ws3-rpt")?.focus());
+    window.addEventListener("popstate", () => requestAnimationFrame(() => $(".ws3-rpt")?.focus({ preventScroll: true })), { once: true });
+    history.back();
   },
-  ws3AnBack: () => route("analysis", ws3ReportReturnScope()),
+  ws3AnBack: () => {
+    if (U.anRpt) return actions.ws3RptClose();
+    const position = U.anReportFrom?.position;
+    route("analysis", ws3ReportReturnScope());
+    ws3RestoreReportScroll(position, () => $(".ws3-rpt"));
+  },
   ws3Med: (a) => {
     U.ws3Med = a.value;
     render();
@@ -107649,10 +107926,103 @@ const homeOverviewKey = (level = ov3Lv()) => level === "b" ? "building:" + U.b :
 const homeOverviewMobile = (level) => U.homeOverviewMobilePanes?.[homeOverviewKey(level)] || "list";
 const homeOverviewPanelScroll = new Map();
 let homeOverviewScrollableFrame = null;
+let homeOverviewHistoryTimer = 0;
+let homeOverviewLastFocus = null;
 
 function homeOverviewShowMobile(view) {
   (U.homeOverviewMobilePanes ||= Object.create(null))[homeOverviewKey()] = view;
 }
+
+function homeOverviewHistoryKey(floor) {
+  return JSON.stringify([storeKey(), locOwner(), U.role, U.p || null, U.b || null, floor || null, U.tab || ""]);
+}
+
+function homeOverviewSnapshot() {
+  const floor = U.ov3F?.[U.b] || null;
+  const key = homeOverviewHistoryKey(floor);
+  const active = document.activeElement;
+  const previous = history.state?.homeOverview;
+  return {
+    key, floor, wholeMode: U.homeBuildingModes?.[U.b] || "3d",
+    floorMode: U.homeBuildingFloorModes?.[U.b] || "2d",
+    mobilePane: homeOverviewMobile(), visit: U.ov3HomeVisit,
+    scroll: $("#pbody")?.scrollTop || 0, windowScroll: window.scrollY || 0,
+    panelScroll: $(".home-overview-frame")?.scrollTop || 0,
+    collectionScroll: $("#homeCollectionRows")?.scrollTop || 0,
+    focus: active?.closest(".home-overview") ? wsFocusDesc(active)
+      : homeOverviewLastFocus?.key === key ? homeOverviewLastFocus.focus : previous?.key === key ? previous.focus : null,
+  };
+}
+
+function homeOverviewHistorySave() {
+  clearTimeout(homeOverviewHistoryTimer);
+  if (U.page !== "overview" || U.sp || U.obj || !$(".home-overview") || !location.hash.startsWith("#overview")) return;
+  const saved = homeOverviewSnapshot();
+  if (JSON.stringify(history.state?.homeOverview) !== JSON.stringify(saved)) history.replaceState({ ...history.state, homeOverview: saved }, "", location.href);
+}
+
+function homeOverviewRouteState(view, home) {
+  const bid = view.b || null;
+  const fid = home?.floor || view.f || null;
+  const key = bid ? "building:" + bid : view.p ? "project:" + view.p : "all";
+  return {
+    f: fid, homeOverviewReturn: true, ov3HomeVisit: home.visit,
+    homeOverviewMobilePanes: { ...U.homeOverviewMobilePanes, [key]: home.mobilePane },
+    ...(bid ? {
+      ov3F: { ...U.ov3F, [bid]: fid },
+      homeBuildingModes: { ...U.homeBuildingModes, [bid]: home.wholeMode },
+      homeBuildingFloorModes: { ...U.homeBuildingFloorModes, [bid]: home.floorMode },
+    } : {}),
+  };
+}
+
+function homeOverviewRestorePosition(saved, focus = null) {
+  if (!saved) return;
+  requestAnimationFrame(() => {
+    if (U.page !== "overview" || U.sp || U.obj || saved.key && saved.key !== homeOverviewHistoryKey(U.ov3F?.[U.b])) return;
+    const frame = $(".home-overview-frame"), main = $("#pbody"), list = $("#homeCollectionRows");
+    if (frame?.getClientRects().length) {
+      frame.scrollTop = saved.panelScroll || 0;
+      homeOverviewPanelScroll.set(frame.dataset.key, frame.scrollTop);
+    }
+    if (list?.getClientRects().length && saved.collectionScroll != null) {
+      list.scrollTop = saved.collectionScroll;
+      homeCollectionState().scroll = list.scrollTop;
+    }
+    if (main && saved.scroll != null) main.scrollTop = saved.scroll;
+    if (typeof window.scrollTo === "function" && saved.windowScroll != null) window.scrollTo(0, saved.windowScroll);
+    const node = saved.floor ? $(`.home-overview [data-act="ov3Floor"][data-to="${CSS.escape(saved.floor)}"]`) : $(".home-overview .ov3-fhome");
+    (wsFindDesc(saved.focus || focus) || (node?.getClientRects().length ? node : null) || $("#homeLocationScope"))?.focus({ preventScroll: true });
+    homeOverviewHistorySave();
+  });
+}
+
+function homeOverviewHistoryRead(entry) {
+  const home = entry?.homeOverview;
+  if (!home || U.page !== "overview" || U.sp || U.obj || U.missing || home.key !== homeOverviewHistoryKey(U.f) || U.p && !mayViewProject(U.p)) return null;
+  Object.assign(U, homeOverviewRouteState(U, home));
+  return home;
+}
+
+function homeOverviewReturnTo(view, source = null) {
+  const { label, homeOverview: home, focus, prev, ...scope } = view;
+  route("overview", { ...scope, sp: false, ...(home ? homeOverviewRouteState(view, home) : {}) }, { source });
+  homeOverviewRestorePosition(home, focus);
+}
+
+function homeOverviewHistorySchedule() {
+  clearTimeout(homeOverviewHistoryTimer);
+  homeOverviewHistoryTimer = setTimeout(homeOverviewHistorySave, 160);
+}
+document.addEventListener("scroll", (e) => {
+  if ($(".home-overview") && (e.target instanceof Document || e.target.id === "pbody" || e.target.closest?.(".home-overview"))) homeOverviewHistorySchedule();
+}, true);
+document.addEventListener("focusin", (e) => {
+  if (!e.target.closest?.(".home-overview")) return;
+  homeOverviewLastFocus = { key: homeOverviewHistoryKey(U.ov3F?.[U.b]), focus: wsFocusDesc(e.target) };
+  homeOverviewHistorySchedule();
+});
+window.addEventListener("pagehide", homeOverviewHistorySave);
 
 function homeOverviewScope(level) {
   const project = U.p && g("projects", U.p), building = level === "b" && g("buildings", U.b);
@@ -107691,6 +108061,7 @@ function homeOverviewPanel(level) {
 }
 
 onAfterRender(() => {
+  if (U.page === "overview" && !U.sp && !U.obj && $(".home-overview")) homeOverviewHistorySchedule();
   const frame = $(".home-overview-frame");
   homeOverviewScrollableFrame = homeOverviewFrameScrolls(frame) ? frame : null;
   if (!homeOverviewScrollableFrame) return;
@@ -108152,17 +108523,18 @@ function homeTicketRecords(projectId, buildingId, now) {
 }
 
 const homeTicketOpen = (t, now) => !t.closedAt || !!taskRework(t, now);
+const homeOpenTickets = (projectId, buildingId, now) => homeTicketRecords(projectId, buildingId, now)?.filter(t => homeTicketOpen(t, now));
 
 function homeOpenTicketCount(projectId, buildingId = null, now = Demo.on() ? opsNow() : Date.now()) {
-  return homeTicketRecords(projectId, buildingId, now)?.filter((t) => homeTicketOpen(t, now)).length ?? null;
+  return homeOpenTickets(projectId, buildingId, now)?.length ?? null;
 }
 
 function homeWidgetTickets(p, b, now) {
-  const tickets = homeTicketRecords(p.id, b.id, now);
-  if (!tickets) return null;
+  const open = homeOpenTickets(p.id, b.id, now);
+  if (!open) return null;
   return {
-    open: tickets.filter(t => homeTicketOpen(t, now)).length,
-    overdue: tickets.filter(t => homeTicketOpen(t, now) && taskOverdue(t)).length,
+    open: open.length,
+    overdue: open.filter(taskOverdue).length,
   };
 }
 
@@ -108181,8 +108553,8 @@ function homeBuildingWidgets(p, b, controls) {
     `${ico(icon, "ic16")}<span><b>${esc(label)}</b>${detail ? `<small>${esc(detail)}</small>` : ""}</span>${ico("chevron", "ic16")}`,
     act, args, "hwb-row ghost");
   const tasks = [
-    alarms != null ? row(`进行中告警 ${nf(alarms.n)}`, alarms.partial ? "仅统计已接入楼层" : "", "bell", "ov3Alarms", { tab: "current" }) : "",
-    tickets != null ? row(`未关闭工单 ${nf(tickets.open)}`, tickets.overdue ? `其中 ${nf(tickets.overdue)} 项逾期` : "", "file-text", "ov3Alarms", { tab: "tasks" }) : "",
+    alarms != null ? row(`进行中告警 ${nf(alarms.n)}`, alarms.partial ? "仅统计已接入楼层" : "", "bell", "ov3Alarms", { tab: "current", queue: "active-alarms" }) : "",
+    tickets != null ? row(`未关闭工单 ${nf(tickets.open)}`, tickets.overdue ? `其中 ${nf(tickets.overdue)} 项逾期` : "", "file-text", "ov3Alarms", { tab: "tasks", queue: "open-tickets" }) : "",
   ].join("");
   const floorRows = active.length
     ? active.map(f => row(f.name, "有运行数据", "layers", "homeLocationFloor", { p: p.id, b: b.id, f: f.id })).join("")
@@ -108191,6 +108563,49 @@ function homeBuildingWidgets(p, b, controls) {
   const space = section("空间与设备", floorRows + (devices ? row("设备清单", `${nf(devices)} 台已登记设备`, "cpu", "homeControlDevices") : "") + setup, "hwb-space");
   return `<div class="home-building-widgets"><section class="hwb-widget hwb-summary" aria-label="楼宇摘要"><div class="hwb-cover">${photo}</div><div class="hwb-identity"><h2>${esc(M.buildingLabel(data(), b))}</h2>${address ? `<p>${esc(address)}</p>` : ""}<p class="hwb-status">${active.length ? `${nf(active.length)} 个楼层有运行数据` : "暂无运行数据"}</p></div></section>${tasks ? section("运行待办", tasks, "hwb-tasks") : ""}${space}</div>`;
 }
+
+const homeQueueLabel = kind => kind === "active-alarms" ? "进行中告警" : "未关闭工单";
+
+function homeBuildingQueueItems(kind = U.alarmQueue) {
+  if (!U.p || !U.b || U.role === "member" || g("buildings", U.b)?.projectId !== U.p || !mayViewProject(U.p)) return [];
+  if (kind === "active-alarms") {
+    const alarms = homeActiveAlarms(U.p, U.b)?.alarms || [];
+    return alarms.map(a => ({ id: a.id, a, t: null, st: "current" }));
+  }
+  const now = Demo.on() ? opsNow() : Date.now();
+  const tickets = homeOpenTickets(U.p, U.b, now) || [];
+  return tickets.map(t => ({ id: t.id, t, a: taskAlarms(t)[0] || null, st: t.assignee || t.closedAt ? "tasks" : "current" }));
+}
+
+function homeBuildingQueue() {
+  const kind = U.alarmQueue, rows = homeBuildingQueueItems(kind), label = homeQueueLabel(kind);
+  const active = U.opsDrawer?.page === "alarms" && rows.find(it => it.id === U.opsDrawer.id && (it.t ? "task" : "alarm") === U.opsDrawer.kind);
+  if (active) {
+    const linked = active.a && alItemOf("alarm", active.a.id);
+    const detail = active.t ? taskDetailParts(active.t) : alDetailParts(active.a, linked || active);
+    return alSpHtml(detail, alTabOf(active.st));
+  }
+  const group = (title, items) => !items.length ? "" : `<section class="hwb-widget" aria-label="${title || label}">${title ? `<h3>${title} <span>${items.length}</span></h3>` : ""}<ul>${items.map((it) => {
+    const rowLabel = it.t ? tkTitle(it.t) : alarmTitle(it.a).title;
+    const floor = ws3ItFloor(it), stage = it.t ? it.st === "current" ? "待指派" : it.t.closedAt ? "需返工" : "处理中" : it.a.acknowledged ? "已确认" : "待确认";
+    const meta = [g("floors", floor)?.name, stage].filter(Boolean).join(" · ");
+    return `<li>${btn(`${ico(it.t ? "file-text" : "bell", "ic16")}<span><b>${esc(rowLabel)}</b><small>${esc(meta)}</small></span>${ico("chevron", "ic16")}`, "homeQueueOpen", { id: it.id }, "hwb-row ghost")}</li>`;
+  }).join("")}</ul></section>`;
+  const content = kind === "active-alarms" ? group("", rows) : group("待指派", rows.filter(it => it.st === "current")) + group("处理中", rows.filter(it => it.st === "tasks"));
+  const all = btn("查看全部告警工单", "homeQueueExit", {}, "sm ghost");
+  return `<div class="hwb-queue" aria-labelledby="homeQueueTitle"><header><h2 id="homeQueueTitle" tabindex="-1">${label} <span>${rows.length}</span></h2>${all}</header>${content || `<p class="hwb-queue-empty">当前范围没有${label}</p>`}</div>`;
+}
+
+defineActions({
+  homeQueueOpen: ({ id }) => {
+    if (U.page !== "alarms" || !U.alarmQueue) return;
+    const it = homeBuildingQueueItems().find(it => it.id === id);
+    if (!it) return;
+    U.alSel = id;
+    alOpen({ page: "alarms", kind: it.t ? "task" : "alarm", id });
+  },
+  homeQueueExit: () => route("alarms", { p: U.p, b: U.b, f: null, tab: "current" }, { source: null }),
+});
 
 /* Analysis and Home share one map/building viewer. Only metric overlays and navigation differ. */
 function analysisCanvasActive() {
@@ -108966,9 +109381,11 @@ function depTopoDeviceBody(context, view) {
   const search = `<div class="ws-search">${ico("search", "ic16")}<input id="depTopoDeviceQuery" type="search" aria-label="搜索设备、网络或位置" placeholder="搜索设备、网络或位置" value="${esc(view.deviceQuery || "")}"></div>`;
   const filter = `<div class="dep-topo-device-tools">${tabs(DEP_DEVICE_LAYERS, model.layer, "depTopoDeviceLayer", "depTopoDeviceLayerPanel", "设备关系图层")}<div class="dep-topo-device-query">${search}${btn("搜索", "depTopoDeviceSearch", {}, "sm")}${view.deviceQuery ? btn("清除", "depTopoDeviceSearch", { clear: "1" }, "ghost sm") : ""}</div><button type="button" class="btn sm" data-act="depTopoDeviceBatch" aria-pressed="${!!view.deviceBatch}">仅看本次部署范围</button>${model.zone ? btn("清除功能区筛选", "depTopoDeviceZone", {}, "ghost sm") : ""}</div>`;
   const canManage = canEdit() && mayViewProject(project.id, db);
+  const needsReview = view.deviceBatch && !F.deploymentReady(db, project.id);
+  const scopeReview = needsReview ? `<div class="dep-topo-device-head">${note("部署范围待核对。可关闭范围筛选，查看现有设备和绑定。")}${canManage ? btn("核对部署范围", "scopeAdjust", { p: project.id, b: floor?.buildingId || "" }, "sm") : ""}</div>` : "";
   const plan = canManage && !view.deviceBatch && model.layer === "network" ? btn("规划设备网络", "depTopoDevicePlan", { floor: floor?.id || "" }, "primary sm") : "";
   const branches = current ? select("depTopoDeviceBranch", picked.branches.map(({ root }) => [root.key, root.name]), current.root.key, "关系组") : "";
-  return `<section class="dep-topo-device card" aria-labelledby="depWbTitle">${plan ? `<div class="dep-topo-device-head">${plan}</div>` : ""}${filter}<div ${tabPanelAttrs("depTopoDeviceLayerPanel", "depTopoDeviceLayer", DEP_DEVICE_LAYERS, model.layer)}>${current ? `<div class="dep-topo-device-branch"><label for="depTopoDeviceBranch-control">关系组</label>${branches}</div>${depDeviceDraw(context, view, current)}<p class="dep-topo-device-legend"><i aria-hidden="true"></i>已登记关系 <i class="is-planned" aria-hidden="true"></i>规划关系 · 蓝色为当前选择</p>` : empty("没有符合当前查看条件的关系", view.deviceBatch ? "请确认已保存的部署范围中包含此处。" : "添加图纸点位并登记所属网络、回路或系统接入后，即可查看关系。", "", "layers")}</div></section>`;
+  return `<section class="dep-topo-device card" aria-labelledby="depWbTitle">${plan ? `<div class="dep-topo-device-head">${plan}</div>` : ""}${filter}${scopeReview}<div ${tabPanelAttrs("depTopoDeviceLayerPanel", "depTopoDeviceLayer", DEP_DEVICE_LAYERS, model.layer)}>${current ? `<div class="dep-topo-device-branch"><label for="depTopoDeviceBranch-control">关系组</label>${branches}</div>${depDeviceDraw(context, view, current)}<p class="dep-topo-device-legend"><i aria-hidden="true"></i>已登记关系 <i class="is-planned" aria-hidden="true"></i>规划关系 · 蓝色为当前选择</p>` : empty("没有符合当前查看条件的关系", view.deviceBatch ? "请确认已保存的部署范围中包含此处。" : "添加图纸点位并登记所属网络、回路或系统接入后，即可查看关系。", "", "layers")}</div></section>`;
 }
 
 function depDeviceActionButton(label, task, args = {}) {
@@ -108991,9 +109408,11 @@ function depTopoDeviceDetail(context, view) {
     facts.push(["起点", found.from.name], ["终点", found.to.name], ["当前状态", found.relation.state]);
   }
   if (point) {
-    const scope = F.deploymentScope(db, project.id);
+    const scope = F.deploymentScope(db, project.id), floor = M.floor(db, point.floorId);
+    const needsReview = scope.needsConfirmation || (scope.floorIds.includes(point.floorId) && !F.deploymentFloorReady(db, floor, scope));
     facts.push(["位置", depDeviceLocation(db, point)], ["设备状态", depDevicePointState(db, point)],
-      ["本次部署", scope.needsConfirmation ? "范围待确认" : F.deploymentPointIn(db, point, { p: project.id }) ? "已纳入" : "未纳入"]);
+      ["本次部署", needsReview ? "范围待核对" : F.deploymentPointIn(db, point, { p: project.id }) ? "已纳入" : "未纳入"]);
+    if (needsReview && canManage) actionsHtml.push(btn("核对部署范围", "scopeAdjust", { p: project.id, b: floor?.buildingId }, "sm"));
     if (node.lc) facts.push(["控制类型", M.ctrlText(point.ctrl)], ["驱动台数", point.drivers ?? "未登记"], ["每台功率", point.fixtureWatts != null ? `${point.fixtureWatts} W` : "未登记"]);
     if (!point.unplaced) actionsHtml.push(depDeviceActionButton("在楼层图定位", "floor", { id: point.id }));
     if (model.layer === "network" && canManage && M.field(point) && !F.networkMoveProblem(db, point))
@@ -109869,13 +110288,33 @@ const aiPeriodLong = (from, to) => {
   const a = from.split("-").map(Number), b = to.split("-").map(Number);
   return `${a[0]} 年 ${a[1]} 月 ${a[2]} 日至${b[0] !== a[0] ? ` ${b[0]} 年` : ""} ${b[1]} 月 ${b[2]} 日`;
 };
+// 已有演示报告按其原始数据楼层读取，当前页面位置只用于返回。
+function aiReportScope(report) {
+  if (!report) return null;
+  const floor = g("floors", report.floorId || OPS_SCOPE.floor);
+  const building = floor && g("buildings", floor.buildingId);
+  const p = report.projectId || OPS_SCOPE.project;
+  if (!floor || floor.id !== OPS_SCOPE.floor || !building || building.projectId !== p || (report.buildingId && report.buildingId !== building.id) || !g("projects", p) || !mayViewProject(p) || (!canEdit() && !ovLiveIds().has(floor.id))) return null;
+  return { p, b: building.id, f: floor.id };
+}
+function aiReportAlarmIn(alert, scope) {
+  const floors = [alert.floorId, g("points", alert.pointId)?.floorId, g("zones", alert.zoneId)?.floorId].filter(Boolean);
+  return alert.projectId === scope.p && floors.length > 0 && floors.every(id => id === scope.f);
+}
+function aiReportTaskIn(task, scope) {
+  if (task.projectId !== scope.p || task.status === "draft") return false;
+  const alarms = (task.alertIds || [task.alarmId]).map(id => g("alerts", id)).filter(Boolean);
+  const floors = [task.floorId, g("zones", task.zoneId)?.floorId,
+    ...(task.pointIds || []).map(id => g("points", id)?.floorId), ...alarms.map(alarmFloor)].filter(Boolean);
+  return floors.length > 0 && floors.every(id => id === scope.f) && alarms.every(alert => alert.projectId === scope.p);
+}
 // 2.66 V638：自建报告与周报、月报同样生成纸面预览；未发布的可以删除
 const aiCustomReports = () =>
   (data().reportTasks || [])
     .filter((x) => x.kind !== "aiDraft" && x.projectId === OPS_SCOPE.project && x.start && x.end)
-    .map((x) => ({ id: x.id, name: x.name, kind: "自建", from: x.start, to: x.end, span: `${Demo.md(Date.parse(x.start + "T12:00:00+08:00"))}–${Demo.md(Date.parse(x.end + "T12:00:00+08:00"))}`, kinds: x.kinds, custom: true }));
+    .map((x) => ({ id: x.id, name: x.name, kind: "自建", projectId: x.projectId, buildingId: x.buildingId, floorId: x.floorId, from: x.start, to: x.end, span: `${Demo.md(Date.parse(x.start + "T12:00:00+08:00"))}–${Demo.md(Date.parse(x.end + "T12:00:00+08:00"))}`, kinds: x.kinds, custom: true }));
 const aiReportsAll = () => [...aiCustomReports(), ...REPORTS];
-const aiReportById = (id) => aiReportsAll().find((x) => x.id === id);
+const aiReportById = (id) => Demo.on() ? aiReportsAll().find((x) => x.id === id && aiReportScope(x)) : null;
 // 期内缺数的日期（数据覆盖不完整的一期不自动发布）
 const aiGapDays = (r) => {
   const a = Date.parse(r.from + "T00:00:00+08:00"), b = Date.parse(r.to + "T00:00:00+08:00");
@@ -109987,7 +110426,7 @@ function aiReportPer(r) {
   return { from: r.from, to: early ? ymdOf(r.cutAt) : live ? today : r.to };
 }
 function aiReportLive(r) {
-  const published = r.state === "已发布",
+  const scope = aiReportScope(r), published = r.state === "已发布",
     kinds = r.kinds || ["energy", "carbon", "environment", "space", "health"],
     today = ymdOf(Demo.NOW),
     // 期间结束前发布的报告数据截至发布时刻（BP115）
@@ -110018,9 +110457,9 @@ function aiReportLive(r) {
     // 期间含今天的草稿截至当前时刻（页面时钟），与告警页同一组告警
     now = early ? r.cutAt : live ? (typeof opsNow === "function" ? opsNow() : Demo.NOW) : null,
     inCut = (ts) => (now != null ? ts <= now : ts < cut),
-    al = F.alarmGroups(data())
-      .filter((a) => Date.parse(a.at) >= rg.from && inCut(Date.parse(a.at)))
-      .sort((a, b) => Date.parse(a.at) - Date.parse(b.at)),
+    al = scope ? F.alarmGroups(data(), a => aiReportAlarmIn(a, scope) && Date.parse(a.at) >= rg.from && inCut(Date.parse(a.at)))
+      .map(a => ({ ...a, relatedIds: a.relatedIds.filter(id => g("points", id)?.floorId === scope.f) }))
+      .sort((a, b) => Date.parse(a.at) - Date.parse(b.at)) : [],
     rec = (a) => a.state === "recovered" && inCut(Date.parse(a.recoveredAt)),
     open = al.filter((a) => !rec(a)),
     reach = Demo.health().reach.filter((x) => x.t >= rg.from && x.t < cut && x.v != null),
@@ -110031,7 +110470,7 @@ function aiReportLive(r) {
     // 2.66 V643：只统计办公、会议、实验类功能区
     spaceRows = u.map((x) => ({ z: x.z, v: anSpaceAvg(x) })).filter((x) => x.v != null && /办公|会议|实验/.test(x.z.type || "")),
     // 依据链接与数据分析的页签同名；2.66 V650：带上报告的位置与期间
-    basis = (tab, label) => aiLink(`查看${label}`, "opsReportBasis", { tab, from: per.from, to: per.to, f: OPS_SCOPE.floor }),
+    basis = (tab, label) => aiLink(`查看${label}`, "opsReportBasis", { tab, from: per.from, to: per.to }),
     cost = typeof costIn === "function" ? costIn(rg) : null,
     // 期内的图上备注（Y7）；2.66 V656：只收加在本报告楼层的备注
     chartNotes = (data().chartNotes || []).filter((n) => n.projectId === OPS_SCOPE.project && n.f === OPS_SCOPE.floor && n.t >= rg.from && n.t < cut).sort((a, b) => a.t - b.t),
@@ -110101,7 +110540,8 @@ function aiReportLive(r) {
     // 2.83 KW5：首句后写处理用时：“紧急告警 N 条，平均 N 分钟确认；工单 N 张，按计划完成 N 张，逾期 N 张。”没有紧急告警或工单时省去对应半句
     urg = al.filter((a) => a.level === "紧急"),
     urgAck = urg.filter((a) => a.ackAt && inCut(Date.parse(a.ackAt))),
-    tks = (data().investigationTasks || []).filter((k) => Date.parse(k.at) >= rg.from && inCut(Date.parse(k.at))),
+    scopedTasks = scope ? (data().investigationTasks || []).filter(k => aiReportTaskIn(k, scope)) : [],
+    tks = scopedTasks.filter((k) => Date.parse(k.at) >= rg.from && inCut(Date.parse(k.at))),
     tkDone = (k) => k.closedAt && inCut(Date.parse(k.closedAt)),
     tkOnTime = tks.filter((k) => tkDone(k) && (!k.planAt || Date.parse(k.closedAt) <= Date.parse(k.planAt))).length,
     tkLate = tks.filter((k) => k.planAt && (tkDone(k) ? Date.parse(k.closedAt) > Date.parse(k.planAt) : Date.parse(k.planAt) < (now ?? cut))).length,
@@ -110152,7 +110592,7 @@ function aiReportLive(r) {
   const slaFig = (() => {
     if (!["月报", "年报"].includes(r.kind) || !al.length || typeof alDue !== "function") return "";
     const end = now ?? cut,
-      tkOf = (a) => (data().investigationTasks || []).find((k) => (k.alertIds || [k.alarmId]).includes(a.id)),
+      tkOf = (a) => scopedTasks.find((k) => (k.alertIds || [k.alarmId]).includes(a.id)),
       at = (v) => (v && inCut(Date.parse(v)) ? Date.parse(v) : null),
       avg = (xs) => (xs.length ? durText(Math.max(1, Math.round(xs.reduce((n, v) => n + v, 0) / xs.length / 60000))) : "—"),
       pidOf = (a) => a.projectId || OPS_SCOPE.project,
@@ -110198,7 +110638,7 @@ function aiReportLive(r) {
     carbon: mk(cb, basis("carbon", "碳排放"), kidC ? fig(kidC.title, kidC.table) : "", cbQ),
     env: mk(env, basis("environment", "室内环境"), vfig + (kidV ? fig(kidV.title, kidV.table) : ""), envQ),
     space: mk(space, basis("space", "占用"), sfig + (kidS ? fig(kidS.title, kidS.table) : "")),
-    devices: mk(dev, aiLink("告警记录", "opsReportAlarms", { from: per.from, to: per.to }) + aiLink("查看设备列表", "opsGo", { page: "devices", tab: "inventory" }), slaFig, "", alItems), // 3.40 V1020：月报、年报另有按级别的处理表
+    devices: mk(dev, aiLink("告警记录", "opsReportAlarms", { from: per.from, to: per.to }) + aiLink("查看设备列表", "opsReportDevices"), slaFig, "", alItems), // 3.40 V1020：月报、年报另有按级别的处理表
     // 期内缺数的日期：数据覆盖不完整的一期不自动发布（Y10）
     gapDays: [...new Set(qs.filter((q) => q.type === "缺数").map((q) => q.t))],
     advice: mk(adv.length ? "" : `<p class="ai-p">期内没有需要处理的事项。</p>`, "", "", "", adv.map(([text, link]) => ({ text, link })), true),
@@ -110254,12 +110694,12 @@ function aiReportDraft(r0) {
     // 2.88 V855：发布弹窗里已写收件人与内容，“发布”按钮下不再写小字
     pubB = published || !aiCanPublish() ? "" : open ? disBtn("发布", "aiReportPublish", { id: r.id }, "sm primary", aiReportWhy(r)) : btn("发布", "aiReportPublish", { id: r.id }, "sm primary"),
     acts = `<span class="ai-report-acts">${editB}${pdfB}${holdB}${delB}${pubB}</span>`;
-  const place = where(OPS_SCOPE.floor).split(" / "),
+  const place = where(aiReportScope(r)?.f).split(" / "),
     placeTxt = place.filter(Boolean).join(" · "), // 2.82：楼栋与楼层之间写“ · ”（E栋 · 7F），同全站写法
     // 2.66 V632：页脚只写真实状态；发了几封邮件只记入修改记录
     foot = published ? (r.auto ? `${opsDay(r.pubAt)} ${Demo.hm(r.pubAt)} 自动发布。` : `${r.by} ${opsDay(r.pubAt)} ${Demo.hm(r.pubAt)} 发布。`) : aiAutoText(auto);
   // 2.82 定稿 5.2（KW27）：报告为白底卡片，标题行为报告名、状态与“编辑”“下载 PDF”“发布”；下一行写位置、期间与数据截至；不再有灰底纸面
-  return `<section class="ai-report"><div class="ai-report-paper"><header class="ai-report-h"><div class="ai-report-bar"><h3>${esc(r.name)}</h3><span class="ai-report-tags"><span class="an3-rst">${aiReportStatus(r)}</span>${r.trial ? `<span class="ops-st">交付前试运行</span>` : ""}${demoTag()}</span>${acts}</div><p class="ai-report-sub">${esc(placeTxt)} · ${esc(aiPeriodLong(r.from, r.to))}<span class="ai-report-cut"> · 数据截至 ${S.cutTxt}</span></p></header>${
+  return `<section class="ai-report"><div class="ai-report-paper"><header class="ai-report-h"><div class="ai-report-bar"><h3 tabindex="-1">${esc(r.name)}</h3><span class="ai-report-tags"><span class="an3-rst">${aiReportStatus(r)}</span>${r.trial ? `<span class="ops-st">交付前试运行</span>` : ""}${demoTag()}</span>${acts}</div><p class="ai-report-sub">${esc(placeTxt)} · ${esc(aiPeriodLong(r.from, r.to))}<span class="ai-report-cut"> · 数据截至 ${S.cutTxt}</span></p></header>${
     S.kpi?.length ? `<div class="ai-rkpi">${S.kpi.map(([v, l]) => `<div><b>${esc(v).replace(/%$/, "<small>%</small>")}</b><span>${esc(l)}</span></div>`).join("")}</div>` : ""
   }
   <div class="ai-report-b">${secs.map(([k, t]) => sec(k, t)).join("")}</div>${foot ? `<footer class="ai-report-f"><span class="ai-foot">${esc(foot)}</span></footer>` : ""}</div></section>`;
@@ -116283,6 +116723,15 @@ BARE_AFTER.legal = () => {
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "3.99",
+    date: "2026-11-19",
+    notes: [
+      "半层换图后保留仍有效的部署范围，核对后再确认变更。",
+      "统一报告正文与明细的范围，恢复报告、帮助和现场绑定的原入口。",
+      "改进楼宇待办、首页返回和窄屏图纸操作。",
+    ],
+  },
+  {
     version: "3.98",
     date: "2026-11-19",
     notes: [
@@ -119015,6 +119464,7 @@ Object.assign(actions, {
   },
   auHelpExit: () => {
     const back = U.helpBack?.owner === locOwner() && U.helpBack.view;
+    if (back?.page === "overview" && back.homeOverview && !back.sp && !back.obj) return homeOverviewReturnTo(back);
     if (back && back.page !== "help" && Object.hasOwn(pages, back.page)) route(back.sp ? "space" : back.page, back);
     else route("overview", {}, { loc: true });
   },
