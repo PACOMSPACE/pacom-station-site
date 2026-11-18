@@ -48200,6 +48200,17 @@ function snapshot() {
     filter: U.filter,
     q: U.q,
     zone: U.zone,
+    ...(U.page === "overview" && U.ov3Now && !U.sp && !U.obj ? {
+      homeOverview: {
+        floor: U.ov3F?.[U.b] || null,
+        wholeMode: U.homeBuildingModes?.[U.b] || "3d",
+        floorMode: U.homeBuildingFloorModes?.[U.b] || "2d",
+        mobilePane: U.homeOverviewMobilePanes?.[U.b ? "building:" + U.b : U.p ? "project:" + U.p : "all"] || "list",
+        visit: U.ov3HomeVisit,
+        panelScroll: $(".home-overview-frame")?.scrollTop || 0,
+        focus: wsFocusDesc(document.activeElement),
+      },
+    } : {}),
     ...(typeof opsRouteFields === "function" ? opsRouteFields() : {}),
     scroll: $("#pbody")?.scrollTop || 0,
   };
@@ -48289,15 +48300,13 @@ function locApply(page) {
   Object.assign(U, { zoom: v.zoom, canvasScrollX: v.x, canvasScrollY: v.y });
   if (page === "projects" && !U.p) U.view = "cards";
 }
-// 3.07 V1034：空间是原总览楼层级，内部仍按总览绘制（U.page 为 overview，U.sp 为真）；地址、侧栏、标题与本页记忆按“space”分开。
-// 总览不再到楼层：带楼层的总览地址与跳转都进入空间；在空间里换位置仍留在空间；侧栏进入总览回到楼宇及以上。
-// 对象页随来源：从空间打开的功能区、设备详情仍在空间（侧栏“空间”高亮，地址 #space?obj=…），其余在总览
-// 3.14 E1207：空间的“编辑”内部按项目楼层（功能区）或设备标记画布（设备、照明分区、网络）绘制，U.spEd 记模式；侧栏、标题与地址为“空间”
+// 普通空间查看统一到首页；显式 space 调用保留定位、对象及现场工作区。
+// 这些独立工作区写 workspace=1，防止刷新或历史导航被当作旧的普通查看链接迁移。
 const curPage = () => (U.page === "overview" && U.sp ? "space" : U.spEd ? "space" : U.page);
 function route(page, scope = {}, opts = {}) {
   guard(() => {
     const wasFull = spFull(),
-      sp = page === "space" || (page === "overview" && (scope.obj ? obMenuOf(scope.obj) === "space" : "sp" in scope ? !!scope.sp || !!scope.f : !!scope.f || (U.page === "overview" && !!U.sp && !opts.restore)));
+      sp = page === "space" || (page === "overview" && (scope.obj ? obMenuOf(scope.obj) === "space" : !!scope.sp));
     if (page === "space") page = "overview";
     const memKey = sp ? "space" : page;
     closePop();
@@ -48384,7 +48393,11 @@ function route(page, scope = {}, opts = {}) {
     // 2.81 KW23：侧栏进入总览为当前位置的总览，不回到上次打开的对象页
     if (opts.restore && !("obj" in scope)) U.obj = U.otab = null;
     if (opts.loc) locApply(page);
-    if (page === "overview" && !sp && !U.obj) U.f = null;
+    if (page === "overview" && !sp && !U.obj) {
+      // f 只作为首页选层输入，渲染后由首页状态持有；不能在路由阶段丢掉。
+      if (!("f" in scope)) U.f = null;
+      if (!U.f && U.b) (U.ov3F ||= {})[U.b] = null;
+    }
     if (keepInfo && !U.f) U.spaceInfo = U.b ? { kind: "buildings", id: U.b } : U.p ? { kind: "projects", id: U.p } : null; // 2.88 E1118
     U.mode = normalizeDeviceMode(page, U.mode);
     // 2.56 E547：设备标记没有楼层时由页面打开上次看的楼层或第一个有楼层图的楼层，不再退回设备列表
@@ -48449,6 +48462,9 @@ function syncRoute(replace = false) {
   // 来源返回记在本历史项里（2026-10-05 核查 C1）：浏览器后退、前进回到哪一项，就恢复那一项进入时的来源。
   const canvas = devCanvas();
   for (const k of ["p", "b", "f", "tab", "net", "ntab", "conn", "ctab"]) if (U[k] && !(["ntab", "ctab"].includes(k) && U[k] === "summary")) q.set(k, U[k]);
+  const homeFloor = typeof ov3HomeRouteFloor === "function" ? ov3HomeRouteFloor() : null;
+  if (!U.f && homeFloor) q.set("f", homeFloor);
+  if (U.page === "overview" && U.sp && !U.obj) q.set("workspace", "1");
   if (["projects", "devices"].includes(U.page) && U.f && U.zone) q.set("z", U.zone);
   if (U.page === "deployment" && U.tab !== "status") {
     const mode = depTopoRouteMode(U.depTopoMode || depWbView().mode, U.b, U.f, U.tab);
@@ -48482,8 +48498,10 @@ function readRoute() {
   for (const k of ["p", "b", "f", "tab", "net", "ntab", "conn", "ctab"]) U[k] = q.get(k) || null;
   // 3.31 运营区第 4 项：#devices…&obj= 为设备的对象页（与功能区对象页同一页面）
   if (U.page === "devices" && q.get("obj")) U.page = "overview";
-  // 3.07 V1034：#space 为空间；原总览楼层的地址（带 f）转到空间的同一层与同一图层
-  U.sp = U.page === "space" || (U.page === "overview" && !!U.f && !q.get("obj"));
+  // 无上下文的旧 space/overview 楼层地址进入首页；有定位、图层或编辑意图时保留工作区。
+  const spaceContext = q.get("workspace") === "1" || q.has("obj") || q.has("edit") || q.has("z") ||
+    ["light", "lighting", "hvac", "env", "environment", "occ", "occupancy", "dev"].includes(q.get("tab"));
+  U.sp = ["space", "overview"].includes(U.page) && spaceContext;
   if (U.page === "space") U.page = "overview";
   U.obj = U.page === "overview" ? q.get("obj") || null : null;
   // 3.31（账户 240）：旧地址 #overview…&obj= 与放错菜单的对象地址转到对象所在的菜单，邮件、报告与收藏里的旧链接照常打开
@@ -48537,6 +48555,8 @@ function readRoute() {
     U.p = g("buildings", U.b).projectId;
   }
   if (U.b) U.p = g("buildings", U.b).projectId;
+  // 地址中的整栋与选层是明确状态；前进到不带 f 的首页不能保留后一页所选层。
+  if (U.page === "overview" && !U.sp && !U.obj && U.b && !U.f) (U.ov3F ||= {})[U.b] = null;
   if (U.conn && (U.page === "devices" || U.page === "deployment") && U.tab === "connections") {
     const c = visibleConnection(U.conn);
     if (c && (!U.p || c.projectId === U.p)) U.p = c.projectId;
@@ -48549,7 +48569,7 @@ function readRoute() {
     if (U.tab === "network") U.tab = "status";
   }
   const normalizedMode = normalizeDeviceMode(U.page, U.mode);
-  let fixed = normalizedMode !== U.mode || (hasSettingsProject && ["b", "f", "z"].some((key) => q.has(key)));
+  let fixed = (page === "space" && !spaceContext) || normalizedMode !== U.mode || (hasSettingsProject && ["b", "f", "z"].some((key) => q.has(key)));
   U.mode = normalizedMode;
   // 旧地址（2026-10-17 用户确认，配置区核查 E80、E86）：配置参数、告警规则进入应用设置
   if ((U.page === "projects" || U.page === "deployment") && U.tab === "params") {
@@ -49036,7 +49056,8 @@ function lmScopeSearch(query, projects, live, { only = false, home = false } = {
         const floor = compact(f.name), path = compact(p.name + (site || "") + b.name + f.name);
         const byFloor = /^([b]?\d+f?|rf)$/i.test(text) && floor.includes(text);
         if ((availableFloors && !availableFloors.has(f.id)) || (!byFloor && !(text.endsWith(floor) && path.includes(text)))) continue;
-        add(f.name, lmRow(U.f === f.id, "homeLocationFloor", { p: p.id, b: b.id, f: f.id }, `<span class="ws-lm-n">${esc(f.name)}</span><small class="ws-lm-proj">${esc(M.buildingLabel(data(), b))}</small>`));
+        const currentFloor = typeof ov3HomeRouteFloor === "function" ? ov3HomeRouteFloor() : U.f;
+        add(f.name, lmRow(currentFloor === f.id, "homeLocationFloor", { p: p.id, b: b.id, f: f.id }, `<span class="ws-lm-n">${esc(f.name)}</span><small class="ws-lm-proj">${esc(M.buildingLabel(data(), b))}</small>`));
       }
     }
   }
@@ -50237,6 +50258,30 @@ function spEdLeave() {
   const f = U.spEd === "3d" ? null : U.f,
     s = U.source;
   U.depQ = null;
+  // 首页查看和编辑是两个工作区；完成后恢复打开编辑器时的首页，而不是另开独立楼层页。
+  if (s?.page === "overview" && !s.sp && !s.obj) {
+    const { label, homeOverview: home, focus, prev, ...scope } = s,
+      bid = s.b,
+      fid = home?.floor || s.f || null;
+    if (home) {
+      Object.assign(scope, { ov3HomeVisit: home.visit, homeOverviewReturn: true });
+      if (bid) {
+        scope.ov3F = { ...(U.ov3F || {}), [bid]: fid };
+        scope.homeBuildingModes = { ...(U.homeBuildingModes || {}), [bid]: home.wholeMode };
+        scope.homeBuildingFloorModes = { ...(U.homeBuildingFloorModes || {}), [bid]: home.floorMode };
+      }
+      const key = bid ? "building:" + bid : s.p ? "project:" + s.p : "all";
+      scope.homeOverviewMobilePanes = { ...(U.homeOverviewMobilePanes || {}), [key]: home.mobilePane };
+    }
+    route("overview", { ...scope, sp: false, f: fid }, { source: prev || null });
+    requestAnimationFrame(() => {
+      const frame = $(".home-overview-frame");
+      if (frame && home) frame.scrollTop = home.panelScroll || 0;
+      const fallback = fid ? document.querySelector(`.home-overview [data-act="ov3Floor"][data-to="${CSS.escape(fid)}"]`) : $(".home-overview .ov3-fhome");
+      (wsFindDesc(home?.focus || focus) || (fallback?.getClientRects().length ? fallback : null) || $("#homeLocationScope"))?.focus({ preventScroll: true });
+    });
+    return;
+  }
   if (U.spEd === "3d") U.ovView = "3d";
   // 3.30 部署流程第三节第 6 条：回到打开编辑器的页面；部署进度展开原来的步骤，焦点回到原按钮（该条已处理时回到步骤行）；
   // 3.32 E1318：从网络详情打开的回到这个网络的详情与原页签
@@ -97469,7 +97514,7 @@ defineActions({
           : route("space", { p: a.p, b: a.b, f: a.f, tab: "" }, deploymentSpaceSource(el))
         : route("deployment", { p: a.p, b: a.b || null, f: null, tab: "config" })
       : a.f
-        ? route("space", { p: a.p, b: a.b, f: a.f, tab: "" })
+        ? route("overview", { p: a.p, b: a.b, f: a.f, tab: "", sp: false })
         : route("overview", { p: a.p, b: a.b || null, f: null, tab: "info", sp: false }),
   ovInfoRecs: (a) => {
     const o = g(a.kind, a.id);
@@ -103204,6 +103249,13 @@ const ov3On = () => U.page === "overview" && !U.sp && !U.obj && !U.obGone && U.r
 const ov3Info = () => U.page === "overview" && !U.sp && !U.obj && !U.obGone && U.role !== "member" && U.tab === "info" && !!U.p && !!g("projects", U.p);
 const ov3Lv = () => (U.b && g("buildings", U.b) ? "b" : U.p ? "p" : "all");
 const ov3Out = (bid) => typeof isOutdoor === "function" && isOutdoor(bid);
+function ov3HomeRouteFloor() {
+  if (!ov3On() || !U.b || ov3Out(U.b)) return null;
+  const visit = JSON.stringify([storeKey(), locOwner(), U.p, U.b]);
+  if (U.ov3HomeVisit !== visit) return null;
+  const f = g("floors", U.ov3F?.[U.b]);
+  return f?.buildingId === U.b && (canEdit() || ovLiveIds().has(f.id)) ? f.id : null;
+}
 const ov3Num = (v, d = 0) => nf(v, d);
 // 已接入运行数据的楼层（运营页的位置菜单同一口径）
 const ov3Live = () => new Set(typeof Demo !== "undefined" && Demo.on?.() && typeof liveFloorIds === "function" ? liveFloorIds() : []);
@@ -103320,14 +103372,15 @@ function ov3Page() {
   if (U.tab && !(U.tab === "info" && U.p)) (U.tab = ""), (fix = true);
   if (U.f) {
     const f = incomingFloor;
-    if (f) {
+    if (f && (canEdit() || ovLiveIds().has(f.id))) {
       U.b = f.buildingId;
       (U.ov3F ||= {})[f.buildingId] = f.id;
-      homeOverviewShowMobile("map");
-    }
+      if (!U.homeOverviewReturn) homeOverviewShowMobile("map");
+    } else if (f) (U.ov3F ||= {})[f.buildingId] = null;
     U.f = null;
     fix = true;
   }
+  U.homeOverviewReturn = null;
   if (fix) syncRoute(true);
   return homeOverviewShell(ov3Lv());
 }
@@ -104635,6 +104688,7 @@ function ov3Pick(h) {
   if (!fid || s.mode === "2d" || !s.st.some((x) => x.f.id === fid) || s.cur === fid) return;
   s3SaveCam();
   U.ov3F[U.b] = fid;
+  if (s.home) syncRoute();
   render();
 }
 // 选“全部”时悬停楼层列的某层：模型上高亮该层
@@ -104944,6 +104998,7 @@ defineActions({
     U.ov3F[U.b] = a.to || null;
     // 选到没有 3D 的楼层时 ov3State 自动换成 2D；2D 时点“全部”切回 3D
     if (!s.home && !a.to && U.ov3M?.[U.b] === "2d" && ov3State().has3) U.ov3M[U.b] = "3d";
+    if (s.home) syncRoute();
     render();
   },
   ov3Reset: () => {
@@ -104964,22 +105019,33 @@ defineActions({
     render();
   },
   // 3.52 E1534：没有楼层图的楼宇“上传楼层图”：进入项目配置的该楼宇并直接选择楼层图文件（不再先打开部署范围）
-  ov3CfgUp: (a) => {
+  ov3CfgUp: withPolicy({ guard: true }, (a) => {
+    const b = g("buildings", a.b), f = a.f && g("floors", a.f);
+    if (!canEdit() || !b || b.projectId !== U.p) return;
+    assertNetworkProjectAccess(b.projectId);
+    if (a.f && (!f || f.buildingId !== b.id)) throw Error("楼层已变更，请重新选择");
     closePop();
-    const fs = sortedFloors(a.b).filter((f) => !f.image).map((f) => f.id);
-    route("deployment", { p: U.p, b: a.b, f: null, tab: "config", net: null }, { source: null });
-    if (fs.length) actions.depUpload({ b: a.b, fs: fs.join(",") });
-  },
+    const fs = f ? [] : sortedFloors(b.id).filter((floor) => !floor.image).map((floor) => floor.id);
+    route("deployment", { p: b.projectId, b: b.id, f: null, tab: "config", net: null }, { source: null });
+    if (f) actions.depUpload({ b: b.id, f: f.id });
+    else if (fs.length) actions.depUpload({ b: b.id, fs: fs.join(",") });
+  }),
   // 上传楼层图：打开指定楼层（未指定时为最低一层地上楼层，没有时为第一层）的楼层编辑并打开上传
-  ov3UploadPlan: (a = {}) => {
+  ov3UploadPlan: withPolicy({ guard: true }, (a = {}) => {
     closePop();
     if (!canEdit() || !U.b) return;
-    const st = F.floorStack(data(), U.b),
-      f = (a.f && st.find((x) => x.f.id === a.f))?.f || (st.find((x) => x.f.kind === "above") || st[0])?.f;
+    const b = g("buildings", U.b);
+    if (!b || b.projectId !== U.p) return;
+    assertNetworkProjectAccess(b.projectId);
+    const st = F.floorStack(data(), b.id),
+      f = a.f ? st.find((x) => x.f.id === a.f)?.f : (st.find((x) => x.f.kind === "above") || st[0])?.f;
+    if (a.f && !f) throw Error("楼层已变更，请重新选择");
     if (!f) return;
     goFloor(f.id, "zones", null, "projects");
-    requestAnimationFrame(() => actions.uploadPlan({ f: f.id }));
-  },
+    requestAnimationFrame(() => {
+      if (U.f === f.id && U.b === b.id && U.spEd) actions.uploadPlan({ f: f.id });
+    });
+  }),
   // 楼宇总览“待处理 N 项”：进入告警工单，筛到本楼宇
   ov3Alarms: () => route("alarms", { p: U.p, b: U.b, f: null, tab: "" }),
 });
@@ -105626,7 +105692,7 @@ function ws3Canvas(sc, o) {
   if (!st.some((x) => x.f.image) || (f && !f.image)) {
     S3_PEND = null;
     const name = f ? `${b.name} · ${f.name}` : b.name;
-    return `<section class="ov3-view ov3-cv ov3-noplan ws3-cv${f ? " ov3-nofl" : ""}" aria-label="${esc(name)}">${st.some((x) => x.f.image) ? col : ""}<div class="ov3-np-c"><span class="ov3-np-ic" aria-hidden="true">${ico("layers")}</span><h2>${esc(f ? f.name : b.name)} 未上传楼层图</h2><p>上传楼层图并放置设备后，这里显示平面和 3D</p>${canEdit() ? btn("上传楼层图", "ov3CfgUp", { b: b.id }, "ov3-npb") : ""}</div></section>`;
+    return `<section class="ov3-view ov3-cv ov3-noplan ws3-cv${f ? " ov3-nofl" : ""}" aria-label="${esc(name)}">${st.some((x) => x.f.image) ? col : ""}<div class="ov3-np-c"><span class="ov3-np-ic" aria-hidden="true">${ico("layers")}</span><h2>${esc(f ? f.name : b.name)} 未上传楼层图</h2><p>上传楼层图并放置设备后，这里显示平面和 3D</p>${canEdit() ? btn("上传楼层图", "ov3CfgUp", { b: b.id, ...(f ? { f: f.id } : {}) }, "ov3-npb") : ""}</div></section>`;
   }
   const mode = o.mode || (sc.fid ? ws3Mode(sc.bid) : "3d"),
     d2 = mode === "2d",
@@ -105720,7 +105786,7 @@ const ws3Grp = (name, meta = "", right = "", fold = false) => {
 const ws3FlName = (sc, f) => (!f ? "" : sc.bid ? f.name : `${g("buildings", f.buildingId)?.name || ""} · ${f.name}`);
 const ws3Back = (label, act, args = {}, pager = "") => `<div class="ws3-back">${btn(ico("back", "ic16") + esc(label), act, args, "ghost sm ws3-bk")}${pager}</div>`;
 function ws3Panel(sc, heading, body, tabs = "", cls = "") {
-  const back = deploymentSpaceBack() ? `<div class="ws3-back dep-space-back">${sourceBack()}</div>` : "";
+  const source = sourceBack(), back = source ? `<div class="ws3-back dep-space-back">${source}</div>` : "";
   const scope = `<div class="ws3-desktop-scope">${wsLocRow()}</div>${ws3MobBar(sc, ws3MobMode(ws3Pg()))}`;
   return `<div class="ws3-layout-head">${heading}${wsScopeBand(scope, tabs)}${back}</div><aside class="ov3-panel ws3-panel${cls ? " " + cls : ""}" aria-labelledby="ws3T">${body}</aside>`;
 }
@@ -106946,7 +107012,8 @@ function homeOverviewShowMobile(view) {
 
 function homeOverviewScope(level) {
   const project = U.p && g("projects", U.p), building = level === "b" && g("buildings", U.b);
-  const text = building ? `${project.name} · ${M.buildingLabel(data(), building)}` : project ? project.name : "全部项目";
+  const floor = building && typeof ov3HomeRouteFloor === "function" && g("floors", ov3HomeRouteFloor());
+  const text = building ? `${project.name} · ${M.buildingLabel(data(), building)}${floor ? ` · ${floor.name}` : ""}` : project ? project.name : "全部项目";
   return locProjects().length ? `<div class="ws-locrow home-overview-scope-row">${wsScopeButton(text, { id: "homeLocationScope", cls: "home-overview-scope", label: "选择位置" })}</div>` : "";
 }
 
@@ -107007,7 +107074,7 @@ defineActions({
     const floor = g("floors", a.f);
     if (!floor || floor.buildingId !== U.b || a.b !== U.b || a.p !== U.p || !mayViewProject(a.p) || (!canEdit() && !ovLiveIds().has(floor.id))) return;
     if ($("#dlg .ws-lm-sheet")) closeModal(true);
-    goFloor(floor.id, "view", null, "space");
+    route("overview", { p: a.p, b: a.b, f: floor.id, tab: "", sp: false }, { remember: true });
   }),
   homeMobileView: ({ value }) => {
     if (!U.ov3Now || !["list", "map"].includes(value)) return;
@@ -115319,6 +115386,11 @@ BARE_AFTER.legal = () => {
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "3.92",
+    date: "2026-11-18",
+    notes: ["统一首页的楼层选择、历史链接和编辑返回。", "修复指定楼层上传图纸时的目标定位，保留设备定位与对象详情。"],
+  },
   {
     version: "3.91",
     date: "2026-11-17",
