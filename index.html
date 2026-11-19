@@ -7946,6 +7946,8 @@ body:has(> #dlg > .dialog:not(.au-dialog)) #toast { top:16px; bottom:auto; }
 }
 @media (max-width:850px) {
   :is(#app, #dlg)[data-page] .btn.ws-source-back { width:44px; height:44px; min-height:44px; padding:0; }
+  :is(#app, #dlg)[data-page] .btn.ws-source-back-labeled { width:auto; min-width:44px; max-width:100%; padding-inline:12px; }
+  .ws-source-back-labeled > span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 }
   /* 放在 project 层：.ws-notice 等通用规则在本层，base 层的覆盖不生效 */
   /* 3.08 V1044–V1046：升级弹窗的升级、生效两个时段与“先试点”，下发前检查每行一个勾或一个提醒；任务详情的阶段条与带操作的提醒 */
@@ -32864,6 +32866,19 @@ col.al-w200 { width: 200px; }
 .ops-history-group + .ops-history-group { margin-top: 24px; }
 .ops-history-group > h3 { display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px; font-size: 16px; line-height: 24px; font-weight: 500; }
 .ops-history-group > h3 > span { font-size: 12px; line-height: 18px; color: #636363; font-variant-numeric: tabular-nums; }
+.ops-report-records > header { margin-bottom: 16px; }
+.ops-report-records > header > h2 { margin: 0 0 4px; font-size: 16px; line-height: 24px; font-weight: 500; }
+.ops-report-records > header > p, .ops-report-env > p { margin: 0 0 4px; color: var(--muted, #636363); font-size: 13px; line-height: 20px; }
+.ops-report-records .ops-report-rows { list-style: none; padding: 0 12px; margin: 0; }
+.ops-report-records .ops-report-empty { margin: 0; }
+.ops-report-record { display: flex; align-items: baseline; justify-content: space-between; gap: 4px 16px; padding: 10px 0; }
+.ops-report-record + .ops-report-record { border-top: var(--hw) solid var(--border, #dedede); }
+.ops-report-record > div { display: grid; min-width: 0; gap: 2px; overflow-wrap: anywhere; }
+.ops-report-record b { font-weight: 500; }
+.ops-report-record time, .ops-report-record > span { font-size: 12px; line-height: 18px; color: var(--muted, #636363); font-variant-numeric: tabular-nums; }
+.ops-report-record > span { flex: none; }
+.ops-report-env { min-width: 0; }
+.ops-report-env > p { margin-bottom: 8px; }
 .ops-ack-list, .ops-receipt-devices { margin: 12px 0 0; display: grid; gap: 8px; }
 .ops-ack-list { padding-inline-start: 20px; }
 .ops-receipt-devices { list-style: none; padding: 0; }
@@ -38195,7 +38210,14 @@ img.img-off { display: none !important; }
 .dep-managed-geometry { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .dep-managed-geometry[hidden], .dep-managed-verify[hidden] { display: none; }
 .dep-managed-geometry :is(rect, ellipse, polygon) { vector-effect: non-scaling-stroke; stroke: #00769d; stroke-width: 1.5px; fill: rgb(0 174 239 / 14%); }
-.dep-managed-geometry .dep-managed-dot { fill: #005c7f; stroke: #fff; }
+.dep-managed-geometry [data-bound-zone][data-bound-conflict] { stroke: #b42318; stroke-width: 2px; stroke-dasharray: 4 2; fill: rgb(180 35 24 / 16%); }
+.dep-managed-dot { color: #005c7f; }
+.dep-managed-dot[data-bound-conflict] { color: #b42318; }
+.dep-managed-dot path { vector-effect: non-scaling-stroke; stroke-linecap: round; fill: none; }
+.dep-managed-dot-ring { stroke: #fff; stroke-width: 8px; }
+.dep-managed-dot-core { stroke: currentColor; stroke-width: 6px; }
+.dep-managed-conflicts { color: #b42318; overflow-wrap: anywhere; }
+.dep-managed-conflicts:empty { margin: 0; }
 .dep-managed-verify { display: grid; gap: 4px; margin-block: 8px; }
 .dep-copy-previews { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .dep-copy-previews figure { display: grid; justify-items: center; align-content: end; gap: 6px; margin: 0; }
@@ -48184,7 +48206,12 @@ function modal(title, body, foot = "", wide = true, options = {}) {
     // 2.82 KW40：底部卡片换内容（点下一行）时保持半屏或全屏
     bsFull = !!options.sheet && !!$("#dlg.ds-bsheet.ds-bs-full");
   wsGhostClear();
-  if ($("#dlg")) $("#dlg").remove();
+  const previous = $("#dlg");
+  if (previous) {
+    wsHideTip(true);
+    wsDialogTipPaused = true;
+    previous.remove();
+  }
   modalDirty = false;
   const el = document.createElement("div");
   el.className = fresh ? "scrim ws-dlg-enter" : "scrim";
@@ -48329,7 +48356,10 @@ function snapshot() {
     conn: U.conn || null,
     ctab: U.ctab || null,
     filter: U.filter,
-    ...(U.page === "devices" && U.tab === "inventory" ? { deviceNet: U.deviceNet || "", deviceIssueRoute: !!U.deviceIssueRoute } : {}),
+    ...(U.page === "devices" && U.tab === "inventory" ? {
+      deviceNet: U.deviceNet || "", deviceIssueRoute: !!U.deviceIssueRoute, deviceTask: U.deviceTask || "",
+      inventoryTask: typeof inventoryTaskState === "function" ? inventoryTaskState() : null,
+    } : {}),
     q: U.q,
     zone: U.zone,
     ...(U.page === "overview" && U.ov3Now && !U.sp && !U.obj ? { homeOverview: homeOverviewSnapshot() } : {}),
@@ -48444,7 +48474,7 @@ function route(page, scope = {}, opts = {}) {
     // 2.13 E225：项目页切换层级时停靠的信息面板保持展开，内容换成所到层级的信息（楼层页除外，楼层页右侧是功能区面板）。
     const keepInfo = U.page === "projects" && page === "projects" && !!U.spaceInfo && infoDocked();
     if (opts.remember) U.history.push(from);
-    if (!U.spEd && !U.obj && !U.alarmQueue) U.memory[devDeploy() ? "devDeploy" : curPage()] = from; // 对象、编辑及首页待办明细不覆盖主导航记忆。
+    if (!U.spEd && !U.obj && !U.alarmQueue && !U.opsReportView && !from.deviceIssueRoute) U.memory[devDeploy() ? "devDeploy" : curPage()] = from; // 专用明细与编辑不覆盖主导航记忆。
     if (typeof opsRouteLeaving === "function") opsRouteLeaving(page, scope);
     if (U.page === "settings" && (page !== "settings" || ("p" in scope && scope.p !== U.p))) {
       runtimePreviewClose(false);
@@ -48477,6 +48507,7 @@ function route(page, scope = {}, opts = {}) {
         filter: "all",
         deviceNet: U.deviceIssueRoute ? "" : U.deviceNet,
         deviceIssueRoute: false,
+        deviceTask: "",
         q: "",
         type: null,
         drawZone: false,
@@ -48556,7 +48587,20 @@ function route(page, scope = {}, opts = {}) {
     U.redo = [];
     if (page === "projects" && opts.root) Object.assign(U, { p: null, b: null, f: null, view: "cards", mode: "view" });
     projGo();
+    if ((U.deviceIssueRoute || from.deviceIssueRoute) && typeof restoreInventoryTaskFilters === "function") restoreInventoryTaskFilters(scope.inventoryTask);
     U.nextScroll = opts.restore && U.memory[memKey] ? U.memory[memKey].scroll || 0 : scope.scroll || 0;
+    if (opts.opsState && opsRestoreRouteState({ ops: opts.opsState })) {
+      if (U.opsDrawer?.page === "alarms") {
+        const items = U.alarmQueue ? homeBuildingQueueItems() : alItems();
+        const item = items.find(it => alHit(it, U.opsDrawer)), floor = item && ws3ItFloor(item);
+        if (item && (!U.f || floor === U.f) && (!U.b || !floor || g("floors", floor)?.buildingId === U.b)) U.alSel = item.id;
+        else U.opsDrawer = null;
+      }
+      if (U.page === "analysis" && U.opsRpDoc && !analysisReportEntries().some(report => report.id === U.opsReport && report.paper)) {
+        U.opsReport = null;
+        U.opsRpDoc = false;
+      }
+    }
     syncRoute();
     render();
     // 3.32 E1309：进入整页编辑器时焦点在“←”（“去处理”“下一项”另把焦点放到要做的动作上）
@@ -48619,6 +48663,8 @@ function syncRoute(replace = false) {
   if (canvas || U.mode !== floorDefaultMode(U.page)) q.set("mode", U.mode);
   const state = { source: U.source || null }, ops = typeof opsRouteState === "function" ? opsRouteState() : null;
   if (ops) state.ops = ops;
+  const inventoryTask = typeof inventoryTaskState === "function" ? inventoryTaskState() : null;
+  if (inventoryTask) state.inventoryTask = inventoryTask;
   if (U.page === "help") {
     state.helpBack = U.helpBack || null;
     state.helpScroll = U.helpScroll || 0;
@@ -54253,6 +54299,7 @@ document.addEventListener("input", (e) => {
   // 搜索框在增量更新中保留（D4）：焦点与光标不动，不再在重绘后找回。
   if (e.target.id === "deviceQuery") {
     U.q = e.target.value;
+    if (U.page === "devices" && U.tab === "inventory" && U.deviceIssueRoute) syncRoute(true);
     render();
   }
   // 2.58 E614：设备分组的搜索
@@ -55840,6 +55887,7 @@ boot();
 
 let lastPointer = "mouse";
 let wsTipAnchor = null, wsTipPending = null, wsTipShowTimer = null, wsTipHideTimer = null;
+let wsDialogTipPaused = false;
 // Esc 关闭的楼层提示在原控件上保持关闭，直到焦点离开或指针重新进入。
 const wsDismissedFloorTips = new WeakSet();
 function wsDismissTip() {
@@ -55872,6 +55920,7 @@ function wsRailTipLayout(list) {
 }
 function wsTipAllowed(el, keyboard) {
   if (!el?.isConnected || !el.dataset.tip || el.closest("[inert]")) return false;
+  if (!keyboard && wsDialogTipPaused && el.closest("#dlg")) return false;
   const floorRail = el.closest(".ov3-fcol, .ws-rail");
   if (floorRail && (wsDismissedFloorTips.has(el) || ov3FloorTipTimers.has(floorRail.querySelector(".ov3-flist, .ws-rail-scroll")) || !ov3RailTipVisible(el))) return false;
   if (el.matches(".ws-rail-scroll > button") && !ov3FloorInView(el)) return false;
@@ -55989,6 +56038,13 @@ document.addEventListener("pointerover", e => {
   lastPointer = e.pointerType || "mouse";
   wsDismissedFloorTips.delete(el);
   wsShowTip(el);
+});
+document.addEventListener("pointermove", e => {
+  if (!wsDialogTipPaused || e.pointerType === "touch") return;
+  wsDialogTipPaused = false;
+  lastPointer = e.pointerType || "mouse";
+  const el = e.target.closest("#dlg [data-tip]");
+  if (el) wsShowTip(el);
 });
 document.addEventListener("pointerout", e => {
   const el = e.target.closest("[data-tip]");
@@ -56182,9 +56238,10 @@ function deploymentSpaceSource(opener, view = "") {
 const deploymentSpaceBack = () => U.page === "overview" && U.sp && U.source?.page === "deployment" && U.source.tab === "config" && U.source.b === U.b;
 function sourceBack() {
   if (U.spEd) return ""; // 3.14 E1207：空间的编辑以“完成”回到楼层图，不另放来源返回
-  if (typeof opsReportSource === "function" && opsReportSource()) return btn(ico("back", "ic16") + "返回报告", "opsReportReturn", {}, "ws-source-back");
-  if (U.page === "alarms" && U.alarmQueue && !U.opsDrawer && U.source?.homeOverview) return btn(ico("back", "ic16") + "返回楼宇首页", "sourceBack", {}, "ws-source-back");
-  if (deploymentSpaceBack()) return btn(ico("back", "ic16") + `返回${esc(zhSub(U.source.label, "l"))}`, "sourceBack", {}, "ws-source-back");
+  const labeledBack = (label, action) => btn(`${ico("back", "ic16")}<span>${esc(label)}</span>`, action, {}, "ws-source-back ws-source-back-labeled");
+  if (typeof opsReportSource === "function" && opsReportSource()) return labeledBack("返回报告", "opsReportReturn");
+  if (U.page === "alarms" && U.alarmQueue && !U.opsDrawer && U.source?.homeOverview) return labeledBack("返回楼宇首页", "sourceBack");
+  if (deploymentSpaceBack()) return labeledBack(`返回${zhSub(U.source.label, "l")}`, "sourceBack");
   // 3.17 E1250：部署四个页签之间不加来源返回（从“进度”的行进入设备网络等）；网络详情、连接详情的返回按钮改写“返回部署进度”（3.32 E1319）；
   // 3.32 E1319：固件升级从进度进入时页头有“返回部署进度”
   if (devDeploy() && ((U.source?.page === "deployment" && U.tab !== "firmware" && !(U.tab === "inventory" && U.source.fromAttention)) || (U.net && U.source?.fromNetworkList))) return "";
@@ -62581,36 +62638,73 @@ function depBoundaryControls(saved) {
 }
 const depBoundGet = () => depManagedRect(["depBoundLeft", "depBoundTop", "depBoundRight", "depBoundBottom"].map(id => $("#" + id)?.value));
 function depBoundaryGeometry(db, fid) {
-  const zones = db.zones.filter(zone => zone.floorId === fid).map(({ id, shape, x, y, w, h, vertices }) => ({ id, shape, x, y, w, h, vertices }));
+  const zones = db.zones.filter(zone => zone.floorId === fid)
+    .map(({ id, name, floorId, shape, x, y, w, h, vertices }) => ({
+      id, name, floorId, shape, x, y, w, h, vertices: Array.isArray(vertices) ? vertices.map(vertex => ({ ...vertex })) : vertices,
+    }));
   const points = db.points.filter(point => point.floorId === fid && !point.unplaced && point.positionAttached !== false)
-    .map(({ id, x, y, planVersion }) => ({ id, x, y, planVersion }));
+    .map(({ id, name, floorId, zoneId, x, y, planVersion }) => ({ id, name, floorId, zoneId, x, y, planVersion }));
+  return { zones, points };
+}
+
+function depBoundaryConflicts(floor, geometry) {
+  const zones = geometry.zones.filter(zone => !F.managedZoneIn(floor, zone));
+  const points = geometry.points.filter(point => !F.managedPointIn(geometry, floor, { ...point, planVersion: floor.planVersion }));
   return { zones, points };
 }
 
 function depBoundaryGeometryPreview({ zones, points }) {
   const path = coordinates => coordinates.map(({ x, y }) => `${Number(x)},${Number(y)}`).join(" ");
-  return zones.map(zone => zone.shape === "polygon" && zone.vertices?.length
-    ? `<polygon points="${path(zone.vertices)}"></polygon>`
-    : zone.shape === "ellipse"
-      ? `<ellipse cx="${zone.x + zone.w / 2}" cy="${zone.y + zone.h / 2}" rx="${zone.w / 2}" ry="${zone.h / 2}"></ellipse>`
-      : `<rect x="${Number(zone.x)}" y="${Number(zone.y)}" width="${Number(zone.w)}" height="${Number(zone.h)}"></rect>`
-  ).join("") + points.map(({ x, y }) => `<ellipse class="dep-managed-dot" cx="${Number(x)}" cy="${Number(y)}" rx="0.65" ry="0.65"></ellipse>`).join("");
+  const zoneShapes = zones.map(zone => {
+    const id = `data-bound-zone="${esc(zone.id)}"`;
+    if (zone.shape === "polygon" && zone.vertices?.length) return `<polygon ${id} points="${path(zone.vertices)}"></polygon>`;
+    if (zone.shape === "ellipse") return `<ellipse ${id} cx="${zone.x + zone.w / 2}" cy="${zone.y + zone.h / 2}" rx="${zone.w / 2}" ry="${zone.h / 2}"></ellipse>`;
+    return `<rect ${id} x="${Number(zone.x)}" y="${Number(zone.y)}" width="${Number(zone.w)}" height="${Number(zone.h)}"></rect>`;
+  });
+  // Round, non-scaling strokes keep the markers legible even on very wide drawings.
+  const pointShapes = points.map(({ id, x, y }) => {
+    const mark = `M${Number(x)} ${Number(y)}l.01 .01`;
+    return `<g class="dep-managed-dot" data-bound-point="${esc(id)}"><path class="dep-managed-dot-ring" d="${mark}"></path><path class="dep-managed-dot-core" d="${mark}"></path></g>`;
+  });
+  return zoneShapes.join("") + pointShapes.join("");
 }
 
-function depBoundaryPreview(dlg, image) {
+function depBoundaryPaintConflicts(dlg, overlay, conflicts) {
+  const zoneIds = new Set(conflicts.zones.map(zone => zone.id));
+  const pointIds = new Set(conflicts.points.map(point => point.id));
+  for (const shape of overlay.children) {
+    shape.toggleAttribute("data-bound-conflict", zoneIds.has(shape.dataset.boundZone) || pointIds.has(shape.dataset.boundPoint));
+  }
+  const names = objects => objects.map(({ id, name }) => name || id).join("、");
+  const parts = [];
+  if (zoneIds.size) parts.push(`越界功能区：${names(conflicts.zones)}。`);
+  if (pointIds.size) parts.push(`需核对的点位（点位或所属功能区越界）：${names(conflicts.points)}。`);
+  const message = parts.join(" "), status = dlg.querySelector("#depBoundConflicts");
+  if (status.textContent !== message) status.textContent = message;
+}
+
+function depBoundaryPreview(dlg) {
   const pic = dlg.querySelector(".dep-managed-preview img"), box = dlg.querySelector(".dep-managed-outline");
-  const { geometry, file, version, review } = dlg.depBoundary;
-  const verify = geometry.zones.length + geometry.points.length > 0 && (!!file || review || geometry.points.some(point => point.planVersion !== version));
+  const { fid, geometry, file, version, review, image } = dlg.depBoundary;
+  const showGeometry = !!image && geometry.zones.length + geometry.points.length > 0;
+  const verify = showGeometry && (!!file || review || geometry.points.some(point => point.planVersion !== version));
   const overlay = dlg.querySelector(".dep-managed-geometry");
-  overlay.toggleAttribute("hidden", !image || !verify);
-  dlg.querySelector(".dep-managed-verify").hidden = !image || !verify;
-  if (image) pic.src = image;
-  else pic.removeAttribute("src");
-  try {
-    const r = depBoundGet();
+  overlay.toggleAttribute("hidden", !showGeometry);
+  dlg.querySelector(".dep-managed-verify").hidden = !verify;
+  if (image) {
+    if (pic.getAttribute("src") !== image) pic.src = image;
+  } else pic.removeAttribute("src");
+  let r;
+  try { r = depBoundGet(); } catch { /* Incomplete coordinates have no candidate boundary. */ }
+  box.hidden = !image || !r;
+  if (image && r) {
     Object.assign(box.style, { left: r.x * 100 + "%", top: r.y * 100 + "%", width: r.w * 100 + "%", height: r.h * 100 + "%" });
-    box.hidden = !image;
-  } catch { box.hidden = true; }
+  }
+  const planVersion = (version + Number(!!file)) || 1;
+  const conflicts = showGeometry && r ? depBoundaryConflicts({
+    id: fid, image, planVersion, managedPart: { boundary: r, planVersion, authorizedPlan: true, confirmed: true },
+  }, geometry) : { zones: [], points: [] };
+  depBoundaryPaintConflicts(dlg, overlay, conflicts);
   pic.parentElement.hidden = !image;
 }
 function depBoundaryShow(f) {
@@ -62626,16 +62720,17 @@ function depBoundaryShow(f) {
     <div class="dep-managed-preview" hidden><img alt="授权图纸预览"><span class="dep-managed-outline" aria-hidden="true"></span><svg class="dep-managed-geometry" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" hidden>${depBoundaryGeometryPreview(geometry)}</svg></div>
     <div class="dep-managed-verify" hidden><p class="muted">预览叠加了 ${geometry.zones.length} 个功能区、${geometry.points.length} 个已定位点位。若位置与图纸不符，请按原图的基准重新裁剪并上传。</p><label class="ck"><input id="depBoundKeep" type="checkbox">沿用现有功能区和点位位置</label></div>
     <p class="muted">在预览上核对边界。默认采用整张裁剪图纸，也可输入距图纸左上角的百分比缩小边界。</p>${depBoundaryControls(part)}
+    <p id="depBoundConflicts" class="dep-managed-conflicts" role="status"></p>
     <label class="ck"><input id="depBoundConfirm" type="checkbox">我已确认图纸只包含获授权的区域，且边界正确。</label>`, btn("取消", "close") + btn("保存管理边界", "depFloorBoundarySave", { f: f.id }, "primary"), true);
   const dlg = $("#dlg"), status = $("#depBoundStatus");
   const state = { fid: f.id, version: f.planVersion || 0, revision: part.revision || 0, image: F.managedPartReady(f) ? f.image : "", geometry, review: !!f.planReview, file: null, reading: false, token: 0 };
   dlg.depBoundary = state;
-  depBoundaryPreview(dlg, state.image);
+  depBoundaryPreview(dlg);
   dlg.addEventListener("input", e => {
     if (e.target.matches(".dep-managed-coords input")) {
       $("#depBoundConfirm").checked = false;
       $("#depBoundKeep").checked = false;
-      depBoundaryPreview(dlg, state.image);
+      depBoundaryPreview(dlg);
     }
   });
   $("#depBoundFile").addEventListener("change", async e => {
@@ -62647,7 +62742,7 @@ function depBoundaryShow(f) {
     modalDirty = true;
     state.reading = !!file;
     status.textContent = file ? "正在读取图纸…" : "";
-    depBoundaryPreview(dlg, state.image);
+    depBoundaryPreview(dlg);
     if (!file) return;
     try {
       if (file.size > 12 * 1024 * 1024) throw Error("图纸须小于或等于 12 MB");
@@ -62662,7 +62757,7 @@ function depBoundaryShow(f) {
         for (const [id, value] of [["depBoundLeft", 0], ["depBoundTop", 0], ["depBoundRight", 100], ["depBoundBottom", 100]]) $("#" + id).value = value;
       }
       status.textContent = "图纸已载入预览，尚未保存。";
-      depBoundaryPreview(dlg, state.image);
+      depBoundaryPreview(dlg);
     } catch (e) {
       if (dlg.isConnected && token === state.token) { state.file = false; status.textContent = e.message; }
     } finally {
@@ -62685,9 +62780,9 @@ function depSetManagedBoundary(db, fid, request, actor) {
   const nextVersion = file ? (f.planVersion || 0) + 1 : f.planVersion;
   const nextPart = { label, boundary, planVersion: nextVersion, revision: (part.revision || 0) + Number(!!file || changedBoundary), authorizedPlan: true, confirmed: true };
   const nextFloor = { ...f, planVersion: nextVersion, image: file?.image || f.image, managedPart: nextPart };
-  const attached = db.points.filter(point => point.floorId === fid && !point.unplaced && point.positionAttached !== false);
-  if (db.zones.some(zone => zone.floorId === fid && !F.managedZoneIn(nextFloor, zone))) throw Error("已有功能区跨出新边界，请调整功能区后再保存");
-  if (attached.some(point => !F.managedPointIn(db, nextFloor, { ...point, planVersion: nextVersion }))) throw Error("已有设备点位跨出新边界，请核对点位后再保存");
+  const conflicts = depBoundaryConflicts(nextFloor, geometry);
+  if (conflicts.zones.length) throw Error("已有功能区跨出新边界，请调整功能区后再保存");
+  if (conflicts.points.length) throw Error("已有设备点位跨出新边界，请核对点位后再保存");
   if (file) {
     const sameAspect = f.dimensions?.width && f.dimensions.height * file.width === file.height * f.dimensions.width;
     const scale = keep && sameAspect && f.scale?.planVersion === f.planVersion ? { ...f.scale, planVersion: nextVersion } : null;
@@ -62700,8 +62795,9 @@ function depSetManagedBoundary(db, fid, request, actor) {
   }
   f.managedPart = nextPart;
   if (affected) {
-    for (const point of attached) point.planVersion = nextVersion;
-    M.record(db, "核对部分区域位置", fid, `${geometry.zones.length} 个功能区、${attached.length} 个点位 · 图纸 v${nextVersion}`);
+    const attached = new Set(geometry.points.map(point => point.id));
+    for (const point of db.points) if (attached.has(point.id)) point.planVersion = nextVersion;
+    M.record(db, "核对部分区域位置", fid, `${geometry.zones.length} 个功能区、${geometry.points.length} 个点位 · 图纸 v${nextVersion}`);
   }
   if (file || repair) delete f.planReview;
   M.record(db, "确认管理边界", fid, label);
@@ -63120,12 +63216,17 @@ const scopeFloors = () => F.scopedFloors(data(), U);
 // 2.91 V946：原树形位置选择弹层（项目、楼宇、楼层一长串）已由位置行的两栏菜单取代（wsLocOpen）
 // 设备列表的筛选条件（2026-10-05 核查 D6）：型号、楼层、服务功能区（按名称），以及设备网络与节点类型；换位置时清除。
 const devFilter = () => ({ types: U.devTypes || [], floors: U.devFloors || [], zone: U.devZone || "" });
+const inventoryTaskNetwork = () => U.deviceIssueRoute && U.deviceTask === "rebind" ? U.deviceNet || "" : "";
+function inventoryFilterPoints(db) {
+  const points = F.inventory(db, U), network = inventoryTaskNetwork();
+  return network ? points.filter(p => p.networkId === network) : points;
+}
 // 已设的筛选条件数：型号、楼层、功能区、设备网络、节点类型各算一项；工具栏按钮写“筛选 · N 项”（2026-10-09 用户确认，ABB 对比 BP8）。
 // “只看检修中”也算一项（2026-10-09 用户确认，ABB 对比 BP92）。
 // 2.88 E1127：设备筛选面板（型号、楼层、功能区、设备网络、节点类型、只看检修中），挂在“筛选”按钮下，改动即时生效。
 function devFilterPanel() {
   const db = data(),
-      all = F.inventory(db, U),
+      all = inventoryFilterPoints(db),
       o = F.deviceFilterOptions(db, all),
       ids = o.floors.map((f) => f.id),
       picked = (U.devFloors || []).filter((id) => ids.includes(id)),
@@ -63151,12 +63252,13 @@ function devFilterPanel() {
         ...(o.unzoned ? [[F.NO_ZONE, `未归属功能区 · ${o.unzoned} 台`]] : []),
         ...o.zones.map((z) => [z.name, `${z.name} · ${z.count} 台`]),
       ];
-  return `<div class="dev-filter-panel" role="group" aria-label="筛选设备">${types}${floors}${fld("功能区", "filterZone", select("filterZone", zones, zones.some(([v]) => v === U.devZone) ? U.devZone : "", "功能区"))}${fld("接入", "filterAcc", select("filterAcc", devAccOptions(all), U.deviceNet ? "net:" + U.deviceNet : U.devAcc || "", "接入"))}<label class="row small"><input type="checkbox" id="filterMaint" ${U.devMaint ? "checked" : ""}>只看检修中${infoTip("设为检修中或维护操作执行中的设备。", "只看检修中")}</label><div class="dev-filter-foot">${btn("重置", "resetDeviceFilters", {}, "ghost sm")}</div></div>`;
+  const access = inventoryTaskNetwork() ? "" : fld("接入", "filterAcc", select("filterAcc", devAccOptions(all), U.deviceNet ? "net:" + U.deviceNet : U.devAcc || "", "接入"));
+  return `<div class="dev-filter-panel" role="group" aria-label="筛选设备">${types}${floors}${fld("功能区", "filterZone", select("filterZone", zones, zones.some(([v]) => v === U.devZone) ? U.devZone : "", "功能区"))}${access}<label class="row small"><input type="checkbox" id="filterMaint" ${U.devMaint ? "checked" : ""}>只看检修中${infoTip("设为检修中或维护操作执行中的设备。", "只看检修中")}</label><div class="dev-filter-foot">${btn("重置", "resetDeviceFilters", {}, "ghost sm")}</div></div>`;
 }
 function devFilterApply(t) {
   const keep = t.id || (t.name ? `input[name="${t.name}"][value="${t.value}"]` : "");
   const acc = value("filterAcc") || "";
-  U.deviceNet = acc.startsWith("net:") ? acc.slice(4) : "";
+  if (!inventoryTaskNetwork()) U.deviceNet = acc.startsWith("net:") ? acc.slice(4) : "";
   U.devAcc = acc.startsWith("net:") ? "" : acc;
   U.deviceRole = "";
   U.devTypes = checked("filterType");
@@ -63167,7 +63269,7 @@ function devFilterApply(t) {
   render();
   (t.id ? document.getElementById(t.id.replace(/^(filter(Zone|Acc))$/, "$1-control")) : keep ? $(keep) : null)?.focus({ preventScroll: true });
 }
-const devFilterCount = () => [U.devTypes?.length, U.devFloors?.length, U.devZone, U.deviceNet || U.devAcc, U.deviceRole, U.devMaint].filter(Boolean).length;
+const devFilterCount = () => [U.devTypes?.length, U.devFloors?.length, U.devZone, (inventoryTaskNetwork() ? "" : U.deviceNet) || U.devAcc, U.deviceRole, U.devMaint].filter(Boolean).length;
 // 3.16 E1161：“接入”筛选的项与“接入”列同一写法：设备网络（Mesh · E栋 · 7F）、系统连接（Modbus TCP · 7F 配电计量）、4G；原为“设备网络”“节点类型”两项
 const devAccKey = (p) => { const a = M.access(p); return a === "system" ? "conn:" + (p.connectionId || "") : a === "cell" ? "cell" : p.networkId ? "net:" + p.networkId : "none"; };
 function devAccLabel(key) {
@@ -63193,29 +63295,54 @@ const devFiltered = () => devFilterCount() > 0;
 const INVENTORY_STATUS_FILTERS = ["offline", "issues", "unknown", "attention", "rebind"];
 const inventoryRouteActive = () => U.page === "devices" && U.tab === "inventory";
 const inventoryRouteExplicit = (query) => query.has("deviceStatus") || query.has("deviceNetwork");
+const inventoryTaskKey = () => JSON.stringify([
+  typeof AUTH === "undefined" ? null : AUTH.uid, typeof AUTH === "undefined" ? null : AUTH.org,
+  U.role, U.dataMode, U.p, U.b, U.f, U.deviceNet || "", U.deviceTask || "",
+]);
+function inventoryTaskState() {
+  if (!inventoryRouteActive() || !U.deviceIssueRoute || U.missing) return null;
+  return {
+    key: inventoryTaskKey(), q: U.q || "", types: U.devTypes || [], floors: U.devFloors || [],
+    zone: U.devZone || "", access: U.devAcc || "", maint: !!U.devMaint,
+  };
+}
+function restoreInventoryTaskFilters(saved) {
+  Object.assign(U, { q: "", deviceRole: "", devZone: "", devAcc: "", devTypes: [], devFloors: [], devMaint: false, devFilterOpen: false });
+  if (!inventoryRouteActive() || !U.deviceIssueRoute || U.missing || saved?.key !== inventoryTaskKey()) return;
+  const db = data(), all = inventoryFilterPoints(db), options = F.deviceFilterOptions(db, all);
+  U.q = saved.q || "";
+  U.devTypes = options.types.filter(t => saved.types?.includes(t.type)).map(t => t.type);
+  U.devFloors = options.floors.filter(f => saved.floors?.includes(f.id)).map(f => f.id);
+  if (options.zones.some(z => z.name === saved.zone) || options.unzoned && saved.zone === F.NO_ZONE) U.devZone = saved.zone;
+  if (!U.deviceNet && devAccOptions(all).some(([key]) => key === saved.access)) U.devAcc = saved.access;
+  U.devMaint = !!saved.maint;
+}
 function writeInventoryRoute(query) {
   if (!inventoryRouteActive() || !U.deviceIssueRoute) return;
-  if (INVENTORY_STATUS_FILTERS.includes(U.filter)) query.set("deviceStatus", U.filter);
+  query.set("deviceStatus", INVENTORY_STATUS_FILTERS.includes(U.filter) ? U.filter : "all");
+  if (U.deviceTask === "rebind") query.set("deviceTask", "rebind");
   const network = U.missing?.kind === "networks" ? U.missing.id : U.deviceNet;
   if (network) query.set("deviceNetwork", network);
 }
 function readInventoryRoute(query) {
   if (!inventoryRouteActive() || !inventoryRouteExplicit(query)) {
-    if (U.deviceIssueRoute) Object.assign(U, { deviceIssueRoute: false, deviceNet: "", filter: "all" });
+    if (U.deviceIssueRoute) {
+      Object.assign(U, { deviceIssueRoute: false, deviceTask: "", deviceNet: "", filter: "all" });
+      restoreInventoryTaskFilters(null);
+    }
     return;
   }
   const status = query.get("deviceStatus"), network = query.get("deviceNetwork");
   Object.assign(U, {
-    deviceIssueRoute: true, deviceNet: "", filter: INVENTORY_STATUS_FILTERS.includes(status) ? status : "all",
-    q: "", deviceRole: "", devZone: "", devAcc: "", devTypes: [], devFloors: [], devMaint: false, devFilterOpen: false,
+    deviceIssueRoute: true, deviceTask: status === "rebind" || query.get("deviceTask") === "rebind" ? "rebind" : "",
+    deviceNet: "", filter: INVENTORY_STATUS_FILTERS.includes(status) ? status : "all",
   });
-  if (!network) return;
-  const target = g("networks", network);
-  if (!target || target.projectId !== U.p || !mayViewProject(target.projectId)) {
-    U.missing ||= { kind: "networks", id: network };
-    return;
+  if (network) {
+    const target = g("networks", network);
+    if (!target || target.projectId !== U.p || !mayViewProject(target.projectId)) U.missing ||= { kind: "networks", id: network };
+    else U.deviceNet = target.id;
   }
-  U.deviceNet = target.id;
+  restoreInventoryTaskFilters(history.state?.inventoryTask);
 }
 const devTypeShort = (type) => M.catalog[type]?.model || M.catalog[type]?.name || type;
 // 筛选与勾选中的楼层名：范围内只有一栋楼宇时只写楼层名，否则写“楼宇 · 楼层”（2.70 E1062）。
@@ -63283,7 +63410,7 @@ function devFilterSummary(all) {
       U.deviceRole && "节点类型 " + (U.deviceRole === "relay" ? "中继节点" : "代理节点"),
       U.devMaint && "检修中",
     ].filter(Boolean);
-  return parts.length ? `<div class="flow-filter-sum"><p>已筛选：${esc(parts.join(" · "))}</p>${btn("清除筛选", "resetDeviceFilters", {}, "ghost sm")}</div>` : "";
+  return parts.length ? `<div class="flow-filter-sum"><p>已筛选：${esc(parts.join(" · "))}</p>${devFiltered() ? btn("清除筛选", "resetDeviceFilters", {}, "ghost sm") : ""}</div>` : "";
 }
 // 批量修改的勾选（2026-10-05 核查 D6）：勾选在搜索、页签与筛选之间保留，“选择当前结果”加入当前结果的全部设备（含其他页）；
 // 表头勾选框只作用于本页；不在当前位置范围内的勾选随即去掉。只有能编辑部署规划的角色显示勾选。
@@ -63495,7 +63622,7 @@ function renderInventory() {
       ["issues", "异常", needs.length],
       ...(unknown.length ? [["unknown", "状态未知", unknown.length]] : []),
       ...(seg === "attention" ? [["attention", "离线或异常", offline.length + needs.length]] : []),
-      ...(seg === "rebind" ? [["rebind", "待重新绑定", all.filter((p) => p.fieldReset).length]] : []),
+      ...(seg === "rebind" || U.deviceTask === "rebind" ? [["rebind", "待重新绑定", all.filter((p) => p.fieldReset).length]] : []),
     ],
     // 3.31 运营区第 2 项：“设备 | 分组”为页面页签，状态计数为其下一行的筛选，用紧凑分段（28 高、按钮 24）
     segRow = `<div class="dev-filt">${segSm(segs.map(([v, t, c]) => [v, `${t}<span class="dev-seg-n"${metricAttrs(v === "all" ? "设备" : v === "issues" ? "异常" : t)}>${fmt(c)}</span>`]), seg, "filter", "", "按状态筛选设备")}${devRateBtn()}</div>`, // 3.41 Y98：“近 30 天在线率”在这一行右端（原在页头）
@@ -67179,7 +67306,8 @@ defineActions({
   },
   resetDeviceFilters: () => {
     U.devMaint = false;
-    U.deviceNet = U.devAcc = U.deviceRole = U.devZone = "";
+    if (!inventoryTaskNetwork()) U.deviceNet = "";
+    U.devAcc = U.deviceRole = U.devZone = "";
     U.devTypes = [];
     U.devFloors = [];
     if (inventoryRouteActive() && U.deviceIssueRoute) syncRoute(true);
@@ -67331,6 +67459,7 @@ defineActions({
     return route("devices", {
       tab: "inventory", p: n?.projectId || a.p || U.p, b: n ? null : a.b || null, f: null, net: null,
       filter: INVENTORY_STATUS_FILTERS.includes(a.filter) ? a.filter : "issues", deviceNet: n?.id || "", deviceIssueRoute: true,
+      deviceTask: a.filter === "rebind" ? "rebind" : "",
       q: "", deviceRole: "", devZone: "", devAcc: "", devTypes: [], devFloors: [], devMaint: false, devFilterOpen: false,
     }, { remember: true, source });
   },
@@ -67563,12 +67692,19 @@ defineActions({
     if (a.kind === "app") {
       if (!canEdit()) throw Error("当前无权查看此网络的现场绑定");
       const step = U.deliveryStep || 0, first = U.deliveryAsFirst;
-      const returnToDelivery = el?.closest("#dlg") ? () => {
+      const dialog = el?.closest("#dlg"), scroll = dialog?.querySelector(".db")?.scrollTop || 0;
+      const returnToDelivery = dialog ? () => {
         try {
           if (!canEdit()) throw Error("当前无权查看此网络的交付检查");
           U.deliveryAsFirst = first;
           showDelivery(step, a.id);
-          $('#dlg [data-act="deliveryResolve"][data-kind="app"]')?.focus({ preventScroll: true });
+          const body = $("#dlg .db"), action = body?.querySelector('[data-act="deliveryResolve"][data-kind="app"]');
+          if (body) body.scrollTop = scroll;
+          if (action) {
+            const frame = body.getBoundingClientRect(), target = action.getBoundingClientRect();
+            if (target.top < frame.top || target.bottom > frame.bottom) action.scrollIntoView({ block: "nearest", inline: "nearest" });
+            action.focus({ preventScroll: true });
+          }
         } catch (err) {
           closeModal(true);
           formError(err);
@@ -84739,7 +84875,7 @@ const DemoService = (() => {
 const OPS_SCOPE = typeof DEMO_IDS !== "undefined" ? DEMO_IDS : { project: null, building: null, floor: null, network: null };
 const Demo = typeof DemoService !== "undefined" ? DemoService : opsNoService();
 // 浏览器历史保存每个运营入口自己的范围与筛选。
-const OPS_ROUTE_FIELDS = ["opsRange","opsFrom","opsTo","opsReport","opsRpDoc","opsGran","opsMeter","opsEnvZone","opsEnvMetric","opsLevel","opsAlType","opsAlState","opsTaskState","opsTaskWho","opsHistRes","opsHistObj","opsHistRule","opsHistPer","opsHistFrom","opsHistTo","alarmDevice","alarmZone","alTypeJump"];
+const OPS_ROUTE_FIELDS = ["opsRange","opsFrom","opsTo","opsReport","opsRpDoc","opsGran","opsMeter","opsEnvZone","opsEnvMetric","opsLevel","opsAlType","opsAlState","opsTaskState","opsTaskWho","opsHistRes","opsHistObj","opsHistRule","opsHistPer","opsHistFrom","opsHistTo","alarmDevice","alarmZone","alTypeJump","opsReportView","opsReportFrom","opsReportTo","opsReportQuery"];
 let OPS_IDENTITY = null, OPS_IDENTITY_LEAVING_PAGE = null, OPS_HISTORY_TIMER = null;
 function opsRouteFields() {
   return Object.fromEntries(OPS_ROUTE_FIELDS.map(k => [k, U[k] ?? null]));
@@ -84787,6 +84923,7 @@ function opsRouteLeaving(page, scope = {}) {
   U.anRpt = false;
   U.opsRpBack = false;
   Object.assign(U, { alSpBack: false, alFilterOpen: false });
+  Object.assign(U, { opsReportView: null, opsReportFrom: null, opsReportTo: null, opsReportQuery: null, opsReportFromDraft: undefined, opsReportToDraft: undefined, opsReportDateErr: "" });
   if (!("alSel" in scope)) U.alSel = null;
   if (OPS_IDENTITY_LEAVING_PAGE) {
     delete U.memory[OPS_IDENTITY_LEAVING_PAGE];
@@ -84804,6 +84941,7 @@ function opsRestoreRouteState(state) {
   U.opsDrawer = null;
   U.alSpBack = false;
   U.alFilterOpen = false;
+  Object.assign(U, { opsReportView: null, opsReportFrom: null, opsReportTo: null, opsReportQuery: null, opsReportFromDraft: undefined, opsReportToDraft: undefined, opsReportDateErr: "" });
   if (U.source?.p && !mayViewProject(U.source.p)) U.source = null;
   if (s && JSON.stringify(s.owner) !== JSON.stringify(opsHistoryOwner())) {
     U.source = null;
@@ -91276,12 +91414,12 @@ const ENV_METRICS = [
   ["iaqs", "空气质量分"],
 ];
 // 2.07（数据分析核查 V131）：功能区与指标由主卡选定（点哪一行显示哪一行的趋势），卡内不再有两个下拉框
-function envTrendCard(zk = U.opsEnvZone, m0 = U.opsEnvMetric, bare = false, pickKey = "") {
+function envTrendCard(zk = U.opsEnvZone, m0 = U.opsEnvMetric, bare = false, pickKey = "", reportRange = null) {
   const metric = ENV_METRICS.some((m) => m[0] === m0) ? m0 : "co2",
     aqM = ["co2", "pm25", "iaqs"].includes(metric),
     zs = Demo.zones().filter((z) => aqM ? z.aqs.length : metric === "temp" ? z.fcs.length || z.mss.length : z.mss.length),
     z = zs.find((x) => x.k === zk) || zs[0],
-    rg = anRange(), name = ENV_METRICS.find((m) => m[0] === metric)[1],
+    rg = reportRange || anRange(), name = ENV_METRICS.find((m) => m[0] === metric)[1],
     unit = {co2:"ppm",pm25:"μg/m³",temp:"℃",rh:"%",iaqs:"分"}[metric], dg = metric === "temp" ? 1 : 0;
   if (!z) return chartPending("环境趋势", "所选范围没有可用的监测点。");
   const hm = {co2:"co2_1h",pm25:"pm25_24h"}[metric] || metric,
@@ -91362,7 +91500,7 @@ function envTrendCard(zk = U.opsEnvZone, m0 = U.opsEnvMetric, bare = false, pick
     tools = metric === "temp" ? anOverlayTools(true) : `<button type="button" class="btn ghost sm" data-act="anOverlay" data-k="events" aria-pressed="${U.opsEvents !== false}">事件</button>${anNoteOk() ? btn("加备注", "anNoteAdd", {}, "ghost sm ops-tool-more") : ""}`;
   return chartCard({
     cls: "an-env-trend",
-    extra: mBtn + tools,
+    extra: reportRange ? "" : mBtn + tools,
     legend: (daily ? (lo ? [[S1, "日最高", "line"], [S2, "日最低", "line"]] : [[S1, hiName, "line"]]) : [[S1, name, "line"]]).concat(offBands.length ? [["#EDEFF2", "非工作时间"]] : [], anOverlayLegend(metric === "temp"), outPmOn ? [["#a3a3a3", "室外 PM2.5（天气服务，按项目地图位置）", "line"]] : []),
     title: "环境趋势" + opsInfo("环境趋势",esc(methods)),
     // 3.02 V993（取代 2.82 KW27 的“功能区 · 详情 ›”标题）：标题为“环境趋势”，灰字图头先写功能区（可点，进入对象页），再写期间与单位
@@ -92870,6 +93008,11 @@ document.addEventListener("input", (e) => {
   opsHistorySchedule();
 });
 function renderOpsAlarms() {
+  const evidence = opsReportContext("history");
+  if (evidence) {
+    opsReset();
+    return pageCategoryHeader("alarms", "history", { cat: "", omitFloor: true }) + opsReportRecordsPage(evidence);
+  }
   // 2.46 运营核查 V220：没有运行数据（本地规划数据，或所选位置不在已接入的楼层）时，各页签都只显示“所选范围没有运行数据”
   if (U.tab === "verify") U.tab = "history";
   const tab = AL_TABS.includes(U.tab) ? U.tab : "current";
@@ -94016,12 +94159,15 @@ const histMin = () => {
   const l = Demo.loc(Demo.NOW);
   return `${l.y - HIST_KEEP_YEARS}-${String(l.mo).padStart(2, "0")}-${String(l.d).padStart(2, "0")}`;
 };
-function alHistInputs() {
-  if (U.opsHistPer !== "custom") return "";
-  const max = ymdOf(Demo.NOW),
-    d = (id, v, label) => wsDtInput(id, v || "", "date", "", ` data-min="${histMin()}" data-max="${max}" aria-label="${label}"${U.opsHistErr ? ' aria-invalid="true" aria-describedby="alPeriod-error"' : ""}`);
+function alHistInputs(report = null) {
+  if (!report && U.opsHistPer !== "custom") return "";
+  const min = report?.from || histMin(), max = report?.to || ymdOf(Demo.NOW),
+    err = report ? U.opsReportDateErr : U.opsHistErr,
+    from = report ? U.opsReportFromDraft ?? U.opsReportFrom ?? min : U.opsHistFromDraft ?? U.opsHistFrom,
+    to = report ? U.opsReportToDraft ?? U.opsReportTo ?? max : U.opsHistToDraft ?? U.opsHistTo,
+    d = (id, v, label) => wsDtInput(id, v || "", "date", "", ` data-min="${min}" data-max="${max}" aria-label="${label}"${err ? ' aria-invalid="true" aria-describedby="alPeriod-error"' : ""}`);
   const field = (id, value, label) => `<span class="al-period-field"><label for="${id}">${label}</label>${d(id, value, label)}</span>`;
-  return `<span class="ops-period">${field("alFrom", U.opsHistFromDraft ?? U.opsHistFrom, "开始日期")}<span class="al-period-separator" aria-hidden="true">至</span>${field("alTo", U.opsHistToDraft ?? U.opsHistTo, "结束日期")}${U.opsHistErr ? `<small id="alPeriod-error" class="ops-period-err" role="alert">${esc(U.opsHistErr)}</small>` : ""}</span>`;
+  return `<span class="ops-period">${field("alFrom", from, "开始日期")}<span class="al-period-separator" aria-hidden="true">至</span>${field("alTo", to, "结束日期")}${err ? `<small id="alPeriod-error" class="ops-period-err" role="alert">${esc(err)}</small>` : ""}</span>`;
 }
 // 自定义期间：开始不晚于结束，不晚于今天，不早于保存期（近 5 年）；不符合时写原因，统计保持原来的期间
 function alHistSet(f, t) {
@@ -94035,8 +94181,21 @@ function alHistSet(f, t) {
 }
 document.addEventListener("change", (e) => {
   if (!["alFrom", "alTo"].includes(e.target.id)) return;
-  alHistSet(value("alFrom"), value("alTo"));
+  const context = opsReportContext("history");
+  const from = value("alFrom"), to = value("alTo");
+  if (context) {
+    const report = aiReportEvidence(context.report, context.source.reportCutoff);
+    const err = !from || !to ? "请选择开始日期与结束日期" : [from, to].some(x => !wsDtNorm("date", x)) ? WS_DT_MSG.date : from > to ? "开始日期不能晚于结束日期" : from < report.from || to > report.to ? "请选择报告统计期间内的日期" : "";
+    Object.assign(U, err ? { opsReportFromDraft: from, opsReportToDraft: to, opsReportDateErr: err } :
+      { opsReportFrom: from, opsReportTo: to, opsReportFromDraft: undefined, opsReportToDraft: undefined, opsReportDateErr: "" });
+  } else alHistSet(from, to);
   opsHistoryReplace();
+  render();
+});
+document.addEventListener("input", (e) => {
+  if (e.target.id !== "opsReportQuery" || !opsReportContext("history")) return;
+  U.opsReportQuery = e.target.value;
+  opsHistorySchedule();
   render();
 });
 // 告警的对象（BP98“告警最多”与对象筛选）：设备类告警为设备，环境与能耗为功能区，其余为楼层
@@ -98709,23 +98868,72 @@ function opsReportSource() {
   const report = aiReportById(source.opsReport);
   return report && (!source.p || mayViewProject(source.p)) ? source : null;
 }
+function opsReportContext(view) {
+  if (U.opsReportView !== view) return null;
+  if (view === "history" ? U.page !== "alarms" || U.tab !== "history" : U.page !== "analysis" || U.tab !== "environment") return null;
+  const source = opsReportSource(), report = source && aiReportById(source.opsReport),
+    loc = aiReportScope(report);
+  return loc && U.p === loc.p && U.b === loc.b && U.f === loc.f ? { source, report, loc } : null;
+}
+const opsReportClock = (ts) => `${ymdOf(ts)} ${Demo.hm(ts)}:${String(new Date(ts).getUTCSeconds()).padStart(2, "0")}`;
+function opsReportRecordsPage(context) {
+  const { report, source, loc } = context, evidence = aiReportEvidence(report, source.reportCutoff),
+    { from, to, cutoff, timed, legacy, frozen } = evidence,
+    start = U.opsReportFrom || from,
+    end = U.opsReportTo || to,
+    q = qNorm(U.opsReportQuery || ""),
+    cutoffLabel = timed ? opsReportClock(cutoff) : `${to} 24:00`,
+    scope = where(loc.f).split(" / ").join(" · "),
+    cutoffLine = `报告期间 ${from} 至 ${to} · 数据截至 ${cutoffLabel}`,
+    asOf = legacy ? "原报告保留已发布数值。此页按原统计期间核对目前可查的记录。" :
+      frozen ? "明细随报告发布时保存。" : "";
+  const list = (id, label, records, unit, emptyLabel) => {
+    const visible = records.filter(r => {
+      const date = ymdOf(Date.parse(r.at));
+      return date >= start && date <= end && (!q || qNorm(`${r.title} ${r.level || ""} ${r.state}`).includes(q));
+    });
+    const count = visible.length === records.length ? `${records.length} ${unit}` : `显示 ${visible.length} / ${records.length} ${unit}`;
+    const rows = visible.slice().reverse().map(r => {
+      const at = opsReportClock(Date.parse(r.at));
+      return `<li class="ops-report-record" data-id="${esc(r.id)}"><div><b>${esc(r.title)}</b><time datetime="${esc(r.at)}">${esc(at)}</time></div><span>${r.level ? `${esc(r.level)} · ` : ""}${esc(r.state)}</span></li>`;
+    }).join("");
+    return `<section class="ops-history-group" aria-labelledby="ops-report-${id}"><h3 id="ops-report-${id}">${label} <span aria-live="polite">${count}</span></h3>${rows ? `<ul class="ops-card ops-report-rows">${rows}</ul>` : `<p class="ops-card ops-report-empty">${records.length ? "没有符合筛选条件的记录" : emptyLabel}</p>`}</section>`;
+  };
+  return `<div class="ops-report-records"><header><h2 tabindex="-1">告警与工单记录</h2><p>${esc(scope)}</p><p>${esc(cutoffLine)}</p>${asOf ? `<p>${asOf}</p>` : ""}</header><div class="al-tbar"><label class="ws-search ops-q">${ico("search", "ic16")}<input type="search" id="opsReportQuery" aria-label="搜索报告记录" placeholder="搜索报告记录" autocomplete="off" value="${esc(U.opsReportQuery || "")}"></label><div class="ops-filters al-per">${alHistInputs(evidence)}</div></div>${list("alarms", "告警发生记录", evidence.alarms, "条", "报告期间没有告警")}${list("tasks", "工单创建记录", evidence.tasks, "张", "报告期间没有工单")}</div>`;
+}
+function opsReportEnvironmentCard() {
+  const context = opsReportContext("environment");
+  if (!context) return "";
+  const zone = Demo.zoneOf(context.source.reportZone),
+    evidence = aiReportEvidence(context.report, context.source.reportCutoff),
+    rg = Demo.range({ from: evidence.from, to: evidence.to }),
+    to = Math.min(rg.to, evidence.cutoff + 1);
+  if (!zone || g("zones", zone.id)?.floorId !== context.loc.f || !zone.aqs.length) return "";
+  return `<div class="ops-report-env"><p class="ops-dim">报告期间 ${esc(evidence.from)} 至 ${esc(evidence.to)}${evidence.timed ? ` · 数据截至 ${esc(opsReportClock(evidence.cutoff))}` : ""}</p>${envTrendCard(zone.k, "co2", false, "", { ...rg, to, end: to })}</div>`;
+}
 function opsReportDrill(a, el, target) {
   const report = U.page === "analysis" && U.tab === "reports" && U.opsRpDoc ? aiReportById(U.opsReport) : null;
   const loc = aiReportScope(report);
   if (!loc) return msg("无法查看该报告的统计范围", "error");
-  const fallback = aiReportPer(aiReportEff(report));
-  const validDate = d => /^\d{4}-\d{2}-\d{2}$/.test(d || "") && Number.isFinite(Date.parse(d)) && new Date(d).toISOString().slice(0, 10) === d;
-  const period = validDate(a.from) && validDate(a.to) && a.from <= a.to && a.from === report.from && a.to <= report.to ? { from: a.from, to: a.to } : fallback;
-  const source = { ...snapshot(), label: "报告", reportOrigin: true, owner: opsHistoryOwner(),
-    anReportFrom: U.anReportFrom, opsRpBack: U.opsRpBack, reportPosition: ws3ReportScroll(), focus: wsFocusDesc(el || document.activeElement), reportTab: a.tab || null };
-  const historyScope = { opsHistPer: "custom", opsHistFrom: period.from, opsHistTo: period.to, opsHistFromDraft: undefined, opsHistToDraft: undefined, opsHistErr: "" };
+  const evidence = aiReportEvidence(report, Number(a.cutoff));
+  const { from, to } = evidence;
+  const source = { ...snapshot(), label: "报告", reportOrigin: true, owner: opsHistoryOwner(), reportCutoff: evidence.cutoff,
+    anReportFrom: U.anReportFrom, opsRpBack: U.opsRpBack, reportPosition: ws3ReportScroll(), focus: wsFocusDesc(el || document.activeElement), reportTab: target === "analysis" ? a.tab || null : null };
+  const historyScope = { opsHistPer: "custom", opsHistFrom: from, opsHistTo: to, opsHistFromDraft: undefined, opsHistToDraft: undefined, opsHistErr: "" };
   let page, scope;
   if (target === "analysis") {
     page = "analysis";
-    scope = { tab: ws3AnalysisCategory(a.tab), opsRange: "custom", opsFrom: period.from, opsTo: period.to, opsFromDraft: undefined, opsToDraft: undefined, opsRangeErr: "" };
+    scope = { tab: ws3AnalysisCategory(a.tab), opsRange: "custom", opsFrom: from, opsTo: to, opsFromDraft: undefined, opsToDraft: undefined, opsRangeErr: "" };
   } else if (target === "history") {
     page = "alarms";
-    scope = { tab: "history", ...historyScope };
+    scope = { tab: "history", opsReportView: "history", opsReportFrom: from, opsReportTo: to, opsReportQuery: "" };
+  } else if (target === "environment") {
+    const zone = g("zones", a.id), x = obParse(`zone:${a.id}`);
+    if (!zone || zone.floorId !== loc.f || !obView(x) || !Demo.zoneOf(zone.id)?.aqs.length) return msg("该功能区已不在当前报告的环境统计范围", "error");
+    source.reportZone = zone.id;
+    page = "analysis";
+    scope = { tab: "environment", opsReportView: "environment", opsRange: "custom", opsFrom: from, opsTo: to,
+      opsFromDraft: undefined, opsToDraft: undefined, opsRangeErr: "", opsEnvZone: Demo.zoneOf(zone.id).k, opsEnvMetric: "co2" };
   } else if (target === "alarm") {
     const alarm = g("alerts", a.id);
     if (!alarm || !aiReportAlarmIn(alarm, loc)) return msg("该告警已不在当前报告的统计范围", "error");
@@ -98745,7 +98953,7 @@ function opsReportDrill(a, el, target) {
   route(page, { ...loc, ...scope }, { source });
   if (U.source === source) history.replaceState({ ...history.state, reportDrill: true }, "", location.hash);
   ws3RestoreReportScroll(undefined, () => {
-    const heading = [...document.querySelectorAll("#wtop .wtop-t, #pbody h1, .phead h1")].find(el => el.getClientRects().length);
+    const heading = $(".ops-report-records h2") || [...document.querySelectorAll("#wtop .wtop-t, #pbody h1, .phead h1")].find(el => el.getClientRects().length);
     if (heading) heading.tabIndex = -1;
     return heading;
   });
@@ -98914,8 +99122,9 @@ defineActions({
     actions.opsEnvToday({ id: a.id });
     $('#dlg [data-act="opsEnvTodayOut"]')?.focus();
   },
-  opsOpenZone: (a) => {
+  opsOpenZone: (a, el) => {
     if (needTap(a)) return;
+    if (a.tab === "environment" && el?.closest(".ai-report")) return opsReportDrill(a, el, "environment");
     closeModal(true);
     U.opsDrawer = null;
     U.opsZone = a.id;
@@ -99447,11 +99656,12 @@ defineActions({
   // 报告“设备健康”一节的“告警记录”按报告期间打开（2.07，V134：原先打开默认的近 7 天）
   opsReportAlarms: (a, el) => opsReportDrill(a, el, "history"),
   opsReportBasis: (a, el) => opsReportDrill(a, el, "analysis"),
+  opsReportEnvironment: (a, el) => opsReportDrill(a, el, "environment"),
   opsReportDevices: (a, el) => opsReportDrill(a, el, "devices"),
   opsReportReturn: () => {
     const source = opsReportSource();
     if (!source) return;
-    const { owner, label, reportOrigin, reportPosition, reportTab, focus, ...scope } = source;
+    const { owner, label, reportOrigin, reportPosition, reportTab, reportCutoff, reportZone, focus, ...scope } = source;
     const restore = () => ws3RestoreReportScroll(reportPosition, () => (reportTab && $(`.ai-report [data-act="opsReportBasis"][data-tab="${CSS.escape(reportTab)}"]`)) || wsFindDesc(focus) || $(".ai-report-h h3"));
     if (history.state?.reportDrill) {
       window.addEventListener("popstate", restore, { once: true });
@@ -101657,6 +101867,8 @@ function opsObjOpen(v, tab = "summary", per = null) {
   if (x.k === "floor") return actions.opsDrill({ p: L.p, b: L.b, f: L.f });
   if (x.k === "net") return actions.networkInfo({ id: x.id });
   if (x.k === "conn") return actions.opsObjConn({ id: x.id });
+  const fromTask = U.page === "devices" && U.tab === "inventory" && U.deviceIssueRoute,
+    taskSource = fromTask ? { prev: U.source || null, focus: wsFocusDesc(sheetRow() || modalFocus) } : {};
   closeModal(true);
   closePop();
   if (typeof sheetClose === "function" && $("#wsSheet")) sheetClose();
@@ -101665,7 +101877,7 @@ function opsObjOpen(v, tab = "summary", per = null) {
   U.obPane = null;
   U.obRecPage = 0;
   const label = U.page === "overview" ? (U.obj ? obParse()?.o.name || "" : "") : sourceLabel() || TITLES[U.page] || "";
-  route("overview", { p: L.p, b: L.b, f: L.f, obj: `${x.k}:${x.id}`, otab: tab, tab: x.k === "zone" && U.page === "overview" ? U.tab || "" : "" }, { remember: true, source: label ? { ...snapshot(), label } : null });
+  route("overview", { p: L.p, b: L.b, f: L.f, obj: `${x.k}:${x.id}`, otab: tab, tab: x.k === "zone" && U.page === "overview" ? U.tab || "" : "" }, { remember: true, source: label ? { ...snapshot(), label, ...taskSource } : null });
 }
 // 侧栏（一点）名称下的两三条关键关联，每条可点：设备写所在功能区与上级网关；功能区写照明分区与计量电能表；网关写所属网络与下级设备数
 function obKeyRels(k, id) {
@@ -101737,7 +101949,12 @@ document.addEventListener("keydown", (e) => {
   }
 });
 defineActions({
-  opsObj: (a, el) => el?.closest(".ai-report") ? opsReportDrill(a, el, "zone") : opsObjOpen(a.o, a.tab || "summary", a.per || null),
+  opsObj: (a, el) => {
+    if (!el?.closest(".ai-report")) return opsObjOpen(a.o, a.tab || "summary", a.per || null);
+    if (a.o?.startsWith("zone:") && el.textContent.trim().endsWith(" · 环境") && el.closest("li")?.textContent.includes("CO₂"))
+      return opsReportDrill({ id: a.o.slice(5) }, el, "environment");
+    return opsReportDrill(a, el, "zone");
+  },
   opsObjTab: (a) => {
     U.otab = a.value;
     syncRoute(true);
@@ -106012,7 +106229,7 @@ function ws3Fam() {
 function ws3On() {
   const pg = ws3Pg();
   // Analysis chooses its data and canvas together, including the all-project and no-data states.
-  if (pg === "analysis" || pg === "alarms" && U.alarmQueue) return false;
+  if (pg === "analysis" || pg === "alarms" && (U.alarmQueue || U.opsReportView === "history")) return false;
   if (pg === "scenes" && U.tab === "records") return false;
   if (!WS3_PAGES.includes(pg) || U.role === "member" || U.obj || U.obGone || U.missing || U.spEd || !data()?.projects.length) return false;
   if (!U.p || !g("projects", U.p) || (typeof mayViewProject === "function" && !mayViewProject(U.p))) return false;
@@ -107038,7 +107255,7 @@ function ws3AnalysisTools(tab) {
   if (U.opsRange === "today") choices.unshift(["today", "今日"]);
   if (U.opsRange === "custom" && U.opsFrom && U.opsTo) choices.unshift(["custom", `${U.opsFrom} 至 ${U.opsTo}`]);
   const range = choices.some(([key]) => key === U.opsRange) ? U.opsRange : "30";
-  const period = tab === "health" ? "" : `<div class="ws3-per">${opsFilter("opsRangeSel", choices, range, "期间")}</div>`;
+  const period = tab === "health" || opsReportContext("environment") ? "" : `<div class="ws3-per">${opsFilter("opsRangeSel", choices, range, "期间")}</div>`;
   const actualPeriod = range === "custom" && tab !== "health" ? `<span class="ws3-analysis-dates">${esc(`${U.opsFrom} 至 ${U.opsTo}`)}</span>` : "";
   return `<div class="ws3-analysis-actions">${period}${btn(ico("doc", "ic16") + "报告", "ws3Reports", {}, "ws3-hbtn ws3-rpt")}${ws3MoreBtn("analysis")}${actualPeriod}</div>`;
 }
@@ -107068,6 +107285,12 @@ function ws3Analysis(sc) {
     zs = ws3Zones(sc),
     zoneFloors = [...new Set(zs.map(ws3Fid).filter(Boolean))],
     floorName = ws3FlName(sc, g("floors", sc.fid || (zoneFloors.length === 1 ? zoneFloors[0] : null)));
+  const reportEnvironment = tab === "environment" ? opsReportEnvironmentCard() : "";
+  if (reportEnvironment) return {
+    panel: ws3AnalysisPanel(sc, `<div class="ws3-body ws3-an">${reportEnvironment}</div>`, tab, { showLocation: false }),
+    canvas: "",
+    drawer: U.anRpt && !isMobile() ? ws3RptDrawer() : "",
+  };
   let body = "", overlay;
   if (tab === "environment") {
     const metric = U.ws3EnvMeasure === "temp" ? "temp" : "co2";
@@ -110331,7 +110554,7 @@ function aiReportTaskIn(task, scope) {
   const alarms = (task.alertIds || [task.alarmId]).map(id => g("alerts", id)).filter(Boolean);
   const floors = [task.floorId, g("zones", task.zoneId)?.floorId,
     ...(task.pointIds || []).map(id => g("points", id)?.floorId), ...alarms.map(alarmFloor)].filter(Boolean);
-  return floors.length > 0 && floors.every(id => id === scope.f) && alarms.every(alert => alert.projectId === scope.p);
+  return floors.length > 0 && floors.every(id => id === scope.f) && alarms.every(alert => aiReportAlarmIn(alert, scope));
 }
 // 2.66 V638：自建报告与周报、月报同样生成纸面预览；未发布的可以删除
 const aiCustomReports = () =>
@@ -110450,22 +110673,63 @@ function aiReportPer(r) {
     live = r.state !== "已发布" && !early && r.to >= today;
   return { from: r.from, to: early ? ymdOf(r.cutAt) : live ? today : r.to };
 }
+function aiReportWindow(r) {
+  const dates = aiReportPer(r), rg = Demo.range(dates), per = { from: ymdOf(rg.from), to: dates.to },
+    early = r.cutAt != null && r.to >= ymdOf(r.cutAt),
+    live = r.state !== "已发布" && !early && r.to >= ymdOf(Demo.NOW),
+    now = early ? r.cutAt : live ? Math.min(opsNow(), rg.end - 1) : null;
+  return { per, rg, early, live, now, cutoff: now ?? rg.to - 1 };
+}
+function aiReportRecords(scope, from, cutoff) {
+  if (!scope) return { alarms: [], tasks: [] };
+  const db = data(), included = (at) => Date.parse(at) >= from && Date.parse(at) <= cutoff,
+    eligible = db.alerts.filter(a => aiReportAlarmIn(a, scope) && included(a.at))
+      .map(a => a.state === "recovered" && !aiReportRecovered(a, cutoff) ? { ...a, state: "active" } : a);
+  return {
+    alarms: F.alarmGroups({ ...db, alerts: eligible })
+      .map(a => ({ ...a, relatedIds: a.relatedIds.filter(id => g("points", id)?.floorId === scope.f) }))
+      .sort((a, b) => Date.parse(a.at) - Date.parse(b.at)),
+    tasks: (db.investigationTasks || []).filter(t => aiReportTaskIn(t, scope) && included(t.at)),
+  };
+}
+const aiReportRecovered = (alarm, cutoff) => alarm.state === "recovered" && Date.parse(alarm.recoveredAt) <= cutoff;
+const aiReportTaskDone = (task, cutoff) => !!task.closedAt && Date.parse(task.closedAt) <= cutoff;
+const aiReportTaskOnTime = (task, cutoff) => aiReportTaskDone(task, cutoff) && (!task.planAt || Date.parse(task.closedAt) <= Date.parse(task.planAt));
+const aiReportTaskLate = (task, cutoff) => !!task.planAt && (aiReportTaskDone(task, cutoff) ? Date.parse(task.closedAt) > Date.parse(task.planAt) : Date.parse(task.planAt) < cutoff);
+function aiReportEvidenceData(win, records) {
+  const { per, cutoff, now } = win;
+  return {
+    ...per, cutoff, timed: now != null,
+    alarms: records.alarms.map(a => ({
+      id: a.id, title: alarmTitle(a).title, at: a.at, level: LV(a.level),
+      state: aiReportRecovered(a, cutoff) ? "已恢复" : "未恢复",
+    })),
+    tasks: records.tasks.map(t => ({
+      id: t.id, title: tkTitle(t), at: t.at,
+      state: aiReportTaskOnTime(t, cutoff) ? "按计划完成" : aiReportTaskDone(t, cutoff) ? "逾期完成" : aiReportTaskLate(t, cutoff) ? "逾期未完成" : "未完成",
+    })).sort((a, b) => Date.parse(a.at) - Date.parse(b.at)),
+  };
+}
+function aiReportEvidence(r0, at) {
+  const r = aiReportEff(r0);
+  const snapshot = r.state === "已发布" && (r.snapshot?.evidence || AI_BUILTIN_SNAPS[r.id]?.evidence);
+  if (snapshot) return { ...snapshot, frozen: true };
+  const win = aiReportWindow(r);
+  if (Number.isFinite(at) && at >= win.rg.from && at < win.cutoff) win.cutoff = at;
+  const records = aiReportRecords(aiReportScope(r), win.rg.from, win.cutoff);
+  return { ...aiReportEvidenceData(win, records), legacy: r.state === "已发布" };
+}
 function aiReportLive(r) {
   const scope = aiReportScope(r), published = r.state === "已发布",
     kinds = r.kinds || ["energy", "carbon", "environment", "space", "health"],
-    today = ymdOf(Demo.NOW),
-    // 期间结束前发布的报告数据截至发布时刻（BP115）
-    early = r.cutAt != null && r.to >= ymdOf(r.cutAt),
-    // 2.66 V634：期间未结束的草稿截至现在，另写现在的状态；期间已结束的草稿与已发布的一样截至期末 24:00，只写期内的事
-    live = !published && !early && r.to >= today,
-    per = aiReportPer(r),
-    rg = Demo.range(per),
+    win = aiReportWindow(r),
+    { per, rg, early, live, now, cutoff } = win,
     cut = rg.to,
     t = (ts) => `${opsDay(ts)} ${Demo.hm(ts)}`,
     e = Demo.energyIn(rg),
     // 排放引用碳排放设置；已发布的报告固定发布时的版本（规范 APP02、OPS05）
     ce = carbonIn(rg, published ? r.pubAt : undefined),
-    comp = Demo.compliance(per),
+    comp = Demo.compliance({ ...rg, to: Math.min(rg.to, cutoff + 1) }),
     co2 = comp.filter((c) => c.co2 != null),
     // 按有人时间计（Y8）：有占用传感器的功能区按工作时间内检测到有人的有效分钟，其余按工作时间
     occOf = (s, k) => (s?.occBasis === "occ" ? s[k === "valid" ? "occValidMinutes" : "occWithinMinutes"] : s?.[k === "valid" ? "workValidMinutes" : "withinMinutes"]) || 0,
@@ -110479,13 +110743,10 @@ function aiReportLive(r) {
     qs = Demo.days()
       .filter((d) => d.t >= rg.from && d.t < cut)
       .flatMap((d) => d.quality.map((q) => ({ ...q, t: d.t }))),
-    // 期间含今天的草稿截至当前时刻（页面时钟），与告警页同一组告警
-    now = early ? r.cutAt : live ? (typeof opsNow === "function" ? opsNow() : Demo.NOW) : null,
-    inCut = (ts) => (now != null ? ts <= now : ts < cut),
-    al = scope ? F.alarmGroups(data(), a => aiReportAlarmIn(a, scope) && Date.parse(a.at) >= rg.from && inCut(Date.parse(a.at)))
-      .map(a => ({ ...a, relatedIds: a.relatedIds.filter(id => g("points", id)?.floorId === scope.f) }))
-      .sort((a, b) => Date.parse(a.at) - Date.parse(b.at)) : [],
-    rec = (a) => a.state === "recovered" && inCut(Date.parse(a.recoveredAt)),
+    inCut = (ts) => ts <= cutoff,
+    records = aiReportRecords(scope, rg.from, cutoff),
+    { alarms: al, tasks: tks } = records,
+    rec = (a) => aiReportRecovered(a, cutoff),
     open = al.filter((a) => !rec(a)),
     reach = Demo.health().reach.filter((x) => x.t >= rg.from && x.t < cut && x.v != null),
     h = live ? Demo.health() : null,
@@ -110565,11 +110826,8 @@ function aiReportLive(r) {
     // 2.83 KW5：首句后写处理用时：“紧急告警 N 条，平均 N 分钟确认；工单 N 张，按计划完成 N 张，逾期 N 张。”没有紧急告警或工单时省去对应半句
     urg = al.filter((a) => a.level === "紧急"),
     urgAck = urg.filter((a) => a.ackAt && inCut(Date.parse(a.ackAt))),
-    scopedTasks = scope ? (data().investigationTasks || []).filter(k => aiReportTaskIn(k, scope)) : [],
-    tks = scopedTasks.filter((k) => Date.parse(k.at) >= rg.from && inCut(Date.parse(k.at))),
-    tkDone = (k) => k.closedAt && inCut(Date.parse(k.closedAt)),
-    tkOnTime = tks.filter((k) => tkDone(k) && (!k.planAt || Date.parse(k.closedAt) <= Date.parse(k.planAt))).length,
-    tkLate = tks.filter((k) => k.planAt && (tkDone(k) ? Date.parse(k.closedAt) > Date.parse(k.planAt) : Date.parse(k.planAt) < (now ?? cut))).length,
+    tkOnTime = tks.filter(k => aiReportTaskOnTime(k, cutoff)).length,
+    tkLate = tks.filter(k => aiReportTaskLate(k, cutoff)).length,
     handle = [urg.length ? `紧急告警 ${urg.length} 条，${urgAck.length ? `平均 ${nf(Math.round(urgAck.reduce((n, a) => n + Date.parse(a.ackAt) - Date.parse(a.at), 0) / urgAck.length / 60000))} 分钟确认` : "均未确认"}` : "", tks.length ? `工单 ${tks.length} 张，按计划完成 ${tkOnTime} 张，逾期 ${tkLate} 张` : ""].filter(Boolean),
     dev = `<p class="ai-p">${al.length ? `期内告警 ${al.length} 条。` : "期内没有告警。"}${handle.length ? handle.join("；") + "。" : ""}${avgOn == null ? "" : `平均在线率 ${anPct1(avgOn)}%。`}${reach.length ? `网络检测与夜间复测 ${reach.length} 次，通信成功率最低 ${nf(Math.min(...reach.map((x) => x.v)), 1)}%。` : "期内没有网络检测记录。"}${liveParts.length ? `截至 ${t(now ?? Demo.NOW)}，${liveParts.join("；")}。` : ""}</p>`;
   // 建议只依据截至数据截至仍未恢复的告警（V634）
@@ -110582,7 +110840,7 @@ function aiReportLive(r) {
   if (kinds.includes("energy") && night) adv.push([`按照明控制参数重新下发${zhSub(alarmTitle(night).zone?.name, "lr").trimEnd()} ${Demo.zoneOf("labb")?.lcs.length ?? 3} 台照明控制器的配置，夜间无人时不再保持 30% 亮度（估算 2.1 kWh/晚）`, aiLink(alarmTitle(night).title, "opsAlarm", { id: night.id })]);
   if (kinds.includes("health") && lost) adv.push([`检查${zhSub(alarmTitle(lost).zone?.name, "lr")}照明回路的断路器与 ${alarmTitle(lost).p.name} 供电`, aiLink(alarmTitle(lost).title, "opsAlarm", { id: lost.id })]);
   if (kinds.includes("health") && reset) adv.push([`远程重新绑定 ${alarmTitle(reset).p.name}，或现场用 App 绑回原点位`, aiLink(alarmTitle(reset).title, "opsAlarm", { id: reset.id })]);
-  if (kinds.includes("environment") && meet?.co2 != null && meet.co2 < 95) adv.push([`评估${zhSub(meet.z.name, "lr")}的新风量（CO₂ 达标时间占比 ${pct(meet.co2)}%）`, aiLink(`${meet.z.name} · 环境`, "opsOpenZone", { id: meet.z.id, tab: "environment" })]);
+  if (kinds.includes("environment") && meet?.co2 != null && meet.co2 < 95) adv.push([`评估${zhSub(meet.z.name, "lr")}的新风量（CO₂ 达标时间占比 ${pct(meet.co2)}%）`, aiLink(`${meet.z.name} · CO₂ 趋势`, "opsReportEnvironment", { id: meet.z.id, cutoff })]);
   if (kinds.includes("health") && fcBelow.length) adv.push([`安排 ${fcBelow.length} 台${M.catalog[fcBelow[0].type].name || fcBelow[0].type}固件升级到 ${fwNewer(fcBelow[0])}（无人时段）`, aiLink("固件任务", "opsGo", { page: "devices", tab: "firmware" })]);
   // 每节一张图，与数据分析同一张图，按本报告的期间与数据截至固定（VD7）
   const eds = Demo.days().filter((d) => d.t >= rg.from && d.t < cut),
@@ -110616,8 +110874,8 @@ function aiReportLive(r) {
   // 3.42 V1289：重要、提示的用时按工作时间计（与处理时限同一口径，紧急按自然时间），表头 ⓘ 写明
   const slaFig = (() => {
     if (!["月报", "年报"].includes(r.kind) || !al.length || typeof alDue !== "function") return "";
-    const end = now ?? cut,
-      tkOf = (a) => scopedTasks.find((k) => (k.alertIds || [k.alarmId]).includes(a.id)),
+    const end = cutoff,
+      tkOf = (a) => tks.find((k) => (k.alertIds || [k.alarmId]).includes(a.id)),
       at = (v) => (v && inCut(Date.parse(v)) ? Date.parse(v) : null),
       avg = (xs) => (xs.length ? durText(Math.max(1, Math.round(xs.reduce((n, v) => n + v, 0) / xs.length / 60000))) : "—"),
       pidOf = (a) => a.projectId || OPS_SCOPE.project,
@@ -110627,7 +110885,7 @@ function aiReportLive(r) {
         const d = alDue(a),
           k = tkOf(a);
         if (!d) return false;
-        const ack = at(a.ackAt) ?? (a.closedAt ? null : end),
+        const ack = at(a.ackAt) ?? (at(a.closedAt) != null ? null : end),
           due = k?.planAt ? Date.parse(k.planAt) : d.done,
           fin = k ? at(k.closedAt) ?? end : null;
         return (ack != null && ack > d.ack) || (fin != null && fin > due);
@@ -110656,6 +110914,7 @@ function aiReportLive(r) {
   const mk = (pHtml, ev, f = "", q = "", items = [], ol = false) => ({ html: pHtml + aiRList(items, ol), ev, fig: f, q, items, ol, text: [aiPlain(pHtml), ...items.map((x) => x.text)].filter(Boolean).join("\n") });
   return {
     rg,
+    evidence: aiReportEvidenceData(win, records),
     cutTxt: live || early ? t(now ?? Demo.NOW) : `${opsDay(rg.end - Demo.DAY)} 24:00`,
     ce,
     kpi,
@@ -110663,7 +110922,7 @@ function aiReportLive(r) {
     carbon: mk(cb, basis("carbon", "碳排放"), kidC ? fig(kidC.title, kidC.table) : "", cbQ),
     env: mk(env, basis("environment", "室内环境"), vfig + (kidV ? fig(kidV.title, kidV.table) : ""), envQ),
     space: mk(space, basis("space", "占用"), sfig + (kidS ? fig(kidS.title, kidS.table) : "")),
-    devices: mk(dev, aiLink("告警记录", "opsReportAlarms", { from: per.from, to: per.to }) + aiLink("查看设备列表", "opsReportDevices"), slaFig, "", alItems), // 3.40 V1020：月报、年报另有按级别的处理表
+    devices: mk(dev, aiLink("告警记录", "opsReportAlarms", { from: per.from, to: per.to, cutoff }) + aiLink("查看设备列表", "opsReportDevices"), slaFig, "", alItems), // 3.40 V1020：月报、年报另有按级别的处理表
     // 期内缺数的日期：数据覆盖不完整的一期不自动发布（Y10）
     gapDays: [...new Set(qs.filter((q) => q.type === "缺数").map((q) => q.t))],
     advice: mk(adv.length ? "" : `<p class="ai-p">期内没有需要处理的事项。</p>`, "", "", "", adv.map(([text, link]) => ({ text, link })), true),
@@ -110682,6 +110941,7 @@ function aiChartLines(spec) {
 const aiChartPdf = (spec) => ({ unit: spec.unitShort || spec.unit || "", series: (spec.series || []).map((x) => ({ name: x.name, color: x.color })), rows: (spec.rows || []).map((x) => ({ label: x.label || "", values: x.values || [] })) });
 function aiReportSnapshot(sections, order) {
   const out = { rg: M.copy(sections.rg), cutTxt: sections.cutTxt, ce: M.copy(sections.ce), kpi: M.copy(sections.kpi || []), gapDays: [...(sections.gapDays || [])] };
+  if (sections.evidence && order.some(([key]) => key === "devices")) out.evidence = M.copy(sections.evidence);
   for (const [key] of order) {
     const section = M.copy(sections[key]);
     section.fig = (section.fig || "").replace(/<div class="ops-chart" data-cid="([^"]+)"[^>]*><\/div>/g, (_, id) => {
@@ -116748,6 +117008,16 @@ BARE_AFTER.legal = () => {
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
   {
+    version: "4.00",
+    date: "2026-11-19",
+    notes: [
+      "统一报告告警明细的统计范围和期间，室内环境建议直达对应区域的 CO₂ 趋势。",
+      "从帮助返回时恢复报告、工单和原分析分类。",
+      "改进半层边界预览、现场绑定返回和待重新绑定筛选。",
+      "修复已知问题，优化界面细节。",
+    ],
+  },
+  {
     version: "3.99",
     date: "2026-11-19",
     notes: [
@@ -118898,6 +119168,13 @@ function auHelpTarget(id) {
   return U.role === "member" && target[0] === "overview" ? ["overview", "", "打开我的区域"] : target;
 }
 const auHelpRows = (articles) => `<ul class="au-help-list">${articles.map((x) => `<li><button type="button" class="ops-link" data-act="auHelpArticle" data-id="${esc(x.id)}">${esc(x.title)}</button><small>${esc(x.sum)}</small></li>`).join("")}</ul>`;
+const auHelpFocusKey = () => [locOwner(), location.hash, U.opsReport || "", U.opsDrawer?.id || ""].join("|");
+let auHelpContentFocus = null;
+document.addEventListener("focusin", (event) => {
+  if (["analysis", "alarms"].includes(U.page) && event.target.closest?.("#pbody")) {
+    auHelpContentFocus = { key: auHelpFocusKey(), focus: wsFocusDesc(event.target) };
+  }
+});
 function auHelpDirectory(topic, query) {
   const name = HELP_TOPICS.find(([key]) => key === topic)?.[1];
   if (query.trim()) {
@@ -118910,7 +119187,12 @@ function auHelpDirectory(topic, query) {
 }
 function auHelpPageOpen(view = {}) {
   if (U.page !== "help") {
-    U.helpBack = BARE[U.page] ? null : { owner: locOwner(), view: snapshot() };
+    const ops = !BARE[U.page] && ["analysis", "alarms"].includes(U.page) ? opsRouteState() : null;
+    U.helpBack = BARE[U.page] ? null : {
+      owner: locOwner(), view: snapshot(), source: U.source || null, ops,
+      position: ops ? ws3ReportScroll() : null,
+      focus: ops && auHelpContentFocus?.key === auHelpFocusKey() ? auHelpContentFocus.focus : null,
+    };
     U.helpScroll = 0;
     closeModal(true);
   }
@@ -118919,6 +119201,21 @@ function auHelpPageOpen(view = {}) {
     const el = view.focusArticle && $(`#auHelpResults [data-act="auHelpArticle"][data-id="${CSS.escape(view.focusArticle)}"]`);
     if (el) el.focus();
     else $("#auHelpPageTitle")?.focus({ preventScroll: true });
+  });
+}
+function auHelpReturnTo(saved) {
+  const view = saved?.owner && saved.owner === locOwner() ? saved.view : null;
+  if (!view || view.page === "help" || !Object.hasOwn(pages, view.page) || !locValid(view)) return route("overview", {}, { loc: true });
+  const source = auLoginSource(saved.source);
+  if (view.page === "overview" && view.homeOverview && !view.sp && !view.obj) return homeOverviewReturnTo(view, source);
+  const ops = saved.ops ? { ...saved.ops, back: false, reportCatalogBack: false } : null;
+  route(view.sp ? "space" : view.page, view, { source, opsState: ops });
+  if (ops && U.page === view.page) ws3RestoreReportScroll(saved.position || {}, () => {
+    const target = wsFindDesc(saved.focus) || (U.page === "analysis"
+      ? $(".ai-report-h h3, .ws3-drawer h2, .ops-report-container [aria-current=true]") || $(".ws3-rpt")
+      : $(".al-sp-nav h3, .ws3-dt-t, #homeQueueTitle")) || wsFocusFallback(saved.focus);
+    if (target && target.tabIndex < 0 && !target.hasAttribute("tabindex")) target.tabIndex = -1;
+    return target;
   });
 }
 function auHelpPage() {
@@ -119487,12 +119784,7 @@ Object.assign(actions, {
     const fromArticle = Boolean(a.article);
     auHelpPageOpen({ helpTopic: fromArticle ? U.helpTopic : "", helpQuery: U.helpQuery, scroll: fromArticle ? U.helpScroll || 0 : 0, focusArticle: a.article });
   },
-  auHelpExit: () => {
-    const back = U.helpBack?.owner === locOwner() && U.helpBack.view;
-    if (back?.page === "overview" && back.homeOverview && !back.sp && !back.obj) return homeOverviewReturnTo(back);
-    if (back && back.page !== "help" && Object.hasOwn(pages, back.page)) route(back.sp ? "space" : back.page, back);
-    else route("overview", {}, { loc: true });
-  },
+  auHelpExit: () => auHelpReturnTo(U.helpBack),
   auHelpTarget: (a) => {
     const target = auHelpTarget(a.id);
     if (!target) return;
