@@ -36974,7 +36974,9 @@ img.img-off { display: none !important; }
 /* 3.53 V1445：系统部署页头“⋯”与其他页相同，无框（悬停为浅灰底）；系统接入的“搜索连接”在表格上方的工具条 */
 .phead .ws-page-acts .iconbtn.round:not(:hover):not([aria-expanded="true"]) { background: none; box-shadow: none; }
 .phead .ws-page-acts .iconbtn.round:is(:hover, [aria-expanded="true"]) { background: rgba(0, 0, 0, 0.04); box-shadow: none; }
-.conn-tbar { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; }
+.conn-tbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.conn-tbar > .ws-select { flex: 0 0 124px; max-width: 100%; }
+.conn-q > input[type=search]::-webkit-search-cancel-button { display: none; }
 .conn-tbar > .ws-search.conn-q { flex: 0 1 240px; width: 240px; }
 @media (max-width: 850px) { .conn-tbar { margin-bottom: 12px; } .conn-tbar > .ws-search.conn-q { flex: 1 1 auto; width: auto; } }
 /* 3.53 V1447：手机本页主按钮（新建工单、新建场景、新建设备分组）放在顶栏右端，只显示“+”图标（40 圆形，同规范“顶栏”手机列）；页头不再为它另占一行 */
@@ -38308,7 +38310,7 @@ img.img-off { display: none !important; }
   min-height: var(--deployment-field-size);
   border: 0;
   border-block: var(--deployment-field-inset) solid transparent;
-  border-radius: 12px / calc(12px + var(--deployment-field-inset));
+  border-radius: 8px / calc(8px + var(--deployment-field-inset));
   background: var(--field-bg) padding-box;
   box-shadow: var(--field);
   -webkit-tap-highlight-color: transparent;
@@ -38325,7 +38327,7 @@ img.img-off { display: none !important; }
   padding-inline-end: 8px;
 }
 :is(#app, #dlg, #pop):is([data-page="deployment"], [data-page="devices"]) .ws-select > button.input::before {
-  border-radius: 12px;
+  border-radius: 8px;
   background: transparent;
 }
 :is(#app, #dlg, #pop):is([data-page="deployment"], [data-page="devices"])
@@ -38359,6 +38361,88 @@ img.img-off { display: none !important; }
   }
 }
 
+
+.dep-inspection {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.dep-inspection-bar {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  justify-items: start;
+}
+
+.dep-inspection-title {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+}
+
+.dep-inspection-title h2,
+.dep-inspection-card > h3 {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.dep-inspection-title p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+.dep-inspection-bar .seg {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.dep-inspection-bar .seg button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.dep-inspection-card {
+  margin: 0 0 12px;
+  min-width: 0;
+}
+
+.dep-inspection-card > h3 {
+  margin: 0 0 12px;
+}
+
+.dep-inspection > .ws-tabpanel {
+  min-width: 0;
+}
+
+@media (max-width: 700px) {
+  .dep-inspection-bar .seg button {
+    padding-inline: 8px;
+    min-height: 44px;
+  }
+
+  .dep-inspection-bar .seg button .ic {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .dep-inspection [data-topo-mode="device"] .dep-topo-detail {
+    position: static;
+    width: auto;
+    max-height: none;
+    box-shadow: none;
+  }
+}
 
 .dep-topo-device { min-width: 0; padding: var(--workspace-card-gutter); }
 .dep-topo-main > .dep-topo-device.card { border: 0; border-radius: 0; box-shadow: none; }
@@ -41213,6 +41297,7 @@ const StationFlowModel = ((M) => {
     "functionChecks",
     "testReceipts",
     "fieldChanges",
+    "deploymentBatches",
     "reportTasks",
     "circuitGroups",
     "paramRegistry",
@@ -41414,9 +41499,9 @@ const StationFlowModel = ((M) => {
     return !!part && managedPointIn(db, f, p) && part.pointIds.includes(p.id) && (!p.zoneId || part.zoneIds.includes(p.zoneId));
   }
   const hasManagedNetworkFloor = (db, n) => n.floorIds.some((id) => M.floor(db, id)?.managedPart) || M.networkPoints(db, n.id).some((p) => M.floor(db, p.floorId)?.managedPart);
-  function deploymentNetworkOutside(db, n) {
+  function deploymentNetworkOutside(db, n, requireExactScope = false) {
     const p = n.projectId, scope = deploymentScope(db, p), pts = M.networkPoints(db, n.id);
-    const strict = !!scope.needsConfirmation || scope.explicit === true || M.get(db, "projects", p)?.deploymentScopeRequired === true || !!Object.keys(scope.parts || {}).length || hasManagedNetworkFloor(db, n);
+    const strict = requireExactScope || !!scope.needsConfirmation || scope.explicit === true || M.get(db, "projects", p)?.deploymentScopeRequired === true || !!Object.keys(scope.parts || {}).length || hasManagedNetworkFloor(db, n);
     if (!strict) return false;
     if (!deploymentReady(db, p) || n.floorIds.some((id) => !scope.floorIds.includes(id))) return true;
     return pts.some((pt) => {
@@ -42726,6 +42811,82 @@ const StationFlowModel = ((M) => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
     const d = new Date(value + "T00:00:00Z");
     return Number.isFinite(d.getTime()) && d.toISOString().slice(0, 10) === value;
+  }
+  // 批次预览锁定当前范围和具体目标，留存的旧批次供核对，后续规划不能改写它。
+  function deploymentBatchPreview(db, n) {
+    const scope = deploymentScope(db, n.projectId);
+    if (!deploymentReady(db, n.projectId)) throw Error("请先确认本次部署范围及部分楼层的图纸");
+    const restriction = deploymentNetworkReason(db, n);
+    if (restriction) throw Error(restriction);
+    if (deploymentNetworkOutside(db, n, true)) throw Error("设备网络涉及本次范围外的楼层、设备或关联点位");
+    const ids = (values) => [...new Set(values || [])].sort();
+    const floors = ids(scope.floorIds).map(id => {
+      const f = M.floor(db, id), part = scope.parts?.[id];
+      return {
+        id, buildingId: f.buildingId, version: f.planVersion || 0, boundary: managedPlanKey(f),
+        zones: part ? ids(part.zoneIds) : null, points: part ? ids(part.pointIds) : null,
+        review: f.planReview ? [f.planReview.from, f.planReview.to] : null,
+      };
+    });
+    const networkFloors = ids(n.floorIds);
+    const devices = M.networkPoints(db, n.id).slice().sort((a, b) => a.id.localeCompare(b.id)).map(p => ({
+      id: p.id, floorId: p.floorId, type: p.type, access: M.access(p), zoneId: p.zoneId || null,
+      x: p.unplaced ? null : p.x ?? null, y: p.unplaced ? null : p.y ?? null, planVersion: p.planVersion ?? null,
+      connections: ids([p.connectionId, p.powerId, p.oduId, p.luxId, ...(p.followIds || [])].filter(Boolean)),
+      targetVersion: M.access(p) === "gateway" ? n.libraryVersion || null : desired(db, p.id)?.version ?? null,
+    }));
+    if (!devices.length) throw Error("本设备网络尚无规划点位");
+    return { projectId: n.projectId, scopeVersion: scope.version || 0, functions: scope.functions ? ids(scope.functions) : null,
+      floors, networkId: n.id, networkVersion: n.version, networkFloors, devices };
+  }
+  const latestDeploymentBatch = (db, networkId) => (db.deploymentBatches || []).findLast(b => b.networkId === networkId) || null;
+  function freezeDeploymentBatch(db, network, manifest, by, at = M.now()) {
+    const current = deploymentBatchPreview(db, network);
+    if (!manifest || !sameValue(manifest, current)) throw Error("范围、图纸或设备版本已变化，请重新预览差异");
+    const previous = latestDeploymentBatch(db, network.id);
+    if (previous && sameValue(previous.manifest, current)) return previous;
+    const batch = { id: M.uid("deployment-batch"), projectId: network.projectId, networkId: network.id, manifest: clone(current), by, at };
+    (db.deploymentBatches ||= []).push(batch);
+    return batch;
+  }
+  function assertDeploymentBatch(db, n, id) {
+    const current = deploymentBatchPreview(db, n), batch = latestDeploymentBatch(db, n.id);
+    if (!batch || (id != null && id !== batch.id) || !sameValue(batch.manifest, current))
+      throw Error("请预览差异并冻结当前范围和设备版本");
+    return batch;
+  }
+  // 逐设备回读以批次、网络版本、硬件和目标版本为键。旧绑定和旧配置的回执仍可查阅。
+  function deploymentReadback(db, batch, p, target, { allowDemo = false } = {}) {
+    if (!p?.hardwareId || !boundNow(p)) return null;
+    const relevant = (db.receipts ? byPointOf(db.receipts).m.get(p.id) || [] : []).filter(r =>
+      r.kind === "deployment-readback" && r.deploymentBatchId === batch.id && r.networkId === batch.networkId &&
+      r.networkVersion === batch.manifest.networkVersion && r.configurationVersion === target.targetVersion &&
+      r.hardwareId === p.hardwareId && (allowDemo || (!r.demo && !String(r.serviceReceiptId || "").startsWith("demo-"))));
+    const earliest = Math.max(Date.parse(batch.at), Date.parse(p.replacedAt) || 0, Date.parse(p.reboundAt) || 0);
+    const latest = relevant.reduce((newest, r) => {
+      const at = Date.parse(r.at);
+      return at >= earliest && (!newest || at >= Date.parse(newest.at)) ? r : newest;
+    }, null);
+    if (!latest) return null;
+    if (latest.status === "verified" && (!latest.serviceReceiptId || latest.observedVersion == null || latest.observedVersion !== target.targetVersion))
+      return { ...latest, status: "mismatch" };
+    return latest;
+  }
+  function deploymentExecutionRows(db, batch, options) {
+    return batch.manifest.devices.map(target => {
+      const p = M.get(db, "points", target.id);
+      const binding = !p || !boundNow(p) || !p.bindingReceiptId ? p?.fieldReset ? "待重新绑定" : "待绑定" : "已绑定";
+      const result = p && binding === "已绑定" ? deploymentReadback(db, batch, p, target, options) : null;
+      const verify = p && verifiedNow(db, p) && testReceiptOf(db, p)?.networkVersion === batch.manifest.networkVersion;
+      return {
+        ...target, name: p?.name || target.id, binding,
+        sync: !p ? "对象已失效" : target.access === "gateway" ? !target.targetVersion ? "目标版本未登记" :
+          p.libraryVersion === target.targetVersion ? "已同步" : "待同步" : syncState(db, p),
+        readback: result?.status || "waiting", at: result?.at || null, demo: !!result?.demo,
+        validation: target.access === "gateway" ? "不适用" : verify ? "已验证" : "待验证",
+        retry: result?.status === "failed" || result?.status === "mismatch",
+      };
+    });
   }
   function freezeDeliverySnapshot(db, network, extra = {}) {
     const mesh = meshPoints(db, network.id), field = fieldPoints(db, network.id), fields = (obj, names) => Object.fromEntries(names.map(k => [k, obj?.[k] ?? null]));
@@ -46100,6 +46261,11 @@ const StationFlowModel = ((M) => {
     EXPORT_KINDS,
     SPACE_EXPORT_NOTICE,
     validCalendarDate,
+    deploymentBatchPreview,
+    latestDeploymentBatch,
+    freezeDeploymentBatch,
+    assertDeploymentBatch,
+    deploymentExecutionRows,
     freezeDeliverySnapshot,
     canExport,
     setSampleMark,
@@ -48374,12 +48540,13 @@ function snapshot() {
     b: U.b,
     f: U.f,
     sp: !!U.sp,
+    ...(U.depInspection ? { depInspection: U.depInspection } : {}),
     // 2.81 KW23：对象页（总览上的 obj、otab），来源返回回到该对象页
     obj: U.obj || null,
     otab: U.otab || null,
     view: U.view,
     tab: U.tab,
-    ...(U.page === "deployment" && U.depTopoMode ? { depTopoMode: U.depTopoMode } : {}),
+    ...(U.page === "deployment" && U.depTopoMode ? { depTopoMode: U.depTopoMode, depProjectFilter: !!U.depProjectFilter } : {}),
     mode: U.mode,
     zoom: U.zoom,
     point: U.point,
@@ -48390,6 +48557,7 @@ function snapshot() {
     // 2.81 E1094：连接详情页（conn、ctab）
     conn: U.conn || null,
     ctab: U.ctab || null,
+    ...(U.page === "devices" && U.tab === "connections" && !U.conn ? { cq: U.cq || "", connSort: U.connSort || null, connPage: U.connPage || 0 } : {}),
     filter: U.filter,
     ...(U.page === "devices" && U.tab === "inventory" ? {
       deviceNet: U.deviceNet || "", deviceIssueRoute: !!U.deviceIssueRoute, deviceTask: U.deviceTask || "",
@@ -48528,7 +48696,6 @@ function route(page, scope = {}, opts = {}) {
         ctab: null,
         connRow: null,
         connFail: null,
-        connVer: null,
         mode: floorDefaultMode(page),
         canvasScrollX: 0,
         canvasScrollY: 0,
@@ -48578,6 +48745,7 @@ function route(page, scope = {}, opts = {}) {
         spEd: null,
         spLoc: null,
         depTopoMode: null,
+        depInspection: null,
       },
       scope,
     );
@@ -48614,7 +48782,7 @@ function route(page, scope = {}, opts = {}) {
       // 3.30 部署流程第三节第 6 条、3.32 E1319：从部署进度离开时记下滚动与打开它的按钮（focus），“返回部署进度”展开原来的步骤并找回
       U.source = { ...from, ...(fromInfo ? { spaceInfo: fromInfo } : {}), label: fromLabel, ...(from.page === "deployment" ? { scrollTop: $("#pbody")?.scrollTop || 0, focus: wsFocusDesc(document.activeElement) } : {}) };
     const src = U.source;
-    if (src && (opts.root || (page === "projects" && !U.p) || (U.p && src.p && U.p !== src.p) || (page === src.page && U.tab === (src.tab || "") && U.b === src.b && U.f === src.f && (U.obj || null) === (src.obj || null) && (!src.fromNetworkList || !U.net))))
+    if (src && (opts.root || (page === "projects" && !U.p) || (U.p && src.p && U.p !== src.p) || (page === src.page && U.tab === (src.tab || "") && U.b === src.b && U.f === src.f && (U.obj || null) === (src.obj || null) && (!src.fromNetworkList || !U.net) && (!src.fromConnectionList || !!src.conn === !!U.conn))))
       U.source = null;
     D = null;
     U.dirty = false;
@@ -48670,6 +48838,7 @@ function syncRoute(replace = false) {
   const canvas = devCanvas();
   for (const k of ["p", "b", "f", "tab", "net", "ntab", "conn", "ctab"]) if (U[k] && !(["ntab", "ctab"].includes(k) && U[k] === "summary")) q.set(k, U[k]);
   if (typeof writeInventoryRoute === "function") writeInventoryRoute(q);
+  if (typeof depInspectionWrite === "function") depInspectionWrite(q);
   if (U.page === "help") {
     if (U.helpTopic) q.set("topic", U.helpTopic);
     if (U.helpQuery) q.set("q", U.helpQuery);
@@ -48687,6 +48856,7 @@ function syncRoute(replace = false) {
   if (U.page === "deployment" && U.tab !== "status") {
     const mode = depTopoRouteMode(U.depTopoMode || depWbView().mode, U.b, U.f, U.tab);
     if (mode !== "space" || U.b || U.f) q.set("topo", mode);
+    if (U.tab === "config" && U.depProjectFilter && U.p) q.set("projects", "one");
   }
   // 2.81 KW23：对象页写在总览的地址上（obj=zone:<id>，otab 为页签，概况不写）
   if (U.page === "overview" && U.obj) {
@@ -48700,6 +48870,10 @@ function syncRoute(replace = false) {
   if (ops) state.ops = ops;
   const inventoryTask = typeof inventoryTaskState === "function" ? inventoryTaskState() : null;
   if (inventoryTask) state.inventoryTask = inventoryTask;
+  const deploymentInspection = typeof depInspectionHistory === "function" ? depInspectionHistory() : null;
+  if (deploymentInspection) state.deploymentInspection = deploymentInspection;
+  const connectionList = typeof connListState === "function" ? connListState() : null;
+  if (connectionList) state.connectionList = connectionList;
   if (U.page === "help") {
     state.helpBack = U.helpBack || null;
     state.helpScroll = U.helpScroll || 0;
@@ -48834,6 +49008,7 @@ function readRoute() {
     U.zone = null;
   }
   U.depTopoMode = U.page === "deployment" && U.tab !== "status" ? depTopoRouteMode(q.get("topo"), U.b, U.f, U.tab) : null;
+  U.depProjectFilter = U.page === "deployment" && U.tab === "config" && !!U.p && q.get("projects") === "one";
   if (U.depTopoMode) {
     depRestoreProjectSelection();
     depTopoAfterNavigate(null, depWbContext(), null, U.depTopoMode);
@@ -48849,6 +49024,8 @@ function readRoute() {
   const pjFix = projGo(),
     edFix = spEdFix();
   if (typeof readInventoryRoute === "function") readInventoryRoute(q);
+  if (typeof depInspectionRead === "function") depInspectionRead(q);
+  if (typeof connRestoreListState === "function") connRestoreListState(history.state?.connectionList);
   if (page === "deployment" || fixed || pjFix || edFix || obFix || (U.spEd && page !== "space")) syncRoute(true);
 }
 
@@ -49722,6 +49899,11 @@ function render() {
   // （3.00 V990 恢复 V960；点“选择楼宇”打开的菜单先预览上次选过的项目，没有时预览第一个有楼宇的项目，见 wsLocOpen）
   // 2.81 KW25：只有一个时直接进入下一级（ops-demo.js 的 opsOne）
   if (typeof opsOne === "function" && opsOne()) syncRoute(true);
+  // 旧地址和设备标记进入空间页时仍使用交付楼层的查看权限。
+  if (U.page === "overview" && U.sp && !U.obj && U.f && !canEdit() && !ovLiveIds().has(U.f)) {
+    U.missing = { kind: "floors", id: U.f };
+    U.f = U.zone = U.spLoc = null;
+  }
   if (U.p) U.lastP = U.p;
   locTrack();
   if (typeof auOrgFormSync === "function") auOrgFormSync();
@@ -50877,7 +51059,7 @@ pages.devices = () => {
   if (tab === "networks" && U.net) return networkPage();
   if (tab === "connections" && U.conn) {
     const c = visibleConnection(U.conn);
-    return c && (!U.p || U.p === c.projectId) ? renderConnectionPage() : empty("连接不存在或已删除", "", btn("返回系统接入", "depSub", { value: "connections" }, "primary"), "plug");
+    return c && connInScope(c, U) ? renderConnectionPage() : empty("连接不可访问或已删除", "", "", "plug");
   } // 2.81 E1094：连接详情与网络详情同为子页面
   if (tab === "mark" && U.f) return floorPage();
   // 3.34 删除不用的旧代码：设备标记不带楼层的地址由 spEdFix 打开上次看的楼层或转到设备列表（原在此选楼层）
@@ -50896,7 +51078,8 @@ pages.devices = () => {
   // 3.52：设备部署的分段在页签下一行；固件升级归设备列表
   if (DEPLOY_SUB.some(([k]) => k === tab)) U.depSub = tab;
   const sub = tab === "connections" ? "" : depSubTabs(tab === "firmware" ? "inventory" : tab === "mark" ? "marks" : tab);
-  return head + sub + body;
+  const inspection = tab === "inventory" && typeof depInspectionRender === "function" ? depInspectionRender(null, body) : null;
+  return head + sub + (inspection || body);
 };
 function depSubTabs(active) {
   return `<div class="dep-sub">${tabs(DEPLOY_SUB, active, "depSub", "", "设备部署")}</div>`;
@@ -50906,25 +51089,26 @@ function depSubTabs(active) {
 function depMarksPage() {
   const db = data(),
     pid = U.p;
-  if (!pid || !g("projects", pid)) return empty("请先选择项目", "", "", "floor-plan");
+  if (!pid || !mayViewProject(pid, db)) return empty("请先选择项目", "", "", "floor-plan");
+  const writable = canEdit(), visible = writable ? null : ovLiveIds();
   const secs = db.buildings
     .filter((b) => b.projectId === pid && (!U.b || b.id === U.b))
     .sort(M.byName)
     .map((b) => {
-      const fs = sortedFloors(b.id),
-        has = fs.filter((f) => f.image),
+      const fs = sortedFloors(b.id).filter(floor => !visible || visible.has(floor.id)),
+        has = fs.filter((f) => f.image && (writable || !f.managedPart || F.managedPartReady(f))),
         rest = fs.length - has.length,
         out = b.kind === "outdoor";
       if (!fs.length) return "";
       const rows = has.map((f) => {
-        const pts = M.points(db, f.id),
+        const pts = M.points(db, f.id).filter(point => F.managedPointIn(db, f, point)),
           placed = pts.filter((p) => !p.unplaced).length,
           placement = `已放置 ${fmt(placed)}${pts.length > placed ? ` · 待放置 ${fmt(pts.length - placed)}` : ""}`,
-          lz = floorGroups(f.id).length,
+          lz = floorGroups(f.id).filter(group => !f.managedPart || group.controllerIds.every(id => F.managedPointIn(db, f, M.get(db, "points", id)))).length,
           nets = db.networks.filter((n) => n.projectId === pid && n.floorIds.includes(f.id)),
-          c = pts.length ? F.planChecks(db, { floorId: f.id }) : null,
+          c = writable && pts.length ? F.planChecks(db, { floorId: f.id }) : null,
           issues = c ? [[c.blocks.length, "阻止"], [c.hints.length, "提示"]].filter(([n]) => n).map(([n, word]) => `${word} ${fmt(n)} 项`) : [],
-          chk = c ? issues.join(" · ") || "通过" : "未检查";
+          chk = c ? issues.join(" · ") || "通过" : writable ? "未检查" : "—";
         return { act: "depMarkFloor", args: { f: f.id }, cells: [esc(out ? "总平面" : f.name), placement, fmt(lz), nets.length === 1 ? esc(nets[0].name) : nets.length ? `${fmt(nets.length)} 个` : "—", chk] };
       });
       return `<section class="ob-card ovi-tbl dep-marks" aria-label="${esc(b.name)}"><header><h3>${esc(b.name)}<span class="ov3-n">· ${out ? (has.length ? "有总平面图" : "无总平面图") : `${fmt(has.length)} 层有图`}</span></h3><span class="sp"></span></header>${rows.length ? table([out ? "名称" : "楼层", "点位", "#照明分区", "网络", "规划检查"], rows, "尚无楼层图") : ""}${rest ? `<p class="dep-marks-rest">${rows.length ? "其余 " : ""}${out ? "未上传总平面图" : `${fmt(rest)} 个楼层未上传楼层图`}${canEdit() ? ` · <button type="button" class="lk" data-act="depCfg" data-b="${esc(b.id)}">在项目配置上传</button>` : ""}</p>` : ""}</section>`;
@@ -50952,7 +51136,13 @@ defineActions({
     render();
   },
   // 3.53 E1544：从设备标记进入编辑器时记下来源，“←”写“返回设备部署”，“←”与“完成”回到设备标记（同一页面之间 route 不自动记来源）
-  depMarkFloor: (a) => (canEdit() ? goFloor(a.f, "mark", null, "devices", { ...snapshot(), label: "设备部署" }) : route("space", { p: U.p, b: g("floors", a.f)?.buildingId || null, f: a.f, tab: "" })),
+  depMarkFloor: ({ f }) => {
+    const floor = g("floors", f), building = g("buildings", floor?.buildingId);
+    if (!floor?.image || !building || building.projectId !== U.p || (U.b && U.b !== building.id) || !mayViewProject(U.p)) return;
+    if (canEdit()) return goFloor(f, "mark", null, "devices", { ...snapshot(), label: "设备部署" });
+    if (!ovLiveIds().has(f) || (floor.managedPart && !F.managedPartReady(floor))) return;
+    return route("space", { p: U.p, b: building.id, f, tab: "" });
+  },
   depCfg: (a = {}) => route("deployment", { p: U.p, b: a.b || null, f: null, tab: "config", depTopoMode: a.b ? "floor" : "space", net: null }, { source: null }),
   devFw: () => route("devices", { p: U.p, b: U.b, f: null, tab: "firmware", net: null }, { source: null }),
 });
@@ -51750,7 +51940,7 @@ function readConnectionParams(proto) {
 // 通信参数的一行写法：如“9600 bps · 8N1”（地址在数据映射的每一行，BP56；2.53 E500：8N1 已含校验，不再写“无校验”）
 function connectionParamText(c) {
   const p = c.params || {},
-    parts = [p.port != null && `端口 ${p.port}`, p.topic && `主题前缀 ${p.topic}`, p.bbmd && `BBMD ${p.bbmd}`].filter(Boolean);
+    parts = [p.topic && `主题前缀 ${p.topic}`, p.bbmd && `BBMD ${p.bbmd}`].filter(Boolean);
   return parts.length ? parts.join(" · ") : c.protocol === "REST API" ? "只有服务地址" : "尚未填写";
 }
 // 采集位置与采集周期（2026-10-09 用户确认，ABB 对比 BP55）：RS-485、Modbus TCP 与 BACnet/IP 在网关采集，选本项目已绑定的 EG20 与接口；
@@ -53182,7 +53372,8 @@ async function saveSpaceForm(a = {}) {
   const again = !s.id && isB && U.page === "deployment" && !!a.next,
     nextOutdoor = outdoorForm;
   if (!s.id && s.kind === "projects") {
-    route("deployment", { p: saved.id, b: null, f: null, tab: "config", depTopoMode: U.depTopoMode === "info" ? "info" : "space" });
+    route("deployment", { p: saved.id, b: null, f: null, tab: "config", depTopoMode: U.depTopoMode === "info" ? "info" : "space", depProjectFilter: true });
+    requestAnimationFrame(() => $('.dep-project-buildings [data-act="v13NewBuilding"]')?.focus({ preventScroll: true }));
   } else if (!s.id && isB) {
     route("deployment", { p: saved.projectId, b: saved.id, f: null, tab: "config", depTopoMode: U.depTopoMode === "info" ? "info" : "space" });
     const floors = data().floors.filter(floor => floor.buildingId === saved.id);
@@ -53306,7 +53497,18 @@ async function saveNetworkForm(a) {
 const CONNECTION_ACCESS_DENY = "当前连接不可访问，请重新进入系统接入。";
 function visibleConnection(id, db = data()) {
   const c = id && M.get(db, "connections", id);
-  return c && M.get(db, "projects", c.projectId) && mayViewProject(c.projectId, db) ? c : null;
+  if (!c || U.role === "member" || !M.get(db, "projects", c.projectId) || !mayViewProject(c.projectId, db)) return null;
+  const gateway = c.collect?.at === "gateway" && c.collect.gatewayId ? M.get(db, "points", c.collect.gatewayId) : null;
+  // 旧记录的采集网关若跨项目，不呈现该连接及其引用。
+  if (gateway && M.projectOfFloor(db, gateway.floorId) !== c.projectId) return null;
+  if (!["ops", "viewer"].includes(U.role)) return c;
+  // 只读角色可读完整接入对象。连接服务到或引用了未获准楼层时需要独立授权，避免通过详情、文档或计数间接暴露。
+  const admitted = db.demoVersion && typeof ovLiveIds === "function" ? ovLiveIds() : new Set();
+  for (const point of db.points || []) {
+    if (point.connectionId === c.id && F.isConnected(point) && F.managedPointIn(db, M.floor(db, point.floorId), point)) admitted.add(point.floorId);
+  }
+  const floors = [...(c.floorIds || []), ...(gateway ? [gateway.floorId] : [])];
+  return floors.length && floors.every((fid) => admitted.has(fid) && M.projectOfFloor(db, fid) === c.projectId) ? c : null;
 }
 function assertConnectionProjectAccess(pid, db = W) {
   assertProjectRole(["admin", "config"], CONNECTION_ACCESS_DENY);
@@ -53321,6 +53523,10 @@ function assertConnectionDraftAccess(next, before) {
     if (JSON.stringify(a) === JSON.stringify(b)) continue;
     assertNetworkProjectAccess((a || b).projectId, a ? before : next);
     if (b && (a && a.projectId !== b.projectId || !b.floorIds.length || b.floorIds.some((fid) => !M.floor(next, fid) || M.projectOfFloor(next, fid) !== b.projectId))) throw Error("服务楼层不属于当前项目，请重新选择。");
+    if (b?.collect?.at === "gateway" && (!a || a.collect?.gatewayId !== b.collect.gatewayId)) {
+      const gateway = M.get(next, "points", b.collect.gatewayId);
+      if (gateway?.type !== "gw" || M.projectOfFloor(next, gateway.floorId) !== b.projectId) throw Error("采集网关不属于当前项目，请重新选择。");
+    }
   }
   const docsBefore = new Map((before.docFiles || []).filter((f) => f.objectKind === "connections").map((f) => [f.id, f])),
     docsNext = new Map((next.docFiles || []).filter((f) => f.objectKind === "connections").map((f) => [f.id, f]));
@@ -53391,7 +53597,7 @@ async function saveConnection() {
     if (credential && credential !== old.credential) M.record(db, "登记连接凭证", c.id, `${c.name} · ${CRED_KINDS.concat([["none", "不需要凭证"]]).find(([k]) => k === credential.kind)?.[1] || ""}`);
   }, "configure", { assertAccess: (db) => assertConnectionProjectAccess(pid, db) });
   closeModal(true);
-  if (!old.id && typeof showConnectionDetail === "function") showConnectionDetail(c.id, "map");
+  if (!old.id && typeof showConnectionDetail === "function") showConnectionDetail(c.id, "map", null, { created: true });
   else render();
   msg(old.id ? `已保存系统连接“${name}”` : `已创建系统连接“${name}”`);
 }
@@ -53944,7 +54150,9 @@ defineActions({
   networkListBack: () => U.source?.fromNetworkList
     ? actions.sourceBack()
     : route("devices", { tab: "networks", net: null }),
-  connectionListBack: () => route("devices", { tab: "connections", conn: null, ctab: null }),
+  connectionListBack: () => U.source?.fromConnectionList && (!U.source.p || mayViewProject(U.source.p))
+    ? actions.sourceBack()
+    : route("devices", { tab: "connections", conn: null, ctab: null }, { source: null }),
   // 2.65 E726：删除图上位置的设备从设备信息“放置到图上”：打开它所在楼层的设备标记，在图上点一下放下
   placeAgain: (a) => {
     const p = g("points", a.id);
@@ -53987,7 +54195,7 @@ defineActions({
   wsReload: () => location.reload(),
   // 3.36 L17-63：标题写范围“修改记录 · 项目名”，同总览信息与楼层编辑器
   changes: () => U.page === "settings" ? runtimeHistoryOpen()
-    : modal(`修改记录${U.p && g("projects", U.p) ? ` · ${g("projects", U.p).name}` : ""}`, changeLogHtml(U.page === "settings" ? "settings" : "devices"), "", true, { footer: false }),
+    : modal(`修改记录${U.p && g("projects", U.p) ? ` · ${g("projects", U.p).name}` : ""}`, U.page === "devices" && U.tab === "connections" ? recordsTable(connVisibleRecords()) : changeLogHtml("devices"), "", true, { footer: false }),
   openConnections: () => route("devices", { tab: "connections", net: null }, { remember: true }),
   connectionForm: withPolicy({ guard: true }, (a) => connectionForm(a.id)),
   saveConnection,
@@ -54350,7 +54558,17 @@ document.addEventListener("input", (e) => {
   // 2.89 E1167：系统接入的搜索
   if (e.target.id === "connQuery") {
     U.cq = e.target.value;
+    U.connPage = 0;
     render();
+    syncRoute(true);
+  }
+  if (e.target.id === "connFloor" && U.page === "devices" && U.tab === "connections" && !U.conn && U.b) {
+    const fid = e.target.value, db = data();
+    const available = connFloorOptions(db, db.connections.filter((c) => visibleConnection(c.id, db)));
+    if (!fid || available.some((f) => f.id === fid)) {
+      route("devices", { p: U.p, b: U.b, f: fid || null, tab: "connections", connPage: 0 }, { source: null });
+      requestAnimationFrame(() => $("#connFloor-control")?.focus({ preventScroll: true }));
+    }
   }
   if (e.target.id === "globalQuery") {
     renderGlobalSearch(e.target.value);
@@ -54776,6 +54994,8 @@ function wsLeaveLayers() {
 window.addEventListener("popstate", () => {
   // An account dialog (重置密码, 隐私政策…) belongs to the page being left and closes first.
   if (typeof auRouteDialogClose === "function") auRouteDialogClose();
+  // During an IndexedDB read, boot will use the latest history entry when the workspace is ready.
+  if (!data() && !publicLegalOnly) return;
   $("#runtimeHolidayPreview")?.closePreview();
   const leaving = !BARE[U.page],
     busy = $("#dlg")?.dataset.busy === "1" || $(".sp-body")?.dataset.busy === "1";
@@ -54821,6 +55041,9 @@ function wsPopGo(leaving) {
   const home = typeof homeOverviewHistoryRead === "function" ? homeOverviewHistoryRead(entry) : null;
   render();
   if (home) homeOverviewRestorePosition(home);
+  if (U.page === "devices" && U.tab === "connections" && !U.conn && entry?.connectionList?.focus) {
+    requestAnimationFrame(() => (wsFindDesc(entry.connectionList.focus) || $("#connQuery"))?.focus({ preventScroll: true }));
+  }
 }
 
 
@@ -56279,7 +56502,7 @@ function sourceBack() {
   if (deploymentSpaceBack()) return labeledBack(`返回${zhSub(U.source.label, "l")}`, "sourceBack");
   // 3.17 E1250：部署四个页签之间不加来源返回（从“进度”的行进入设备网络等）；网络详情、连接详情的返回按钮改写“返回部署进度”（3.32 E1319）；
   // 3.32 E1319：固件升级从进度进入时页头有“返回部署进度”
-  if (devDeploy() && ((U.source?.page === "deployment" && U.tab !== "firmware" && !(U.tab === "inventory" && U.source.fromAttention)) || (U.net && U.source?.fromNetworkList))) return "";
+  if (devDeploy() && ((U.source?.page === "deployment" && U.tab !== "firmware" && !(U.tab === "inventory" && U.source.fromAttention)) || (U.net && U.source?.fromNetworkList) || (U.conn && U.source?.fromConnectionList))) return "";
   // 设备网络详情自带“返回”，不重复显示来源返回。
   // 从配置进度“应用设置”表的“工作日历”进入场景 › 定时时同样有来源返回（ABB 对比 IA3）
   // 从总览、数据分析的“查看设置”进入应用设置时同样有来源返回（2.05 总览核查 V111）；从配置进度进入时同样（2.65 E938）；从场景 › 定时的“工作日历”进入时同样（2.66 V484）
@@ -56644,14 +56867,14 @@ defineActions({
   // PDF 与图片在宽弹窗里预览（底部“关闭”“下载”）；其他格式直接下载
   docOpen: (a) => {
     const f = (data().docFiles || []).find((x) => x.id === a.id);
-    if (!f || (f.objectKind === "connections" && !visibleConnection(f.objectId))) return;
+    if (!f || (f.objectKind === "connections" && (!canEdit() || !visibleConnection(f.objectId)))) return;
     if (!docViewable(f)) return downloadBlob(f.name, docBytes(f), f.type);
     const body = /^image\//.test(f.type) ? `<img class="doc-view-img" src="${esc(f.data)}" alt="${esc(f.name)}">` : `<iframe class="doc-view-pdf" src="${esc(f.data)}" title="${esc(f.name)}"></iframe>`;
     modal(f.name, `<p class="muted">${esc(docExt(f))} · ${esc(docSize(f.size || 0))} · ${esc(f.by || "未记录")} · ${esc(shortDate(f.at, f.projectId))}</p>${body}`, btn("关闭", "close") + btn(ico("download", "ic16") + "下载", "docDownload", { id: f.id }, "primary"), true);
   },
   docDownload: (a) => {
     const f = (data().docFiles || []).find((x) => x.id === a.id);
-    if (f && (f.objectKind !== "connections" || visibleConnection(f.objectId))) downloadBlob(f.name, docBytes(f), f.type);
+    if (f && (f.objectKind !== "connections" || canEdit() && visibleConnection(f.objectId))) downloadBlob(f.name, docBytes(f), f.type);
   },
   docDelete: (a) => {
     const f = (data().docFiles || []).find((x) => x.id === a.id);
@@ -56793,7 +57016,7 @@ defineActions({
     const s = U.source;
     if (!s) return;
     if (s.page === "overview" && s.homeOverview && !s.sp && !s.obj) return homeOverviewReturnTo(s, s.prev || null);
-    const { label, spaceInfo, scrollTop, focus, prev, viewFromDeployment, fromNetworkList, ...scope } = s;
+    const { label, spaceInfo, scrollTop, focus, prev, viewFromDeployment, fromNetworkList, fromConnectionList, ...scope } = s;
     // 2.65 E931：回到配置进度时恢复原滚动位置
     if (scrollTop) U.restoreScroll = scrollTop;
     // 3.32 E1319：回到部署进度时展开原来的步骤，焦点回到原按钮（该条已处理时回到步骤行）
@@ -56806,7 +57029,7 @@ defineActions({
     // 3.36 E1340：从搜索进入的，回到部署、空间时焦点也在页标题（不找回打开搜索时的按钮）
     if (focus && !s.search) {
       if (U.page === "deployment") wsFocusBack(focus);
-      else requestAnimationFrame(() => wsFindDesc(focus)?.focus({ preventScroll: true }));
+      else requestAnimationFrame(() => (wsFindDesc(focus) || (fromConnectionList ? $("#connQuery") : null))?.focus({ preventScroll: true }));
     }
     // 3.35 E1334、V1217：回到对象页时焦点在“⋯”（打开“编辑”“在图上查看”的按钮）；从搜索进入的回到原页面时焦点在页标题
     else if (U.obj || s.search)
@@ -57616,7 +57839,6 @@ function spaceFloorPage() {
 // Keep deployment previews and pending floor edits independent. Only explicit floor actions write to the workspace.
 const depTopoFloorStates = new Map();
 let depTopoFloorOwner = "";
-const depProjectRecentFloors = new Map();
 const depProjectFloorActive = () => U.page === "deployment" && U.tab === "config" && U.depTopoMode === "floor";
 const depDeviceFloorActive = () => U.page === "deployment" && U.tab === "devices" && U.depTopoMode === "device-floor" && !!U.f;
 const DEP_TOPO_FLOOR_FIELDS = [
@@ -57628,7 +57850,6 @@ function depTopoFloorState(floor, create = true) {
   const who = JSON.stringify([typeof AUTH === "undefined" ? null : [AUTH.uid, AUTH.org], storeKey(), U.role]);
   if (depTopoFloorOwner !== who) {
     depTopoFloorStates.clear();
-    depProjectRecentFloors.clear();
     depTopoFloorOwner = who;
   }
   if (!floor) return null;
@@ -57691,7 +57912,6 @@ function depTopoAfterNavigate(prevCtx, nextCtx, prevMode, nextMode) {
   Object.assign(U, { zoom: 1, canvasScrollX: 0, canvasScrollY: 0, spUndo: [], spRedo: [], polygonPoints: [], spatialDrawing: false });
   if (nextMode !== "floor" || !nextCtx?.floor) return;
   const x = depTopoFloorState(nextCtx.floor, false);
-  depProjectRememberFloor(nextCtx);
   if (!x?.ui || !canEdit()) return;
   Object.assign(U, x.ui);
   const view = depWbView();
@@ -57767,9 +57987,10 @@ function depTopoPlanFloor({ db, project, building, floor }, view, { projectOnly 
   const ratio = native || (projectOnly ? 1 : 1 / planAspect()), zoom = U.zoom || 1;
   const boundary = f.managedPart && F.managedBoundary(f);
   const outline = boundary ? `<span class="dep-managed-outline" style="left:${boundary.x * 100}%;top:${boundary.y * 100}%;width:${boundary.w * 100}%;height:${boundary.h * 100}%" aria-hidden="true"></span>` : "";
+  const needsScale = !!f.managedPart && !F.floorMeters(f);
   const drawing = projectOnly && (U.drawZone || U.zoneDraft || U.spatialEdit || U.scalePoints || U.planAlign);
-  const placing = !projectOnly && writable && !drawing && !!view.placeDevice;
-  const draw = projectOnly && !isMobile() && writable && !U.scalePoints && !U.planAlign
+  const placing = !projectOnly && writable && !needsScale && !drawing && !!view.placeDevice;
+  const draw = projectOnly && !isMobile() && writable && !needsScale && !U.scalePoints && !U.planAlign
     ? spatialControl("新建功能区") : U.scalePoints ? btn("取消设置比例尺", "spScaleCancel", {}, "sm") : U.planAlign ? spAlignTop() : "";
   const canCopyStandard = projectOnly && writable && !drawing && typeof depCopySources === "function" && depCopySources(db, f).length;
   const controls = projectOnly ? (canCopyStandard ? btn("从标准层复制", "depCopyFloor", { to: f.id }, "sm") : "") +
@@ -57778,7 +57999,7 @@ function depTopoPlanFloor({ db, project, building, floor }, view, { projectOnly 
   const visibleZone = (zone) => F.managedZoneIn(f, zone) && (!zoneIds || zoneIds.has(zone.id));
   const zoneList = db.zones.filter(visibleZone).sort(M.byName);
   const points = !projectOnly && (view.showPoints || U.point) ? M.points(db, f.id).filter((point) => (view.showPoints || point.id === U.point) && point.positionAttached !== false && F.managedPointIn(db, f, point) && (!zoneIds || zoneIds.has(point.zoneId))) : [];
-  const placement = !projectOnly && writable && !drawing ? placing
+  const placement = !projectOnly && writable && !needsScale && !drawing ? placing
     ? btn("输入位置", "depTopoPlaceCoordinates", {}, "sm") + btn("取消标记", "depTopoPlaceToggle", {}, "sm ghost")
     : btn("标记设备", "depTopoPlaceToggle", {}, "sm") : "";
   const extra = projectOnly ? writable && !drawing ? menuTrigger(btn("图纸设置" + ov3ToolIcon("chevron"), "depProjectPlanMenu", {}, "sm")) : ""
@@ -57786,7 +58007,7 @@ function depTopoPlanFloor({ db, project, building, floor }, view, { projectOnly 
   const north = projectOnly && F.planNorth(f);
   const orientation = planNorthBadge(north);
   const tools = `<div class="dep-topo-plan-tools" role="group" aria-label="楼层图工具">${controls}${extra}${zoomPill(word, zoom, "zoom", "fit")}${orientation}</div>`;
-  const message = placing ? "在图上选择设备位置" : spHint();
+  const message = placing ? "在图上选择设备位置" : spHint() || (writable && needsScale ? isMobile() ? "请在宽屏窗口校准比例尺后配置功能区和设备位置。" : "请设置本层图纸比例尺后配置功能区和设备位置。" : "");
   const status = message ? `<p class="dep-topo-plan-status" role="status">${esc(message)}</p>` : "";
   const hint = f.managedPart ? `<p class="dep-topo-plan-status">仅管理 ${esc(f.managedPart.label || "授权区域")}</p>` : "";
   const directoryAttrs = projectOnly ? ` data-floor="${esc(f.id)}"${directoryOpen ? " open" : ""}` : "";
@@ -57805,7 +58026,8 @@ function depTopoFloorDetail(context, view, { projectOnly = false } = {}) {
     const point = M.get(db, "points", view.selection.id);
     if (!F.managedPointIn(db, f, point) || U.role === "member" && !memberZoneIds().includes(point.zoneId)) return "";
     const zone = M.get(db, "zones", point.zoneId), network = M.get(db, "networks", point.networkId);
-    const html = depWbPairs([["位置", f.name], ["功能区", F.managedZoneIn(f, zone) ? zone.name : "未分配"], ["网络", network?.name || "未分配"], ["绑定状态", F.bindingLabel(point)]]) + btn("在设备拓扑查看", "depTopoPointDevices", { id: point.id }, "sm primary");
+    const html = depWbPairs([["位置", f.name], ["功能区", F.managedZoneIn(f, zone) ? zone.name : "未分配"], ["网络", network?.name || "未分配"], ["绑定状态", F.bindingLabel(point)]]) + '<div class="dep-topo-device-detail-actions">' + btn("查看设备详情", "depInspectionOpen", { id: point.id }, "sm")
+      + btn("在设备拓扑查看", "depInspectionOpen", { id: point.id, value: "topology" }, "sm") + '</div>';
     return { title: point.name, html };
   }
   if (view.selection?.kind !== "zone") return "";
@@ -57830,28 +58052,6 @@ function depProjectFloorOptions({ db, building }) {
     return F.floorStack(db, building.id).filter(({ f }) => readable.has(f.id) && zones.some((zone) => F.managedZoneIn(f, zone)));
   }
   return F.floorStack(db, building.id).filter(({ f }) => !readable || readable.has(f.id));
-}
-
-function depProjectRememberFloor({ building, floor }) {
-  depTopoFloorState(null);
-  depProjectRecentFloors.set(building.id, floor.id);
-}
-
-function depProjectFloorTarget(context) {
-  const { db, project, building, floor } = context;
-  const ids = depTopoIds(context);
-  if (floor) return ids;
-  if (!building && project) {
-    const candidates = locBuildings(project.id, db).filter((item) => item.kind !== "outdoor");
-    if (candidates.length === 1) return depProjectFloorTarget({ ...context, building: candidates[0] });
-  }
-  if (!building) return ids;
-  depTopoFloorState(null);
-  const available = depProjectFloorOptions(context).map(({ f }) => f).reverse();
-  const remembered = depProjectRecentFloors.get(building.id);
-  const chosen = available.find((item) => item.id === remembered)
-    || available.find((item) => item.image && (!item.managedPart || F.managedPartReady(item))) || available[0];
-  return { ...ids, f: chosen?.id || null };
 }
 
 function depProjectPickerLabel({ db, project, building, floor }) {
@@ -57887,6 +58087,21 @@ function depProjectRenderPicker(panel, draft) {
   const item = panel.querySelector('[aria-checked="true"]') || panel.querySelector('[data-act="depProjectPickerChoose"]') || panel.querySelector('[data-act="depProjectPickerStep"]');
   item?.focus({ preventScroll: true });
   if (item) wsRevealMenuFocus(panel);
+}
+
+function depProjectOpenPicker(context, opener) {
+  if (!context || !opener) return;
+  if ($("#pop")?.anchor === opener) return closePop({ restoreFocus: true });
+  const { p, b } = depTopoIds(context);
+  const draft = { p, b, step: b ? "floor" : p ? "building" : "project" };
+  const panel = openScopeSearchMenu(opener, "选择项目、楼宇和楼层", depProjectPickerContent(draft), true);
+  if (panel?.anchor !== opener) return;
+  panel.classList.add("dep-project-floor-pop");
+  depProjectRenderPicker(panel, draft);
+}
+
+function depProjectPickerActive(panel) {
+  return U.page === "deployment" && U.tab === "config" && !!panel?.anchor?.isConnected && !!panel.projectFloorDraft;
 }
 
 function depProjectHorizontalRail({ building, floor }, stack) {
@@ -57936,9 +58151,9 @@ function depProjectFloorPage(context, view) {
 }
 
 function depProjectFocusFloor(target) {
-  const action = target?.classList.contains("ov3-flr") ? ".ov3-flr" : ".dep-project-floor-step";
+  const rails = target?.classList.contains("ov3-flr") ? [".ov3-flr", ".dep-project-floor-step"] : [".dep-project-floor-step", ".ov3-flr"];
   requestAnimationFrame(() => {
-    const selected = target ? $(`${action}[aria-pressed="true"]`) : null;
+    const selected = target && rails.map(selector => $(`${selector}[aria-pressed="true"]`)).find(control => control?.getClientRects().length);
     (selected || $("#depProjectFloorPicker"))?.focus({ preventScroll: true });
   });
 }
@@ -58097,7 +58312,7 @@ function depTopoRevealPoint(point) {
 }
 function depTopoPlaceAllowed(context) {
   const f = context?.floor;
-  return depDeviceFloorActive() && !!f?.image && (!f.managedPart || F.managedPartReady(f)) && canEdit() && mayViewProject(context.project.id, context.db)
+  return depDeviceFloorActive() && !!f?.image && (!f.managedPart || F.managedPartReady(f) && !!F.floorMeters(f)) && canEdit() && mayViewProject(context.project.id, context.db)
     && !(U.drawZone || U.zoneDraft || U.spatialEdit || U.scalePoints || U.planAlign);
 }
 function depTopoPlaceDialog(xy) {
@@ -58119,42 +58334,32 @@ function depTopoPlaceDialog(xy) {
   modal("标记设备", `<p>${esc(M.buildingLabel(db, context.building))} · ${esc(f.name)}</p>${fld("设备类型", "depPlaceType", select("depPlaceType", [["", "选择设备类型"], ...types], "", "设备类型"))}${pick}${networkNote}<div class="ws-form-row">${number("depPlaceX", "距左侧", position.x)}${number("depPlaceY", "距顶部", position.y)}</div>`, btn("取消", "close") + btn("保存点位", "depTopoPlaceSave", {}, "primary"), false);
 }
 defineActions({
-  depProjectEnterFloor: (a = {}) => {
+  depProjectEnterFloor: (a = {}, opener) => {
     const current = depWbContext();
     if (!current) return;
     const context = a.p || a.b || a.f ? depTopoContextFor(W, {
       p: a.p || current.project?.id,
-      b: a.b || (a.p && a.p !== current.project?.id ? null : current.building?.id),
+      b: Object.hasOwn(a, "b") ? a.b || null : a.p && a.p !== current.project?.id ? null : current.building?.id,
       f: a.f || null,
     }) : current;
     if (!context || context.floor && !depProjectFloorOptions(context).some(({ f }) => f.id === context.floor.id)) return;
-    const choose = !!a.choose;
-    if (!depTopoNavigate(choose ? { ...depTopoIds(context), f: null } : depProjectFloorTarget(context), { mode: "floor" }) || !choose) return;
-    requestAnimationFrame(() => {
-      const picker = $("#depProjectFloorPicker");
-      if (depProjectFloorActive() && picker) actions.depProjectPickerOpen({}, picker);
-    });
+    const floor = !a.choose && (context.floor || (context.building?.kind === "outdoor" ? depProjectFloorOptions(context)[0]?.f : null));
+    if (floor) return depTopoNavigate({ ...depTopoIds(context), f: floor.id }, { mode: "floor" });
+    if (opener) return depProjectOpenPicker(context, opener);
+    if (context.building) return depTopoNavigate(depTopoIds(context), { mode: "building" });
   },
   depProjectPickerOpen: (_args, opener) => {
-    if (!depProjectFloorActive() || !opener) return;
-    if ($("#pop")?.anchor === opener) return closePop({ restoreFocus: true });
-    const step = U.b ? "floor" : U.p ? "building" : "project";
-    const draft = { p: U.p || null, b: U.b || null, step };
-    const panel = openScopeSearchMenu(opener, "选择项目、楼宇和楼层", depProjectPickerContent(draft), true);
-    if (panel?.anchor === opener) {
-      panel.classList.add("dep-project-floor-pop");
-      depProjectRenderPicker(panel, draft);
-    }
+    if (depProjectFloorActive()) depProjectOpenPicker(depWbContext(), opener);
   },
   depProjectPickerStep: ({ step }) => {
     const panel = $("#pop"), previous = panel?.projectFloorDraft;
-    if (!depProjectFloorActive() || !previous) return;
+    if (!depProjectPickerActive(panel)) return;
     if (step === "project") depProjectRenderPicker(panel, { p: null, b: null, step });
     if (step === "building" && previous.p) depProjectRenderPicker(panel, { p: previous.p, b: null, step });
   },
   depProjectPickerChoose: ({ id }) => {
     const panel = $("#pop"), draft = panel?.projectFloorDraft;
-    if (!depProjectFloorActive() || !draft || !id) return;
+    if (!depProjectPickerActive(panel) || !id) return;
     if (draft.step === "project") {
       if (!depTopoContextFor(W, { p: id })) return;
       depProjectRenderPicker(panel, { p: id, b: null, step: "building" });
@@ -58208,6 +58413,7 @@ defineActions({
     const context = depWbContext(), point = context && M.get(context.db, "points", id);
     if (!depDeviceFloorActive() || !context || !F.managedPointIn(context.db, context.floor, point) || U.role === "member" && !memberZoneIds().includes(point.zoneId) || U.drawZone || U.zoneDraft || U.spatialEdit || U.scalePoints || U.planAlign) return;
     depTopoCloseFloorDetail(context);
+    if (U.depInspection?.id !== id) U.depInspection = null;
     const { project, building, floor } = context;
     if (depTopoNavigate({ p: project.id, b: building.id, f: floor.id }, { mode: "device-floor", selection: { kind: "point", id }, replace: true, focus: false })) depTopoRevealPoint(point);
   },
@@ -58246,6 +58452,7 @@ defineActions({
     const assertAccess = (db) => {
       const current = M.floor(db, f.id);
       if (!mayViewProject(pid, db) || M.projectOfFloor(db, f.id) !== pid || !current?.image || current.managedPart && !F.managedPartReady(current)) throw Error("当前没有权限在此楼层保存点位");
+      if (current.managedPart && !F.floorMeters(current)) throw Error("请先校准部分楼层图纸的比例尺");
       if (current.planVersion !== entry.version || F.managedPlanKey(current) !== entry.boundary) throw Error("图纸或管理边界已更新，请重新选择位置");
       if (!F.managedPointIn(db, current, point)) throw Error("请在管理边界内标记设备");
     };
@@ -59729,14 +59936,16 @@ function trimCanvas(src) {
 // 入口（楼宇页“上传楼层图”、楼宇页“更多”菜单、楼层面板“上传楼层图 / 更换楼层图”、无图楼层空状态、复制到其他楼层中的上传入口、空间检查“去处理”）
 // 都先选文件（可多选）：一个文件且只有一页时为单张模式（大预览、方向、裁剪）；多个文件或多页 PDF 为对应列表（逐行楼层、方向、裁剪、查看图纸）。
 // 从某一层打开时预选该层；从楼宇打开时不预选。back 为“zc”时，关闭后回到复制到其他楼层并保留草稿。
-const PLAN_ACCEPT = ".pdf,.png,.jpg,.jpeg,.webp,.dxf,.dwg,application/pdf,image/png,image/jpeg,image/webp";
+const PLAN_ACCEPT = ".pdf,.png,.jpg,.jpeg,.webp,.dxf,application/pdf,image/png,image/jpeg,image/webp";
 // 3.34 V1208：single 为真时预选楼层只用于一次选一张（部署进度合成的一条），一次选多张时不预选
 function planPick(bid, fid = null, back = null, single = false, locked = false) {
   if (!canEdit()) throw Error("当前角色只有查看权限");
   const building = g("buildings", bid);
   if (!building) throw Error("请先进入楼宇");
   assertNetworkProjectAccess(building.projectId);
-  if (fid && g("floors", fid)?.managedPart) return actions.depFloorBoundary({ f: fid });
+  const floor = fid ? g("floors", fid) : null;
+  if (fid && floor?.buildingId !== bid) throw Error("目标楼层不可用或不属于当前楼宇，请重新选择");
+  if (floor?.managedPart) return actions.depFloorBoundary({ f: fid });
   let f = document.getElementById("planFile");
   if (!f) {
     f = document.createElement("input");
@@ -60244,6 +60453,7 @@ defineActions({
       bytes = source.fileId ? rec?.data : Uint8Array.from(atob(image.slice(image.indexOf(",") + 1)), (ch) => ch.charCodeAt(0));
     if (!bytes) throw Error("本机没有这份原件（可能在其他浏览器上传）");
     check();
+    if (!mayViewProject(M.projectOfFloor(data(), f.id))) throw Error("当前没有权限下载此楼层的图纸");
     downloadBlob(name, bytes, rec?.type || type || "application/octet-stream");
     // 每次下载写入审计日志（安全事件；G-3）
     if (typeof auLog === "function") {
@@ -63116,7 +63326,9 @@ const devReadFails = (p) => {
    每台设备四种状态之一：离线（收不到数据，原因不明）、状态未知（所在网关离线，不重复告警）、异常（原因已知：配置不一致、读取失败、待重新绑定等）、正常。 */
 const devIn = (db, s = {}) => {
   const allowed = new Set(locProjects(db).map((p) => p.id));
-  return F.inventory(db, s).filter((p) => allowed.has(M.projectOfFloor(db, p.floorId)) && (F.isConnected(p) || p.fieldReset));
+  const visibleFloors = canEdit() || typeof ovLiveIds !== "function" || !db.demoVersion ? null : ovLiveIds();
+  return F.inventory(db, s).filter((p) => allowed.has(M.projectOfFloor(db, p.floorId)) &&
+    (!visibleFloors || visibleFloors.has(p.floorId)) && (F.isConnected(p) || p.fieldReset));
 };
 // 3.14 E1224：所在网关离线时状态未知的，除 Mesh 设备外还有接入点为网关的系统接入设备（原只判 Mesh，电能表记离线、多联机记正常）
 const devViaGw = (p) => M.access(p) === "mesh" || g("connections", p.connectionId)?.collect?.at === "gateway";
@@ -63265,7 +63477,7 @@ const scopeFloors = () => F.scopedFloors(data(), U);
 const devFilter = () => ({ types: U.devTypes || [], floors: U.devFloors || [], zone: U.devZone || "" });
 const inventoryTaskNetwork = () => U.deviceIssueRoute && U.deviceTask === "rebind" ? U.deviceNet || "" : "";
 function inventoryFilterPoints(db) {
-  const points = F.inventory(db, U), network = inventoryTaskNetwork();
+  const points = devIn(db, U), network = inventoryTaskNetwork();
   return network ? points.filter(p => p.networkId === network) : points;
 }
 // 已设的筛选条件数：型号、楼层、功能区、设备网络、节点类型各算一项；工具栏按钮写“筛选 · N 项”（2026-10-09 用户确认，ABB 对比 BP8）。
@@ -63709,7 +63921,7 @@ function renderInventory() {
         devNetworkCell(db, p),
         devStatusCell(db, p),
         // 行尾只有“在图上查看”（28 透明圆形图标按钮）：打开设备标记的该层并选中该设备；行悬停或键盘聚焦时显示，触屏一直显示。
-        iconBtn("在图上查看", "map-pin", "locatePoint", { id: p.id }).replace('class="iconbtn round"', 'class="iconbtn round dev-locate"'),
+        iconBtn("在图上查看", "map-pin", "depInspectionOpen", { id: p.id, value: "floor" }).replace('class="iconbtn round"', 'class="iconbtn round dev-locate"'),
       ],
     })),
     // 查看人员与运营人员不给无法执行的指导（第14章“查看人员、运营人员不给创建或上传指导”；第四批遗留）。
@@ -64826,7 +65038,8 @@ const deviceResetGate = (p, act = "") => (p.fieldReset ? `<div class="mk-gate">$
 function showDeviceInformation(id, tab = "runtime") {
   const p = g("points", id);
   if (!p) return;
-  if (!mayViewProject(M.projectOfFloor(data(), p.floorId))) throw Error("无权查看该设备");
+  if (!mayViewProject(M.projectOfFloor(data(), p.floorId)) ||
+    (typeof depInspectionPoint === "function" && U.role !== "member" && !depInspectionPoint(data(), id))) throw Error("无权查看该设备");
   if (["plan", "config", "records"].includes(tab) && typeof obOk === "function" && typeof obParse === "function" && obOk(obParse(`dev:${id}`))) return opsObjOpen(`dev:${id}`, tab === "records" ? "rec" : "info");
   U.infoPoint = id;
   U.infoTab = "runtime";
@@ -64857,7 +65070,10 @@ function showDeviceInformation(id, tab = "runtime") {
     // 2.58 E628：“更多操作”改为 32 圆形“⋯”图标按钮，提示“更多”
     (p.unplaced && canEdit() ? btn("放置到图上", "placeAgain", { id }) : btn("在图上查看", "locatePoint", { id })) + (canEdit() || (canOperate() && M.bound(p)) ? menuTrigger(iconBtn("设备更多选项", "more", "deviceMore", { id }, "更多选项")) : ""),
     // 2.81 KW23：标题行右侧“详情 ›”打开设备的对象页，名称下写所在功能区与上级网关（网关写所属网络与下级设备数）
-    { label: "设备信息", sel: `deviceInfo:${id}`, reopen: () => (g("points", id) ? showDeviceInformation(id) : sheetClose()), more: typeof obMore === "function" ? obMore("dev", id) : "", sub: devInfoSub(p) },
+    { label: "设备信息", sel: `deviceInfo:${id}`, reopen: () => (g("points", id) ? showDeviceInformation(id) : sheetClose()),
+      more: (typeof depInspectionPoint === "function" && depInspectionActive() && !U.deviceIssueRoute && depInspectionPoint(data(), id, U))
+        ? btn("设备详情", "depInspectionOpen", { id }, "ghost sm") : typeof obMore === "function" ? obMore("dev", id) : "",
+      sub: devInfoSub(p) },
   );
   if (typeof drawCharts === "function" && typeof requestAnimationFrame === "function") requestAnimationFrame(drawCharts);
 }
@@ -65075,6 +65291,7 @@ function showBindingPreparation(nid, { point = null, pointIds = null, deliveryBa
     reset = pending.filter((p) => p.fieldReset),
     targets = pointIds ? ps.filter(p => pointIds.includes(p.id)) : point ? reset.filter(p => p.id === point) : deliveryBack ? pending : [];
   binding.pointIds = targets.map(p => p.id);
+  const frozen = activeDeploymentBatch(W, saved);
   const pendingNames = (xs) => xs.length ? `${xs.length} 台 · ${xs.slice(0, 5).map((p) => esc(p.name)).join("、")}${xs.length > 5 ? "等" : ""}` : "0 台";
   const targetSummary = targets.length === 1
     ? `${esc(targets[0].name)} · ${esc(flTag(targets[0].floorId))} · ${F.boundNow(targets[0]) ? "已绑定" : targets[0].fieldReset ? "待重新绑定" : "待绑定"}`
@@ -65093,6 +65310,7 @@ function showBindingPreparation(nid, { point = null, pointIds = null, deliveryBa
     }${note(deliveryBack ? "在部署 App 中打开本网络，完成现场绑定后回到交付检查核对回执。" : "在部署 App 中打开本网络完成现场绑定。")}${kv([
       ...(deliveryBack ? [["网络版本", `v${esc(String(n.version ?? "未记录"))}`]] : []),
       ...(targets.length ? [["本次处理", targetSummary]] : []),
+      ["执行范围", frozen ? "已冻结，等待现场回执" : "待核对并冻结"],
       ["服务楼层", n.floorIds.map(flTag).filter(Boolean).map(esc).join("、") || "—"],
       ["网关", gw ? `${esc(gw.name)} · ${F.boundNow(gw) ? "已绑定" : gw.fieldReset ? "待重新绑定" : "待绑定"}` : "未标记"],
       ...(!delivered || pending.length > reset.length ? [["待绑定", pendingNames(pending.filter((p) => !p.fieldReset))]] : []),
@@ -65107,7 +65325,8 @@ function showBindingPreparation(nid, { point = null, pointIds = null, deliveryBa
         : `<div class="flow-steps"><div><b>1</b><span>App 绑定网关</span></div><div><b>2</b><span>由近及远绑定设备</span></div><div><b>3</b><span>核对配置并局部测试</span></div><div><b>4</b><span>在 Station 网络检测与交付</span></div></div>`
     }${delivered ? "" : reminders}`,
     // 2.65 E819：底部两个都为标准次按钮
-    btn("现场安装资料", "installKit", { id: n.id, disabled: !canInstall() }) +
+    btn(frozen ? "逐设备回执" : "预览部署批次", "deploymentBatch", { id: n.id }) +
+      btn("现场安装资料", "installKit", { id: n.id, disabled: !canInstall() }) +
       (deliveryBack ? btn("返回交付检查", "bindingDeliveryBack", { id: n.id }, "primary") : ""),
   );
   $("#dlg").bindingContext = binding;
@@ -65606,6 +65825,131 @@ const depNoOps = (pid) =>
   typeof depMembers === "function" && pid && !depMembers(pid).some((m) => m.role === "ops")
     ? `<div class="flow-check-row flow-suggest"><span class="v13-warn">建议：本项目还没有运营人员</span>${isAdmin() ? btn("添加", "depMemAdd", { p: pid, from: "delivery", role: "ops" }, "ghost sm") : canEdit() ? roleNote("admin") : ""}</div>` /* 3.30 E1299：配置人员行末“需机构管理员”；Account 247：只列运营人员 */
     : "";
+function activeDeploymentBatch(db, n) {
+  if (!F.latestDeploymentBatch(db, n.id)) return null;
+  try {
+    return F.assertDeploymentBatch(db, n);
+  } catch (_) {
+    return null;
+  }
+}
+function showDeploymentBatch(nid, back) {
+  const db = W, pid = nid ? M.get(db, "networks", nid)?.projectId : U.p;
+  if (!pid || !mayViewProject(pid, db) || U.role === "member") throw Error("当前无权查看该部署批次");
+  const networks = F.deploymentNetworks(db, { p: pid, b: U.p === pid ? U.b : null }).filter(n =>
+    canEdit() || F.everDelivered(db, n.id) && n.floorIds.every(id => ovLiveIds().has(id)));
+  const n = nid ? networks.find(x => x.id === nid) : networks.length === 1 ? networks[0] : null;
+  if (nid && !n) throw Error("该设备网络未纳入本次范围或不可查看");
+  const show = (title, body, footer, review = null) => {
+    modal(title, body, btn("关闭", "close") + footer);
+    const dlg = $("#dlg");
+    if (review) dlg.deploymentBatchReview = { ...review, back };
+    if (back) {
+      U.dlgBack = [back];
+      dlgBackMark();
+    }
+  };
+  if (!n) {
+    const floors = F.deploymentScope(db, pid).floorIds;
+    const body = infoRows([["部署范围", floors.map(where).join("、") || "待确认"]]) +
+      (networks.length ? table(["设备网络", "操作"], networks.map(net => [esc(net.name), btn("查看批次", "deploymentBatch", { id: net.id }, "sm")])) :
+        note("本次范围暂无可执行的设备网络。独立系统接入在连接详情核对当前验证结果。"));
+    return show("部署批次", body, "");
+  }
+  const previous = F.latestDeploymentBatch(db, n.id);
+  if (!previous && !canEdit()) return show("逐设备回执", note("当前范围尚未冻结执行批次。"), "");
+  let manifest;
+  try {
+    manifest = F.deploymentBatchPreview(db, n);
+  } catch (err) {
+    return show("部署批次", wsNotice(esc(err.message), "warning"), "");
+  }
+  const batch = activeDeploymentBatch(db, n),
+    covered = manifest.floors.filter(f => F.scopePlanImage(db, M.floor(db, f.id))).length,
+    previousById = new Map((previous?.manifest.devices || []).map(d => [d.id, d])),
+    moved = manifest.devices.filter(d => previousById.has(d.id) && JSON.stringify(previousById.get(d.id)) !== JSON.stringify(d)).length,
+    added = manifest.devices.filter(d => !previousById.has(d.id)).length,
+    removed = previousById.size - manifest.devices.length + added,
+    body = infoRows([
+      ["设备网络", n.name + " · v" + n.version],
+      ["本次部署范围", manifest.floors.map(f => where(f.id)).join("、")],
+      ["楼层图", covered + " / " + manifest.floors.length + " 层"],
+      ["执行服务楼层", manifest.networkFloors.map(where).join("、")],
+    ]);
+  if (!batch) {
+    const detail = previous ? added + " 台新增 · " + moved + " 台变化 · " + removed + " 台移出" : manifest.devices.length + " 个目标点位",
+      deviceRows = manifest.devices.map(d => [esc(M.get(db, "points", d.id)?.name || d.id), esc(where(d.floorId)), d.targetVersion == null ? "未登记" : typeof d.targetVersion === "number" ? "v" + esc(d.targetVersion) : esc(d.targetVersion)]);
+    return show("预览部署批次", body + (previous ? wsNotice("上次冻结的范围或版本已变化，请重新核对。", "warning") : "") +
+      `<details class="ws-details flow-space"><summary>${detail}</summary>${table(["点位", "楼层", "目标配置"], deviceRows)}</details>`,
+      canEdit() ? btn("确认并冻结", "deploymentBatchFreeze", { id: n.id }, "primary") : "",
+      { networkId: n.id, manifest });
+  }
+  const rows = F.deploymentExecutionRows(db, batch, { allowDemo: SIM() }).filter(r => {
+    const point = M.get(db, "points", r.id);
+    return canEdit() || point && (M.bound(point) || point.fieldReset) && ovLiveIds().has(r.floorId);
+  });
+  const states = {
+    verified: "已回读",
+    denied: "已拒绝",
+    failed: "回读失败",
+    mismatch: "回读不一致",
+    timeout: "超时待确认",
+    pending: "等待回执",
+    waiting: "等待回执",
+  };
+  const executable = (row) => ["mesh", "cell", "gateway"].includes(row.access);
+  const ready = rows.filter(executable), verified = ready.filter(r => r.readback === "verified").length;
+  const results = [...rows].sort(M.byName).map(r => [
+    esc(r.name) + `<small class="flow-sub">${whereHtml(r.floorId)}</small>`,
+    esc(r.binding), esc(r.sync), esc(r.validation),
+    esc(executable(r) ? (states[r.readback] || states.waiting) + (r.demo ? " · 演示" : "") : "不适用") +
+      (r.at ? `<small class="flow-sub">${esc(shortDate(r.at, pid))}</small>` : ""),
+  ]);
+  const resultNotice = !SIM() ? "现场服务尚未接入，等待回执。" : "模拟回执只用于本机演示。";
+  show("执行与逐设备回执", body + kv([["冻结时间", esc(shortDate(batch.at, pid))], ["配置回读", verified + " / " + ready.length + " 台"]]) +
+    note(resultNotice) + table(["设备", "绑定", "配置同步", "功能验证", "回读结果"], results, "尚无可查看的设备"),
+    canEdit() && SIM() && ready.some(r => r.binding === "已绑定" && r.targetVersion != null && (r.retry || r.readback === "waiting" && !r.at))
+      ? btn("模拟核对配置", "syncConfig", { id: n.id, batch: batch.id, from: "batch" }, "primary")
+      : "", { networkId: n.id, manifest });
+}
+function batchReadbackCheck(db, batch) {
+  const rows = batch ? F.deploymentExecutionRows(db, batch, { allowDemo: SIM() }).filter(r => ["mesh", "cell", "gateway"].includes(r.access)) : [];
+  const pending = rows.filter(r => r.readback !== "verified");
+  return { label: "逐设备回读已核对", ok: rows.length > 0 && !pending.length,
+    action: "batch", detail: !batch ? "尚未冻结当前范围与版本" : pending.length ? pending.length + " 台待核对" : "" };
+}
+function deploymentBatchForAction(db, n, id) {
+  if (id) return F.assertDeploymentBatch(db, n, id);
+  const batch = activeDeploymentBatch(db, n);
+  if (batch) return batch;
+  showDeploymentBatch(n.id, () => showDelivery(0, n.id));
+  return null;
+}
+defineActions({
+  deploymentBatch: ({ id }, el) => {
+    const binding = el?.closest("#dlg")?.bindingContext;
+    const back = binding && binding.id === id ? () => showBindingPreparation(binding.id, binding) : el?.closest("#dlg") && U.deliveryNetwork === id ? () => showDelivery(0, id) : null;
+    showDeploymentBatch(id, back);
+  },
+  deploymentBatchFreeze: withPolicy({ busy: "modal" }, async ({ id }, el) => {
+    const review = el?.closest("#dlg")?.deploymentBatchReview;
+    if (!review || review.networkId !== id) throw Error("请先预览部署批次");
+    const access = db => {
+      const n = M.get(db, "networks", id);
+      if (!n || !canEdit() || !mayViewProject(n.projectId, db)) throw Error("当前角色无权冻结此部署范围");
+      if (JSON.stringify(F.deploymentBatchPreview(db, n)) !== JSON.stringify(review.manifest))
+        throw Error("范围、图纸或设备版本已变化，请重新预览差异");
+      return n;
+    };
+    await transaction(db => {
+      const n = access(db), before = F.latestDeploymentBatch(db, id);
+      const frozen = F.freezeDeploymentBatch(db, n, review.manifest, v13Actor());
+      if (frozen !== before) M.record(db, "冻结部署批次", n.id, n.name + " · v" + n.version + " · " + frozen.manifest.devices.length + " 个点位");
+    }, "configure", { assertAccess: access });
+    showDeploymentBatch(id, review.back);
+  }),
+});
+
 function showDelivery(step = 0, nid) {
   U.deliveryStep = step;
   const db = data(),
@@ -65626,8 +65970,9 @@ function showDelivery(step = 0, nid) {
   }
   const saved = M.get(W, "networks", n.id), restriction = saved && F.deploymentNetworkReason(W, saved);
   if (!saved || restriction) return modal("交付", note(restriction || "请先保存设备网络，再检查交付条件。"), btn("关闭", "close"));
-  const target = { id: saved.id, version: saved.version, scope: inDeployment ? "deployment" : "", "scope-version": F.deploymentScope(W, pid).version };
-  const checks = F.deliveryChecks(db, n),
+  const target = { id: saved.id, version: saved.version, scope: inDeployment ? "deployment" : "", "scope-version": F.deploymentScope(W, pid).version, batch: activeDeploymentBatch(W, saved)?.id || "" };
+  const batch = activeDeploymentBatch(W, saved),
+    checks = [...F.deliveryChecks(db, n), batchReadbackCheck(W, batch)],
     okAll = checks.every((c) => c.ok),
     proxies = F.meshPoints(db, n.id).filter((p) => p.proxy),
     t = F.templates(n),
@@ -67180,6 +67525,12 @@ function simHealthDone(id) {
   simLater((db) => {
     const h = M.get(db, "healthRecords", id);
     if (!h || h.status !== "running") return;
+    const network = M.get(db, "networks", h.networkId), active = network && activeDeploymentBatch(db, network);
+    if (!network || !mayViewProject(network.projectId, db) ||
+      h.deploymentBatchId && h.deploymentBatchId !== active?.id) {
+      Object.assign(h, { status: "cancelled", passed: false });
+      return;
+    }
     const gw = F.gateway(db, h.networkId);
     h.results = h.pointIds.map((pid, i) => {
       const p = M.get(db, "points", pid);
@@ -67198,7 +67549,11 @@ function simHealthDone(id) {
     h.passed = h.results.every((r) => r.passed);
     h.completedAt = M.now();
     M.record(db, "网络检测完成", h.networkId, healthSummary(h));
-  }, () => ({ text: g("healthRecords", id)?.passed ? "网络检测完成，全部通过" : "网络检测完成，有设备未通过", act: "healthRecord", args: { id } }));
+  }, () => {
+    const result = g("healthRecords", id);
+    if (result?.status !== "completed") return null;
+    return { text: result.passed ? "模拟网络检测完成，全部通过" : "模拟网络检测完成，有设备未通过", act: "healthRecord", args: { id } };
+  });
 }
 // 设备工作区选择绘制工具（由 zoneTool 动作调用，workspace-ui.js）：进入功能区模式并开始绘制。
 function deviceZoneTool(a) {
@@ -67236,7 +67591,8 @@ defineActions({
     U.scopeDraft = inForm ? { p: pid, b: U.scopeCtx.b, then: U.scopeCtx.then, baseline, floorIds: checked("scopeFloors"), functions: scopeFunctionsChecked(), parts: scopePartsChecked() } : null;
     // 标题写出项目，说明写出楼层数与范围版本（参考组件核查第 410 条，2026-10-11 用户确认）
     // 2.06 起没有“未设范围”：原“清空本次范围”改为恢复为整个项目（项目核查第 4 条）
-    modal(`将“${g("projects", pid)?.name || ""}”的部署范围恢复为整个项目？`, wsNotice(`当前为 ${(old.floorIds || []).length} 个楼层。恢复后包含全部楼层和全部应用，以后新建的楼层自动计入。`), btn("取消", inForm ? "clearScopeBack" : "close") + btn("恢复为整个项目", "clearScopeConfirm", { p: pid, baseline }, "primary"), false);
+    const floorIds = F.scopedFloors(data(), { p: pid }).map(f => f.id).sort();
+    modal(`将“${g("projects", pid)?.name || ""}”的部署范围恢复为整个项目？`, wsNotice(`当前为 ${(old.floorIds || []).length} 个楼层。确认后包含现有 ${floorIds.length} 个楼层和全部应用。以后新增楼层时请重新核对范围。`), btn("取消", inForm ? "clearScopeBack" : "close") + btn("恢复为整个项目", "clearScopeConfirm", { p: pid, baseline, floors: JSON.stringify(floorIds) }, "primary"), false);
     $("#dlg").dataset.confirmOnly = "1";
     if (inForm) $("#dlg").dataset.backTo = "scope";
   },
@@ -67251,8 +67607,10 @@ defineActions({
       const old = db.scopes[a.p];
       if (!old || scopeBaseline(db, a.p) !== a.baseline) throw Error("部署范围已经变化，请重新查看后操作");
       if (M.get(db, "projects", a.p)?.deploymentScopeRequired || F.scopedFloors(db, { p: a.p }).some((f) => f.managedPart)) throw Error("请在部署范围中明确选择本次楼层和点位");
-      delete db.scopes[a.p];
-      M.record(db, "部署范围恢复为整个项目", a.p, "保留空间、设备和历史记录", old);
+      const floorIds = F.scopedFloors(db, { p: a.p }).map(f => f.id).sort();
+      if (!floorIds.length || JSON.stringify(floorIds) !== a.floors) throw Error("项目楼层已变化，请重新核对");
+      db.scopes[a.p] = { floorIds, functions: null, explicit: true, version: (old.version || 1) + 1, at: M.now() };
+      M.record(db, "部署范围恢复为整个项目", a.p, "已固定当前项目楼层", old);
     }, "configure", { assertAccess: (db) => {
       if (!mayViewProject(a.p, db)) throw Error("当前权限已变化，部署范围未改");
     } });
@@ -67759,6 +68117,7 @@ defineActions({
       } : null;
       return showBindingPreparation(a.id, { deliveryBack: !!returnToDelivery, returnToDelivery });
     }
+    if (a.kind === "batch") return actions.deploymentBatch({ id: a.id }, el);
     closeModal(true);
     if (a.kind === "config") showConfigurationList(a.id);
     if (a.kind === "verify") showFunctionChecks(a.id);
@@ -67820,9 +68179,21 @@ defineActions({
     if ($("#maintenanceImpact") && !$("#maintenanceImpact").checked) throw fieldErr("maintenanceImpact", "请先确认已了解影响");
     if (ADMIN_KINDS.includes(kind) && !isAdmin()) throw Error("需机构管理员");
     const n = g("networks", s.networkId);
+    if (!SIM() || !canEdit()) throw Error("现场服务尚未接入或当前角色无权执行");
     if (kind === "remote") {
+      if (!n || !mayViewProject(n.projectId, W)) throw Error("无权在此设备网络执行重新绑定");
+      const batch = deploymentBatchForAction(W, n);
+      if (!batch) return;
+      const authorize = db => {
+        const live = deliveryTarget(db, { id: n.id, version: n.version });
+        if (!SIM()) throw Error("现场服务尚未接入");
+        return F.assertDeploymentBatch(db, live, batch.id);
+      };
       await transaction((db) => {
         const p = M.get(db, "points", s.pointId);
+        if (!p?.fieldReset || p.networkId !== n.id || !authorize(db).manifest.devices.some(d => d.id === p.id))
+          throw Error("目标设备或绑定状态已变化，请重新核对");
+        const receipt = simId("rebind");
         db.maintenanceTasks.unshift({
           id: M.uid("maintenanceTasks"),
           taskKind: "remote",
@@ -67833,13 +68204,15 @@ defineActions({
           by,
           at,
           status: "completed",
-          serviceReceiptId: simId("rebind"),
+          serviceReceiptId: receipt,
+          deploymentBatchId: batch.id,
         });
         p.fieldReset = false;
         p.binding = "bound";
+        p.bindingReceiptId = receipt;
         p.reboundAt = at;
-        M.record(db, "远程重新绑定", p.id, "分配新地址块，配置由网关自动恢复");
-      });
+        M.record(db, "模拟远程重新绑定", p.id, "分配新地址块，配置由网关自动恢复");
+      }, "configure", { assertAccess: authorize });
       closeModal(true);
       render();
       return msg("远程重新绑定完成：已分配新地址块，配置由网关恢复");
@@ -67949,6 +68322,8 @@ defineActions({
       });
     const block = healthBlock(db0, n);
     if (block) throw Error(block);
+    const batch = deploymentBatchForAction(db0, n);
+    if (!batch) return;
     if (!ids.length) throw Error(scope === "zone" ? "请至少选择一个功能区" : "请选择已绑定的检测设备");
     if (scope === "all" && ids.length !== F.meshPoints(db0, n.id).length) throw Error("仍有节点待绑定，全部绑定后才能全网检测");
     const unsynced = healthUnsynced(db0, ids.map((id) => g("points", id)));
@@ -67969,11 +68344,12 @@ defineActions({
         by: v13Actor(),
         snapshot: F.healthSnapshot(db, ids),
         serviceReceiptId: simId("health"),
+        deploymentBatchId: batch.id,
       });
       M.record(db, "开始模拟网络检测", n.id, `${ids.length} 台 · v${n.version}`);
     }, "configure", { assertAccess: (db) => {
       if (!SIM()) throw Error("网络检测服务尚未接入");
-      deliveryTarget(db, { id: n.id, version: n.version });
+      F.assertDeploymentBatch(db, deliveryTarget(db, { id: n.id, version: n.version }), batch.id);
     } });
     closeModal(true);
     openNetworkHealth(n.id);
@@ -67993,20 +68369,24 @@ defineActions({
     if (!SIM() || !canEdit()) throw Error("下发服务尚未接入或当前角色无权执行");
     const target = g("networks", a.id);
     if (!target) throw Error("设备网络不存在");
+    const shown = deploymentBatchForAction(W, target, a.batch);
+    if (!shown) return;
     const check = (db) => {
       const n = deliveryTarget(db, { id: target.id, version: target.version });
       if (!SIM()) throw Error("下发服务尚未接入");
-      return n;
+      return F.assertDeploymentBatch(db, n, shown.id);
     };
-    let n = 0,
-      off = 0,
-      held = 0;
+    const was = $("#dlg")?.deploymentBatchReview?.back;
+    let n = 0, caughtUp = 0, off = 0, held = 0;
     await transaction((db) => {
-      const gate = gatewayReady(db, check(db));
+      const batch = check(db), gate = gatewayReady(db, M.get(db, "networks", a.id));
       if (!gate.ok) throw Error(gate.why);
-      for (const p of F.fieldPoints(db, a.id).filter((p) => F.boundNow(p) && (!a.point || p.id === a.point))) {
-        const d = F.desired(db, p.id);
-        if (!d || F.syncState(db, p) === "已同步") continue;
+      const targets = F.deploymentExecutionRows(db, batch, { allowDemo: true })
+        .filter(r => ["mesh", "cell", "gateway"].includes(r.access) && r.binding === "已绑定" &&
+          (!a.point || r.id === a.point) && (r.retry || r.readback === "waiting" && !r.at));
+      for (const row of targets) {
+        const p = M.get(db, "points", row.id), d = F.desired(db, p.id);
+        if (row.targetVersion == null || (row.access !== "gateway" && !d)) continue;
         // 有待并入的现场改动：并入之前不按规划下发（2026-10-05 核查 H4）
         if (F.syncState(db, p) === "现场改动待并入") {
           held++;
@@ -68017,8 +68397,10 @@ defineActions({
           off++;
           continue;
         }
-        n++;
-        for (const i of d.items)
+        const alreadySynced = row.sync === "已同步";
+        if (!alreadySynced) n++;
+        if (row.access === "gateway") Object.assign(p, { libraryVersion: row.targetVersion, lastLibrarySync: M.now() });
+        for (const i of d?.items || [])
           if (F.configItems(db, p).find((x) => x.key === i.key)?.receipt?.status !== "applied")
             db.receipts.push({
               id: M.uid("receipt"),
@@ -68031,14 +68413,23 @@ defineActions({
               at: M.now(),
               serviceReceiptId: simId("cfg"),
             });
+        db.receipts.push({
+          id: M.uid("receipt"), kind: "deployment-readback", deploymentBatchId: batch.id,
+          pointId: p.id, networkId: a.id, networkVersion: batch.manifest.networkVersion,
+          hardwareId: p.hardwareId, configurationVersion: row.targetVersion, observedVersion: row.targetVersion,
+          status: "verified", at: M.now(), serviceReceiptId: simId("readback"), demo: true,
+        });
+        caughtUp++;
       }
-      // 一台都没有下发时不写修改记录（规范 DEVICE09，Editor 核查 E18）
-      if (n) M.record(db, "模拟下发差异配置", a.id, `${n} 台`);
+      if (caughtUp) M.record(db, "模拟核对逐设备配置", a.id, `${caughtUp} 台 · ${n} 台同步差异`);
     }, "configure", { assertAccess: check });
-    closeModal(true);
-    render();
+    if (a.from === "batch") showDeploymentBatch(a.id, was);
+    else {
+      closeModal(true);
+      render();
+    }
     msg(
-      (n ? `已模拟下发差异配置，${n} 台取得模拟回执` : "没有可下发的配置") +
+      (caughtUp ? `${caughtUp} 台取得模拟配置回读；${n} 台同步差异` : "没有可核对的配置") +
         (off ? `；${off} 台离线，保持待同步，上线后由网关补齐` : "") +
         (held ? `；${held} 台有待并入的现场改动，并入后再下发` : ""),
     );
@@ -68049,9 +68440,13 @@ defineActions({
     if (!SIM() || !canEdit()) throw Error("测试回执服务尚未接入或当前角色无权执行");
     const target = g("networks", a.id);
     if (!target) throw Error("设备网络不存在");
+    const batch = deploymentBatchForAction(W, target, a.batch);
+    if (!batch) return;
     const check = (db) => {
       if (!SIM()) throw Error("测试回执服务尚未接入");
-      return deliveryTarget(db, { id: target.id, version: target.version });
+      const n = deliveryTarget(db, { id: target.id, version: target.version });
+      F.assertDeploymentBatch(db, n, batch.id);
+      return n;
     };
     let circuits = 0,
       lcs = 0,
@@ -68080,10 +68475,13 @@ defineActions({
   // 交付后的参数改动下发到受影响的网络并核对回执（E196，模拟）：记下下发时间，之后保存的参数仍为“待下发”
   paramDispatch: withPolicy({ busy: "modal" }, async (a) => {
     if (!SIM()) throw Error("下发服务尚未接入");
-    const n = deliveryTarget(W, a);
+    const n = deliveryTarget(W, a), batch = deploymentBatchForAction(W, n, a.batch);
+    if (!batch) return;
     const check = (db) => {
       if (!SIM() || !canEdit()) throw Error("当前权限或下发服务状态已变化");
-      return deliveryTarget(db, a);
+      const live = deliveryTarget(db, a);
+      F.assertDeploymentBatch(db, live, batch.id);
+      return live;
     };
     await transaction((db) => {
       const live = check(db), last = lastDelivery(db, live.id), gate = gatewayReady(db, live);
@@ -68107,10 +68505,11 @@ defineActions({
   confirmDelivery: withPolicy({ busy: "modal" }, async (a) => {
     if (!SIM()) throw Error("现场服务尚未接入");
     if (!isAdmin()) throw Error("需机构管理员");
-    const n = deliveryTarget(W, a);
+    const n = deliveryTarget(W, a), frozen = F.assertDeploymentBatch(W, n, a.batch || null);
     const check = (db) => {
       if (!isAdmin() || !SIM()) throw Error("当前权限或现场服务状态已变化");
-      const live = deliveryTarget(db, a), last = lastDelivery(db, live.id);
+      const live = deliveryTarget(db, a), last = lastDelivery(db, live.id), batch = F.assertDeploymentBatch(db, live, frozen.id);
+      if (!batchReadbackCheck(db, batch).ok) throw Error("没有取得当前批次的完整逐设备回读");
       if (last && !netNeedsRedeliver(db, live)) throw Error("当前版本已经交付");
       if (!F.deliveryChecks(db, live).every((c) => c.ok) || (last && v13Undispatched(db, live, last.at).length))
         throw Error("交付条件或下发回执不完整，请重新检查");
@@ -68129,6 +68528,8 @@ defineActions({
         at: M.now(),
         by: v13Actor(),
         snapshot: F.freezeDeliverySnapshot(db, live, {
+          deploymentBatch: M.copy(frozen),
+          deviceReadbacks: F.deploymentExecutionRows(db, frozen, { allowDemo: true }),
           health: healthSummary(h),
           healthRecord: M.copy(h),
           scope: M.copy(db.scopes[live.projectId] || null),
@@ -68142,7 +68543,7 @@ defineActions({
       if (rvMs.length) M.record(db, "收回部署人员授权", live.id, rvMs.map((m) => m.name).join("、"));
     }, "configure", { assertAccess: (db) => {
       if (!isAdmin() || !SIM()) throw Error("当前权限或现场服务状态已变化");
-      deliveryTarget(db, a);
+      F.assertDeploymentBatch(db, deliveryTarget(db, a), frozen.id);
     } });
     for (const m of rvMs) {
       const before = auPermText(m);
@@ -74906,20 +75307,50 @@ const CONN_TABS = [
   ["summary", "概况"],
   ["health", "健康"],
   ["map", "数据映射"],
+  ["verify", "验证"],
   ["records", "记录"],
 ];
-function showConnectionDetail(id, stage) {
+function connInScope(c, scope, db = data()) {
+  return (!scope.p || scope.p === c.projectId) && c.floorIds.some((f) => F.floorIn(db, f, scope));
+}
+function connListState(opener = document.activeElement) {
+  if (U.page !== "devices" || U.tab !== "connections" || U.conn) return null;
+  return {
+    cq: U.cq || "", connSort: U.connSort || null, connPage: U.connPage || 0,
+    scroll: $("#pbody")?.scrollTop || 0, focus: wsFocusDesc(opener),
+  };
+}
+function connRestoreListState(saved) {
+  if (U.page !== "devices" || U.tab !== "connections" || U.conn) return;
+  Object.assign(U, { cq: saved?.cq || "", connSort: saved?.connSort || null, connPage: saved?.connPage || 0 });
+  if (saved) U.nextScroll = saved.scroll || 0;
+}
+function showConnectionDetail(id, stage, opener, { created = false } = {}) {
   const c = visibleConnection(id);
   if (!c) return;
+  const here = U.page === "devices" && U.tab === "connections",
+    fromList = here && !U.conn,
+    matches = connInScope(c, U);
+  if (fromList && !matches && !created) return;
   if ($("#dlg")) closeModal(true);
-  const ctab = stage === 1 || stage === 2 || stage === "map" ? "map" : stage === "records" ? "records" : stage === "health" ? "health" : "summary",
-    here = U.page === "devices" && U.tab === "connections";
+  const preferred = stage === 1 || stage === 2 ? "map" : stage,
+    ctab = CONN_TABS.some(([key]) => key === preferred) ? preferred : "summary";
   if (here && U.conn === id) {
     U.ctab = ctab;
     syncRoute();
     return render();
   }
-  route("devices", { p: c.projectId, b: null, f: null, tab: "connections", conn: id, ctab, connRow: null }, { remember: !here });
+  const scope = { p: c.projectId, b: matches ? U.b : null, f: matches ? U.f : null, tab: "connections", conn: id, ctab },
+    from = fromList ? { ...snapshot(), ...connListState(opener), label: "系统接入", fromConnectionList: true, prev: U.source || null }
+      : !here && sourceLabel() ? { ...snapshot(), label: sourceLabel(), focus: wsFocusDesc(opener || document.activeElement), prev: U.source || null } : null;
+  if (fromList) history.replaceState({ ...history.state, connectionList: connListState(opener) }, "", location.href);
+  route("devices", scope, from ? { remember: true, source: from } : { remember: !here });
+  requestAnimationFrame(() => {
+    const title = $(".conn-head h1");
+    if (!title || U.conn !== id || (document.activeElement !== document.body && document.activeElement !== opener)) return;
+    title.tabIndex = -1;
+    title.focus({ preventScroll: true });
+  });
 }
 // 运行数据：示例项目按页面时钟（与总览同一时钟），其他项目尚未接入运行数据服务
 const connLive = (c) => typeof Demo !== "undefined" && !!Demo.on?.() && typeof OPS_SCOPE !== "undefined" && !!c && c.projectId === OPS_SCOPE.project;
@@ -75006,13 +75437,13 @@ function connVerifySection(c) {
     ],
     rows = ck.map((x, i) => {
       const r = receipt(x.key) || connReceipt(c, x.key, false),
-        state = x.state === "已通过" ? `<span class="ds-st off">上次验证通过</span>` : ["未通过", "失败"].includes(x.state) ? `<span class="ds-st bad">未通过</span>` : x.state === "不适用" ? `<span class="ds-st off">不适用</span>` : x.state === "未关联应用" ? `<span class="ds-st off">尚未关联应用</span>` : x.state === "无映射" ? `<span class="ds-st off">没有数据映射</span>` : `<span class="ds-st warn">未验证</span>`, // 2.84 E1135：各行结果都是圆点加文字（不适用等用灰点），表头与圆点左对齐，结果文字在同一竖线上
+        state = x.state === "已通过" ? `<span class="ds-st ok">当前版本已通过</span>` : ["未通过", "失败"].includes(x.state) ? `<span class="ds-st bad">未通过</span>` : x.state === "不适用" ? `<span class="ds-st off">不适用</span>` : x.state === "未关联应用" ? `<span class="ds-st off">尚未关联应用</span>` : x.state === "无映射" ? `<span class="ds-st off">没有数据映射</span>` : `<span class="ds-st warn">未验证</span>`, // 2.84 E1135：各行结果都是圆点加文字（不适用等用灰点），表头与圆点左对齐，结果文字在同一竖线上
         when = r?.at ? `<small class="flow-sub">${r.version !== (c.version || 1) ? "旧版本记录 · " : ""}${esc(connWhen(Date.parse(r.at)))} · v${esc(r.version)}${r.demo || String(r.serviceReceiptId).startsWith("demo-svc") ? " · 演示记录" : ""}</small>` : "",
         sub = i === 0 && c.protocol === "BACnet/IP" ? `<small class="flow-sub">设备发现 ${c.discoveredAt && c.discoveryReceiptId ? esc(shortDate(c.discoveredAt)) : "尚未执行"}</small>` : i === 3 && apps.length ? `<small class="flow-sub">${esc(apps.join("、"))}</small>` : "",
         acts = (i === 3 ? appSettingButtons(c) : "") + (x.state === "不适用" ? "" : connVerifyBtn(c, i));
       return [["连接验证", "数据验证", "控制验证", "应用验证"][i] + sub, state + when, `<span class="conn-v-acts">${acts}</span>`];
     });
-  return `<section class="card flow-space"><div class="flow-section-head"><h3>验证</h3></div>${table(["验证项", "结果", ""], rows)}</section>`;
+  return `<section class="card flow-space"><div class="flow-section-head"><h3>验证</h3><span class="muted">当前连接 v${esc(c.version || 1)}</span></div>${table(["验证项", "结果", ""], rows)}</section>`;
 }
 // 一项验证的执行按钮：不能执行时原因写在按钮旁（2.44 E436）；只能查看的角色不显示
 function connVerifyBtn(c, i) {
@@ -75153,7 +75584,7 @@ function connKpis(c, stats) {
     { only: true, foot: [`当前运行 ${connStatusHtml(st)}`] },
     rows.length ? { label: "数据点正常", v: known ? ok : "—", of: rows.length, foot: [unknown ? esc(`状态未知 ${unknown} 个`) : "", esc(`已映射到设备 ${count} / ${rows.length}`)] } : { only: true, foot: ["尚无数据映射"] },
     devs.length ? { label: "设备", v: devs.length, unit: "台" } : { only: true, foot: ["尚未关联设备"] },
-    { label: "上次验证", v: v.count, of: v.total, unit: "通过", foot: [esc(`${v.count !== v.total ? v.text : ""}${time}`.replace(/^ · /, ""))], act: "connVerKpi", args: { id: c.id }, open: !!U.connVer },
+    { label: "当前版本验证", v: v.count, of: v.total, unit: "通过", foot: [esc(`${v.count !== v.total ? v.text : ""}${time}`.replace(/^ · /, ""))] },
   ]);
 }
 // 概况“采集”卡：左边摘要（采集中 · 每 N 分钟、成功率、失败次数、下次、最近、开始采集），右边每 2 小时（近 24 小时为每小时）的成功与失败柱
@@ -75172,24 +75603,30 @@ function connCollectCard(c, days, s) {
 }
 // 概况“连接参数”：字段按栅格排（标签在上、值在下），卡片右上一个“修改”
 function connParamCard(c) {
-  const writable = (c.mappings || []).some((m) => m.writable),
+  const edit = canEdit(),
+    writable = (c.mappings || []).some((m) => m.writable),
+    gateway = c.collect?.at === "gateway" ? c.collect.gatewayId : null,
+    link = gateway && typeof depInspectionPoint === "function" && depInspectionPoint(data(), gateway, U)
+      ? btn("查看采集网关", "depInspectionOpen", { id: gateway, value: "ports" }, "sm")
+      : "",
     f = [
       ["协议", c.protocol],
-      ...(ENDPOINT_PROTOS.split("|").includes(c.protocol) ? [["服务地址", c.endpoint || "未填写"]] : []),
-      ["通信参数", connectionParamText(c)],
+      ...(edit && ENDPOINT_PROTOS.split("|").includes(c.protocol) ? [["服务地址", c.endpoint || "未填写"]] : []),
+      ...(c.params?.port != null ? [["目标服务端口", `${c.protocol === "BACnet/IP" ? "UDP" : "TCP"} ${c.params.port}`]] : []),
+      ...(edit && (c.params?.topic || c.params?.bbmd) ? [["通信参数", connectionParamText(c)]] : []),
       // 3.37 L17-55：经由设备写在第二行（12/18 #636363），行尾不留“·”
       ["接入点", c.collect ? ((at, via) => (via ? { html: `${nwSeps(at)}<small class="cfg-dd-sub">${esc("经 " + via)}</small>` } : at))(...collectWhere(c).replace(/^网关 /, "").split(" · 经 ")) : "未登记"], // 3.13 第 24 条：原“采集位置”（与 AQ20 的采集位置同名不同义）
       ...(c.protocol === "MQTT" ? [] : [["采集周期", c.collect?.period ? `每 ${collectPeriodText(c.collect.period)}` : "未登记"]]),
       ["服务楼层", placeText(c.floorIds)],
       ...(writable ? [["写入上限", c.writeLimit ? `每点每天 ${c.writeLimit} 次` : `未登记（按每点每天 ${M.HVAC.writeDefault} 次）`]] : []),
-      ...(["REST API", "MQTT"].includes(c.protocol) ? [["凭证", credText(c.credential, c.projectId)]] : []),
+      ...(edit && ["REST API", "MQTT"].includes(c.protocol) ? [["凭证", credText(c.credential, c.projectId)]] : []),
     ];
-  return `<section class="card cfg-card"><div class="cfg-card-h"><h3>连接参数</h3>${canEdit() ? btn(ico("edit", "ic16") + "修改", "connectionForm", { id: c.id }, "ghost sm cfg-edit") : ""}</div><dl class="cfg-grid">${f.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v && v.html ? v.html : nwSeps(String(v))}</dd></div>`).join("")}</dl></section>`;
+  return `<section class="card cfg-card"><div class="cfg-card-h"><h3>连接参数</h3>${edit ? btn(ico("edit", "ic16") + "修改", "connectionForm", { id: c.id }, "ghost sm cfg-edit") : ""}</div><dl class="cfg-grid">${f.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v && v.html ? v.html : nwSeps(String(v))}</dd></div>`).join("")}</dl>${link}</section>`;
 }
 function connSummary(c) {
   const days = U.cper === "1" ? 1 : 7,
     stats = connStats(c, days, days === 1 ? 3600e3 : 7200e3);
-  return connKpis(c, stats) + (U.connVer ? connVerifySection(c) : "") + connCollectCard(c, days, stats) + connParamCard(c) + (typeof docFilesSection === "function" ? docFilesSection("connections", c.id) : "");
+  return connKpis(c, stats) + connCollectCard(c, days, stats) + connParamCard(c) + (canEdit() && typeof docFilesSection === "function" ? docFilesSection("connections", c.id) : "");
 }
 // 健康：“在线情况”（左边中断次数与时长、在线率与采集成功次数，右边每天一格的在线条，中断处为红色）与“失败记录”表
 function connHealth(c) {
@@ -75294,7 +75731,7 @@ function connDiscDiff(c) {
 // 设备发现结果：数据映射表上方一张卡，三组各带勾选（默认全选）与按钮；没有变化时写“与数据映射一致”
 function connDiscCard(c) {
   const R = U.connDisc;
-  if (!R || R.conn !== c.id || !c.discObjs) return "";
+  if (!canEdit() || !R || R.conn !== c.id || !c.discObjs) return "";
   const { add, chg, gone } = connDiscDiff(c),
     edit = canEdit(),
     uw = (u) => u || "无单位",
@@ -75354,8 +75791,8 @@ function connPasteReview(c) {
 // 2.84 E1105：数据映射的添加按钮；有数据点时放在页签同一行右端（renderConnectionPage），没有时在空状态里
 function connMapAdds(c) {
   const edit = canEdit(); // 3.42 E1376：“设备发现”（2.83 KW2）进“+ 添加”菜单
-  // 3.13 V1025：有数据点时后接“⋯”，内有“导出点表”（只读的成员也可导出）
-  const more = (c.mappings || []).some((m) => !m.calc) ? menuTrigger(iconBtn("数据映射更多", "more", "connMapMore", { id: c.id })) : "";
+  // 点表包含协议地址与外部设备标识，只向有配置权限的人员提供导出。
+  const more = edit && (c.mappings || []).some((m) => !m.calc) ? menuTrigger(iconBtn("数据映射更多", "more", "connMapMore", { id: c.id })) : "";
   // 3.42 E1376：数据点、计算点、粘贴点表与设备发现合成一个“+ 添加”菜单，工具行只剩它和“⋯”
   return (edit ? menuTrigger(btn(ico("plus", "ic16") + "添加", "connMapAddMenu", { id: c.id })) : "") + more;
 }
@@ -75392,7 +75829,7 @@ function connMapTab(c) {
         act: "connMapRow",
         args: { id: c.id, key: m.key },
         cells: [
-          `<span class="nw">${esc(m.name)}</span><small class="flow-sub">${nwSeps([m.key, addr].filter(Boolean).join(" · "))}</small>`,
+          `<span class="nw">${esc(m.name)}</span>${edit ? `<small class="flow-sub">${nwSeps([m.key, addr].filter(Boolean).join(" · "))}</small>` : ""}`,
           connMapValue(c, m, readings),
           m.writable ? "读写" : "只读",
           (p ? `<span class="nw">${esc(p.name)}</span>` : m.pendingDevice ? `<span class="ds-st warn">待选设备</span>` : "未关联设备") +
@@ -75452,16 +75889,19 @@ function connMapTrend(c, m) {
   return typeof connMapCurveCard === "function" ? connMapCurveCard(c, m, p) : "";
 }
 // 记录：本连接的修改、换表与验证（规范 DEVICE06）
+function connVisibleRecords(connection) {
+  const db = data(), ids = new Set(connection ? [connection.id]
+    : db.connections.filter((c) => visibleConnection(c.id, db) && connInScope(c, U, db)).map((c) => c.id));
+  return db.records.filter((r) => ids.has(r.objectId)).sort((a, b) => String(b.at).localeCompare(String(a.at)));
+}
 function connRecords(c) {
-  const rs = data()
-    .records.filter((r) => r.objectId === c.id)
-    .sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  const rs = connVisibleRecords(c);
   return `<section class="card flow-space"><div class="flow-section-head"><h3>记录</h3></div>${typeof recordsTable === "function" ? recordsTable(rs) : tableOr(["时间", "操作", "内容"], rs.map((r) => [esc(shortDate(r.at)), esc(r.action), esc(r.summary || "")]), "尚无记录")}</section>`;
 }
 // “⋯”菜单的各项：设为检修中（与设备网络同一弹窗，机构管理员、配置人员、运营人员）、复制到其他楼层、删除连接（配置人员与机构管理员）
 function connMoreItems(c) {
   const ed = canEdit() ? btn(ico("edit", "ic16") + "编辑连接", "connectionForm", { id: c.id }, "popitem") : "", // 3.43 E1442：原在页头
-    mw = canOperate() ? btn(ico("wrench", "ic16") + (maintWin("connection", c.id) ? "检修中…" : "设为检修中"), "maintWindowForm", { kind: "connection", id: c.id }, "popitem") : "",
+    mw = canEdit() ? btn(ico("wrench", "ic16") + (maintWin("connection", c.id) ? "检修中…" : "设为检修中"), "maintWindowForm", { kind: "connection", id: c.id }, "popitem") : "",
     // 2.88 E1110：其他楼层都没有网关规划时不可用，悬停写原因，不打开空弹窗
     cp = !canEdit() ? "" : connCopyTargets(c).length ? btn(ico("copy", "ic16") + "复制到其他楼层", "connCopyForm", { id: c.id }, "popitem") : `<button type="button" class="btn popitem" aria-disabled="true" data-tip="其他楼层尚未规划网关">${ico("copy", "ic16")}复制到其他楼层</button>`,
     del = canEdit() ? btn(ico("trash", "ic16") + "删除连接", "deleteSpace", { kind: "connections", id: c.id }, "popitem danger") : "";
@@ -75477,7 +75917,7 @@ function renderConnectionPage() {
     why0 = canEdit() ? connVerifyWhy(c, 0) : "",
     vbtn = !canEdit() ? "" : why0 || !SIM() ? `<button type="button" class="btn" aria-disabled="true" data-tip="${esc(why0 || "尚未接入验证服务")}">${ico("check", "ic16")}验证连接</button>` : btn(ico("check", "ic16") + "验证连接", "connVerify", { id: c.id, stage: 0 }),
     acts = vbtn + (more ? menuTrigger(iconBtn("连接更多", "more", "connMore", { id: c.id })) : "");
-  const body = tab === "map" ? connMapTab(c) : tab === "records" ? connRecords(c) : tab === "health" ? connHealth(c) : connSummary(c);
+  const body = tab === "verify" ? connVerifySection(c) : tab === "map" ? connMapTab(c) : tab === "records" ? connRecords(c) : tab === "health" ? connHealth(c) : connSummary(c);
   // 3.42 E1375：页头为路径“部署 / 系统接入”，名称作页标题，不另放“‹”
   return `<div class="flow-heading sub-head conn-head flow-detail-head"><div><div class="flow-title-row"><h1>${esc(c.name)}</h1></div><p>${sub ? nwSeps(sub) : ""}${maintWin("connection", c.id) ? ` · ${esc(maintText({ until: maintWin("connection", c.id).until }))}` : ""}</p></div>${acts ? `<div class="flow-head-acts">${acts}</div>` : ""}</div>${tabsCatRow(CONN_TABS, tab, "connectionTab", "connectionPanel", "连接详情页签", tab === "map" && connMapHasRows(c) ? connMapAdds(c) : "").replace('class="seg seg-cat"', 'class="seg seg-cat seg-text"')}${tabPanel("connectionPanel", "connectionTab", CONN_TABS, tab, body)}`;
 }
@@ -75529,14 +75969,11 @@ function connRowRead(c, key) {
   return m;
 }
 const calcRefsSafe = (expr) => String(expr || "").split(/[\s()（）+\-−×÷*/]+/).filter(Boolean);
-// 修改数据映射后连接版本加一：连接验证沿用，数据、控制与应用验证重新进行
+// 映射版本变化后，旧验证与采集记录保留原版本，当前版本需重新验证。
 function connBump(cc) {
-  const v0 = cc.version || 1,
-    v1 = v0 + 1;
-  cc.version = v1;
+  cc.version = (cc.version || 1) + 1;
   cc.status = "pending";
-  cc.verifications = (cc.verifications || []).flatMap((r) => (r.kind === "connection" && r.version === v0 ? [r, { ...r, version: v1 }] : [r]));
-  if (cc.demoCollection?.version === v0) cc.demoCollection = { ...cc.demoCollection, version: v1 };
+  delete cc.demoCollection;
 }
 defineActions({
   connectionTab: (a) => {
@@ -75549,12 +75986,6 @@ defineActions({
   connFailRow: (a) => {
     U.connFail = U.connFail === Number(a.i) ? null : Number(a.i);
     render();
-  },
-  // 2.89 E1168：点“验证”指标卡展开或收起四项验证
-  connVerKpi: () => {
-    U.connVer = !U.connVer;
-    render();
-    $('[data-act="connVerKpi"]')?.focus();
   },
   // 2.89：卡片右上的期间菜单
   cfgPerMenu: (a, el) => {
@@ -75574,20 +76005,20 @@ defineActions({
   },
   connMapAddMenu: (a, el) => {
     const c = visibleConnection(a.id);
-    if (!c) return;
+    if (!c || !canEdit()) return;
     const blocked = connGatewayWhy(c) || (!SIM() ? "尚未接入设备发现服务" : ""),
       disc = c.protocol === "BACnet/IP" ? "<hr>" + (blocked ? `<button type="button" class="btn popitem" aria-disabled="true" data-tip="${esc(blocked)}">${ico("search", "ic16")}设备发现</button>` : btn(ico("search", "ic16") + "设备发现", "connDiscover", { id: c.id }, "popitem")) : "";
     popRight(el, `<div role="menu" aria-label="添加">${btn("数据点", "connMapNew", { id: c.id }, "popitem")}${btn("计算点", "connMapNew", { id: c.id, calc: 1 }, "popitem")}${btn("粘贴点表", "connMapPaste", { id: c.id }, "popitem")}${disc}</div>`);
     $("#pop")?.querySelectorAll(".popitem").forEach((x) => x.setAttribute("role", "menuitem"));
   },
   connMapMore: (a, el) => {
-    if (!visibleConnection(a.id)) return;
+    if (!visibleConnection(a.id) || !canEdit()) return;
     popRight(el, `<div role="menu" aria-label="数据映射更多">${btn(ico("download", "ic16") + "导出点表", "connMapExport", { id: a.id }, "popitem")}</div>`);
     $("#pop")?.querySelectorAll(".popitem").forEach((x) => x.setAttribute("role", "menuitem"));
   },
   connMapExport: (a) => {
     const c = visibleConnection(a.id);
-    if (!c) return;
+    if (!c || !canEdit()) return;
     closePop?.();
     downloadBlob(`${String(c.name).replace(/[\\/:*?"<>|\s]+/g, "-")}-点表.csv`, "\ufeff" + connPointTable(c), "text/csv;charset=utf-8");
     msg("已导出点表");
@@ -75979,23 +76410,38 @@ function connListKpis(cs, statuses) {
     { label: "已映射设备", v: mapped, of: devs.length, foot: [odus.length ? esc(`多联机调试 ${vrfOk} / ${odus.length}`) : ""] },
   ]);
 }
+function connFloorOptions(db, connections) {
+  if (!U.b) return [];
+  const readable = canEdit() ? null : new Set(connections.flatMap((c) => c.floorIds));
+  return F.scopedFloors(db, { p: U.p, b: U.b }).filter((f) => !readable || readable.has(f.id));
+}
 let connRows = [], connPg = null; // 3.40 E1151：本次绘制的连接（排序后）与页码
 function renderConnections() {
   // 设备数量（ORG06；2026-10-09 用户确认，ABB 对比 BP6、BP35）：未订阅或已达额度时目录上方提示，新的系统接入设备不能接入
-  const quota = typeof auQuotaText === "function" ? auQuotaText("system") : "",
-    cs = data()
-      .connections.filter((c) => mayViewProject(c.projectId) && (!U.p || c.projectId === U.p) && c.floorIds.some((f) => F.floorIn(data(), f, U)))
-      .sort(M.byName),
+  const db = data(), projects = locProjects(),
+    quota = typeof auQuotaText === "function" ? auQuotaText("system") : "",
+    prefix = quota ? wsNotice(esc(quota), "warning") : "",
+    permitted = db.connections.filter((c) => visibleConnection(c.id, db)),
+    cs = permitted.filter((c) => connInScope(c, U, db)).sort(M.byName),
+    floors = connFloorOptions(db, permitted),
+    floorControl = floors.length ? select("connFloor", [["", "全部楼层"], ...floors.map((f) => [f.id, f.name])], floors.some((f) => f.id === U.f) ? U.f : "", "服务楼层") : "",
     statuses = new Map(cs.map((c) => [c.id, connStatus(c)])),
-    add = canEdit() && locProjects().length ? btn(ico("plus", "ic16") + "新建系统连接", "connectionForm", {}, "primary") : "";
-  // 2.58 E623、E635：没有连接时为页面空状态“尚无系统连接”和“+ 新建系统连接”，不显示表头
-  if (!cs.length) return (quota ? wsNotice(esc(quota), "warning") : "") + empty("尚无系统连接", "", add, "plug");
+    add = canEdit() && projects.length ? btn(ico("plus", "ic16") + "新建系统连接", "connectionForm", {}, "primary") : "";
+  if (!projects.length || U.p && !projects.some((p) => p.id === U.p)) {
+    return empty("当前没有可访问的连接范围", "请联系机构管理员获取授权。", "", "plug");
+  }
+  if (!cs.length) {
+    const floor = U.f && M.floor(db, U.f), building = U.b && M.building(db, U.b);
+    const title = floor && !floors.some((row) => row.id === floor.id) ? "该楼层没有可访问的系统连接"
+      : floor ? `${floor.name} 暂无系统连接` : building ? `${M.buildingLabel(db, building)} 暂无系统连接` : canEdit() ? "尚无系统连接" : "当前范围没有可访问的系统连接";
+    return prefix + (floorControl ? `<div class="conn-tbar">${floorControl}</div>` : "") + empty(esc(title), "", add, "plug");
+  }
   return (
-    (quota ? wsNotice(esc(quota), "warning") : "") +
+    prefix +
     // 2.84 E1105：“+ 新建系统连接”放在页签行右端（没有连接时仍在空状态里）；2.89 E1167：其左为“搜索连接”，在原处筛选表格
     // 3.53 V1445：“搜索连接”放在表格上方的工具条（与告警工单等页相同），不再在页签行右端
     ((devHeadAdd = add), "") + // 3.16：新建在标题行右端
-    `<div class="conn-tbar"><div class="ws-search conn-q">${ico("search", "ic16")}<input id="connQuery" aria-label="搜索连接" placeholder="搜索连接" autocomplete="off" value="${esc(U.cq || "")}"></div></div>` +
+    `<div class="conn-tbar"><div class="ws-search conn-q">${ico("search", "ic16")}<input type="search" id="connQuery" aria-label="搜索连接" placeholder="搜索连接" autocomplete="off" value="${esc(U.cq || "")}">${U.cq ? iconBtn("清除搜索", "x", "connectionClearQuery") : ""}</div>${floorControl}</div>` +
     connListKpis(cs, statuses) +
     // 2.58 E623：连接列两行（名称，下一行“网关 E-7F-EG20-01 · RS-485 口 2”）占其余宽度；协议、服务楼层、数据点（“22 · 可写 9”）、验证定宽；
     // 表头不放 ⓘ，整行打开连接详情，底部写连接总数。E324 起“验证”只写第一步没通过的项目。
@@ -76140,7 +76586,14 @@ defineActions({
     closeModal(true);
     route("devices", { tab: "connections", net: null }, { remember: true });
   },
-  connectionInfo: (a) => showConnectionDetail(a.id),
+  connectionInfo: (a, el) => showConnectionDetail(a.id, null, el),
+  connectionClearQuery: () => {
+    U.cq = "";
+    U.connPage = 0;
+    render();
+    syncRoute(true);
+    $("#connQuery")?.focus({ preventScroll: true });
+  },
   // 登记换表（2026-10-09 用户确认，ABB 对比 BP120）：只用于电能表这类累计量数据点；读数为乘倍率后的 kWh
   meterChangeForm: (a) => {
     const c = visibleConnection(a.id),
@@ -80283,7 +80736,9 @@ function v13Progress(db, pid, bid = null) {
     // 没有楼宇时空间资料为待处理，下一步“创建楼宇”（项目页核查 E213，2026-10-21 用户确认：原先没有楼宇也算已完成，取代 E203 的“未开始”）
     noB = !bid && !db.buildings.some((b) => b.projectId === pid),
     // 3.07 V1036：未填建筑面积或主要用途的楼宇为提示（总览表格的单位面积与分组要用），不阻止交付
-    bMiss = db.buildings.filter((b) => b.projectId === pid && (!bid || b.id === bid) && (!(b.area > 0) || !b.usage)),
+    scopeFloors = new Set(SC.floorIds),
+    scopeBuildings = new Set(db.floors.filter(f => scopeFloors.has(f.id)).map(f => f.buildingId)),
+    bMiss = db.buildings.filter(b => b.projectId === pid && scopeBuildings.has(b.id) && (!(b.area > 0) || !b.usage)),
     // 3.43 E1418：本次范围里尚无功能区的楼层，楼层图与同楼宇已有功能区的楼层尺寸相同时，待办直接给“从 7F 复制”（一个弹窗复制功能区、设备并沿用比例尺），
     // 替代这一层的“设置比例尺”“划分功能区”两条（原要先切到 7F，在“⋯”里分别打开“复制功能区”“复制设备”）
     cpF = new Map(
@@ -80333,8 +80788,8 @@ function v13Progress(db, pid, bid = null) {
             .filter((b) => b && (!bid || b.id === bid))
             .sort(M.byName)
             .map((b) => {
-              const fs = db.floors.filter((f) => f.buildingId === b.id),
-                up = fs.filter((f) => SC.floorIds.includes(f.id) && F.scopePlanImage(db, f)).length,
+              const fs = db.floors.filter((f) => f.buildingId === b.id && scopeFloors.has(f.id)),
+                up = fs.filter((f) => F.scopePlanImage(db, f)).length,
                 pw = b.kind === "outdoor" ? "总平面图" : "楼层图";
               return up ? { text: b.kind === "outdoor" ? `${b.name} · ${pw}已上传` : `${b.name} · ${pw} ${up} / ${fs.length} 层`, label: `编辑${pw}`, act: "depEditPlan", args: { b: b.id }, who: "config" } : null;
             })
@@ -80902,7 +81357,8 @@ function v13StatusPage() {
   const steps = `<section class="card cfg-card cfg-tcard dep-steps" aria-label="步骤"><div class="tw flow-table"><table class="t dep-t"><thead><tr><th scope="col">步骤</th><th scope="col">完成情况</th><th scope="col" class="act"></th></tr></thead><tbody>${trs}</tbody></table></div></section>`;
   // 3.13 E1210：去掉右侧“详情”卡（部署范围、状态在页头，设备网络、交付后改动在步骤表里），“上次交付 9 月 18 日 16:30 · 王敏 · v2”写在标题下一行
   const lastDel = depLastDelivery(db, pid);
-  return (lastDel ? `<p class="dep-last">上次交付 ${esc(lastDel)}</p>` : "") + kpis + quotaLine + `<div class="dep-cols">${steps}</div>`;
+  const batch = DS.nets.length || DS.blockedNetworks.length ? `<div class="flow-section-head dep-batch-head"><h3>部署批次</h3>${btn("范围、版本与回执", "deploymentBatch", {}, "sm")}</div>` : "";
+  return (lastDel ? `<p class="dep-last">上次交付 ${esc(lastDel)}</p>` : "") + kpis + quotaLine + batch + `<div class="dep-cols">${steps}</div>`;
 }
 // 3.53 V1444、E1536：部署进度的步骤名与系统部署页签一致（“空间资料”写“项目配置”，“设备”写“设备部署”）；内部键不变
 const depStepName = (k) => ({ 空间资料: "项目配置", 设备: "设备部署" })[k] || k;
@@ -80942,11 +81398,17 @@ function v13ConnState(db, scope, floorsUsed) {
     en = F.enabledApps(db, pid),
     selection = F.deploymentScope(db, pid),
     selectedFloors = new Set(selection.floorIds),
-    strict = M.get(db, "projects", pid)?.deploymentScopeRequired === true || !!Object.keys(selection.parts || {}).length || floorsUsed.some((f) => f.managedPart);
+    strict = selection.explicit === true || M.get(db, "projects", pid)?.deploymentScopeRequired === true || !!Object.keys(selection.parts || {}).length || floorsUsed.some((f) => f.managedPart);
   const selectedApps = new Map();
   for (const c of candidates) selectedApps.set(c.id, F.appOn(en, F.connectionApps(db, c)));
-  const blocked = strict ? candidates.filter((c) => selectedApps.get(c.id) && (c.floorIds.some((id) => !selectedFloors.has(id)) ||
-    db.points.some((pt) => pt.connectionId === c.id && !F.deploymentPointIn(db, pt, { p: pid })))) : [];
+  const blocked = strict ? candidates.filter(c => {
+    if (!selectedApps.get(c.id)) return false;
+    const gatewayId = c.collect?.at === "gateway" ? c.collect.gatewayId : null,
+      gateway = gatewayId && M.get(db, "points", gatewayId);
+    return c.floorIds.some(id => !selectedFloors.has(id)) ||
+      db.points.some(pt => pt.connectionId === c.id && !F.deploymentPointIn(db, pt, { p: pid })) ||
+      (c.collect?.at === "gateway" && (!gateway || !F.deploymentPointIn(db, gateway, { p: pid })));
+  }) : [];
   const excluded = new Set(blocked.map((c) => c.id));
   const conns = candidates.filter((c) => !excluded.has(c.id));
   return { conns, en, blocked, off: new Set(conns.filter((x) => !selectedApps.get(x.id)).map((x) => x.id)) };
@@ -81497,7 +81959,8 @@ pages.deployment = () => {
     const context = depWbContext();
     const more = cfg && projectCount && (canExportAny() || U.role !== "member") ? menuTrigger(iconBtn("更多", "more", "depAllMore", {})) : "";
     return tabRow(more, cfg ? depProjectOverviewScope(context) : undefined) + (deviceTopology ? depSubTabs("topology") : "")
-      + (context ? depTopoPage(context, depWbView()) : empty("当前没有可访问的配置对象", "", btn("返回项目配置", "depWbOpen", { level: "projects" }, "sm")));
+       + ((deviceTopology && typeof depInspectionRender === "function" && depInspectionRender(context))
+        || (context ? depTopoPage(context, depWbView()) : empty("当前没有可访问的配置对象", "", btn("返回项目配置", "depWbOpen", { level: "projects" }, "sm"))));
   }
   // 3.53 V1408、V1453：全部项目时“新建项目”只在项目配置（首页不再放）；项目配置列项目资料，部署进度列进度
   PAGE_CATEGORY_HEADERS.set("deployment", { actions: !U.p && projectCount && (canExportAny() || U.role !== "member") ? menuTrigger(iconBtn("更多", "more", "depAllMore", {})) : "" });
@@ -99642,7 +100105,12 @@ defineActions({
   devCurveSpan: (a) => {
     U.devCurve = a.value;
     const c = U.curveCtx;
-    if (c?.kind === "map") render(); // 2.81 E1103：连接详情页“数据映射”展开行内重画
+    if (c?.kind === "deployment-inspection" && U.depInspection?.id === c.id) {
+      U.depInspection.span = a.value === "7d" ? "7d" : "24h";
+      syncRoute(true);
+      render();
+      requestAnimationFrame(() => $(`#devCurveSpan-${U.depInspection.span}`)?.focus({ preventScroll: true }));
+    } else if (c?.kind === "map") render(); // 2.81 E1103：连接详情页“数据映射”展开行内重画
     else if (c?.kind === "device") showDeviceInformation(c.id, "runtime");
   },
   // 导出内容与弹窗相同：先是数据表，空一行后是说明（图表、口径、数据质量与导出时间、导出人）；每次导出写入审计日志
@@ -100994,7 +101462,7 @@ function obLoc(k, o) {
   return { p: b?.projectId || o.projectId || null, b: b?.id || null, f: f?.id || null };
 }
 // 能打开（楼层、设备网络、系统连接打开各自的页面）；有对象页的只有功能区与设备
-const obView = (x) => !!x && U.role !== "member" && mayViewProject(obLoc(x.k, x.o).p);
+const obView = (x) => !!x && U.role !== "member" && mayViewProject(obLoc(x.k, x.o).p) && (x.k !== "dev" || typeof depInspectionPoint !== "function" || !!depInspectionPoint(data(), x.id));
 const obOk = (x) => obView(x) && (x.k === "zone" || x.k === "dev");
 // 有运行数据：对象在已接入运行数据的楼层（实时数据、趋势、诊断只在这时显示）
 function obLive(k, o) {
@@ -105711,7 +106179,7 @@ function ov3CanEditBuildingImage(b) {
   if (!b || b.id !== U.b || b.projectId !== U.p) return false;
   try { assertNetworkProjectAccess(b.projectId); return true; } catch (_) { return false; }
 }
-function ov3BuildingImage(b, s) {
+function ov3BuildingImage(b, s, { rail, toggleMode = "ov3Mode" } = {}) {
   S3_PEND = null;
   const image = typeof b.image === "string" ? b.image.trim() : "",
     editable = ov3CanEditBuildingImage(b),
@@ -105719,9 +106187,9 @@ function ov3BuildingImage(b, s) {
     upload = editable ? btn(image ? "更换楼宇图片" : "上传楼宇图片", "ov3BuildingImageEdit", { b: b.id }, "ov3-npb") : "",
     state = `<div class="ov3-image-state" data-building-image-state role="status"><span class="ov3-np-ic" aria-hidden="true">${ico("image")}</span><h2 data-building-image-message>${image ? "正在加载楼宇图片" : "尚未上传楼宇图片"}</h2>${upload}</div>`,
     photo = image ? `<div class="ov3-image-host is-loading" tabindex="0" role="group" aria-label="${esc(`${b.name}楼宇图片：拖动平移，滚轮缩放`)}"><img class="ov3-building-image" src="${esc(image)}" alt="${esc(`${b.name}楼宇图片`)}" draggable="false"></div>` : "",
-    mode = s.whole3d ? `<div class="ov3-cg">${ov3Cb("切换到 3D", "", "ov3Mode", {}, '<span class="ov3-mode">3D</span>')}</div>` : "",
+    mode = s.whole3d ? `<div class="ov3-cg">${ov3Cb("切换到 3D", "", toggleMode, {}, '<span class="ov3-mode">3D</span>')}</div>` : "",
     tools = image ? `<div class="ov3-cg" data-building-image-tools hidden>${ov3Cb("复位视角", "rotate-ccw", "ov3Reset")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div>` : "";
-  return `<section class="ov3-view ov3-cv is2d ov3-building-photo" aria-label="${esc(title)}">${ov3FloorCol(b, s)}${photo}${state}<div class="ov3-ctl">${mode}${tools}</div></section>`;
+  return `<section class="ov3-view ov3-cv is2d ov3-building-photo" aria-label="${esc(title)}">${rail ?? ov3FloorCol(b, s)}${photo}${state}<div class="ov3-ctl">${mode}${tools}</div></section>`;
 }
 let OV3_IMAGE_LIVE = null;
 function ov3SyncBuildingImage() {
@@ -105740,7 +106208,7 @@ function ov3SyncBuildingImage() {
   if (loaded) api.redraw();
 }
 onAfterRender(() => {
-  const host = document.querySelector(".ov3-image-host"), img = host?.querySelector(".ov3-building-image"), source = img?.getAttribute("src"), owner = typeof analysisCanvasActive === "function" && analysisCanvasActive() ? "analysis" : "home";
+  const host = document.querySelector(".ov3-image-host"), img = host?.querySelector(".ov3-building-image"), source = img?.getAttribute("src"), owner = depTopoBuildingActive() ? "deployment" : typeof analysisCanvasActive === "function" && analysisCanvasActive() ? "analysis" : "home";
   if (!host || !img) {
     OV3_IMAGE_LIVE?.resize?.disconnect();
     OV3_IMAGE_LIVE?.api.dispose();
@@ -105764,12 +106232,9 @@ function depTopoPlanBuilding({ db, project, building }, view) {
   const chosen = view.selection?.kind === "floor" ? view.selection.id : null;
   const active = stack.some(({ f }) => f.id === chosen) ? chosen : null;
   const flat = U.depTopoBuildingModes?.[building.id] === "2d";
-  const current = flat ? active || stack.find(({ f }) => f.image && !f.managedPart)?.f.id || stack[0]?.f.id : active;
+  const rail = stack.length ? ov3FloorRail(building.id, project.id, stack, true, active, "depTopoBuildingFloor", true) : "";
+  if ((flat || !stack.length) && !active) return ov3BuildingImage(building, { whole3d: stack.length > 0 }, { rail, toggleMode: "depTopoBuildingMode" });
   const title = M.buildingLabel(db, building), mode = flat ? "2D" : "3D";
-  if (!stack.length) {
-    S3_PEND = null;
-    return empty("尚无可显示的楼层", "", canEdit() ? btn("设置楼层", "spaceForm", { kind: "buildings", id: building.id }, "primary") : "", "layers");
-  }
   const raw = s3Scene(building.id, { walls: false, edgeOf: (f) => f.id === active ? "#007fb5" : null });
   const byFloor = new Map(stack.map(({ f }) => [f.id, f]));
   const floors = raw.floors.filter((f) => byFloor.has(f.id)).map((f) => {
@@ -105777,8 +106242,7 @@ function depTopoPlanBuilding({ db, project, building }, view) {
     // A partial floor only shows rooms in its independently authorized crop.
     return registered.managedPart ? { ...f, ghost: true, zones: [], offset: null, outline: null, w: 40, d: 20 } : f;
   });
-  S3_PEND = { ...raw, floors, focus: current || null, only: flat, flat, names: flat, noLabels: true, fitCoverage: 0.85, view: { az: 30, el: 50 } };
-  const rail = ov3FloorRail(building.id, project.id, stack, true, active, "depTopoBuildingFloor", true);
+  S3_PEND = { ...raw, floors, focus: active, only: flat, flat, names: flat, noLabels: true, fitCoverage: 0.85, view: { az: 30, el: 50 } };
   const note = stack.some(({ f }) => f.image && !f.managedPart) ? "" : '<p class="dep-topo-model-note">楼层结构示意 · 按实际登记楼层显示</p>';
   return `<section class="ov3-view ov3-cv${flat ? " is2d" : ""}" aria-label="${esc(title + " " + mode + " 楼宇图")}">${rail}<div class="s3-host ov3-s3" id="s3Host" data-view="ov3"><canvas class="s3-cv" tabindex="0" role="img" aria-label="${esc(title + " · " + mode + " 楼宇图")}"></canvas><div class="s3-tip" hidden></div></div><div class="ov3-ctl"><div class="ov3-cg">${ov3Cb(`切换到 ${flat ? "3D" : "2D"}`, "", "depTopoBuildingMode", {}, `<span class="ov3-mode">${flat ? "3D" : "2D"}</span>`)}</div><div class="ov3-cg">${ov3Cb("复位视角", "rotate-ccw", "ov3Reset")}${OV3_CSEP}${ov3Cb("放大", "plus", "ov3CvZoom", { "data-k": "1.25" })}${ov3Cb("缩小", "minus", "ov3CvZoom", { "data-k": "0.8" })}</div></div>${note}</section>`;
 }
@@ -106016,13 +106480,17 @@ defineActions({
     if (building && top?.project?.id === p) return depTopoNavigate({ p, b: top.building?.id, f: top.floor?.id }, { mode: "map", selection: { kind: "building", id: b }, replace: true, focus: false });
     return depTopoNavigate({ p, b, f: null }, { mode: "map", selection: { kind: building ? "building" : "project", id: b || p }, focus: false });
   },
-  depTopoBuildingFloor: ({ to }) => {
+  depTopoBuildingFloor: ({ to }, opener) => {
     const context = depWbContext();
     if (!context?.building || !depTopoBuildingActive()) return;
     const { db, project, building } = context, floor = M.get(db, "floors", to);
     if (to && (!floor || floor.buildingId !== building.id || !canEdit() && !ovLiveIds().has(floor.id))) return;
     s3SaveCam();
-    return depTopoNavigate({ p: project.id, b: building.id, f: null }, { mode: "building", selection: floor ? { kind: "floor", id: floor.id, parent: building.id } : null, replace: true, focus: false });
+    if (floor) {
+      if (depTopoNavigate({ p: project.id, b: building.id, f: floor.id }, { mode: "floor", focus: false })) depProjectFocusFloor(opener);
+      return;
+    }
+    return depTopoNavigate({ p: project.id, b: building.id, f: null }, { mode: "building", replace: true, focus: false });
   },
   depTopoBuildingMode: () => {
     if (!depTopoBuildingActive()) return;
@@ -109064,13 +109532,15 @@ function depTopoNavigate(destination, { mode = "space", selection = null, replac
     U.depProjectReturn = { mode: prevMode, p: current.project?.id || null, b: current.building?.id || null, f: null };
   }
   closePop();
+  if (U.depInspection && (prevMode !== nextMode || ["p", "b", "f"].some(key => depTopoIds(next)[key] !== U[key]))) U.depInspection = null;
   Object.assign(U, depTopoIds(next), { tab: depTopoDeviceMode(nextMode) ? "devices" : "config", depTopoMode: nextMode, missing: null });
   const view = depWbView();
   view.mode = nextMode;
   view.selection = selection;
   if (typeof depTopoAfterNavigate === "function") depTopoAfterNavigate(prev, next, prevMode, nextMode);
   const target = new URLSearchParams(location.hash.split("?")[1] || "");
-  const sameLocation = ["p", "b", "f"].every(k => (target.get(k) || null) === (U[k] || null)) && target.get("tab") === U.tab && (target.get("topo") || "space") === nextMode;
+  const sameLocation = ["p", "b", "f"].every(k => (target.get(k) || null) === (U[k] || null)) && target.get("tab") === U.tab
+    && (target.get("topo") || "space") === nextMode && (target.get("projects") === "one") === !!U.depProjectFilter;
   syncRoute(replace || sameLocation);
   render();
   if (focus) requestAnimationFrame(() => $(selection ? "#depTopoDetailTitle" : "#depWbTitle")?.focus({ preventScroll: true }));
@@ -109139,7 +109609,7 @@ function depProjectModel(context, recent = null) {
 function depProjectOverviewScope(context) {
   if (!context || !depProjectOverviewMode(depTopoMode(U.depTopoMode, context))) return "";
   const { project, projects } = depProjectModel(context, U.lastP);
-  return project ? wsScopeButton(project.name, {
+  return project ? wsScopeButton(U.depProjectFilter ? project.name : "全部项目", {
     action: "depProjectPick", label: "选择项目", disabled: projects.length < 2,
   }) : "";
 }
@@ -109203,11 +109673,11 @@ function depProjectNodeCard(db, item, { active, floors, buildingCount = 0, info 
       if (canExportAny()) facts += `<div class="dep-project-card-actions">${btn("导出项目资料", "exOpen", { p: item.id }, "ghost sm")}</div>`;
     }
   }
-  if (!info && active && writable && type === "building" && floors.length) {
+  if (!info && active && type === "building" && floors.length) {
     const missing = floors.filter(floor => !floor.image && !floor.managedPart);
     const pick = floors.length === 1 ? { f: floors[0].id } : { choose: 1 };
-    const configure = btn(floors.length === 1 ? `配置 ${esc(floors[0].name)}` : "选择楼层", "depProjectEnterFloor", { p: project.id, b: item.id, ...pick }, "sm");
-    const upload = missing.length > 1 ? btn("批量上传图纸", "depUpload", { b: item.id, fs: missing.map(floor => floor.id).join(",") }, "ghost sm") : "";
+    const configure = btn(floors.length === 1 ? `${writable ? "配置" : "查看"} ${esc(floors[0].name)}` : "选择楼层", "depProjectEnterFloor", { p: project.id, b: item.id, ...pick }, "sm");
+    const upload = writable && missing.length > 1 ? btn("批量上传图纸", "depUpload", { b: item.id, fs: missing.map(floor => floor.id).join(",") }, "ghost sm") : "";
     facts = `<div class="dep-project-card-actions">${configure}${upload}</div>`;
   }
   return depProjectRecordCard({ object: item, label, kind: type, active, summary, info: facts, tools: visual + edit + relationship });
@@ -109246,7 +109716,8 @@ function depProjectBuildingCards(rows, model, renderCards) {
 
 function depProjectWorkspace(context, view) {
   const { db } = context;
-  const model = depProjectModel(context, U.lastP), { projects, project, building, buildings, outdoor } = model;
+  const model = depProjectModel(context, U.lastP), { project, building, buildings, outdoor } = model;
+  const projects = U.depProjectFilter && project ? [project] : model.projects;
   const info = view.mode === "info";
   const projectButton = canCreateProject() ? btn(ico("plus", "ic16") + "新建项目", "spaceForm", { kind: "projects" }, "primary sm") : "";
   const buildingButton = project && canEdit() ? btn(ico("plus", "ic16") + "新建楼宇", "v13NewBuilding", { p: project.id }, "primary sm") : "";
@@ -109456,13 +109927,26 @@ defineActions({
     if (!context) return;
     const { project, projects } = depProjectModel(context, U.lastP);
     const choices = projects.map(item => {
-      const on = item.id === project?.id;
+      const on = !!U.depProjectFilter && item.id === project?.id;
       const search = [item.name, item.city, item.address].filter(Boolean).join(" ");
       return `<button type="button" class="popitem${on ? " on" : ""}" role="menuitemradio" aria-checked="${on}" data-act="depProjectPickItem" data-id="${esc(item.id)}" data-scope-search-option="${esc(search)}">${menuLabel(item.name)}${on ? ico("check", "ic16 pop-check") : ""}</button>`;
     }).join("");
-    openScopeSearchMenu(opener, "切换项目", scopeSearchMenu("搜索项目", menuBox("切换项目", choices)));
+    const all = !U.depProjectFilter;
+    const allOption = `<button type="button" class="popitem${all ? " on" : ""}" role="menuitemradio" aria-checked="${all}" data-act="depProjectPickAll" data-scope-search-option="全部项目">${menuLabel("全部项目")}${all ? ico("check", "ic16 pop-check") : ""}</button>`;
+    openScopeSearchMenu(opener, "切换项目", scopeSearchMenu("搜索项目", menuBox("切换项目", allOption + choices)));
   },
-  depProjectPickItem: ({ id }, opener) => depTopoSelectNode({ kind: "project", id }, opener),
+  depProjectPickItem: ({ id }, opener) => {
+    if (!depTopoContextFor(W, { p: id })) return;
+    U.depProjectFilter = true;
+    depTopoSelectNode({ kind: "project", id }, opener);
+  },
+  depProjectPickAll: () => {
+    if (!depWbContext() || !depProjectOverviewMode(depWbView().mode)) return;
+    U.depProjectFilter = false;
+    closePop({ restoreFocus: true });
+    syncRoute();
+    render();
+  },
   depProjectReturn: () => {
     const context = depWbContext();
     if (!context) return;
@@ -109626,8 +110110,9 @@ function depDeviceModel(context, view, auth = depDeviceAuth()) {
     if (pending.length) branches.push(branch({ key: "hold:circuit", name: "待确认接线", sub: `${pending.length} 个点位` }, pending));
   }
   if (project && layer === "system") {
-    const connections = db.connections.filter(c => c.projectId === project.id && (byConnection.has(c.id) ||
-      (!zone && !auth.zones && !view.deviceBatch && (c.floorIds || []).some(floorShown)))).sort(M.byName);
+    const connections = db.connections.filter(c => c.projectId === project.id &&
+      (typeof visibleConnection !== "function" || visibleConnection(c.id, db)) &&
+      (byConnection.has(c.id) || (!zone && !auth.zones && !view.deviceBatch && (c.floorIds || []).some(floorShown)))).sort(M.byName);
     for (const conn of connections) {
       const points = byConnection.get(conn.id) || [], gw = allById.get(conn.collect?.gatewayId);
       const root = { key: depDeviceKey("connection", conn.id), name: conn.name, conn, sub: `${points.length} 个点位` };
@@ -109780,7 +110265,8 @@ function depTopoDeviceDetail(context, view) {
       ["本次部署", needsReview ? "范围待核对" : F.deploymentPointIn(db, point, { p: project.id }) ? "已纳入" : "未纳入"]);
     if (needsReview && canManage) actionsHtml.push(btn("核对部署范围", "scopeAdjust", { p: project.id, b: floor?.buildingId }, "sm"));
     if (node.lc) facts.push(["控制类型", M.ctrlText(point.ctrl)], ["驱动台数", point.drivers ?? "未登记"], ["每台功率", point.fixtureWatts != null ? `${point.fixtureWatts} W` : "未登记"]);
-    if (!point.unplaced) actionsHtml.push(depDeviceActionButton("在楼层图定位", "floor", { id: point.id }));
+    actionsHtml.push(btn("查看设备详情", "depInspectionOpen", { id: point.id }, "sm"));
+    if (!point.unplaced) actionsHtml.push(btn("在楼层图定位", "depInspectionOpen", { id: point.id, value: "floor" }, "sm"));
     if (model.layer === "network" && canManage && M.field(point) && !F.networkMoveProblem(db, point))
       actionsHtml.push(depDeviceActionButton(point.networkId ? "调整所属设备网络" : "分配设备网络", "assign", { id: point.id }));
     if (model.layer === "network" && ["lc", "ms"].includes(point.type))
@@ -109829,6 +110315,10 @@ function depDeviceChoose(selection, opener) {
   const { model, view } = current;
   const found = depDeviceFind(model, selection);
   if (!found) return;
+  if (U.depInspection?.id && found.node?.point && U.depInspection.id !== found.node.point.id) {
+    U.depInspection = null;
+    syncRoute(true);
+  }
   view.deviceSelection = selection;
   view.deviceOrigin = opener?.dataset.key ? { act: opener.dataset.act, key: opener.dataset.key } : null;
   view.deviceExpansion = found.branch.root.key;
@@ -110020,6 +110510,232 @@ document.addEventListener("keydown", e => {
   if (e.target.id !== "depTopoDeviceQuery" || e.key !== "Enter" || e.isComposing) return;
   e.preventDefault();
   actions.depTopoDeviceSearch({}, e.target);
+});
+
+/* Device inspection reuses the workspace's list, canvas, and topology. */
+const DEP_INSPECT_TABS = [
+  ["list", "设备清单", "list"], ["floor", "楼层图", "layers"], ["topology", "拓扑", "network"],
+  ["ports", "端口", "gw"], ["metrics", "指标", "chart"], ["work", "工单", "clipboard-check"],
+];
+const DEP_INSPECT_INVENTORY = ["q", "filter", "deviceNet", "deviceTask", "deviceIssueRoute", "deviceRole", "devZone", "devAcc",
+  "devTypes", "devFloors", "devMaint", "devPage", "devSort"];
+
+function depInspectionPoint(db, id, scope = {}) {
+  if (!id || U.role === "member") return null;
+  const point = M.get(db, "points", id), floor = point && M.floor(db, point.floorId), building = M.building(db, floor?.buildingId);
+  const project = M.get(db, "projects", building?.projectId);
+  if (!project || !mayViewProject(project.id, db) || (scope.p && scope.p !== project.id) ||
+    (scope.b && scope.b !== building.id) || (scope.f && scope.f !== floor.id)) return null;
+  const auth = depDeviceAuth();
+  if (!depDevicePointAllowed({ db, project }, point, auth)) return null;
+  return { db, point, floor, building, project, auth };
+}
+
+const depInspectionActive = () => U.page === "deployment" && U.tab === "devices" || U.page === "devices" && U.tab === "inventory";
+const depInspectionInventory = () => U.page === "devices" && U.tab === "inventory"
+  ? Object.fromEntries(DEP_INSPECT_INVENTORY.map(key => [key, U[key] ?? null])) : null;
+
+function depInspectionRead(query) {
+  U.depInspection = null;
+  if (!depInspectionActive() || !query.has("inspect")) return;
+  const id = query.get("inspect"), value = U.page === "devices" ? "list" : query.get("iv") || "topology";
+  const scope = Object.fromEntries(["p", "b", "f"].map(k => [k, query.get(k)]));
+  if (!depInspectionPoint(W, id, scope) || !DEP_INSPECT_TABS.some(([key]) => key === value) ||
+    (U.page === "deployment" && (value === "list" || !scope.p || !scope.b || !scope.f))) {
+    U.depInspection = { unavailable: true };
+    return;
+  }
+  const entry = history.state?.deploymentInspection;
+  const saved = entry?.id === id ? entry : null;
+  U.depInspection = { id, value, origin: saved?.origin || null, span: saved?.span || "24h" };
+  if (value === "list" && saved?.inventory) Object.assign(U, saved.inventory);
+  if (U.page === "deployment") U.depTopoMode = value === "floor" ? "device-floor" : "device";
+}
+
+function depInspectionWrite(query) {
+  if (!depInspectionActive() || !U.depInspection?.id) return;
+  query.set("inspect", U.depInspection.id);
+  if (U.depInspection.value !== "list") query.set("iv", U.depInspection.value);
+}
+
+function depInspectionHistory() {
+  if (!depInspectionActive() || !U.depInspection?.id) return null;
+  return { ...U.depInspection, inventory: depInspectionInventory() };
+}
+
+function depInspectionOrigin(opener, id) {
+  const from = snapshot(), view = U.page === "deployment" && depWbView(), inventory = depInspectionInventory();
+  const row = inventory && id && $(`#pbody tr[data-act="deviceInfo"][data-id="${CSS.escape(id)}"]`);
+  return {
+    ...from, depInspection: null, previousSource: U.source || null,
+    focus: wsFocusDesc(row || sheetRow() || opener?.closest("tr[data-act]") || opener || document.activeElement),
+    inventory,
+    ...(view ? { deviceView: Object.fromEntries(["deviceLayer", "deviceSelection", "deviceOrigin", "deviceQuery",
+      "deviceExpansion", "devicePage", "deviceBatch", "deviceZone"].map(k => [k, view[k]])) } : {}),
+  };
+}
+
+function depInspectionFocus(focus, fallback) {
+  requestAnimationFrame(() => {
+    const target = wsFindDesc(focus) || $(fallback);
+    if (!target) return;
+    if (!target.hasAttribute("tabindex") && !target.matches("button,input,select,textarea,a[href]")) target.tabIndex = -1;
+    target.focus({ preventScroll: true });
+  });
+}
+
+function depInspectionOpen({ id, value = "ports" }, opener) {
+  const context = depInspectionPoint(W, id, U);
+  if (!context || !DEP_INSPECT_TABS.some(([key]) => key === value)) return msg("当前范围无法查看该设备");
+  const { point, floor, building, project } = context, current = U.depInspection;
+  const same = current?.id === id;
+  const origin = same ? current.origin : depInspectionOrigin(opener, id);
+  const span = same ? current.span : "24h";
+  const depInspection = { id, value, origin, span };
+  if (U.page === "devices" && U.tab === "inventory") {
+    U.depInspection = { ...depInspection, value: "list" };
+    syncRoute(true);
+  }
+  closeModal(true);
+  closePop();
+  if ($("#wsSheet")) sheetClose();
+  if (value === "list") {
+    const ledger = origin?.inventory && depInspectionPoint(context.db, id, origin);
+    const scope = ledger ? {
+      p: origin.p, b: origin.b, f: origin.f, ...origin.inventory,
+    } : { p: project.id, b: building.id, f: floor.id, q: point.name, deviceNet: "", deviceRole: "",
+      devTypes: [], devFloors: [], devZone: "", devAcc: "", devMaint: false, devPage: 0 };
+    route("devices", { ...scope, tab: "inventory", depInspection }, { source: origin?.previousSource || null });
+    if (ledger && $("#pbody")) $("#pbody").scrollTop = origin.scroll || 0;
+    depInspectionFocus(ledger ? origin.focus : null, "#deviceQuery");
+    return;
+  }
+  route("deployment", {
+    p: project.id, b: building.id, f: floor.id, tab: "devices",
+    depTopoMode: value === "floor" ? "device-floor" : "device", depInspection,
+  }, { source: origin?.previousSource || null });
+  if (value === "floor" && !point.unplaced) depTopoRevealPoint(point);
+  else depInspectionFocus(null, "#depInspectionTitle");
+}
+
+function depInspectionBar(context, active) {
+  const { point, db } = context;
+  const name = M.catalog[point.type]?.model || M.catalog[point.type]?.name || "设备";
+  const items = DEP_INSPECT_TABS.map(([key, title, icon]) => [key, ico(icon, "ic16") + esc(title)]);
+  return `<div class="dep-inspection-bar" data-device-id="${esc(point.id)}"><div class="dep-inspection-title">
+    <div><h2 id="depInspectionTitle" tabindex="-1">${esc(point.name)}</h2><p>${esc([name, depDeviceLocation(db, point)].filter(Boolean).join(" · "))}</p></div>
+    ${U.depInspection.origin ? btn(ico("back", "ic16") + "返回来源", "depInspectionReturn", {}, "sm") : ""}</div>
+    ${tabs(items, active, "depInspectionTab", "depInspectionPanel", "设备视图")}</div>`;
+}
+
+function depInspectionConnections(context) {
+  const { db, point, project, auth } = context;
+  return db.connections.filter(c => c.projectId === project.id && (c.id === point.connectionId || c.collect?.gatewayId === point.id)).filter(c => {
+    if (!visibleConnection(c.id, db)) return false;
+    const floors = c.floorIds || [];
+    if (!floors.length || floors.some(id => M.projectOfFloor(db, id) !== project.id || auth.floors && !auth.floors.has(id))) return false;
+    if (c.collect?.gatewayId && !depInspectionPoint(db, c.collect.gatewayId, { p: project.id })) return false;
+    return !db.points.some(p => p.connectionId === c.id && !depInspectionPoint(db, p.id, { p: project.id }));
+  });
+}
+
+function depInspectionPorts(context) {
+  const connections = depInspectionConnections(context);
+  return `<section class="card dep-inspection-card"><h3>物理端口</h3><p>物理端口未登记</p></section>
+    <section class="card dep-inspection-card"><h3>已登记的协议连接</h3>${connections.length
+    ? table(["连接", "协议", "目标服务端口"], connections.map(c => {
+      const port = Number(c.params?.port);
+      return { act: "depInspectionConnection", args: { id: c.id }, cells: [esc(c.name), esc(c.protocol),
+        Number.isInteger(port) && port > 0 && port <= 65535 ? (c.protocol === "Modbus TCP" ? `TCP ${port}` : String(port)) : "未登记"] };
+    }))
+    : '<p class="muted">当前范围内无可查看的协议连接</p>'}</section>`;
+}
+
+function depInspectionMetrics(context) {
+  const { db, point, floor, project } = context, read = point.telemetry?.lastSeen;
+  const related = obPoints("dev", point);
+  const allowed = p => !!depInspectionPoint(db, p.id, { p: project.id });
+  const canChart = related.every(allowed) && (point.type !== "lc" || db.points.filter(p => p.type === "ms" && p.zoneId === point.zoneId).every(allowed));
+  const facts = [["通信状态", esc(F.communication(db, point))], ["最近上报", read ? esc(projDate(read, project.id) || "未取得") : "未取得"]];
+  if (point.type === "gw") facts.push(["可查看的已登记下级设备", `${fmt(related.filter(p => p.id !== point.id && allowed(p)).length)} 台`]);
+  U.devCurve = U.depInspection.span === "7d" ? "7d" : "24h";
+  const curve = canChart && !floor.managedPart ? deviceCurveCard(point.id, "", { kind: "deployment-inspection", id: point.id })
+    : '<p class="muted">当前范围内没有可显示的趋势</p>';
+  return `<section class="card dep-inspection-card"><h3>运行指标</h3>${kv(facts)}</section><section class="card dep-inspection-card">${curve}</section>`;
+}
+
+function depInspectionWorkItems(context) {
+  const { point, db, project } = context;
+  return (db.investigationTasks || []).filter(t => t.projectId === project.id && (t.pointIds || []).includes(point.id) &&
+    t.pointIds.every(id => depInspectionPoint(db, id, { p: project.id })) &&
+    (!t.zoneId || F.managedZoneIn(context.floor, M.get(db, "zones", t.zoneId))))
+    .sort((a, b) => String(b.at).localeCompare(String(a.at)));
+}
+
+function depInspectionWork(context) {
+  const rows = depInspectionWorkItems(context);
+  return `<section class="card dep-inspection-card"><h3>关联工单</h3>${rows.length
+    ? table(["工单", "状态", "创建时间"], rows.map(t => ({
+      act: "depInspectionWorkOrder", args: { id: t.id }, cells: [esc(t.name), t.closedAt ? "已结束" : "未结束", esc(projDate(t.at, context.project.id) || "未登记")],
+    })))
+    : '<p class="muted">当前设备暂无可查看的关联工单</p>'}</section>`;
+}
+
+function depInspectionRender(context, inventory = null) {
+  if (!U.depInspection) return null;
+  const found = depInspectionPoint(context?.db || W, U.depInspection.id, U);
+  if (!found || !context && U.page === "deployment") return empty("当前范围无法查看该设备", "确认项目、楼宇、楼层和查看权限。", btn("返回设备部署", "depInspectionExit", {}, "sm"), "lock");
+  const { value } = U.depInspection;
+  let body = inventory;
+  if (value === "floor" || value === "topology") {
+    const view = depWbView(), id = found.point.id;
+    if (value === "floor" && view.inspectFloor !== id) Object.assign(view, { selection: { kind: "point", id }, showPoints: true, inspectFloor: id });
+    if (value === "topology" && view.inspectAnchor !== id) {
+      depTopoDeviceSelectPoint(view, id);
+      view.inspectAnchor = id;
+    }
+    body = depTopoPage(context, view);
+  } else if (value === "ports") body = depInspectionPorts(found);
+  else if (value === "metrics") body = depInspectionMetrics(found);
+  else if (value === "work") body = depInspectionWork(found);
+  return `<section class="dep-inspection">${depInspectionBar(found, value)}${tabPanel("depInspectionPanel", "depInspectionTab", DEP_INSPECT_TABS, value, body || "")}</section>`;
+}
+
+defineActions({
+  depInspectionOpen,
+  depInspectionTab: ({ value }, opener) => {
+    const current = U.depInspection;
+    if (!current?.id || current.value === value) return;
+    if (current.value === "list" && current.origin?.inventory) current.origin = depInspectionOrigin(wsFindDesc(current.origin.focus) || opener, current.id);
+    depInspectionOpen({ id: current.id, value }, opener);
+  },
+  depInspectionExit: () => route("deployment", { p: U.p, b: null, f: null, tab: "devices", depTopoMode: "device" }, { source: null }),
+  depInspectionReturn: () => {
+    const origin = U.depInspection?.origin;
+    if (!origin) return actions.depInspectionExit();
+    const { previousSource, deviceView, inventory, ...scope } = origin;
+    route(origin.page, { ...scope, ...inventory }, { source: previousSource || null });
+    if (deviceView && depTopoContextFor(W, origin)) {
+      Object.assign(depWbView(), deviceView);
+      render();
+    }
+    if ($("#pbody")) $("#pbody").scrollTop = origin.scroll || 0;
+    depInspectionFocus(origin.focus, "#deviceQuery, #depWbTitle");
+  },
+  depInspectionConnection: ({ id }, opener) => {
+    const found = depInspectionPoint(W, U.depInspection?.id, U);
+    if (found && depInspectionConnections(found).some(c => c.id === id)) showConnectionDetail(id, null, opener);
+  },
+  depInspectionWorkOrder: ({ id }) => {
+    const found = depInspectionPoint(W, U.depInspection?.id, U);
+    const task = found && depInspectionWorkItems(found).find(t => t.id === id);
+    if (!task) return;
+    modal(task.name, kv([
+      ["设备", esc(found.point.name)], ["工单状态", task.closedAt ? "已结束" : "未结束"],
+      ["工单范围", esc(task.scopeLabel || found.floor.name)], ["创建时间", esc(projDate(task.at, found.project.id) || "未登记")],
+      ["说明", esc(task.description || "未登记")],
+    ]) + (task.notes?.length ? table(["时间", "处理记录"], task.notes.map(n => [esc(projDate(n.at, found.project.id) || "未登记"), esc(n.text || "")])) : ""), btn("关闭", "close"));
+  },
 });
 
 /* 运行设置的项目权限、版式与只读楼层预览。 */
@@ -117137,6 +117853,16 @@ BARE_AFTER.legal = () => {
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "4.02",
+    date: "2026-11-19",
+    notes: [
+      "新增设备清单、楼层图、拓扑、端口、指标和工单联动。",
+      "改进整栋选层、图纸换图、系统接入筛选与返回。",
+      "现场交付支持确认部署范围、冻结设备版本和逐台核对回执。",
+      "修复已知问题，优化界面细节。",
+    ],
+  },
   {
     version: "4.01",
     date: "2026-11-19",
