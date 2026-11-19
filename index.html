@@ -37308,14 +37308,20 @@ img.img-off { display: none !important; }
 @media (min-width: 851px) {
   /* V1509：左栏可拖动调宽：默认 400，最窄 320，最宽为工作区 70%；拖动后的宽度记在本机 */
   .ov3x { --ov3-lwc: clamp(320px, var(--ov3-lw, 400px), var(--ov3-lw-max, 70%)); --ov3-sep-inset: 2px; --ov3-sep-hit: 4px; position: relative; grid-template-columns: var(--ov3-lwc) minmax(0, 1fr); }
+  .ws3x[data-pg="space"] { --ov3-lw: var(--space-left-width, 400px); }
+  .ws3x[data-pg="analysis"] { --ov3-lw: var(--analysis-left-width, 400px); }
+  .ws3x[data-pg="alarms"] { --ov3-lw: var(--alarms-left-width, 400px); }
+  .ws3x[data-pg="scenes"] { --ov3-lw: var(--scenes-left-width, 400px); }
+  .ws3x[data-pg="devices"] { --ov3-lw: var(--devices-left-width, 400px); }
   #app.is-ov3 .ov3x > .ws3-drawer { left: var(--ov3-lwc); }
   .ov3-sep { position: absolute; top: 12px; bottom: 12px; left: calc(var(--ov3-lwc) - var(--ov3-sep-inset)); z-index: 7; width: var(--ov3-sep-hit); cursor: col-resize; touch-action: none; outline: none; }
   .ov3-sep[hidden] { display: none; }
   .ov3-sep::after { content: ""; position: absolute; top: 0; bottom: 0; left: calc(var(--ov3-sep-inset) - 1px); width: 2px; opacity: 0; transition: opacity 150ms; background: #00aeef;
     -webkit-mask-image: linear-gradient(transparent, #000 120px, #000 calc(100% - 120px), transparent); mask-image: linear-gradient(transparent, #000 120px, #000 calc(100% - 120px), transparent); }
   .ov3-sep:hover::after, .ov3-sep.drag::after { opacity: 1; transition: none; }
-  .ov3-sep:focus-visible::after { left: calc(var(--ov3-sep-inset) - 0.5px); width: 1px; opacity: 1; background: #636363; -webkit-mask-image: none; mask-image: none; }
+  .ov3-sep:focus-visible::after { left: calc(var(--ov3-sep-inset) - 0.5px); width: 1px; opacity: 1; -webkit-mask-image: none; mask-image: none; }
   @media (any-pointer: coarse) {
+    .ws3x { --ov3-sep-inset: 12px; --ov3-sep-hit: 24px; }
     .ws3x[data-pg="space"][data-lv="f"] { --ov3-sep-inset: 4px; --ov3-sep-hit: 24px; }
   }
   body.ov3-dragging, body.ov3-dragging * { cursor: col-resize !important; user-select: none !important; }
@@ -37379,7 +37385,10 @@ img.img-off { display: none !important; }
   .ws3-layout-head > .ws3-back { min-height: var(--workspace-desktop-title-row); padding: 0; }
   .ws3-layout-head > h1.sr-only { grid-row: 1; }
   .ws3-layout-head .ws3-desktop-scope { min-width: 0; width: 100%; }
+  .ws3-layout-head .ws3-desktop-scope:has(> .ws3-op-canvas-toggle) { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+  .ws3-desktop-scope > .ws3-op-canvas-toggle { flex: none; }
   #app.is-ov3 .ws3x > .ws3-panel { grid-area: 2 / 2; padding: 0 8px 0 0; }
+  #app.is-ov3 .ws3x.ws3-content-only > .ws3-panel { grid-column: 2 / 5; padding-inline: 0; }
   #app.is-ov3 .ws3x > :is(.ov3-view, .ws3-drawer) {
     grid-area: 2 / 4 / 3 / 5;
     min-height: 0;
@@ -37412,6 +37421,7 @@ img.img-off { display: none !important; }
     #app.is-ov3 .ws3x > :is(.ov3-view, .ws3-drawer) { grid-column: 2 / 5; }
     .ws3-layout-head :is(.ws-scope-control, .ws3-scope-mob) { display: contents; }
     .ws3-layout-head .ws3-desktop-scope { flex: 0 1 400px; width: auto; max-width: 100%; }
+    .ws3-layout-head .ws3-desktop-scope > .ws3-op-canvas-toggle { display: none; }
     .ws3-layout-head .ws3-scope-mob > .ws3-mob-scope-control { display: none; }
     .ws3-layout-head .ws3-mob-display { display: flex; align-items: center; min-height: 32px; order: 1; }
     @media (any-pointer: coarse) {
@@ -37524,7 +37534,6 @@ img.img-off { display: none !important; }
 .home-overview-tools .ws-scope-band > .ws-scope-control { min-width: 0; flex: 0 1 auto; }
 .home-overview-tools .ws-scope-band { max-width: 100%; }
 .home-overview-tools .ws-locrow { margin: 0; min-width: 0; max-width: 100%; }
-.home-overview .ov3-sep:focus-visible::after { background: #00aeef; }
 .home-overview-canvas {
   position: relative;
   isolation: isolate;
@@ -38048,13 +38057,14 @@ img.img-off { display: none !important; }
 .runtime-history-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
 .runtime-history-tools .ws-search { flex: 1 1 180px; }
 
+:root { --runtime-preview-width: 360px; }
 #runtimePreview { z-index: 87; }
 .runtime-preview-overlay { position: fixed; inset: 0; background: rgb(0 0 0 / 20%); display: flex; justify-content: flex-end; }
 .runtime-preview-panel { display: flex; flex-direction: column; min-width: 0; overflow: hidden; background: #fff; color: #030303; }
 .runtime-preview-overlay .runtime-preview-panel { width: min(100%, 520px); box-shadow: 0 0 28px #0002; }
-.runtime-preview-docked { position: fixed; width: 360px; right: max(32px,calc((100vw - 1650px - var(--sidebar-width, 256px))/2)); top: 118px; bottom: 20px; pointer-events: none; }
-.runtime-preview-docked .runtime-preview-panel { max-height: 100%; border: var(--hw) solid #dedede; border-radius: 16px; box-shadow: 0 1px 2px #0001; pointer-events: auto; }
-#app.runtime-with-preview[data-page="settings"] .runtime-settings { grid-template-columns: 200px minmax(0, 1fr); padding-right: 416px; }
+.runtime-preview-docked { position: fixed; width: var(--runtime-preview-width); right: var(--runtime-preview-right); top: var(--runtime-preview-top); bottom: var(--workspace-canvas-edge); pointer-events: none; }
+.runtime-preview-docked .runtime-preview-panel { max-height: 100%; border: var(--hw) solid #dedede; border-radius: var(--workspace-canvas-radius); box-shadow: 0 1px 2px #0001; pointer-events: auto; }
+#app.runtime-with-preview[data-page="settings"] .runtime-settings { grid-template-columns: 200px minmax(0, 1fr); padding-inline-end: calc(var(--runtime-preview-width) + var(--workspace-canvas-gap)); }
 .runtime-preview-panel > header { display: flex; align-items: flex-start; gap: 12px; padding: 16px 16px 13px; border-bottom: var(--hw) solid #ebebeb; }
 .runtime-preview-panel > header > div { flex: 1; min-width: 0; }
 .runtime-preview-panel > header h2 { font-size: var(--dialog-title-size); line-height: var(--dialog-title-line); font-weight: var(--page-title-weight); margin: 0; outline: 0; overflow-wrap: anywhere; }
@@ -38124,10 +38134,10 @@ img.img-off { display: none !important; }
 #app[data-page="deployment"] > .main > .panel:has(> #pbody :is(.dep-project-floor, .dep-project-preview[data-topo-mode="map"], .dep-project-preview[data-topo-mode="building"])) > :is(.phead, #pbody) {
   padding-inline: var(--workspace-canvas-edge);
 }
-.dep-topo-grid, .dep-project-preview-layout { display: grid; grid-template-columns: minmax(0, 1fr); position: relative; gap: var(--workspace-canvas-gap); align-items: start; }
+.dep-topo-grid, .dep-project-preview-layout { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "canvas"; position: relative; gap: var(--workspace-canvas-gap); align-items: start; }
 .dep-topo-main, .dep-topo-detail { min-width: 0; border: 1px solid #dedede; border-radius: 12px; background: #fff; }
 .dep-topo-main { overflow: clip; }
-.dep-topo-canvas-layout > .dep-topo-main { border-radius: var(--workspace-canvas-radius); }
+.dep-topo-canvas-layout > .dep-topo-main, .dep-project-preview-layout > .dep-topo-main { grid-area: canvas; border-radius: var(--workspace-canvas-radius); }
 .dep-topo-head { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; border-bottom: 1px solid #ebebeb; padding: 12px var(--workspace-card-gutter); }
 .dep-topo-head h2, .dep-topo-detail h3 { font-weight: var(--page-title-weight); margin: 0; overflow-wrap: anywhere; }
 .dep-topo-head h2 { flex: 1 1 auto; font-size: var(--section-title-size); line-height: var(--section-title-line); }
@@ -38137,8 +38147,8 @@ img.img-off { display: none !important; }
 .dep-topo-canvas-controls > .dep-topo-plan-tools { padding: 0; }
 .dep-topo-canvas-controls > :is(.dep-topo-plan-status, .sp-plan-review, .sp-zd, .sp-verify) { margin: 0; }
 .dep-topo-detail h3 { font-size: var(--dialog-title-size); line-height: var(--dialog-title-line); }
-.dep-topo-detail { position: fixed; z-index: 25; top: 72px; right: 16px; width: min(360px, calc(100vw - 32px)); max-height: calc(100dvh - 88px); overflow: auto; padding: 12px var(--workspace-panel-gutter) 16px; box-shadow: 0 12px 32px rgba(0,0,0,.12); }
-.dep-topo-detail > header { display: flex; min-height: 32px; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.dep-topo-detail { grid-area: detail; position: fixed; z-index: 25; inset-block-start: var(--dep-detail-top, 72px); inset-inline-end: var(--workspace-canvas-edge); width: min(320px, calc(100vw - 32px)); max-height: calc(100dvh - var(--dep-detail-top, 72px) - 16px); overflow: auto; overscroll-behavior: contain; padding: 0 var(--workspace-panel-gutter) 16px; border-radius: var(--workspace-canvas-radius); box-shadow: 0 12px 32px rgba(0,0,0,.12); }
+.dep-topo-detail > header { display: flex; position: sticky; z-index: 1; top: 0; min-height: 32px; align-items: center; justify-content: space-between; gap: 8px; padding-block: 12px; background: #fff; }
 .dep-topo-detail > header .iconbtn { flex: none; }
 .dep-topo-detail-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
 #app:is([data-page="deployment"], [data-page="devices"], [data-page="settings"]) #wsSheet > :is(.v13-dh, .v13-db, .v13-df) {
@@ -38148,11 +38158,9 @@ img.img-off { display: none !important; }
 .dep-topo-canvas { min-width: 0; overflow: hidden; position: relative; }
 .dep-topo-canvas > .ov3-view { width: 100%; height: clamp(420px, 65dvh, 760px); min-height: 0; }
 .dep-topo-canvas-floor, .dep-topo-canvas-device-floor { min-height: 360px; }
-.dep-project-preview-layout:not(.dep-topo-canvas-layout):has(> .dep-topo-detail) { --detail-width: 320px; }
-
 .dep-project-view-head { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin: 0 0 12px; flex-wrap: wrap; }
 .dep-project-preview .dep-project-view-head { justify-content: flex-start; }
-.dep-project-layout { --project-stacked: 0; --project-line: #aeb5bd; --project-active: #006be8; --project-highlight: #f3f8ff; display: grid; position: relative; align-items: start; align-content: start; grid-template-columns: clamp(148px, 18cqw, 240px) minmax(0, 1fr) minmax(0, 1.13fr); column-gap: 20px; min-height: min(560px, 62dvh); }
+.dep-project-layout { --project-stacked: 0; --project-line: #aeb5bd; --project-active: #006be8; --project-highlight: #f3f8ff; display: grid; position: relative; align-items: start; align-content: start; grid-template-columns: 232px minmax(0, 1fr) minmax(0, 1.13fr); column-gap: var(--workspace-canvas-gap); min-height: min(560px, 62dvh); }
 .dep-project-layout > .dep-project-nav, .dep-project-content > .dep-project-column { min-width: 0; }
 .dep-project-content { min-width: 0; display: grid; grid-column: 2 / -1; grid-template-columns: subgrid; align-items: start; }
 .dep-project-nav { display: grid; gap: 2px; align-content: start; padding: 8px; border: 1px solid #ebebeb; border-radius: 12px; background: #fff; }
@@ -38225,27 +38233,21 @@ img.img-off { display: none !important; }
 .dep-copy-previews img { display: block; width: auto; height: auto; max-width: 100%; max-height: 160px; border-radius: 8px; }
 .dep-copy-previews figcaption { color: #636363; font-size: 12px; }
 
-@container dep-topo (min-width: 1260px) {
-  .dep-project-preview-layout:not(.dep-topo-canvas-layout):has(> .dep-topo-detail) { grid-template-columns: minmax(0, 1fr) var(--detail-width, 320px); }
-  .dep-project-preview-layout:not(.dep-topo-canvas-layout) > .dep-topo-detail { position: relative; inset: auto; width: auto; max-height: 70dvh; box-shadow: none; }
-}
-@container dep-topo (min-width: 712px) {
-  .dep-topo-canvas-layout:has(> .dep-topo-detail) {
-    grid-template-columns: min(400px, calc(100% - 320px - var(--workspace-canvas-gap))) minmax(0, 1fr);
-    grid-template-areas: "detail canvas";
+/* One inspector requires 640px for the canvas, 12px of separation and 320px for details. */
+@container dep-topo (min-width: 972px) {
+  :is(.dep-topo-canvas-layout, .dep-project-preview-layout):has(> .dep-topo-detail) {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-areas: "canvas detail";
   }
-  .dep-topo-canvas-layout:has(> .dep-topo-detail) > .dep-topo-main { grid-area: canvas; }
-  .dep-topo-canvas-layout > .dep-topo-detail {
-    grid-area: detail;
+  :is(.dep-topo-canvas-layout, .dep-project-preview-layout) > .dep-topo-detail {
     position: relative;
     inset: auto;
     width: auto;
     max-height: 70dvh;
-    border-radius: var(--workspace-canvas-radius);
     box-shadow: none;
   }
 }
-@container dep-topo (max-width: 980px) {
+@container dep-topo (width < 884px) {
   .dep-project-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1.16fr); row-gap: 12px; }
   .dep-project-content { grid-column: 1 / -1; row-gap: 12px; }
   .dep-project-nav { grid-column: 1 / -1; display: flex; align-items: start; flex-wrap: wrap; }
@@ -38270,6 +38272,10 @@ img.img-off { display: none !important; }
   .dep-topo-detail > header .iconbtn, .dep-project-relation .iconbtn, .dep-project-card-tools .iconbtn { min-width: 44px; }
   .dep-project-line-hit { stroke-width: 24; }
 }
+@media (max-width: 700px) {
+  .dep-topo-detail { position: fixed; inset-block: auto 0; inset-inline: 0; width: 100%; max-height: min(55dvh, calc(100dvh - 88px)); border-radius: 16px 16px 0 0; padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+  .dep-topo-detail > header { padding-block: 4px; }
+}
 @media (max-width: 600px) {
   #app[data-page="deployment"]:has(.dep-project-config, .dep-project-preview[data-topo-mode="map"], .dep-project-preview[data-topo-mode="building"]) .phead {
     min-height: 40px;
@@ -38288,10 +38294,8 @@ img.img-off { display: none !important; }
     white-space: nowrap;
   }
   .dep-topo { margin-block: 8px 16px; }
-  .dep-topo-grid { gap: 8px; }
   .dep-topo-head { padding-block: 8px; }
   .dep-topo-canvas-controls .sp-plan-review :is(.sp-review-head, .sp-actions) { flex-wrap: wrap; }
-  .dep-topo-detail { top: auto; bottom: 0; inset-inline: 0; width: 100%; max-height: 70dvh; border-radius: 16px 16px 0 0; padding-bottom: max(16px,env(safe-area-inset-bottom)); }
   .dep-topo-canvas > .ov3-view { height: clamp(320px, 58dvh, 610px); }
 }
 :is(#app, #dlg, #pop):is([data-page="deployment"], [data-page="devices"]) {
@@ -38438,10 +38442,47 @@ img.img-off { display: none !important; }
 
 #wtop > .dep-project-floor-back { flex: none; min-height: 44px; padding-inline: 12px; }
 
-.dep-project-floor .dep-project-floor-grid > .dep-topo-detail { top: var(--project-floor-detail-top, 180px); max-height: calc(100dvh - var(--project-floor-detail-top, 180px) - 16px); }
+.dep-project-floor-grid:has(> .dep-topo-zone-directory) { grid-template-areas: "canvas" "directory"; }
+.dep-project-floor-grid > .dep-topo-zone-directory {
+  grid-area: directory;
+  min-width: 0;
+  border: 1px solid #dedede;
+  border-radius: var(--workspace-canvas-radius);
+  background: #fff;
+}
 
-@container dep-topo (min-width: 712px) {
-  .dep-project-floor .dep-project-floor-grid > .dep-topo-detail { top: auto; max-height: 70dvh; }
+@container dep-topo (min-width: 884px) {
+  .dep-project-floor-grid:has(> .dep-topo-zone-directory[open]):not(:has(> .dep-topo-detail)) {
+    grid-template-columns: 232px minmax(0, 1fr);
+    grid-template-areas: "directory canvas";
+  }
+}
+@container dep-topo (min-width: 972px) {
+  .dep-project-floor-grid:has(> .dep-topo-zone-directory):has(> .dep-topo-detail) {
+    grid-template-areas: "canvas detail" "directory directory";
+  }
+}
+@container dep-topo (min-width: 1216px) {
+  .dep-project-floor-grid:has(> .dep-topo-zone-directory[open]):has(> .dep-topo-detail) {
+    grid-template-columns: 232px minmax(0, 1fr) 320px;
+    grid-template-areas: "directory canvas detail";
+  }
+}
+.dep-project-floor-grid > .dep-topo-zone-directory[open] > div {
+  flex-direction: column;
+  max-height: min(52dvh, 520px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+.dep-topo-zone-directory > div .btn {
+  flex: 0 0 auto;
+  height: auto;
+  justify-content: flex-start;
+  white-space: normal;
+  text-align: start;
+  overflow-wrap: anywhere;
 }
 
 #pop.dep-project-floor-pop, #pop.dep-project-floor-pop .dep-project-picker-menu {
@@ -38583,14 +38624,8 @@ img.img-off { display: none !important; }
 }
 
 @media (max-width: 700px) {
-  .dep-project-floor .dep-project-floor-grid > .dep-topo-detail {
-    position: static;
-    width: auto;
-    max-height: none;
-    border-radius: var(--workspace-canvas-radius);
-    box-shadow: none;
-    scroll-margin-block: var(--project-floor-topbar-clearance) 16px;
-  }
+  .dep-project-floor-grid:has(> .dep-topo-detail) { padding-block-end: var(--dep-floor-drawer-height, 0px); }
+  .dep-project-floor-grid:has(> .dep-topo-detail) .dep-project-floor-scroll { scroll-margin-block-end: calc(var(--dep-floor-drawer-height, 0px) + 8px); }
 }
 
 @media (any-pointer: coarse) {
@@ -57714,7 +57749,7 @@ function depTopoCanvas(context, view, layout = null) {
   }
   return html ? canvas(html) : "";
 }
-function depTopoPlanFloor({ db, project, building, floor }, view, { projectOnly = false, rail = "", horizontalRail = "", layout = (tools, body) => tools + body } = {}) {
+function depTopoPlanFloor({ db, project, building, floor }, view, { projectOnly = false, rail = "", horizontalRail = "", directoryOpen = false, layout = (tools, body, directory = "") => tools + body + directory } = {}) {
   const f = floor, word = planWord(building.id), ready = !f.managedPart || F.managedPartReady(f);
   const writable = canEdit() && mayViewProject(project.id, db), allowed = ready && !!f.image;
   const stage = (body) => projectOnly ? depProjectFloorStage(body, rail, horizontalRail) : body;
@@ -57754,11 +57789,12 @@ function depTopoPlanFloor({ db, project, building, floor }, view, { projectOnly 
   const message = placing ? "在图上选择设备位置" : spHint();
   const status = message ? `<p class="dep-topo-plan-status" role="status">${esc(message)}</p>` : "";
   const hint = f.managedPart ? `<p class="dep-topo-plan-status">仅管理 ${esc(f.managedPart.label || "授权区域")}</p>` : "";
-  const list = zoneList.length ? `<details class="dep-topo-zone-list"><summary>功能区 ${fmt(zoneList.length)}</summary><div>${zoneList.map((z) => btn(esc(z.name), "depTopoCanvasZone", { id: z.id }, z.id === zid ? "sm on" : "sm")).join("")}</div></details>` : "";
+  const directoryAttrs = projectOnly ? ` data-floor="${esc(f.id)}"${directoryOpen ? " open" : ""}` : "";
+  const list = zoneList.length ? `<details class="dep-topo-zone-list${projectOnly ? " dep-topo-zone-directory" : ""}"${directoryAttrs}><summary>功能区 ${fmt(zoneList.length)}</summary><div>${zoneList.map((z) => btn(esc(z.name), "depTopoCanvasZone", { id: z.id }, z.id === zid ? "sm on" : "sm")).join("")}</div></details>` : "";
   const review = projectOnly && !U.zoneDraft ? planReviewBanner(f) : "";
   const importReview = projectOnly && writable && !drawing ? spDraftsSec(f, { projectOnly }) : "";
   const viewport = `<div id="canvasViewport" class="ws-canvas-viewport dep-topo-plan-viewport"><div class="ws-plan sp-plan${drawing ? " drawing" : ""}${placing ? " dep-topo-placing" : ""}${points.length ? " with-devices" : ""}" id="floorCanvas" style="width:${zoom * 100}%;--z:${zoom};--ar:${ratio.toFixed(4)}" tabindex="0" aria-label="${esc(label)}"><img src="${esc(f.image)}" alt="${esc(label)}" draggable="false">${projectOnly && !f.managedPart ? spCompareImg(f) : ""}${outline}${spZones(visibleZone)}${projectOnly ? verifyOverlaySvg(f) : ""}${points.map((p) => renderPoint(p).replace('data-act="point"', 'data-act="depTopoCanvasPoint"')).join("")}${projectOnly && !f.managedPart ? spAlignOverlay(f, { showDevices: false }) : ""}${projectOnly ? scaleOverlay() : ""}</div></div>`;
-  return layout(`${tools}${hint}${status}${review}${importReview}${verifyBar(f)}`, `${stage(viewport)}${list}`);
+  return layout(`${tools}${hint}${status}${review}${importReview}${verifyBar(f)}`, `${stage(viewport)}${projectOnly ? "" : list}`, projectOnly ? list : "");
 }
 function depTopoFloorDetail(context, view, { projectOnly = false } = {}) {
   if (!["floor", "device-floor"].includes(view.mode) || !context.floor) return "";
@@ -57891,12 +57927,12 @@ function depProjectFloorPage(context, view) {
   const blank = !floor && (!project ? empty("选择项目查看楼层", "", "", "layers")
     : !building ? empty("选择楼宇查看楼层", "", canEdit() && !locBuildings(project.id, db).length ? btn("新建楼宇", "v13NewBuilding", { p: project.id }, "primary") : "", "layers")
     : empty(stack.length ? `选择${spaceWord}` : `尚无可查看的${spaceWord}`, "", !stack.length && canEdit() && building.kind !== "outdoor" ? btn("设置楼层", "spaceForm", { kind: "buildings", id: building.id }, "primary") : "", "layers"));
-  const layout = (tools, body) => {
+  const layout = (tools, body, directory = "") => {
     const detail = floor && depTopoFloorDetail(visibleContext, view, { projectOnly: true });
-    const side = detail ? `<aside class="dep-topo-detail" id="depTopoDetails" aria-labelledby="depTopoDetailTitle"><header><h3 id="depTopoDetailTitle" tabindex="-1">${esc(detail.title)}</h3>${iconBtn("关闭功能区详情", "x", "depTopoCloseDetail")}</header>${detail.html}</aside>` : "";
-    return `<div class="dep-topo dep-project-floor" data-topo-mode="floor">${depTopoDraftStatus()}${tools ? `<div class="dep-topo-canvas-controls">${tools}</div>` : ""}<div class="dep-topo-grid dep-project-floor-grid dep-topo-canvas-layout"><section class="dep-topo-main dep-project-floor-main" aria-labelledby="depWbTitle">${body}</section>${side}</div></div>`;
+    return `<div class="dep-topo dep-project-floor" data-topo-mode="floor">${depTopoDraftStatus()}${tools ? `<div class="dep-topo-canvas-controls">${tools}</div>` : ""}<div class="dep-topo-grid dep-project-floor-grid dep-topo-canvas-layout"><section class="dep-topo-main dep-project-floor-main" aria-labelledby="depWbTitle">${body}</section>${directory}${depTopoDetailPanel(detail, "关闭功能区详情")}</div></div>`;
   };
-  return floor ? depTopoPlanFloor(visibleContext, view, { projectOnly: true, rail, horizontalRail, layout }) : layout("", depProjectFloorStage(blank, rail, horizontalRail));
+  const directoryOpen = floor && depTopoFloorState(floor, false)?.directoryOpen;
+  return floor ? depTopoPlanFloor(visibleContext, view, { projectOnly: true, rail, horizontalRail, directoryOpen, layout }) : layout("", depProjectFloorStage(blank, rail, horizontalRail));
 }
 
 function depProjectFocusFloor(target) {
@@ -57957,20 +57993,24 @@ function depProjectSyncFloorRails(list) {
 const depProjectFloorResize = new ResizeObserver((entries) => {
   for (const { target } of entries) depProjectSyncFloorRails(target);
 });
-function depProjectPositionFloorDetail() {
-  const page = $(".dep-project-floor"), grid = page?.querySelector(".dep-project-floor-grid");
-  const detail = page?.querySelector(".dep-topo-detail");
-  if (!grid || !detail || getComputedStyle(detail).position !== "fixed") return;
-  const top = Math.max(70, Math.min(grid.getBoundingClientRect().top, innerHeight - 100));
-  page.style.setProperty("--project-floor-detail-top", `${top}px`);
+function depProjectFitFloorDrawer(detail, align = false) {
+  if (!detail.isConnected || !matchMedia("(max-width: 700px)").matches) return;
+  detail.parentElement?.style.setProperty("--dep-floor-drawer-height", `${detail.offsetHeight}px`);
+  const rail = $(".dep-project-floor-scroll"), body = $("#pbody");
+  if (!rail?.getClientRects().length) return;
+  const overlap = rail.getBoundingClientRect().bottom - detail.getBoundingClientRect().top + 8;
+  if (align || overlap > 0) {
+    const scrollRoot = body && getComputedStyle(body).overflowY === "auto" ? body : document.scrollingElement;
+    scrollRoot?.scrollBy({ top: overlap });
+  }
 }
+const depProjectDrawerResize = new ResizeObserver(entries => entries.forEach(({ target }) => depProjectFitFloorDrawer(target)));
+let depProjectObservedDrawer = null;
+
 function depProjectRevealFloorDetail() {
   const detail = $(".dep-project-floor .dep-topo-detail");
-  if (!detail || getComputedStyle(detail).position !== "static") return;
-  const list = $(".dep-project-floor .dep-topo-zone-list[open]");
-  if (list) list.open = false;
-  const available = (window.visualViewport?.height || innerHeight) - 88;
-  detail.scrollIntoView({ block: detail.offsetHeight > available ? "start" : "end" });
+  if (!detail) return;
+  depProjectFitFloorDrawer(detail, true);
   detail.querySelector("h3")?.focus({ preventScroll: true });
 }
 function depProjectTakeFloorDetailOrigin(context) {
@@ -57991,12 +58031,19 @@ function depProjectRestoreFloorDetailFocus(origin) {
   target.focus({ preventScroll: true });
   return document.activeElement === target;
 }
-window.addEventListener("resize", depProjectPositionFloorDetail, { passive: true });
-document.addEventListener("scroll", (event) => {
-  if (event.target === document || event.target.id === "pbody") depProjectPositionFloorDetail();
-}, { passive: true, capture: true });
+document.addEventListener("toggle", (event) => {
+  const directory = event.target;
+  if (!directory.matches?.(".dep-topo-zone-directory") || !directory.isConnected || directory.dataset.floor !== U.f) return;
+  const floor = currentFloor();
+  if (floor) depTopoFloorState(floor).directoryOpen = directory.open;
+}, true);
 onAfterRender(() => {
-  depProjectPositionFloorDetail();
+  const drawer = $(".dep-project-floor .dep-topo-detail");
+  if (drawer !== depProjectObservedDrawer) {
+    depProjectDrawerResize.disconnect();
+    depProjectObservedDrawer = drawer;
+    if (drawer) depProjectDrawerResize.observe(drawer);
+  }
   const image = $(".dep-topo-plan-viewport #floorCanvas > img");
   if (image && !depTopologyPlanImages.has(image)) {
     const size = () => {
@@ -58162,7 +58209,7 @@ defineActions({
     if (!depDeviceFloorActive() || !context || !F.managedPointIn(context.db, context.floor, point) || U.role === "member" && !memberZoneIds().includes(point.zoneId) || U.drawZone || U.zoneDraft || U.spatialEdit || U.scalePoints || U.planAlign) return;
     depTopoCloseFloorDetail(context);
     const { project, building, floor } = context;
-    depTopoNavigate({ p: project.id, b: building.id, f: floor.id }, { mode: "device-floor", selection: { kind: "point", id }, replace: true, focus: false });
+    if (depTopoNavigate({ p: project.id, b: building.id, f: floor.id }, { mode: "device-floor", selection: { kind: "point", id }, replace: true, focus: false })) depTopoRevealPoint(point);
   },
   depTopoZoneDevices: ({ id }) => {
     if (depDeviceFloorActive() && F.managedZoneIn(currentFloor(), g("zones", id))) depTopoOpenDevice(U.f, id);
@@ -106159,7 +106206,7 @@ function ws3Save() {
 }
 
 // 3.49 V1352：范围是全站共用的一个状态。地址不带项目时（直接打开、刷新、收藏的菜单地址）沿用上次的项目、楼宇、楼层；
-// 没有记录时为第一个有楼层图的楼宇（广实2号园 · E栋，楼层按 ws3Scope 默认 7F）
+// 没有记录时选第一个有楼层图的楼宇，保留整栋范围。
 function ws3Restore(page) {
   if (U.role === "member") return;
   const ok = (p) => p && g("projects", p) && (typeof mayViewProject !== "function" || mayViewProject(p)),
@@ -106202,7 +106249,7 @@ Object.assign(XI, {
 const WS3_PAGES = ["space", "alarms", "scenes", "analysis", "devices"];
 const ws3Pg = () => navPage();
 // 列表可展开整宽、画布收起（第 30 项）：设备、告警工单
-const ws3Wide = (pg = ws3Pg()) => ["alarms", "devices"].includes(pg) && !!ws3Pref().wide[pg];
+const ws3Wide = (pg = ws3Pg()) => pg === "devices" && !!ws3Pref().wide[pg];
 const ws3Plans = (bid) => F.floorStack(data(), bid).some((x) => x.f.image);
 // 范围内有没有楼层图（第 31 项：没有时画布自动收起，列表整宽）
 function ws3HasPlan() {
@@ -106240,23 +106287,40 @@ function ws3On() {
 }
 
 /* ---------- 范围：项目、楼宇（全部楼层）或楼层 ---------- */
-// 默认选第一层接入运行数据、有楼层图的楼层（E栋 7F）；点楼层列“全部”后记住（U.ws3All）
 function ws3Scope() {
   const bid = U.b && g("buildings", U.b)?.projectId === U.p ? U.b : null;
   if (!bid) return { pid: U.p || null, bid: null, fid: null, lv: U.p ? "p" : "all" };
-  let fid = U.f && g("floors", U.f)?.buildingId === bid ? U.f : null;
-  if (!fid && ws3Pg() !== "analysis" && !(U.ws3All || {})[bid] && !(deploymentSpaceBack() && U.source.viewFromDeployment === "3d")) {
-    const live = new Set(typeof liveFloorIds === "function" ? liveFloorIds() : []),
-      st = F.floorStack(data(), bid).slice().reverse(),
-      d = st.find((x) => x.f.image && live.has(x.f.id)) || null;
-    if (d && ws3Plans(bid)) {
-      fid = d.f.id;
-      U.f = fid;
-      syncRoute(true);
-    }
-  }
+  const fid = U.f && g("floors", U.f)?.buildingId === bid ? U.f : null;
   return { pid: U.p, bid, fid, lv: fid ? "f" : "b" };
 }
+const ws3UsesOptionalCanvas = (pg = ws3Pg()) => pg === "alarms" || pg === "scenes";
+const ws3PreviewKey = (pg, sc) => `${locOwner()}|${U.role}|${pg}|${sc.pid}|${sc.bid}|${sc.fid}`;
+function ws3CanvasScope(sc, pg = ws3Pg()) {
+  if (!ws3UsesOptionalCanvas(pg) || sc.fid || !sc.pid || !mayViewProject(sc.pid)) return sc;
+  const preview = U.ws3Preview;
+  if (sc.bid && preview?.key === ws3PreviewKey(pg, sc)) {
+    const fid = preview.fid;
+    if (!fid || (g("floors", fid)?.buildingId === sc.bid && (canEdit() || ws3Live().has(fid))))
+      return fid ? { ...sc, fid, lv: "f" } : sc;
+  }
+  if (pg !== "alarms" || U.opsDrawer?.page !== "alarms") return sc;
+  const it = alItems().find((candidate) => alHit(candidate, U.opsDrawer));
+  const fid = ws3ItFloor(it), f = fid && g("floors", fid), b = f && g("buildings", f.buildingId);
+  if (!f?.image || b?.projectId !== sc.pid || (sc.bid && b.id !== sc.bid) || (!canEdit() && !ws3Live().has(fid))) return sc;
+  return { ...sc, bid: b.id, fid, lv: "f" };
+}
+function ws3CanvasName(sc) {
+  if (!sc.bid) return "地图";
+  if (ov3Out(sc.bid)) return "场地图";
+  return sc.fid ? "楼层图" : "楼宇图";
+}
+function ws3OpsCanvasWanted(pg, sc) {
+  if (ws3MobMode(pg) === "plan") return true;
+  if (isMobile()) return false;
+  const history = pg === "alarms" && U.tab === "history";
+  return U.ws3DeskCanvas?.[ws3OpsCanvasViewKey(pg, sc)] ?? (sc.lv === "f" && !history && !ws3Pref().wide[pg]);
+}
+const ws3OpsCanvasViewKey = (pg, sc) => `${pg}:${sc.lv}:${pg === "alarms" && U.tab === "history" ? "history" : "active"}`;
 const ws3Live = () => new Set(typeof liveFloorIds === "function" ? liveFloorIds() : []);
 function ws3AnalysisHasRuntime() {
   return Demo.inScope() && mayViewProject(OPS_SCOPE.project) && ws3Live().has(OPS_SCOPE.floor);
@@ -106673,15 +106737,16 @@ const ws3HvMode = (p) => {
 
 /* ---------- 画面（楼宇：楼层列 + 3D / 2D；项目：地图） ---------- */
 const ws3Cam = (cam) => {
-  const sc = ws3Scope(),
-    key = `${ws3Pg()}|${sc.bid}|${ws3Mode(sc.bid)}|${sc.fid || ""}`,
+  const sc = ws3CanvasScope(ws3Scope()),
+    key = `${ws3Pg()}|${sc.bid}|${sc.fid ? ws3Mode(sc.bid) : "3d"}|${sc.fid || ""}`,
     m = (U.ws3c ||= {});
   if (cam === undefined) return m[key] || null;
   m[key] = cam;
 };
-function ws3FloorCol(sc) {
+function ws3FloorCol(sc, action = "ws3Floor") {
   const b = g("buildings", sc.bid);
-  return ov3FloorRail(b.id, b.projectId, F.floorStack(data(), b.id), s3Has(b.id), sc.fid, "ws3Floor");
+  const stack = F.floorStack(data(), b.id);
+  return ov3FloorRail(b.id, b.projectId, action === "ws3PreviewFloor" && !canEdit() ? stack.filter(({ f }) => ws3Live().has(f.id)) : stack, s3Has(b.id), sc.fid, action);
 }
 // 场景：o.zone(z, s, m, fp) 着色；o.dev(p) 设备点；o.call 说明框；o.sel 选中的功能区；o.slab 楼层“全部”时的楼板颜色
 function ws3Scene(sc, o) {
@@ -106761,9 +106826,11 @@ function ws3FloorInsets(canvas, { width, height, modelWidth, modelHeight }) {
 }
 function ws3Canvas(sc, o) {
   // 3.53 V1418：项目范围时，o.mapVal 给楼宇标记写数值；o.alt 为列表所在的楼宇或楼层（画面显示它，不放楼层列）
+  const scope = sc;
+  sc = ws3CanvasScope(scope);
   if (!sc.bid) return o.alt ? ws3Canvas(o.alt, { ...o, alt: null, noCol: true }) : ws3Map(sc, o.mapVal);
-  const b = g("buildings", sc.bid),
-    col = o.noCol ? "" : ws3FloorCol(sc),
+  const b = g("buildings", sc.bid), preview = ws3UsesOptionalCanvas() && scope.bid && !scope.fid,
+    col = o.noCol || !scope.bid ? "" : ws3FloorCol(sc, preview ? "ws3PreviewFloor" : "ws3Floor"),
     st = F.floorStack(data(), sc.bid),
     f = sc.fid ? g("floors", sc.fid) : null,
     legend = o.legend ? `<div class="ws3-lg" role="note" aria-label="图例">${o.legend}</div>` : "",
@@ -106795,8 +106862,9 @@ function ws3Map(sc, pinVal = null) {
 // 点画面：功能区 → 列表滚到该行并选中；设备点 → 设备页选中这台；楼层（全部时）→ 进入该层
 function ws3Pick(h) {
   if (!h) return;
-  const sc = ws3Scope(),
-    pg = ws3Pg();
+  const scope = ws3Scope(), sc = ws3CanvasScope(scope), pg = ws3Pg();
+  if (ws3UsesOptionalCanvas(pg) && scope.bid && !scope.fid && !sc.fid && (h.kind === "floor" || h.kind === "zone"))
+    return actions.ws3PreviewFloor({ to: h.kind === "floor" ? h.id : h.floor });
   if (h.kind === "floor" && !sc.fid) return actions.ws3Floor({ to: h.id });
   if (h.kind === "zone" && !sc.fid) return actions.ws3Floor({ to: h.floor });
   if (h.kind === "dev") {
@@ -106869,7 +106937,13 @@ const ws3FlName = (sc, f) => (!f ? "" : sc.bid ? f.name : `${g("buildings", f.bu
 const ws3Back = (label, act, args = {}, pager = "") => `<div class="ws3-back">${btn(ico("back", "ic16") + esc(label), act, args, "ghost sm ws3-bk")}${pager}</div>`;
 function ws3Panel(sc, heading, body, tabs = "", cls = "") {
   const source = sourceBack(), back = source ? `<div class="ws3-back dep-space-back">${source}</div>` : "";
-  const scope = `<div class="ws3-desktop-scope">${wsLocRow()}</div>${ws3MobBar(sc, ws3MobMode(ws3Pg()))}`;
+  const pg = ws3Pg(),
+    canvasName = ws3CanvasName(ws3CanvasScope(sc, pg)),
+    optional = ws3UsesOptionalCanvas(pg),
+    open = optional && ws3OpsCanvasWanted(pg, sc),
+    desktopToggle = optional ? `<button type="button" class="btn ws3-hbtn ghost ws3-op-canvas-toggle" data-act="ws3OpsCanvasToggle" aria-expanded="${open}">${open ? "收起" : "查看"}${canvasName}</button>` : "",
+    floorFilter = optional && sc.bid ? locFloorFilter(true) : "",
+    scope = `<div class="ws3-desktop-scope">${wsLocRow()}${floorFilter}${desktopToggle}</div>${ws3MobBar(sc, ws3MobMode(pg), canvasName)}`;
   return `<div class="ws3-layout-head">${heading}${wsScopeBand(scope, tabs)}${back}</div><aside class="ov3-panel ws3-panel${cls ? " " + cls : ""}" aria-labelledby="ws3T">${body}</aside>`;
 }
 // 范围外（项目或其他楼层）没有运行数据的楼层一行写“未上传楼层图”或“未接入”；连续的合并为一行（“RF – 8F”）
@@ -107118,15 +107192,15 @@ function ws3Alarms(sc) {
   const newTask = alRepairButton(tab, "primary ws3-hbtn");
   return {
     compactAction: isMobile() ? newTask : "",
-    panel: ws3Panel(sc, ws3Head("告警工单", isMobile() ? "" : newTask), `<div class="ov3-sec ws3-tools">${tools}${ws3WideBtn("alarms")}</div><div class="ws3-body">${groups}</div>`, ws3Tabs(tabs, tab)),
-    canvas: ws3Canvas(sc, {
+    panel: ws3Panel(sc, ws3Head("告警工单", isMobile() ? "" : newTask), `<div class="ov3-sec ws3-tools">${tools}</div><div class="ws3-body">${groups}</div>`, ws3Tabs(tabs, tab)),
+    canvas: ws3OpsCanvasWanted("alarms", sc) ? ws3Canvas(sc, {
       zone: (z) => {
         const l = zl.get(z.id);
         return { fill: "#FFFFFF", alarm: l != null && tab === "current" ? l : null, ext: { label: z.name, short: ws3Short(z.name), hollow: l != null && tab === "tasks" ? l : null, halo: selZ === z.id }, tip: z.name };
       },
       sel: null,
       legend: `<span class="ws3-lg-t">级别</span>${LVN.map((n, i) => `<span class="ws3-sw ws3-sw-al" style="border-color:${S3V.LVC[i]}"></span>${n}`).join("")}${tab === "tasks" ? `<span class="ws3-ring" aria-hidden="true"></span>处理中` : ""}`,
-    }),
+    }) : "",
   };
 }
 const ws3WideBtn = (pg) => `<button type="button" class="iconbtn ws3-wide" data-act="ws3WideSet" data-pg="${pg}" data-on="1" aria-label="展开整宽列表，收起平面图" data-tip="整宽列表">${ico("sidebar", "ic16")}</button>`;
@@ -107147,30 +107221,33 @@ function ws3AlDetail(sc, it, tab) {
     acts = p.acts || "";
   return {
     panel: ws3Panel(sc, ws3Back(names[tab], "opsAlBack", {}, pager), `<div class="ws3-dt"><h1 class="ov3-t ws3-dt-t" id="ws3T">${p.th || esc(p.title)}</h1><div class="ws3-dt-lv">${a && !it.t && alDoneOver(a) ? String(p.lv || "").replace(/<\/p>\s*$/, ` · <span class="ws3-over">已超时</span></p>`) : p.lv || ""}</div>${acts ? `<div class="ws3-dt-acts al3-acts">${acts}</div>` : ""}<div class="ws3-dt-b">${p.left}${p.right}</div>${p.bar ? `<div class="al-mine-bar">${p.bar}</div>` : ""}</div>`, "", "ws3-alp"),
-    canvas: ws3Canvas(sc, {
+    canvas: ws3OpsCanvasWanted("alarms", sc) ? ws3Canvas(sc, {
       zone: (z2) => (z2.id === zid ? { fill: "#FBE3D4", alarm: lv, ext: { label: z2.name, short: ws3Short(z2.name), stroke: S3V.LVC[lv], halo: true }, tip: z2.name } : { fill: "#FFFFFF", ext: { label: z2.name, short: ws3Short(z2.name) }, tip: z2.name }),
       call: z && fid ? { fid, zid, title: (a ? alarmTitle(a).title : it.t?.name || "").replace(z.name, "").trim() || z.name, sub: [dev, dur].filter(Boolean).join(" · "), c: S3V.LVC[lv] } : null,
       legend: `<span class="ws3-lg-t">级别</span>${LVN.map((n, i) => `<span class="ws3-sw ws3-sw-al" style="border-color:${S3V.LVC[i]}"></span>${n}`).join("")}${tab === "tasks" ? `<span class="ws3-ring" aria-hidden="true"></span>处理中` : ""}`,
-    }),
+    }) : "",
   };
 }
 
 /* ---------- 第 4 类 场景 ---------- */
 const WS3_SC_TABS = [["manual", "场景"], ["schedule", "定时"], ["link", "联动"], ["records", "执行记录"]];
+function ws3SceneInScope(sc, scene) {
+  if (!sc.bid) return true;
+  return sceneActs(sceneBase(scene)).some((action) => {
+    const { lcs, ac, zoneIds } = sceneActTargets(action);
+    const targets = [...(action.light ? lcs : []), ...(action.hvac ? ac : [])];
+    return targets.some((device) => device.floorId && ws3InScope(sc, device.floorId))
+      || zoneIds.some((id) => ws3InScope(sc, g("zones", id)?.floorId));
+  });
+}
 function ws3Scenes(sc) {
   const tab = WS3_SC_TABS.some(([k]) => k === U.tab) ? U.tab : "manual",
     ss = data().scenes.filter((s) => s.projectId === sc.pid),
-    zs = ws3Zones(sc),
     fl = sc.fid ? g("floors", sc.fid) : null,
     kind = { manual: "manual", schedule: "schedule", link: "link" }[tab],
     list = kind ? ss.filter((s) => s.kind === kind) : [],
     recs = sceneRecords(),
-    zIds = new Set(zs.map((z) => z.id)),
-    // 场景作用的功能区在本范围内的
-    mine = list.filter((s) => {
-      const ids = sceneZoneIds(s.refId ? g("scenes", s.refId) || s : s);
-      return !ids.length || ids.some((id) => zIds.has(id)) || !sc.fid;
-    }),
+    mine = list.filter((s) => ws3SceneInScope(sc, s)),
     live = (s) => sceneLive(s, sceneZoneIds(s)),
     cur = U.ws3Sc && mine.some((s) => s.id === U.ws3Sc) ? U.ws3Sc : (mine.find((s) => s.kind === "manual" && live(s)) || null)?.id || null,
     scopeTxt = sceneScopeShort,
@@ -107204,11 +107281,11 @@ function ws3Scenes(sc) {
   return {
     compactAction: isMobile() ? newScene : "",
     panel: ws3Panel(sc, ws3Head("场景", ws3HR(isMobile() ? "" : calendar, isMobile() ? "" : newScene)), `<div class="ws3-body">${isMobile() && calendar ? `<div class="ws3-tools ws3-scene-calendar">${calendar}</div>` : ""}${body}</div>`, ws3Tabs(WS3_SC_TABS, tab)),
-    canvas: ws3Canvas(sc, {
+    canvas: ws3OpsCanvasWanted("scenes", sc) ? ws3Canvas(sc, {
       zone: (z) => (on.has(z.id) ? { fill: WS3C.scene, ext: { label: z.name, short: ws3Short(z.name), stroke: WS3C.sceneLine }, tip: `${z.name} · ${curB.name}` } : { fill: "#FFFFFF", ext: { label: z.name, short: ws3Short(z.name) }, tip: z.name }),
       call: callZ && sc.fid ? { fid: sc.fid, zid: callZ, title: `${curB.name}${lst ? " · 生效中" : ""}`, sub: sceneActShort(curB, sceneScopeShort(curB)).split(/ · |，/)[0], c: WS3C.sceneLine } : null,
       legend: curB ? `<span class="ws3-lg-t">场景范围</span><span class="ws3-sw" style="background:${WS3C.scene};border-color:${WS3C.sceneLine}"></span>${esc(curB.name)} · ${esc(on.size === 1 ? Demo.zoneOf(first)?.name || "" : scopeTxt(curB))}` : "",
-    }),
+    }) : "",
   };
 }
 
@@ -107263,7 +107340,7 @@ function ws3AnalysisPanel(sc, body, tab, { showLocation = true } = {}) {
   const source = sourceBack(), back = source ? `<div class="ws3-back dep-space-back">${source}</div>` : "";
   const scope = `<div class="ws3-analysis-scope">${wsLocRow()}</div>`;
   const mode = ws3MobMode("analysis");
-  const canvasLabel = !sc.bid ? "地图" : ov3Out(sc.bid) ? "场地图" : sc.fid ? "楼层图" : "楼宇图";
+  const canvasLabel = ws3CanvasName(sc);
   const mobile = showLocation ? `<div class="ws3-analysis-display">${btn(mode === "plan" ? "收起" + canvasLabel : "查看" + canvasLabel, "ws3MobSw", { value: mode === "plan" ? "list" : "plan" }, "ws3-hbtn ghost")}</div>` : "";
   return `<div class="ws3-layout-head ws3-analysis-head">${ws3Head("数据分析")}<div class="ws3-analysis-toolbar">${scope}${mobile}${ws3AnalysisTools(tab)}</div>${back}</div><aside class="ov3-panel ws3-panel ws3-analysis-panel" aria-labelledby="ws3T"><div class="ws3-analysis-category-row">${ws3AnalysisTabs(tab)}</div>${body}</aside>`;
 }
@@ -107668,8 +107745,8 @@ function ws3Page() {
   ws3SyncFloorVisit(pg, sc);
   const on = ws3MobMode(pg),
     r = { space: ws3Space, alarms: ws3Alarms, scenes: ws3Scenes, analysis: ws3Analysis, devices: ws3Devices }[pg](sc);
-  const analysisOnly = pg === "analysis" && !r.canvas;
-  const html = `<div class="ov3x ws3x${analysisOnly ? " ws3-analysis-single" : ""}" data-pg="${pg}" data-lv="${sc.lv}"${on === "plan" && !analysisOnly ? ' data-mob="plan"' : ""}>${r.panel}${r.canvas}${r.drawer || ""}</div>`;
+  const layout = r.canvas ? "" : pg === "analysis" ? " ws3-analysis-single" : " ws3-content-only";
+  const html = `<div class="ov3x ws3x${layout}" data-pg="${pg}" data-lv="${sc.lv}"${on === "plan" && r.canvas ? ' data-mob="plan"' : ""}>${r.panel}${r.canvas}${r.drawer || ""}</div>`;
   return { html, compactAction: r.compactAction || "" };
 }
 // 3.49 V1370（方案第 33 项）：普通成员“我的区域”右侧加平面图：授权的功能区按有人、无人着色，其余灰色不可点；
@@ -107699,7 +107776,7 @@ function ws3MemPick(h) {
   render();
 }
 // 3.50 V1387：手机左为“E栋 · 7F · 更新于 10:30”，右为“列表 | 平面图”，同其他页的范围行（原位置与时间在页头另占一行）
-// 3.53 V1448：手机切换写“列表 | 楼层图”（原“平面图”），ws3MobBar 同
+// 我的区域只有楼层图。通用工作区名称随实际画面变化。
 function ws3MemMob(on, lead = "") {
   return `<div class="ws3-mob ws3-memmob"><span class="ws3-memloc">${lead}</span><div class="seg sm ws3-mob-seg" role="group" aria-label="显示">${[["list", "列表"], ["plan", "楼层图"]].map(([k, l]) => `<button type="button" class="${on === k ? "on" : ""}" aria-pressed="${on === k}" data-act="ws3MemSw" data-value="${k}">${l}</button>`).join("")}</div></div>`;
 }
@@ -107708,29 +107785,32 @@ function ws3MobMode(pg) {
   if (pg === "space" && U.ws3FloorVisit?.showPlan) return "plan";
   return U.ws3MobByPage?.[pg] || "list";
 }
-function ws3MobBar(sc, on) {
+function ws3MobBar(sc, on, canvasName = ws3CanvasName(sc)) {
   const p = g("projects", sc.pid), b = g("buildings", sc.bid), f = g("floors", sc.fid);
   const path = wsScopeLocationLabel(p, b, f);
   const scope = wsScopeButton(path, { action: "ws3MobLoc" });
-  const views = [["list", "列表"], ["plan", "楼层图"]].map(([k, l]) => `<button type="button" class="${on === k ? "on" : ""}" aria-pressed="${on === k}" data-act="ws3MobSw" data-value="${k}">${l}</button>`).join("");
+  const views = [["list", "列表"], ["plan", canvasName]].map(([k, l]) => `<button type="button" class="${on === k ? "on" : ""}" aria-pressed="${on === k}" data-act="ws3MobSw" data-value="${k}">${l}</button>`).join("");
   return `<div class="ws3-mob ws3-scope-mob"><div class="ws3-mob-scope-control">${scope}</div><div class="ws3-mob-display"><div class="seg sm ws3-mob-seg" role="group" aria-label="显示">${views}</div></div></div>`;
 }
 // 整宽列表时页头右侧“显示平面图”（第 30 项）
 function ws3WideHead() {
   const pg = ws3Pg();
-  if (!["alarms", "devices"].includes(pg) || !ws3Pref().wide[pg] || U.role === "member" || !U.p || ws3Sub(pg) || !ws3HasPlan()) return "";
+  if (pg !== "devices" || !ws3Pref().wide[pg] || U.role === "member" || !U.p || ws3Sub(pg) || !ws3HasPlan()) return "";
   return btn(ico("sidebar", "ic16") + "显示平面图", "ws3WideSet", { pg, on: "" }, "ws3-showplan");
 }
 
 // 左栏默认 400px，最窄 320px，上限同时考虑工作区比例和画布所需宽度。
-// 分隔条在左栏与画面之间（role=separator），可键盘聚焦，方向键每次 16，Home、End 到最窄、最宽；拖动后的宽度记在本机，与侧栏收起同样处理。
-const OV3_LW_KEY = "pacom-next-left-width";
-const OV3_HOME_LW_KEY = "pacom-next-home-left-width";
-const ov3LwSet = (w, property) => document.documentElement.style.setProperty(property, `${w}px`);
-for (const [key, property] of [[OV3_LW_KEY, "--ov3-lw"], [OV3_HOME_LW_KEY, "--home-left-width"]]) {
+// 分隔条可键盘聚焦，方向键每次 16，Home、End 到最窄、最宽。每个工作区独立记忆宽度，首页三级共用。
+// 旧的通用宽度无法判断来自哪个工作区，各工作区以 400px 起步，首页原有记忆直接保留。
+const OV3_SPLIT_GROUPS = ["home", "space", "analysis", "alarms", "scenes", "devices"];
+const ov3LwKey = (group) => `pacom-next-${group}-left-width`;
+const ov3LwProperty = (group) => `--${group}-left-width`;
+const ov3LwSet = (group, width) => document.documentElement.style.setProperty(ov3LwProperty(group), `${width}px`);
+const ov3SplitGroup = (x) => x.classList?.contains("home-overview") ? "home" : x.dataset?.pg;
+for (const group of OV3_SPLIT_GROUPS) {
   try {
-    const width = Math.round(+localStorage.getItem(key));
-    if (Number.isFinite(width) && width >= 320) ov3LwSet(width, property);
+    const width = Math.round(Number(localStorage.getItem(ov3LwKey(group))));
+    if (Number.isSafeInteger(width) && width >= 320) ov3LwSet(group, width);
   } catch {}
 }
 const ov3LwMax = (x) => {
@@ -107755,20 +107835,24 @@ function ov3SepVal(x, sep) {
   sep.setAttribute("aria-valuenow", String(Math.max(320, Math.min(width, max))));
 }
 function ov3SepWire(x, sep) {
-  const home = x.classList?.contains("home-overview"), property = home ? "--home-left-width" : "--ov3-lw";
   const clampWidth = (w) => Math.round(Math.min(Math.max(w, 320), ov3LwMax(x)));
   const cur = () => Math.round(x.querySelector(":scope > .ov3-panel")?.getBoundingClientRect().width || 400);
   const refresh = () => ov3SepVal(x, sep);
-  const save = (w) => {
-    try { localStorage.setItem(home ? OV3_HOME_LW_KEY : OV3_LW_KEY, String(w)); } catch {}
+  const save = (group, width) => {
+    ov3LwSet(group, width);
+    try { localStorage.setItem(ov3LwKey(group), String(width)); } catch {}
   };
   sep.addEventListener("pointerdown", (e) => {
-    if (sep.hidden || e.button !== 0 || e.isPrimary === false || ov3LwMax(x) <= 320) return;
+    const group = ov3SplitGroup(x);
+    if (!OV3_SPLIT_GROUPS.includes(group) || sep.hidden || e.button !== 0 || e.isPrimary === false || ov3LwMax(x) <= 320) return;
     e.preventDefault();
     const { pointerId, clientX } = e,
       start = cur(),
+      workWidth = x.clientWidth,
       style = document.documentElement.style,
+      property = ov3LwProperty(group),
       remembered = style.getPropertyValue(property);
+    const sameSplit = () => x.isConnected !== false && x.clientWidth === workWidth && ov3SplitGroup(x) === group && !sep.hidden;
     sep.setPointerCapture(pointerId);
     sep.classList.add("drag");
     document.body.classList.add("ov3-dragging");
@@ -107779,8 +107863,8 @@ function ov3SepWire(x, sep) {
       if (!raf) raf = requestAnimationFrame(() => {
         raf = 0;
         const w = clampWidth(start + lastX - clientX);
-        if (!sep.hidden && w !== cur()) {
-          ov3LwSet(w, property);
+        if (sameSplit() && w !== cur()) {
+          ov3LwSet(group, w);
           refresh();
         }
       });
@@ -107796,10 +107880,8 @@ function ov3SepWire(x, sep) {
       sep.removeEventListener("lostpointercapture", up);
       const endX = ev.type === "pointerup" ? ev.clientX : clientX;
       const w = clampWidth(start + endX - clientX);
-      if (!sep.hidden && endX !== clientX && w !== start && ov3LwMax(x) > 320) {
-        ov3LwSet(w, property);
-        save(w);
-      } else if (remembered) style.setProperty(property, remembered);
+      if (sameSplit() && endX !== clientX && w !== start && ov3LwMax(x) > 320) save(group, w);
+      else if (remembered) style.setProperty(property, remembered);
       else style.removeProperty(property);
       refresh();
       dispatchEvent(new Event("resize"));
@@ -107810,14 +107892,14 @@ function ov3SepWire(x, sep) {
     sep.addEventListener("lostpointercapture", up);
   });
   sep.addEventListener("keydown", (e) => {
+    const group = ov3SplitGroup(x);
     const k = e.key, max = ov3LwMax(x), start = cur();
     const next = k === "ArrowLeft" ? start - 16 : k === "ArrowRight" ? start + 16 : k === "Home" ? 320 : k === "End" ? max : null;
-    if (sep.hidden || next == null || max <= 320) return;
+    if (!OV3_SPLIT_GROUPS.includes(group) || sep.hidden || next == null || max <= 320) return;
     e.preventDefault();
     const w = clampWidth(next);
     if (w === start) return;
-    ov3LwSet(w, property);
-    save(w);
+    save(group, w);
     refresh();
     dispatchEvent(new Event("resize"));
   });
@@ -107871,8 +107953,6 @@ defineActions({
   },
   ws3Floor: (a) => {
     s3SaveCam();
-    const sc = ws3Scope();
-    if (sc.bid) (U.ws3All ||= {})[sc.bid] = !a.to;
     U.ws3Sel = null;
     U.opsZone = null;
     const pg = ws3Pg();
@@ -107881,6 +107961,14 @@ defineActions({
       return render();
     }
     route(pg, { p: U.p, b: U.b, f: a.to || null, tab: U.tab || "" });
+  },
+  ws3PreviewFloor: (a) => {
+    const pg = ws3Pg(), sc = ws3Scope(), fid = a.to || null;
+    if (!ws3UsesOptionalCanvas(pg) || !sc.bid || sc.fid || !mayViewProject(sc.pid)) return;
+    if (fid && (g("floors", fid)?.buildingId !== sc.bid || (!canEdit() && !ws3Live().has(fid)))) return;
+    s3SaveCam();
+    U.ws3Preview = { key: ws3PreviewKey(pg, sc), fid };
+    render();
   },
   // 窄屏没有楼层轨道，范围菜单也负责当前楼宇的楼层选择。
   ws3MobLoc: (a, el) => {
@@ -107945,7 +108033,7 @@ defineActions({
   }),
   ws3ModeSw: () => {
     s3SaveCam();
-    const sc = ws3Scope();
+    const sc = ws3CanvasScope(ws3Scope());
     (U.ov3M ||= {})[sc.bid] = ws3Mode(sc.bid) === "3d" ? "2d" : "3d";
     ws3Save();
     render();
@@ -108158,13 +108246,29 @@ defineActions({
     ws3Save();
     render();
   },
+  ws3OpsCanvasToggle: () => {
+    const pg = ws3Pg(), sc = ws3Scope();
+    if (!ws3UsesOptionalCanvas(pg) || !ws3On()) return;
+    const open = !ws3OpsCanvasWanted(pg, sc);
+    if (!open) {
+      s3SaveCam();
+      (U.ws3MobByPage ||= {})[pg] = "list";
+    }
+    (U.ws3DeskCanvas ||= {})[ws3OpsCanvasViewKey(pg, sc)] = open;
+    render();
+  },
   ws3MobSw: (a) => {
     const pg = ws3Pg();
     if (pg === "space" && U.ws3FloorVisit) U.ws3FloorVisit.showPlan = false;
+    if (a.value === "list" && ws3UsesOptionalCanvas(pg)) s3SaveCam();
     (U.ws3MobByPage ||= {})[pg] = a.value === "plan" ? "plan" : "list";
     if (pg === "space" && a.value === "plan" && U.opsZone) return actions.ws3ZoneBack();
     render();
   },
+});
+
+onAfterRender(() => {
+  if (U.ws3Preview && U.ws3Preview.key !== ws3PreviewKey(ws3Pg(), ws3Scope())) U.ws3Preview = null;
 });
 
 /* The home header spans both panes. The scope, list state and building camera are independent. */
@@ -109192,9 +109296,9 @@ function depProjectPreviewDetail(context, view) {
     + `<div class="dep-topo-detail-actions">${action}</div>` };
 }
 
-function depTopoDetailPanel(detail) {
+function depTopoDetailPanel(detail, closeLabel = "关闭对象详情") {
   if (!detail) return "";
-  return `<aside class="dep-topo-detail" id="depTopoDetails" aria-labelledby="depTopoDetailTitle"><header><h3 id="depTopoDetailTitle" tabindex="-1">${esc(detail.title)}</h3>${iconBtn("关闭对象详情", "x", "depTopoCloseDetail")}</header>${detail.html}</aside>`;
+  return `<aside class="dep-topo-detail" id="depTopoDetails" aria-labelledby="depTopoDetailTitle"><header><h3 id="depTopoDetailTitle" tabindex="-1">${esc(detail.title)}</h3>${iconBtn(closeLabel, "x", "depTopoCloseDetail")}</header>${detail.html}</aside>`;
 }
 
 function depProjectPreview(context, view) {
@@ -109262,6 +109366,17 @@ function depProjectReturnArgs(context) {
   return { ...depTopoIds(context), f: null, mode: "space" };
 }
 
+function depTopoPositionDetail() {
+  const detail = $("#depTopoDetails");
+  if (!detail || matchMedia("(max-width: 700px)").matches || getComputedStyle(detail).position !== "fixed") return;
+  const top = Math.max(72, Math.min(detail.parentElement.getBoundingClientRect().top, innerHeight - 240));
+  detail.style.setProperty("--dep-detail-top", `${top}px`);
+}
+window.addEventListener("resize", depTopoPositionDetail, { passive: true });
+document.addEventListener("scroll", (event) => {
+  if (event.target === document || event.target.id === "pbody") depTopoPositionDetail();
+}, { passive: true, capture: true });
+
 function depProjectLineCoordinates(layout, svg, cardMap) {
   const { top, left } = layout.getBoundingClientRect();
   const project = cardMap.get(svg.dataset.from)?.getBoundingClientRect();
@@ -109282,6 +109397,7 @@ function depProjectLineCoordinates(layout, svg, cardMap) {
 
 let depProjectLineObserver;
 onAfterRender(() => {
+  depTopoPositionDetail();
   depProjectLineObserver?.disconnect();
   const layout = $(".dep-project-layout"), svg = layout?.querySelector(".dep-project-lines");
   if (!svg) return;
@@ -109392,6 +109508,7 @@ defineActions({
     const context = depWbContext(), view = depWbView();
     if (["floor", "device-floor"].includes(view.mode) && typeof depTopoCloseFloorDetail === "function" && depTopoCloseFloorDetail(context, view) === false) return;
     const floorOrigin = view.mode === "floor" && typeof depProjectTakeFloorDetailOrigin === "function" ? depProjectTakeFloorDetailOrigin(context) : null;
+    const closingPoint = view.mode === "device-floor" && view.selection?.kind === "point" ? view.selection.id : null;
     const source = view.mode === "device" ? view.deviceOrigin : view.lastControl;
     view.selection = null;
     view.deviceSelection = null;
@@ -109402,7 +109519,8 @@ defineActions({
       const opener = source && [...document.querySelectorAll(`button[data-act="${CSS.escape(source.act)}"]:not(:disabled)`)].find(item => (
         (source.key ? item.dataset.key === source.key : item.dataset.id === source.id) && item.getClientRects().length
       ));
-      (opener || $("#depWbTitle"))?.focus({ preventScroll: true });
+      const point = closingPoint && $(`#floorCanvas [data-act="depTopoCanvasPoint"][data-id="${CSS.escape(closingPoint)}"]`);
+      (point || opener || $("#depWbTitle"))?.focus({ preventScroll: true });
     });
   },
 });
@@ -110111,8 +110229,18 @@ function runtimePreviewClose(restore = true) {
   if (restore && p?.anchor?.isConnected) p.anchor.focus({ preventScroll: true });
 }
 function runtimePreviewDocked() {
-  const p = runtimePreviewState, room = $("#pbody")?.clientWidth || 0;
-  return !!p && !p.parent && matchMedia("(min-width: 1200px)").matches && room >= 1296;
+  const p = runtimePreviewState, layout = $(".runtime-settings");
+  return !!p && !p.parent && !!layout && matchMedia("(min-width: 1200px)").matches && layout.clientWidth >= 1236;
+}
+function runtimePositionPreview(el) {
+  const frame = $("#pbody")?.getBoundingClientRect();
+  if (!frame || !el.classList.contains("runtime-preview-docked")) {
+    el.style.removeProperty("--runtime-preview-top");
+    el.style.removeProperty("--runtime-preview-right");
+    return;
+  }
+  el.style.setProperty("--runtime-preview-top", `${Math.max(16, frame.top)}px`);
+  el.style.setProperty("--runtime-preview-right", `${Math.max(16, document.documentElement.clientWidth - frame.right)}px`);
 }
 function runtimePreviewRender(moveFocus = "") {
   const p = runtimePreviewState;
@@ -110138,6 +110266,7 @@ function runtimePreviewRender(moveFocus = "") {
   const docked = runtimePreviewDocked();
   el.className = docked ? "runtime-preview-docked" : "runtime-preview-overlay";
   $("#app")?.classList.toggle("runtime-with-preview", docked);
+  runtimePositionPreview(el);
   const heading = [currentBuilding?.name, current?.name].filter(Boolean).join(" ");
   const rule = p.ruleDraft || (p.rule && db.alertRules?.find((item) => item.id === p.rule && item.projectId === p.pid));
   const settingScope = runtimeScopeText(p.pid, { b: p.b, f: p.f || rule?.scope, z: p.zone, type: p.type });
@@ -110198,6 +110327,7 @@ const runtimeResize = () => {
   const el = $("#runtimePreview");
   const visible = el?.classList.contains("runtime-preview-docked");
   if (el && runtimePreviewDocked() !== visible) runtimePreviewRender("#runtimePreviewTitle");
+  else if (el) runtimePositionPreview(el);
   const nav = $(".runtime-categories");
   if (nav) nav.setAttribute("aria-orientation", matchMedia("(min-width: 1200px)").matches ? "vertical" : "horizontal");
 };
@@ -117007,6 +117137,15 @@ BARE_AFTER.legal = () => {
 // 软件发布号固定两位小数：1.99 → 2.00 → 2.01；保持字符串，不连带修改固件、模板或业务规范版本。
 // 每次发布时在最前面加一项：只写功能层面的变化，最多 3 至 5 行，按“新增”“改进”“修复”写；尺寸、颜色、措辞、间距和小问题合成一行“修复已知问题，优化界面细节。”；不写规格数值、内部用语和核查编号（规范 1 4；2.46 账户第 431 条）。
 const AU_RELEASES = [
+  {
+    version: "4.01",
+    date: "2026-11-19",
+    notes: [
+      "改进首页、运营与部署工作区，分别支持空间浏览、正文阅读和图纸编辑。",
+      "系统部署按需打开对象详情，平板和手机查看时保留画布空间。",
+      "修复跨页栏宽、地图入口和整栋范围，预览保留独立设置。",
+    ],
+  },
   {
     version: "4.00",
     date: "2026-11-19",
