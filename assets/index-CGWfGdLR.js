@@ -1008,28 +1008,28 @@
         <button type="button" class="pacom-btn pacom-btn--primary" data-toggle-new-conn="1" ${x?"":"disabled"}>${ie?"收起向导":"+ 新增接入通道"}</button>
       `:`<span class="pacom-badge ${x?"pacom-badge--online":"pacom-badge--warning"}">${x?"可编辑":"只读"}</span>`}function C(){const x=je(d),V=x.filter(L=>!!L.plan).length,l=x.flatMap(L=>xe(L.id)),v=l.filter(L=>!!L.planPoint).length,b=l.filter(L=>L.connectivity==="online").length,E=l.filter(L=>L.physicalInstalled).length,ue=x.filter(L=>xe(L.id).length>0&&!me).length;return`
       <div class="lov-kpi-strip lov-kpi-strip--5" role="region" aria-label="整栋 5 步部署流水线">
-        <button type="button" class="lov-kpi-cell ${V===x.length?"lov-gate-ok":"lov-gate-warn"}" data-dep-nav="project_config" data-proj-sub="floor_zones" style="border:0; background:transparent; text-align:left; cursor:pointer;">
-          <span class="lov-kpi-label">1. 空间与底图</span>
+        <button type="button" class="lov-kpi-cell" data-dep-nav="project_config" data-proj-sub="floor_zones" style="border:0; background:transparent; text-align:left; cursor:pointer;">
+          <span class="lov-kpi-label"><span class="pacom-dot ${V===x.length?"pacom-dot--online":"pacom-dot--warning"}"></span>1. 空间与底图</span>
           <div class="lov-kpi-value">${V}<span class="lov-kpi-unit">/ ${x.length} 层</span></div>
           <span class="lov-kpi-delta">${V===x.length?"全部底图就绪":`尚缺 ${x.length-V} 层底图 →`}</span>
         </button>
-        <button type="button" class="lov-kpi-cell ${v===l.length?"lov-gate-ok":"lov-gate-warn"}" data-dep-nav="floorplan" style="border:0; background:transparent; text-align:left; cursor:pointer;">
-          <span class="lov-kpi-label">2. 云端标点</span>
+        <button type="button" class="lov-kpi-cell" data-dep-nav="floorplan" style="border:0; background:transparent; text-align:left; cursor:pointer;">
+          <span class="lov-kpi-label"><span class="pacom-dot ${v===l.length?"pacom-dot--online":"pacom-dot--warning"}"></span>2. 设备标记</span>
           <div class="lov-kpi-value">${v}<span class="lov-kpi-unit">/ ${l.length} 台</span></div>
           <span class="lov-kpi-delta">含 ${c.length} 处回路灯点</span>
         </button>
-        <button type="button" class="lov-kpi-cell ${b===l.length?"lov-gate-ok":"lov-gate-warn"}" data-dep-nav="network_topo" style="border:0; background:transparent; text-align:left; cursor:pointer;">
-          <span class="lov-kpi-label">3. 入网在线</span>
+        <button type="button" class="lov-kpi-cell" data-dep-nav="network_topo" style="border:0; background:transparent; text-align:left; cursor:pointer;">
+          <span class="lov-kpi-label"><span class="pacom-dot ${b===l.length?"pacom-dot--online":"pacom-dot--warning"}"></span>3. 入网在线</span>
           <div class="lov-kpi-value">${b}<span class="lov-kpi-unit">/ ${l.length} 台</span></div>
           <span class="lov-kpi-delta">${l.length-b>0?`${l.length-b} 台离线 →`:"全量在线"}</span>
         </button>
-        <button type="button" class="lov-kpi-cell ${me?"lov-gate-warn":"lov-gate-ok"}" data-dep-nav="network_topo" style="border:0; background:transparent; text-align:left; cursor:pointer;">
-          <span class="lov-kpi-label">4. 边缘同步</span>
+        <button type="button" class="lov-kpi-cell" data-dep-nav="network_topo" style="border:0; background:transparent; text-align:left; cursor:pointer;">
+          <span class="lov-kpi-label"><span class="pacom-dot ${me?"pacom-dot--warning":"pacom-dot--online"}"></span>4. 边缘同步</span>
           <div class="lov-kpi-value">${ue}<span class="lov-kpi-unit">/ ${x.length} 层</span></div>
           <span class="lov-kpi-delta">${me?"有变更待下发 →":`基线 v${G}`}</span>
         </button>
-        <button type="button" class="lov-kpi-cell ${E===l.length?"lov-gate-ok":"lov-gate-warn"}" data-dep-nav="ledger" style="border:0; background:transparent; text-align:left; cursor:pointer;">
-          <span class="lov-kpi-label">5. 复核自检</span>
+        <button type="button" class="lov-kpi-cell" data-dep-nav="ledger" style="border:0; background:transparent; text-align:left; cursor:pointer;">
+          <span class="lov-kpi-label"><span class="pacom-dot ${E===l.length?"pacom-dot--online":"pacom-dot--warning"}"></span>5. 复核自检</span>
           <div class="lov-kpi-value">${E}<span class="lov-kpi-unit">/ ${l.length} 台</span></div>
           <span class="lov-kpi-delta">${E===l.length?"可交付冻结":`待复核 ${l.length-E} 台 →`}</span>
         </button>
@@ -1700,7 +1700,7 @@
         </div>
       </section>
     `}function pe(){const x=a.scope.canEditDeployment;e.innerHTML=`
-      <div class="pacom-shell pacom-shell--sheet">
+      <div class="pacom-shell">
         <header class="pacom-header">
           <div class="pacom-header-top">
             <div class="pacom-title-group">
@@ -3296,4 +3296,4 @@
       </div>
       ${$e()}
     `,A()}function A(){const be=e.querySelector("#au-id"),g=e.querySelector("#au-pwd"),F=e.querySelector("#au-sphone"),n=e.querySelector("#au-scode"),d=e.querySelector('input[name="keep"]');be?.addEventListener("input",()=>{if(r=be.value,D.id||J){delete D.id,J="",be.closest(".au-field")?.classList.remove("bad");const $=e.querySelector("#au-id-err");$&&($.textContent="");const N=e.querySelector("#au-login-ferr");N&&(N.hidden=!0)}}),g?.addEventListener("input",()=>{if(q=g.value,D.pwd||J){delete D.pwd,J="",g.closest(".au-field")?.classList.remove("bad");const $=e.querySelector("#au-pwd-err");$&&($.textContent="");const N=e.querySelector("#au-login-ferr");N&&(N.hidden=!0)}}),F?.addEventListener("input",()=>{if(O=F.value,D.sphone||J){delete D.sphone,J="",F.closest(".au-field")?.classList.remove("bad");const $=e.querySelector("#au-sphone-err");$&&($.textContent="");const N=e.querySelector("#au-login-ferr");N&&(N.hidden=!0)}}),n?.addEventListener("input",()=>{if(P=n.value.replace(/\D/g,"").slice(0,6),n.value=P,D.scode||J){delete D.scode,J="",n.closest(".au-field")?.classList.remove("bad");const $=e.querySelector("#au-scode-err");$&&($.textContent="");const N=e.querySelector("#au-login-ferr");N&&(N.hidden=!0)}}),d?.addEventListener("change",()=>{Q=d.checked}),e.querySelector('[data-act="toggle-eye"]')?.addEventListener("click",()=>{i=!i,k(),e.querySelector("#au-pwd")?.focus()}),e.querySelector('[data-act="toggle-sms"]')?.addEventListener("click",()=>{s=!s,D={},J="",k(),e.querySelector(s?"#au-sphone":"#au-id")?.focus()}),e.querySelector('[data-act="send-sms"]')?.addEventListener("click",()=>{const $=O.trim();if(!/^(\+?\d[\d\s-]{6,18})$/.test($)){D={sphone:"请输入有效的手机号码"},k(),e.querySelector("#au-sphone")?.focus();return}D={},ne=$,ce(),k(),e.querySelector("#au-scode")?.focus()}),e.querySelector('form[data-form="login"]')?.addEventListener("submit",async $=>{if($.preventDefault(),!U){if(D={},J="",s?(O.trim()||(D.sphone="请输入手机号码"),/^\d{6}$/.test(P.trim())||(D.scode="请输入 6 位验证码")):(r.trim()||(D.id="请输入电子邮箱或手机号码"),q||(D.pwd="请输入密码")),Object.keys(D).length>0){k();const N=Object.keys(D)[0];e.querySelector(`#au-${N}`)?.focus();return}U=!0,k();try{const N=await t.login({account:(s?O:r).trim(),password:s?P.trim():q});te(),a(N)}catch(N){U=!1,J=N instanceof Error?N.message:"账户或密码不正确",k()}}}),e.querySelector('[data-act="open-reset"]')?.addEventListener("click",()=>{le=r.trim(),ee="",T="reset",k(),e.querySelector("#au-rs-id")?.focus()}),e.querySelector('[data-act="open-register"]')?.addEventListener("click",()=>{T="register",k()}),e.querySelector('[data-act="open-legal"]')?.addEventListener("click",()=>{T="legal",k()}),e.querySelector('[data-act="open-contact"]')?.addEventListener("click",()=>{Y="",T="contact",k()}),e.querySelectorAll('[data-act="open-demo-roles"]').forEach($=>{$.addEventListener("click",()=>{T="demoRoles",k()})}),e.querySelectorAll('[data-act="close-modal"]').forEach($=>{$.addEventListener("click",()=>{T=null,k()})}),e.querySelector('[data-role="modal-scrim"]')?.addEventListener("click",$=>{$.target===$.currentTarget&&(T=null,k())}),e.querySelectorAll('[data-act="switch-legal"]').forEach($=>{$.addEventListener("click",()=>{const N=$.dataset.tab;N&&(W=N,k())})}),e.querySelector('[data-act="copy-support"]')?.addEventListener("click",async()=>{try{await navigator.clipboard.writeText("support@pacom.cn"),Y="已复制"}catch{Y="support@pacom.cn"}k()}),e.querySelector("#au-reset-form")?.addEventListener("submit",$=>{$.preventDefault(),le=e.querySelector("#au-rs-id")?.value.trim()??"",le?se?ee="演示环境未连接邮件/短信通道，请直接点击登录页「演示模式 · 5 角色免密体验」进入系统。":ee="如账户存在，验证码已发送。":ee="请输入电子邮箱或手机号码",k()}),e.querySelectorAll('[data-act="pick-demo-role"]').forEach($=>{$.addEventListener("click",async()=>{const N=$.dataset.roleId;if(!N||!t.switchDemoRole)return;const _=await t.switchDemoRole(N);te(),a(_)})})}k()}async function ha(){const e=document.getElementById("app");if(e)try{const t=Et(),a=await t.getSession(),s=async i=>{(!window.location.hash||window.location.hash==="#login")&&(window.location.hash="#home"),await pa(e,t,i,()=>{St(e,t,r=>{s(r)})})};if(!a||window.location.hash==="#login"){St(e,t,i=>{s(i)});return}await s(a)}catch(t){e.innerHTML=`<div class="pacom-shell"><div class="pacom-alert-banner">初始化失败：${String(t)}</div></div>`}}ha();
-//# sourceMappingURL=index-DsQxedwb.js.map
+//# sourceMappingURL=index-CGWfGdLR.js.map
