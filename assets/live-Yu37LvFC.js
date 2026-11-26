@@ -1,4 +1,4 @@
-import"./login-view-DX0E1GZX.js";async function a(){const t=document.getElementById("app");if(t){document.title="PACOM Station",t.innerHTML=`
+import"./login-view-BdDG6c6Z.js";async function a(){const t=document.getElementById("app");if(t){document.title="PACOM Station",t.innerHTML=`
       <div class="pacom-shell" style="align-items:center; justify-content:center; padding:24px;">
         <div class="dep-empty-card" style="max-width:500px; width:100%; text-align:left; align-items:flex-start; gap:14px;">
           <span class="pacom-badge pacom-badge--accent">服务端连接配置</span>
